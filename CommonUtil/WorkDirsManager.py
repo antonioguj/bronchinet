@@ -15,56 +15,57 @@ import os
 class WorkDirsManager(object):
 
     def __init__(self, basePath):
-        self.basePath = basePath + '/'
+        self.basePath = basePath
 
-    mapTypeData_RelDataPath = { 'training' : 'trainingData', 'validation' : 'validationData', 'testing': 'testingData' }
+    mapTypeData_RelDataPath = { 'training' : 'TrainingData', 'validation' : 'ValidationData', 'testing': 'TestingData' }
 
+    RelRawImagesPath = 'RawImages'
+    RelRawMasksPath  = 'RawMasks'
     RelModelsPath    = 'Models'
-    RelBestModelPath = 'BestModel'
 
 
     def getNameDataPath(self, typedata):
-        return self.basePath + self.mapTypeData_RelDataPath[typedata] + '/'
+        return os.path.join(self.basePath, self.mapTypeData_RelDataPath[typedata])
 
     def getNameTrainingDataPath(self):
-        return self.basePath + self.mapTypeData_RelDataPath['training'] + '/'
+        return os.path.join(self.basePath, self.mapTypeData_RelDataPath['training'])
 
     def getNameValidationDataPath(self):
-        return self.basePath + self.mapTypeData_RelDataPath['validation'] + '/'
+        return os.path.join(self.basePath, self.mapTypeData_RelDataPath['validation'])
 
     def getNameTestingDataPath(self):
-        return self.basePath + self.mapTypeData_RelDataPath['testing'] + '/'
+        return os.path.join(self.basePath, self.mapTypeData_RelDataPath['testing'])
 
     def getNameRawImagesDataPath(self, typedata):
-        return self.getNameDataPath(typedata) + 'Images' + '/'
+        return os.path.join(self.getNameDataPath(typedata), self.RelRawImagesPath)
 
-    def getNameRawGroundTruthDataPath(self, typedata):
-        return self.getNameDataPath(typedata) + 'GroundTruth' + '/'
+    def getNameRawMasksDataPath(self, typedata):
+        return os.path.join(self.getNameDataPath(typedata), self.RelRawMasksPath)
 
     def getNameModelsPath(self):
-        return self.basePath + self.RelModelsPath + '/'
+        return os.path.join(self.basePath, self.RelModelsPath)
 
-    def getNameBestModelPath(self):
-        return self.basePath + self.RelBestModelPath + '/'
+    def getNameNewPath(self, basePath, newRelPath):
+        newPath = os.path.join(basePath, newRelPath)
+        if( not os.path.exists(newPath) ):
+            os.makedirs(newPath)
+        return newPath
 
-    def getNewFullNamePath(self, namepath):
-        return self.getNewNamePath(self.basePath + namepath)
+    #@staticmethod
+    #def getNewNamePath(namepath):
+    #    if os.path.isdir(namepath):
+    #        count=1
+    #        while( True ):
+    #            if not os.path.isdir(namepath + '_' + count):
+    #                return namepath + '_' + count
+    #            else:
+    #                count = count+1
+    #    else:
+    #        return namepath
 
-    @staticmethod
-    def getNewNamePath(namepath):
-        if os.path.isdir(namepath):
-            count=1
-            while( True ):
-                if not os.path.isdir(namepath + '_' + count):
-                    return namepath + '_' + count
-                else:
-                    count = count+1
-        else:
-            return namepath
-
-    @staticmethod
-    def getListFilesInPath(path, extension=None):
-        if extension:
-            sorted( glob(path + '*' + extension))
-        else:
-            sorted( glob(path) )
+    #@staticmethod
+    #def getListFilesInPath(path, extension=None):
+    #    if extension:
+    #        sorted( glob(path + '*' + extension))
+    #    else:
+    #        sorted( glob(path) )

@@ -11,19 +11,19 @@
 import numpy as np
 
 
-BASEDIR = '/home/antonio/testSegmentation/Tests_LUVAR'
+BASEDIR = '/home/antonio/testSegmentation/Tests_LUVAR/'
 
-#IMAGES_HEIGHT = 331
-IMAGES_HEIGHT = 512
-#IMAGES_WIDTH  = 468
-IMAGES_WIDTH  = 512
+# MUST BE MULTIPLES OF 16
+IMAGES_HEIGHT = 288
+IMAGES_WIDTH  = 192
+IMAGES_DEPTHZ = 16
 
-BOUNDBOX_CROPPING = [(99, 430),
-                     (33, 501)]
+CROPPATCH = ((112, 400),
+             (64,  256))
 
-FORMATIMAGEDATA       = np.int16
-FORMATGROUNDTRUTHDATA = np.int8
+def getCROPPATCHMIRROR(cropPatch):
+    return ((cropPatch[0][0],     cropPatch[0][1]),
+            (512-cropPatch[1][1], 512-cropPatch[1][0]))
 
-MAXIMAGESTOLOAD = 100
-
-SMOOTH = 1
+FORMATIMAGEDATA = np.int16
+FORMATMASKDATA  = np.int8
