@@ -9,7 +9,7 @@
 ########################################################################################
 
 from CommonUtil.Constants import *
-from CommonUtil.DICOMreader import DICOMreader
+from CommonUtil.FileReaders import DICOMreader
 from CommonUtil.ErrorMessages import *
 from CommonUtil.WorkDirsManager import WorkDirsManager
 from glob import glob
@@ -20,49 +20,39 @@ TYPEDATA = 'testing'
 
 
 #MAIN
-workDirsManager = WorkDirsManager(BASEDIR)
-
-DataPath        = workDirsManager.getNameDataPath(TYPEDATA)
-ImagesPath      = workDirsManager.getNameRawImagesDataPath(TYPEDATA)
-GroundTruthPath = workDirsManager.getNameRawGroundTruthDataPath(TYPEDATA)
-
-if( not os.path.isdir(ImagesPath) ):
-    message = "directory \'%s\' does not exist" % (ImagesPath)
-    CatchErrorException(message)
-
-if( not os.path.isdir(GroundTruthPath) ):
-    message = "directory \'%s\' does not exist" % (GroundTruthPath)
-    CatchErrorException(message)
-
+workDirsManager= WorkDirsManager(BASEDIR)
+DataPath       = workDirsManager.getNameDataPath(TYPEDATA)
+ImagesPath     = workDirsManager.getNameRawImagesDataPath(TYPEDATA)
+MasksPath      = workDirsManager.getNameRawMasksDataPath(TYPEDATA)
 
 # Get the file list:
-listImageFiles      = sorted(glob(ImagesPath + '*.dcm'))
-listGroundTruthFiles= sorted(glob(GroundTruthPath  + '*.dcm'))
+listImageFiles = sorted(glob(ImagesPath + '/*.dcm'))
+listMaskFiles  = sorted(glob(MasksPath  + '/*.dcm'))
 
 
 boundBoxAllFiles = [(1000, -1000),  # (row_min, row_max)
                     (1000, -1000)]  # (row_min, row_max)
 
-for imageFile, groundTruthFile in zip(listImageFiles, listGroundTruthFiles):
+for imageFile, maskFile in zip(listImageFiles, listMaskFiles):
 
     print('\'%s\'...' %(imageFile))
 
-    sizeImage       = DICOMreader.getImageSize(imageFile)
-    sizeGroundTruth = DICOMreader.getImageSize(groundTruthFile)
+    sizeImage = DICOMreader.getImageSize(imageFile)
+    sizeMask  = DICOMreader.getImageSize(maskFile)
 
-    if (sizeImage != sizeGroundTruth):
-        message = "size of Images not equal to size of GroundTruth"
+    if (sizeImage != sizeMask):
+        message = "size of Images not equal to size of Mask"
         CatchErrorException(message)
 
-    groundTruth_array = DICOMreader.loadImage(groundTruthFile)
+    mask_array = DICOMreader.loadImage(maskFile)
 
     boundBox = [(1000, -1000),  # (row_min, row_max)
                 (1000, -1000)]  # (row_min, row_max)
 
-    for i, slice_groundTruth in enumerate(groundTruth_array):
+    for i, slice_mask in enumerate(mask_array):
 
         # Find out where there are active masks: segmentations. Elsewhere is not interesting for us
-        indexesActiveMask = np.argwhere(slice_groundTruth != 0)
+        indexesActiveMask = np.argwhere(slice_mask != 0)
 
         if( len(indexesActiveMask) ):
 

@@ -22,10 +22,10 @@ from keras.preprocessing import image as Kpreprocessing
 import time
 
 NBEPOCHS   = 500
-BATCH_SIZE = 12
+BATCH_SIZE = 1
 LEARN_RATE = 1.0e-05
 
-IMODEL     = 'Unet2D'
+IMODEL     = 'Unet3D'
 IOPTIMIZER = 'Adam'
 
 USE_DATAAUGMENTATION = False
@@ -35,9 +35,9 @@ USE_RESTARTMODEL = False
 
 #MAIN
 workDirsManager    = WorkDirsManager(BASEDIR)
-TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath(), 'ProcSlicesData')
-ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath(), 'ProcSlicesData')
-TestingDataPath    = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'ProcSlicesData')
+TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath(), 'ProcVolsData')
+ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath(), 'ProcVolsData')
+TestingDataPath    = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'ProcVolsData')
 ModelsPath         = workDirsManager.getNameModelsPath()
 
 
@@ -47,16 +47,16 @@ print('-' * 30)
 print('Loading data...')
 print('-' * 30)
 
-listTrainImagesFiles = sorted(glob(TrainingDataPath + '/slicesImages*.npy'))
-listTrainMasksFiles  = sorted(glob(TrainingDataPath + '/slicesMasks*.npy' ))
-listValidImagesFiles = sorted(glob(ValidationDataPath + '/slicesImages*.npy'))
-listValidMasksFiles  = sorted(glob(ValidationDataPath + '/slicesMasks*.npy' ))
+listTrainImagesFiles = sorted(glob(TrainingDataPath + '/volsImages*.npy'))
+listTrainMasksFiles  = sorted(glob(TrainingDataPath + '/volsMasks*.npy' ))
+listValidImagesFiles = sorted(glob(ValidationDataPath + '/volsImages*.npy'))
+listValidMasksFiles  = sorted(glob(ValidationDataPath + '/volsMasks*.npy' ))
 
-(xTrain, yTrain) = FileDataManager.loadDataListFiles2D(listTrainImagesFiles, listTrainMasksFiles)
-(xValid, yValid) = FileDataManager.loadDataListFiles2D(listValidImagesFiles, listValidMasksFiles)
+(xTrain, yTrain) = FileDataManager.loadDataListFiles3D(listTrainImagesFiles, listTrainMasksFiles)
+(xValid, yValid) = FileDataManager.loadDataListFiles3D(listValidImagesFiles, listValidMasksFiles)
 
-print('Number Training images: %s' %(xTrain.shape[0]))
-print('Number Validation images: %s' %(xValid.shape[0]))
+print('Number Training volumes: %s' %(xTrain.shape[0]))
+print('Number Validation volumes: %s' %(xValid.shape[0]))
 
 
 # BUILDING MODEL
@@ -65,7 +65,7 @@ print('_' * 30)
 print('Building model...')
 print('_' * 30)
 
-model = DICTAVAILNETWORKS2D[IMODEL].getModel(IMAGES_HEIGHT, IMAGES_WIDTH)
+model = DICTAVAILNETWORKS3D[IMODEL].getModel(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
 
 # Compile model
 model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(IOPTIMIZER, LEARN_RATE),
@@ -105,21 +105,21 @@ if( USE_DATAAUGMENTATION ):
     datagen = Kpreprocessing.ImageDataGenerator(zoom_range=0.2, horizontal_flip=True)
 
     model_info = model.fit_generator(datagen.flow(xTrain, yTrain,
-                                                  batch_size=BATCH_SIZE),
+                                                  batch_size=1), # BATCH_SIZE
                                      nb_epoch=NBEPOCHS,
                                      samples_per_epoch=xTrain.shape[0],
                                      verbose=1,
-                                     validation_data=(xValid, yValid),
+                                     #validation_data=(xValid, yValid),
                                      callbacks=callbacks_list)
 else:
     model_info = model.fit(xTrain, yTrain,
-                           batch_size=BATCH_SIZE,
+                           batch_size=1, # BATCH_SIZE
                            epochs=NBEPOCHS,
                            verbose=1,
                            shuffle=True,
                            #validation_split=0.2,
                            validation_data=(xValid, yValid),
-                           callbacks=callbacks_list )
+                           callbacks=callbacks_list)
 
 endtime = time.time()
 
