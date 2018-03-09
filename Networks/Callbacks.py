@@ -16,7 +16,7 @@ import numpy as np
 class RecordLossHistory(callbacks.Callback):
 
     def __init__(self, filepath):
-        self.filename = filepath + 'lossHistory.txt'
+        self.filename = filepath + '/lossHistory.txt'
 
     def on_train_begin(self, logs=None):
         self.fout = open(self.filename, 'w')
