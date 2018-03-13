@@ -16,7 +16,7 @@ from glob import glob
 import numpy as np
 import os
 
-TYPEDATA = 'testing'
+TYPEDATA = 'validation'
 
 FORMATINPUTIMAGES = 'dicom'
 CROPPINGIMAGES = True
@@ -151,6 +151,9 @@ for i, (in_imagesFile, in_masksFile) in enumerate(zip(listImagesFiles, listMasks
 
             batch_images = in_volImages_array[iVol*IMAGES_DEPTHZ:(iVol + 1)*IMAGES_DEPTHZ, :,:]
             batch_masks  = in_volMasks_array [iVol*IMAGES_DEPTHZ:(iVol + 1)*IMAGES_DEPTHZ, :,:]
+
+            # Turn the masks to binary labels:
+            batch_masks = np.where(batch_masks != 0, 1, 0)
 
             out_volImages_array[iVol] = np.asarray(batch_images[iVol*IMAGES_DEPTHZ:(iVol + 1)*IMAGES_DEPTHZ, :,:], dtype=FORMATIMAGEDATA)
             out_volMasks_array [iVol] = np.asarray(batch_masks [iVol*IMAGES_DEPTHZ:(iVol + 1)*IMAGES_DEPTHZ, :,:], dtype=FORMATMASKDATA )

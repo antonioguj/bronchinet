@@ -21,7 +21,14 @@ BATCH_SIZE = 1
 
 FORMATOUTIMAGES = 'nifti'
 
+CROPPINGIMAGES = True
+AUGMENTDATATWOSIDES = True
+
+if (AUGMENTDATATWOSIDES):
+    CROPPATCHMIRROR = getCROPPATCHMIRROR(CROPPATCH)
+
 IMODEL = 'Unet3D'
+
 
 #MAIN
 workDirsManager = WorkDirsManager(BASEDIR)
@@ -68,9 +75,24 @@ for imagesFile, masksFile, masksDICOMfile in zip(listTestImagesFiles, listTestMa
     masks_predict = np.ndarray(masksDICOM_truth.shape, dtype=FORMATMASKDATA)
     masks_predict[:,:,:] = 0
 
-    masks_predict[0:yPredict.shape[0],
-                  CROPPATCH[0][0]:CROPPATCH[0][1],
-                  CROPPATCH[1][0]:CROPPATCH[1][1]] = np.round(yPredict)
+    if (CROPPINGIMAGES):
+        if (AUGMENTDATATWOSIDES):
+            indexes_leftcrop  = [ind for begincrop in range(0,             yPredict.shape[0], 2*IMAGES_DEPTHZ) for ind in range(begincrop, begincrop + IMAGES_DEPTHZ)]
+            indexes_rightcrop = [ind for begincrop in range(IMAGES_DEPTHZ, yPredict.shape[0], 2*IMAGES_DEPTHZ) for ind in range(begincrop, begincrop + IMAGES_DEPTHZ)]
+
+            masks_predict[0:yPredict.shape[0]/2,
+                          CROPPATCH[0][0]:CROPPATCH[0][1],
+                          CROPPATCH[1][0]:CROPPATCH[1][1]] = np.round(yPredict[indexes_leftcrop])
+
+            masks_predict[0:yPredict.shape[0]/2,
+                          CROPPATCHMIRROR[0][0]:CROPPATCHMIRROR[0][1],
+                          CROPPATCHMIRROR[1][0]:CROPPATCHMIRROR[1][1]] = np.round(yPredict[indexes_rightcrop])
+        else:
+            masks_predict[0:yPredict.shape[0],
+                          CROPPATCH[0][0]:CROPPATCH[0][1],
+                          CROPPATCH[1][0]:CROPPATCH[1][1]] = np.round(yPredict)
+    else:
+        masks_predict[:,:,:] = np.round(yPredict)
 
     # Invert images: input images were inverted to start from the traquea
     masks_predict = masks_predict[::-1]

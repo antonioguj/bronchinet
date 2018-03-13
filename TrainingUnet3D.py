@@ -17,6 +17,7 @@ from Networks.Callbacks import *
 from Networks.Metrics import *
 from Networks.Networks import *
 from Networks.Optimizers import *
+from Prototypes.SlidingWindowBatchGenerator import *
 from keras import callbacks as Kcallbacks
 from keras.preprocessing import image as Kpreprocessing
 import time
@@ -28,16 +29,15 @@ LEARN_RATE = 1.0e-05
 IMODEL     = 'Unet3D'
 IOPTIMIZER = 'Adam'
 
-USE_DATAAUGMENTATION = False
+USE_DATAAUGMENTATION = True
 
 USE_RESTARTMODEL = False
 
 
 #MAIN
 workDirsManager    = WorkDirsManager(BASEDIR)
-TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath(), 'ProcVolsData')
-ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath(), 'ProcVolsData')
-TestingDataPath    = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'ProcVolsData')
+TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath(), 'VolsData')
+ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath(), 'SlidePatchsVolsData')
 ModelsPath         = workDirsManager.getNameModelsPath()
 
 
@@ -52,10 +52,12 @@ listTrainMasksFiles  = sorted(glob(TrainingDataPath + '/volsMasks*.npy' ))
 listValidImagesFiles = sorted(glob(ValidationDataPath + '/volsImages*.npy'))
 listValidMasksFiles  = sorted(glob(ValidationDataPath + '/volsMasks*.npy' ))
 
-(xTrain, yTrain) = FileDataManager.loadDataListFiles3D(listTrainImagesFiles, listTrainMasksFiles)
-(xValid, yValid) = FileDataManager.loadDataListFiles3D(listValidImagesFiles, listValidMasksFiles)
+(xTrain, yTrain) = FileDataManager.loadDataFiles3D_noprocess(listTrainImagesFiles[0], listTrainMasksFiles[0])
+(xValid, yValid) = FileDataManager.loadDataFiles3D(listValidImagesFiles[0], listValidMasksFiles[0])
 
-print('Number Training volumes: %s' %(xTrain.shape[0]))
+xTrain = [xTrain]
+yTrain = [yTrain]
+print('Number Training volumes: %s' %len(xTrain))
 print('Number Validation volumes: %s' %(xValid.shape[0]))
 
 
@@ -102,14 +104,15 @@ starttime = time.time()
 
 if( USE_DATAAUGMENTATION ):
     # Augmented Data generated "on the fly"
-    datagen = Kpreprocessing.ImageDataGenerator(zoom_range=0.2, horizontal_flip=True)
+    #datagen = Kpreprocessing.ImageDataGenerator(zoom_range=0.2, horizontal_flip=True)
 
-    model_info = model.fit_generator(datagen.flow(xTrain, yTrain,
-                                                  batch_size=1), # BATCH_SIZE
+    model_info = model.fit_generator(SlidingWindowBatchGenerator(xTrain, yTrain,
+                                                                 prop_overlap=(0.5, 0.5, 0.5),
+                                                                 batch_size=1), # BATCH_SIZE
                                      nb_epoch=NBEPOCHS,
-                                     samples_per_epoch=xTrain.shape[0],
                                      verbose=1,
-                                     #validation_data=(xValid, yValid),
+                                     shuffle=True,
+                                     validation_data=(xValid, yValid),
                                      callbacks=callbacks_list)
 else:
     model_info = model.fit(xTrain, yTrain,

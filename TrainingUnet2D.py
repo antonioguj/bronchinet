@@ -37,7 +37,6 @@ USE_RESTARTMODEL = False
 workDirsManager    = WorkDirsManager(BASEDIR)
 TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath(), 'ProcSlicesData')
 ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath(), 'ProcSlicesData')
-TestingDataPath    = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'ProcSlicesData')
 ModelsPath         = workDirsManager.getNameModelsPath()
 
 
