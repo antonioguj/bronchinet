@@ -18,7 +18,6 @@ import sys
 import os
 
 SHUFFLEIMAGES = False
-
 NORMALIZEDATA = False
 
 
@@ -43,7 +42,7 @@ class FileDataManager(object):
 
 
     @classmethod
-    def loadDataFiles2D(cls, imagesFile, masksFile, maxSlicesToLoad=1000000):
+    def loadDataFiles2D(cls, imagesFile, masksFile, maxSlicesToLoad=1000000, shuffleImages=SHUFFLEIMAGES):
 
         if( not os.path.exists(imagesFile) or
             not os.path.exists(masksFile) ):
@@ -66,14 +65,14 @@ class FileDataManager(object):
             xData = np.asarray(xData[0:totalSlices], dtype=FORMATIMAGEDATA).reshape([totalSlices, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
             yData = np.asarray(yData[0:totalSlices], dtype=FORMATMASKDATA ).reshape([totalSlices, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
 
-        if (SHUFFLEIMAGES):
+        if (shuffleImages):
             return cls.shuffleImages(xData, yData)
         else:
             return (xData, yData)
 
 
     @classmethod
-    def loadDataListFiles2D(cls, listImagesFiles, listMasksFiles, maxSlicesToLoad=1000000):
+    def loadDataListFiles2D(cls, listImagesFiles, listMasksFiles, maxSlicesToLoad=1000000, shuffleImages=SHUFFLEIMAGES):
 
         if( not listImagesFiles or
             not listMasksFiles ):
@@ -89,14 +88,14 @@ class FileDataManager(object):
                 message = "Images file or Masks file does not exist (\'%s\',\'%s\')" % (imagesFile, masksFile)
                 CatchErrorException(message)
 
-            xData = np.load(imagesFile)
-            yData = np.load(masksFile)
+            xData_part = np.load(imagesFile)
+            yData_part = np.load(masksFile)
 
-            if (xData.shape != yData.shape):
-                message = "Images array of different size to Masks array (\'%s\',\'%s\')" % (xData.shape, yData.shape)
+            if (xData_part.shape != yData_part.shape):
+                message = "Images array of different size to Masks array (\'%s\',\'%s\')" % (xData_part.shape, yData_part.shape)
                 CatchErrorException(message)
 
-            totalSlices += xData.shape[0]
+            totalSlices += xData_part.shape[0]
 
             if( totalSlices>=maxSlicesToLoad ):
                 #reached the max size for output array
@@ -132,14 +131,14 @@ class FileDataManager(object):
             countSlice += numSlices_part
         # endfor
 
-        if (SHUFFLEIMAGES):
+        if (shuffleImages):
             return cls.shuffleImages(xData, yData)
         else:
             return (xData, yData)
 
 
     @classmethod
-    def loadDataFiles3D(cls, imagesFile, masksFile, maxVolsToLoad=1000):
+    def loadDataFiles3D(cls, imagesFile, masksFile, maxVolsToLoad=1000, shuffleImages=SHUFFLEIMAGES):
 
         if( not os.path.exists(imagesFile) or
             not os.path.exists(masksFile) ):
@@ -162,14 +161,14 @@ class FileDataManager(object):
             xData = np.asarray(xData[0:totalVols], dtype=FORMATIMAGEDATA).reshape([totalVols, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
             yData = np.asarray(yData[0:totalVols], dtype=FORMATMASKDATA ).reshape([totalVols, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
 
-        if (SHUFFLEIMAGES):
+        if (shuffleImages):
             return cls.shuffleImages(xData, yData)
         else:
             return (xData, yData)
 
 
     @classmethod
-    def loadDataListFiles3D(cls, listImagesFiles, listMasksFiles, maxVolsToLoad=1000):
+    def loadDataListFiles3D(cls, listImagesFiles, listMasksFiles, maxVolsToLoad=1000, shuffleImages=SHUFFLEIMAGES):
 
         if( not listImagesFiles or
             not listMasksFiles ):
@@ -185,14 +184,14 @@ class FileDataManager(object):
                 message = "Images file or Masks file does not exist (\'%s\',\'%s\')" % (imagesFile, masksFile)
                 CatchErrorException(message)
 
-            xData = np.load(imagesFile)
-            yData = np.load(masksFile)
+            xData_part = np.load(imagesFile)
+            yData_part = np.load(masksFile)
 
-            if (xData.shape != yData.shape):
-                message = "Images array of different size to Masks array (\'%s\',\'%s\')" % (xData.shape, yData.shape)
+            if (xData_part.shape != yData_part.shape):
+                message = "Images array of different size to Masks array (\'%s\',\'%s\')" % (xData_part.shape, yData_part.shape)
                 CatchErrorException(message)
 
-            totalVols += xData.shape[0]
+            totalVols += xData_part.shape[0]
 
             if( totalVols>=maxVolsToLoad ):
                 #reached the max size for output array
@@ -228,7 +227,56 @@ class FileDataManager(object):
             countVol += numVols_part
         # endfor
 
-        if (SHUFFLEIMAGES):
+        if (shuffleImages):
             return cls.shuffleImages(xData, yData)
         else:
             return (xData, yData)
+
+
+    @classmethod
+    def loadDataFiles3D_noprocess(cls, imagesFile, masksFile):
+
+        if( not os.path.exists(imagesFile) or
+            not os.path.exists(masksFile) ):
+            message = "Images file or Masks file does not exist (\'%s\',\'%s\')" % (imagesFile, masksFile)
+            CatchErrorException(message)
+
+        xData = np.load(imagesFile)
+        yData = np.load(masksFile)
+
+        if( xData.shape != yData.shape ):
+            message = "Images array of different size to Masks array (\'%s\',\'%s\')" % (xData.shape, yData.shape)
+            CatchErrorException(message)
+
+        return (xData, yData)
+
+    @classmethod
+    def loadDataListFiles3D_noprocess(cls, listImagesFiles, listMasksFiles):
+
+        if( not listImagesFiles or
+            not listMasksFiles ):
+            message = "No Images files found"
+            CatchErrorException(message)
+
+        #First, loop over files to run cheks and compute size output array
+        xData = []
+        yData = []
+        for imagesFile, masksFile in zip(listImagesFiles, listMasksFiles):
+
+            if (not os.path.exists(imagesFile) or
+                not os.path.exists(masksFile)):
+                message = "Images file or Masks file does not exist (\'%s\',\'%s\')" % (imagesFile, masksFile)
+                CatchErrorException(message)
+
+            xData_part = np.load(imagesFile)
+            yData_part = np.load(masksFile)
+
+            if (xData_part.shape != yData_part.shape):
+                message = "Images array of different size to Masks array (\'%s\',\'%s\')" % (xData_part.shape, yData_part.shape)
+                CatchErrorException(message)
+
+            xData.append(xData_part)
+            yData.append(yData_part)
+        #endfor
+
+        return (xData, yData)
