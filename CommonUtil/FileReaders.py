@@ -10,8 +10,8 @@
 
 import SimpleITK as sitk
 import nibabel as nib
-import dicom
-from dicom.dataset import Dataset, FileDataset
+import pydicom
+from pydicom.dataset import Dataset, FileDataset
 import datetime, time
 import numpy as np
 
@@ -67,6 +67,16 @@ class DICOMreader(FileReader):
 
         ds = sitk.ReadImage(filename)
         return ds.GetSize()
+
+    # get dcm voxel size:
+    @staticmethod
+    def getImageVoxelSize(filename):
+
+        ds = pydicom.read_file(filename)
+        voxel_size = (float(ds.PixelSpacing[0]),
+                      float(ds.PixelSpacing[1]),
+                      float(ds.SpacingBetweenSlices))
+        return voxel_size
 
     # load dcm file array:
     @staticmethod

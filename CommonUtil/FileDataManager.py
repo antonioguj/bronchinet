@@ -138,7 +138,7 @@ class FileDataManager(object):
 
 
     @classmethod
-    def loadDataFiles3D(cls, imagesFile, masksFile, maxVolsToLoad=1000, shuffleImages=SHUFFLEIMAGES):
+    def loadDataFiles3D(cls, imagesFile, masksFile, maxVolsToLoad=10000, shuffleImages=SHUFFLEIMAGES):
 
         if( not os.path.exists(imagesFile) or
             not os.path.exists(masksFile) ):
@@ -168,7 +168,7 @@ class FileDataManager(object):
 
 
     @classmethod
-    def loadDataListFiles3D(cls, listImagesFiles, listMasksFiles, maxVolsToLoad=1000, shuffleImages=SHUFFLEIMAGES):
+    def loadDataListFiles3D(cls, listImagesFiles, listMasksFiles, maxVolsToLoad=10000, shuffleImages=SHUFFLEIMAGES):
 
         if( not listImagesFiles or
             not listMasksFiles ):
