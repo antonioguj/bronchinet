@@ -74,14 +74,12 @@ class SlidingWindowBatchGenerator(image.Iterator):
         if self.seed is not None:
             np.random.seed(self.seed + self.total_batches_seen)
 
-        (size_data_X, size_data_Y, size_data_Z) = self.list_size_data_XYZ[idx_block]
-
         current_index = self.batch_size * idx_batch_inblock
         indexes_array = self.index_array[current_index:current_index + self.batch_size]
 
         self.total_batches_seen += 1
 
-        return self.get_batches_cropped_images(idx_block, indexes_array, size_data_X, size_data_Y, size_data_Z)
+        return self.get_batches_cropped_images(idx_block, indexes_array, self.list_size_data_XYZ[idx_block])
 
 
     def __len__(self):
@@ -97,16 +95,17 @@ class SlidingWindowBatchGenerator(image.Iterator):
         with self.lock:
             indexes_array = next(self.index_generator)
 
-        return self.get_batches_cropped_images(idx_block, indexes_array, size_data_X, size_data_Y, size_data_Z)
+        return self.get_batches_cropped_images(self.index_block, indexes_array, self.list_size_data_XYZ[self.index_block])
 
     def _flow_index(self):
         self._reset()
-        while 1:
-            if (self._is_next_block_batches()):
-                self._next_block_batches()
-
+        #while 1:
+        while self.batch_index < len(self):
             if self.seed is not None:
                 np.random.seed(self.seed + self.total_batches_seen)
+
+            if (self._is_next_block_batches()):
+                self._next_block_batches()
 
             current_index = self.batch_size * self.batch_index_inblock
 
@@ -160,7 +159,7 @@ class SlidingWindowBatchGenerator(image.Iterator):
         self._set_index_array(self.index_block)
 
 
-    def get_batches_cropped_images(self, idx_block, indexes_array, size_data_X, size_data_Y, size_data_Z):
+    def get_batches_cropped_images(self, idx_block, indexes_array, (size_data_X, size_data_Y, size_data_Z)):
 
         (indexes_X_batch,
          indexes_Y_batch,

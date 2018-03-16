@@ -12,6 +12,7 @@ from CommonUtil.Constants import *
 from CommonUtil.FileDataManager import *
 from keras.preprocessing import image
 import numpy as np
+import random
 
 
 class ManyFilesBatchGenerator(image.Iterator):
@@ -40,7 +41,7 @@ class ManyFilesBatchGenerator(image.Iterator):
         #endfor
 
         size_data_total = sum(self.list_size_data)
-        super(BatchGenerator, self).__init__(size_data_total, batch_size, shuffle, seed)
+        super(ManyFilesBatchGenerator, self).__init__(size_data_total, batch_size, shuffle, seed)
 
         #reset
         self.on_epoch_end()
@@ -119,12 +120,13 @@ class ManyFilesBatchGenerator(image.Iterator):
 
     def _flow_index(self):
         self._reset()
-        while 1:
-            if (self._is_next_file_batches()):
-                self._next_file_batches()
-
+        #while 1:
+        while self.batch_index < len(self):
             if self.seed is not None:
                 np.random.seed(self.seed + self.total_batches_seen)
+
+            if (self._is_next_file_batches()):
+                self._next_file_batches()
 
             current_index = self.batch_size * self.batch_index_infile
 
@@ -149,6 +151,7 @@ class ManyFilesBatchGenerator(image.Iterator):
     def _reset(self):
         self.batch_index = 0
         self.index_file = 0
+        self._shuffle_files_list()
         self._reset_infile(0)
         self._set_index_array(0)
         self._load_data_file(0)
@@ -185,3 +188,17 @@ class ManyFilesBatchGenerator(image.Iterator):
         (self.this_Xdata, self.this_Ydata) = FileDataManager.loadDataFiles3D(self.list_files_X[idx_file],
                                                                              self.list_files_Y[idx_file],
                                                                              shuffleImages=True)
+
+    def _shuffle_files_list(self):
+        #need to shuffle all list at the same time
+        in_list_aux = list(zip(self.list_files_X,
+                                          self.list_files_Y,
+                                          self.list_size_data,
+                                          self.list_num_batches,
+                                          self.list_begin_index_batch))
+        out_list_aux = random.shuffle(in_list_aux)
+        (self.list_files_X,
+         self.list_files_Y,
+         self.list_size_data,
+         self.list_num_batches,
+         self.list_begin_index_batch) = zip(*out_list_aux)
