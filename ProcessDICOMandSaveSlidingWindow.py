@@ -38,8 +38,8 @@ ProcVolsDataPath= workDirsManager.getNameNewPath(BaseDataPath, 'SlidePatchsVolsD
 
 
 # Get the file list:
-listImagesFiles = sorted(glob(RawImagesPath + '/*.dcm'))
-listMasksFiles  = sorted(glob(RawMasksPath  + '/*.dcm'))
+listImagesFiles = sorted(glob(RawImagesPath + '/*.dcm'))[0:1]
+listMasksFiles  = sorted(glob(RawMasksPath  + '/*.dcm'))[0:1]
 
 nbImagesFiles = len(listImagesFiles)
 nbMasksFiles  = len(listMasksFiles)
@@ -81,6 +81,9 @@ for i, (in_imagesFile, in_masksFile) in enumerate(zip(listImagesFiles, listMasks
 
     print('Sliding Window: build num images: %s; in X_Y_Z dirs: (%s,%s,%s)'%(num_cropimages, num_cropimgs_X, num_cropimgs_Y, num_cropimgs_Z))
 
+
+    # Turn the masks to binary labels:
+    in_volMasks_array = np.where(in_volMasks_array != 0, 1, 0)
 
     out_volImages_array = np.ndarray([num_cropimages, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH], dtype=FORMATIMAGEDATA)
     out_volMasks_array  = np.ndarray([num_cropimages, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH], dtype=FORMATMASKDATA )

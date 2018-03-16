@@ -21,23 +21,24 @@ from Prototypes.SlidingWindowBatchGenerator import *
 from keras import callbacks as Kcallbacks
 from keras.preprocessing import image as Kpreprocessing
 import time
+import sys
 
-NBEPOCHS   = 500
+NBEPOCHS   = 100
 BATCH_SIZE = 1
-LEARN_RATE = 1.0e-05
 
-IMODEL     = 'Unet3D'
+IMODEL     = 'Unet3D_Dropout'
 IOPTIMIZER = 'Adam'
+LEARN_RATE = 3.0e-05
 
-USE_DATAAUGMENTATION = True
+USE_DATAAUGMENTATION = False
 
 USE_RESTARTMODEL = False
 
 
 #MAIN
 workDirsManager    = WorkDirsManager(BASEDIR)
-TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath(), 'VolsData')
-ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath(), 'SlidePatchsVolsData')
+TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath(), 'ProcVolsData')
+ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath(), 'ProcVolsData')
 ModelsPath         = workDirsManager.getNameModelsPath()
 
 
@@ -52,12 +53,10 @@ listTrainMasksFiles  = sorted(glob(TrainingDataPath + '/volsMasks*.npy' ))
 listValidImagesFiles = sorted(glob(ValidationDataPath + '/volsImages*.npy'))
 listValidMasksFiles  = sorted(glob(ValidationDataPath + '/volsMasks*.npy' ))
 
-(xTrain, yTrain) = FileDataManager.loadDataFiles3D_noprocess(listTrainImagesFiles[0], listTrainMasksFiles[0])
-(xValid, yValid) = FileDataManager.loadDataFiles3D(listValidImagesFiles[0], listValidMasksFiles[0])
+(xTrain, yTrain) = FileDataManager.loadDataListFiles3D(listTrainImagesFiles, listTrainMasksFiles)
+(xValid, yValid) = FileDataManager.loadDataListFiles3D(listValidImagesFiles, listValidMasksFiles)
 
-xTrain = [xTrain]
-yTrain = [yTrain]
-print('Number Training volumes: %s' %len(xTrain))
+print('Number Training volumes: %s' %(len(xTrain)))
 print('Number Validation volumes: %s' %(xValid.shape[0]))
 
 
@@ -104,7 +103,7 @@ starttime = time.time()
 
 if( USE_DATAAUGMENTATION ):
     # Augmented Data generated "on the fly"
-    #datagen = Kpreprocessing.ImageDataGenerator(zoom_range=0.2, horizontal_flip=True)
+    datagen = Kpreprocessing.ImageDataGenerator(zoom_range=0.2, horizontal_flip=True)
 
     model_info = model.fit_generator(SlidingWindowBatchGenerator(xTrain, yTrain,
                                                                  prop_overlap=(0.5, 0.5, 0.5),

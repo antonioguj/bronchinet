@@ -8,13 +8,8 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.Constants import *
-from CommonUtil.FileReaders import *
-from CommonUtil.FileDataManager import *
 from CommonUtil.PlotsManager import *
 from CommonUtil.WorkDirsManager import *
-from Networks.Metrics import *
-from Networks.Networks import *
 from glob import glob
 import numpy as np
 import os
