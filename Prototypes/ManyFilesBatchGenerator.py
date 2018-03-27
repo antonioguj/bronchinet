@@ -8,7 +8,6 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.Constants import *
 from CommonUtil.FileDataManager import *
 from keras.preprocessing import image
 import numpy as np

@@ -8,43 +8,41 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.Constants import *
 from CommonUtil.FileDataManager import *
+from Preprocessing.SlidingWindowImages import *
 from keras.preprocessing import image
 import numpy as np
 
 
 class SlidingWindowBatchGenerator(image.Iterator):
 
-    def __init__(self, list_Xdata, list_Ydata, prop_overlap=(0.5, 0.5, 0.5), batch_size=32, shuffle=False, seed=None):
+    def __init__(self, list_Xdata, list_Ydata,
+                      (size_img_z, size_img_x, size_img_y),
+                      (prop_overlap_z, prop_overlap_x, prop_overlap_y),
+                       batch_size=32, shuffle=False, seed=None):
 
         self.list_Xdata = list_Xdata
         self.list_Ydata = list_Ydata
-        self.prop_X = prop_overlap[1]
-        self.prop_Y = prop_overlap[2]
-        self.prop_Z = prop_overlap[0]
+        (self.size_img_x, self.size_img_y, self.size_img_z) = (size_img_x, size_img_y, size_img_z)
+        (self.prop_overlap_x, self.prop_overlap_y, self.prop_overlap_z) = (prop_overlap_x, prop_overlap_y, prop_overlap_z)
 
         self.list_size_data = []
-        self.list_size_data_XYZ = []
+        self.list_size_data_x_y_z = []
         self.list_num_batches = []
         self.list_begin_index_batch = []
 
         count_batches = 0
         for i, (Xdata, Ydata) in enumerate(zip(list_Xdata, list_Ydata)):
 
-            (size_img_Z, size_img_X, size_img_Y) = Xdata.shape
+            (sizetotal_z, sizetotal_x, sizetotal_y) = Xdata.shape
 
-            num_cropimgs_X = int(np.floor((size_img_X - self.prop_X*IMAGES_HEIGHT) /(1 - self.prop_X)/IMAGES_HEIGHT))
-            num_cropimgs_Y = int(np.floor((size_img_Y - self.prop_Y*IMAGES_WIDTH ) /(1 - self.prop_Y)/IMAGES_WIDTH ))
-            num_cropimgs_Z = int(np.floor((size_img_Z - self.prop_Z*IMAGES_DEPTHZ) /(1 - self.prop_Z)/IMAGES_DEPTHZ))
-            num_cropimages = num_cropimgs_X * num_cropimgs_Y * num_cropimgs_Z
+            (num_images, num_images_x, num_images_y, num_images_z) = SlidingWindowImages.compute_num_images((sizetotal_z, sizetotal_x, sizetotal_y),
+                                                                                                            (size_img_z, size_img_x, size_img_y),
+                                                                                                            (prop_overlap_z, prop_overlap_x, prop_overlap_y))
+            num_batches = (num_images + batch_size - 1)//batch_size # round-up
 
-            num_batches = (num_cropimages + batch_size - 1)//batch_size # round-up
-
-            print('Sliding Window: build num images: %s; in X_Y_Z dirs: (%s,%s,%s)' % (num_cropimages, num_cropimgs_X, num_cropimgs_Y, num_cropimgs_Z))
-
-            self.list_size_data.append( num_cropimages )
-            self.list_size_data_XYZ.append( (num_cropimgs_X, num_cropimgs_Y, num_cropimgs_Z) )
+            self.list_size_data.append( num_images )
+            self.list_size_data_x_y_z.append( (num_images_x, num_images_y, num_images_z) )
             self.list_num_batches.append( num_batches )
             self.list_begin_index_batch.append( count_batches )
 
@@ -79,7 +77,7 @@ class SlidingWindowBatchGenerator(image.Iterator):
 
         self.total_batches_seen += 1
 
-        return self.get_batches_cropped_images(idx_block, indexes_array, self.list_size_data_XYZ[idx_block])
+        return self.get_batches_cropped_images(idx_block, indexes_array, self.list_size_data_x_y_z[idx_block])
 
 
     def __len__(self):
@@ -95,7 +93,7 @@ class SlidingWindowBatchGenerator(image.Iterator):
         with self.lock:
             indexes_array = next(self.index_generator)
 
-        return self.get_batches_cropped_images(self.index_block, indexes_array, self.list_size_data_XYZ[self.index_block])
+        return self.get_batches_cropped_images(self.index_block, indexes_array, self.list_size_data_x_y_z[self.index_block])
 
     def _flow_index(self):
         self._reset()
@@ -159,55 +157,43 @@ class SlidingWindowBatchGenerator(image.Iterator):
         self._set_index_array(self.index_block)
 
 
-    def get_batches_cropped_images(self, idx_block, indexes_array, (size_data_X, size_data_Y, size_data_Z)):
+    def get_batches_cropped_images(self, index_block, indexes_array, (size_data_X, size_data_Y, size_data_Z)):
 
         (indexes_X_batch,
          indexes_Y_batch,
-         indexes_Z_batch) = self.get_index_X_Y_Z(indexes_array, size_data_X, size_data_Y, size_data_Z)
+         indexes_Z_batch) = self.get_indexes_3dirs(indexes_array, size_data_X, size_data_Y)
 
-        Xdata_batch = np.ndarray([self.batch_size, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH], dtype=FORMATIMAGEDATA)
-        Ydata_batch = np.ndarray([self.batch_size, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH], dtype=FORMATMASKDATA )
+        Xdata_batch = np.ndarray([self.batch_size, self.size_img_z, self.size_img_x, self.size_img_y], dtype=FORMATIMAGEDATA)
+        Ydata_batch = np.ndarray([self.batch_size, self.size_img_z, self.size_img_x, self.size_img_y], dtype=FORMATMASKDATA )
 
-        for i, (idx_X_batch, idx_Y_batch, idx_Z_batch) in enumerate(zip(indexes_X_batch,
-                                                                        indexes_Y_batch,
-                                                                        indexes_Z_batch)):
-            # (x_left, x_right, y_down, y_up, z_back, z_front)
-            bound_box_batch = self.compute_batch_bound_box(idx_X_batch, idx_Y_batch, idx_Z_batch)
+        for i, (index_x_batch, index_y_batch, index_z_batch) in enumerate(zip(indexes_X_batch,
+                                                                              indexes_Y_batch,
+                                                                              indexes_Z_batch)):
 
-            Xdata_batch[i] = self.list_Xdata[idx_block][bound_box_batch[4]:bound_box_batch[5],
-                                                        bound_box_batch[0]:bound_box_batch[1],
-                                                        bound_box_batch[2]:bound_box_batch[3]]
-            Ydata_batch[i] = self.list_Ydata[idx_block][bound_box_batch[4]:bound_box_batch[5],
-                                                        bound_box_batch[0]:bound_box_batch[1],
-                                                        bound_box_batch[2]:bound_box_batch[3]]
+            (x_left, x_right, y_down, y_up, z_back, z_front) = self.compute_batch_boundingBox(index_x_batch, index_y_batch, index_z_batch)
+
+            Xdata_batch[i] = self.list_Xdata[index_block][z_back:z_front, x_left:x_right, y_down:y_up]
+            Ydata_batch[i] = self.list_Ydata[index_block][z_back:z_front, x_left:x_right, y_down:y_up]
         #endfor
 
         if K.image_data_format() == 'channels_first':
-            Xdata_batch = Xdata_batch.reshape([self.batch_size, 1, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH])
-            Ydata_batch = Ydata_batch.reshape([self.batch_size, 1, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH])
+            Xdata_batch = Xdata_batch.reshape([self.batch_size, 1, self.size_img_z, self.size_img_x, self.size_img_y])
+            Ydata_batch = Ydata_batch.reshape([self.batch_size, 1, self.size_img_z, self.size_img_x, self.size_img_y])
         else:
-            Xdata_batch = Xdata_batch.reshape([self.batch_size, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
-            Ydata_batch = Ydata_batch.reshape([self.batch_size, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
+            Xdata_batch = Xdata_batch.reshape([self.batch_size, self.size_img_z, self.size_img_x, self.size_img_y, 1])
+            Ydata_batch = Ydata_batch.reshape([self.batch_size, self.size_img_z, self.size_img_x, self.size_img_y, 1])
 
         return (Xdata_batch, Ydata_batch)
 
 
-    def get_index_X_Y_Z(self, idx_batch, size_data_X, size_data_Y, size_data_Z):
+    def get_indexes_3dirs(self, index_batch, size_data_X, size_data_Y):
 
-        idx_Z_batch = idx_batch // (size_data_X * size_data_Y)
-        idx_batch_XY= idx_batch % (size_data_X * size_data_Y)
-        idx_Y_batch = idx_batch_XY // size_data_X
-        idx_X_batch = idx_batch_XY % size_data_X
+        return SlidingWindowImages.get_indexes_3dirs(index_batch, (size_data_X, size_data_Y))
 
-        return (idx_X_batch, idx_Y_batch, idx_Z_batch)
+    def compute_batch_boundingBox(self, index_x, index_y, index_z):
 
-    def compute_batch_bound_box(self, idx_X, idx_Y, idx_Z):
-
-        x_left = int(idx_X * (1.0 - self.prop_X) * IMAGES_HEIGHT)
-        x_right= x_left + IMAGES_HEIGHT
-        y_down = int(idx_Y * (1.0 - self.prop_Y) * IMAGES_WIDTH)
-        y_up   = y_down + IMAGES_WIDTH
-        z_back = int(idx_Z * (1.0 - self.prop_Z) * IMAGES_DEPTHZ)
-        z_front= z_back + IMAGES_DEPTHZ
+        (x_left, x_right) = SlidingWindowImages.get_limits_sliding_image(index_x, self.size_img_x, self.prop_overlap_x)
+        (y_down, y_up   ) = SlidingWindowImages.get_limits_sliding_image(index_y, self.size_img_y, self.prop_overlap_y)
+        (z_back, z_front) = SlidingWindowImages.get_limits_sliding_image(index_z, self.size_img_z, self.prop_overlap_z)
 
         return (x_left, x_right, y_down, y_up, z_back, z_front)
