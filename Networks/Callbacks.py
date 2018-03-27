@@ -9,7 +9,6 @@
 ########################################################################################
 
 from keras import callbacks
-import numpy as np
 
 # All derived from baseclass "callbacks.Callback"
 
