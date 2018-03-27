@@ -11,10 +11,8 @@
 from CommonUtil.Constants import *
 from CommonUtil.ErrorMessages import *
 from keras import backend as K
-from glob import glob
 import numpy as np
 np.random.seed(2017)
-import sys
 import os
 
 SHUFFLEIMAGES = False
@@ -49,8 +47,8 @@ class FileDataManager(object):
             message = "Images file or Masks file does not exist (\'%s\',\'%s\')" % (imagesFile, masksFile)
             CatchErrorException(message)
 
-        xData = np.load(imagesFile)
-        yData = np.load(masksFile)
+        xData = np.load(imagesFile).astype(dtype=FORMATIMAGEDATA)
+        yData = np.load(masksFile) .astype(dtype=FORMATMASKDATA )
 
         if( xData.shape != yData.shape ):
             message = "Images array of different size to Masks array (\'%s\',\'%s\')" % (xData.shape, yData.shape)
@@ -59,11 +57,11 @@ class FileDataManager(object):
         totalSlices = min(xData.shape[0], maxSlicesToLoad)
 
         if K.image_data_format() == 'channels_first':
-            xData = np.asarray(xData[0:totalSlices], dtype=FORMATIMAGEDATA).reshape([totalSlices, 1, IMAGES_HEIGHT, IMAGES_WIDTH])
-            yData = np.asarray(yData[0:totalSlices], dtype=FORMATMASKDATA ).reshape([totalSlices, 1, IMAGES_HEIGHT, IMAGES_WIDTH])
+            xData = np.asarray(xData[0:totalSlices]).reshape([totalSlices, 1, IMAGES_HEIGHT, IMAGES_WIDTH])
+            yData = np.asarray(yData[0:totalSlices]).reshape([totalSlices, 1, IMAGES_HEIGHT, IMAGES_WIDTH])
         else:
-            xData = np.asarray(xData[0:totalSlices], dtype=FORMATIMAGEDATA).reshape([totalSlices, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
-            yData = np.asarray(yData[0:totalSlices], dtype=FORMATMASKDATA ).reshape([totalSlices, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
+            xData = np.asarray(xData[0:totalSlices]).reshape([totalSlices, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
+            yData = np.asarray(yData[0:totalSlices]).reshape([totalSlices, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
 
         if (shuffleImages):
             return cls.shuffleImages(xData, yData)
@@ -88,8 +86,8 @@ class FileDataManager(object):
                 message = "Images file or Masks file does not exist (\'%s\',\'%s\')" % (imagesFile, masksFile)
                 CatchErrorException(message)
 
-            xData_part = np.load(imagesFile)
-            yData_part = np.load(masksFile)
+            xData_part = np.load(imagesFile).astype(dtype=FORMATIMAGEDATA)
+            yData_part = np.load(masksFile) .astype(dtype=FORMATMASKDATA )
 
             if (xData_part.shape != yData_part.shape):
                 message = "Images array of different size to Masks array (\'%s\',\'%s\')" % (xData_part.shape, yData_part.shape)
@@ -116,17 +114,17 @@ class FileDataManager(object):
         countSlice = 0
         for imagesFile, masksFile in zip(listImagesFiles, listMasksFiles):
 
-            xData_part = np.load(imagesFile)
-            yData_part = np.load(masksFile)
+            xData_part = np.load(imagesFile).astype(dtype=FORMATIMAGEDATA)
+            yData_part = np.load(masksFile) .astype(dtype=FORMATMASKDATA )
 
             numSlices_part = min(xData_part.shape[0], xData.shape[0] - countSlice)
 
             if K.image_data_format() == 'channels_first':
-                xData[countSlice:countSlice + numSlices_part] = np.asarray(xData_part[0:numSlices_part], dtype=FORMATIMAGEDATA).reshape(numSlices_part, 1, IMAGES_HEIGHT, IMAGES_WIDTH)
-                yData[countSlice:countSlice + numSlices_part] = np.asarray(yData_part[0:numSlices_part], dtype=FORMATMASKDATA ).reshape(numSlices_part, 1, IMAGES_HEIGHT, IMAGES_WIDTH)
+                xData[countSlice:countSlice + numSlices_part] = np.asarray(xData_part[0:numSlices_part]).reshape(numSlices_part, 1, IMAGES_HEIGHT, IMAGES_WIDTH)
+                yData[countSlice:countSlice + numSlices_part] = np.asarray(yData_part[0:numSlices_part]).reshape(numSlices_part, 1, IMAGES_HEIGHT, IMAGES_WIDTH)
             else:
-                xData[countSlice:countSlice + numSlices_part] = np.asarray(xData_part[0:numSlices_part], dtype=FORMATIMAGEDATA).reshape(numSlices_part, IMAGES_HEIGHT, IMAGES_WIDTH, 1)
-                yData[countSlice:countSlice + numSlices_part] = np.asarray(yData_part[0:numSlices_part], dtype=FORMATMASKDATA ).reshape(numSlices_part, IMAGES_HEIGHT, IMAGES_WIDTH, 1)
+                xData[countSlice:countSlice + numSlices_part] = np.asarray(xData_part[0:numSlices_part]).reshape(numSlices_part, IMAGES_HEIGHT, IMAGES_WIDTH, 1)
+                yData[countSlice:countSlice + numSlices_part] = np.asarray(yData_part[0:numSlices_part]).reshape(numSlices_part, IMAGES_HEIGHT, IMAGES_WIDTH, 1)
 
             countSlice += numSlices_part
         # endfor
@@ -145,8 +143,8 @@ class FileDataManager(object):
             message = "Images file or Masks file does not exist (\'%s\',\'%s\')" % (imagesFile, masksFile)
             CatchErrorException(message)
 
-        xData = np.load(imagesFile)
-        yData = np.load(masksFile)
+        xData = np.load(imagesFile).astype(dtype=FORMATIMAGEDATA)
+        yData = np.load(masksFile) .astype(dtype=FORMATMASKDATA )
 
         if( xData.shape != yData.shape ):
             message = "Images array of different size to Masks array (\'%s\',\'%s\')" % (xData.shape, yData.shape)
@@ -155,11 +153,11 @@ class FileDataManager(object):
         totalVols = min(xData.shape[0], maxVolsToLoad)
 
         if K.image_data_format() == 'channels_first':
-            xData = np.asarray(xData[0:totalVols], dtype=FORMATIMAGEDATA).reshape([totalVols, 1, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH])
-            yData = np.asarray(yData[0:totalVols], dtype=FORMATMASKDATA ).reshape([totalVols, 1, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH])
+            xData = np.asarray(xData[0:totalVols]).reshape([totalVols, 1, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH])
+            yData = np.asarray(yData[0:totalVols]).reshape([totalVols, 1, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH])
         else:
-            xData = np.asarray(xData[0:totalVols], dtype=FORMATIMAGEDATA).reshape([totalVols, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
-            yData = np.asarray(yData[0:totalVols], dtype=FORMATMASKDATA ).reshape([totalVols, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
+            xData = np.asarray(xData[0:totalVols]).reshape([totalVols, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
+            yData = np.asarray(yData[0:totalVols]).reshape([totalVols, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH, 1])
 
         if (shuffleImages):
             return cls.shuffleImages(xData, yData)
@@ -184,8 +182,8 @@ class FileDataManager(object):
                 message = "Images file or Masks file does not exist (\'%s\',\'%s\')" % (imagesFile, masksFile)
                 CatchErrorException(message)
 
-            xData_part = np.load(imagesFile)
-            yData_part = np.load(masksFile)
+            xData_part = np.load(imagesFile).astype(dtype=FORMATIMAGEDATA)
+            yData_part = np.load(masksFile) .astype(dtype=FORMATMASKDATA )
 
             if (xData_part.shape != yData_part.shape):
                 message = "Images array of different size to Masks array (\'%s\',\'%s\')" % (xData_part.shape, yData_part.shape)
@@ -212,17 +210,17 @@ class FileDataManager(object):
         countVol = 0
         for imagesFile, masksFile in zip(listImagesFiles, listMasksFiles):
 
-            xData_part = np.load(imagesFile)
-            yData_part = np.load(masksFile)
+            xData_part = np.load(imagesFile).astype(dtype=FORMATIMAGEDATA)
+            yData_part = np.load(masksFile) .astype(dtype=FORMATMASKDATA )
 
             numVols_part = min(xData_part.shape[0], xData.shape[0] - countVol)
 
             if K.image_data_format() == 'channels_first':
-                xData[countVol:countVol + numVols_part] = np.asarray(xData_part[0:numVols_part], dtype=FORMATIMAGEDATA).reshape(numVols_part, 1, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
-                yData[countVol:countVol + numVols_part] = np.asarray(yData_part[0:numVols_part], dtype=FORMATMASKDATA ).reshape(numVols_part, 1, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
+                xData[countVol:countVol + numVols_part] = np.asarray(xData_part[0:numVols_part]).reshape(numVols_part, 1, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
+                yData[countVol:countVol + numVols_part] = np.asarray(yData_part[0:numVols_part]).reshape(numVols_part, 1, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
             else:
-                xData[countVol:countVol + numVols_part] = np.asarray(xData_part[0:numVols_part], dtype=FORMATIMAGEDATA).reshape(numVols_part, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH, 1)
-                yData[countVol:countVol + numVols_part] = np.asarray(yData_part[0:numVols_part], dtype=FORMATMASKDATA ).reshape(numVols_part, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH, 1)
+                xData[countVol:countVol + numVols_part] = np.asarray(xData_part[0:numVols_part]).reshape(numVols_part, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH, 1)
+                yData[countVol:countVol + numVols_part] = np.asarray(yData_part[0:numVols_part]).reshape(numVols_part, IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH, 1)
 
             countVol += numVols_part
         # endfor
@@ -241,8 +239,8 @@ class FileDataManager(object):
             message = "Images file or Masks file does not exist (\'%s\',\'%s\')" % (imagesFile, masksFile)
             CatchErrorException(message)
 
-        xData = np.load(imagesFile)
-        yData = np.load(masksFile)
+        xData = np.load(imagesFile).astype(dtype=FORMATIMAGEDATA)
+        yData = np.load(masksFile) .astype(dtype=FORMATMASKDATA )
 
         if( xData.shape != yData.shape ):
             message = "Images array of different size to Masks array (\'%s\',\'%s\')" % (xData.shape, yData.shape)
@@ -268,8 +266,8 @@ class FileDataManager(object):
                 message = "Images file or Masks file does not exist (\'%s\',\'%s\')" % (imagesFile, masksFile)
                 CatchErrorException(message)
 
-            xData_part = np.load(imagesFile)
-            yData_part = np.load(masksFile)
+            xData_part = np.load(imagesFile).astype(dtype=FORMATIMAGEDATA)
+            yData_part = np.load(masksFile) .astype(dtype=FORMATMASKDATA )
 
             if (xData_part.shape != yData_part.shape):
                 message = "Images array of different size to Masks array (\'%s\',\'%s\')" % (xData_part.shape, yData_part.shape)

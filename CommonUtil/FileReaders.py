@@ -8,23 +8,46 @@
 # Last update: 09/02/2018
 ########################################################################################
 
+from CommonUtil.ErrorMessages import *
 import SimpleITK as sitk
 import nibabel as nib
 import pydicom
 from pydicom.dataset import Dataset, FileDataset
 import datetime, time
 import numpy as np
+import os
 
 
 class FileReader(object):
 
     @staticmethod
     def getImageArray(filename):
-        pass
+
+        _, extension = os.path.splitext(filename)
+        if (extension == '.dcm'):
+            return DICOMreader.getImageArray(filename)
+        elif (extension == '.nii'):
+            return NIFTIreader.getImageArray(filename)
+        elif (extension == '.npy'):
+            return NUMPYreader.getImageArray(filename)
+        else:
+            message = "No valid file extension found..."
+            CatchErrorException(message)
 
     @staticmethod
-    def writeImageArray(filename, img_array):
-        pass
+    def writeImageArray(filename, image_array):
+
+        _, extension = os.path.splitext(filename)
+        if (extension == '.dcm'):
+            DICOMreader.writeImageArray(filename, image_array)
+        elif (extension == '.nii'):
+            # in nifty format, the axes are reversed
+            NIFTIreader.writeImageArray(filename, np.swapaxes(image_array, 0, 2))
+        elif (extension == '.npy'):
+            NUMPYreader.writeImageArray(filename, image_array)
+        else:
+            message = "No valid file extension found..."
+            CatchErrorException(message)
 
 
 class NUMPYreader(FileReader):
@@ -37,9 +60,9 @@ class NUMPYreader(FileReader):
 
     # write numpy file array:
     @staticmethod
-    def writeImageArray(filename, img_array):
+    def writeImageArray(filename, image_array):
 
-        np.save(filename, img_array)
+        np.save(filename, image_array)
 
 
 class NIFTIreader(FileReader):
@@ -53,9 +76,9 @@ class NIFTIreader(FileReader):
 
     # write nifti file array:
     @staticmethod
-    def writeImageArray(filename, img_array):
+    def writeImageArray(filename, image_array):
 
-        nib_im = nib.Nifti1Image(img_array, np.eye(4))
+        nib_im = nib.Nifti1Image(image_array, np.eye(4))
         nib.save(nib_im, filename)
 
 
@@ -87,13 +110,13 @@ class DICOMreader(FileReader):
 
     # write dcm file array:
     @staticmethod
-    def writeImageArray(filename, img_array):
+    def writeImageArray(filename, image_array):
 
-        ds = sitk.GetImageFromArray(img_array)
+        ds = sitk.GetImageFromArray(image_array)
         sitk.WriteImage(ds, filename)
 
     @staticmethod
-    def writeDICOMimage(filename, img_array):
+    def writeDICOMimage(filename, image_array):
 
         ## This code block was taken from the output of a MATLAB secondary
         ## capture.  I do not know what the long dotted UIDs mean, but
@@ -122,11 +145,11 @@ class DICOMreader(FileReader):
         ds.BitsAllocated = 16
         ds.SmallestImagePixelValue = '\\x00\\x00'
         ds.LargestImagePixelValue = '\\xff\\xff'
-        ds.Rows = img_array.shape[0]
-        ds.Columns = img_array.shape[1]
-        if img_array.dtype != np.uint16:
-            img_array = img_array.astype(np.uint16)
-        ds.PixelData = img_array.tostring()
+        ds.Rows = image_array.shape[0]
+        ds.Columns = image_array.shape[1]
+        if image_array.dtype != np.uint16:
+            image_array = image_array.astype(np.uint16)
+        ds.PixelData = image_array.tostring()
 
         ds.save_as(filename)
 
@@ -134,7 +157,7 @@ class DICOMreader(FileReader):
     @staticmethod
     def loadPatientInformation(filename):
 
-        ds = dicom.read_file(filename)
+        ds = pydicom.read_file(filename)
 
         information = {}
         information['PatientID'] = ds.PatientID
@@ -152,8 +175,8 @@ class DICOMreader(FileReader):
     @staticmethod
     def copyPixelDataAndSaveImage(origfilename, newfilename):
 
-        orig_ds = dicom.read_file(origfilename)
-        new_ds  = dicom.read_file(newfilename)
+        orig_ds = pydicom.read_file(origfilename)
+        new_ds  = pydicom.read_file(newfilename)
         orig_ds.PixelData = new_ds.PixelData
         orig_ds.save_as(origfilename)
 
