@@ -60,14 +60,14 @@ for imagesFile, masksFile in zip(listImagesFiles, listLungsMasksFiles):
     dict_masks_boundingBoxes[basename(imagesFile)] = processed_boundingBox
 
 
-    print("computed bounding-box: (%s); processed bounding-box: (%s); of size: (%s)" %(boundingBox, processed_boundingBox, size_processed_boundingBox))
+    print("computed bounding-box: %s; processed bounding-box: %s; of size: %s" %(boundingBox, processed_boundingBox, size_processed_boundingBox))
 
     if (size_processed_boundingBox[1:3] != CROPSIZEBOUNDINGBOX):
-        message = "size processed bounding-box not correct: (%s) != (%s)" % (size_processed_boundingBox, CROPSIZEBOUNDINGBOX)
+        message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, CROPSIZEBOUNDINGBOX)
         CatchErrorException(message)
 
     if BoundingBoxMasks.isBoundingBoxContained(boundingBox, processed_boundingBox):
-        message = "Processed bounding-box: (%s) smaller than original one: (%s)..." % (processed_boundingBox, boundingBox)
+        message = "Processed bounding-box: %s smaller than original one: %s..." % (processed_boundingBox, boundingBox)
         CatchWarningException(message)
 
 
@@ -76,7 +76,7 @@ for imagesFile, masksFile in zip(listImagesFiles, listLungsMasksFiles):
 #endfor
 
 
-print("max size bounding-box found: (%s); set size bounding-box (%s)" %(maxSize_boundingBox, CROPSIZEBOUNDINGBOX))
+print("max size bounding-box found: %s; set size bounding-box %s" %(maxSize_boundingBox, CROPSIZEBOUNDINGBOX))
 
 # Save dictionary in csv file
 nameoutfile = joinpathnames(BaseDataPath, "boundBoxesMasks.npy")

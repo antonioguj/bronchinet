@@ -13,6 +13,7 @@ from CommonUtil.FileReaders import *
 from CommonUtil.ErrorMessages import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import WorkDirsManager
+from Preprocessing.BalanceClassesCTs import *
 from Preprocessing.ConfineMasksToLungs import *
 from Preprocessing.OperationsImages import *
 from Preprocessing.SlidingWindowImages import *
@@ -74,6 +75,9 @@ for i, (imagesFile, masksFile, lungs_masksFile) in enumerate(zip(listImagesFiles
 
         masks_array = ConfineMasksToLungs.compute(masks_array, lungs_masks_array)
 
+        print('Confine Masks to exclude the area outside the lungs...')
+
+
     if (CROPPINGIMAGES):
 
         crop_boundingBox = dict_masks_boundingBoxes[basename(imagesFile)]
@@ -81,16 +85,32 @@ for i, (imagesFile, masksFile, lungs_masksFile) in enumerate(zip(listImagesFiles
         images_array = CropImages.compute3D(images_array, crop_boundingBox)
         masks_array  = CropImages.compute3D(masks_array,  crop_boundingBox)
 
-    if (SAVEIMAGESINBATCHES):
+        print('Cropping image to bounding-box: %s. Final dimensions: %s...' %(crop_boundingBox, images_array.shape))
+
+
+    if (CHECKBALANCECLASSES):
+
+        if (CONFINEMASKSTOLUNGS):
+
+            (num_pos_class, num_neg_class) = BalanceClassesCTs.compute_excludeAreas(masks_array)
+        else:
+            (num_pos_class, num_neg_class) = BalanceClassesCTs.compute(masks_array)
+
+        print('Balance classes negative / positive: %s...' %(num_neg_class/num_pos_class))
+
+
+    if (SAVEIMAGESFILESINBATCHES):
 
         if (SLIDINGWINDOWIMAGES):
 
-            images_array = SlidingWindowImages.compute(images_array, IMAGES_DIMS_Z_X_Y, PROP_OVERLAP_Z_X_Y)
-            masks_array  = SlidingWindowImages.compute(masks_array,  IMAGES_DIMS_Z_X_Y, PROP_OVERLAP_Z_X_Y)
+            (images_array, masks_array) = SlidingWindowImages(IMAGES_DIMS_Z_X_Y, PROP_OVERLAP_Z_X_Y).compute_2array(images_array, masks_array)
 
+            print('Generate batches images by Sliding-window: size: %s; Overlap: %s. Final dimensions: %s...' %(IMAGES_DIMS_Z_X_Y, PROP_OVERLAP_Z_X_Y, images_array.shape))
         else:
-            images_array = StackBatchesImages.compute_stack_vols(images_array, IMAGES_DEPTHZ)
-            masks_array  = StackBatchesImages.compute_stack_vols(masks_array,  IMAGES_DEPTHZ)
+
+            (images_array, masks_array) = SlicingImages(IMAGES_DIMS_Z_X_Y).compute_2array(images_array, masks_array)
+
+            print('Generate batches images by Slicing volumes: size: %s. Final dimensions: %s...' %(IMAGES_DIMS_Z_X_Y, images_array.shape))
 
 
     stringinfo = "_".join(str(i) for i in list(images_array.shape))

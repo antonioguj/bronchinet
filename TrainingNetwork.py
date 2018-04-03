@@ -9,7 +9,7 @@
 ########################################################################################
 
 from CommonUtil.Constants import *
-from CommonUtil.FileDataManager import *
+from CommonUtil.LoadDataManager import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import *
 from Networks.Callbacks import *
@@ -24,17 +24,16 @@ import time
 
 #MAIN
 workDirsManager    = WorkDirsManager(BASEDIR)
-BaseDataPath       = workDirsManager.getNameDataPath(TYPEDATA)
-TrainingDataPath   = workDirsManager.getNameNewPath(BaseDataPath, 'ProcVolsData')
-ValidationDataPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcVolsData')
+TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath(), 'ProcVolsData')
+ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath(), 'ProcVolsData')
 ModelsPath         = workDirsManager.getNameModelsPath()
 
 
 # Get the file list:
-listTrainImagesFiles = findFilesDir(TrainingDataPath + '/volsImages*.npy')
-listTrainMasksFiles  = findFilesDir(TrainingDataPath + '/volsMasks*.npy' )
-listValidImagesFiles = findFilesDir(ValidationDataPath + '/volsImages*.npy')
-listValidMasksFiles  = findFilesDir(ValidationDataPath + '/volsMasks*.npy' )
+listTrainImagesFiles = findFilesDir(TrainingDataPath + '/volsImages*.npy')[0:3]
+listTrainMasksFiles  = findFilesDir(TrainingDataPath + '/volsMasks*.npy' )[0:3]
+listValidImagesFiles = findFilesDir(ValidationDataPath + '/volsImages*.npy')[0:3]
+listValidMasksFiles  = findFilesDir(ValidationDataPath + '/volsMasks*.npy' )[0:3]
 
 
 # LOADING DATA
@@ -43,10 +42,10 @@ print('-' * 30)
 print('Loading data...')
 print('-' * 30)
 
-(xTrain, yTrain) = FileDataManager.loadDataListFiles3D_noprocess(listTrainImagesFiles, listTrainMasksFiles)
-(xValid, yValid) = FileDataManager.loadDataListFiles3D(listValidImagesFiles, listValidMasksFiles)
+(xTrain, yTrain) = LoadDataManager(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
+(xValid, yValid) = LoadDataManager(IMAGES_DIMS_Z_X_Y).loadData_ListFiles_BatchGenerator(SlicingImages(IMAGES_DIMS_Z_X_Y), listValidImagesFiles, listValidMasksFiles)
 
-print('Number Training volumes: %s' %(len(xTrain)))
+#print('Number Training volumes: %s' %(len(xTrain)))
 print('Number Validation volumes: %s' %(xValid.shape[0]))
 
 
@@ -93,11 +92,10 @@ starttime = time.time()
 
 if (USE_DATAAUGMENTATION):
     if (SLIDINGWINDOWIMAGES):
-
-        model_info = model.fit_generator(SlidingWindowBatchGenerator(xTrain, yTrain,
-                                                                     IMAGES_DIMS_Z_X_Y,
-                                                                     PROP_OVERLAP_Z_X_Y,
-                                                                     batch_size=1), # BATCH_SIZE
+        # Images Data Generator by Sliding-window
+        batchDataGenerator = SlidingWindowBatchGenerator(xTrain, yTrain, IMAGES_DIMS_Z_X_Y, PROP_OVERLAP_Z_X_Y, batch_size=1, shuffle=True)
+        model_info = model.fit_generator(batchDataGenerator,
+                                         steps_per_epoch=len(batchDataGenerator),
                                          nb_epoch=NBEPOCHS,
                                          verbose=1,
                                          shuffle=True,

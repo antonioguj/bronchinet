@@ -9,7 +9,7 @@
 ########################################################################################
 
 from CommonUtil.Constants import *
-from CommonUtil.FileDataManager import *
+from CommonUtil.LoadDataManager import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import *
@@ -69,6 +69,8 @@ for imagesFile, masksFile, rawMasksFile in zip(listTestImagesFiles, listTestMask
 
     if (RECONSTRUCTPREDICTION):
         # Reconstruct image with same dims as original DICOM
+
+        print('Reconstructing images for predictions...')
 
         masks_array = FileReader.getImageArray(rawMasksFile)
 

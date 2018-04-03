@@ -18,12 +18,12 @@ from CommonUtil.WorkDirsManager import *
 
 # MAIN
 workDirsManager = WorkDirsManager(BASEDIR)
-DataPath        = workDirsManager.getNameNewPath(workDirsManager.getNameDataPath(TYPEDATA), 'ProcVolsData')
-OutFilesPath    = workDirsManager.getNameNewPath(workDirsManager.getNameDataPath(TYPEDATA), 'VisualCases')
+InputDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameDataPath(TYPEDATA), 'ProcVolsData')
+OutVisualPath   = workDirsManager.getNameNewPath(workDirsManager.getNameDataPath(TYPEDATA), 'VisualCases')
 
 # Get the file list:
-listImagesFiles = findFilesDir(DataPath + '/volsImages*.npy')
-listMasksFiles  = findFilesDir(DataPath + '/volsMasks*.npy')
+listImagesFiles = findFilesDir(InputDataPath + '/volsImages*.npy')
+listMasksFiles  = findFilesDir(InputDataPath + '/volsMasks*.npy')
 
 for imageFile, maskFile in zip(listImagesFiles, listMasksFiles):
 
@@ -32,4 +32,4 @@ for imageFile, maskFile in zip(listImagesFiles, listMasksFiles):
 
     print('Number training images: %s' %(images_array.shape[0]))
 
-    PlotsManager.saveplot_image_mask_3D(OutFilesPath, images_array, masks_array)
+    PlotsManager.saveplot_image_mask_3D(OutVisualPath, images_array, masks_array)

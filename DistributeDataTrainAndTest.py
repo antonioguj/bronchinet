@@ -99,10 +99,10 @@ print('Files assigned to Testing Data: %s'    %([basename(listCTsFiles[index]) f
 # ******************** TRAINING DATA ********************
 for index in indexesTraining:
 
-    name_dest_CT_file               = joinnames(TrainingCTsPath,     basename(listCTsFiles[index])             )
-    name_dest_AirwaysLumen_file     = joinnames(TrainingAirwaysPath, basename(listAirwaysLumenFiles[index])    )
-    name_dest_AirwaysOuterWall_file = joinnames(TrainingAirwaysPath, basename(listAirwaysOuterWallFiles[index]))
-    name_dest_Lungs_file            = joinnames(TrainingLungsPath,   basename(listLungsFiles[index])           )
+    name_dest_CT_file               = joinpathnames(TrainingCTsPath,     basename(listCTsFiles[index])             )
+    name_dest_AirwaysLumen_file     = joinpathnames(TrainingAirwaysPath, basename(listAirwaysLumenFiles[index])    )
+    name_dest_AirwaysOuterWall_file = joinpathnames(TrainingAirwaysPath, basename(listAirwaysOuterWallFiles[index]))
+    name_dest_Lungs_file            = joinpathnames(TrainingLungsPath,   basename(listLungsFiles[index])           )
 
     os.system('ln -s %s %s' % (listCTsFiles[index],             name_dest_CT_file              ))
     os.system('ln -s %s %s' % (listAirwaysLumenFiles[index],    name_dest_AirwaysLumen_file    ))
@@ -115,8 +115,8 @@ listMasksFiles  = findFilesDir(TrainingAirwaysPath + nameAirwaysOuterWallFiles)
 
 for imagesFile, masksFile in zip(listImagesFiles, listMasksFiles):
 
-    name_dest_Images_file = joinnames(TrainingImagesPath, basename(imagesFile))
-    name_dest_Masks_file  = joinnames(TrainingMasksPath,  basename(masksFile ))
+    name_dest_Images_file = joinpathnames(TrainingImagesPath, basename(imagesFile))
+    name_dest_Masks_file  = joinpathnames(TrainingMasksPath,  basename(masksFile ))
 
     os.system('ln -s %s %s' % (imagesFile, name_dest_Images_file))
     os.system('ln -s %s %s' % (masksFile,  name_dest_Masks_file ))
@@ -128,10 +128,10 @@ for imagesFile, masksFile in zip(listImagesFiles, listMasksFiles):
 # ******************** VALIDATION DATA ********************
 for index in indexesValidation:
 
-    name_dest_CT_file               = joinnames(ValidationCTsPath,     basename(listCTsFiles[index])             )
-    name_dest_AirwaysLumen_file     = joinnames(ValidationAirwaysPath, basename(listAirwaysLumenFiles[index])    )
-    name_dest_AirwaysOuterWall_file = joinnames(ValidationAirwaysPath, basename(listAirwaysOuterWallFiles[index]))
-    name_dest_Lungs_file            = joinnames(ValidationLungsPath,   basename(listLungsFiles[index])           )
+    name_dest_CT_file               = joinpathnames(ValidationCTsPath,     basename(listCTsFiles[index])             )
+    name_dest_AirwaysLumen_file     = joinpathnames(ValidationAirwaysPath, basename(listAirwaysLumenFiles[index])    )
+    name_dest_AirwaysOuterWall_file = joinpathnames(ValidationAirwaysPath, basename(listAirwaysOuterWallFiles[index]))
+    name_dest_Lungs_file            = joinpathnames(ValidationLungsPath,   basename(listLungsFiles[index])           )
 
     os.system('ln -s %s %s' % (listCTsFiles[index],             name_dest_CT_file              ))
     os.system('ln -s %s %s' % (listAirwaysLumenFiles[index],    name_dest_AirwaysLumen_file    ))
@@ -144,8 +144,8 @@ listMasksFiles  = findFilesDir(ValidationAirwaysPath + nameAirwaysOuterWallFiles
 
 for imagesFile, masksFile in zip(listImagesFiles, listMasksFiles):
 
-    name_dest_Images_file = joinnames(ValidationImagesPath, basename(imagesFile))
-    name_dest_Masks_file  = joinnames(ValidationMasksPath,  basename(masksFile ))
+    name_dest_Images_file = joinpathnames(ValidationImagesPath, basename(imagesFile))
+    name_dest_Masks_file  = joinpathnames(ValidationMasksPath,  basename(masksFile ))
 
     os.system('ln -s %s %s' % (imagesFile, name_dest_Images_file))
     os.system('ln -s %s %s' % (masksFile,  name_dest_Masks_file ))
@@ -157,10 +157,10 @@ for imagesFile, masksFile in zip(listImagesFiles, listMasksFiles):
 # ******************** TESTING DATA ********************
 for index in indexesTesting:
 
-    name_dest_CT_file               = joinnames(TestingCTsPath,     basename(listCTsFiles[index])             )
-    name_dest_AirwaysLumen_file     = joinnames(TestingAirwaysPath, basename(listAirwaysLumenFiles[index])    )
-    name_dest_AirwaysOuterWall_file = joinnames(TestingAirwaysPath, basename(listAirwaysOuterWallFiles[index]))
-    name_dest_Lungs_file            = joinnames(TestingLungsPath,   basename(listLungsFiles[index])           )
+    name_dest_CT_file               = joinpathnames(TestingCTsPath,     basename(listCTsFiles[index])             )
+    name_dest_AirwaysLumen_file     = joinpathnames(TestingAirwaysPath, basename(listAirwaysLumenFiles[index])    )
+    name_dest_AirwaysOuterWall_file = joinpathnames(TestingAirwaysPath, basename(listAirwaysOuterWallFiles[index]))
+    name_dest_Lungs_file            = joinpathnames(TestingLungsPath,   basename(listLungsFiles[index])           )
 
     os.system('ln -s %s %s' % (listCTsFiles[index],             name_dest_CT_file              ))
     os.system('ln -s %s %s' % (listAirwaysLumenFiles[index],    name_dest_AirwaysLumen_file    ))
@@ -173,8 +173,8 @@ listMasksFiles  = findFilesDir(TestingAirwaysPath + nameAirwaysOuterWallFiles)
 
 for imagesFile, masksFile in zip(listImagesFiles, listMasksFiles):
 
-    name_dest_Images_file = joinnames(TestingImagesPath, basename(imagesFile))
-    name_dest_Masks_file  = joinnames(TestingMasksPath,  basename(masksFile ))
+    name_dest_Images_file = joinpathnames(TestingImagesPath, basename(imagesFile))
+    name_dest_Masks_file  = joinpathnames(TestingMasksPath,  basename(masksFile ))
 
     os.system('ln -s %s %s' % (imagesFile, name_dest_Images_file))
     os.system('ln -s %s %s' % (masksFile,  name_dest_Masks_file ))
