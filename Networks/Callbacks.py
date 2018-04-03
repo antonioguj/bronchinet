@@ -25,7 +25,7 @@ class RecordLossHistory(callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         self.fout = open(self.filename, 'a')
         newdataline = '%s %s %s\n' %(epoch, logs.get('loss'), logs.get('val_loss'))
-        self.fout.write( newdataline )
+        self.fout.write(newdataline)
         self.fout.close()
 
 

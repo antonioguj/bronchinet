@@ -88,7 +88,7 @@ class Unet2D(NeuralNetwork):
         hidlayer_upl1_2 = Convolution2D(nbfilters_upl1, cls.filter_size, activation='relu', padding=type_padding)(hidlayer_upl1_1)
         hidlayer_upl1_3 = Convolution2D(nbfilters_upl1, cls.filter_size, activation='relu', padding=type_padding)(hidlayer_upl1_2)
 
-        outputs         = Convolution2D(1, (1, 1), activation='sigmoid')(hidlayer_upl1_3)
+        outputs = Convolution2D(1, (1, 1), activation='sigmoid')(hidlayer_upl1_3)
 
         model = Model(input=inputs, output=outputs)
 
@@ -133,7 +133,7 @@ class Unet2D_Shallow(NeuralNetwork):
         hidlayer_upl1_2 = Convolution2D(nbfilters_upl1, cls.filter_size, activation='relu', padding=type_padding)(hidlayer_upl1_1)
         hidlayer_upl1_3 = Convolution2D(nbfilters_upl1, cls.filter_size, activation='relu', padding=type_padding)(hidlayer_upl1_2)
 
-        outputs         = Convolution2D(1, (1, 1), activation='sigmoid')(hidlayer_upl1_3)
+        outputs = Convolution2D(1, (1, 1), activation='sigmoid')(hidlayer_upl1_3)
 
         model = Model(input=inputs, output=outputs)
 
@@ -221,7 +221,7 @@ class Unet2D_Dropout(NeuralNetwork):
         hidlayer_upl1_3 = Convolution2D( nbfilters_upl1, cls.filter_size, activation='relu', padding=type_padding)(hidlayer_upl1_2)
         hidlayer_upl1_3 = Dropout(cls.dropoutrate)(hidlayer_upl1_3)
 
-        outputs         = Convolution2D(1, (1, 1), activation='sigmoid')(hidlayer_upl1_3)
+        outputs = Convolution2D(1, (1, 1), activation='sigmoid')(hidlayer_upl1_3)
 
         model = Model(input=inputs, output=outputs)
 
@@ -308,7 +308,7 @@ class Unet2D_Batchnorm(NeuralNetwork):
         hidlayer_upl1_3 = Convolution2D( nbfilters_upl1, cls.filter_size, activation='relu', padding=type_padding)(hidlayer_upl1_2)
         hidlayer_upl1_3 = BatchNormalization()(hidlayer_upl1_3)
 
-        outputs         = Convolution2D(1, (1, 1), activation='sigmoid')(hidlayer_upl1_3)
+        outputs = Convolution2D(1, (1, 1), activation='sigmoid')(hidlayer_upl1_3)
 
         model = Model(input=inputs, output=outputs)
 
@@ -364,7 +364,7 @@ class Unet2D_Shallow_Dropout(NeuralNetwork):
         hidlayer_upl1_3 = Convolution2D(nbfilters_upl1, cls.filter_size, activation='relu', padding=type_padding)(hidlayer_upl1_2)
         hidlayer_upl1_3 = Dropout(cls.dropoutrate)(hidlayer_upl1_3)
 
-        outputs         = Convolution2D(1, (1, 1), activation='sigmoid')(hidlayer_upl1_3)
+        outputs = Convolution2D(1, (1, 1), activation='sigmoid')(hidlayer_upl1_3)
 
         model = Model(input=inputs, output=outputs)
 
@@ -419,7 +419,7 @@ class Unet2D_Shallow_Batchnorm(NeuralNetwork):
         hidlayer_upl1_3 = Convolution2D(nbfilters_upl1, cls.filter_size, activation='relu', padding=type_padding)(hidlayer_upl1_2)
         hidlayer_upl1_3 = BatchNormalization()(hidlayer_upl1_3)
 
-        outputs         = Convolution2D(1, (1, 1), activation='sigmoid')(hidlayer_upl1_3)
+        outputs = Convolution2D(1, (1, 1), activation='sigmoid')(hidlayer_upl1_3)
 
         model = Model(input=inputs, output=outputs)
 
@@ -708,7 +708,7 @@ class Unet3D_Shallow(NeuralNetwork):
         hidlayer_upl1_2 = Convolution3D(nbfilters_upl1, cls.filter_size, activation='relu', padding=type_padding)(hidlayer_upl1_1)
         hidlayer_upl1_3 = Convolution3D(nbfilters_upl1, cls.filter_size, activation='relu', padding=type_padding)(hidlayer_upl1_2)
 
-        outputs         = Convolution3D(1, (1, 1, 1), activation='sigmoid')(hidlayer_upl1_3)
+        outputs = Convolution3D(1, (1, 1, 1), activation='sigmoid')(hidlayer_upl1_3)
 
         model = Model(input=inputs, output=outputs)
 
