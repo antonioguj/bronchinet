@@ -13,10 +13,20 @@ import numpy as np
 
 class BalanceClassesCTs(object):
 
+    val_exclude = -1
+
+    @staticmethod
+    def compute(masks_array):
+
+        num_pos_class = len(np.where(masks_array != 0)[0])
+        num_neg_class = len(np.where(masks_array == 0)[0])
+
+        return (num_pos_class, num_neg_class)
+
     @classmethod
-    def compute(cls, masks_array):
+    def compute_excludeAreas(cls, masks_array):
 
-        num_posclass = len(np.argwhere(masks_array > 0))
-        num_negclass = masks_array.size - num_posclass
+        num_pos_class = len(np.where(np.logical_and(masks_array != 0, masks_array != cls.val_exclude))[0])
+        num_neg_class = len(np.where(masks_array == 0)[0])
 
-        return (num_posclass, num_negclass)
+        return (num_pos_class, num_neg_class)
