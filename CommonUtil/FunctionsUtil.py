@@ -35,9 +35,9 @@ def basename(filename):
     return os.path.basename(filename)
 
 def filenamenoextension(filename):
-    return os.path.splitext(filename)[0]
+    return os.path.splitext(basename(filename))[0]
 
-def fileextension(filename):
+def filenameextension(filename):
     return os.path.splitext(filename)[1]
 
 
@@ -92,7 +92,7 @@ def processBinaryMasks(masks_array):
 
 def processBinaryMasks_KeepExclusion(masks_array):
     # Turn to binary masks (0, 1)
-    return np.where(masks_array != 0 or masks_array != -1, 1, 0)
+    return np.where(np.logical_or(masks_array != 0, masks_array != -1), 1, 0)
 
 
 def revertStackImages(images_array):
