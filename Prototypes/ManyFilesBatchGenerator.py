@@ -27,7 +27,7 @@ class ManyFilesBatchGenerator(image.Iterator):
         count_batches = 0
         for i, (file_X, file_Y) in enumerate(zip(list_files_X, list_files_Y)):
 
-            (xData, yData) = FileDataManager.loadDataFiles3D(file_X, file_Y)
+            (xData, yData) = LoadDataManager.loadData_1FileBatches(file_X, file_Y)
 
             size_data = xData.shape[0]
             num_batches = (size_data + batch_size - 1)//batch_size # round-up
@@ -184,9 +184,9 @@ class ManyFilesBatchGenerator(image.Iterator):
         self._load_data_file(self.index_file)
 
     def _load_data_file(self, idx_file):
-        (self.this_Xdata, self.this_Ydata) = FileDataManager.loadDataFiles3D(self.list_files_X[idx_file],
-                                                                             self.list_files_Y[idx_file],
-                                                                             shuffleImages=True)
+        (self.this_Xdata, self.this_Ydata) = LoadDataManager.loadData_1FileBatches(self.list_files_X[idx_file],
+                                                                                   self.list_files_Y[idx_file],
+                                                                                   shuffleImages=True)
 
     def _shuffle_files_list(self):
         #need to shuffle all list at the same time

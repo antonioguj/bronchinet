@@ -101,7 +101,7 @@ class SlidingWindowBatchGeneratorKerasOld(SlidingWindowBatchGenerator):
     def next(self):
         # Returns the next batch
         with self.lock:
-            index_array, current_index, current_batch_size = next(self.index_generator)
+            index_array, _, _ = next(self.index_generator)
         # The transformation of images is not under thread lock
         # so it can be done in parallel
         return self._get_batches_of_transformed_samples(index_array)
