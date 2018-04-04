@@ -38,7 +38,7 @@ class WorkDirsManager(object):
         return os.path.join(self.basePath, self.RelModelsPath)
 
     def getNameNewPath(self, basePath, newRelPath):
-        newPath = os.path.join(basePath, newRelPath+'/')
+        newPath = os.path.join(basePath, newRelPath)
         if( not os.path.exists(newPath) ):
             os.makedirs(newPath)
         return newPath

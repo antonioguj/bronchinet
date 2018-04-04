@@ -11,11 +11,13 @@
 from CommonUtil.ErrorMessages import *
 import numpy as np
 import glob
+import datetime
+import time
 import csv
 import os
 
 
-def mkdir(pathname):
+def makedir(pathname):
     pathname = pathname.strip()
     pathname = pathname.rstrip("\\")
     isExists = os.path.exists(pathname)
@@ -24,6 +26,27 @@ def mkdir(pathname):
         return True
     else:
         return False
+
+def removedir(pathname):
+    os.remove(pathname)
+
+def removefile(filename):
+    os.remove(filename)
+
+def makelink(filesrc, linkdest):
+    os.symlink(filesrc, linkdest)
+
+def movedir(pathsrc, pathdest):
+    os.rename(pathsrc, pathdest)
+
+def movefile(filesrc, filedest):
+    os.rename(filesrc, filedest)
+
+def listfilesDir(pathname):
+    return os.listdir(pathname)
+
+def isExistdir(pathname):
+    return os.path.exists(pathname)
 
 def isExistfile(filename):
     return os.path.exists(filename)
@@ -40,14 +63,6 @@ def filenamenoextension(filename):
 def filenameextension(filename):
     return os.path.splitext(filename)[1]
 
-
-def splitListInChunks(list, sizechunck):
-
-    listoflists = []
-    for i in range(0, len(list), sizechunck):
-        listoflists.append( list[i:i+sizechunck] )
-    return listoflists
-
 def findFilesDir(filenames):
     return sorted(glob.glob(filenames))
 
@@ -63,7 +78,7 @@ def saveDictionary_numpy(filename, dictionary):
     np.save(filename, dictionary)
 
 def saveDictionary_csv(filename, dictionary):
-    if fileextension(filename) != '.csv':
+    if filenameextension(filename) != '.csv':
         message = "need \".csv\" to save dictionary"
         CatchErrorException(message)
     else:
@@ -76,13 +91,29 @@ def readDictionary_numpy(filename):
     return np.load(filename).item()
 
 def readDictionary_csv(filename):
-    if fileextension(filename) != '.csv':
+    if filenameextension(filename) != '.csv':
         message = "need \".csv\" to save dictionary"
         CatchErrorException(message)
     else:
         with open(filename, 'r') as fin:
             reader = csv.reader(fin)
             return dict(reader)
+
+
+def getdatetoday():
+    today = datetime.date.today()
+    return (today.day, today.month, today.year)
+
+def gettimenow():
+    now = datetime.datetime.now()
+    return (now.hour, now.minute, now.second)
+
+
+def splitListInChunks(list, sizechunck):
+    listoflists = []
+    for i in range(0, len(list), sizechunck):
+        listoflists.append( list[i:i+sizechunck] )
+    return listoflists
 
 
 def processBinaryMasks(masks_array):
@@ -102,6 +133,13 @@ def revertStackImages(images_array):
 
 def getThresholdImage(image, threshold):
     return np.where(image > threshold, 1, 0)
+
+
+class WallClockTime(object):
+    def __init__(self):
+        self.start_time = time.time()
+    def compute(self):
+        return time.time() - self.start_time
 
 
 # Manage GPU resources
