@@ -63,7 +63,6 @@ class SlidingWindowBatchGenerator(image.Iterator):
 
     def _get_batches_of_transformed_samples(self, index_array):
         # overwrite function to retrieve images batches
-
         num_images_batch = len(index_array)
 
         Xdata_batch = np.ndarray([num_images_batch] + list(self.size_image), dtype=FORMATIMAGEDATA)
@@ -79,10 +78,8 @@ class SlidingWindowBatchGenerator(image.Iterator):
             Ydata_batch[i] = self.list_Ydata[idx_fullimage][z_back:z_front, x_left:x_right, y_down:y_up]
         #endfor
 
-        Xdata_batch = Xdata_batch.reshape(self.getArrayDims(num_images_batch))
-        Ydata_batch = Ydata_batch.reshape(self.getArrayDims(num_images_batch))
-
-        return (Xdata_batch, Ydata_batch)
+        return (Xdata_batch.reshape(self.getArrayDims(num_images_batch)),
+                Ydata_batch.reshape(self.getArrayDims(num_images_batch)))
 
 
     def getArrayDims(self, num_batches):
@@ -90,3 +87,21 @@ class SlidingWindowBatchGenerator(image.Iterator):
             return [num_batches, 1] + list(self.size_image)
         else:
             return [num_batches] + list(self.size_image) + [1]
+
+
+
+class SlidingWindowBatchGeneratorKerasOld(SlidingWindowBatchGenerator):
+
+    def __init__(self, list_Xdata, list_Ydata, size_image, prop_overlap, batch_size=1, shuffle=True, seed=None):
+        super(SlidingWindowBatchGeneratorKerasOld, self).__init__(list_Xdata, list_Ydata, size_image, prop_overlap, batch_size, shuffle, seed)
+
+    def __len__(self):
+        return (self.n + self.batch_size - 1) // self.batch_size  # round up
+
+    def next(self):
+        # Returns the next batch
+        with self.lock:
+            index_array, current_index, current_batch_size = next(self.index_generator)
+        # The transformation of images is not under thread lock
+        # so it can be done in parallel
+        return self._get_batches_of_transformed_samples(index_array)
