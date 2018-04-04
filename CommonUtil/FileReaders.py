@@ -21,6 +21,20 @@ import os
 class FileReader(object):
 
     @staticmethod
+    def getImageSize(filename):
+
+        _, extension = os.path.splitext(filename)
+        if (extension == '.dcm'):
+            return DICOMreader.getImageSize(filename)
+        elif (extension == '.nii'):
+            return NIFTIreader.getImageSize(filename)
+        elif (extension == '.npy'):
+            return NUMPYreader.getImageSize(filename)
+        else:
+            message = "No valid file extension found..."
+            CatchErrorException(message)
+
+    @staticmethod
     def getImageArray(filename):
 
         _, extension = os.path.splitext(filename)
@@ -52,6 +66,12 @@ class FileReader(object):
 
 class NUMPYreader(FileReader):
 
+    # get numpy image size:
+    @staticmethod
+    def getImageSize(filename):
+
+        return np.load(filename).shape
+
     # get numpy image array:
     @staticmethod
     def getImageArray(filename):
@@ -66,6 +86,13 @@ class NUMPYreader(FileReader):
 
 
 class NIFTIreader(FileReader):
+
+    # get nifti image size:
+    @staticmethod
+    def getImageSize(filename):
+
+        nib_im = nib.load(filename)
+        return nib_im.get_data().shape
 
     # get nifti image array:
     @staticmethod
@@ -89,7 +116,8 @@ class DICOMreader(FileReader):
     def getImageSize(filename):
 
         ds = sitk.ReadImage(filename)
-        return ds.GetSize()
+        #np.swapaxes(ds.GetSize(), 0, 2)
+        return sitk.GetArrayFromImage(ds).shape
 
     # get dcm voxel size:
     @staticmethod
