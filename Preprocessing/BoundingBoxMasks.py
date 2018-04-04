@@ -34,6 +34,11 @@ class BoundingBoxMasks(object):
                 max(boundingBox[2], max_boundingBox[2]))
 
     @staticmethod
+    def computeCoords0BoundingBox(boundingBox):
+
+        return (boundingBox[1][0], boundingBox[2][0], boundingBox[0][0])
+
+    @staticmethod
     def fitBoundingBoxToImageMaxSize(boundingBox, (size_img_x, size_img_y)):
 
         translate_x = 0

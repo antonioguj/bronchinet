@@ -13,7 +13,7 @@ import numpy as np
 
 class ConfineMasksToLungs(object):
 
-    val_exclude = -1
+    val_exclude = 0
 
     @classmethod
     def compute(cls, masks_airways_array, masks_lungs_array):

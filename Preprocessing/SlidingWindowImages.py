@@ -18,32 +18,32 @@ class SlidingWindowImages(object):
         (self.prop_overlap_z, self.prop_overlap_x, self.prop_overlap_y) = prop_overlap
 
     @staticmethod
-    def get_num_images_1d(size_total, size_elem, prop_overlap):
+    def get_num_images_1d(size_total, size_image, prop_overlap):
 
-        return int(np.floor((size_total - prop_overlap*size_elem) /(1-prop_overlap) /size_elem))
+        return int(np.floor((size_total - prop_overlap*size_image) /(1-prop_overlap) /size_image))
 
     @staticmethod
-    def get_limits_image_1d(index, size_elem, prop_overlap):
+    def get_limits_image_1d(index, size_image, prop_overlap):
 
-        coord_n    = int(index * (1.0-prop_overlap) * size_elem)
-        coord_npl1 = coord_n + size_elem
+        coord_n    = int(index * (1.0-prop_overlap) * size_image)
+        coord_npl1 = coord_n + size_image
         return (coord_n, coord_npl1)
 
     @staticmethod
-    def get_indexes_2d(index, num_elems_x):
+    def get_indexes_2d(index, num_images_x):
 
-        index_y  = index // num_elems_x
-        index_x  = index % num_elems_x
+        index_y  = index // num_images_x
+        index_x  = index % num_images_x
         return (index_x, index_y)
 
     @staticmethod
-    def get_indexes_3d(index, (num_elems_x, num_elems_y)):
+    def get_indexes_3d(index, (num_images_x, num_images_y)):
 
-        num_elems_xy = num_elems_x * num_elems_y
-        index_z  = index // (num_elems_xy)
-        index_xy = index % (num_elems_xy)
-        index_y  = index_xy // num_elems_x
-        index_x  = index_xy % num_elems_x
+        num_images_xy = num_images_x * num_images_y
+        index_z  = index // (num_images_xy)
+        index_xy = index % (num_images_xy)
+        index_y  = index_xy // num_images_x
+        index_x  = index_xy % num_images_x
         return (index_x, index_y, index_z)
 
 
