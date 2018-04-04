@@ -34,7 +34,7 @@ IMAGES_WIDTH  = 240
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
 IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
 
-TYPEDATA = 'testing'
+TYPEDATA = 'training'
 
 FORMATIMAGEDATA = np.int16
 FORMATMASKDATA  = np.int8
@@ -63,11 +63,13 @@ if SLIDINGWINDOWIMAGES:
 
 
 # ******************** TRAINING PARAMETERS ********************
-NBEPOCHS   = 1000
-BATCH_SIZE = 1
-IMODEL     = 'Unet3D_Shallow'
-IOPTIMIZER = 'Adam'
-LEARN_RATE = 1.0e-05
+NBEPOCHS    = 1000
+BATCH_SIZE  = 1
+IMODEL      = 'Unet3D_Shallow'
+IOPTIMIZER  = 'Adam'
+ILOSSFUN    = 'WeightedBinaryCrossEntropy_Masked'
+IMETRICS    = ['DiceCoefficient_Masked']
+LEARN_RATE  = 1.0e-05
 
 USE_DATAAUGMENTATION = True
 
