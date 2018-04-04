@@ -65,11 +65,6 @@ for i, (imagesFile, masksFile, lungs_masksFile) in enumerate(zip(listImagesFiles
     # Turn to binary masks (0, 1)
     masks_array = processBinaryMasks(masks_array)
 
-    # Revert Images to start from Traquea
-    images_array     = revertStackImages(images_array)
-    masks_array      = revertStackImages(masks_array )
-    lungs_masks_array= revertStackImages(lungs_masks_array)
-
 
     if (CONFINEMASKSTOLUNGS):
 

@@ -17,9 +17,8 @@ import os
 
 #MAIN
 workDirsManager     = WorkDirsManager(BASEDIR)
-InputDICOMfilesPath = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawMasks')
-OutputDICOMfilesPath= workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawMasks')
-ModelsPath          = workDirsManager.getNameModelsPath()
+InputDICOMfilesPath = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawCenterlines')
+OutputDICOMfilesPath= workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawCenterlines')
 
 
 # LOADING DATA

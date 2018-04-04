@@ -9,9 +9,9 @@
 ########################################################################################
 
 from CommonUtil.Constants import *
-from CommonUtil.LoadDataManager import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
+from CommonUtil.LoadDataManager import *
 from CommonUtil.WorkDirsManager import *
 from Networks.Metrics import *
 from Networks.Networks import *
@@ -24,7 +24,7 @@ TYPEDATA = 'testing'
 #MAIN
 workDirsManager  = WorkDirsManager(BASEDIR)
 BaseDataPath     = workDirsManager.getNameDataPath(TYPEDATA)
-RawMasksDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawMasks')
+RawImagesDataPath= workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawImages')
 TestingDataPath  = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'ProcVolsData')
 PredictionsPath  = workDirsManager.getNameNewPath(BASEDIR, 'Predictions')
 ModelsPath       = workDirsManager.getNameModelsPath()
@@ -33,7 +33,7 @@ ModelsPath       = workDirsManager.getNameModelsPath()
 # Get the file list:
 listTestImagesFiles = findFilesDir(TestingDataPath  + '/volsImages*.npy')
 listTestMasksFiles  = findFilesDir(TestingDataPath  + '/volsMasks*.npy' )
-listRawMasksFiles   = findFilesDir(RawMasksDataPath + '/av*.dcm')
+listRawImagesFiles  = findFilesDir(RawImagesDataPath + '/av*.dcm')
 
 
 print('-' * 30)
@@ -53,12 +53,12 @@ if (CROPPINGIMAGES):
     dict_masks_boundingBoxes = readDictionary(namefile_dict)
 
 
-for imagesFile, masksFile, rawMasksFile in zip(listTestImagesFiles, listTestMasksFiles, listRawMasksFiles):
+for imagesFile, masksFile, rawImagesFile in zip(listTestImagesFiles, listTestMasksFiles, listRawImagesFiles):
 
-    print('\'%s\'...' % (imagesFile))
+    print('\'%s\'...' % (rawImagesFile))
 
     # Loading Data
-    (xTest, yTest) = FileDataManager.loadDataFiles3D(imagesFile, masksFile)
+    (xTest, yTest) = LoadDataManager(IMAGES_DIMS_Z_X_Y).loadData_1File_BatchGenerator(SlicingImages(IMAGES_DIMS_Z_X_Y), imagesFile, masksFile, shuffleImages=False)
 
     # Evaluate Model
     yPredict = model.predict(xTest, batch_size=1)
@@ -66,13 +66,15 @@ for imagesFile, masksFile, rawMasksFile in zip(listTestImagesFiles, listTestMask
     # Compute test accuracy
     accuracy = DiceCoefficient.compute_home(yPredict, yTest)
 
+    print('Computed accuracy: %s...' %(accuracy))
+
 
     if (RECONSTRUCTPREDICTION):
         # Reconstruct image with same dims as original DICOM
 
         print('Reconstructing images for predictions...')
 
-        masks_array = FileReader.getImageArray(rawMasksFile)
+        masks_predict_shape = FileReader.getImageSize(rawImagesFile)
 
         yPredict = yPredict.reshape([yPredict.shape[0], IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH])
 
@@ -81,17 +83,14 @@ for imagesFile, masksFile, rawMasksFile in zip(listTestImagesFiles, listTestMask
 
         if (CROPPINGIMAGES):
 
-            crop_boundingBox = dict_masks_boundingBoxes[basename(imagesFile)]
+            crop_boundingBox = dict_masks_boundingBoxes[basename(rawImagesFile)]
 
-            masks_predict_array = ReconstructImage.compute_cropped(masks_array, yPredict, crop_boundingBox)
+            masks_predict_array = ReconstructImage(IMAGES_DIMS_Z_X_Y).compute_cropped(yPredict, masks_predict_shape, crop_boundingBox)
         else:
 
-            masks_predict_array = ReconstructImage.compute(masks_array, yPredict)
-
-        # Revert Images to start from Traquea
-            masks_predict_array = revertStackImages(masks_predict_array)
+            masks_predict_array = ReconstructImage.compute(yPredict, masks_predict_shape)
 
 
-        out_namefile = joinpathnames(PredictionsPath, 'pred_acc%0.2f_' %(accuracy) + basename(rawMasksFile).replace('.dcm','.nii'))
+        out_namefile = joinpathnames(PredictionsPath, 'pred_acc%0.2f_' %(accuracy) + basename(rawImagesFile).replace('.dcm','.nii'))
         FileReader.writeImageArray(out_namefile, masks_predict_array)
 #endfor

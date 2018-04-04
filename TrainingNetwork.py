@@ -30,10 +30,10 @@ ModelsPath         = workDirsManager.getNameModelsPath()
 
 
 # Get the file list:
-listTrainImagesFiles = findFilesDir(TrainingDataPath + '/volsImages*.npy')[0:3]
-listTrainMasksFiles  = findFilesDir(TrainingDataPath + '/volsMasks*.npy' )[0:3]
-listValidImagesFiles = findFilesDir(ValidationDataPath + '/volsImages*.npy')[0:3]
-listValidMasksFiles  = findFilesDir(ValidationDataPath + '/volsMasks*.npy' )[0:3]
+listTrainImagesFiles = findFilesDir(TrainingDataPath + '/volsImages*.npy')
+listTrainMasksFiles  = findFilesDir(TrainingDataPath + '/volsMasks*.npy' )
+listValidImagesFiles = findFilesDir(ValidationDataPath + '/volsImages*.npy')
+listValidMasksFiles  = findFilesDir(ValidationDataPath + '/volsMasks*.npy' )
 
 
 # LOADING DATA
@@ -45,7 +45,7 @@ print('-' * 30)
 (xTrain, yTrain) = LoadDataManager(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
 (xValid, yValid) = LoadDataManager(IMAGES_DIMS_Z_X_Y).loadData_ListFiles_BatchGenerator(SlicingImages(IMAGES_DIMS_Z_X_Y), listValidImagesFiles, listValidMasksFiles)
 
-#print('Number Training volumes: %s' %(len(xTrain)))
+print('Number Training volumes: %s' %(len(xTrain)))
 print('Number Validation volumes: %s' %(xValid.shape[0]))
 
 
