@@ -52,7 +52,7 @@ class BinaryCrossEntropy(Metrics):
 
 # Weighted Binary Cross entropy
 class WeightedBinaryCrossEntropy(Metrics):
-    weights = [1.0, 200.0]
+    weights = [1.0, 300.0]
 
     @classmethod
     def compute(cls, y_true, y_pred):
