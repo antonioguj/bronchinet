@@ -23,7 +23,6 @@ class LossFunction(object):
 
 
 # DIFFERENT METRICS:
-
 class Metrics(object):
     @classmethod
     def compute(cls, y_true, y_pred):
@@ -72,17 +71,17 @@ class WeightedBinaryCrossEntropy(Metrics):
 
 
 # Weighted Binary Cross entropy. Exclude voxels outside the mask
-class WeightedBinaryCrossEntropy_Masks(Metrics):
-    weights = [1.0, 100.0]
+class WeightedBinaryCrossEntropy_Masked(Metrics):
+    weights = [1.0, 80.0]
     val_exclude = -1
 
     @classmethod
     def get_mask(cls, y_true):
-        return K.not_equal(y_true, cls.val_exclude)
+        return K.tf.where(K.tf.equal(y_true, cls.val_exclude), K.zeros_like(y_true), K.ones_like(y_true))
 
     @classmethod
     def get_mask_home(cls, y_true):
-        return np.where(y_true != cls.val_exclude, 1, 0)
+        return np.where(y_true == cls.val_exclude, 0, 1)
 
     @classmethod
     def compute(cls, y_true, y_pred):
@@ -127,17 +126,17 @@ class DiceCoefficient(Metrics):
 
 
 # Dice coefficient. Exclude voxels outside the mask
-class DiceCoefficient_Masks(Metrics):
+class DiceCoefficient_Masked(Metrics):
     smooth = 1
     val_exclude = -1
 
     @classmethod
     def get_mask(cls, y_true):
-        return K.not_equal(y_true, cls.val_exclude)
+        return K.tf.where(K.tf.equal(y_true, cls.val_exclude), K.zeros_like(y_true), K.ones_like(y_true))
 
     @classmethod
     def get_mask_home(cls, y_true):
-        return np.where(y_true != cls.val_exclude, 1, 0)
+        return np.where(y_true == cls.val_exclude, 0, 1)
 
     @classmethod
     def compute(cls, y_true, y_pred):
@@ -158,3 +157,11 @@ class DiceCoefficient_Masks(Metrics):
         mask   = cls.get_mask_home(y_true)
         intersection = np.sum(y_true * y_pred * mask)
         return (2.0*intersection + cls.smooth) / (np.sum(y_true * mask) + np.sum(y_pred * mask) + cls.smooth)
+
+
+# All Available Loss Functions and Metrics
+DICTAVAILLOSSFUNS = {"BinaryCrossEntropy":               BinaryCrossEntropy,
+                     "WeightedBinaryCrossEntropy":       WeightedBinaryCrossEntropy,
+                     "WeightedBinaryCrossEntropy_Masked":WeightedBinaryCrossEntropy_Masked}
+DICTAVAILMETRICS  = {"DiceCoefficient":                  DiceCoefficient,
+                     "DiceCoefficient_Masked":           DiceCoefficient_Masked}
