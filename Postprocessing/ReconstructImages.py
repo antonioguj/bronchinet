@@ -15,89 +15,92 @@ import numpy as np
 
 class ReconstructImage(object):
 
-    @staticmethod
-    def get_num_batch_images(size_total, size_img):
-
-        return int(np.floor((size_total)/size_img))
+    def __init__(self, size_image):
+        (self.size_image_z, self.size_image_x, self.size_image_y  ) = size_image
 
     @staticmethod
-    def get_limits_batch_image(index, size_img, coord_0=0):
+    def get_num_images_1d(size_total, size_image):
 
-        coord_n    = coord_0 + index * size_img
-        coord_npl1 = coord_n + size_img
+        return int(np.floor((size_total)/size_image))
+
+    @staticmethod
+    def get_limits_image_1d(index, size_image, coord_0):
+
+        coord_n    = coord_0 + index * size_image
+        coord_npl1 = coord_n + size_image
         return (coord_n, coord_npl1)
 
     @staticmethod
-    def get_indexes_3dirs(index, (sizetotal_x, sizetotal_y)):
+    def get_indexes_3d(index, (num_images_x, num_images_y)):
 
-        sizetotal_xy = sizetotal_x * sizetotal_y
-        index_z  = index // (sizetotal_xy)
-        index_xy = index % (sizetotal_xy)
-        index_y  = index_xy // sizetotal_x
-        index_x  = index_xy % sizetotal_x
+        num_images_xy = num_images_x * num_images_y
+        index_z  = index // (num_images_xy)
+        index_xy = index % (num_images_xy)
+        index_y  = index_xy // num_images_x
+        index_x  = index_xy % num_images_x
         return (index_x, index_y, index_z)
 
-    @classmethod
-    def compute_num_images(cls, (sizetotal_z, sizetotal_x, sizetotal_y),
-                                (size_img_z, size_img_x, size_img_y)):
 
-        num_images_x = cls.get_num_batch_images(sizetotal_x, size_img_x)
-        num_images_y = cls.get_num_batch_images(sizetotal_y, size_img_y)
-        num_images_z = cls.get_num_batch_images(sizetotal_z, size_img_z)
-        num_images   = num_images_x * num_images_y * num_images_z
+    def get_num_images_3d(self, (sizetotal_z, sizetotal_x, sizetotal_y)):
 
-        return (num_images, num_images_x, num_images_y, num_images_z)
+        num_images_x = self.get_num_images_1d(sizetotal_x, self.size_image_x)
+        num_images_y = self.get_num_images_1d(sizetotal_y, self.size_image_y)
+        num_images_z = self.get_num_images_1d(sizetotal_z, self.size_image_z)
+
+        return (num_images_x, num_images_y, num_images_z)
+
+    def get_num_images_total(self, (sizetotal_z, sizetotal_x, sizetotal_y)):
+
+        (num_images_x, num_images_y, num_images_z) = self.get_num_images_3d((sizetotal_z, sizetotal_x, sizetotal_y))
+        return num_images_x * num_images_y * num_images_z
+
+    def get_limits_image_3d(self, (index_x, index_y, index_z), (coord_x0, coord_y0, coord_z0)=(0, 0, 0)):
+
+        (x_left, x_right) = self.get_limits_image_1d(index_x, self.size_image_x, coord_x0)
+        (y_down, y_up   ) = self.get_limits_image_1d(index_y, self.size_image_y, coord_y0)
+        (z_back, z_front) = self.get_limits_image_1d(index_z, self.size_image_z, coord_z0)
+
+        return (x_left, x_right, y_down, y_up, z_back, z_front)
 
 
-    @classmethod
-    def compute(cls, masks_array, yPredict):
+    def compute(self, yPredict, masks_predict_shape):
 
-        (sizetotal_z, sizetotal_x, sizetotal_y) = masks_array.shape
+        (num_images_x, num_images_y, num_images_z) = self.get_num_images_3d(yPredict.shape)
+        num_images = num_images_x * num_images_y * num_images_z
 
-        (num_batches, size_img_z, size_img_x, size_img_y) = yPredict.shape
-
-        (num_images, num_images_x, num_images_y, num_images_z) = cls.compute_num_images((sizetotal_z, sizetotal_x, sizetotal_y),
-                                                                                        (size_img_z, size_img_x, size_img_y))
-
-        masks_predict = np.ndarray(masks_array.shape, dtype=masks_array.dtype)
+        masks_predict = np.ndarray(masks_predict_shape, dtype=FORMATMASKDATA)
         masks_predict[:, :, :] = 0
 
         for index in range(num_images):
 
-            (index_x, index_y, index_z) = cls.get_indexes_3dirs(index, (num_images_x, num_images_y))
+            (index_x, index_y, index_z) = self.get_indexes_3d(index, (num_images_x, num_images_y))
 
-            (x_left, x_right) = cls.get_limits_batch_image(index_x, size_img_x)
-            (y_down, y_up   ) = cls.get_limits_batch_image(index_y, size_img_y)
-            (z_back, z_front) = cls.get_limits_batch_image(index_z, size_img_z)
+            (x_left, x_right, y_down, y_up, z_back, z_front) = self.get_limits_image_3d((index_x, index_y, index_z))
 
-            masks_predict[z_back:z_front, x_left:x_right, y_down:y_up] = np.asarray(yPredict[index], dtype=masks_array.dtype).reshape(size_img_z, size_img_x, size_img_y)
+            masks_predict[z_back:z_front, x_left:x_right, y_down:y_up] = np.asarray(yPredict[index], dtype=FORMATMASKDATA)
         #endfor
 
         return masks_predict
 
 
-    @classmethod
-    def compute_cropped(cls, masks_array, yPredict, boundingBox):
+    def compute_cropped(self, yPredict, masks_predict_shape, boundingBox):
 
-        (sizetotal_z, sizetotal_x, sizetotal_y) = BoundingBoxMasks.computeSizeBoundingBox(boundingBox)
+        size_boundingBox    = BoundingBoxMasks.computeSizeBoundingBox   (boundingBox)
+        coords0_boundingBox = BoundingBoxMasks.computeCoords0BoundingBox(boundingBox)
 
-        (num_batches, size_img_z, size_img_x, size_img_y) = yPredict.shape
+        (num_images_x, num_images_y, num_images_z) = self.get_num_images_3d(size_boundingBox)
+        num_images = num_images_x * num_images_y * num_images_z
 
-        (num_images, num_images_x, num_images_y, num_images_z) = cls.compute_num_images((sizetotal_z, sizetotal_x, sizetotal_y),
-                                                                                        (size_img_z, size_img_x, size_img_y))
-
-        masks_predict = np.ndarray(masks_array.shape, dtype=masks_array.dtype)
+        masks_predict = np.ndarray(masks_predict_shape, dtype=FORMATMASKDATA)
         masks_predict[:, :, :] = 0
 
         for index in range(num_images):
 
-            (index_x, index_y, index_z) = cls.get_indexes_3dirs(index, (num_images_x, num_images_y))
+            (index_x, index_y, index_z) = self.get_indexes_3d(index, (num_images_x, num_images_y))
 
-            (x_left, x_right) = cls.get_limits_batch_image(index_x, size_img_x, boundingBox[1][0])
-            (y_down, y_up   ) = cls.get_limits_batch_image(index_y, size_img_y, boundingBox[2][0])
-            (z_back, z_front) = cls.get_limits_batch_image(index_z, size_img_z, boundingBox[0][0])
+            (x_left, x_right, y_down, y_up, z_back, z_front) = self.get_limits_image_3d((index_x, index_y, index_z), coords0_boundingBox)
 
-            masks_predict[z_back:z_front, x_left:x_right, y_down:y_up] = np.asarray(yPredict[index], dtype=masks_array.dtype).reshape(size_img_z, size_img_x, size_img_y)
+            masks_predict[z_back:z_front, x_left:x_right, y_down:y_up] = np.asarray(yPredict[index], dtype=FORMATMASKDATA)
         #endfor
 
         return masks_predict
