@@ -18,7 +18,6 @@ from Networks.Networks import *
 from Networks.Optimizers import *
 from Prototypes.SlidingWindowBatchGenerator import *
 from keras import callbacks as Kcallbacks
-import time
 
 
 def main():
@@ -29,10 +28,10 @@ def main():
     ModelsPath         = workDirsManager.getNameNewPath(BASEDIR, 'Models')
 
     # Get the file list:
-    listTrainImagesFiles = findFilesDir(TrainingDataPath + '/volsImages*.npy')[0:1]
-    listTrainMasksFiles  = findFilesDir(TrainingDataPath + '/volsMasks*.npy' )[0:1]
-    listValidImagesFiles = findFilesDir(ValidationDataPath + '/volsImages*.npy')[0:1]
-    listValidMasksFiles  = findFilesDir(ValidationDataPath + '/volsMasks*.npy' )[0:1]
+    listTrainImagesFiles = findFilesDir(TrainingDataPath + '/volsImages*.npy')
+    listTrainMasksFiles  = findFilesDir(TrainingDataPath + '/volsMasks*.npy' )
+    listValidImagesFiles = findFilesDir(ValidationDataPath + '/volsImages*.npy')
+    listValidMasksFiles  = findFilesDir(ValidationDataPath + '/volsMasks*.npy' )
 
 
     # LOADING DATA
@@ -58,8 +57,8 @@ def main():
 
     # Compile model
     model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(IOPTIMIZER, LEARN_RATE),
-                  loss     = WeightedBinaryCrossEntropy.compute_loss,
-                  metrics  =[DiceCoefficient.compute])
+                  loss     = DICTAVAILLOSSFUNS[ILOSSFUN].compute_loss,
+                  metrics  =[DICTAVAILMETRICS[I].compute for I in IMETRICS])
     model.summary()
 
     # Callbacks:
@@ -84,8 +83,6 @@ def main():
         weightsPath = joinpathnames(ModelsPath, RESTARTFILE)
         model.load_weights(weightsPath)
 
-    starttime = time.time()
-
     if (USE_DATAAUGMENTATION):
         if (SLIDINGWINDOWIMAGES):
             # Images Data Generator by Sliding-window
@@ -108,10 +105,6 @@ def main():
                                shuffle=True,
                                validation_data=(xValid, yValid),
                                callbacks=callbacks_list)
-
-    endtime = time.time()
-
-    print('Training finished in %f' %(endtime - starttime))
     # ----------------------------------------------
 
 

@@ -29,24 +29,23 @@ CODEDIR    = joinpathnames(BASEDIR, 'Code')
 TESTSDIR   = joinpathnames(BASEDIR, 'Tests_LUVAR')
 RESULTDIR  = joinpathnames(TESTSDIR, 'Models')
 PREDICTDIR = joinpathnames(TESTSDIR, 'Predictions')
-
-ATTRIBUTES = ['3DUnet', 'SlidingWindow', 'Dropout']
+ATTRIBUTES = ['3DUnetShallow', 'size352x240x16', 'SlidingWindow', 'BatchGenerator', 'ConfineLungs']
 
 
 
 # ********** LAUNCH TRAINING **********
-#measureTime = WallClockTime()
+measureTime = WallClockTime()
 
-#script_Training   = joinpathnames(CODEDIR, 'TrainingNetwork.py')
+script_Training   = joinpathnames(CODEDIR, 'TrainingNetwork.py')
 
 # Launching Training script
-#Popen_obj = subprocess.Popen(['python', script_Training])
+Popen_obj = subprocess.Popen(['python', script_Training])
 
 # Wait for the process to finish
 # I would like to implement a way to input signal to stop process
-#Popen_obj.wait()
+Popen_obj.wait()
 
-#print('<-Training performed in %s sec...->' %(measureTime.compute()))
+print('<-Training performed in %s sec...->' %(measureTime.compute()))
 # ********** LAUNCH TRAINING **********
 
 
