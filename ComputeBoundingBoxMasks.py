@@ -18,68 +18,73 @@ from Preprocessing.OperationsImages import *
 BORDER_EFFECTS  = (0, 0, 0)
 
 
-#MAIN
-workDirsManager = WorkDirsManager(BASEDIR)
-BaseDataPath    = workDirsManager.getNameDataPath(TYPEDATA)
-ImagesPath      = workDirsManager.getNameNewPath(BaseDataPath, 'RawImages')
-MasksPath       = workDirsManager.getNameNewPath(BaseDataPath, 'RawMasks')
-LungsMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, 'RawLungs')
-CropImagesPath  = workDirsManager.getNameNewPath(BaseDataPath, 'CroppedImages')
+def main():
 
-dict_masks_boundingBoxes = {}
+    workDirsManager = WorkDirsManager(BASEDIR)
+    BaseDataPath    = workDirsManager.getNameDataPath(TYPEDATA)
+    ImagesPath      = workDirsManager.getNameNewPath(BaseDataPath, 'RawImages')
+    MasksPath       = workDirsManager.getNameNewPath(BaseDataPath, 'RawMasks')
+    LungsMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, 'RawLungs')
+    CropImagesPath  = workDirsManager.getNameNewPath(BaseDataPath, 'CroppedImages')
 
-maxSize_boundingBox = (0, 0, 0)
+    dict_masks_boundingBoxes = {}
 
-
-# Get the file list:
-listImagesFiles     = findFilesDir(ImagesPath     + '/*.dcm')
-listLungsMasksFiles = findFilesDir(LungsMasksPath + '/*.dcm')
-
-for imagesFile, masksFile in zip(listImagesFiles, listLungsMasksFiles):
-
-    print('\'%s\'...' % (imagesFile))
-
-    images_array = FileReader.getImageArray(imagesFile)
-    masks_array  = FileReader.getImageArray(masksFile)
+    maxSize_boundingBox = (0, 0, 0)
 
 
-    boundingBox = BoundingBoxMasks.compute_with_border_effects(masks_array, BORDER_EFFECTS)
+    # Get the file list:
+    listImagesFiles     = findFilesDir(ImagesPath     + '/*.dcm')
+    listLungsMasksFiles = findFilesDir(LungsMasksPath + '/*.dcm')
 
-    size_boundingBox = BoundingBoxMasks.computeSizeBoundingBox(boundingBox)
+    for imagesFile, masksFile in zip(listImagesFiles, listLungsMasksFiles):
 
-    maxSize_boundingBox = BoundingBoxMasks.computeMaxSizeBoundingBox(size_boundingBox, maxSize_boundingBox)
+        print('\'%s\'...' % (imagesFile))
 
-
-    # Compute new bounding-box that fits all input images processed
-    processed_boundingBox = BoundingBoxMasks.computeCenteredBoundingBox(boundingBox, CROPSIZEBOUNDINGBOX, images_array.shape)
-
-    size_processed_boundingBox = BoundingBoxMasks.computeSizeBoundingBox(processed_boundingBox)
-
-    cropped_images_array = CropImages.compute3D(images_array, processed_boundingBox)
-
-    dict_masks_boundingBoxes[basename(imagesFile)] = processed_boundingBox
+        images_array = FileReader.getImageArray(imagesFile)
+        masks_array  = FileReader.getImageArray(masksFile)
 
 
-    print("computed bounding-box: %s; processed bounding-box: %s; of size: %s" %(boundingBox, processed_boundingBox, size_processed_boundingBox))
+        boundingBox = BoundingBoxMasks.compute_with_border_effects(masks_array, BORDER_EFFECTS)
 
-    if (size_processed_boundingBox[1:3] != CROPSIZEBOUNDINGBOX):
-        message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, CROPSIZEBOUNDINGBOX)
-        CatchErrorException(message)
+        size_boundingBox = BoundingBoxMasks.computeSizeBoundingBox(boundingBox)
 
-    if BoundingBoxMasks.isBoundingBoxContained(boundingBox, processed_boundingBox):
-        message = "Processed bounding-box: %s smaller than original one: %s..." % (processed_boundingBox, boundingBox)
-        CatchWarningException(message)
+        maxSize_boundingBox = BoundingBoxMasks.computeMaxSizeBoundingBox(size_boundingBox, maxSize_boundingBox)
 
 
-    nameoutfile = joinpathnames(CropImagesPath, basename(imagesFile).replace('.dcm','.nii'))
-    FileReader.writeImageArray(nameoutfile, cropped_images_array)
-#endfor
+        # Compute new bounding-box that fits all input images processed
+        processed_boundingBox = BoundingBoxMasks.computeCenteredBoundingBox(boundingBox, CROPSIZEBOUNDINGBOX, images_array.shape)
+
+        size_processed_boundingBox = BoundingBoxMasks.computeSizeBoundingBox(processed_boundingBox)
+
+        cropped_images_array = CropImages.compute3D(images_array, processed_boundingBox)
+
+        dict_masks_boundingBoxes[basename(imagesFile)] = processed_boundingBox
 
 
-print("max size bounding-box found: %s; set size bounding-box %s" %(maxSize_boundingBox, CROPSIZEBOUNDINGBOX))
+        print("computed bounding-box: %s; processed bounding-box: %s; of size: %s" %(boundingBox, processed_boundingBox, size_processed_boundingBox))
 
-# Save dictionary in csv file
-nameoutfile = joinpathnames(BaseDataPath, "boundBoxesMasks.npy")
-saveDictionary(nameoutfile, dict_masks_boundingBoxes)
-nameoutfile = joinpathnames(BaseDataPath, "boundBoxesMasks.csv")
-saveDictionary_csv(nameoutfile, dict_masks_boundingBoxes)
+        if (size_processed_boundingBox[1:3] != CROPSIZEBOUNDINGBOX):
+            message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, CROPSIZEBOUNDINGBOX)
+            CatchErrorException(message)
+
+        if BoundingBoxMasks.isBoundingBoxContained(boundingBox, processed_boundingBox):
+            message = "Processed bounding-box: %s smaller than original one: %s..." % (processed_boundingBox, boundingBox)
+            CatchWarningException(message)
+
+
+        nameoutfile = joinpathnames(CropImagesPath, basename(imagesFile).replace('.dcm','.nii'))
+        FileReader.writeImageArray(nameoutfile, cropped_images_array)
+    #endfor
+
+
+    print("max size bounding-box found: %s; set size bounding-box %s" %(maxSize_boundingBox, CROPSIZEBOUNDINGBOX))
+
+    # Save dictionary in csv file
+    nameoutfile = joinpathnames(BaseDataPath, "boundBoxesMasks.npy")
+    saveDictionary(nameoutfile, dict_masks_boundingBoxes)
+    nameoutfile = joinpathnames(BaseDataPath, "boundBoxesMasks.csv")
+    saveDictionary_csv(nameoutfile, dict_masks_boundingBoxes)
+
+
+if __name__ == "__main__":
+    main()

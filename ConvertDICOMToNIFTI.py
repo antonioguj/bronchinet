@@ -15,28 +15,27 @@ import numpy as np
 import os
 
 
-#MAIN
-workDirsManager     = WorkDirsManager(BASEDIR)
-InputDICOMfilesPath = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawCenterlines')
-OutputDICOMfilesPath= workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawCenterlines')
+def main():
+
+    workDirsManager     = WorkDirsManager(BASEDIR)
+    InputDICOMfilesPath = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawCenterlines')
+    OutputDICOMfilesPath= workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawCenterlines')
+
+    listInputDICOMFiles = sorted(glob(InputDICOMfilesPath + '/av*.dcm'))
 
 
-# LOADING DATA
-# ----------------------------------------------
-print('-' * 30)
-print('Loading data...')
-print('-' * 30)
+    for inputDICOMfile in listInputDICOMFiles:
 
-listInputDICOMFiles = sorted(glob(InputDICOMfilesPath + '/av*.dcm'))
+        print('\'%s\'...' % (inputDICOMfile))
 
-for inputDICOMfile in listInputDICOMFiles:
+        image_array = DICOMreader.getImageArray(inputDICOMfile)
 
-    print('\'%s\'...' % (inputDICOMfile))
+        outputNIFTIfile = os.path.join(OutputDICOMfilesPath, os.path.basename(inputDICOMfile).replace('.dcm','.nii'))
 
-    image_array = DICOMreader.getImageArray(inputDICOMfile)
+        # Important: in nifty format, the axes are reversed
+        NIFTIreader.writeImageArray(outputNIFTIfile, np.swapaxes(image_array, 0, 2))
+    #endfor
 
-    outputNIFTIfile = os.path.join(OutputDICOMfilesPath, os.path.basename(inputDICOMfile).replace('.dcm','.nii'))
 
-    # Important: in nifty format, the axes are reversed
-    NIFTIreader.writeImageArray(outputNIFTIfile, np.swapaxes(image_array, 0, 2))
-#endfor
+if __name__ == "__main__":
+    main()

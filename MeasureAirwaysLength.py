@@ -26,44 +26,45 @@ def getCenterlineLength(centerline):
     return length
 
 
-#MAIN
-workDirsManager           = WorkDirsManager(BASEDIR)
-RawImagesFilesPath        = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawImages')
-RawMasksFilesPath         = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawMasks')
-RawCenterlinesFilesPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawCenterlines')
-MatLabCenterlinesFilesPath= workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'MatLabCenterlines')
+def main():
 
-# Get the file list:
-listImagesFiles      = findFilesDir(RawImagesFilesPath + '/av*.dcm')
-listMasksFiles       = findFilesDir(RawMasksFilesPath + '/av*seg.dcm' )
-listCenterlinesFiles = findFilesDir(MatLabCenterlinesFilesPath + '/av*centerlines.mat')
+    workDirsManager           = WorkDirsManager(BASEDIR)
+    RawImagesFilesPath        = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawImages')
+    RawMasksFilesPath         = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawMasks')
+    RawCenterlinesFilesPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'RawCenterlines')
+    MatLabCenterlinesFilesPath= workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath(), 'MatLabCenterlines')
 
-nbImagesFiles     = len(listImagesFiles)
-nbMasksFiles      = len(listMasksFiles)
-nbCenterlinesFiles= len(listCenterlinesFiles)
+    # Get the file list:
+    listImagesFiles      = findFilesDir(RawImagesFilesPath + '/av*.dcm')
+    listMasksFiles       = findFilesDir(RawMasksFilesPath + '/av*seg.dcm' )
+    listCenterlinesFiles = findFilesDir(MatLabCenterlinesFilesPath + '/av*centerlines.mat')
 
 
-for imagesFile, masksFile, centerlinesFile in zip(listImagesFiles, listMasksFiles, listCenterlinesFiles):
+    for imagesFile, masksFile, centerlinesFile in zip(listImagesFiles, listMasksFiles, listCenterlinesFiles):
 
-    print('\'%s\'...' % (imagesFile))
+        print('\'%s\'...' % (imagesFile))
 
-    voxel_size = DICOMreader.getImageVoxelSize(imagesFile)
+        voxel_size = DICOMreader.getImageVoxelSize(imagesFile)
 
-    raw_airways_centerlines = scipy.io.loadmat(centerlinesFile)['airway'][0]
+        raw_airways_centerlines = scipy.io.loadmat(centerlinesFile)['airway'][0]
 
-    list_centerlines = []
-    for centerline in raw_airways_centerlines:
-        for i, point in enumerate(centerline[5]):
-            centerline[5][i] = point*voxel_size
-        list_centerlines.append(centerline[5])
+        list_centerlines = []
+        for centerline in raw_airways_centerlines:
+            for i, point in enumerate(centerline[5]):
+                centerline[5][i] = point*voxel_size
+            list_centerlines.append(centerline[5])
+        #endfor
+
+        num_airways = len(list_centerlines)
+
+        total_length = 0.0
+        for centerline in list_centerlines:
+            total_length += getCenterlineLength(centerline)
+        #endfor
+
+        print('Number of airways: %s, with total length: %s'%(num_airways, total_length))
     #endfor
 
-    num_airways = len(list_centerlines)
 
-    total_length = 0.0
-    for centerline in list_centerlines:
-        total_length += getCenterlineLength(centerline)
-    #endfor
-
-    print('Number of airways: %s, with total length: %s'%(num_airways, total_length))
-#endfor
+if __name__ == "__main__":
+    main()

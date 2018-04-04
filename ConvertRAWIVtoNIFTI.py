@@ -17,47 +17,45 @@ import rawpy
 from glob import glob
 import os
 
-
-# LOADING DATA
-# ----------------------------------------------
-print('-' * 30)
-print('Loading data...')
-print('-' * 30)
-
 BASEDIR = '/home/antonio/Downloads/AG_test_RAWIV_proc'
 
-listInputRAWFiles = sorted(glob(BASEDIR + '/*.raw'))
 
+def main():
 
-for inputRAWfile in listInputRAWFiles:
+    listInputRAWFiles = sorted(glob(BASEDIR + '/*.raw'))
 
-    print('\'%s\'...' % (inputRAWfile))
+    for inputRAWfile in listInputRAWFiles:
 
-    #image_array = rawpy.imread(inputRAWfile)
-    #image_array = np.fromfile(inputRAWfile, dtype=np.int8, sep="")
+        print('\'%s\'...' % (inputRAWfile))
 
-    image = Image.open(inputRAWfile,'rb')
-    imshape = image.size
+        #image_array = rawpy.imread(inputRAWfile)
+        #image_array = np.fromfile(inputRAWfile, dtype=np.int8, sep="")
 
-    print image_array
+        image = Image.open(inputRAWfile,'rb')
+        imshape = image.size
 
-    image_array = np.reshape(image_array, (418, 512, 512, 3))
+        print image_array
 
-    print(image_array)
-    print(image_array.shape)
-    print(np.amax(image_array))
-    print(np.amin(image_array))
+        image_array = np.reshape(image_array, (418, 512, 512, 3))
 
-    for image_slice in image_array:
-        image = Image.frombuffer("I", [512, 512], image_slice.astype('I'), 'raw', 'I', 0, 1)
+        print(image_array)
+        print(image_array.shape)
+        print(np.amax(image_array))
+        print(np.amin(image_array))
 
-        print(image_slice)
-        print(image_slice.shape)
-        print(np.amax(image_slice))
-        print(np.amin(image_slice))
+        for image_slice in image_array:
+            image = Image.frombuffer("I", [512, 512], image_slice.astype('I'), 'raw', 'I', 0, 1)
 
-        plt.imshow(image)
-        plt.show()
+            print(image_slice)
+            print(image_slice.shape)
+            print(np.amax(image_slice))
+            print(np.amin(image_slice))
+
+            plt.imshow(image)
+            plt.show()
+        #endfor
     #endfor
 
-#endfor
+
+if __name__ == "__main__":
+    main()

@@ -15,38 +15,41 @@ from CommonUtil.WorkDirsManager import WorkDirsManager
 import numpy as np
 
 
+def main():
 
-#MAIN
-workDirsManager  = WorkDirsManager(BASEDIR)
-BaseDataPath     = workDirsManager.getNameDataPath(TYPEDATA)
-MasksPath        = workDirsManager.getNameNewPath(BaseDataPath, 'RawMasks')
-ProcVolsDataPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcMasks')
+    workDirsManager  = WorkDirsManager(BASEDIR)
+    BaseDataPath     = workDirsManager.getNameDataPath(TYPEDATA)
+    MasksPath        = workDirsManager.getNameNewPath(BaseDataPath, 'RawMasks')
+    ProcVolsDataPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcMasks')
+
+    # Get the file list:
+    listMasksFiles   = findFilesDir(MasksPath + '/*.dcm')[0:1]
+    nbMasksFiles     = len(listMasksFiles)
 
 
-# Get the file list:
-listMasksFiles   = findFilesDir(MasksPath + '/*.dcm')[0:1]
-nbMasksFiles     = len(listMasksFiles)
+    for i, masksFile in enumerate(listMasksFiles):
 
+        print('\'%s\'...' %(masksFile))
 
-for i, masksFile in enumerate(listMasksFiles):
+        masks_array = FileReader.getImageArray(masksFile)
 
-    print('\'%s\'...' %(masksFile))
+        indexes_segs_masks = np.unique(masks_array)
 
-    masks_array = FileReader.getImageArray(masksFile)
+        # remove background mask from list
+        indexes_segs_masks = np.delete(indexes_segs_masks, 0)
 
-    indexes_segs_masks = np.unique(masks_array)
+        for index in indexes_segs_masks:
 
-    # remove background mask from list
-    indexes_segs_masks = np.delete(indexes_segs_masks, 0)
+            print index
 
-    for index in indexes_segs_masks:
+            mask_uniquesegs = np.where(masks_array == index, 1, 0).astype(dtype=masks_array.dtype)
 
-        print index
+            nameoutfile = joinpathnames(ProcVolsDataPath, filenamenoextension(masksFile)+'_seg%0.2i.nii'%(index))
 
-        mask_uniquesegs = np.where(masks_array == index, 1, 0).astype(dtype=masks_array.dtype)
-
-        nameoutfile = joinpathnames(ProcVolsDataPath, filenamenoextension(masksFile)+'_seg%0.2i.nii'%(index))
-
-        FileReader.writeImageArray(nameoutfile, mask_uniquesegs)
+            FileReader.writeImageArray(nameoutfile, mask_uniquesegs)
+        #endfor
     #endfor
-#endfor
+
+
+if __name__ == "__main__":
+    main()
