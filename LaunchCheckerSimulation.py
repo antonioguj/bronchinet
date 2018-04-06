@@ -60,7 +60,7 @@ listfiles_loss   = []
 listfiles_valoss = []
 
 for file in listoutputfiles:
-    attributes = file.replace('weights.','').replace('.hdf5','').split('-')
+    attributes = file.replace('model_','').replace('.hdf5','').split('_')
     listfiles_epochs.append(attributes[0])
     listfiles_loss  .append(attributes[1])
     listfiles_valoss.append(attributes[2])
@@ -77,9 +77,9 @@ for file in listoutputfiles:
 #endfor
 
 # finally, link to rename remaining files
-makelink(keepfile_maxepochs, joinpathnames(RESULTDIR, 'model-lastEpoch.hdf5'))
-makelink(keepfile_minloss,   joinpathnames(RESULTDIR, 'model-minLoss.hdf5'))
-makelink(keepfile_minvaloss, joinpathnames(RESULTDIR, 'model-minValoss.hdf5'))
+makelink(keepfile_maxepochs, joinpathnames(RESULTDIR, 'model_lastEpoch.hdf5'))
+makelink(keepfile_minloss,   joinpathnames(RESULTDIR, 'model_minLoss.hdf5'))
+makelink(keepfile_minvaloss, joinpathnames(RESULTDIR, 'model_minValoss.hdf5'))
 # ********** MANAGE OUTPUT FILES **********
 
 
@@ -100,8 +100,8 @@ print('<-Prediction performed in %s sec...->' %(measureTime.compute()))
 # ********** SAVE MODEL AND PREDICTIONS **********
 LAST_EPOCH = max(listfiles_epochs)
 
-newResultDir  = 'Models_'  + '_'.join(ATTRIBUTES) + '_' + '-'.join([str(s) for s in getdatetoday()])
-newPredictDir = 'Predictions_' + '_'.join(ATTRIBUTES) + '_epoch%s_'%(LAST_EPOCH) + '-'.join([str(s) for s in getdatetoday()])
+newResultDir  = 'Models_%0.2i-%0.2i-%0.4i_'%(getdatetoday()) + '_'.join(ATTRIBUTES) + '_epoch%s'%(LAST_EPOCH)
+newPredictDir = 'Predictions_%0.2i-%0.2i-%0.4i_'%(getdatetoday()) + '_'.join(ATTRIBUTES) + '_epoch%s'%(LAST_EPOCH)
 
 if isExistdir(newResultDir):
     newResultDir = newResultDir + '_NEW'

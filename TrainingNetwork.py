@@ -16,7 +16,7 @@ from Networks.Callbacks import *
 from Networks.Metrics import *
 from Networks.Networks import *
 from Networks.Optimizers import *
-from Prototypes.SlidingWindowBatchGenerator import *
+from KerasPrototypes.SlidingWindowBatchGenerator import *
 from keras import callbacks as Kcallbacks
 
 
@@ -53,20 +53,32 @@ def main():
     print('Building model...')
     print('_' * 30)
 
-    model = DICTAVAILNETWORKS3D[IMODEL].getModel(IMAGES_DIMS_Z_X_Y)
+    if USE_RESTARTMODEL:
+        print('Loading saved model and Restarting...')
+        initial_epoch = EPOCH_RESTART
 
-    # Compile model
-    model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(IOPTIMIZER, LEARN_RATE),
-                  loss     = DICTAVAILLOSSFUNS[ILOSSFUN].compute_loss,
-                  metrics  =[DICTAVAILMETRICS[I].compute for I in IMETRICS])
+        modelSavedPath = joinpathnames(ModelsPath, RESTARTFILE)
+        custom_objects = {'compute_loss': DICTAVAILLOSSFUNS[ILOSSFUN].compute_loss,
+                          'compute': DICTAVAILMETRICS[IMETRICS].compute}
+
+        model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)
+    else:
+        initial_epoch = 0
+
+        model = DICTAVAILNETWORKS3D[IMODEL].getModel(IMAGES_DIMS_Z_X_Y)
+        # Compile model
+        model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(IOPTIMIZER, LEARN_RATE),
+                      loss     = DICTAVAILLOSSFUNS[ILOSSFUN].compute_loss,
+                      metrics  =[DICTAVAILMETRICS[IMETRICS].compute])
+
     model.summary()
 
     # Callbacks:
     callbacks_list = []
     callbacks_list.append(RecordLossHistory(ModelsPath))
 
-    filename = ModelsPath + '/weights.{epoch:02d}-{loss:.5f}-{val_loss:.5f}.hdf5'
-    callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0, save_best_only=True))
+    filename = ModelsPath + '/model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5'
+    callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
     #callbacks_list.append(Kcallbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
     callbacks_list.append(Kcallbacks.TerminateOnNaN())
     # ----------------------------------------------
@@ -78,33 +90,30 @@ def main():
     print('Training model...')
     print('-' * 30)
 
-    if USE_RESTARTMODEL:
-        print('Loading Weights and Restarting...')
-        weightsPath = joinpathnames(ModelsPath, RESTARTFILE)
-        model.load_weights(weightsPath)
-
     if (USE_DATAAUGMENTATION):
         if (SLIDINGWINDOWIMAGES):
             # Images Data Generator by Sliding-window
-            batchDataGenerator = SlidingWindowBatchGenerator(xTrain, yTrain, IMAGES_DIMS_Z_X_Y, PROP_OVERLAP_Z_X_Y, batch_size=1, shuffle=True)
-            model_info = model.fit_generator(batchDataGenerator,
-                                             steps_per_epoch=len(batchDataGenerator),
-                                             nb_epoch=NBEPOCHS,
-                                             verbose=1,
-                                             shuffle=True,
-                                             validation_data=(xValid, yValid),
-                                             callbacks=callbacks_list)
+            batchDataGenerator = SlidingWindowBatchGenerator(xTrain, yTrain, IMAGES_DIMS_Z_X_Y, PROP_OVERLAP_Z_X_Y, batch_size=BATCH_SIZE, shuffle=True)
+            model.fit_generator(batchDataGenerator,
+                                steps_per_epoch=len(batchDataGenerator),
+                                nb_epoch=NBEPOCHS,
+                                verbose=1,
+                                shuffle=True,
+                                validation_data=(xValid, yValid),
+                                callbacks=callbacks_list,
+                                initial_epoch=initial_epoch)
         else:
             message = "Data augmentation model non existing..."
             CatchErrorException(message)
     else:
-        model_info = model.fit(xTrain, yTrain,
-                               batch_size=1, # BATCH_SIZE
-                               epochs=NBEPOCHS,
-                               verbose=1,
-                               shuffle=True,
-                               validation_data=(xValid, yValid),
-                               callbacks=callbacks_list)
+        model.fit(xTrain, yTrain,
+                  batch_size=BATCH_SIZE,
+                  epochs=NBEPOCHS,
+                  verbose=1,
+                  shuffle=True,
+                  validation_data=(xValid, yValid),
+                  callbacks=callbacks_list,
+                  initial_epoch=initial_epoch)
     # ----------------------------------------------
 
 
