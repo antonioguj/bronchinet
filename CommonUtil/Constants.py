@@ -68,18 +68,22 @@ BATCH_SIZE  = 1
 IMODEL      = 'Unet3D_Shallow'
 IOPTIMIZER  = 'Adam'
 ILOSSFUN    = 'WeightedBinaryCrossEntropy_Masked'
-IMETRICS    = ['DiceCoefficient_Masked']
+IMETRICS    = 'DiceCoefficient_Masked'
 LEARN_RATE  = 1.0e-05
 
 USE_DATAAUGMENTATION = True
 
 USE_RESTARTMODEL = False
 
-RESTARTFILE = 'model-lastEpoch.hdf5'
+if SLIDINGWINDOWIMAGES:
+    EPOCH_RESTART = 40
+    RESTARTFILE = 'model_lastEpoch.hdf5'
 # ******************** TRAINING PARAMETERS ********************
 
 
 # ******************** POST-PROCESSING PARAMETERS ********************
+PREDICTIONFILE = 'model_lastEpoch.hdf5'
+
 RECONSTRUCTPREDICTION = True
 
 THRESHOLDOUTIMAGES = True

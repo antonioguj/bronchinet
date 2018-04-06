@@ -102,7 +102,7 @@ def readDictionary_csv(filename):
 
 def getdatetoday():
     today = datetime.date.today()
-    return (today.day, today.month, today.year)
+    return (today.month, today.day, today.year)
 
 def gettimenow():
     now = datetime.datetime.now()
@@ -114,6 +114,12 @@ def splitListInChunks(list, sizechunck):
     for i in range(0, len(list), sizechunck):
         listoflists.append( list[i:i+sizechunck] )
     return listoflists
+
+
+def isOddIntegerVal(val):
+    return val % 2 == 1
+def isEvenIntegerVal(val):
+    return val % 2 == 0
 
 
 def processBinaryMasks(masks_array):
