@@ -10,6 +10,8 @@
 
 import numpy as np
 
+BORDER_EFFECTS = (0, 0, 0)
+
 
 class BoundingBoxMasks(object):
 
@@ -36,13 +38,13 @@ class BoundingBoxMasks(object):
     @staticmethod
     def computeCoords0BoundingBox(boundingBox):
 
-        return (boundingBox[1][0], boundingBox[2][0], boundingBox[0][0])
+        return (boundingBox[0][0], boundingBox[1][0], boundingBox[2][0])
 
     @staticmethod
     def fitBoundingBoxToImageMaxSize(boundingBox, (size_img_x, size_img_y)):
 
-        translate_x = 0
-        translate_y = 0
+        translate_X = 0
+        translate_Y = 0
 
         if (boundingBox[1][0] < 0):
             translate_X = -boundingBox[1][0]
@@ -57,8 +59,8 @@ class BoundingBoxMasks(object):
         if (translate_X != 0 or
             translate_Y != 0):
             return ((boundingBox[0][0], boundingBox[0][1]),
-                    (boundingBox[1][0] + translate_x, boundingBox[1][1] + translate_x),
-                    (boundingBox[2][0] + translate_y, boundingBox[2][1] + translate_y))
+                    (boundingBox[1][0] + translate_X, boundingBox[1][1] + translate_X),
+                    (boundingBox[2][0] + translate_Y, boundingBox[2][1] + translate_Y))
         else:
             return boundingBox
 
@@ -93,7 +95,7 @@ class BoundingBoxMasks(object):
                 (min(indexesActiveMasks[:,2]), max(indexesActiveMasks[:,2])))
 
     @classmethod
-    def compute_with_border_effects(cls, masks_array, voxels_buffer_border=(16, 16, 16)):
+    def compute_with_border_effects(cls, masks_array, voxels_buffer_border=BORDER_EFFECTS):
 
         boundingBox = cls.compute(masks_array)
 

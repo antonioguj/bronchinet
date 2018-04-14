@@ -44,7 +44,7 @@ class SlidingWindowImages(object):
         index_xy = index % (num_images_xy)
         index_y  = index_xy // num_images_x
         index_x  = index_xy % num_images_x
-        return (index_x, index_y, index_z)
+        return (index_z, index_x, index_y)
 
 
     def get_num_images_3d(self, (sizetotal_z, sizetotal_x, sizetotal_y)):
@@ -53,34 +53,34 @@ class SlidingWindowImages(object):
         num_images_y = self.get_num_images_1d(sizetotal_y, self.size_image_y, self.prop_overlap_y)
         num_images_z = self.get_num_images_1d(sizetotal_z, self.size_image_z, self.prop_overlap_z)
 
-        return (num_images_x, num_images_y, num_images_z)
+        return (num_images_z, num_images_x, num_images_y)
 
     def get_num_images_total(self, (sizetotal_z, sizetotal_x, sizetotal_y)):
 
-        (num_images_x, num_images_y, num_images_z) = self.get_num_images_3d((sizetotal_z, sizetotal_x, sizetotal_y))
+        (num_images_z, num_images_x, num_images_y) = self.get_num_images_3d((sizetotal_z, sizetotal_x, sizetotal_y))
         return num_images_x * num_images_y * num_images_z
 
-    def get_limits_image_3d(self, (index_x, index_y, index_z)):
+    def get_limits_image_3d(self, (index_z, index_x, index_y)):
 
         (x_left, x_right) = self.get_limits_image_1d(index_x, self.size_image_x, self.prop_overlap_x)
         (y_down, y_up   ) = self.get_limits_image_1d(index_y, self.size_image_y, self.prop_overlap_y)
         (z_back, z_front) = self.get_limits_image_1d(index_z, self.size_image_z, self.prop_overlap_z)
 
-        return (x_left, x_right, y_down, y_up, z_back, z_front)
+        return ((z_back, z_front), (x_left, x_right), (y_down, y_up))
 
 
     def compute_1array(self, images_array):
 
-        (num_images_x, num_images_y, num_images_z) = self.get_num_images_3d(images_array.shape)
+        (num_images_z, num_images_x, num_images_y) = self.get_num_images_3d(images_array.shape)
         num_images = num_images_x * num_images_y * num_images_z
 
         out_images_array = np.ndarray([num_images, self.size_image_z, self.size_image_x, self.size_image_y], dtype=images_array.dtype)
 
         for i, index in enumerate(range(num_images)):
 
-            (index_x, index_y, index_z) = self.get_indexes_3d(index, (num_images_x, num_images_y))
+            (index_z, index_x, index_y) = self.get_indexes_3d(index, (num_images_x, num_images_y))
 
-            (x_left, x_right, y_down, y_up, z_back, z_front) = self.get_limits_image_3d((index_x, index_y, index_z))
+            ((z_back, z_front), (x_left, x_right), (y_down, y_up)) = self.get_limits_image_3d((index_z, index_x, index_y))
 
             out_images_array[i] = np.asarray(images_array[z_back:z_front, x_left:x_right, y_down:y_up], dtype=images_array.dtype)
         #endfor
@@ -90,7 +90,7 @@ class SlidingWindowImages(object):
 
     def compute_2array(self, images_array, masks_array):
 
-        (num_images_x, num_images_y, num_images_z) = self.get_num_images_3d(images_array.shape)
+        (num_images_z, num_images_x, num_images_y) = self.get_num_images_3d(images_array.shape)
         num_images = num_images_x * num_images_y * num_images_z
 
         out_images_array = np.ndarray([num_images, self.size_image_z, self.size_image_x, self.size_image_y], dtype=images_array.dtype)
@@ -98,9 +98,9 @@ class SlidingWindowImages(object):
 
         for i, index in enumerate(range(num_images)):
 
-            (index_x, index_y, index_z) = self.get_indexes_3d(index, (num_images_x, num_images_y))
+            (index_z, index_x, index_y) = self.get_indexes_3d(index, (num_images_x, num_images_y))
 
-            (x_left, x_right, y_down, y_up, z_back, z_front) = self.get_limits_image_3d((index_x, index_y, index_z))
+            ((z_back, z_front), (x_left, x_right), (y_down, y_up)) = self.get_limits_image_3d((index_z, index_x, index_y))
 
             out_images_array[i] = np.asarray(images_array[z_back:z_front, x_left:x_right, y_down:y_up], dtype=images_array.dtype)
             out_masks_array [i] = np.asarray(masks_array [z_back:z_front, x_left:x_right, y_down:y_up], dtype=masks_array.dtype)
