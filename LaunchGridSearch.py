@@ -10,28 +10,37 @@
 
 #!/usr/bin/python
 
-import sys
-import os
+from CommonUtil.Constants import *
+from CommonUtil.FunctionsUtil import *
+import subprocess
 
 
 BASEDIR  = '/home/antonio/testSegmentation/'
-CODEDIR  = os.path.join(BASEDIR, 'Code')
-TESTSDIR = os.path.join(BASEDIR, 'Tests_LUVAR')
+CODEDIR  = joinpathnames(BASEDIR, 'Code')
+TESTSDIR = joinpathnames(BASEDIR, 'Tests_LUVAR')
 
-script_Training = os.path.join(CODEDIR, 'TrainingNetwork.py')
+script_Training = joinpathnames(CODEDIR, 'TrainingNetwork.py')
 
 listModels     = ['Unet3D']
 listOptimizers = ['Adam']
 listLearnRates = ['1.0e-05', '3.0e-05', '1.0e-04', '3.0e-04', '1.0e-03', '3.0e-03', '1.0e-02', '3.0e-02']
 
+
 for arg1 in listModels:
     for arg2 in listOptimizers:
         for arg3 in listLearnRates:
 
-            os.system('python %s %s %s %s' %(script_Training, arg1, arg2, arg3))
+            measureTime = WallClockTime()
 
-            olddir = os.path.join(TESTSDIR, 'Models')
-            newdir = os.path.join(TESTSDIR, 'Models_%s_%s_%s'%(arg1, arg2, arg3))
+            # Launching Training script
+            Popen_obj = subprocess.Popen(['python', script_Training, '--model', arg1, '--optimizer', arg2, '--learn_rate', arg3])
 
-            os.system('mv %s %s'%(olddir, newdir))
-            os.system('mkdir %s' % (olddir))
+            # Wait for the process to finish
+            # I would like to implement a way to input signal to stop process
+            Popen_obj.wait()
+
+            print('<-Training performed in %s sec...->' % (measureTime.compute()))
+
+        #endfor
+    #endfor
+#endfor

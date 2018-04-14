@@ -16,61 +16,54 @@ from Networks.Callbacks import *
 from Networks.Metrics import *
 from Networks.Networks import *
 from Networks.Optimizers import *
+from Preprocessing.SlidingWindowImages import *
 from KerasPrototypes.SlidingWindowBatchGenerator import *
 from keras import callbacks as Kcallbacks
+import argparse
 
 
-def main():
+def main(args):
 
-    workDirsManager    = WorkDirsManager(BASEDIR)
-    TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath(), 'ProcVolsData')
-    ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath(), 'ProcVolsData')
-    ModelsPath         = workDirsManager.getNameNewPath(BASEDIR, 'Models')
+    workDirsManager    = WorkDirsManager(args.basedir)
+    TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath(), 'ProcessInputData')
+    ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath(), 'ProcessInputData')
+    ModelsPath         = workDirsManager.getNameNewPath(args.basedir, 'Models')
 
     # Get the file list:
-    listTrainImagesFiles = findFilesDir(TrainingDataPath + '/volsImages*.npy')
-    listTrainMasksFiles  = findFilesDir(TrainingDataPath + '/volsMasks*.npy' )
-    listValidImagesFiles = findFilesDir(ValidationDataPath + '/volsImages*.npy')
-    listValidMasksFiles  = findFilesDir(ValidationDataPath + '/volsMasks*.npy' )
+    nameImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
+    nameMasksFiles  = 'masks*' + getFileExtension(FORMATINOUTDATA)
 
-
-    # LOADING DATA
-    # ----------------------------------------------
-    print('-' * 30)
-    print('Loading data...')
-    print('-' * 30)
-
-    (xTrain, yTrain) = LoadDataManager(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
-    (xValid, yValid) = LoadDataManager(IMAGES_DIMS_Z_X_Y).loadData_ListFiles_BatchGenerator(SlicingImages(IMAGES_DIMS_Z_X_Y), listValidImagesFiles, listValidMasksFiles)
-
-    print('Number Training volumes: %s' %(len(xTrain)))
-    print('Number Validation volumes: %s' %(xValid.shape[0]))
+    listTrainImagesFiles = findFilesDir(TrainingDataPath,   nameImagesFiles)
+    listTrainMasksFiles  = findFilesDir(TrainingDataPath,   nameMasksFiles )
+    listValidImagesFiles = findFilesDir(ValidationDataPath, nameImagesFiles)
+    listValidMasksFiles  = findFilesDir(ValidationDataPath, nameMasksFiles )
 
 
     # BUILDING MODEL
     # ----------------------------------------------
-    print('_' * 30)
-    print('Building model...')
-    print('_' * 30)
+    print("_" * 30)
+    print("Building model...")
+    print("_" * 30)
 
-    if USE_RESTARTMODEL:
+    if args.use_restartModel:
         print('Loading saved model and Restarting...')
-        initial_epoch = EPOCH_RESTART
+        initial_epoch = args.epoch_restart
 
-        modelSavedPath = joinpathnames(ModelsPath, RESTARTFILE)
-        custom_objects = {'compute_loss': DICTAVAILLOSSFUNS[ILOSSFUN].compute_loss,
-                          'compute': DICTAVAILMETRICS[IMETRICS].compute}
+        modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.restart_modelFile))
+        custom_objects = {'compute_loss': DICTAVAILLOSSFUNS[args.lossfun].compute_loss,
+                          'compute': DICTAVAILMETRICS[args.metrics].compute}
 
         model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)
     else:
         initial_epoch = 0
 
-        model = DICTAVAILNETWORKS3D[IMODEL].getModel(IMAGES_DIMS_Z_X_Y)
-        # Compile model
-        model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(IOPTIMIZER, LEARN_RATE),
-                      loss     = DICTAVAILLOSSFUNS[ILOSSFUN].compute_loss,
-                      metrics  =[DICTAVAILMETRICS[IMETRICS].compute])
+        modelConstructor = DICTAVAILNETWORKS3D(IMAGES_DIMS_Z_X_Y, args.model)
+        model = modelConstructor.getModel()
 
+        # Compile model
+        model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(args.optimizer, args.learn_rate),
+                      loss     = DICTAVAILLOSSFUNS[args.lossfun].compute_loss,
+                      metrics  =[DICTAVAILMETRICS[args.metrics].compute])
     model.summary()
 
     # Callbacks:
@@ -84,19 +77,37 @@ def main():
     # ----------------------------------------------
 
 
+    # LOADING DATA
+    # ----------------------------------------------
+    print("-" * 30)
+    print("Loading data...")
+    print("-" * 30)
+
+    (xTrain, yTrain) = LoadDataManager(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
+    (xValid, yValid) = LoadDataManager(IMAGES_DIMS_Z_X_Y).loadData_ListFiles_BatchGenerator(SlidingWindowImages(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y),
+                                                                                            listValidImagesFiles, listValidMasksFiles)
+
+    print("Number Training volumes: %s" %(len(xTrain)))
+    print("Number Validation volumes: %s" %(xValid.shape[0]))
+
+
     # TRAINING MODEL
     # ----------------------------------------------
-    print('-' * 30)
-    print('Training model...')
-    print('-' * 30)
+    print("-" * 30)
+    print("Training model...")
+    print("-" * 30)
 
-    if (USE_DATAAUGMENTATION):
-        if (SLIDINGWINDOWIMAGES):
+    if (args.use_dataAugmentation):
+        if (args.slidingWindowImages):
             # Images Data Generator by Sliding-window
-            batchDataGenerator = SlidingWindowBatchGenerator(xTrain, yTrain, IMAGES_DIMS_Z_X_Y, PROP_OVERLAP_Z_X_Y, batch_size=BATCH_SIZE, shuffle=True)
+            batchDataGenerator = SlidingWindowBatchGenerator(xTrain, yTrain,
+                                                             IMAGES_DIMS_Z_X_Y,
+                                                             args.prop_overlap_Z_X_Y,
+                                                             batch_size=args.batch_size,
+                                                             shuffle=True)
             model.fit_generator(batchDataGenerator,
                                 steps_per_epoch=len(batchDataGenerator),
-                                nb_epoch=NBEPOCHS,
+                                nb_epoch=args.num_epochs,
                                 verbose=1,
                                 shuffle=True,
                                 validation_data=(xValid, yValid),
@@ -107,8 +118,8 @@ def main():
             CatchErrorException(message)
     else:
         model.fit(xTrain, yTrain,
-                  batch_size=BATCH_SIZE,
-                  epochs=NBEPOCHS,
+                  batch_size=args.batch_size,
+                  epochs=args.num_epochs,
                   verbose=1,
                   shuffle=True,
                   validation_data=(xValid, yValid),
@@ -118,4 +129,26 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--num_epochs', type=int, default=NUM_EPOCHS)
+    parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
+    parser.add_argument('--model', default=IMODEL)
+    parser.add_argument('--optimizer', default=IOPTIMIZER)
+    parser.add_argument('--lossfun', default=ILOSSFUN)
+    parser.add_argument('--metrics', default=IMETRICS)
+    parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
+    parser.add_argument('--use_dataAugmentation', type=str2bool, default=USE_DATAAUGMENTATION)
+    parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
+    parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
+    parser.add_argument('--use_restartModel', type=str2bool, default=USE_RESTARTMODEL)
+    parser.add_argument('--restart_modelFile', default=RESTART_MODELFILE)
+    parser.add_argument('--epoch_restart', type=int, default=EPOCH_RESTART)
+    args = parser.parse_args()
+
+    print("Print input arguments...")
+    for key, value in vars(args).iteritems():
+        print("\'%s\' = %s" %(key, value))
+
+    main(args)
