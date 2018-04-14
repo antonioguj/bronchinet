@@ -17,8 +17,12 @@ import random
 class ManyFilesBatchGenerator(image.Iterator):
 
     def __init__(self, list_files_X, list_files_Y, batch_size=32, shuffle=False, seed=None):
+
         self.list_files_X = list_files_X
         self.list_files_Y = list_files_Y
+
+        self.type_Xdata = list_files_X[0].dtype
+        self.type_Ydata = list_files_Y[0].dtype
 
         self.list_size_data = []
         self.list_num_batches = []
