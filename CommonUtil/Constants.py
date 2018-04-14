@@ -9,10 +9,32 @@
 ########################################################################################
 
 import numpy as np
+np.random.seed(2017)
 
 
 DATADIR = '/home/antonio/testSegmentation/Data/LUVAR/'
-BASEDIR = '/home/antonio/testSegmentation/Tests_LUVAR/'
+BASEDIR = '/home/antonio/testSegmentation/Tests_LUVAR_LUNGS/'
+
+
+# ******************** INPUT IMAGES PARAMETERS ********************
+# MUST BE MULTIPLES OF 16
+IMAGES_DEPTHZ = 32
+#IMAGES_HEIGHT = 352
+IMAGES_HEIGHT = 256
+#IMAGES_WIDTH  = 240
+IMAGES_WIDTH  = 256
+
+IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
+IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
+
+FORMATIMAGEDATA   = np.int16
+FORMATMASKDATA    = np.int8
+FORMATPREDICTDATA = np.float32
+
+SHUFFLEIMAGES   = True
+NORMALIZEDATA   = False
+FORMATINOUTDATA = 'numpy'
+# ******************** INPUT IMAGES PARAMETERS ********************
 
 
 # ******************** DATA DISTRIBUTION ********************
@@ -23,71 +45,60 @@ DISTRIBUTE_RANDOM = False
 # ******************** DATA DISTRIBUTION ********************
 
 
-# ******************** INPUT IMAGES PARAMETERS ********************
-# MUST BE MULTIPLES OF 16
-IMAGES_DEPTHZ = 16
-IMAGES_HEIGHT = 352
-#IMAGES_HEIGHT = 256
-IMAGES_WIDTH  = 240
-#IMAGES_WIDTH  = 256
-
-IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
-IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
-
+# ******************** PRE-PROCESSING PARAMETERS ********************
 TYPEDATA = 'training'
 
-FORMATIMAGEDATA = np.int16
-FORMATMASKDATA  = np.int8
-# ******************** INPUT IMAGES PARAMETERS ********************
+REDUCESIZEIMAGES = False
 
+SIZEREDUCEDIMAGES = (256, 256)
 
-# ******************** PRE-PROCESSING PARAMETERS ********************
-SHUFFLEIMAGES = True
+CROPIMAGES = True
+
+CROPSIZEBOUNDINGBOX = (352, 480)
 
 CONFINEMASKSTOLUNGS = True
 
-CROPPINGIMAGES = True
-
 CHECKBALANCECLASSES = True
-
-if CROPPINGIMAGES:
-    CROPSIZEBOUNDINGBOX = (352, 480)
 
 SLIDINGWINDOWIMAGES = True
 
-SAVEIMAGESFILESINBATCHES = False
+CREATEIMAGESBATCHES = False
 
-if SLIDINGWINDOWIMAGES:
-    PROP_OVERLAP_Z_X_Y = (0.5, 0.0, 0.0)
+PROP_OVERLAP_Z_X_Y = (0.75, 0.0, 0.0)
+
+SAVEVISUALPROCESSDATA = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 
 
 # ******************** TRAINING PARAMETERS ********************
-NBEPOCHS    = 1000
-BATCH_SIZE  = 1
-IMODEL      = 'Unet3D_Shallow'
-IOPTIMIZER  = 'Adam'
-ILOSSFUN    = 'WeightedBinaryCrossEntropy_Masked'
-IMETRICS    = 'DiceCoefficient_Masked'
-LEARN_RATE  = 1.0e-05
+NUM_EPOCHS = 1000
+BATCH_SIZE = 1
+IMODEL     = 'Unet3D_Shallow'
+IOPTIMIZER = 'Adam'
+#ILOSSFUN   = 'WeightedBinaryCrossEntropy_Masked'
+ILOSSFUN   = 'BinaryCrossEntropy'
+#IMETRICS   = 'DiceCoefficient_Masked'
+IMETRICS   = 'DiceCoefficient'
+LEARN_RATE = 1.0e-05
 
 USE_DATAAUGMENTATION = True
 
 USE_RESTARTMODEL = False
 
-if SLIDINGWINDOWIMAGES:
-    EPOCH_RESTART = 40
-    RESTARTFILE = 'model_lastEpoch.hdf5'
+EPOCH_RESTART = 40
+RESTART_MODELFILE = 'lastEpoch'
 # ******************** TRAINING PARAMETERS ********************
 
 
 # ******************** POST-PROCESSING PARAMETERS ********************
-PREDICTIONFILE = 'model_lastEpoch.hdf5'
+PREDICTION_MODELFILE = 'lastEpoch'
 
-RECONSTRUCTPREDICTION = True
+#PREDICTIONACCURACY = 'DiceCoefficient_Masked'
+PREDICTIONACCURACY = 'DiceCoefficient'
 
-THRESHOLDOUTIMAGES = True
+THRESHOLDOUTIMAGES = False
 
-if (THRESHOLDOUTIMAGES):
-    THRESHOLDVALUE = 0.5
+THRESHOLDVALUE = 0.5
+
+SAVEVISUALPREDICTDATA = False
 # ******************** POST-PROCESSING PARAMETERS ********************

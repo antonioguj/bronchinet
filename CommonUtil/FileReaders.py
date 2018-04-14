@@ -10,11 +10,12 @@
 
 from CommonUtil.ErrorMessages import *
 import SimpleITK as sitk
-import nibabel as nib
 import pydicom
 from pydicom.dataset import Dataset, FileDataset
-import datetime, time
+import nibabel as nib
 import numpy as np
+import h5py
+import datetime, time
 import os
 
 
@@ -30,6 +31,8 @@ class FileReader(object):
             return NIFTIreader.getImageSize(filename)
         elif (extension == '.npy'):
             return NUMPYreader.getImageSize(filename)
+        elif (extension == '.hdf5'):
+            return HDF5reader.getImageSize(filename)
         else:
             message = "No valid file extension found..."
             CatchErrorException(message)
@@ -44,6 +47,8 @@ class FileReader(object):
             return NIFTIreader.getImageArray(filename)
         elif (extension == '.npy'):
             return NUMPYreader.getImageArray(filename)
+        elif (extension == '.hdf5'):
+            return HDF5reader.getImageArray(filename)
         else:
             message = "No valid file extension found..."
             CatchErrorException(message)
@@ -55,13 +60,36 @@ class FileReader(object):
         if (extension == '.dcm'):
             DICOMreader.writeImageArray(filename, image_array)
         elif (extension == '.nii'):
-            # in nifty format, the axes are reversed
-            NIFTIreader.writeImageArray(filename, np.swapaxes(image_array, 0, 2))
+            NIFTIreader.writeImageArray(filename, image_array)
         elif (extension == '.npy'):
             NUMPYreader.writeImageArray(filename, image_array)
+        elif (extension == '.hdf5'):
+            HDF5reader.writeImageArray(filename, image_array)
         else:
             message = "No valid file extension found..."
             CatchErrorException(message)
+
+
+class HDF5reader(FileReader):
+
+    # get h5py image size:
+    @staticmethod
+    def getImageSize(filename):
+        data_file = h5py.File(filename, 'r')
+        return data_file['data'].shape
+
+    # get h5py image array:
+    @staticmethod
+    def getImageArray(filename):
+        data_file = h5py.File(filename, 'r')
+        return data_file['data'][:]
+
+    # write h5py file array:
+    @staticmethod
+    def writeImageArray(filename, image_array):
+        data_file = h5py.File(filename, 'w')
+        data_file.create_dataset('data', data=image_array)
+        data_file.close()
 
 
 class NUMPYreader(FileReader):
@@ -69,43 +97,39 @@ class NUMPYreader(FileReader):
     # get numpy image size:
     @staticmethod
     def getImageSize(filename):
-
         return np.load(filename).shape
 
     # get numpy image array:
     @staticmethod
     def getImageArray(filename):
-
         return np.load(filename)
 
     # write numpy file array:
     @staticmethod
     def writeImageArray(filename, image_array):
-
         np.save(filename, image_array)
 
 
 class NIFTIreader(FileReader):
+    # In nifty format, the axes are reversed.
+    # Need to swap axis and set depth_Z first dim
 
     # get nifti image size:
     @staticmethod
     def getImageSize(filename):
-
         nib_im = nib.load(filename)
-        return nib_im.get_data().shape
+        return nib_im.get_data().shape[::-1]
 
     # get nifti image array:
     @staticmethod
     def getImageArray(filename):
-
         nib_im = nib.load(filename)
-        return nib_im.get_data()
+        return np.swapaxes(nib_im.get_data(), 0, 2)
 
     # write nifti file array:
     @staticmethod
     def writeImageArray(filename, image_array):
-
-        nib_im = nib.Nifti1Image(image_array, np.eye(4))
+        nib_im = nib.Nifti1Image(np.swapaxes(image_array, 0, 2), np.eye(4))
         nib.save(nib_im, filename)
 
 
@@ -114,7 +138,6 @@ class DICOMreader(FileReader):
     # get dcm image dims:
     @staticmethod
     def getImageSize(filename):
-
         ds = sitk.ReadImage(filename)
         #np.swapaxes(ds.GetSize(), 0, 2)
         return sitk.GetArrayFromImage(ds).shape
@@ -122,7 +145,6 @@ class DICOMreader(FileReader):
     # get dcm voxel size:
     @staticmethod
     def getImageVoxelSize(filename):
-
         ds = pydicom.read_file(filename)
         voxel_size = (float(ds.PixelSpacing[0]),
                       float(ds.PixelSpacing[1]),
@@ -132,14 +154,12 @@ class DICOMreader(FileReader):
     # load dcm file array:
     @staticmethod
     def getImageArray(filename):
-
         ds = sitk.ReadImage(filename)
         return sitk.GetArrayFromImage(ds)
 
     # write dcm file array:
     @staticmethod
     def writeImageArray(filename, image_array):
-
         ds = sitk.GetImageFromArray(image_array)
         sitk.WriteImage(ds, filename)
 

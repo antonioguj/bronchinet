@@ -10,14 +10,20 @@
 
 from CommonUtil.Constants import *
 from CommonUtil.FileReaders import *
+from CommonUtil.FunctionsUtil import *
 import matplotlib.pyplot as plt
-import numpy as np
-import os
 
 
 class PlotsManager(object):
 
-    counter = 0
+    max_plot_images_axfigx   = 3
+    max_plot_images_axfigy   = 5
+    max_plot_images_figure   = 15
+    max_plot_images_axfigy_2 = 4
+    max_plot_images_figure_2 = 8
+    num_figures_saved        = 20
+    skip_slices_plot_images  = 4
+
 
     @staticmethod
     def plot_model_history(model_history):
@@ -42,66 +48,115 @@ class PlotsManager(object):
         axs[1].legend(['train', 'val'], loc='best')
         plt.show()
 
-    @staticmethod
-    def plot_image_mask_2D(images, masks):
-
-        num_images     = images.shape[0]
-        num_plot_images= min(5, num_images)
-        randIndexes = np.random.choice(num_images, size=num_plot_images, replace=False)
-
-        fig, axis = plt.subplots(1, num_plot_images, figsize=(10,5))
-        for i, index in enumerate(randIndexes):
-            image_plot= images[index].reshape(IMAGES_HEIGHT, IMAGES_WIDTH)
-            mask_plot = masks [index].reshape(IMAGES_HEIGHT, IMAGES_WIDTH)
-            axis[i].set_title('Image %s' %(index))
-            axis[i].imshow(image_plot)
-            axis[i].imshow(mask_plot, alpha=0.9)
-        plt.show()
 
     @classmethod
-    def saveplot_image_mask_3D(cls, outfiles_path, images, masks):
+    def plot_images_masks_randomSlices(cls, images, masks, num_plot_images=max_plot_images_figure,
+                                       isSaveImages=False, outfilespath=None):
 
-        num_images     = images.shape[0]
-        num_save_images= min(5, num_images)
-        randIndexes = np.random.choice(num_images, size=num_save_images, replace=False)
+        num_total_slices= images.shape[0]
+        size_slices     =(images.shape[1], images.shape[2])
+        num_plot_images = min(num_plot_images, num_total_slices)
+        indexes_slices  = np.random.choice(num_total_slices, size=num_plot_images, replace=False)
 
-        #save images in nifti format
-        for i, index in enumerate(randIndexes):
-            image_plot= images[index].reshape(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
-            mask_plot = masks [index].reshape(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
+        fig, axis = plt.subplots(cls.max_plot_images_axfigx, cls.max_plot_images_axfigy, figsize=(10,5))
 
-            outname_images = os.path.join(outfiles_path, 'images-%0.2i.nii'%(cls.counter))
-            outname_masks  = os.path.join(outfiles_path, 'masks-%0.2i.nii' %(cls.counter))
-            NIFTIreader.writeImageArray(outname_images, np.swapaxes(image_plot, 0, 2))
-            NIFTIreader.writeImageArray(outname_masks,  np.swapaxes(mask_plot,  0, 2))
-            cls.counter += 1
+        for i, index in enumerate(indexes_slices):
+            (ind_i, ind_j) = (i//cls.max_plot_images_axfigy, i%cls.max_plot_images_axfigy)
 
-    @staticmethod
-    def plot_compare_images_2D(images, masks_predict, masks_truth):
+            images_slice_plot= images[index].reshape(size_slices)
+            masks_slice_plot = masks [index].reshape(size_slices)
 
-        num_images     = images.shape[0]
-        num_plot_images= min(5, num_images)
-        randIndexes = np.random.choice(num_images, size=num_plot_images, replace=False)
+            axis[ind_i, ind_j].set_title('slice %s' %(index))
+            axis[ind_i, ind_j].imshow(images_slice_plot,cmap='gray')
+            axis[ind_i, ind_j].imshow(masks_slice_plot, cmap='jet', alpha=0.5)
+        #endfor
 
-        fig, axis = plt.subplots(2, num_plot_images, figsize=(10,5))
-        for i, index in enumerate(randIndexes):
-            image_plot       = images       [index].reshape(IMAGES_HEIGHT, IMAGES_WIDTH)
-            mask_predict_plot= masks_predict[index].reshape(IMAGES_HEIGHT, IMAGES_WIDTH)
-            mask_truth_plot  = masks_truth  [index].reshape(IMAGES_HEIGHT, IMAGES_WIDTH)
-            axis[0, i].imshow(image_plot, cmap='gray')
-            axis[0, i].imshow(mask_predict_plot, cmap='jet', alpha=0.5)
-            axis[0, i].set_title('Predict %s' %(index))
-            axis[1, i].imshow(image_plot, cmap='gray')
-            axis[1, i].imshow(mask_truth_plot, cmap='jet', alpha=0.5)
-            axis[1, i].set_title('Truth %s' %(index))
-        plt.show()
+        if isSaveImages:
+            outfilename = joinpathnames(outfilespath, 'slices_%s.png' %('_'.join([str(x) for x in indexes_slices])))
+            plt.savefig(outfilename)
+        else:
+            plt.show()
 
-    @staticmethod
-    def plot_compare_images_3D(images, masks_predict, masks_truth):
 
-        newShape = (images.shape[0]*images.shape[1], images.shape[2], images.shape[3], images.shape[4])
-        images        = images       .reshape(newShape)
-        masks_predict = masks_predict.reshape(newShape)
-        masks_truth   = masks_truth.  reshape(newShape)
+    @classmethod
+    def plot_images_masks_allSlices(cls, images, masks, typeOutput=1, isSaveImages=False, outfilespath=None):
 
-        PlotsManager.plot_compare_images_2D(images, masks_predict, masks_truth)
+        num_total_slices= images.shape[0]
+        size_slices     =(images.shape[1], images.shape[2])
+
+        if typeOutput==1:
+            num_figures_saved   = num_total_slices // (cls.skip_slices_plot_images * cls.max_plot_images_figure)
+            range_slices_figure = cls.max_plot_images_figure * cls.skip_slices_plot_images
+        elif typeOutput==2:
+            num_figures_saved   = cls.num_figures_saved
+            range_slices_figure = num_total_slices // cls.num_figures_saved
+
+        count_slice = 0
+        for n in range(num_figures_saved):
+            fig, axis = plt.subplots(cls.max_plot_images_axfigx, cls.max_plot_images_axfigy, figsize=(10, 5))
+
+            indexes_slices = np.linspace(count_slice, count_slice+range_slices_figure, num=cls.max_plot_images_figure+1, dtype=int)[:-1]
+
+            for i, index in enumerate(indexes_slices):
+                (ind_i, ind_j) = (i//cls.max_plot_images_axfigy, i%cls.max_plot_images_axfigy)
+
+                images_slice_plot = images[index].reshape(size_slices)
+                masks_slice_plot  = masks [index].reshape(size_slices)
+
+                axis[ind_i, ind_j].set_title('slice %s' % (index))
+                axis[ind_i, ind_j].imshow(images_slice_plot, cmap='gray')
+                axis[ind_i, ind_j].imshow(masks_slice_plot,  cmap='jet', alpha=0.5)
+            # endfor
+
+            count_slice += range_slices_figure
+
+            if isSaveImages:
+                outfilename = joinpathnames(outfilespath, 'slices_%s.png' %('_'.join([str(x) for x in indexes_slices])))
+                plt.savefig(outfilename)
+                plt.close()
+            else:
+                plt.show()
+        #endfor
+
+
+    @classmethod
+    def plot_compare_images_masks_allSlices(cls, images, origin_masks, predict_masks, typeOutput=1, isSaveImages=False, outfilespath=None):
+
+        num_total_slices= images.shape[0]
+        size_slices     =(images.shape[1], images.shape[2])
+
+        if typeOutput==1:
+            num_figures_saved   = num_total_slices // (cls.skip_slices_plot_images * cls.max_plot_images_axfigy_2)
+            range_slices_figure = cls.max_plot_images_axfigy_2 * cls.skip_slices_plot_images
+        elif typeOutput==2:
+            num_figures_saved   = cls.num_figures_saved
+            range_slices_figure = num_total_slices // cls.num_figures_saved
+
+        count_slice = 0
+        for n in range(num_figures_saved):
+            fig, axis = plt.subplots(2, cls.max_plot_images_axfigy_2, figsize=(10,5))
+
+            indexes_slices = np.linspace(count_slice, count_slice+range_slices_figure, num=cls.max_plot_images_axfigy_2+1, dtype=int)[:-1]
+
+            for i, index in enumerate(indexes_slices):
+                images_slice_plot        = images       [index].reshape(size_slices)
+                origin_masks_slice_plot  = origin_masks [index].reshape(size_slices)
+                predict_masks_slice_plot = predict_masks[index].reshape(size_slices)
+
+                axis[0, i].set_title('slice %s' % (index))
+                axis[0, i].imshow(images_slice_plot, cmap='gray')
+                axis[0, i].imshow(origin_masks_slice_plot,  cmap='jet', alpha=0.5)
+                axis[1, i].set_title('slice %s' % (index))
+                axis[1, i].imshow(images_slice_plot, cmap='gray')
+                axis[1, i].imshow(predict_masks_slice_plot, cmap='jet', alpha=0.5)
+            # endfor
+
+            count_slice += range_slices_figure
+
+            if isSaveImages:
+                outfilename = joinpathnames(outfilespath, 'slices_%s.png' %('_'.join([str(x) for x in indexes_slices])))
+                plt.savefig(outfilename)
+                plt.close()
+            else:
+                plt.show()
+        #endfor

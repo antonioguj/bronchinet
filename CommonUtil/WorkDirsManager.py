@@ -8,13 +8,10 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-import os
+from CommonUtil.FunctionsUtil import *
 
 
 class WorkDirsManager(object):
-
-    def __init__(self, basePath):
-        self.basePath = basePath
 
     mapTypeData_RelDataPath = { 'training'   : 'TrainingData/',
                                 'validation' : 'ValidationData/',
@@ -22,25 +19,30 @@ class WorkDirsManager(object):
     RelModelsPath = 'Models/'
 
 
+    def __init__(self, basePath):
+        self.basePath = basePath
+        if not isExistdir(basePath):
+            message = "WorkDirsManager: base path does not exists..."
+            CatchErrorException(message)
+
     def getNameDataPath(self, typedata):
-        return os.path.join(self.basePath, self.mapTypeData_RelDataPath[typedata])
+        return joinpathnames(self.basePath, self.mapTypeData_RelDataPath[typedata])
 
     def getNameTrainingDataPath(self):
-        return os.path.join(self.basePath, self.mapTypeData_RelDataPath['training'])
+        return joinpathnames(self.basePath, self.mapTypeData_RelDataPath['training'])
 
     def getNameValidationDataPath(self):
-        return os.path.join(self.basePath, self.mapTypeData_RelDataPath['validation'])
+        return joinpathnames(self.basePath, self.mapTypeData_RelDataPath['validation'])
 
     def getNameTestingDataPath(self):
-        return os.path.join(self.basePath, self.mapTypeData_RelDataPath['testing'])
+        return joinpathnames(self.basePath, self.mapTypeData_RelDataPath['testing'])
 
     def getNameModelsPath(self):
-        return os.path.join(self.basePath, self.RelModelsPath)
+        return joinpathnames(self.basePath, self.RelModelsPath)
 
     def getNameNewPath(self, basePath, newRelPath):
-        newPath = os.path.join(basePath, newRelPath)
-        if( not os.path.exists(newPath) ):
-            os.makedirs(newPath)
+        newPath = joinpathnames(basePath, newRelPath)
+        makedir(newPath)
         return newPath
 
     #@staticmethod
