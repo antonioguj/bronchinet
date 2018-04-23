@@ -87,4 +87,4 @@ class ExclusionMasks(object):
             message = "size of input array, %s; not equal to size of mask, %s..."%(images_array.shape, exclude_masks_array.shape)
             CatchErrorException(message)
         else:
-            return np.where(exclude_masks_array==cls.val_exclude, 0, images_array)
+            return np.where(exclude_masks_array == 0, 0, images_array)
