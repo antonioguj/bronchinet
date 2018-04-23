@@ -23,9 +23,9 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath    = workDirsManager.getNameDataPath(args.typedata)
-    RawImagesPath   = workDirsManager.getNameNewPath(BaseDataPath, 'ProcImages')
-    RawMasksPath    = workDirsManager.getNameNewPath(BaseDataPath, 'ProcMasks')
-    ProcessDataPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcessInputData')
+    RawImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'ProcImages')
+    RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
+    ProcessDataPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcInputData')
 
     # Get the file list:
     nameImagesFiles = '*.nii'
@@ -51,7 +51,7 @@ def main(args):
 
     if (args.confineMasksToLungs):
 
-        AddMasksPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcAddMasks')
+        AddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'ProcAddMasks')
 
         nameAddMasksFiles = '*.nii'
         listAddMasksFiles = findFilesDir(AddMasksPath, nameAddMasksFiles)
@@ -60,9 +60,6 @@ def main(args):
         if (nbImagesFiles != nbAddMasksFiles):
             message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbAddMasksFiles)
             CatchErrorException(message)
-
-    if (args.saveVisualProcessData):
-        VisualProcDataPath = workDirsManager.getNameNewPath(BaseDataPath, 'VisualProcessedData')
 
 
 
@@ -73,13 +70,15 @@ def main(args):
         images_array = FileReader.getImageArray(imagesFile)
         masks_array  = FileReader.getImageArray(masksFile)
 
-        # Turn to binary masks (0, 1)
-        masks_array = processBinaryMasks(masks_array)
-
         if (images_array.shape != masks_array.shape):
             message = "size of images: %s, not equal to size of masks: %s..." %(images_array.shape, masks_array.shape)
             CatchErrorException(message)
         print("Original image of size: %s..." %(str(images_array.shape)))
+
+
+        if (not args.multiClassCase):
+            # Turn to binary masks (0, 1)
+            masks_array = processBinaryMasks(masks_array)
 
 
         if (args.confineMasksToLungs):
@@ -130,15 +129,15 @@ def main(args):
 
                 for j, (batch_images_array, batch_masks_array) in enumerate(zip(images_array, masks_array)):
 
-                    out_imagesFilename = joinpathnames(VisualProcDataPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape[1:]) + '_batch%i'%(j) +'.nii')
-                    out_masksFilename  = joinpathnames(VisualProcDataPath, tempNameProcMasksFiles%(i) +  tuple2str(masks_array.shape[1:])  + '_batch%i'%(j) +'.nii')
+                    out_imagesFilename = joinpathnames(ProcessDataPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape[1:]) + '_batch%i'%(j) +'.nii')
+                    out_masksFilename  = joinpathnames(ProcessDataPath, tempNameProcMasksFiles%(i) +  tuple2str(masks_array.shape[1:])  + '_batch%i'%(j) +'.nii')
 
                     FileReader.writeImageArray(out_imagesFilename, batch_images_array)
                     FileReader.writeImageArray(out_masksFilename,  batch_masks_array )
                 #endfor
             else:
-                out_imagesFilename = joinpathnames(VisualProcDataPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape) +'.nii')
-                out_masksFilename  = joinpathnames(VisualProcDataPath, tempNameProcMasksFiles%(i)  + tuple2str(masks_array.shape)  +'.nii')
+                out_imagesFilename = joinpathnames(ProcessDataPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape) +'.nii')
+                out_masksFilename  = joinpathnames(ProcessDataPath, tempNameProcMasksFiles%(i)  + tuple2str(masks_array.shape)  +'.nii')
 
                 FileReader.writeImageArray(out_imagesFilename, images_array)
                 FileReader.writeImageArray(out_masksFilename, masks_array)
@@ -150,6 +149,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--typedata', default=TYPEDATA)
+    parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
+    parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--confineMasksToLungs', default=CONFINEMASKSTOLUNGS)
     parser.add_argument('--checkBalanceClasses', type=str2bool, default=CHECKBALANCECLASSES)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)

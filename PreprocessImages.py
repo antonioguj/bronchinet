@@ -21,8 +21,8 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath    = workDirsManager.getNameDataPath(args.typedata)
-    RawImagesPath   = workDirsManager.getNameNewPath(BaseDataPath, 'RawImages')
-    RawMasksPath    = workDirsManager.getNameNewPath(BaseDataPath, 'RawMasks')
+    RawImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
+    RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
     ProcImagesPath  = workDirsManager.getNameNewPath(BaseDataPath, 'ProcImages')
     ProcMasksPath   = workDirsManager.getNameNewPath(BaseDataPath, 'ProcMasks')
 
@@ -30,8 +30,8 @@ def main(args):
     nameImagesFiles = '*.dcm'
     nameMasksFiles  = '*.dcm'
 
-    listImagesFiles = findFilesDir(RawImagesPath,   nameImagesFiles)
-    listMasksFiles  = findFilesDir(RawMasksPath,    nameMasksFiles)
+    listImagesFiles = findFilesDir(RawImagesPath, nameImagesFiles)
+    listMasksFiles  = findFilesDir(RawMasksPath,  nameMasksFiles)
 
     nbImagesFiles   = len(listImagesFiles)
     nbMasksFiles    = len(listMasksFiles)
@@ -48,7 +48,7 @@ def main(args):
     if isExistdir(joinpathnames(BaseDataPath, 'RawAddMasks')):
         isExistsAddMasks = True
 
-        RawAddMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, 'RawAddMasks')
+        RawAddMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
         ProcAddMasksPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcAddMasks')
 
         nameAddMasksFiles = '*.dcm'

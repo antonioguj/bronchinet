@@ -18,9 +18,9 @@ import argparse
 def main(args):
 
     workDirsManager    = WorkDirsManager(args.basedir)
-    OriginImagesPath   = workDirsManager.getNameNewPath(args.datadir, 'CTs')
-    OriginMasksPath    = workDirsManager.getNameNewPath(args.datadir, 'Airways')
-    OriginAddMasksPath = workDirsManager.getNameNewPath(args.datadir, 'Lungs')
+    OriginImagesPath   = workDirsManager.getNameExistPath(args.datadir, 'CTs')
+    OriginMasksPath    = workDirsManager.getNameExistPath(args.datadir, 'Airways')
+    OriginAddMasksPath = workDirsManager.getNameExistPath(args.datadir, 'Lungs')
 
     TrainingDataPath     = workDirsManager.getNameTrainingDataPath()
     TrainingImagesPath   = workDirsManager.getNameNewPath(TrainingDataPath, 'RawImages')

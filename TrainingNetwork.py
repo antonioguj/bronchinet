@@ -25,8 +25,8 @@ import argparse
 def main(args):
 
     workDirsManager    = WorkDirsManager(args.basedir)
-    TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath(), 'ProcessInputData')
-    ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath(), 'ProcessInputData')
+    TrainingDataPath   = workDirsManager.getNameExistPath(workDirsManager.getNameTrainingDataPath(), 'ProcInputData')
+    ValidationDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameValidationDataPath(), 'ProcInputData')
     ModelsPath         = workDirsManager.getNameNewPath(args.basedir, 'Models')
 
     # Get the file list:
@@ -50,8 +50,8 @@ def main(args):
         initial_epoch = args.epoch_restart
 
         modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.restart_modelFile))
-        custom_objects = {'compute_loss': DICTAVAILLOSSFUNS[args.lossfun].compute_loss,
-                          'compute': DICTAVAILMETRICS[args.metrics].compute}
+        custom_objects = {'compute_loss': DICTAVAILLOSSFUNS(args.lossfun).compute_loss,
+                          'compute': DICTAVAILMETRICS(args.metrics).compute}
 
         model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)
     else:
@@ -62,8 +62,8 @@ def main(args):
 
         # Compile model
         model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(args.optimizer, args.learn_rate),
-                      loss     = DICTAVAILLOSSFUNS[args.lossfun].compute_loss,
-                      metrics  =[DICTAVAILMETRICS[args.metrics].compute])
+                      loss     = DICTAVAILLOSSFUNS(args.lossfun).compute_loss,
+                      metrics  = [DICTAVAILMETRICS(args.metrics).compute])
     model.summary()
 
     # Callbacks:
@@ -83,9 +83,14 @@ def main(args):
     print("Loading data...")
     print("-" * 30)
 
-    (xTrain, yTrain) = LoadDataManager(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
-    (xValid, yValid) = LoadDataManager(IMAGES_DIMS_Z_X_Y).loadData_ListFiles_BatchGenerator(SlidingWindowImages(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y),
-                                                                                            listValidImagesFiles, listValidMasksFiles)
+    if (args.multiClassCase):
+        loadDataManager = LoadDataManager(IMAGES_DIMS_Z_X_Y, num_classes_out=args.numClassesMasks+1)
+    else:
+        loadDataManager = LoadDataManager(IMAGES_DIMS_Z_X_Y)
+
+    (xTrain, yTrain) = loadDataManager.loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
+    (xValid, yValid) = loadDataManager.loadData_ListFiles_BatchGenerator(SlidingWindowImages(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y),
+                                                                         listValidImagesFiles, listValidMasksFiles)
 
     print("Number Training volumes: %s" %(len(xTrain)))
     print("Number Validation volumes: %s" %(xValid.shape[0]))
@@ -99,10 +104,16 @@ def main(args):
 
     if (args.use_dataAugmentation):
         if (args.slidingWindowImages):
+
+            if (args.multiClassCase):
+                num_classes_out = args.numClassesMasks
+            else:
+                num_classes_out = 1
             # Images Data Generator by Sliding-window
             batchDataGenerator = SlidingWindowBatchGenerator(xTrain, yTrain,
                                                              IMAGES_DIMS_Z_X_Y,
                                                              args.prop_overlap_Z_X_Y,
+                                                             num_classes_out=num_classes_out,
                                                              batch_size=args.batch_size,
                                                              shuffle=True)
             model.fit_generator(batchDataGenerator,
@@ -132,6 +143,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
+    parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--num_epochs', type=int, default=NUM_EPOCHS)
     parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
     parser.add_argument('--model', default=IMODEL)

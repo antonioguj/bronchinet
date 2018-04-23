@@ -23,8 +23,8 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath    = workDirsManager.getNameDataPath(args.typedata)
-    RawImagesPath   = workDirsManager.getNameNewPath(BaseDataPath, 'RawImages')
-    RawMasksPath    = workDirsManager.getNameNewPath(BaseDataPath, 'RawAddMasks')
+    RawImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
+    RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
 
     dict_masks_boundingBoxes = {}
 
