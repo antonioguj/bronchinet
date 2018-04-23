@@ -8,8 +8,6 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.ErrorMessages import *
-from CommonUtil.FunctionsUtil import *
 from keras.layers import Input, merge, concatenate, Dropout, BatchNormalization
 from keras.layers import Convolution2D, MaxPooling2D, UpSampling2D, Cropping2D, Conv2DTranspose
 from keras.layers import Convolution3D, MaxPooling3D, UpSampling3D, Cropping3D, Conv3DTranspose
@@ -26,6 +24,7 @@ class NeuralNetwork(object):
                                       loss=lossfunction,
                                       metrics=metrics )
 
+    @staticmethod
     def getLoadSavedModel(model_saved_path, custom_objects=None):
         return load_model(model_saved_path, custom_objects=custom_objects)
 
@@ -337,7 +336,7 @@ class Unet3D_Shallow_Tailored(NeuralNetwork):
         if self.is_dropout:
             hidlayer_upl1_2 = Dropout(self.dropout_rate)(hidlayer_upl1_2)
 
-        outputs = Convolution3D(1, (1, 1, 1), activation='sigmoid')(hidlayer_upl1_2)
+        outputs = Convolution3D(3, (1, 1, 1), activation='sigmoid')(hidlayer_upl1_2)
 
         model = Model(input=inputs, output=outputs)
 
@@ -356,7 +355,7 @@ def DICTAVAILNETWORKS3D(size_image, option):
         return Unet3D_Shallow(size_image, is_dropout=True)
     elif (option=="Unet3D_Tailored"):
         return Unet3D_Tailored(size_image)
-    elif (option=="Unet3D_Tailored_Dropout"):
+    elif (option=="Unet3D_Dropout_Tailored"):
         return Unet3D_Tailored(size_image, is_dropout=True)
     elif (option=="Unet3D_Shallow_Tailored"):
         return Unet3D_Shallow_Tailored(size_image)
