@@ -160,6 +160,10 @@ def processBinaryMasks(masks_array):
     # Turn to binary masks (0, 1)
     return np.where(masks_array != 0, 1, 0)
 
+def processMulticlassMasks(masks_array, num_classes):
+    # Turn to binary masks (0, 1)
+    return np.where(masks_array > num_classes, 0, masks_array)
+
 def processBinaryMasks_KeepExclusion(masks_array):
     # Turn to binary masks (0, 1)
     return np.where(np.logical_or(masks_array != 0, masks_array != -1), 1, 0)

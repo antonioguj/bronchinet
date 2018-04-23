@@ -13,16 +13,17 @@ np.random.seed(2017)
 
 
 DATADIR = '/home/antonio/testSegmentation/Data/LUVAR/'
-BASEDIR = '/home/antonio/testSegmentation/Tests_LUVAR_LUNGS/'
+BASEDIR = '/home/antonio/testSegmentation/Tests_LUVAR/'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
-IMAGES_DEPTHZ = 32
-#IMAGES_HEIGHT = 352
-IMAGES_HEIGHT = 256
-#IMAGES_WIDTH  = 240
-IMAGES_WIDTH  = 256
+# FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
+IMAGES_DEPTHZ = 36
+IMAGES_HEIGHT = 352
+#IMAGES_HEIGHT = 256
+IMAGES_WIDTH  = 240
+#IMAGES_WIDTH  = 256
 
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
 IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
@@ -56,6 +57,10 @@ CROPIMAGES = True
 
 CROPSIZEBOUNDINGBOX = (352, 480)
 
+MULTICLASSCASE = False
+
+NUMCLASSESMASKS = 2
+
 CONFINEMASKSTOLUNGS = True
 
 CHECKBALANCECLASSES = True
@@ -73,12 +78,12 @@ SAVEVISUALPROCESSDATA = False
 # ******************** TRAINING PARAMETERS ********************
 NUM_EPOCHS = 1000
 BATCH_SIZE = 1
-IMODEL     = 'Unet3D_Shallow'
+IMODEL     = 'Unet3D_Shallow_Dropout_Tailored'
 IOPTIMIZER = 'Adam'
-#ILOSSFUN   = 'WeightedBinaryCrossEntropy_Masked'
-ILOSSFUN   = 'BinaryCrossEntropy'
-#IMETRICS   = 'DiceCoefficient_Masked'
-IMETRICS   = 'DiceCoefficient'
+ILOSSFUN   = 'WeightedBinaryCrossEntropy_Masked'
+#ILOSSFUN   = 'BinaryCrossEntropy'
+IMETRICS   = 'DiceCoefficient_Masked'
+#IMETRICS   = 'DiceCoefficient'
 LEARN_RATE = 1.0e-05
 
 USE_DATAAUGMENTATION = True
@@ -93,12 +98,14 @@ RESTART_MODELFILE = 'lastEpoch'
 # ******************** POST-PROCESSING PARAMETERS ********************
 PREDICTION_MODELFILE = 'lastEpoch'
 
-#PREDICTIONACCURACY = 'DiceCoefficient_Masked'
-PREDICTIONACCURACY = 'DiceCoefficient'
+PREDICTACCURACYMETRICS = 'DiceCoefficient_Masked'
+#PREDICTACCURACYMETRICS = 'DiceCoefficient'
 
 THRESHOLDOUTIMAGES = False
 
 THRESHOLDVALUE = 0.5
 
 SAVEVISUALPREDICTDATA = False
+
+SAVEPREDICTIONIMAGES = True
 # ******************** POST-PROCESSING PARAMETERS ********************

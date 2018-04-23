@@ -21,7 +21,7 @@ class PlotsManager(object):
     max_plot_images_figure   = 15
     max_plot_images_axfigy_2 = 4
     max_plot_images_figure_2 = 8
-    num_figures_saved        = 20
+    num_figures_saved        = 16
     skip_slices_plot_images  = 4
 
 
@@ -79,7 +79,7 @@ class PlotsManager(object):
 
 
     @classmethod
-    def plot_images_masks_allSlices(cls, images, masks, typeOutput=1, isSaveImages=False, outfilespath=None):
+    def plot_images_masks_allSlices(cls, images, masks, typeOutput=2, isSaveImages=False, outfilespath=None):
 
         num_total_slices= images.shape[0]
         size_slices     =(images.shape[1], images.shape[2])
@@ -120,7 +120,7 @@ class PlotsManager(object):
 
 
     @classmethod
-    def plot_compare_images_masks_allSlices(cls, images, origin_masks, predict_masks, typeOutput=1, isSaveImages=False, outfilespath=None):
+    def plot_compare_images_masks_allSlices(cls, images, origin_masks, predict_masks, typeOutput=2, isSaveImages=False, outfilespath=None):
 
         num_total_slices= images.shape[0]
         size_slices     =(images.shape[1], images.shape[2])

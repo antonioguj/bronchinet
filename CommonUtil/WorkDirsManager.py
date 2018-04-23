@@ -13,20 +13,23 @@ from CommonUtil.FunctionsUtil import *
 
 class WorkDirsManager(object):
 
-    mapTypeData_RelDataPath = { 'training'   : 'TrainingData/',
-                                'validation' : 'ValidationData/',
-                                'testing'    : 'TestingData/' }
+    mapTypeData_RelDataPath = {'training'  : 'TrainingData/',
+                               'validation': 'ValidationData/',
+                               'testing'   : 'TestingData/'}
     RelModelsPath = 'Models/'
 
 
     def __init__(self, basePath):
         self.basePath = basePath
         if not isExistdir(basePath):
-            message = "WorkDirsManager: base path does not exists..."
+            message = "WorkDirsManager: base path does not exist..."
             CatchErrorException(message)
 
     def getNameDataPath(self, typedata):
         return joinpathnames(self.basePath, self.mapTypeData_RelDataPath[typedata])
+
+    def getNameRelDataPath(self, typedata):
+        return self.mapTypeData_RelDataPath[typedata]
 
     def getNameTrainingDataPath(self):
         return joinpathnames(self.basePath, self.mapTypeData_RelDataPath['training'])
@@ -40,9 +43,17 @@ class WorkDirsManager(object):
     def getNameModelsPath(self):
         return joinpathnames(self.basePath, self.RelModelsPath)
 
+    def getNameExistPath(self, basePath, newRelPath):
+        newPath = joinpathnames(basePath, newRelPath)
+        if not isExistdir(newPath):
+            message = "WorkDirsManager: new path \'%s\', does not exist..."%(newPath)
+            CatchErrorException(message)
+        return newPath
+
     def getNameNewPath(self, basePath, newRelPath):
         newPath = joinpathnames(basePath, newRelPath)
-        makedir(newPath)
+        if not isExistdir(newPath):
+            makedir(newPath)
         return newPath
 
     #@staticmethod
