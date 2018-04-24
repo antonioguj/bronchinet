@@ -13,17 +13,17 @@ np.random.seed(2017)
 
 
 DATADIR = '/home/antonio/testSegmentation/Data/LUVAR/'
-BASEDIR = '/home/antonio/testSegmentation/Tests_LUVAR/'
+BASEDIR = '/home/antonio/testSegmentation/Tests_LUVAR_LUNGS/'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
 IMAGES_DEPTHZ = 36
-IMAGES_HEIGHT = 352
-#IMAGES_HEIGHT = 256
-IMAGES_WIDTH  = 240
-#IMAGES_WIDTH  = 256
+#IMAGES_HEIGHT = 352
+IMAGES_HEIGHT = 256
+#IMAGES_WIDTH  = 240
+IMAGES_WIDTH  = 256
 
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
 IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
@@ -49,21 +49,21 @@ DISTRIBUTE_RANDOM = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 TYPEDATA = 'training'
 
-REDUCESIZEIMAGES = False
+REDUCESIZEIMAGES = True
 
 SIZEREDUCEDIMAGES = (256, 256)
 
-CROPIMAGES = True
+CROPIMAGES = False
 
 CROPSIZEBOUNDINGBOX = (352, 480)
 
-MULTICLASSCASE = False
+MULTICLASSCASE = True
 
 NUMCLASSESMASKS = 2
 
-CONFINEMASKSTOLUNGS = True
+CONFINEMASKSTOLUNGS = False
 
-CHECKBALANCECLASSES = True
+CHECKBALANCECLASSES = False
 
 SLIDINGWINDOWIMAGES = True
 
@@ -78,12 +78,12 @@ SAVEVISUALPROCESSDATA = False
 # ******************** TRAINING PARAMETERS ********************
 NUM_EPOCHS = 1000
 BATCH_SIZE = 1
-IMODEL     = 'Unet3D_Shallow_Dropout_Tailored'
+IMODEL     = 'Unet3D_Shallow_Tailored'
 IOPTIMIZER = 'Adam'
-ILOSSFUN   = 'WeightedBinaryCrossEntropy_Masked'
-#ILOSSFUN   = 'BinaryCrossEntropy'
-IMETRICS   = 'DiceCoefficient_Masked'
-#IMETRICS   = 'DiceCoefficient'
+#ILOSSFUN   = 'WeightedBinaryCrossEntropy_Masked'
+ILOSSFUN   = 'CategoricalCrossEntropy'
+#IMETRICS   = 'DiceCoefficient_Masked'
+IMETRICS   = 'DiceCoefficient'
 LEARN_RATE = 1.0e-05
 
 USE_DATAAUGMENTATION = True

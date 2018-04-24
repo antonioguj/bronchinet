@@ -160,13 +160,18 @@ def processBinaryMasks(masks_array):
     # Turn to binary masks (0, 1)
     return np.where(masks_array != 0, 1, 0)
 
+def processBinaryMasks_KeepExclusion(masks_array):
+    # Turn to binary masks (0, 1)
+    return np.where(np.logical_or(masks_array != 0, masks_array != -1), 1, 0)
+
 def processMulticlassMasks(masks_array, num_classes):
     # Turn to binary masks (0, 1)
     return np.where(masks_array > num_classes, 0, masks_array)
 
-def processBinaryMasks_KeepExclusion(masks_array):
-    # Turn to binary masks (0, 1)
-    return np.where(np.logical_or(masks_array != 0, masks_array != -1), 1, 0)
+def checkCorrectNumClassesInMasks(masks_array, num_classes):
+    #check that there are as many classes as labels in "masks_array"
+    #check also that values are between (0, num_classes)
+    return (len(np.unique(masks_array)) == num_classes+1) and (np.amin(masks_array) == 0) and (np.amax(masks_array) == num_classes)
 
 def revertStackImages(images_array):
     # revert to start from traquea
