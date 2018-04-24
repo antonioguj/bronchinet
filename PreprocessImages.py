@@ -58,6 +58,8 @@ def main(args):
         if (nbImagesFiles != nbAddMasksFiles):
             message = "num CTs Images %i not equal to num additional Masks %i" % (nbImagesFiles, nbAddMasksFiles)
             CatchErrorException(message)
+    else:
+        isExistsAddMasks = False
 
 
     if (args.cropImages):

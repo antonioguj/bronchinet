@@ -29,7 +29,7 @@ def main(args):
     PredictionsPath  = workDirsManager.getNameNewPath(args.basedir, 'Predictions')
 
     # Get the file list:
-    namePredictionsFiles= 'predictMasks*'+ getFileExtension(FORMATINOUTDATA)
+    namePredictionsFiles= 'predictions*'+ getFileExtension(FORMATINOUTDATA)
     nameOrigImagesFiles = '*.nii'
     nameOrigMasksFiles  = '*.nii'
 
@@ -78,7 +78,7 @@ def main(args):
         print("Predictions masks of size: %s..." % (str(predictions_array.shape)))
 
 
-        if not MULTICLASSPROBLEM:
+        if (not args.multiClassCase):
             # Turn to binary masks (0, 1)
             masks_array = processBinaryMasks(masks_array)
 
@@ -135,6 +135,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--typedata', default=TYPEDATA)
+    parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
+    parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--confineMasksToLungs', default=CONFINEMASKSTOLUNGS)
     parser.add_argument('--prediction_epoch', default='last')
     parser.add_argument('--savePredictionImages', default=SAVEPREDICTIONIMAGES)

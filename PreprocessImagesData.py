@@ -76,7 +76,12 @@ def main(args):
         print("Original image of size: %s..." %(str(images_array.shape)))
 
 
-        if (not args.multiClassCase):
+        if (args.multiClassCase):
+            # Check the correct multilabels in "masks_array"
+            if not checkCorrectNumClassesInMasks(masks_array, args.numClassesMasks):
+                message = "In multiclass case, found wrong values in masks array: %s..." %(np.unique(masks_array))
+                CatchErrorException(message)
+        else:
             # Turn to binary masks (0, 1)
             masks_array = processBinaryMasks(masks_array)
 
@@ -103,12 +108,18 @@ def main(args):
 
             if (args.slidingWindowImages):
 
-                (images_array, masks_array) = SlidingWindowImages(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y).compute_2array(images_array, masks_array)
+                slidingWindowImagesGenerator = SlidingWindowImages3D(images_array.shape, IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y)
+
+                images_array = slidingWindowImagesGenerator.compute_images_array_all(images_array)
+                masks_array  = slidingWindowImagesGenerator.compute_images_array_all(masks_array)
 
                 print("Generate batches images by Sliding-window: size: %s; Overlap: %s. Final dimensions: %s..." %(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y, images_array.shape))
             else:
 
-                (images_array, masks_array) = SlicingImages(IMAGES_DIMS_Z_X_Y).compute_2array(images_array, masks_array)
+                slicingImagesGenerator = SlicingImages3D(images_array.shape, IMAGES_DIMS_Z_X_Y)
+
+                images_array = slicingImagesGenerator.compute_images_array_all(images_array)
+                masks_array  = slicingImagesGenerator.compute_images_array_all(masks_array)
 
                 print("Generate batches images by Slicing volumes: size: %s. Final dimensions: %s..." %(IMAGES_DIMS_Z_X_Y, images_array.shape))
 

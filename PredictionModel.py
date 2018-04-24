@@ -50,8 +50,8 @@ def main(args):
 
     # Loading Saved Model
     modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.prediction_modelFile))
-    custom_objects = {'compute_loss': DICTAVAILLOSSFUNS(ILOSSFUN).compute_loss,
-                      'compute': DICTAVAILMETRICS(IMETRICS).compute}
+    custom_objects = {'compute_loss': DICTAVAILLOSSFUNS(ILOSSFUN),
+                      'compute': DICTAVAILMETRICS(IMETRICS)}
 
     model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)
 
@@ -68,12 +68,16 @@ def main(args):
 
         # Loading Data
         if (args.multiClassCase):
-            loadDataManager = LoadDataManager(IMAGES_DIMS_Z_X_Y, num_classes_out=args.numClassesMasks+1)
+            loadDataManager = LoadDataManagerInBatches_BatchGenerator(IMAGES_DIMS_Z_X_Y,
+                                                                      args.prop_overlap_Z_X_Y,
+                                                                      type_generator='SlidingWindow',
+                                                                      num_classes_out=args.numClassesMasks+1)
         else:
-            loadDataManager = LoadDataManager(IMAGES_DIMS_Z_X_Y)
+            loadDataManager = LoadDataManagerInBatches_BatchGenerator(IMAGES_DIMS_Z_X_Y,
+                                                                      args.prop_overlap_Z_X_Y,
+                                                                      type_generator='SlidingWindow')
 
-        (xTest, yTest) = loadDataManager.loadData_1File_BatchGenerator(SlidingWindowImages(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y),
-                                                                       imagesFile, masksFile, shuffle_images=False)
+        (xTest, yTest) = loadDataManager.loadData_1File(imagesFile, masksFile, shuffle_images=False)
 
 
         # Evaluate Model
@@ -89,11 +93,14 @@ def main(args):
         predictions_array_shape = FileReader.getImageSize(listOrigMasksFiles[i])
 
         if (args.slidingWindowImages):
-            reconstructorImage = ReconstructorImage(predictions_array_shape, IMAGES_DIMS_Z_X_Y, prop_overlap=args.prop_overlap_Z_X_Y)
+            reconstructorImages = ReconstructorImages3D(predictions_array_shape,
+                                                        IMAGES_DIMS_Z_X_Y,
+                                                        prop_overlap=args.prop_overlap_Z_X_Y)
         else:
-            reconstructorImage = ReconstructorImage(predictions_array_shape, IMAGES_DIMS_Z_X_Y)
+            reconstructorImages = ReconstructorImages3D(predictions_array_shape,
+                                                        IMAGES_DIMS_Z_X_Y)
 
-        predictions_array = reconstructorImage.compute(yPredict.reshape([yPredict.shape[0], IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH]))
+        predictions_array = reconstructorImages.compute(yPredict.reshape([yPredict.shape[0], IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH]))
 
 
         # Save predictions data

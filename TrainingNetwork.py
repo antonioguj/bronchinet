@@ -57,13 +57,17 @@ def main(args):
     else:
         initial_epoch = 0
 
-        modelConstructor = DICTAVAILNETWORKS3D(IMAGES_DIMS_Z_X_Y, args.model)
+        if (args.multiClassCase):
+            modelConstructor = DICTAVAILNETWORKS3D(IMAGES_DIMS_Z_X_Y, args.model, args.numClassesMasks+1)
+        else:
+            modelConstructor = DICTAVAILNETWORKS3D(IMAGES_DIMS_Z_X_Y, args.model)
+
         model = modelConstructor.getModel()
 
         # Compile model
         model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(args.optimizer, args.learn_rate),
-                      loss     = DICTAVAILLOSSFUNS(args.lossfun).compute_loss,
-                      metrics  = [DICTAVAILMETRICS(args.metrics).compute])
+                      loss     = DICTAVAILLOSSFUNS(args.lossfun),
+                      metrics  = [DICTAVAILMETRICS(args.metrics)])
     model.summary()
 
     # Callbacks:
@@ -83,16 +87,22 @@ def main(args):
     print("Loading data...")
     print("-" * 30)
 
-    if (args.multiClassCase):
-        loadDataManager = LoadDataManager(IMAGES_DIMS_Z_X_Y, num_classes_out=args.numClassesMasks+1)
-    else:
-        loadDataManager = LoadDataManager(IMAGES_DIMS_Z_X_Y)
-
-    (xTrain, yTrain) = loadDataManager.loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
-    (xValid, yValid) = loadDataManager.loadData_ListFiles_BatchGenerator(SlidingWindowImages(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y),
-                                                                         listValidImagesFiles, listValidMasksFiles)
+    (xTrain, yTrain) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
 
     print("Number Training volumes: %s" %(len(xTrain)))
+
+    if (args.multiClassCase):
+        loadDataManager = LoadDataManagerInBatches_BatchGenerator(IMAGES_DIMS_Z_X_Y,
+                                                                  args.prop_overlap_Z_X_Y,
+                                                                  type_generator='SlidingWindow',
+                                                                  num_classes_out=args.numClassesMasks+1)
+    else:
+        loadDataManager = LoadDataManagerInBatches_BatchGenerator(IMAGES_DIMS_Z_X_Y,
+                                                                  args.prop_overlap_Z_X_Y,
+                                                                  type_generator='SlidingWindow')
+
+    (xValid, yValid) = loadDataManager.loadData_ListFiles(listValidImagesFiles, listValidMasksFiles)
+
     print("Number Validation volumes: %s" %(xValid.shape[0]))
 
 
@@ -104,18 +114,20 @@ def main(args):
 
     if (args.use_dataAugmentation):
         if (args.slidingWindowImages):
-
-            if (args.multiClassCase):
-                num_classes_out = args.numClassesMasks
-            else:
-                num_classes_out = 1
             # Images Data Generator by Sliding-window
-            batchDataGenerator = SlidingWindowBatchGenerator(xTrain, yTrain,
-                                                             IMAGES_DIMS_Z_X_Y,
-                                                             args.prop_overlap_Z_X_Y,
-                                                             num_classes_out=num_classes_out,
-                                                             batch_size=args.batch_size,
-                                                             shuffle=True)
+            if (args.multiClassCase):
+                batchDataGenerator = SlidingWindowBatchGenerator(xTrain, yTrain,
+                                                                 IMAGES_DIMS_Z_X_Y,
+                                                                 args.prop_overlap_Z_X_Y,
+                                                                 num_classes_out=args.numClassesMasks+1,
+                                                                 batch_size=args.batch_size,
+                                                                 shuffle=True)
+            else:
+                batchDataGenerator = SlidingWindowBatchGenerator(xTrain, yTrain,
+                                                                 IMAGES_DIMS_Z_X_Y,
+                                                                 args.prop_overlap_Z_X_Y,
+                                                                 batch_size=args.batch_size,
+                                                                 shuffle=True)
             model.fit_generator(batchDataGenerator,
                                 steps_per_epoch=len(batchDataGenerator),
                                 nb_epoch=args.num_epochs,
