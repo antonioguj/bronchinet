@@ -207,20 +207,20 @@ class FalseNegativeRate(Metrics):
 # All Available Loss Functions and Metrics
 def DICTAVAILLOSSFUNS(option):
     if   (option == "BinaryCrossEntropy"):
-        return BinaryCrossEntropy()
+        return BinaryCrossEntropy().compute_loss
     elif (option == "BinaryCrossEntropy_Masked"):
-        return BinaryCrossEntropy(isMasksExclude=True)
+        return BinaryCrossEntropy(isMasksExclude=True).compute_loss
     elif (option == "WeightedBinaryCrossEntropy"):
-        return WeightedBinaryCrossEntropy()
+        return WeightedBinaryCrossEntropy().compute_loss
     elif (option == "WeightedBinaryCrossEntropy_Masked"):
-        return WeightedBinaryCrossEntropy(isMasksExclude=True)
+        return WeightedBinaryCrossEntropy(isMasksExclude=True).compute_loss
     elif (option == "CategoricalCrossEntropy"):
-        return CategoricalCrossEntropy()
+        return 'categorical_crossentropy'
     else:
         return 0
 
 def DICTAVAILMETRICS(option):
     if   (option == "DiceCoefficient"):
-        return DiceCoefficient()
+        return DiceCoefficient().compute
     elif (option == "DiceCoefficient_Masked"):
-        return DiceCoefficient(isMasksExclude=True)
+        return DiceCoefficient(isMasksExclude=True).compute

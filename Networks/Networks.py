@@ -36,13 +36,13 @@ class Unet3D(NeuralNetwork):
     size_pooling = (2, 2, 2)
     dropout_rate = 0.2
 
-    def __init__(self, (image_nz, image_nx, image_ny), is_dropout=False):
-        self.size_input_image = (image_nz, image_nx, image_ny)
+    def __init__(self, size_image, is_dropout=False):
+        self.size_image = size_image
         self.is_dropout = is_dropout
 
     def getModel(self):
 
-        inputs = Input((self.size_input_image[0], self.size_input_image[1], self.size_input_image[2], 1))
+        inputs = Input((self.size_image[0], self.size_image[1], self.size_image[2], 1))
 
         nbfeamaps_dwl1  = self.nbfeamaps_first_layer
         hidlayer_dwl1_1 = Convolution3D(nbfeamaps_dwl1, self.size_filter, activation='relu', padding='same')(inputs)
@@ -128,13 +128,13 @@ class Unet3D_Shallow(NeuralNetwork):
     size_pooling = (2, 2, 2)
     dropout_rate = 0.2
 
-    def __init__(self, (image_nz, image_nx, image_ny), is_dropout=False):
-        self.size_input_image = (image_nz, image_nx, image_ny)
+    def __init__(self, size_image, is_dropout=False):
+        self.size_image = size_image
         self.is_dropout = is_dropout
 
     def getModel(self):
 
-        inputs = Input((self.size_input_image[0], self.size_input_image[1], self.size_input_image[2], 1))
+        inputs = Input((self.size_image[0], self.size_image[1], self.size_image[2], 1))
 
         nbfeamaps_dwl1  = self.nbfeamaps_first_layer
         hidlayer_dwl1_1 = Convolution3D(nbfeamaps_dwl1, self.size_filter, activation='relu', padding='same')(inputs)
@@ -193,13 +193,14 @@ class Unet3D_Tailored(NeuralNetwork):
     dropout_rate = 0.2
 
 
-    def __init__(self, (image_nz, image_nx, image_ny), is_dropout=False):
-        self.size_input_image  = (image_nz, image_nx, image_ny)
-        self.is_dropout = is_dropout
+    def __init__(self, size_image, num_classes_out, is_dropout=False):
+        self.size_image     = size_image
+        self.num_classes_out= num_classes_out
+        self.is_dropout     = is_dropout
 
     def getModel(self):
 
-        inputs = Input((self.size_input_image[0], self.size_input_image[1], self.size_input_image[2], 1))
+        inputs = Input((self.size_image[0], self.size_image[1], self.size_image[2], 1))
 
         nbfeamaps_dwl1  = self.nbfeamaps_first_layer
         hidlayer_dwl1_1 = Convolution3D(nbfeamaps_dwl1, self.size_filter_dwlys[0], activation='relu', padding='same')(inputs)
@@ -271,7 +272,7 @@ class Unet3D_Tailored(NeuralNetwork):
         if self.is_dropout:
             hidlayer_upl1_2 = Dropout(self.dropout_rate)(hidlayer_upl1_2)
 
-        outputs = Convolution3D(1, (1, 1, 1), activation='sigmoid')(hidlayer_upl1_2)
+        outputs = Convolution3D(self.num_classes_out, (1, 1, 1), activation='sigmoid')(hidlayer_upl1_2)
 
         model = Model(input=inputs, output=outputs)
 
@@ -290,13 +291,14 @@ class Unet3D_Shallow_Tailored(NeuralNetwork):
     dropout_rate = 0.2
 
 
-    def __init__(self, (image_nz, image_nx, image_ny), is_dropout=False):
-        self.size_input_image  = (image_nz, image_nx, image_ny)
-        self.is_dropout = is_dropout
+    def __init__(self, size_image, num_classes_out, is_dropout=False):
+        self.size_image     = size_image
+        self.num_classes_out= num_classes_out
+        self.is_dropout     = is_dropout
 
     def getModel(self):
 
-        inputs = Input((self.size_input_image[0], self.size_input_image[1], self.size_input_image[2], 1))
+        inputs = Input((self.size_image[0], self.size_image[1], self.size_image[2], 1))
 
         nbfeamaps_dwl1  = self.nbfeamaps_first_layer
         hidlayer_dwl1_1 = Convolution3D(nbfeamaps_dwl1, self.size_filter_dwlys[0], activation='relu', padding='same')(inputs)
@@ -336,7 +338,7 @@ class Unet3D_Shallow_Tailored(NeuralNetwork):
         if self.is_dropout:
             hidlayer_upl1_2 = Dropout(self.dropout_rate)(hidlayer_upl1_2)
 
-        outputs = Convolution3D(3, (1, 1, 1), activation='sigmoid')(hidlayer_upl1_2)
+        outputs = Convolution3D(self.num_classes_out, (1, 1, 1), activation='sigmoid')(hidlayer_upl1_2)
 
         model = Model(input=inputs, output=outputs)
 
@@ -344,22 +346,22 @@ class Unet3D_Shallow_Tailored(NeuralNetwork):
 
 
 # All Available Networks
-def DICTAVAILNETWORKS3D(size_image, option):
+def DICTAVAILNETWORKS3D(size_image, option, num_classes_out=1):
     if   (option=="Unet3D"):
-        return Unet3D(size_image)
+        return Unet3D(size_image, num_classes_out)
     elif (option=="Unet3D_Dropout"):
-        return Unet3D(size_image, is_dropout=True)
+        return Unet3D(size_image, num_classes_out, is_dropout=True)
     elif (option=="Unet3D_Shallow"):
         return Unet3D_Shallow(size_image)
     elif (option=="Unet3D_Shallow_Dropout"):
-        return Unet3D_Shallow(size_image, is_dropout=True)
+        return Unet3D_Shallow(size_image, num_classes_out, is_dropout=True)
     elif (option=="Unet3D_Tailored"):
-        return Unet3D_Tailored(size_image)
+        return Unet3D_Tailored(size_image, num_classes_out)
     elif (option=="Unet3D_Dropout_Tailored"):
-        return Unet3D_Tailored(size_image, is_dropout=True)
+        return Unet3D_Tailored(size_image, num_classes_out, is_dropout=True)
     elif (option=="Unet3D_Shallow_Tailored"):
-        return Unet3D_Shallow_Tailored(size_image)
+        return Unet3D_Shallow_Tailored(size_image, num_classes_out)
     elif (option=="Unet3D_Shallow_Dropout_Tailored"):
-        return Unet3D_Shallow_Tailored(size_image, is_dropout=True)
+        return Unet3D_Shallow_Tailored(size_image, num_classes_out, is_dropout=True)
     else:
         return 0
