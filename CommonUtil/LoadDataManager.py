@@ -250,7 +250,7 @@ class LoadDataManagerInBatches_BatchGenerator(LoadDataManager, OperationsArraysU
 
         num_images = min(len(batchImagesGenerator), max_num_images)
 
-        xData_shape = self.get_shape_out_array(num_images, num_channels=self.get_num_channels_array(xData))
+        xData_shape = self.get_shape_out_array(num_images, num_channels=self.get_num_channels_array(xData.shape))
         yData_shape = self.get_shape_out_array(num_images, num_channels=self.num_classes_out)
         xData = np.ndarray(xData_shape, dtype=FORMATIMAGEDATA)
         yData = np.ndarray(yData_shape, dtype=FORMATMASKDATA)
