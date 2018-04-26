@@ -29,7 +29,7 @@ def main(args):
     PredictionsPath  = workDirsManager.getNameNewPath(args.basedir, 'Predictions')
 
     # Get the file list:
-    namePredictionsFiles= 'predictions*'+ getFileExtension(FORMATINOUTDATA)
+    namePredictionsFiles= 'predictMasks*'+ getFileExtension(FORMATINOUTDATA)
     nameOrigImagesFiles = '*.nii'
     nameOrigMasksFiles  = '*.nii'
 
@@ -40,7 +40,7 @@ def main(args):
     nbPredictionsFiles  = len(listPredictionsFiles)
     nbOrigMasksFiles    = len(listOrigMasksFiles)
 
-    tempNamePredictMasksFiles = 'predictions-%s_acc%0.2f.nii'
+    tempNamePredictMasksFiles = 'prediction-%s_acc%0.2f.nii'
 
     # Run checkers
     if (nbPredictionsFiles == 0):

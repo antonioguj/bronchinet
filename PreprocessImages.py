@@ -20,7 +20,7 @@ import argparse
 def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath    = workDirsManager.getNameDataPath(args.typedata)
+    BaseDataPath    = workDirsManager.getNameBaseDataPath()
     RawImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
     RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
     ProcImagesPath  = workDirsManager.getNameNewPath(BaseDataPath, 'ProcImages')
@@ -125,7 +125,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
-    parser.add_argument('--typedata', default=TYPEDATA)
     parser.add_argument('--reduceSizeImages', type=str2bool, default=REDUCESIZEIMAGES)
     parser.add_argument('--sizeReducedImages', type=str2bool, default=SIZEREDUCEDIMAGES)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)

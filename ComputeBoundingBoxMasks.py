@@ -22,7 +22,7 @@ import argparse
 def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath    = workDirsManager.getNameDataPath(args.typedata)
+    BaseDataPath    = workDirsManager.getNameBaseDataPath()
     RawImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
     RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
 
@@ -97,7 +97,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
-    parser.add_argument('--typedata', default=TYPEDATA)
     parser.add_argument('--cropSizeBoundingBox', type=str2tuplefloat, default=CROPSIZEBOUNDINGBOX)
     args = parser.parse_args()
 

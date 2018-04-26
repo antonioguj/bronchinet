@@ -22,7 +22,7 @@ import argparse
 def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath    = workDirsManager.getNameDataPath(args.typedata)
+    BaseDataPath    = workDirsManager.getNameBaseDataPath()
     RawImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'ProcImages')
     RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
     ProcessDataPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcInputData')
@@ -159,7 +159,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
-    parser.add_argument('--typedata', default=TYPEDATA)
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--confineMasksToLungs', default=CONFINEMASKSTOLUNGS)
