@@ -13,10 +13,11 @@ from CommonUtil.FunctionsUtil import *
 
 class WorkDirsManager(object):
 
+    baseDataRelPath = 'BaseData/'
     mapTypeData_RelDataPath = {'training'  : 'TrainingData/',
                                'validation': 'ValidationData/',
                                'testing'   : 'TestingData/'}
-    RelModelsPath = 'Models/'
+    modelsRelPath = 'Models/'
 
 
     def __init__(self, basePath):
@@ -31,6 +32,9 @@ class WorkDirsManager(object):
     def getNameRelDataPath(self, typedata):
         return self.mapTypeData_RelDataPath[typedata]
 
+    def getNameBaseDataPath(self):
+        return joinpathnames(self.basePath, self.baseDataRelPath)
+
     def getNameTrainingDataPath(self):
         return joinpathnames(self.basePath, self.mapTypeData_RelDataPath['training'])
 
@@ -41,7 +45,7 @@ class WorkDirsManager(object):
         return joinpathnames(self.basePath, self.mapTypeData_RelDataPath['testing'])
 
     def getNameModelsPath(self):
-        return joinpathnames(self.basePath, self.RelModelsPath)
+        return joinpathnames(self.basePath, self.modelsRelPath)
 
     def getNameExistPath(self, basePath, newRelPath):
         newPath = joinpathnames(basePath, newRelPath)
