@@ -224,3 +224,9 @@ def DICTAVAILMETRICS(option):
         return DiceCoefficient().compute
     elif (option == "DiceCoefficient_Masked"):
         return DiceCoefficient(isMasksExclude=True).compute
+
+def DICTAVAILMETRICS_2(option):
+    if   (option == "DiceCoefficient"):
+        return DiceCoefficient().compute_np_safememory
+    elif (option == "DiceCoefficient_Masked"):
+        return DiceCoefficient(isMasksExclude=True).compute_np_safememory
