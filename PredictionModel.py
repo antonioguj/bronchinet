@@ -25,7 +25,7 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath    = workDirsManager.getNameDataPath(args.typedata)
-    ProcessDataPath = workDirsManager.getNameExistPath(BaseDataPath, 'ProcInputData')
+    ProcessDataPath = workDirsManager.getNameExistPath(BaseDataPath)
     ModelsPath      = workDirsManager.getNameExistPath(args.basedir, 'Models')
     RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
     PredictDataPath = workDirsManager.getNameNewPath(args.basedir, 'Predictions')

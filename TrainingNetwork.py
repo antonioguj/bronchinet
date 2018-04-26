@@ -24,8 +24,8 @@ import argparse
 def main(args):
 
     workDirsManager    = WorkDirsManager(args.basedir)
-    TrainingDataPath   = workDirsManager.getNameExistPath(workDirsManager.getNameTrainingDataPath(), 'ProcInputData')
-    ValidationDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameValidationDataPath(), 'ProcInputData')
+    TrainingDataPath   = workDirsManager.getNameExistPath(workDirsManager.getNameTrainingDataPath())
+    ValidationDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameValidationDataPath())
     ModelsPath         = workDirsManager.getNameNewPath(args.basedir, 'Models')
 
     # Get the file list:

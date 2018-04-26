@@ -18,17 +18,10 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
 
-    OriginDataPath = workDirsManager.getNameBaseDataPath()
-    OriginDataPath = workDirsManager.getNameExistPath(OriginDataPath, 'ProcInputData')
-
-    TrainingDataPath = workDirsManager.getNameTrainingDataPath()
-    TrainingDataPath = workDirsManager.getNameNewPath(TrainingDataPath)
-
-    ValidationDataPath = workDirsManager.getNameValidationDataPath()
-    ValidationDataPath = workDirsManager.getNameNewPath(ValidationDataPath)
-
-    TestingDataPath = workDirsManager.getNameTestingDataPath()
-    TestingDataPath = workDirsManager.getNameNewPath(TestingDataPath)
+    OriginDataPath     = workDirsManager.getNameExistPath(workDirsManager.getNameBaseDataPath(), 'ProcInputData')
+    TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath())
+    ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath())
+    TestingDataPath    = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath())
 
     nameOriginImagesFiles = 'images*.npy'
     nameOriginMasksFiles  = 'masks*.npy'
