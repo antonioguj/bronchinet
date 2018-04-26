@@ -24,7 +24,22 @@ class ReconstructorImages(object):
 
         self.compute_factor_overlap_batches_per_voxel()
 
-    def adding_reconstructed_batch(self, index, full_array, array_batch):
+
+    def run_check_shape_Ypredict(self, yPredict_shape):
+
+        return (yPredict_shape[0] == self.num_images_total) and (yPredict_shape[1:-2] != self.size_image_batch) and (len(yPredict_shape) == len(self.size_image_batch) + 2)
+
+    def get_predictMasks_batch_array(self, predictMasks_batch):
+
+        if self.num_classes_out == 1:
+            return np.squeeze(predictMasks_batch, axis=-1)
+        else:
+            return self.get_multiclass_predict_array(predictMasks_batch)
+
+    def get_multiclass_predict_array(self, predict_array):
+        pass
+    
+    def add_predictMasks_batch_toFullArray(self, index, predictMasks_array, predictMasks_batch):
         pass
 
 
@@ -34,7 +49,7 @@ class ReconstructorImages(object):
         num_overlap_batches_voxels = np.zeros(self.size_total_image, dtype=np.int8)
 
         for index in range(self.num_images_total):
-            self.adding_reconstructed_batch(index, num_overlap_batches_voxels, np.ones(self.size_image_batch))
+            self.add_predictMasks_batch_toFullArray(index, num_overlap_batches_voxels, np.ones(self.size_image_batch, dtype=np.int8))
         #endfor
 
         # get position where there's no overlap
@@ -48,18 +63,20 @@ class ReconstructorImages(object):
 
     def compute(self, yPredict):
 
-        if yPredict.shape[0] != self.num_images_total:
-            message = "size of \'yPredict\' not equal to num image batches..."
+        if not self.run_check_shape_Ypredict(yPredict.shape):
+            message = "wrong shape of input predictions array..." %(yPredict.shape)
             CatchErrorException(message)
 
-        predictions_array = np.zeros(self.size_total_image, dtype=FORMATPREDICTDATA)
+        self.num_classes_out = yPredict.shape[-1]
+
+        predictMasks_array = np.zeros(self.size_total_image, dtype=FORMATPREDICTDATA)
 
         for index in range(self.num_images_total):
-            self.adding_reconstructed_batch(index, predictions_array, yPredict[index])
+            self.add_predictMasks_batch_toFullArray(index, predictMasks_array, self.get_predictMasks_batch_array(yPredict[index]))
         #endfor
 
         # multiply by factor to account for multiple overlaps of batch images
-        return np.multiply(predictions_array, self.factor_overlap_batches_per_voxel)
+        return np.multiply(predictMasks_array, self.factor_overlap_batches_per_voxel)
 
 
 class ReconstructorImages2D(ReconstructorImages):
@@ -70,11 +87,23 @@ class ReconstructorImages2D(ReconstructorImages):
 
         super(ReconstructorImages2D, self).__init__(size_total_image, size_image_batch, self.batchReconstructor.get_num_images_total())
 
-    def adding_reconstructed_batch(self, index, full_array, array_batch):
+    def get_multiclass_predict_array(self, predict_array):
+
+        new_predict_array = np.ndarray(self.size_image_batch, dtype=predict_array.dtype)
+
+        for i in range(self.size_image_batch[0]):
+            for j in range(self.size_image_batch[1]):
+                index_argmax = np.argmax(predict_array[i,j,:])
+                new_predict_array[i,j] = index_argmax * predict_array[i,j,index_argmax]
+            #endfor
+        #endfor
+        return new_predict_array
+
+    def add_predictMasks_batch_toFullArray(self, index, predictMasks_array, predictMasks_batch):
 
         (x_left, x_right, y_down, y_up) = self.batchReconstructor.get_limits_image(index)
 
-        full_array[..., x_left:x_right, y_down:y_up] += array_batch
+        predictMasks_array[..., x_left:x_right, y_down:y_up] += predictMasks_batch
 
 
 class ReconstructorImages3D(ReconstructorImages):
@@ -85,8 +114,22 @@ class ReconstructorImages3D(ReconstructorImages):
 
         super(ReconstructorImages3D, self).__init__(size_total_image, size_image_batch, self.batchReconstructor.get_num_images_total())
 
-    def adding_reconstructed_batch(self, index, full_array, array_batch):
+    def get_multiclass_predict_array(self, predict_array):
+
+        new_predict_array = np.ndarray(self.size_image_batch, dtype=predict_array.dtype)
+
+        for i in range(self.size_image_batch[0]):
+            for j in range(self.size_image_batch[1]):
+                for k in range(self.size_image_batch[2]):
+                    index_argmax = np.argmax(predict_array[i,j,k,:])
+                    new_predict_array[i,j,k] = index_argmax
+                #endfor
+            #endfor
+        #endfor
+        return new_predict_array
+
+    def add_predictMasks_batch_toFullArray(self, index, predictMasks_array, predictMasks_batch):
 
         (z_back, z_front, x_left, x_right, y_down, y_up) = self.batchReconstructor.get_limits_image(index)
 
-        full_array[..., z_back:z_front, x_left:x_right, y_down:y_up] += array_batch
+        predictMasks_array[..., z_back:z_front, x_left:x_right, y_down:y_up] += predictMasks_batch
