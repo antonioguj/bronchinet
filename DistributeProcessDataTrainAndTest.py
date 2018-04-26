@@ -18,27 +18,23 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
 
-    OriginDataPath   = workDirsManager.getNameBaseDataPath()
-    OriginImagesPath = workDirsManager.getNameExistPath(OriginDataPath, 'ProcImages')
-    OriginMasksPath  = workDirsManager.getNameExistPath(OriginDataPath, 'ProcMasks')
+    OriginDataPath = workDirsManager.getNameBaseDataPath()
+    OriginDataPath = workDirsManager.getNameExistPath(OriginDataPath, 'ProcInputData')
 
-    TrainingDataPath   = workDirsManager.getNameTrainingDataPath()
-    TrainingImagesPath = workDirsManager.getNameNewPath(TrainingDataPath, 'ProcImages')
-    TrainingMasksPath  = workDirsManager.getNameNewPath(TrainingDataPath, 'ProcMasks')
+    TrainingDataPath = workDirsManager.getNameTrainingDataPath()
+    TrainingDataPath = workDirsManager.getNameNewPath(TrainingDataPath)
 
-    ValidationDataPath   = workDirsManager.getNameValidationDataPath()
-    ValidationImagesPath = workDirsManager.getNameNewPath(ValidationDataPath, 'ProcImages')
-    ValidationMasksPath  = workDirsManager.getNameNewPath(ValidationDataPath, 'ProcMasks')
+    ValidationDataPath = workDirsManager.getNameValidationDataPath()
+    ValidationDataPath = workDirsManager.getNameNewPath(ValidationDataPath)
 
-    TestingDataPath   = workDirsManager.getNameTestingDataPath()
-    TestingImagesPath = workDirsManager.getNameNewPath(TestingDataPath, 'ProcImages')
-    TestingMasksPath  = workDirsManager.getNameNewPath(TestingDataPath, 'ProcMasks')
+    TestingDataPath = workDirsManager.getNameTestingDataPath()
+    TestingDataPath = workDirsManager.getNameNewPath(TestingDataPath)
 
-    nameOriginImagesFiles = 'images-%0.2i.nii'
-    nameOriginMasksFiles  = 'masks-%0.2i.nii'
+    nameOriginImagesFiles = 'images*.npy'
+    nameOriginMasksFiles  = 'masks*.npy'
 
-    listImagesFiles = findFilesDir(OriginImagesPath, nameOriginImagesFiles)
-    listMasksFiles  = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
+    listImagesFiles = findFilesDir(OriginDataPath, nameOriginImagesFiles)
+    listMasksFiles  = findFilesDir(OriginDataPath, nameOriginMasksFiles)
 
     nbImagesFiles = len(listImagesFiles)
     nbMasksFiles  = len(listMasksFiles)
@@ -75,24 +71,24 @@ def main(args):
 
     # ******************** TRAINING DATA ********************
     for index in indexesTraining:
-        makelink(listImagesFiles[index], joinpathnames(TrainingImagesPath, basename(listImagesFiles[index])))
-        makelink(listMasksFiles[index],  joinpathnames(TrainingMasksPath,  basename(listMasksFiles[index])))
+        makelink(listImagesFiles[index], joinpathnames(TrainingDataPath, basename(listImagesFiles[index])))
+        makelink(listMasksFiles[index],  joinpathnames(TrainingDataPath,  basename(listMasksFiles[index])))
     #endfor
     # ******************** TRAINING DATA ********************
 
 
     # ******************** VALIDATION DATA ********************
     for index in indexesValidation:
-        makelink(listImagesFiles[index], joinpathnames(ValidationImagesPath, basename(listImagesFiles[index])))
-        makelink(listMasksFiles[index],  joinpathnames(ValidationMasksPath,  basename(listMasksFiles[index])))
+        makelink(listImagesFiles[index], joinpathnames(ValidationDataPath, basename(listImagesFiles[index])))
+        makelink(listMasksFiles[index],  joinpathnames(ValidationDataPath,  basename(listMasksFiles[index])))
     #endfor
     # ******************** VALIDATION DATA ********************
 
 
     # ******************** TESTING DATA ********************
     for index in indexesTesting:
-        makelink(listImagesFiles[index], joinpathnames(TestingImagesPath, basename(listImagesFiles[index])))
-        makelink(listMasksFiles[index],  joinpathnames(TestingMasksPath,  basename(listMasksFiles[index])))
+        makelink(listImagesFiles[index], joinpathnames(TestingDataPath, basename(listImagesFiles[index])))
+        makelink(listMasksFiles[index],  joinpathnames(TestingDataPath,  basename(listMasksFiles[index])))
     #endfor
     # ******************** TESTING DATA ********************
 
