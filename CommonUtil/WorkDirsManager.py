@@ -47,8 +47,11 @@ class WorkDirsManager(object):
     def getNameModelsPath(self):
         return joinpathnames(self.basePath, self.modelsRelPath)
 
-    def getNameExistPath(self, basePath, newRelPath):
-        newPath = joinpathnames(basePath, newRelPath)
+    def getNameExistPath(self, basePath, newRelPath=None):
+        if newRelPath:
+            newPath = joinpathnames(basePath, newRelPath)
+        else:
+            newPath = basePath
         if not isExistdir(newPath):
             message = "WorkDirsManager: new path \'%s\', does not exist..."%(newPath)
             CatchErrorException(message)
