@@ -54,8 +54,11 @@ class WorkDirsManager(object):
             CatchErrorException(message)
         return newPath
 
-    def getNameNewPath(self, basePath, newRelPath):
-        newPath = joinpathnames(basePath, newRelPath)
+    def getNameNewPath(self, basePath, newRelPath=None):
+        if newRelPath:
+            newPath = joinpathnames(basePath, newRelPath)
+        else:
+            newPath = basePath
         if not isExistdir(newPath):
             makedir(newPath)
         return newPath
