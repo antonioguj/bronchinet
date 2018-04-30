@@ -24,23 +24,18 @@ import argparse
 def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath    = workDirsManager.getNameDataPath(args.typedata)
-    ProcessDataPath = workDirsManager.getNameExistPath(BaseDataPath)
+    TestingDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameDataPath(args.typedata))
     ModelsPath      = workDirsManager.getNameExistPath(args.basedir, 'Models')
-    RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
     PredictDataPath = workDirsManager.getNameNewPath(args.basedir, 'Predictions')
-    PredictDataPath = workDirsManager.getNameNewPath(PredictDataPath, workDirsManager.getNameRelDataPath(args.typedata))
 
     # Get the file list:
-    nameImagesFiles   = 'images*'+ getFileExtension(FORMATINOUTDATA)
-    nameMasksFiles    = 'masks*' + getFileExtension(FORMATINOUTDATA)
-    nameOrigMasksFiles= '*.nii'
+    nameImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
+    nameMasksFiles  = 'masks*' + getFileExtension(FORMATINOUTDATA)
 
-    listImagesFiles   = findFilesDir(ProcessDataPath, nameImagesFiles)
-    listMasksFiles    = findFilesDir(ProcessDataPath, nameMasksFiles )
-    listOrigMasksFiles= findFilesDir(RawMasksPath,    nameOrigMasksFiles)
+    listImagesFiles = findFilesDir(TestingDataPath, nameImagesFiles)
+    listMasksFiles  = findFilesDir(TestingDataPath, nameMasksFiles )
 
-    tempNamePredictionsFiles = 'predictMasks-%0.2i_acc%0.2f_dim'
+    tempNamePredictionsFiles = 'predict-%s_acc%0.2f'
 
 
     print("-" * 30)
@@ -74,39 +69,15 @@ def main(args):
         # Loading Data
         if (args.slidingWindowImages):
             # Images Data Generator by Sliding-window...
-
-            (xTest, yTest) = LoadDataManager.loadData_1File(imagesFile, masksFile)
-
-            if (args.imagesAugmentation):
-            # Data augmentation by random transformation to input images...
-                testData_batch_generator = SlidingWindowPlusDataAugmentationBatchGenerator([xTest], [yTest],
-                                                                                           IMAGES_DIMS_Z_X_Y,
-                                                                                           args.prop_overlap_Z_X_Y,
-                                                                                           num_classes_out=num_classes_out,
-                                                                                           batch_size=1,
-                                                                                           shuffle=False,
-                                                                                           rotation_range=ROTATION_RANGE,
-                                                                                           width_shift_range=HORIZONTAL_SHIFT,
-                                                                                           height_shift_range=VERTICAL_SHIFT,
-                                                                                           horizontal_flip=HORIZONTAL_FLIP,
-                                                                                           vertical_flip=VERTICAL_FLIP)
-            else:
-                testData_batch_generator = SlidingWindowBatchGenerator([xTest], [yTest],
-                                                                       IMAGES_DIMS_Z_X_Y,
-                                                                       args.prop_overlap_Z_X_Y,
-                                                                       num_classes_out=num_classes_out,
-                                                                       batch_size=1,
-                                                                       shuffle=False)
+            (xTest, yTest) = LoadDataManagerInBatches_BatchGenerator(IMAGES_DIMS_Z_X_Y,
+                                                                     args.prop_overlap_Z_X_Y,
+                                                                     num_classes_out=num_classes_out).loadData_1File(imagesFile, masksFile, shuffle_images=False)
         else:
-            (xTest, yTest) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_1File(imagesFile, masksFile)
+            (xTest, yTest) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_1File(imagesFile, masksFile, shuffle_images=False)
 
 
         # Evaluate Model
-        if (args.slidingWindowImages):
-            yPredict = model.predict(testData_batch_generator, batch_size=1)
-        else:
-            yPredict = model.predict(xTest, batch_size=1)
-
+        yPredict = model.predict(xTest, batch_size=1)
 
         # Compute test accuracy
         accuracy = computePredictAccuracy(yTest, yPredict)
@@ -115,15 +86,17 @@ def main(args):
 
 
         # Reconstruct batch images to full 3D array
-        predictMasks_array_shape = FileReader.getImageSize(listOrigMasksFiles[i])
+        predictMasks_array_shape = FileReader.getImageSize(masksFile)
 
         if (args.slidingWindowImages):
             reconstructorImages = ReconstructorImages3D(predictMasks_array_shape,
                                                         IMAGES_DIMS_Z_X_Y,
-                                                        prop_overlap=args.prop_overlap_Z_X_Y)
+                                                        prop_overlap=args.prop_overlap_Z_X_Y,
+                                                        num_classes_out=num_classes_out)
         else:
             reconstructorImages = ReconstructorImages3D(predictMasks_array_shape,
-                                                        IMAGES_DIMS_Z_X_Y)
+                                                        IMAGES_DIMS_Z_X_Y,
+                                                        num_classes_out=num_classes_out)
 
         predictMasks_array = reconstructorImages.compute(yPredict)
 
@@ -131,7 +104,7 @@ def main(args):
         # Save predictions data
         print("Saving predictions data, with dims: %s..." %(tuple2str(predictMasks_array.shape)))
 
-        out_predictionsFilename = joinpathnames(PredictDataPath, tempNamePredictionsFiles%(i, accuracy) + tuple2str(predictMasks_array.shape) + getFileExtension(FORMATINOUTDATA))
+        out_predictionsFilename = joinpathnames(PredictDataPath, tempNamePredictionsFiles%(filenamenoextension(masksFile), accuracy) + getFileExtension(FORMATINOUTDATA))
 
         FileReader.writeImageArray(out_predictionsFilename, predictMasks_array)
 
@@ -139,7 +112,7 @@ def main(args):
         if (args.saveVisualPredictData):
             print("Saving predictions data in image format for visualization...")
 
-            out_predictionsFilename = joinpathnames(PredictDataPath, tempNamePredictionsFiles%(i, accuracy) + tuple2str(predictMasks_array.shape) + '.nii')
+            out_predictionsFilename = joinpathnames(PredictDataPath, tempNamePredictionsFiles%(filenamenoextension(masksFile), accuracy) + '.nii')
 
             FileReader.writeImageArray(out_predictionsFilename, predictMasks_array)
     #endfor

@@ -21,8 +21,8 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath    = workDirsManager.getNameBaseDataPath()
-    RawImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
-    RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
+    OrigImagesPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
+    OrigMasksPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
     ProcImagesPath  = workDirsManager.getNameNewPath(BaseDataPath, 'ProcImages')
     ProcMasksPath   = workDirsManager.getNameNewPath(BaseDataPath, 'ProcMasks')
 
@@ -30,15 +30,15 @@ def main(args):
     nameImagesFiles = '*.dcm'
     nameMasksFiles  = '*.dcm'
 
-    listImagesFiles = findFilesDir(RawImagesPath, nameImagesFiles)
-    listMasksFiles  = findFilesDir(RawMasksPath,  nameMasksFiles)
+    listImagesFiles = findFilesDir(OrigImagesPath, nameImagesFiles)
+    listMasksFiles  = findFilesDir(OrigMasksPath,  nameMasksFiles)
 
     nbImagesFiles   = len(listImagesFiles)
     nbMasksFiles    = len(listMasksFiles)
 
     # Run checkers
     if (nbImagesFiles == 0):
-        message = "num CTs Images found in dir \'%s\'" %(RawImagesPath)
+        message = "num CTs Images found in dir \'%s\'" %(OrigImagesPath)
         CatchErrorException(message)
     if (nbImagesFiles != nbMasksFiles):
         message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbMasksFiles)
@@ -48,11 +48,11 @@ def main(args):
     if isExistdir(joinpathnames(BaseDataPath, 'RawAddMasks')):
         isExistsAddMasks = True
 
-        RawAddMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
+        OrigAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
         ProcAddMasksPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcAddMasks')
 
         nameAddMasksFiles = '*.dcm'
-        listAddMasksFiles = findFilesDir(RawAddMasksPath, nameAddMasksFiles)
+        listAddMasksFiles = findFilesDir(OrigAddMasksPath, nameAddMasksFiles)
         nbAddMasksFiles   = len(listAddMasksFiles)
 
         if (nbImagesFiles != nbAddMasksFiles):

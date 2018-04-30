@@ -23,16 +23,16 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath    = workDirsManager.getNameBaseDataPath()
-    RawImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'ProcImages')
-    RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
+    OrigImagesPath  = workDirsManager.getNameExistPath(BaseDataPath, 'ProcImages')
+    OrigMasksPath   = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
     ProcessDataPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcInputData')
 
     # Get the file list:
     nameImagesFiles = '*.nii'
     nameMasksFiles  = '*.nii'
 
-    listImagesFiles = findFilesDir(RawImagesPath, nameImagesFiles)
-    listMasksFiles  = findFilesDir(RawMasksPath,  nameMasksFiles)
+    listImagesFiles = findFilesDir(OrigImagesPath, nameImagesFiles)
+    listMasksFiles  = findFilesDir(OrigMasksPath,  nameMasksFiles)
 
     nbImagesFiles   = len(listImagesFiles)
     nbMasksFiles    = len(listMasksFiles)
@@ -42,7 +42,7 @@ def main(args):
 
     # Run checkers
     if (nbImagesFiles == 0):
-        message = "num CTs Images found in dir \'%s\'" %(RawImagesPath)
+        message = "num CTs Images found in dir \'%s\'" %(OrigImagesPath)
         CatchErrorException(message)
     if (nbImagesFiles != nbMasksFiles):
         message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbMasksFiles)
