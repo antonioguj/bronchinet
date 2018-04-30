@@ -81,12 +81,15 @@ class SlidingWindowBatchGenerator(image.Iterator):
 
             (Xdata_batch_elem, Ydata_batch_elem) = self.get_XYdata_index_batch(index)
 
-            Xdata_batch[i] = self.get_transformed_Xdata_batch(self.opersArrays.get_array_reshaped_Keras(self.opersArrays.get_array_reshaped(Xdata_batch_elem)))
+            Xdata_batch_elem = self.opersArrays.get_array_reshaped_Keras(self.opersArrays.get_array_reshaped(Xdata_batch_elem))
 
             if self.num_classes_out > 1:
-                Ydata_batch[i] = self.opersArrays.get_array_reshaped_Keras(self.opersArrays.get_array_categorical_masks(self.opersArrays.get_array_cropImages_outNnet(Ydata_batch_elem)))
+                Ydata_batch_elem = self.opersArrays.get_array_reshaped_Keras(self.opersArrays.get_array_categorical_masks(self.opersArrays.get_array_cropImages_outNnet(Ydata_batch_elem)))
             else:
-                Ydata_batch[i] = self.opersArrays.get_array_reshaped_Keras(self.opersArrays.get_array_reshaped(self.opersArrays.get_array_cropImages_outNnet(Ydata_batch_elem)))
+                Ydata_batch_elem = self.opersArrays.get_array_reshaped_Keras(self.opersArrays.get_array_reshaped(self.opersArrays.get_array_cropImages_outNnet(Ydata_batch_elem)))
+
+            # apply transformations
+            (Xdata_batch[i], Ydata_batch[i]) = self.get_transformed_XYdata_batch(Xdata_batch_elem, Ydata_batch_elem)
         #endfor
 
         return (Xdata_batch, Ydata_batch)
@@ -99,9 +102,10 @@ class SlidingWindowBatchGenerator(image.Iterator):
         return (self.list_slidingWindow_images_generator[idx_fullimage].get_image_array(self.list_Xdata[idx_fullimage], index_image_batch),
                 self.list_slidingWindow_images_generator[idx_fullimage].get_image_array(self.list_Ydata[idx_fullimage], index_image_batch))
 
-    def get_transformed_Xdata_batch(self, Xdata_batch_elem):
+
+    def get_transformed_XYdata_batch(self, Xdata_batch_elem, Ydata_batch_elem):
         # do nothing
-        return Xdata_batch_elem
+        return (Xdata_batch_elem, Ydata_batch_elem)
 
 
 class SlidingWindowPlusDataAugmentationBatchGenerator(SlidingWindowBatchGenerator):
@@ -159,12 +163,18 @@ class SlidingWindowPlusDataAugmentationBatchGenerator(SlidingWindowBatchGenerato
 
         super(SlidingWindowPlusDataAugmentationBatchGenerator, self).__init__(list_Xdata, list_Ydata, size_image, prop_overlap, num_classes_out, size_outnnet, batch_size, shuffle, seed)
 
-    def get_transformed_Xdata_batch(self, Xdata_batch_elem):
+
+    def get_transformed_XYdata_batch(self, Xdata_batch_elem, Ydata_batch_elem):
         # IMPORTANT: "image.ImageDataGenerator" is only designed for 2D images.
         # Used for axial transformation of 3D images if applied slicewise, providing the same seed for generation of random 2D transformations
+        # IMPORTANT: must apply transformations to ground-truth Y, at the same time as X, to retrieve same random transformation
 
         fixed_seed = np.random.randint(0,1e+06)
-        for i, slice_Xdata in enumerate(Xdata_batch_elem):
+
+        for i, (slice_Xdata, slice_Ydata) in enumerate(zip(Xdata_batch_elem, Ydata_batch_elem)):
+
             Xdata_batch_elem[i] = self.images_data_generator.standardize(self.images_data_generator.random_transform(slice_Xdata, seed=fixed_seed))
+            Ydata_batch_elem[i] = self.images_data_generator.standardize(self.images_data_generator.random_transform(slice_Ydata, seed=fixed_seed))
         #endfor
-        return Xdata_batch_elem
+
+        return (Xdata_batch_elem, Ydata_batch_elem)
