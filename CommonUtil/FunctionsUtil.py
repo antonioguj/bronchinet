@@ -15,6 +15,7 @@ import datetime
 import time
 import csv
 import os
+import re
 
 
 def makedir(pathname):
@@ -192,6 +193,13 @@ def getFileExtension(formatoutfile):
 
 def getSavedModelFileName(typeSavedModel):
     return 'model_' + typeSavedModel + '.hdf5'
+
+def getIndexOrigImagesFile(imagesFile, beginString='images'):
+    pattern = beginString + '-[0-9]*'
+    if bool(re.match(pattern, imagesFile)):
+        return int(re.search(pattern, imagesFile).group(0)[-2:])
+    else:
+        return False
 
 class WallClockTime(object):
     def __init__(self):
