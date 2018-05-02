@@ -8,12 +8,9 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.Constants import *
-from CommonUtil.ErrorMessages import *
+from CommonUtil.BatchDataGenerator import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
-from Preprocessing.BatchImagesGenerator import *
-from Preprocessing.SlidingWindowImages import *
 from keras.backend import image_data_format as K_image_data_format
 from keras.utils import to_categorical as K_to_categorical
 
@@ -154,7 +151,7 @@ class LoadDataManagerInBatches(LoadDataManager, OperationsArraysUseInKeras):
 
     def __init__(self, size_image, num_classes_out=1, size_outnnet=None):
 
-        super(LoadDataManagerInBatches, self).__init__(size_image, num_classes_out=num_classes_out, size_outnnet=size_outnnet)
+        super(LoadDataManagerInBatches, self).__init__(size_image, num_classes_out, size_outnnet)
 
     def get_num_channels_array(self, in_array_shape):
         if len(in_array_shape) == len(self.size_image) + 1:
@@ -230,13 +227,13 @@ class LoadDataManagerInBatches(LoadDataManager, OperationsArraysUseInKeras):
             return (xData, yData)
 
 
-class LoadDataManagerInBatches_BatchGenerator(LoadDataManager, OperationsArraysUseInKeras):
+class LoadDataManagerInBatches_DataGenerator(LoadDataManager, OperationsArraysUseInKeras):
 
-    def __init__(self, size_image, prop_overlap, type_generator='SlidingWindow', num_classes_out=1, size_outnnet=None):
-        self.prop_overlap   = prop_overlap
-        self.type_generator = type_generator
+    def __init__(self, size_image, images_generator, num_classes_out=1, size_outnnet=None):
 
-        super(LoadDataManagerInBatches_BatchGenerator, self).__init__(size_image, num_classes_out=num_classes_out, size_outnnet=size_outnnet)
+        self.images_generator = images_generator
+
+        super(LoadDataManagerInBatches_DataGenerator, self).__init__(size_image, num_classes_out, size_outnnet)
 
 
     def loadData_1File(self, imagesFile, masksFile, max_num_images=10000, shuffle_images=SHUFFLEIMAGES):
@@ -244,11 +241,9 @@ class LoadDataManagerInBatches_BatchGenerator(LoadDataManager, OperationsArraysU
         xData = FileReader.getImageArray(imagesFile).astype(dtype=FORMATIMAGEDATA)
         yData = FileReader.getImageArray(masksFile) .astype(dtype=FORMATMASKDATA )
 
-        if (self.type_generator=='SlidingWindow'):
-            imagesGenerator      = SlidingWindowImages3D(xData.shape, self.size_image, self.prop_overlap)
-            batchImagesGenerator = BatchImagesGenerator_2Arrays(xData, yData, self.size_image, imagesGenerator, size_batch=1, shuffle_images=shuffle_images)
+        batch_data_generator = BatchDataGenerator_2Arrays(self.size_image, xData, yData, self.images_generator, size_batch=1, shuffle=shuffle_images)
 
-        num_images = min(len(batchImagesGenerator), max_num_images)
+        num_images = min(len(batch_data_generator), max_num_images)
 
         xData_shape = self.get_shape_out_array(num_images, num_channels=self.get_num_channels_array(xData.shape))
         yData_shape = self.get_shape_out_array(num_images, num_channels=self.num_classes_out)
@@ -257,7 +252,7 @@ class LoadDataManagerInBatches_BatchGenerator(LoadDataManager, OperationsArraysU
 
         for i in range(num_images):
             # Retrieve (xData, yData) directly from imagesDataGenerator
-            (xData_batch, yData_batch) = next(batchImagesGenerator)
+            (xData_batch, yData_batch) = next(batch_data_generator)
 
             xData[i] = self.get_array_reshaped_Keras(self.get_array_reshaped(xData_batch[0]))
 
@@ -278,11 +273,9 @@ class LoadDataManagerInBatches_BatchGenerator(LoadDataManager, OperationsArraysU
 
             xData_part = FileReader.getImageArray(imagesFile).astype(dtype=FORMATIMAGEDATA)
 
-            if (self.type_generator == 'SlidingWindow'):
-                imagesGenerator      = SlidingWindowImages3D(xData_part.shape, self.size_image, self.prop_overlap)
-                batchImagesGenerator = BatchImagesGenerator_1Array(xData_part, self.size_image, imagesGenerator, size_batch=1, shuffle_images=shuffle_images)
+            batch_data_generator = BatchDataGenerator_1Array(self.size_image, xData_part, self.images_generator, size_batch=1, shuffle=shuffle_images)
 
-            num_images += len(batchImagesGenerator)
+            num_images += len(batch_data_generator)
 
             if( num_images>=max_num_images ):
                 #reached the max size for output array
@@ -303,15 +296,13 @@ class LoadDataManagerInBatches_BatchGenerator(LoadDataManager, OperationsArraysU
             xData_part = FileReader.getImageArray(imagesFile).astype(dtype=FORMATIMAGEDATA)
             yData_part = FileReader.getImageArray(masksFile) .astype(dtype=FORMATMASKDATA )
 
-            if (self.type_generator == 'SlidingWindow'):
-                imagesGenerator      = SlidingWindowImages3D(xData_part.shape, self.size_image, self.prop_overlap)
-                batchImagesGenerator = BatchImagesGenerator_2Arrays(xData_part, yData_part, self.size_image, imagesGenerator, size_batch=1, shuffle_images=shuffle_images)
+            batch_data_generator = BatchDataGenerator_2Arrays(self.size_image, xData_part, yData_part, self.images_generator, size_batch=1, shuffle=shuffle_images)
 
-            num_images_part = min(len(batchImagesGenerator), xData.shape[0] - count_images)
+            num_images_part = min(len(batch_data_generator), xData.shape[0] - count_images)
 
             for i in range(num_images_part):
                 # Retrieve (xData, yData) directly from imagesDataGenerator
-                (xData_batch, yData_batch) = next(batchImagesGenerator)
+                (xData_batch, yData_batch) = next(batch_data_generator)
 
                 xData[count_images] = self.get_array_reshaped_Keras(self.get_array_reshaped(xData_batch[0]))
 
