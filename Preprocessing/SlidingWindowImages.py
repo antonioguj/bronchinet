@@ -13,14 +13,14 @@ import numpy as np
 
 class SlidingWindowImages(object):
 
-    def __init__(self, num_images, size_image):
-        self.num_images = num_images
+    def __init__(self, size_image, num_images=0):
         self.size_image = size_image
+        self.num_images = num_images
 
     @staticmethod
     def get_num_images_1d(size_total, size_image, prop_overlap):
 
-        return int(np.floor((size_total - prop_overlap*size_image) /(1-prop_overlap) /size_image))
+        return max(int(np.floor((size_total - prop_overlap*size_image) /(1-prop_overlap) /size_image)), 0)
 
     @staticmethod
     def get_limits_image_1d(index, size_image, prop_overlap):
@@ -29,7 +29,10 @@ class SlidingWindowImages(object):
         coord_npl1 = coord_n + size_image
         return (coord_n, coord_npl1)
 
-    def get_num_images_total(self):
+    def complete_init_data(self, size_total):
+        pass
+
+    def get_num_images(self):
         return self.num_images
 
     def get_num_channels_array(self, in_array_shape):
@@ -38,27 +41,28 @@ class SlidingWindowImages(object):
         else:
             return in_array_shape[-1]
 
-    def get_shape_out_array(self, num_images, num_channels=1):
-        if num_channels == 1:
+    def get_shape_out_array(self, in_array_shape):
+        num_images   = self.get_num_images()
+        num_channels = self.get_num_channels_array(in_array_shape)
+
+        if len(in_array_shape) == len(self.size_image):
             return [num_images] + list(self.size_image)
         else:
             return [num_images] + list(self.size_image) + [num_channels]
 
-    def get_image_cropped(self, images_array, index):
+    def get_cropped_image(self, images_array, index):
         pass
 
     def get_image_array(self, images_array, index):
 
-        return self.get_image_cropped(images_array, index)
+        return self.get_cropped_image(images_array, index)
 
-    def compute_images_array_all(self, images_array):
+    def get_images_array_all(self, images_array):
 
-        out_array_shape = self.get_shape_out_array(images_array.shape[0], num_channels=self.get_num_channels_array(images_array.shape))
-
-        out_images_array = np.ndarray(out_array_shape, dtype=images_array.dtype)
+        out_images_array = np.ndarray(self.get_shape_out_array(images_array.shape), dtype=images_array.dtype)
 
         for index in range(self.num_images):
-            out_images_array[index] = self.get_image_cropped(index, images_array)
+            out_images_array[index] = self.get_image_array(images_array, index)
         #endfor
 
         return out_images_array
@@ -66,15 +70,21 @@ class SlidingWindowImages(object):
 
 class SlidingWindowImages2D(SlidingWindowImages):
 
-    def __init__(self, size_total, size_image, prop_overlap):
+    def __init__(self, size_image, prop_overlap, size_total=(0, 0)):
 
-        (self.size_total_x,   self.size_total_y  ) = size_total
         (self.size_image_x,   self.size_image_y  ) = size_image
         (self.prop_overlap_x, self.prop_overlap_y) = prop_overlap
-        (self.num_images_x,   self.num_images_y  ) = self.get_num_images()
-        self.num_images_total = self.num_images_x * self.num_images_y
+        (self.size_total_x,   self.size_total_y  ) = size_total
+        (self.num_images_x,   self.num_images_y  ) = self.get_num_images_local()
+        num_images_total = self.num_images_x * self.num_images_y
 
-        super(SlidingWindowImages2D, self).__init__(self.num_images_total, size_image)
+        super(SlidingWindowImages2D, self).__init__(size_image, num_images_total)
+
+    def complete_init_data(self, size_total):
+
+        (self.size_total_x, self.size_total_y) = size_total
+        (self.num_images_x, self.num_images_y) = self.get_num_images_local()
+        self.num_images = self.num_images_x * self.num_images_y
 
     def get_indexes_local(self, index):
 
@@ -82,7 +92,7 @@ class SlidingWindowImages2D(SlidingWindowImages):
         index_x  = index % self.num_images_x
         return (index_x, index_y)
 
-    def get_num_images(self):
+    def get_num_images_local(self):
 
         num_images_x = self.get_num_images_1d(self.size_total_x, self.size_image_x, self.prop_overlap_x)
         num_images_y = self.get_num_images_1d(self.size_total_y, self.size_image_y, self.prop_overlap_y)
@@ -98,7 +108,7 @@ class SlidingWindowImages2D(SlidingWindowImages):
 
         return (x_left, x_right, y_down, y_up)
 
-    def get_image_cropped(self, images_array, index):
+    def get_cropped_image(self, images_array, index):
 
         (x_left, x_right, y_down, y_up) = self.get_limits_image(index)
 
@@ -107,15 +117,21 @@ class SlidingWindowImages2D(SlidingWindowImages):
 
 class SlidingWindowImages3D(SlidingWindowImages):
 
-    def __init__(self, size_total, size_image, prop_overlap):
+    def __init__(self, size_image, prop_overlap, size_total=(0, 0, 0)):
 
-        (self.size_total_z,   self.size_total_x,   self.size_total_y  ) = size_total
         (self.size_image_z,   self.size_image_x,   self.size_image_y  ) = size_image
         (self.prop_overlap_z, self.prop_overlap_x, self.prop_overlap_y) = prop_overlap
-        (self.num_images_z,   self.num_images_x,   self.num_images_y  ) = self.get_num_images()
-        self.num_images_total = self.num_images_x * self.num_images_y * self.num_images_z
+        (self.size_total_z,   self.size_total_x,   self.size_total_y  ) = size_total
+        (self.num_images_z,   self.num_images_x,   self.num_images_y  ) = self.get_num_images_local()
+        num_images_total = self.num_images_x * self.num_images_y * self.num_images_z
 
-        super(SlidingWindowImages3D, self).__init__(self.num_images_total, size_image)
+        super(SlidingWindowImages3D, self).__init__(size_image, num_images_total)
+
+    def complete_init_data(self, size_total):
+
+        (self.size_total_z, self.size_total_x, self.size_total_y) = size_total
+        (self.num_images_z, self.num_images_x, self.num_images_y) = self.get_num_images_local()
+        self.num_images = self.num_images_x * self.num_images_y * self.num_images_z
 
     def get_indexes_local(self, index):
 
@@ -126,7 +142,7 @@ class SlidingWindowImages3D(SlidingWindowImages):
         index_x  = index_xy % self.num_images_x
         return (index_z, index_x, index_y)
 
-    def get_num_images(self):
+    def get_num_images_local(self):
 
         num_images_x = self.get_num_images_1d(self.size_total_x, self.size_image_x, self.prop_overlap_x)
         num_images_y = self.get_num_images_1d(self.size_total_y, self.size_image_y, self.prop_overlap_y)
@@ -144,7 +160,7 @@ class SlidingWindowImages3D(SlidingWindowImages):
 
         return (z_back, z_front, x_left, x_right, y_down, y_up)
 
-    def get_image_cropped(self, images_array, index):
+    def get_cropped_image(self, images_array, index):
 
         (z_back, z_front, x_left, x_right, y_down, y_up) = self.get_limits_image(index)
 
@@ -153,10 +169,10 @@ class SlidingWindowImages3D(SlidingWindowImages):
 
 class SlicingImages2D(SlidingWindowImages2D):
 
-    def __init__(self, size_total, size_image):
-        super(SlicingImages2D, self).__init__(size_total, size_image, (0.0, 0.0))
+    def __init__(self, size_image, size_total=(0, 0)):
+        super(SlicingImages2D, self).__init__(size_image, (0.0, 0.0), size_total)
 
 class SlicingImages3D(SlidingWindowImages3D):
 
-    def __init__(self, size_total, size_image):
-        super(SlicingImages3D, self).__init__(size_total, size_image, (0.0, 0.0, 0.0))
+    def __init__(self, size_image, size_total=(0, 0, 0)):
+        super(SlicingImages3D, self).__init__(size_image, (0.0, 0.0, 0.0), size_total)
