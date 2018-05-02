@@ -26,9 +26,9 @@ class ReconstructorImages(object):
         self.compute_factor_overlap_batches_per_voxel()
 
 
-    def run_check_shape_Ypredict(self, yPredict_shape):
+    def run_check_shape_predict_data(self, predict_data_shape):
 
-        return (yPredict_shape[0] == self.num_images_total) and (yPredict_shape[1:-2] != self.size_image_batch) and (len(yPredict_shape) == len(self.size_image_batch) + 2)
+        return (predict_data_shape[0] == self.num_images_total) and (predict_data_shape[1:-2] != self.size_image_batch) and (len(predict_data_shape) == len(self.size_image_batch) + 2)
 
     def get_reconstructed_batch_array(self, array_batch):
 
@@ -63,16 +63,16 @@ class ReconstructorImages(object):
             self.factor_overlap_batches_per_voxel[tuple(pos)] = 0.0
 
 
-    def compute(self, yPredict):
+    def compute(self, predict_data):
 
-        if not self.run_check_shape_Ypredict(yPredict.shape):
-            message = "wrong shape of input predictions array..." %(yPredict.shape)
+        if not self.run_check_shape_predict_data(predict_data.shape):
+            message = "wrong shape of input predictions array..." %(predict_data.shape)
             CatchErrorException(message)
 
         predictMasks_array = np.zeros(self.size_total_image, dtype=FORMATPREDICTDATA)
 
         for index in range(self.num_images_total):
-            self.add_reconstructed_batch_to_full_array(index, predictMasks_array, self.get_reconstructed_batch_array(yPredict[index]))
+            self.add_reconstructed_batch_to_full_array(index, predictMasks_array, self.get_reconstructed_batch_array(predict_data[index]))
         #endfor
 
         # multiply by factor to account for multiple overlaps of batch images
@@ -85,7 +85,7 @@ class ReconstructorImages2D(ReconstructorImages):
 
         self.batchReconstructor = SlidingWindowImages2D(size_total_image, size_image_batch, prop_overlap)
 
-        super(ReconstructorImages2D, self).__init__(size_total_image, size_image_batch, self.batchReconstructor.get_num_images_total(), num_classes_out=num_classes_out)
+        super(ReconstructorImages2D, self).__init__(size_total_image, size_image_batch, self.batchReconstructor.get_num_images(), num_classes_out=num_classes_out)
 
     def add_reconstructed_batch_to_full_array(self, index, full_array, batch_array):
 
@@ -112,7 +112,7 @@ class ReconstructorImages3D(ReconstructorImages):
 
         self.batchReconstructor = SlidingWindowImages3D(size_total_image, size_image_batch, prop_overlap)
 
-        super(ReconstructorImages3D, self).__init__(size_total_image, size_image_batch, self.batchReconstructor.get_num_images_total(), num_classes_out=num_classes_out)
+        super(ReconstructorImages3D, self).__init__(size_total_image, size_image_batch, self.batchReconstructor.get_num_images(), num_classes_out=num_classes_out)
 
     def add_reconstructed_batch_to_full_array(self, index, full_array, batch_array):
 
