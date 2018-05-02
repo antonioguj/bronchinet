@@ -16,7 +16,7 @@ from CommonUtil.PlotsManager import *
 from CommonUtil.WorkDirsManager import *
 from Networks.Metrics import *
 from Networks.Networks import *
-from KerasPrototypes.SlidingWindowBatchGenerator import *
+from Preprocessing.BaseImageGenerator import *
 from Postprocessing.ReconstructorImages import *
 import argparse
 
@@ -67,20 +67,21 @@ def main(args):
         print('\'%s\'...' % (imagesFile))
 
         # Loading Data
-        if (args.slidingWindowImages):
-            # Images Data Generator by Sliding-window...
-            (xTest, yTest) = LoadDataManagerInBatches_BatchGenerator(IMAGES_DIMS_Z_X_Y,
-                                                                     args.prop_overlap_Z_X_Y,
-                                                                     num_classes_out=num_classes_out).loadData_1File(imagesFile, masksFile, shuffle_images=False)
+        if (args.slidingWindowImages or args.transformationImages):
+            test_images_generator = BaseImageGenerator.getImagesGenerator(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
+
+            (test_xData, test_yData) = LoadDataManagerInBatches_DataGenerator(IMAGES_DIMS_Z_X_Y,
+                                                                              test_images_generator,
+                                                                              num_classes_out=num_classes_out).loadData_1File(imagesFile, masksFile, shuffle_images=False)
         else:
-            (xTest, yTest) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_1File(imagesFile, masksFile, shuffle_images=False)
+            (test_xData, test_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_1File(imagesFile, masksFile, shuffle_images=False)
 
 
         # Evaluate Model
-        yPredict = model.predict(xTest, batch_size=1)
+        predict_data = model.predict(test_xData, batch_size=1)
 
         # Compute test accuracy
-        accuracy = computePredictAccuracy(yTest, yPredict)
+        accuracy = computePredictAccuracy(test_yData, predict_data)
 
         print("Computed accuracy: %s..."%(accuracy))
 
@@ -98,7 +99,7 @@ def main(args):
                                                         IMAGES_DIMS_Z_X_Y,
                                                         num_classes_out=num_classes_out)
 
-        predictMasks_array = reconstructorImages.compute(yPredict)
+        predictMasks_array = reconstructorImages.compute(predict_data)
 
 
         # Save predictions data
@@ -130,7 +131,7 @@ if __name__ == "__main__":
     parser.add_argument('--predictAccuracyMetrics', default=PREDICTACCURACYMETRICS)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
-    parser.add_argument('--imagesAugmentation', type=str2bool, default=IMAGESAUGMENTATION)
+    parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
     parser.add_argument('--saveVisualPredictData', type=str2bool, default=SAVEVISUALPREDICTDATA)
     args = parser.parse_args()
 

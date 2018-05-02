@@ -10,13 +10,14 @@
 
 from CommonUtil.Constants import *
 from CommonUtil.ErrorMessages import *
+from CommonUtil.KerasBatchDataGenerator import *
 from CommonUtil.LoadDataManager import *
 from CommonUtil.WorkDirsManager import *
 from Networks.Callbacks import *
 from Networks.Metrics import *
 from Networks.Networks import *
 from Networks.Optimizers import *
-from KerasPrototypes.SlidingWindowBatchGenerator import *
+from Preprocessing.BaseImageGenerator import *
 from keras import callbacks as Kcallbacks
 import argparse
 
@@ -57,8 +58,8 @@ def main(args):
         initial_epoch = args.epoch_restart
 
         modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.restart_modelFile))
-        custom_objects = {'compute_loss': DICTAVAILLOSSFUNS(args.lossfun).compute_loss,
-                          'compute': DICTAVAILMETRICS(args.metrics).compute}
+        custom_objects = {'compute_loss': DICTAVAILLOSSFUNS(args.lossfun),
+                          'compute': DICTAVAILMETRICS(args.metrics)}
 
         model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)
     else:
@@ -100,61 +101,51 @@ def main(args):
     else:
         num_classes_out = 1
 
-    if (args.slidingWindowImages):
-
-        def getDataBatchGenerator(listImagesFiles, listMasksFiles):
-
-            (xData, yData) = LoadDataManager.loadData_ListFiles(listImagesFiles, listMasksFiles)
-
-            if (args.slidingWindowImages):
-                # Images Data Generator by Sliding-window...
-                if (args.imagesAugmentation):
-                    # Data augmentation by random transformation to input images...
-                    return SlidingWindowPlusDataAugmentationBatchGenerator(xData, yData,
-                                                                           IMAGES_DIMS_Z_X_Y,
-                                                                           args.prop_overlap_Z_X_Y,
-                                                                           num_classes_out=num_classes_out,
-                                                                           batch_size=args.batch_size,
-                                                                           shuffle=True,
-                                                                           rotation_range=ROTATION_RANGE,
-                                                                           width_shift_range=HORIZONTAL_SHIFT,
-                                                                           height_shift_range=VERTICAL_SHIFT,
-                                                                           horizontal_flip=HORIZONTAL_FLIP,
-                                                                           vertical_flip=VERTICAL_FLIP)
-                else:
-                    return SlidingWindowBatchGenerator(xData, yData,
-                                                       IMAGES_DIMS_Z_X_Y,
-                                                       args.prop_overlap_Z_X_Y,
-                                                       num_classes_out=num_classes_out,
-                                                       batch_size=args.batch_size,
-                                                       shuffle=True)
-
-
     print("Load Training data...")
-    if (args.slidingWindowImages):
+    if (args.slidingWindowImages or args.transformationImages):
 
-        trainData_generator = getDataBatchGenerator(listTrainImagesFiles, listTrainMasksFiles)
+        (train_xData, train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
 
-        print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles), len(trainData_generator)))
+        train_images_generator = BaseImageGenerator.getImagesGenerator(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
+
+        train_batch_data_generator = KerasTrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
+                                                                     train_xData,
+                                                                     train_yData,
+                                                                     train_images_generator,
+                                                                     num_classes_out=num_classes_out,
+                                                                     batch_size=args.batch_size,
+                                                                     shuffle=True)
+
+        print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles), len(train_batch_data_generator)))
     else:
-        (xTrain, yTrain) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
+        (train_xData, train_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
 
-        print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles), len(xTrain)))
+        print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles), len(train_xData)))
 
 
     if use_validation_data:
         print("Load Validation data...")
-        if (args.slidingWindowImages):
+        if (args.slidingWindowImages or args.transformationImages):
 
-            validData_generator = getDataBatchGenerator(listValidImagesFiles, listValidMasksFiles)
-            validation_data = validData_generator
+            (valid_xData, valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles, listValidMasksFiles)
 
-            print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles), len(validData_generator)))
+            valid_images_generator = BaseImageGenerator.getImagesGenerator(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
+
+            valid_batch_data_generator = KerasTrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
+                                                                         valid_xData,
+                                                                         valid_yData,
+                                                                         valid_images_generator,
+                                                                         num_classes_out=num_classes_out,
+                                                                         batch_size=args.batch_size,
+                                                                         shuffle=True)
+            validation_data = valid_batch_data_generator
+
+            print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles), len(valid_batch_data_generator)))
         else:
-            (xValid, yValid) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listValidImagesFiles, listValidMasksFiles)
-            validation_data = (xValid, yValid)
+            (valid_xData, valid_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listValidImagesFiles, listValidMasksFiles)
+            validation_data = (valid_xData, valid_yData)
 
-            print("Number volumes: %s. Total Data batches generated: %s..." % (len(listTrainImagesFiles), len(xValid)))
+            print("Number volumes: %s. Total Data batches generated: %s..." % (len(listTrainImagesFiles), len(valid_xData)))
     else:
         validation_data = None
 
@@ -166,10 +157,10 @@ def main(args):
     print("Training model...")
     print("-" * 30)
 
-    if (args.slidingWindowImages):
+    if (args.slidingWindowImages or args.transformationImages):
 
-        model.fit_generator(trainData_generator,
-                            steps_per_epoch=len(trainData_generator),
+        model.fit_generator(train_batch_data_generator,
+                            steps_per_epoch=len(train_batch_data_generator),
                             nb_epoch=args.num_epochs,
                             verbose=1,
                             shuffle=True,
@@ -177,7 +168,7 @@ def main(args):
                             callbacks=callbacks_list,
                             initial_epoch=initial_epoch)
     else:
-        model.fit(xTrain, yTrain,
+        model.fit(train_xData, train_yData,
                   batch_size=args.batch_size,
                   epochs=args.num_epochs,
                   verbose=1,
@@ -203,7 +194,7 @@ if __name__ == "__main__":
     parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
-    parser.add_argument('--imagesAugmentation', type=str2bool, default=IMAGESAUGMENTATION)
+    parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
     parser.add_argument('--use_restartModel', type=str2bool, default=USE_RESTARTMODEL)
     parser.add_argument('--restart_modelFile', default=RESTART_MODELFILE)
     parser.add_argument('--epoch_restart', type=int, default=EPOCH_RESTART)
