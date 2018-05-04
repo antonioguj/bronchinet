@@ -68,7 +68,7 @@ def main(args):
 
         # Loading Data
         if (args.slidingWindowImages or args.transformationImages):
-            test_images_generator = BaseImageGenerator.getImagesGenerator(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
+            test_images_generator = BaseImageGenerator.getImagesGenerator3D(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
 
             (test_xData, test_yData) = LoadDataManagerInBatches_DataGenerator(IMAGES_DIMS_Z_X_Y,
                                                                               test_images_generator,

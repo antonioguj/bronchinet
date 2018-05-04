@@ -16,6 +16,8 @@ from CommonUtil.WorkDirsManager import *
 from Preprocessing.BalanceClassesCTs import *
 from Preprocessing.OperationsImages import *
 from Preprocessing.SlidingWindowImages import *
+from Preprocessing.SlidingWindowPlusTransformImages import *
+from Preprocessing.TransformationImages import *
 import argparse
 
 
@@ -105,23 +107,39 @@ def main(args):
 
 
         if (args.createImagesBatches):
-
             if (args.slidingWindowImages):
 
                 slidingWindowImagesGenerator = SlidingWindowImages3D(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y, images_array.shape)
 
-                images_array = slidingWindowImagesGenerator.get_images_array_all(images_array)
-                masks_array  = slidingWindowImagesGenerator.get_images_array_all(masks_array)
+                images_array = slidingWindowImagesGenerator.compute_images_array_all(images_array)
+                masks_array  = slidingWindowImagesGenerator.compute_images_array_all(masks_array)
 
                 print("Generate batches images by Sliding-window: size: %s; Overlap: %s. Final dimensions: %s..." %(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y, images_array.shape))
             else:
-
                 slicingImagesGenerator = SlicingImages3D(IMAGES_DIMS_Z_X_Y, images_array.shape)
 
-                images_array = slicingImagesGenerator.get_images_array_all(images_array)
-                masks_array  = slicingImagesGenerator.get_images_array_all(masks_array)
+                images_array = slicingImagesGenerator.compute_images_array_all(images_array)
+                masks_array  = slicingImagesGenerator.compute_images_array_all(masks_array)
 
                 print("Generate batches images by Slicing volumes: size: %s. Final dimensions: %s..." %(IMAGES_DIMS_Z_X_Y, images_array.shape))
+
+            if (args.transformationImages):
+
+                transformImagesGenerator = TransformationImages3D(IMAGES_DIMS_Z_X_Y,
+                                                                  rotation_XY_range=ROTATION_XY_RANGE,
+                                                                  rotation_XZ_range=ROTATION_XZ_RANGE,
+                                                                  rotation_YZ_range=ROTATION_YZ_RANGE,
+                                                                  height_shift_range=HEIGHT_SHIFT_RANGE,
+                                                                  width_shift_range=WIDTH_SHIFT_RANGE,
+                                                                  depth_shift_range=DEPTH_SHIFT_RANGE,
+                                                                  horizontal_flip=HORIZONTAL_FLIP,
+                                                                  vertical_flip=VERTICAL_FLIP,
+                                                                  depthZ_flip=DEPTHZ_FLIP)
+
+                images_array = transformImagesGenerator.compute_images_array_all(images_array)
+                masks_array  = transformImagesGenerator.compute_images_array_all(masks_array)
+
+                print("Generate random 3D transformations of images: size: %s. Final dimensions: %s..." %(IMAGES_DIMS_Z_X_Y, images_array.shape))
 
 
         # Save processed data for training networks
@@ -165,6 +183,7 @@ if __name__ == "__main__":
     parser.add_argument('--checkBalanceClasses', type=str2bool, default=CHECKBALANCECLASSES)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
+    parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
     parser.add_argument('--createImagesBatches', type=str2bool, default=CREATEIMAGESBATCHES)
     parser.add_argument('--saveVisualProcessData', type=str2bool, default=SAVEVISUALPROCESSDATA)
     args = parser.parse_args()
