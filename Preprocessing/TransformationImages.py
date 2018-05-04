@@ -17,6 +17,8 @@ np.random.seed(2017)
 
 class TransformationImages(object):
 
+    diff_trans_each_batch = True
+
     def __init__(self, size_image):
         self.size_image = size_image
 
@@ -26,39 +28,48 @@ class TransformationImages(object):
     def get_num_images(self):
         return 1
 
+    def is_images_array_without_channels(self, in_array_shape):
+        return len(in_array_shape) == len(self.size_image)
+
     def get_num_channels_array(self, in_array_shape):
-        if len(in_array_shape) == len(self.size_image):
+        if self.is_images_array_without_channels(in_array_shape):
             return 1
         else:
             return in_array_shape[-1]
 
     def get_shape_out_array(self, in_array_shape):
-        num_images   = in_array_shape[0]
-        num_channels = self.get_num_channels_array(in_array_shape[1:])
+        num_images = in_array_shape[0]
 
-        return [num_images] + list(self.size_image) + [num_channels]
+        if self.is_images_array_without_channels(in_array_shape[1:]):
+            return [num_images] + list(self.size_image)
+        else:
+            num_channels = self.get_num_channels_array(in_array_shape[1:])
+            return [num_images] + list(self.size_image) + [num_channels]
+
+    def get_seed_index_image(self, seed_0, index):
+        if self.diff_trans_each_batch:
+            return (seed_0 if seed_0 else 0) + index
+        else:
+            return seed_0
 
     def get_transformed_image(self, images_array, seed=None):
         pass
 
     def get_image_array(self, images_array, seed=None):
 
-        if len(images_array.shape) == len(self.size_image):
-            return self.get_transformed_image(np.expand_dims(images_array, axis=-1), seed=seed)
+        if self.is_images_array_without_channels(images_array.shape):
+            return np.squeeze(self.get_transformed_image(np.expand_dims(images_array, axis=-1), seed=seed), axis=-1)
         else:
             return self.get_transformed_image(images_array, seed=seed)
 
-    def get_images_array_all(self, images_array, seed=None, diff_trans_batch=True):
+    def compute_images_array_all(self, images_array, seed_0=None):
 
         out_images_array = np.ndarray(self.get_shape_out_array(images_array.shape), dtype=images_array.dtype)
 
         num_images = images_array.shape[0]
         for index in range(num_images):
-            if diff_trans_batch:
-                seed_image = (seed if seed else 0) + index
-            else:
-                seed_image = seed
-            out_images_array[index] = self.get_image_array(images_array[index], seed=seed_image)
+            seed_index = self.get_seed_index_image(seed_0, index)
+            out_images_array[index] = self.get_image_array(images_array[index], seed=seed_index)
         #endfor
 
         return out_images_array

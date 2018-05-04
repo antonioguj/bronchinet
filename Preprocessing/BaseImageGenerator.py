@@ -28,11 +28,40 @@ class BaseImageGenerator(object):
     def get_image_array(self, images_array, index):
         pass
 
-    def get_images_array_all(self, images_array):
+    def compute_images_array_all(self, images_array):
         pass
 
     @staticmethod
-    def getImagesGenerator(use_slidingWindowImages, prop_overlap_Z_X_Y, use_TransformationImages):
+    def getImagesGenerator2D(use_slidingWindowImages, prop_overlap_X_Y, use_TransformationImages):
+
+        if (use_slidingWindowImages):
+            # Images Data Generator by Sliding-window...
+            if (use_TransformationImages):
+                # Data augmentation by random transformation to input images...
+                return SlidingWindowPlusTransformImages2D(IMAGES_DIMS_X_Y,
+                                                          prop_overlap_X_Y,
+                                                          rotation_range=ROTATION_XY_RANGE,
+                                                          height_shift_range=HEIGHT_SHIFT_RANGE,
+                                                          width_shift_range=WIDTH_SHIFT_RANGE,
+                                                          horizontal_flip=HORIZONTAL_FLIP,
+                                                          vertical_flip=VERTICAL_FLIP)
+            else:
+                return SlidingWindowImages2D(IMAGES_DIMS_X_Y,
+                                             prop_overlap_X_Y)
+        else:
+            if (use_TransformationImages):
+                # Data augmentation by random transformation to input images...
+                return TransformationImages2D(IMAGES_DIMS_X_Y,
+                                              rotation_range=ROTATION_XY_RANGE,
+                                              height_shift_range=HEIGHT_SHIFT_RANGE,
+                                              width_shift_range=WIDTH_SHIFT_RANGE,
+                                              horizontal_flip=HORIZONTAL_FLIP,
+                                              vertical_flip=VERTICAL_FLIP)
+            else:
+                return None
+
+    @staticmethod
+    def getImagesGenerator3D(use_slidingWindowImages, prop_overlap_Z_X_Y, use_TransformationImages):
 
         if (use_slidingWindowImages):
             # Images Data Generator by Sliding-window...

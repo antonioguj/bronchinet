@@ -33,17 +33,14 @@ class SlidingWindowPlusTransformImages(object):
 
         return self.transformImages_generator.get_image_array(self.slidingWindow_generator.get_image_array(images_array, index), seed=seed)
 
-    def get_images_array_all(self, images_array, seed=None, diff_trans_batch=True):
+    def compute_images_array_all(self, images_array, seed_0=None):
 
         out_images_array = np.ndarray(self.get_shape_out_array(images_array.shape), dtype=images_array.dtype)
 
         num_images = self.slidingWindow_generator.get_num_images()
         for index in range(num_images):
-            if diff_trans_batch:
-                seed_image = (seed if seed else 0) + index
-            else:
-                seed_image = seed
-            out_images_array[index] = self.transformImages_generator.get_image_array(self.slidingWindow_generator.get_image_array(images_array, index), seed=seed_image)
+            seed_index = self.get_seed_index_image(seed_0, index)
+            out_images_array[index] = self.transformImages_generator.get_image_array(self.slidingWindow_generator.get_image_array(images_array, index), seed=seed_index)
         #endfor
 
         return out_images_array
