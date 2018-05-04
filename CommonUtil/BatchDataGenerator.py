@@ -56,16 +56,23 @@ class BatchDataGenerator(object):
             self.count_batch += 1
             yield self.indexes_total[count_index:count_index + self.size_batch]
 
+    def is_images_array_without_channels(self, in_array_shape):
+        return len(in_array_shape) == len(self.size_image)
+
     def get_num_channels_array(self, in_array_shape):
-        if len(in_array_shape) == len(self.size_image):
+        if self.is_images_array_without_channels(in_array_shape):
             return 1
         else:
             return in_array_shape[-1]
 
-    def get_shape_out_array(self, num_samples, num_channels=1):
-        if num_channels == 1:
+    def get_shape_out_array(self, in_array_shape, num_samples):
+        if not num_samples:
+            num_samples = self.images_generator.get_num_images()
+
+        if self.is_images_array_without_channels(in_array_shape):
             return [num_samples] + list(self.size_image)
         else:
+            num_channels = self.get_num_channels_array(in_array_shape)
             return [num_samples] + list(self.size_image) + [num_channels]
 
 
@@ -73,10 +80,9 @@ class BatchDataGenerator_1Array(BatchDataGenerator):
 
     def __init__(self, size_image, xData_array, images_generator, numtot_samples=None, size_batch=1, shuffle=SHUFFLEIMAGES, seed=None):
 
-        self.xData_array     = xData_array
-        self.images_generator= images_generator
+        self.xData_array      = xData_array
+        self.images_generator = images_generator
         self.images_generator.complete_init_data(xData_array.shape[0:3])
-        self.num_channels_x  = self.get_num_channels_array(self.xData_array.shape)
 
         if not numtot_samples:
             numtot_samples = images_generator.get_num_images()
@@ -86,7 +92,7 @@ class BatchDataGenerator_1Array(BatchDataGenerator):
     def get_data_samples_batch(self, indexes_batch):
 
         num_samples_batch = len(indexes_batch)
-        out_array_shape   = self.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_x)
+        out_array_shape   = self.get_shape_out_array(self.xData_array.shape, num_samples_batch)
 
         out_xData_array = np.ndarray(out_array_shape, dtype=self.xData_array.dtype)
 
@@ -105,16 +111,15 @@ class BatchDataGenerator_2Arrays(BatchDataGenerator_1Array):
 
     def __init__(self, size_image, xData_array, yData_array, images_generator, numtot_samples=None, size_batch=1, shuffle=SHUFFLEIMAGES, seed=None):
 
-        self.yData_array   = yData_array
-        self.num_channels_y= self.get_num_channels_array(self.yData_array.shape)
+        self.yData_array = yData_array
 
         super(BatchDataGenerator_2Arrays, self).__init__(size_image, xData_array, images_generator, numtot_samples, size_batch, shuffle, seed)
 
     def get_data_samples_batch(self, indexes_batch):
 
         num_samples_batch     = len(indexes_batch)
-        out_xData_array_shape = self.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_x)
-        out_yData_array_shape = self.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_y)
+        out_xData_array_shape = self.get_shape_out_array(self.xData_array.shape, num_samples_batch)
+        out_yData_array_shape = self.get_shape_out_array(self.yData_array.shape, num_samples_batch)
 
         out_xData_array = np.ndarray(out_xData_array_shape, dtype=self.xData_array.dtype)
         out_yData_array = np.ndarray(out_yData_array_shape, dtype=self.yData_array.dtype)
@@ -132,16 +137,16 @@ class BatchDataGenerator_List1Array(BatchDataGenerator):
     def __init__(self, size_image, list_xData_array, images_generator, numtot_samples=None, size_batch=1, shuffle=SHUFFLEIMAGES, seed=None):
 
         self.list_xData_array = list_xData_array
-        self.type_xData       = list_xData_array[0].dtype
         self.images_generator = images_generator
-        self.images_generator.complete_init_data(self.list_xData_array[0].shape[0:3])
-        self.num_channels_x   = self.get_num_channels_array(self.list_xData_array[0].shape)
+        self.images_generator.complete_init_data(self.list_xData_array.shape[0:3])
 
-        numtot_samples = self.compute_pairIndex_samples(numtot_samples)
+        self.compute_pairIndex_samples(numtot_samples, shuffle, seed)
+
+        numtot_samples = len(self.list_pairIndexes_samples)
 
         super(BatchDataGenerator_List1Array, self).__init__(size_image, numtot_samples, size_batch, shuffle, seed)
 
-    def compute_pairIndex_samples(self, numtot_samples):
+    def compute_pairIndex_samples(self, numtot_samples, shuffle, seed=None):
 
         self.list_pairIndex_samples = []
         if numtot_samples:
@@ -163,33 +168,35 @@ class BatchDataGenerator_List1Array(BatchDataGenerator):
 
                 num_samples_file = self.images_generator.get_num_images()
 
-                #store pair of indexes: (idx_file, idx_batch)
+                # store pair of indexes: (idx_file, idx_batch)
                 for index in range(num_samples_file):
                     self.list_pairIndex_samples.append((ifile, index))
-                #endfor
-            #endfor
-        return len(self.list_pairIndex_samples)
+                # endfor
+            # endfor
 
-    def reset(self, shuffle, seed=None):
+        numtot_samples = len(self.list_pairIndexes_samples)
+
         if (shuffle):
             if seed:
                 np.random.seed(seed)
-            randomIndexes = np.random.choice(self.numtot_samples, size=self.numtot_samples, replace=False)
-            self.indexes_total = []
+            randomIndexes = np.random.choice(numtot_samples, size=numtot_samples, replace=False)
+
+            self.list_pairIndexes_samples_old = self.list_pairIndexes_samples
+            self.list_pairIndexes_samples = []
             for index in randomIndexes:
-                self.indexes_total.append(self.list_pairIndex_samples[index])
+                self.list_pairIndexes_samples.append(self.list_pairIndexes_samples_old[index])
             #endfor
-        else:
-            self.indexes_total = self.list_pairIndex_samples
 
     def get_data_samples_batch(self, indexes_batch):
 
         num_samples_batch = len(indexes_batch)
-        out_array_shape   = self.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_x)
+        out_array_shape   = self.get_shape_out_array(self.list_xData_array[0].shape, num_samples_batch)
 
-        out_xData_array = np.ndarray(out_array_shape, dtype=self.xData_array.dtype)
+        out_xData_array = np.ndarray(out_array_shape, dtype=self.list_xData_array[0].dtype)
 
-        for i, (index_file, index_sample_file) in enumerate(indexes_batch):
+        for i, index in enumerate(indexes_batch):
+            (index_file, index_sample_file) = self.list_pairIndexes_samples[index]
+
             self.images_generator.complete_init_data(self.list_xData_array[index_file].shape[0:3])
 
             out_xData_array[i] = self.images_generator.get_image_array(self.list_xData_array[index_file], index_sample_file)
@@ -202,22 +209,22 @@ class BatchDataGenerator_List2Arrays(BatchDataGenerator_List1Array):
 
     def __init__(self, size_image, list_xData_array, list_yData_array, images_generator, numtot_samples=None, size_batch=1, shuffle=SHUFFLEIMAGES, seed=None):
 
-        self.list_yData_array= list_yData_array
-        self.type_yData      = list_yData_array[0].dtype
-        self.num_channels_y  = self.get_num_channels_array(self.list_yData_array[0].shape)
+        self.list_yData_array = list_yData_array
 
         super(BatchDataGenerator_List2Arrays, self).__init__(size_image, list_xData_array, images_generator, numtot_samples, size_batch, shuffle, seed)
 
     def get_data_samples_batch(self, indexes_batch):
 
         num_samples_batch     = len(indexes_batch)
-        out_xData_array_shape = self.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_x)
-        out_yData_array_shape = self.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_y)
+        out_xData_array_shape = self.get_shape_out_array(self.list_xData_array[0].shape, num_samples_batch)
+        out_yData_array_shape = self.get_shape_out_array(self.list_yData_array[0].shape, num_samples_batch)
 
-        out_xData_array = np.ndarray(out_xData_array_shape, dtype=self.xData_array.dtype)
-        out_yData_array = np.ndarray(out_yData_array_shape, dtype=self.yData_array.dtype)
+        out_xData_array = np.ndarray(out_xData_array_shape, dtype=self.list_xData_array[0].dtype)
+        out_yData_array = np.ndarray(out_yData_array_shape, dtype=self.list_yData_array[0].dtype)
 
-        for i, (index_file, index_sample_file) in enumerate(indexes_batch):
+        for i, index in enumerate(indexes_batch):
+            (index_file, index_sample_file) = self.list_pairIndexes_samples[index]
+
             self.images_generator.complete_init_data(self.list_xData_array[index_file].shape[0:3])
 
             out_xData_array[i] = self.images_generator.get_image_array(self.list_xData_array[index_file], index_sample_file)

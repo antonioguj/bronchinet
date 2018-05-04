@@ -110,10 +110,7 @@ class OperationsArraysUseInKeras(object):
             return in_array_shape[-1]
 
     def get_shape_out_array(self, num_images, num_channels=1):
-        if num_channels == 1:
-            return [num_images] + list(self.size_image) + [1]
-        else:
-            return [num_images] + list(self.size_image) + [num_channels]
+        return [num_images] + list(self.size_image) + [num_channels]
 
     def get_array_reshaped(self, in_array, num_channels=None):
         if not num_channels:

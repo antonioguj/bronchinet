@@ -22,9 +22,6 @@ class KerasTrainingBatchDataGenerator(image.Iterator):
         self.size_image       = size_image
         self.list_xData_array = list_xData_array
         self.list_yData_array = list_yData_array
-        self.type_xData       = list_xData_array[0].dtype
-        self.type_yData       = list_yData_array[0].dtype
-
         self.images_generator = images_generator
 
         self.opersArrays = OperationsArraysUseInKeras(size_image, num_classes_out=num_classes_out, size_outnnet=size_outnnet)
@@ -39,7 +36,9 @@ class KerasTrainingBatchDataGenerator(image.Iterator):
 
         self.compute_pairIndexes_samples(shuffle, seed)
 
-        super(KerasTrainingBatchDataGenerator, self).__init__(self.numtot_samples, batch_size, shuffle, seed)
+        numtot_samples = len(self.list_pairIndexes_samples)
+
+        super(KerasTrainingBatchDataGenerator, self).__init__(numtot_samples, batch_size, shuffle, seed)
 
 
     def compute_pairIndexes_samples(self, shuffle, seed=None):
@@ -57,12 +56,12 @@ class KerasTrainingBatchDataGenerator(image.Iterator):
             #endfor
         #endfor
 
-        self.numtot_samples = len(self.list_pairIndexes_samples)
+        numtot_samples = len(self.list_pairIndexes_samples)
 
         if (shuffle):
             if seed:
                 np.random.seed(seed)
-            randomIndexes = np.random.choice(self.numtot_samples, size=self.numtot_samples, replace=False)
+            randomIndexes = np.random.choice(numtot_samples, size=numtot_samples, replace=False)
 
             self.list_pairIndexes_samples_old = self.list_pairIndexes_samples
             self.list_pairIndexes_samples = []
@@ -77,23 +76,23 @@ class KerasTrainingBatchDataGenerator(image.Iterator):
         out_xData_array_shape = self.opersArrays.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_in)
         out_yData_array_shape = self.opersArrays.get_shape_out_array(num_samples_batch, num_channels=self.num_classes_out)
 
-        out_xData_array = np.ndarray(out_xData_array_shape, dtype=self.type_xData)
-        out_yData_array = np.ndarray(out_yData_array_shape, dtype=self.type_yData)
+        out_xData_array = np.ndarray(out_xData_array_shape, dtype=self.list_xData_array[0].dtype)
+        out_yData_array = np.ndarray(out_yData_array_shape, dtype=self.list_yData_array[0].dtype)
 
         for i, index in enumerate(indexes_batch):
             (index_file, index_sample_file) = self.list_pairIndexes_samples[index]
 
-            xData_elem = self.images_generator.get_image_array(self.list_xData_array[index_file], index_sample_file)
-            yData_elem = self.images_generator.get_image_array(self.list_yData_array[index_file], index_sample_file)
+            self.images_generator.complete_init_data(self.list_xData_array[index_file].shape[0:3])
 
-            #out_xData_array[i] = self.opersArrays.get_array_reshaped_Keras(self.opersArrays.get_array_reshaped(xData_elem))
-            out_xData_array[i] = self.opersArrays.get_array_reshaped_Keras(xData_elem)
+            xData_elem = self.images_generator.get_image_array(self.list_xData_array[index_file], index_sample_file, seed=index)
+            yData_elem = self.images_generator.get_image_array(self.list_yData_array[index_file], index_sample_file, seed=index)
+
+            out_xData_array[i] = self.opersArrays.get_array_reshaped_Keras(self.opersArrays.get_array_reshaped(xData_elem))
 
             if self.num_classes_out > 1:
                 out_yData_array[i] = self.opersArrays.get_array_reshaped_Keras(self.opersArrays.get_array_categorical_masks(self.opersArrays.get_array_cropImages_outNnet(yData_elem)))
             else:
-                #out_yData_array[i] = self.opersArrays.get_array_reshaped_Keras(self.opersArrays.get_array_reshaped(self.opersArrays.get_array_cropImages_outNnet(yData_elem)))
-                out_yData_array[i] = self.opersArrays.get_array_reshaped_Keras(self.opersArrays.get_array_cropImages_outNnet(yData_elem))
+                out_yData_array[i] = self.opersArrays.get_array_reshaped_Keras(self.opersArrays.get_array_reshaped(self.opersArrays.get_array_cropImages_outNnet(yData_elem)))
         #endfor
 
         return (out_xData_array, out_yData_array)

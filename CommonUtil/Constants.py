@@ -19,7 +19,7 @@ BASEDIR = '/home/antonio/testSegmentation/Tests_LUVAR/'
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
-IMAGES_DEPTHZ = 36
+IMAGES_DEPTHZ = 76
 IMAGES_HEIGHT = 352
 #IMAGES_HEIGHT = 256
 IMAGES_WIDTH  = 240
@@ -39,9 +39,9 @@ FORMATINOUTDATA = 'numpy'
 
 
 # ******************** DATA DISTRIBUTION ********************
-PROP_TRAINING   = 0.50
+PROP_TRAINING   = 0.75
 PROP_VALIDATION = 0.25
-PROP_TESTING    = 0.25
+PROP_TESTING    = 0.0
 DISTRIBUTE_RANDOM = False
 # ******************** DATA DISTRIBUTION ********************
 
@@ -76,7 +76,7 @@ SAVEVISUALPROCESSDATA = False
 # ******************** TRAINING PARAMETERS ********************
 NUM_EPOCHS = 1000
 BATCH_SIZE = 1
-IMODEL     = 'Unet3D_Shallow_Tailored'
+IMODEL     = 'Unet3D_Tailored'
 IOPTIMIZER = 'Adam'
 ILOSSFUN   = 'WeightedBinaryCrossEntropy_Masked'
 #ILOSSFUN   = 'CategoricalCrossEntropy'
