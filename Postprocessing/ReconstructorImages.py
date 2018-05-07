@@ -16,10 +16,10 @@ import numpy as np
 
 class ReconstructorImages(object):
 
-    def __init__(self, size_total_image, size_image_batch, num_images_total, num_classes_out=1):
+    def __init__(self, size_image_batch, size_total_image, num_images_total, num_classes_out=1):
 
-        self.size_total_image = size_total_image
         self.size_image_batch = size_image_batch
+        self.size_total_image = size_total_image
         self.num_images_total = num_images_total
         self.num_classes_out  = num_classes_out
 
@@ -37,20 +37,24 @@ class ReconstructorImages(object):
         else:
             return self.get_reconstructed_batch_multiclass(array_batch)
 
+    def set_calc_reconstructed_array(self, full_array):
+        self.calc_reconstructed_array = full_array
+
     def get_reconstructed_batch_multiclass(self, batch_array):
         pass
     
-    def add_reconstructed_batch_to_full_array(self, index, full_array, batch_array):
+    def add_reconstructed_batch_array(self, index, full_array, batch_array):
         pass
-
 
     def compute_factor_overlap_batches_per_voxel(self):
         # Compute how many times a batch image overlaps in same voxel
 
         num_overlap_batches_voxels = np.zeros(self.size_total_image, dtype=np.int8)
 
+        self.set_calc_reconstructed_array(num_overlap_batches_voxels)
+
         for index in range(self.num_images_total):
-            self.add_reconstructed_batch_to_full_array(index, num_overlap_batches_voxels, np.ones(self.size_image_batch, dtype=np.int8))
+            self.add_reconstructed_batch_array(index, np.ones(self.size_image_batch, dtype=np.int8))
         #endfor
 
         # get position where there's no overlap
@@ -71,8 +75,10 @@ class ReconstructorImages(object):
 
         predictMasks_array = np.zeros(self.size_total_image, dtype=FORMATPREDICTDATA)
 
+        self.set_calc_reconstructed_array(predictMasks_array)
+
         for index in range(self.num_images_total):
-            self.add_reconstructed_batch_to_full_array(index, predictMasks_array, self.get_reconstructed_batch_array(predict_data[index]))
+            self.add_reconstructed_batch_array(index, self.get_reconstructed_batch_array(predict_data[index]))
         #endfor
 
         # multiply by factor to account for multiple overlaps of batch images
@@ -81,17 +87,20 @@ class ReconstructorImages(object):
 
 class ReconstructorImages2D(ReconstructorImages):
 
-    def __init__(self, size_total_image, size_image_batch, prop_overlap=(0.0, 0.0), num_classes_out=1):
+    def __init__(self, size_image_batch, size_total_image, prop_overlap=(0.0, 0.0), num_classes_out=1):
 
-        self.batchReconstructor = SlidingWindowImages2D(size_total_image, size_image_batch, prop_overlap)
+        self.images_reconstructor = SlidingWindowImages2D(size_image_batch, prop_overlap, size_total=size_total_image)
 
-        super(ReconstructorImages2D, self).__init__(size_total_image, size_image_batch, self.batchReconstructor.get_num_images(), num_classes_out=num_classes_out)
+        num_images_total = self.images_reconstructor.get_num_images()
 
-    def add_reconstructed_batch_to_full_array(self, index, full_array, batch_array):
+        super(ReconstructorImages2D, self).__init__(size_image_batch, size_total_image, num_images_total, num_classes_out=num_classes_out)
 
-        (x_left, x_right, y_down, y_up) = self.batchReconstructor.get_limits_image(index)
+    def add_reconstructed_batch_array(self, index, batch_array):
 
-        full_array[..., x_left:x_right, y_down:y_up] += batch_array
+        (x_left, x_right, y_down, y_up) = self.images_reconstructor.get_limits_image(index)
+
+        #full_array[x_left:x_right, y_down:y_up, ...] += batch_array
+        self.calc_reconstructed_array[x_left:x_right, y_down:y_up] += batch_array
 
     def get_reconstructed_batch_multiclass(self, batch_array):
 
@@ -108,17 +117,20 @@ class ReconstructorImages2D(ReconstructorImages):
 
 class ReconstructorImages3D(ReconstructorImages):
 
-    def __init__(self, size_total_image, size_image_batch, prop_overlap=(0.0, 0.0, 0.0), num_classes_out=1):
+    def __init__(self, size_image_batch, size_total_image, prop_overlap=(0.0, 0.0, 0.0), num_classes_out=1):
 
-        self.batchReconstructor = SlidingWindowImages3D(size_total_image, size_image_batch, prop_overlap)
+        self.images_reconstructor = SlidingWindowImages3D(size_image_batch, prop_overlap, size_total=size_total_image)
 
-        super(ReconstructorImages3D, self).__init__(size_total_image, size_image_batch, self.batchReconstructor.get_num_images(), num_classes_out=num_classes_out)
+        num_images_total = self.images_reconstructor.get_num_images()
 
-    def add_reconstructed_batch_to_full_array(self, index, full_array, batch_array):
+        super(ReconstructorImages3D, self).__init__(size_image_batch, size_total_image, num_images_total, num_classes_out=num_classes_out)
 
-        (z_back, z_front, x_left, x_right, y_down, y_up) = self.batchReconstructor.get_limits_image(index)
+    def add_reconstructed_batch_array(self, index, batch_array):
 
-        full_array[..., z_back:z_front, x_left:x_right, y_down:y_up] += batch_array
+        (z_back, z_front, x_left, x_right, y_down, y_up) = self.images_reconstructor.get_limits_image(index)
+
+        #full_array[z_back:z_front, x_left:x_right, y_down:y_up, ...] += batch_array
+        self.calc_reconstructed_array[z_back:z_front, x_left:x_right, y_down:y_up] += batch_array
 
     def get_reconstructed_batch_multiclass(self, batch_array):
 
