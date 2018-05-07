@@ -17,13 +17,36 @@ np.random.seed(2017)
 
 class TransformationImages(object):
 
-    diff_trans_each_batch = True
+    diff_trans_each_batch  = True
+    is_update_fixed_seed_0 = True
 
     def __init__(self, size_image):
-        self.size_image = size_image
+        self.size_image   = size_image
+        self.fixed_seed_0 = np.random.randint(2017)
 
     def complete_init_data(self, size_total):
-        pass
+        if self.is_update_fixed_seed_0:
+            self.update_fixed_seed_0()
+
+    def update_fixed_seed_0(self, new_fixed_seed_0=None):
+        if new_fixed_seed_0:
+            self.fixed_seed_0 = new_fixed_seed_0
+        else:
+            self.fixed_seed_0 = np.random.randint(2017)
+
+    def get_mod_seed(self, seed):
+        # update "seed" so that transformations are not fixed by the index of image_batch in a batch generator
+        # "fixed_seed_0" should be changed after every loop over batches indexes
+        if seed:
+            return seed + self.fixed_seed_0
+        else:
+            return seed
+
+    def get_seed_index_image(self, index, seed_0):
+        if seed_0 and self.diff_trans_each_batch:
+            return seed_0 + index
+        else:
+            return seed_0
 
     def get_num_images(self):
         return 1
@@ -33,24 +56,17 @@ class TransformationImages(object):
 
     def get_num_channels_array(self, in_array_shape):
         if self.is_images_array_without_channels(in_array_shape):
-            return 1
+            return None
         else:
             return in_array_shape[-1]
 
     def get_shape_out_array(self, in_array_shape):
-        num_images = in_array_shape[0]
-
-        if self.is_images_array_without_channels(in_array_shape[1:]):
-            return [num_images] + list(self.size_image)
-        else:
-            num_channels = self.get_num_channels_array(in_array_shape[1:])
+        num_images   = in_array_shape[0]
+        num_channels = self.get_num_channels_array(in_array_shape[1:0])
+        if num_channels:
             return [num_images] + list(self.size_image) + [num_channels]
-
-    def get_seed_index_image(self, seed_0, index):
-        if self.diff_trans_each_batch:
-            return (seed_0 if seed_0 else 0) + index
         else:
-            return seed_0
+            return [num_images] + list(self.size_image)
 
     def get_transformed_image(self, images_array, seed=None):
         pass
@@ -58,18 +74,18 @@ class TransformationImages(object):
     def get_image_array(self, images_array, seed=None):
 
         if self.is_images_array_without_channels(images_array.shape):
-            return np.squeeze(self.get_transformed_image(np.expand_dims(images_array, axis=-1), seed=seed), axis=-1)
+            return np.squeeze(self.get_transformed_image(np.expand_dims(images_array, axis=-1), seed=self.get_mod_seed(seed)), axis=-1)
         else:
-            return self.get_transformed_image(images_array, seed=seed)
+            return self.get_transformed_image(images_array, seed=self.get_mod_seed(seed))
 
     def compute_images_array_all(self, images_array, seed_0=None):
 
-        out_images_array = np.ndarray(self.get_shape_out_array(images_array.shape), dtype=images_array.dtype)
+        out_array_shape  = self.get_shape_out_array(images_array.shape)
+        out_images_array = np.ndarray(out_array_shape, dtype=images_array.dtype)
 
         num_images = images_array.shape[0]
         for index in range(num_images):
-            seed_index = self.get_seed_index_image(seed_0, index)
-            out_images_array[index] = self.get_image_array(images_array[index], seed=seed_index)
+            out_images_array[index] = self.get_image_array(images_array[index], seed=self.get_seed_index_image(index, seed_0))
         #endfor
 
         return out_images_array
@@ -133,7 +149,7 @@ class TransformationImages2D(TransformationImages):
 
         super(TransformationImages2D, self).__init__(size_image)
 
-    def get_transformed_image(self, images_array, seed):
+    def get_transformed_image(self, images_array, seed=None):
 
         return self.images_data_generator.standardize(self.images_data_generator.random_transform(images_array, seed=seed))
 
@@ -228,7 +244,7 @@ class TransformationImages3D(TransformationImages):
 
         super(TransformationImages3D, self).__init__(size_image)
 
-    def get_transformed_image(self, images_array, seed):
+    def get_transformed_image(self, images_array, seed=None):
 
         return self.standardize(self.random_transform(images_array, seed=seed))
 

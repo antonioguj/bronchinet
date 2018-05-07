@@ -40,18 +40,17 @@ class SlidingWindowImages(object):
 
     def get_num_channels_array(self, in_array_shape):
         if self.is_images_array_without_channels(in_array_shape):
-            return 1
+            return None
         else:
             return in_array_shape[-1]
 
     def get_shape_out_array(self, in_array_shape):
-        num_images = self.get_num_images()
-
-        if self.is_images_array_without_channels(in_array_shape):
-            return [num_images] + list(self.size_image)
-        else:
-            num_channels = self.get_num_channels_array(in_array_shape)
+        num_images   = self.get_num_images()
+        num_channels = self.get_num_channels_array(in_array_shape)
+        if num_channels:
             return [num_images] + list(self.size_image) + [num_channels]
+        else:
+            return [num_images] + list(self.size_image)
 
     def get_cropped_image(self, images_array, index):
         pass
@@ -62,7 +61,8 @@ class SlidingWindowImages(object):
 
     def compute_images_array_all(self, images_array):
 
-        out_images_array = np.ndarray(self.get_shape_out_array(images_array.shape), dtype=images_array.dtype)
+        out_array_shape  = self.get_shape_out_array(images_array.shape)
+        out_images_array = np.ndarray(out_array_shape, dtype=images_array.dtype)
 
         for index in range(self.num_images):
             out_images_array[index] = self.get_image_array(images_array, index)
