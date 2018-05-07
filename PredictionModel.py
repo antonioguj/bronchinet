@@ -68,7 +68,7 @@ def main(args):
 
         # Loading Data
         if (args.slidingWindowImages or args.transformationImages):
-            test_images_generator = BaseImageGenerator.getImagesGenerator3D(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
+            test_images_generator = BaseImageGenerator.getBatchImagesGenerator3D(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
 
             (test_xData, test_yData) = LoadDataManagerInBatches_DataGenerator(IMAGES_DIMS_Z_X_Y,
                                                                               test_images_generator,
@@ -90,13 +90,13 @@ def main(args):
         predictMasks_array_shape = FileReader.getImageSize(masksFile)
 
         if (args.slidingWindowImages):
-            reconstructorImages = ReconstructorImages3D(predictMasks_array_shape,
-                                                        IMAGES_DIMS_Z_X_Y,
+            reconstructorImages = ReconstructorImages3D(IMAGES_DIMS_Z_X_Y,
+                                                        predictMasks_array_shape,
                                                         prop_overlap=args.prop_overlap_Z_X_Y,
                                                         num_classes_out=num_classes_out)
         else:
-            reconstructorImages = ReconstructorImages3D(predictMasks_array_shape,
-                                                        IMAGES_DIMS_Z_X_Y,
+            reconstructorImages = ReconstructorImages3D(IMAGES_DIMS_Z_X_Y,
+                                                        predictMasks_array_shape,
                                                         num_classes_out=num_classes_out)
 
         predictMasks_array = reconstructorImages.compute(predict_data)
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     parser.add_argument('--predictAccuracyMetrics', default=PREDICTACCURACYMETRICS)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
-    parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
+    parser.add_argument('--transformationImages', type=str2bool, default=False)
     parser.add_argument('--saveVisualPredictData', type=str2bool, default=SAVEVISUALPREDICTDATA)
     args = parser.parse_args()
 

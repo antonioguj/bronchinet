@@ -106,7 +106,7 @@ def main(args):
 
         (train_xData, train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
 
-        train_images_generator = BaseImageGenerator.getImagesGenerator3D(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
+        train_images_generator = BaseImageGenerator.getBatchImagesGenerator3D(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
 
         train_batch_data_generator = KerasTrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
                                                                      train_xData,
@@ -129,7 +129,7 @@ def main(args):
 
             (valid_xData, valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles, listValidMasksFiles)
 
-            valid_images_generator = BaseImageGenerator.getImagesGenerator3D(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
+            valid_images_generator = BaseImageGenerator.getBatchImagesGenerator3D(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
 
             valid_batch_data_generator = KerasTrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
                                                                          valid_xData,
