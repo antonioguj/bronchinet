@@ -39,9 +39,9 @@ FORMATINOUTDATA = 'numpy'
 
 
 # ******************** DATA DISTRIBUTION ********************
-PROP_TRAINING   = 0.75
+PROP_TRAINING   = 0.50
 PROP_VALIDATION = 0.25
-PROP_TESTING    = 0.0
+PROP_TESTING    = 0.25
 DISTRIBUTE_RANDOM = False
 # ******************** DATA DISTRIBUTION ********************
 

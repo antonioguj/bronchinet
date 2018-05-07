@@ -8,11 +8,10 @@
 # Last update: 09/02/2018
 ########################################################################################
 
+from CommonUtil.ArrayShapeManager import *
 from CommonUtil.BatchDataGenerator import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
-from keras.backend import image_data_format as K_image_data_format
-from keras.utils import to_categorical as K_to_categorical
 
 
 class LoadDataManager(object):
@@ -49,112 +48,24 @@ class LoadDataManager(object):
                 yData[randomIndexes[:]])
 
     @staticmethod
-    def get_array_categorical_masks_cls(self, yData, num_classes_out):
-        return K_to_categorical(yData, num_classes=num_classes_out)
+    def loadData_1File(imagesFile, masksFile):
 
-
-    @classmethod
-    def loadData_1File(cls, imagesFile, masksFile, isCategoricalOut=False):
-
-        if isCategoricalOut:
-            return (FileReader.getImageArray(imagesFile).astype(dtype=FORMATIMAGEDATA),
-                    cls.get_array_categorical_masks_cls(FileReader.getImageArray(masksFile).astype(dtype=FORMATMASKDATA)))
-        else:
-            return (FileReader.getImageArray(imagesFile).astype(dtype=FORMATIMAGEDATA),
-                    FileReader.getImageArray(masksFile ).astype(dtype=FORMATMASKDATA ))
-
-    @classmethod
-    def loadData_ListFiles(cls, listImagesFiles, listMasksFiles, isCategoricalOut=False):
-
-        if isCategoricalOut:
-            return ([FileReader.getImageArray(file).astype(dtype=FORMATIMAGEDATA) for file in listImagesFiles],
-                    [cls.get_array_categorical_masks_cls(FileReader.getImageArray(file).astype(dtype=FORMATMASKDATA)) for file in listMasksFiles])
-        else:
-            return ([FileReader.getImageArray(file).astype(dtype=FORMATIMAGEDATA) for file in listImagesFiles],
-                    [FileReader.getImageArray(file).astype(dtype=FORMATMASKDATA)  for file in listMasksFiles])
-
-
-class OperationsArraysUseInKeras(object):
-
-    def __init__(self, size_image, num_classes_out=1, size_outnnet=None):
-        self.size_image      = size_image
-        self.num_classes_out = num_classes_out
-        if size_outnnet and (size_outnnet != size_image):
-            self.size_outnnet = size_outnnet
-        else:
-            self.size_outnnet = size_image
+        return (FileReader.getImageArray(imagesFile).astype(dtype=FORMATIMAGEDATA),
+                FileReader.getImageArray(masksFile ).astype(dtype=FORMATMASKDATA))
 
     @staticmethod
-    def get_shape_Keras(num_images, size_image, num_channels):
-        if K_image_data_format() == 'channels_first':
-            return [num_images, num_channels] + list(size_image)
-        elif K_image_data_format() == 'channels_last':
-            return [num_images] + list(size_image) + [num_channels]
-        else:
-            return 0
+    def loadData_ListFiles(listImagesFiles, listMasksFiles):
 
-    @staticmethod
-    def get_array_reshaped_Keras(array):
-        if K_image_data_format() == 'channels_first':
-            # need to roll last dimensions, channels, to second dim:
-            return np.rollaxis(array, -1, 1)
-        elif K_image_data_format() == 'channels_last':
-            return array
-        else:
-            return 0
-
-    def get_num_channels_array(self, in_array_shape):
-        if len(in_array_shape) == len(self.size_image):
-            return 1
-        else:
-            return in_array_shape[-1]
-
-    def get_shape_out_array(self, num_images, num_channels=1):
-        return [num_images] + list(self.size_image) + [num_channels]
-
-    def get_array_reshaped(self, in_array, num_channels=None):
-        if not num_channels:
-            num_channels = self.get_num_channels_array(in_array.shape)
-        if num_channels == 1:
-            return np.expand_dims(in_array, axis=-1)
-        else:
-            return in_array
-
-    def get_array_categorical_masks(self, yData):
-        return K_to_categorical(yData, num_classes=self.num_classes_out)
-
-    @staticmethod
-    def get_limits_cropImage(size_image, size_outnnet):
-
-        if (size_image==size_outnnet):
-            return size_image
-        else:
-            return tuple([(s_i- s_o)/2, (s_i + s_o)/2] for (s_i, s_o) in zip(size_image, size_outnnet))
-
-    def get_array_cropImages_outNnet(self, yData):
-
-        if (self.size_image==self.size_outnnet):
-            return yData
-        else:
-            if len(self.size_image)==2:
-                (x_left, x_right, y_down, y_up) = self.get_limits_cropImage(self.size_image, self.size_outnnet)
-                return yData[..., x_left:x_right, y_down:y_up]
-            elif len(self.size_image)==3:
-                (z_back, z_front, x_left, x_right, y_down, y_up) = self.get_limits_cropImage(self.size_image, self.size_outnnet)
-                return yData[..., z_back:z_front, x_left:x_right, y_down:y_up]
+        return ([FileReader.getImageArray(file).astype(dtype=FORMATIMAGEDATA) for file in listImagesFiles],
+                [FileReader.getImageArray(file).astype(dtype=FORMATMASKDATA)  for file in listMasksFiles])
 
 
-class LoadDataManagerInBatches(LoadDataManager, OperationsArraysUseInKeras):
+class LoadDataManagerInBatches(LoadDataManager):
 
     def __init__(self, size_image, num_classes_out=1, size_outnnet=None):
 
-        super(LoadDataManagerInBatches, self).__init__(size_image, num_classes_out, size_outnnet)
-
-    def get_num_channels_array(self, in_array_shape):
-        if len(in_array_shape) == len(self.size_image) + 1:
-            return 1
-        else:
-            return in_array_shape[-1]
+        self.num_classes_out   = num_classes_out
+        self.arrayShapeManager = ArrayShapeManagerInBatches(size_image, is_shaped_Keras=True, num_classes_out=num_classes_out, size_outnnet=size_outnnet)
 
 
     def loadData_1File(self, imagesFile, masksFile, max_num_images=10000, shuffle_images=SHUFFLEIMAGES):
@@ -164,12 +75,8 @@ class LoadDataManagerInBatches(LoadDataManager, OperationsArraysUseInKeras):
 
         num_images = min(xData.shape[0], max_num_images)
 
-        xData = self.get_array_reshaped_Keras(self.get_array_reshaped(xData[0:num_images]))
-
-        if self.num_classes_out > 1:
-            yData = self.get_array_reshaped_Keras(self.get_array_categorical_masks(self.get_array_cropImages_outNnet(yData[0:num_images])))
-        else:
-            yData = self.get_array_reshaped_Keras(self.get_array_reshaped(self.get_array_cropImages_outNnet(yData[0:num_images])))
+        xData = self.arrayShapeManager.get_xData_array_reshaped(xData[0:num_images])
+        yData = self.arrayShapeManager.get_yData_array_reshaped(yData[0:num_images])
 
         if (shuffle_images):
             return self.shuffle_images(xData, yData)
@@ -195,8 +102,9 @@ class LoadDataManagerInBatches(LoadDataManager, OperationsArraysUseInKeras):
                 break
         #endfor
 
-        xData_shape = self.get_shape_out_array(num_images, num_channels=self.get_num_channels_array(xData_part_shape))
-        yData_shape = self.get_shape_out_array(num_images, num_channels=self.num_classes_out)
+        xData_shape = self.arrayShapeManager.get_shape_out_array(num_images, self.arrayShapeManager.get_num_channels_array(xData_part_shape))
+        yData_shape = self.arrayShapeManager.get_shape_out_array(num_images, self.num_classes_out)
+
         xData = np.ndarray(xData_shape, dtype=FORMATIMAGEDATA)
         yData = np.ndarray(yData_shape, dtype=FORMATMASKDATA)
 
@@ -208,12 +116,8 @@ class LoadDataManagerInBatches(LoadDataManager, OperationsArraysUseInKeras):
 
             num_images_part = min(xData_part.shape[0], xData.shape[0] - count_images)
 
-            xData[count_images:count_images + num_images_part] = self.get_array_reshaped_Keras(self.get_array_reshaped(xData_part[0:num_images_part]))
-
-            if self.num_classes_out > 1:
-                yData[count_images:count_images + num_images_part] = self.get_array_reshaped_Keras(self.get_array_categorical_masks(self.get_array_cropImages_outNnet(yData_part[0:num_images_part])))
-            else:
-                yData[count_images:count_images + num_images_part] = self.get_array_reshaped_Keras(self.get_array_reshaped(self.get_array_cropImages_outNnet(yData_part[0:num_images_part])))
+            xData[count_images:count_images + num_images_part] = self.arrayShapeManager.get_xData_array_reshaped(xData_part[0:num_images_part])
+            yData[count_images:count_images + num_images_part] = self.arrayShapeManager.get_yData_array_reshaped(yData_part[0:num_images_part])
 
             count_images += num_images_part
         # endfor
@@ -224,13 +128,15 @@ class LoadDataManagerInBatches(LoadDataManager, OperationsArraysUseInKeras):
             return (xData, yData)
 
 
-class LoadDataManagerInBatches_DataGenerator(LoadDataManager, OperationsArraysUseInKeras):
+class LoadDataManagerInBatches_DataGenerator(LoadDataManager):
 
     def __init__(self, size_image, images_generator, num_classes_out=1, size_outnnet=None):
 
+        self.size_image       = size_image
         self.images_generator = images_generator
 
-        super(LoadDataManagerInBatches_DataGenerator, self).__init__(size_image, num_classes_out, size_outnnet)
+        self.num_classes_out   = num_classes_out
+        self.arrayShapeManager = ArrayShapeManager(size_image, is_shaped_Keras=True, num_classes_out=num_classes_out, size_outnnet=size_outnnet)
 
 
     def loadData_1File(self, imagesFile, masksFile, max_num_images=10000, shuffle_images=SHUFFLEIMAGES):
@@ -242,8 +148,9 @@ class LoadDataManagerInBatches_DataGenerator(LoadDataManager, OperationsArraysUs
 
         num_images = min(len(batch_data_generator), max_num_images)
 
-        xData_shape = self.get_shape_out_array(num_images, num_channels=self.get_num_channels_array(xData.shape))
-        yData_shape = self.get_shape_out_array(num_images, num_channels=self.num_classes_out)
+        xData_shape = self.arrayShapeManager.get_shape_out_array(num_images, self.arrayShapeManager.get_num_channels_array(xData.shape))
+        yData_shape = self.arrayShapeManager.get_shape_out_array(num_images, self.num_classes_out)
+
         xData = np.ndarray(xData_shape, dtype=FORMATIMAGEDATA)
         yData = np.ndarray(yData_shape, dtype=FORMATMASKDATA)
 
@@ -251,12 +158,8 @@ class LoadDataManagerInBatches_DataGenerator(LoadDataManager, OperationsArraysUs
             # Retrieve (xData, yData) directly from imagesDataGenerator
             (xData_batch, yData_batch) = next(batch_data_generator)
 
-            xData[i] = self.get_array_reshaped_Keras(self.get_array_reshaped(xData_batch[0]))
-
-            if self.num_classes_out > 1:
-                yData[i] = self.get_array_reshaped_Keras(self.get_array_categorical_masks(self.get_array_cropImages_outNnet(yData_batch[0])))
-            else:
-                yData[i] = self.get_array_reshaped_Keras(self.get_array_reshaped(self.get_array_cropImages_outNnet(yData_batch[0])))
+            xData[i] = self.arrayShapeManager.get_xData_array_reshaped(xData_batch[0])
+            yData[i] = self.arrayShapeManager.get_yData_array_reshaped(yData_batch[0])
         #endfor
 
         return (xData, yData)
@@ -282,8 +185,9 @@ class LoadDataManagerInBatches_DataGenerator(LoadDataManager, OperationsArraysUs
                 listMasksFiles  = [listMasksFiles [j] for j in range(i+1)]
                 break
 
-        xData_shape = self.get_shape_out_array(num_images, num_channels=self.get_num_channels_array(xData_part.shape))
-        yData_shape = self.get_shape_out_array(num_images, num_channels=self.num_classes_out)
+        xData_shape = self.arrayShapeManager.get_shape_out_array(num_images, self.arrayShapeManager.get_num_channels_array(xData_part.shape))
+        yData_shape = self.arrayShapeManager.get_shape_out_array(num_images, self.num_classes_out)
+
         xData = np.ndarray(xData_shape, dtype=FORMATIMAGEDATA)
         yData = np.ndarray(yData_shape, dtype=FORMATMASKDATA)
 
@@ -301,12 +205,8 @@ class LoadDataManagerInBatches_DataGenerator(LoadDataManager, OperationsArraysUs
                 # Retrieve (xData, yData) directly from imagesDataGenerator
                 (xData_batch, yData_batch) = next(batch_data_generator)
 
-                xData[count_images] = self.get_array_reshaped_Keras(self.get_array_reshaped(xData_batch[0]))
-
-                if self.num_classes_out > 1:
-                    yData[count_images] = self.get_array_reshaped_Keras(self.get_array_categorical_masks(self.get_array_cropImages_outNnet(yData_batch[0])))
-                else:
-                    yData[count_images] = self.get_array_reshaped_Keras(self.get_array_reshaped(self.get_array_cropImages_outNnet(yData_batch[0])))
+                xData[count_images] = self.arrayShapeManager.get_xData_array_reshaped(xData_batch[0])
+                yData[count_images] = self.arrayShapeManager.get_yData_array_reshaped(yData_batch[0])
 
                 count_images += 1
             #endfor
