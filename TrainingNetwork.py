@@ -10,6 +10,7 @@
 
 from CommonUtil.Constants import *
 from CommonUtil.ErrorMessages import *
+from CommonUtil.ImageGeneratorManager import *
 from CommonUtil.KerasBatchDataGenerator import *
 from CommonUtil.LoadDataManager import *
 from CommonUtil.WorkDirsManager import *
@@ -17,7 +18,6 @@ from Networks.Callbacks import *
 from Networks.Metrics import *
 from Networks.Networks import *
 from Networks.Optimizers import *
-from Preprocessing.BaseImageGenerator import *
 from keras import callbacks as Kcallbacks
 import argparse
 
@@ -58,8 +58,9 @@ def main(args):
         initial_epoch = args.epoch_restart
 
         modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.restart_modelFile))
-        custom_objects = {'compute_loss': DICTAVAILLOSSFUNS(args.lossfun),
-                          'compute': DICTAVAILMETRICS(args.metrics)}
+
+        train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun)] + [DICTAVAILMETRICS(imetrics, set_fun_name=True) for imetrics in LISTMETRICS]
+        custom_objects = dict(map(lambda fun: (fun.__name__, fun), train_model_funs))
 
         model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)
     else:
@@ -75,12 +76,12 @@ def main(args):
         # Compile model
         model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(args.optimizer, args.learn_rate),
                       loss     = DICTAVAILLOSSFUNS(args.lossfun),
-                      metrics  = [DICTAVAILMETRICS(args.metrics)])
+                      metrics  =[DICTAVAILMETRICS(imetrics, set_fun_name=True) for imetrics in LISTMETRICS])
     model.summary()
 
     # Callbacks:
     callbacks_list = []
-    callbacks_list.append(RecordLossHistory(ModelsPath))
+    callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICS(imetrics, set_fun_name=True) for imetrics in LISTMETRICS]))
 
     filename = ModelsPath + '/model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5'
     callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
@@ -106,7 +107,7 @@ def main(args):
 
         (train_xData, train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
 
-        train_images_generator = BaseImageGenerator.getBatchImagesGenerator3D(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
+        train_images_generator = getImagesDataGenerator3D(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
 
         train_batch_data_generator = KerasTrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
                                                                      train_xData,
@@ -129,7 +130,7 @@ def main(args):
 
             (valid_xData, valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles, listValidMasksFiles)
 
-            valid_images_generator = BaseImageGenerator.getBatchImagesGenerator3D(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
+            valid_images_generator = getImagesDataGenerator3D(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages)
 
             valid_batch_data_generator = KerasTrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
                                                                          valid_xData,
@@ -190,7 +191,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', default=IMODEL)
     parser.add_argument('--optimizer', default=IOPTIMIZER)
     parser.add_argument('--lossfun', default=ILOSSFUN)
-    parser.add_argument('--metrics', default=IMETRICS)
+    parser.add_argument('--metrics', default=LISTMETRICS)
     parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
