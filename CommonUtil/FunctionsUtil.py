@@ -111,6 +111,9 @@ def readDictionary_csv(filename):
             reader = csv.reader(fin)
             return dict(reader)
 
+def flattenOutListOfLists(list):
+    return reduce(lambda el1, el2: el1 + el2, list)
+
 def isOddIntegerVal(val):
     return val % 2 == 1
 def isEvenIntegerVal(val):
@@ -192,7 +195,11 @@ def getFileExtension(formatoutfile):
         return '.hdf5'
 
 def getSavedModelFileName(typeSavedModel):
-    return 'model_' + typeSavedModel + '.hdf5'
+    if 'model_' not in typeSavedModel:
+        typeSavedModel = 'model_' + typeSavedModel
+    if '.hdf5' not in typeSavedModel:
+        typeSavedModel = typeSavedModel + '.hdf5'
+    return typeSavedModel
 
 def getIndexOrigImagesFile(imagesFile, beginString='images'):
     pattern = beginString + '-[0-9]*'

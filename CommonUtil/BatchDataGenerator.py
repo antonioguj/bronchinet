@@ -64,9 +64,9 @@ class BatchDataGenerator_1Array(BatchDataGenerator):
         self.xData_array = xData_array
         self.type_xData  = xData_array.dtype
 
-        self.arrayShapeManager = ArrayShapeManager(size_image, is_shaped_Keras=False)
+        self.array_shape_manager = ArrayShapeManager(size_image, is_shaped_Keras=False)
 
-        self.num_channels_x = self.arrayShapeManager.get_num_channels_array(xData_array.shape)
+        self.num_channels_x = self.array_shape_manager.get_num_channels_array(xData_array.shape)
 
         self.images_generator = images_generator
         self.images_generator.complete_init_data(xData_array.shape[0:3])
@@ -81,7 +81,7 @@ class BatchDataGenerator_1Array(BatchDataGenerator):
 
         num_samples_batch = len(indexes_batch)
 
-        out_array_shape = self.arrayShapeManager.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_x)
+        out_array_shape = self.array_shape_manager.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_x)
         out_xData_array = np.ndarray(out_array_shape, dtype=self.type_xData)
 
         for i, index in enumerate(indexes_batch):
@@ -104,15 +104,15 @@ class BatchDataGenerator_2Arrays(BatchDataGenerator_1Array):
 
         super(BatchDataGenerator_2Arrays, self).__init__(size_image, xData_array, images_generator, numtot_samples, size_batch, shuffle, seed)
 
-        self.num_channels_y = self.arrayShapeManager.get_num_channels_array(yData_array.shape)
+        self.num_channels_y = self.array_shape_manager.get_num_channels_array(yData_array.shape)
 
 
     def get_data_samples_batch(self, indexes_batch):
 
         num_samples_batch = len(indexes_batch)
 
-        out_xData_array_shape = self.arrayShapeManager.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_x)
-        out_yData_array_shape = self.arrayShapeManager.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_y)
+        out_xData_array_shape = self.array_shape_manager.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_x)
+        out_yData_array_shape = self.array_shape_manager.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_y)
 
         out_xData_array = np.ndarray(out_xData_array_shape, dtype=self.type_xData)
         out_yData_array = np.ndarray(out_yData_array_shape, dtype=self.type_yData)
@@ -132,9 +132,9 @@ class BatchDataGenerator_List1Array(BatchDataGenerator):
         self.list_xData_array = list_xData_array
         self.type_xData       = list_xData_array[0].dtype
 
-        self.arrayShapeManager = ArrayShapeManager(size_image, is_shaped_Keras=False)
+        self.array_shape_manager = ArrayShapeManager(size_image, is_shaped_Keras=False)
 
-        self.num_channels_x = self.arrayShapeManager.get_num_channels_array(list_xData_array[0].shape)
+        self.num_channels_x = self.array_shape_manager.get_num_channels_array(list_xData_array[0].shape)
 
         self.images_generator = images_generator
 
@@ -191,7 +191,7 @@ class BatchDataGenerator_List1Array(BatchDataGenerator):
 
         num_samples_batch = len(indexes_batch)
 
-        out_array_shape = self.arrayShapeManager.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_x)
+        out_array_shape = self.array_shape_manager.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_x)
         out_xData_array = np.ndarray(out_array_shape, dtype=self.type_xData)
 
         for i, index in enumerate(indexes_batch):
@@ -214,15 +214,15 @@ class BatchDataGenerator_List2Arrays(BatchDataGenerator_List1Array):
 
         super(BatchDataGenerator_List2Arrays, self).__init__(size_image, list_xData_array, images_generator, numtot_samples, size_batch, shuffle, seed)
 
-        self.num_channels_y = self.arrayShapeManager.get_num_channels_array(list_yData_array[0].shape)
+        self.num_channels_y = self.array_shape_manager.get_num_channels_array(list_yData_array[0].shape)
 
 
     def get_data_samples_batch(self, indexes_batch):
 
         num_samples_batch = len(indexes_batch)
 
-        out_xData_array_shape = self.arrayShapeManager.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_x)
-        out_yData_array_shape = self.arrayShapeManager.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_y)
+        out_xData_array_shape = self.array_shape_manager.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_x)
+        out_yData_array_shape = self.array_shape_manager.get_shape_out_array(num_samples_batch, num_channels=self.num_channels_y)
 
         out_xData_array = np.ndarray(out_xData_array_shape, dtype=self.type_xData)
         out_yData_array = np.ndarray(out_yData_array_shape, dtype=self.type_yData)

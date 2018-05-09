@@ -64,8 +64,8 @@ class LoadDataManagerInBatches(LoadDataManager):
 
     def __init__(self, size_image, num_classes_out=1, size_outnnet=None):
 
-        self.num_classes_out   = num_classes_out
-        self.arrayShapeManager = ArrayShapeManagerInBatches(size_image, is_shaped_Keras=True, num_classes_out=num_classes_out, size_outnnet=size_outnnet)
+        self.num_classes_out     = num_classes_out
+        self.array_shape_manager = ArrayShapeManagerInBatches(size_image, is_shaped_Keras=True, num_classes_out=num_classes_out, size_outnnet=size_outnnet)
 
 
     def loadData_1File(self, imagesFile, masksFile, max_num_images=10000, shuffle_images=SHUFFLEIMAGES):
@@ -75,8 +75,8 @@ class LoadDataManagerInBatches(LoadDataManager):
 
         num_images = min(xData.shape[0], max_num_images)
 
-        xData = self.arrayShapeManager.get_xData_array_reshaped(xData[0:num_images])
-        yData = self.arrayShapeManager.get_yData_array_reshaped(yData[0:num_images])
+        xData = self.array_shape_manager.get_xData_array_reshaped(xData[0:num_images])
+        yData = self.array_shape_manager.get_yData_array_reshaped(yData[0:num_images])
 
         if (shuffle_images):
             return self.shuffle_images(xData, yData)
@@ -102,8 +102,8 @@ class LoadDataManagerInBatches(LoadDataManager):
                 break
         #endfor
 
-        xData_shape = self.arrayShapeManager.get_shape_out_array(num_images, self.arrayShapeManager.get_num_channels_array(xData_part_shape))
-        yData_shape = self.arrayShapeManager.get_shape_out_array(num_images, self.num_classes_out)
+        xData_shape = self.array_shape_manager.get_shape_out_array(num_images, self.array_shape_manager.get_num_channels_array(xData_part_shape))
+        yData_shape = self.array_shape_manager.get_shape_out_array(num_images, self.num_classes_out)
 
         xData = np.ndarray(xData_shape, dtype=FORMATIMAGEDATA)
         yData = np.ndarray(yData_shape, dtype=FORMATMASKDATA)
@@ -116,8 +116,8 @@ class LoadDataManagerInBatches(LoadDataManager):
 
             num_images_part = min(xData_part.shape[0], xData.shape[0] - count_images)
 
-            xData[count_images:count_images + num_images_part] = self.arrayShapeManager.get_xData_array_reshaped(xData_part[0:num_images_part])
-            yData[count_images:count_images + num_images_part] = self.arrayShapeManager.get_yData_array_reshaped(yData_part[0:num_images_part])
+            xData[count_images:count_images + num_images_part] = self.array_shape_manager.get_xData_array_reshaped(xData_part[0:num_images_part])
+            yData[count_images:count_images + num_images_part] = self.array_shape_manager.get_yData_array_reshaped(yData_part[0:num_images_part])
 
             count_images += num_images_part
         # endfor
@@ -135,8 +135,8 @@ class LoadDataManagerInBatches_DataGenerator(LoadDataManager):
         self.size_image       = size_image
         self.images_generator = images_generator
 
-        self.num_classes_out   = num_classes_out
-        self.arrayShapeManager = ArrayShapeManager(size_image, is_shaped_Keras=True, num_classes_out=num_classes_out, size_outnnet=size_outnnet)
+        self.num_classes_out     = num_classes_out
+        self.array_shape_manager = ArrayShapeManager(size_image, is_shaped_Keras=True, num_classes_out=num_classes_out, size_outnnet=size_outnnet)
 
 
     def loadData_1File(self, imagesFile, masksFile, max_num_images=10000, shuffle_images=SHUFFLEIMAGES):
@@ -148,8 +148,8 @@ class LoadDataManagerInBatches_DataGenerator(LoadDataManager):
 
         num_images = min(len(batch_data_generator), max_num_images)
 
-        xData_shape = self.arrayShapeManager.get_shape_out_array(num_images, self.arrayShapeManager.get_num_channels_array(xData.shape))
-        yData_shape = self.arrayShapeManager.get_shape_out_array(num_images, self.num_classes_out)
+        xData_shape = self.array_shape_manager.get_shape_out_array(num_images, self.array_shape_manager.get_num_channels_array(xData.shape))
+        yData_shape = self.array_shape_manager.get_shape_out_array(num_images, self.num_classes_out)
 
         xData = np.ndarray(xData_shape, dtype=FORMATIMAGEDATA)
         yData = np.ndarray(yData_shape, dtype=FORMATMASKDATA)
@@ -158,8 +158,8 @@ class LoadDataManagerInBatches_DataGenerator(LoadDataManager):
             # Retrieve (xData, yData) directly from imagesDataGenerator
             (xData_batch, yData_batch) = next(batch_data_generator)
 
-            xData[i] = self.arrayShapeManager.get_xData_array_reshaped(xData_batch[0])
-            yData[i] = self.arrayShapeManager.get_yData_array_reshaped(yData_batch[0])
+            xData[i] = self.array_shape_manager.get_xData_array_reshaped(xData_batch[0])
+            yData[i] = self.array_shape_manager.get_yData_array_reshaped(yData_batch[0])
         #endfor
 
         return (xData, yData)
@@ -185,8 +185,8 @@ class LoadDataManagerInBatches_DataGenerator(LoadDataManager):
                 listMasksFiles  = [listMasksFiles [j] for j in range(i+1)]
                 break
 
-        xData_shape = self.arrayShapeManager.get_shape_out_array(num_images, self.arrayShapeManager.get_num_channels_array(xData_part.shape))
-        yData_shape = self.arrayShapeManager.get_shape_out_array(num_images, self.num_classes_out)
+        xData_shape = self.array_shape_manager.get_shape_out_array(num_images, self.array_shape_manager.get_num_channels_array(xData_part.shape))
+        yData_shape = self.array_shape_manager.get_shape_out_array(num_images, self.num_classes_out)
 
         xData = np.ndarray(xData_shape, dtype=FORMATIMAGEDATA)
         yData = np.ndarray(yData_shape, dtype=FORMATMASKDATA)
@@ -205,8 +205,8 @@ class LoadDataManagerInBatches_DataGenerator(LoadDataManager):
                 # Retrieve (xData, yData) directly from imagesDataGenerator
                 (xData_batch, yData_batch) = next(batch_data_generator)
 
-                xData[count_images] = self.arrayShapeManager.get_xData_array_reshaped(xData_batch[0])
-                yData[count_images] = self.arrayShapeManager.get_yData_array_reshaped(yData_batch[0])
+                xData[count_images] = self.array_shape_manager.get_xData_array_reshaped(xData_batch[0])
+                yData[count_images] = self.array_shape_manager.get_yData_array_reshaped(yData_batch[0])
 
                 count_images += 1
             #endfor

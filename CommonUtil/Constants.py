@@ -74,19 +74,25 @@ SAVEVISUALPROCESSDATA = False
 
 
 # ******************** TRAINING PARAMETERS ********************
-NUM_EPOCHS = 1000
-BATCH_SIZE = 1
-IMODEL     = 'Unet3D_Tailored'
-IOPTIMIZER = 'Adam'
-ILOSSFUN   = 'WeightedBinaryCrossEntropy_Masked'
-#ILOSSFUN   = 'CategoricalCrossEntropy'
-IMETRICS   = 'DiceCoefficient_Masked'
-#IMETRICS   = 'DiceCoefficient'
-LEARN_RATE = 1.0e-05
+NUM_EPOCHS  = 1000
+BATCH_SIZE  = 1
+IMODEL      = 'Unet3D_Tailored'
+IOPTIMIZER  = 'Adam'
+ILOSSFUN    = 'WeightedBinaryCrossEntropy_Masked'
+#ILOSSFUN    = 'CategoricalCrossEntropy'
+LISTMETRICS =['BinaryCrossEntropy_Masked',
+              'WeightedBinaryCrossEntropy_Masked',
+              'DiceCoefficient_Masked',
+              'TruePositiveRate_Masked',
+              'TrueNegativeRate_Masked',
+              'FalsePositiveRate_Masked',
+              'FalseNegativeRate_Masked']
+#IMETRICS    = 'DiceCoefficient'
+LEARN_RATE  = 1.0e-05
 
 SLIDINGWINDOWIMAGES = True
 
-TRANSFORMATIONIMAGES = True
+TRANSFORMATIONIMAGES = False
 
 ROTATION_XY_RANGE = 10
 ROTATION_XZ_RANGE = 5

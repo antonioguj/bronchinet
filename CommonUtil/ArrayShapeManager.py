@@ -112,28 +112,52 @@ class ArrayShapeManager(object):
 
 
     def get_xData_array_reshaped(self, xData):
-        if self.is_images_array_without_channels(xData.shape):
-            return self.get_array_reshaped_Keras(self.get_array_with_channels(xData))
+        if self.is_shaped_Keras:
+            if self.is_images_array_without_channels(xData.shape):
+                return self.get_array_reshaped_Keras(self.get_array_with_channels(xData))
+            else:
+                return self.get_array_reshaped_Keras(xData)
         else:
-            return self.get_array_reshaped_Keras(xData)
+            if self.is_images_array_without_channels(xData.shape):
+                return self.get_array_with_channels(xData)
+            else:
+                return xData
 
     def get_yData_array_reshaped(self, yData):
-        if self.num_classes_out > 1:
-            if (self.size_image==self.size_outnnet):
-                return self.get_array_reshaped_Keras(self.get_array_categorical_masks(yData))
+        if self.is_shaped_Keras:
+            if self.num_classes_out > 1:
+                if (self.size_image==self.size_outnnet):
+                    return self.get_array_reshaped_Keras(self.get_array_categorical_masks(yData))
+                else:
+                    return self.get_array_reshaped_Keras(self.get_array_categorical_masks(self.get_array_shaped_outNnet(yData)))
             else:
-                return self.get_array_reshaped_Keras(self.get_array_categorical_masks(self.get_array_shaped_outNnet(yData)))
+                if (self.size_image==self.size_outnnet):
+                    if self.is_images_array_without_channels(yData.shape):
+                        return self.get_array_reshaped_Keras(self.get_array_with_channels(yData))
+                    else:
+                        return self.get_array_reshaped_Keras(yData)
+                else:
+                    if self.is_images_array_without_channels(yData.shape):
+                        return self.get_array_reshaped_Keras(self.get_array_with_channels(self.get_array_shaped_outNnet(yData)))
+                    else:
+                        return self.get_array_reshaped_Keras(self.get_array_shaped_outNnet(yData))
         else:
-            if (self.size_image==self.size_outnnet):
-                if self.is_images_array_without_channels(yData.shape):
-                    return self.get_array_reshaped_Keras(self.get_array_with_channels(yData))
+            if self.num_classes_out > 1:
+                if (self.size_image==self.size_outnnet):
+                    return self.get_array_categorical_masks(yData)
                 else:
-                    return self.get_array_reshaped_Keras(yData)
+                    return self.get_array_categorical_masks(self.get_array_shaped_outNnet(yData))
             else:
-                if self.is_images_array_without_channels(yData.shape):
-                    return self.get_array_reshaped_Keras(self.get_array_with_channels(self.get_array_shaped_outNnet(yData)))
+                if (self.size_image==self.size_outnnet):
+                    if self.is_images_array_without_channels(yData.shape):
+                        return self.get_array_with_channels(yData)
+                    else:
+                        return yData
                 else:
-                    return self.get_array_reshaped_Keras(self.get_array_shaped_outNnet(yData))
+                    if self.is_images_array_without_channels(yData.shape):
+                        return self.get_array_with_channels(self.get_array_shaped_outNnet(yData))
+                    else:
+                        return self.get_array_shaped_outNnet(yData)
 
 
 class ArrayShapeManagerInBatches(ArrayShapeManager):
