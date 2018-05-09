@@ -8,24 +8,38 @@
 # Last update: 09/02/2018
 ########################################################################################
 
+from CommonUtil.FunctionsUtil import *
 from keras import callbacks
 
-# All derived from baseclass "callbacks.Callback"
 
 class RecordLossHistory(callbacks.Callback):
 
-    def __init__(self, filepath):
-        self.filename = filepath + '/lossHistory.txt'
+    relfilename = 'lossHistory.txt'
+
+    def __init__(self, filepath, metrics_funs=None):
+        self.filename = joinpathnames(filepath, self.relfilename)
+        if metrics_funs:
+            self.name_metrics_funs = list(map(lambda fun: ['%s'%(fun.__name__),'val_%s'%(fun.__name__)], metrics_funs))
+            self.name_metrics_funs = flattenOutListOfLists(self.name_metrics_funs)
+        else:
+            self.name_metrics_funs = None
 
     def on_train_begin(self, logs=None):
+        strheader = '/epoch/ /loss/ /val_loss/ '
+        strheader += ' '.join(['/%s/' %(fun) for fun in self.name_metrics_funs])
+        strheader += '\n'
+
         self.fout = open(self.filename, 'w')
-        self.fout.write('/epoch/ /loss/ /val_loss/\n')
+        self.fout.write(strheader)
         self.fout.close()
 
     def on_epoch_end(self, epoch, logs=None):
+        strdataline = '%s %s %s ' %(epoch, logs.get('loss'), logs.get('val_loss'))
+        strdataline += ' '.join(['%s' %(logs.get(fun)) for fun in self.name_metrics_funs])
+        strdataline += '\n'
+
         self.fout = open(self.filename, 'a')
-        newdataline = '%s %s %s\n' %(epoch, logs.get('loss'), logs.get('val_loss'))
-        self.fout.write(newdataline)
+        self.fout.write(strdataline)
         self.fout.close()
 
 
