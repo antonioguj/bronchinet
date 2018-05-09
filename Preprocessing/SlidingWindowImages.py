@@ -8,14 +8,18 @@
 # Last update: 09/02/2018
 ########################################################################################
 
+from Preprocessing.BaseImageGenerator import *
 import numpy as np
 
 
-class SlidingWindowImages(object):
+class SlidingWindowImages(BaseImageGenerator):
 
     def __init__(self, size_image, num_images=0):
         self.size_image = size_image
         self.num_images = num_images
+
+        super(SlidingWindowImages, self).__init__(size_image)
+
 
     @staticmethod
     def get_num_images_1d(size_total, size_image, prop_overlap):
@@ -35,15 +39,6 @@ class SlidingWindowImages(object):
     def get_num_images(self):
         return self.num_images
 
-    def is_images_array_without_channels(self, in_array_shape):
-        return len(in_array_shape) == len(self.size_image)
-
-    def get_num_channels_array(self, in_array_shape):
-        if self.is_images_array_without_channels(in_array_shape):
-            return None
-        else:
-            return in_array_shape[-1]
-
     def get_shape_out_array(self, in_array_shape):
         num_images   = self.get_num_images()
         num_channels = self.get_num_channels_array(in_array_shape)
@@ -51,6 +46,7 @@ class SlidingWindowImages(object):
             return [num_images] + list(self.size_image) + [num_channels]
         else:
             return [num_images] + list(self.size_image)
+
 
     def get_cropped_image(self, images_array, index):
         pass

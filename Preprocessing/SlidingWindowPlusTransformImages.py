@@ -8,17 +8,21 @@
 # Last update: 09/02/2018
 ########################################################################################
 
+from Preprocessing.BaseImageGenerator import *
 from Preprocessing.SlidingWindowImages import *
 from Preprocessing.TransformationImages import *
 
 
-class SlidingWindowPlusTransformImages(object):
+class SlidingWindowPlusTransformImages(BaseImageGenerator):
 
     def __init__(self, slidingWindow_generator, transformImages_generator, use_seed_transform=True):
 
         self.slidingWindow_generator   = slidingWindow_generator
         self.transformImages_generator = transformImages_generator
         self.use_seed_transform        = use_seed_transform
+
+        super(SlidingWindowPlusTransformImages, self).__init__(slidingWindow_generator.size_image)
+
 
     def complete_init_data(self, size_total):
 
@@ -39,6 +43,7 @@ class SlidingWindowPlusTransformImages(object):
 
     def get_shape_out_array(self, in_array_shape):
         return self.transformImages_generator.get_shape_out_array(self.slidingWindow_generator.get_shape_out_array(in_array_shape))
+
 
     def get_image_array(self, images_array, index):
 
@@ -74,30 +79,32 @@ class SlidingWindowPlusTransformImages2D(SlidingWindowPlusTransformImages):
                  shear_range=0.0,
                  zoom_range=0.0,
                  channel_shift_range=0.0,
+                 fill_mode='nearest',
+                 cval=0.0,
                  horizontal_flip=False,
                  vertical_flip=False,
                  rescale=None,
-                 fill_mode='nearest',
-                 cval=0.0):
+                 preprocessing_function=None):
 
         super(SlidingWindowPlusTransformImages2D, self).__init__(SlidingWindowImages2D(size_image,
                                                                                        prop_overlap,
-                                                                                       size_total),
+                                                                                       size_total=size_total),
                                                                  TransformationImages2D(size_image,
-                                                                                        is_normalize_data,
-                                                                                        type_normalize_data,
-                                                                                        zca_whitening,
-                                                                                        rotation_range,
-                                                                                        width_shift_range,
-                                                                                        height_shift_range,
-                                                                                        shear_range,
-                                                                                        zoom_range,
-                                                                                        channel_shift_range,
-                                                                                        horizontal_flip,
-                                                                                        vertical_flip,
-                                                                                        rescale,
-                                                                                        fill_mode,
-                                                                                        cval))
+                                                                                        is_normalize_data=is_normalize_data,
+                                                                                        type_normalize_data=type_normalize_data,
+                                                                                        zca_whitening=zca_whitening,
+                                                                                        rotation_range=rotation_range,
+                                                                                        width_shift_range=width_shift_range,
+                                                                                        height_shift_range=height_shift_range,
+                                                                                        shear_range=shear_range,
+                                                                                        zoom_range=zoom_range,
+                                                                                        channel_shift_range=channel_shift_range,
+                                                                                        fill_mode=fill_mode,
+                                                                                        cval=cval,
+                                                                                        horizontal_flip=horizontal_flip,
+                                                                                        vertical_flip=vertical_flip,
+                                                                                        rescale=rescale,
+                                                                                        preprocessing_function=preprocessing_function))
 
 class SlicingPlusTransformImages2D(SlidingWindowPlusTransformImages):
 
@@ -113,29 +120,31 @@ class SlicingPlusTransformImages2D(SlidingWindowPlusTransformImages):
                  shear_range=0.0,
                  zoom_range=0.0,
                  channel_shift_range=0.0,
+                 fill_mode='nearest',
+                 cval=0.0,
                  horizontal_flip=False,
                  vertical_flip=False,
                  rescale=None,
-                 fill_mode='nearest',
-                 cval=0.0):
+                 preprocessing_function=None):
 
         super(SlicingPlusTransformImages2D, self).__init__(SlicingImages2D(size_image,
-                                                                           size_total),
+                                                                           size_total=size_total),
                                                            TransformationImages2D(size_image,
-                                                                                  is_normalize_data,
-                                                                                  type_normalize_data,
-                                                                                  zca_whitening,
-                                                                                  rotation_range,
-                                                                                  width_shift_range,
-                                                                                  height_shift_range,
-                                                                                  shear_range,
-                                                                                  zoom_range,
-                                                                                  channel_shift_range,
-                                                                                  horizontal_flip,
-                                                                                  vertical_flip,
-                                                                                  rescale,
-                                                                                  fill_mode,
-                                                                                  cval))
+                                                                                  is_normalize_data=is_normalize_data,
+                                                                                  type_normalize_data=type_normalize_data,
+                                                                                  zca_whitening=zca_whitening,
+                                                                                  rotation_range=rotation_range,
+                                                                                  width_shift_range=width_shift_range,
+                                                                                  height_shift_range=height_shift_range,
+                                                                                  shear_range=shear_range,
+                                                                                  zoom_range=zoom_range,
+                                                                                  channel_shift_range=channel_shift_range,
+                                                                                  fill_mode=fill_mode,
+                                                                                  cval=cval,
+                                                                                  horizontal_flip=horizontal_flip,
+                                                                                  vertical_flip=vertical_flip,
+                                                                                  rescale=rescale,
+                                                                                  preprocessing_function=preprocessing_function))
 
 class SlidingWindowPlusTransformImages3D(SlidingWindowPlusTransformImages):
 
@@ -157,37 +166,39 @@ class SlidingWindowPlusTransformImages3D(SlidingWindowPlusTransformImages):
                  shear_YZ_range=0.0,
                  zoom_range=0.0,
                  channel_shift_range=0.0,
+                 fill_mode='nearest',
+                 cval=0.0,
                  horizontal_flip=False,
                  vertical_flip=False,
                  depthZ_flip=False,
                  rescale=None,
-                 fill_mode='nearest',
-                 cval=0.0):
+                 preprocessing_function=None):
 
         super(SlidingWindowPlusTransformImages3D, self).__init__(SlidingWindowImages3D(size_image,
                                                                                        prop_overlap,
-                                                                                       size_total),
+                                                                                       size_total=size_total),
                                                                  TransformationImages3D(size_image,
-                                                                                        is_normalize_data,
-                                                                                        type_normalize_data,
-                                                                                        zca_whitening,
-                                                                                        rotation_XY_range,
-                                                                                        rotation_XZ_range,
-                                                                                        rotation_YZ_range,
-                                                                                        width_shift_range,
-                                                                                        height_shift_range,
-                                                                                        depth_shift_range,
-                                                                                        shear_XY_range,
-                                                                                        shear_XZ_range,
-                                                                                        shear_YZ_range,
-                                                                                        zoom_range,
-                                                                                        channel_shift_range,
-                                                                                        horizontal_flip,
-                                                                                        vertical_flip,
-                                                                                        depthZ_flip,
-                                                                                        rescale,
-                                                                                        fill_mode,
-                                                                                        cval))
+                                                                                        is_normalize_data=is_normalize_data,
+                                                                                        type_normalize_data=type_normalize_data,
+                                                                                        zca_whitening=zca_whitening,
+                                                                                        rotation_XY_range=rotation_XY_range,
+                                                                                        rotation_XZ_range=rotation_XZ_range,
+                                                                                        rotation_YZ_range=rotation_YZ_range,
+                                                                                        width_shift_range=width_shift_range,
+                                                                                        height_shift_range=height_shift_range,
+                                                                                        depth_shift_range=depth_shift_range,
+                                                                                        shear_XY_range=shear_XY_range,
+                                                                                        shear_XZ_range=shear_XZ_range,
+                                                                                        shear_YZ_range=shear_YZ_range,
+                                                                                        zoom_range=zoom_range,
+                                                                                        channel_shift_range=channel_shift_range,
+                                                                                        fill_mode=fill_mode,
+                                                                                        cval=cval,
+                                                                                        horizontal_flip=horizontal_flip,
+                                                                                        vertical_flip=vertical_flip,
+                                                                                        depthZ_flip=depthZ_flip,
+                                                                                        rescale=rescale,
+                                                                                        preprocessing_function=preprocessing_function))
 
 class SlicingPlusTransformImages3D(SlidingWindowPlusTransformImages):
 
@@ -208,33 +219,35 @@ class SlicingPlusTransformImages3D(SlidingWindowPlusTransformImages):
                  shear_YZ_range=0.0,
                  zoom_range=0.0,
                  channel_shift_range=0.0,
+                 fill_mode='nearest',
+                 cval=0.0,
                  horizontal_flip=False,
                  vertical_flip=False,
                  depthZ_flip=False,
                  rescale=None,
-                 fill_mode='nearest',
-                 cval=0.0):
+                 preprocessing_function=None):
 
         super(SlicingPlusTransformImages3D, self).__init__(SlicingImages3D(size_image,
-                                                                           size_total),
+                                                                           size_total=size_total),
                                                            TransformationImages3D(size_image,
-                                                                                  is_normalize_data,
-                                                                                  type_normalize_data,
-                                                                                  zca_whitening,
-                                                                                  rotation_XY_range,
-                                                                                  rotation_XZ_range,
-                                                                                  rotation_YZ_range,
-                                                                                  width_shift_range,
-                                                                                  height_shift_range,
-                                                                                  depth_shift_range,
-                                                                                  shear_XY_range,
-                                                                                  shear_XZ_range,
-                                                                                  shear_YZ_range,
-                                                                                  zoom_range,
-                                                                                  channel_shift_range,
-                                                                                  horizontal_flip,
-                                                                                  vertical_flip,
-                                                                                  depthZ_flip,
-                                                                                  rescale,
-                                                                                  fill_mode,
-                                                                                  cval))
+                                                                                  is_normalize_data=is_normalize_data,
+                                                                                  type_normalize_data=type_normalize_data,
+                                                                                  zca_whitening=zca_whitening,
+                                                                                  rotation_XY_range=rotation_XY_range,
+                                                                                  rotation_XZ_range=rotation_XZ_range,
+                                                                                  rotation_YZ_range=rotation_YZ_range,
+                                                                                  width_shift_range=width_shift_range,
+                                                                                  height_shift_range=height_shift_range,
+                                                                                  depth_shift_range=depth_shift_range,
+                                                                                  shear_XY_range=shear_XY_range,
+                                                                                  shear_XZ_range=shear_XZ_range,
+                                                                                  shear_YZ_range=shear_YZ_range,
+                                                                                  zoom_range=zoom_range,
+                                                                                  channel_shift_range=channel_shift_range,
+                                                                                  fill_mode=fill_mode,
+                                                                                  cval=cval,
+                                                                                  horizontal_flip=horizontal_flip,
+                                                                                  vertical_flip=vertical_flip,
+                                                                                  depthZ_flip=depthZ_flip,
+                                                                                  rescale=rescale,
+                                                                                  preprocessing_function=preprocessing_function))
