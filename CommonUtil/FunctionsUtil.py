@@ -111,9 +111,6 @@ def readDictionary_csv(filename):
             reader = csv.reader(fin)
             return dict(reader)
 
-def flattenOutListOfLists(list):
-    return reduce(lambda el1, el2: el1 + el2, list)
-
 def isOddIntegerVal(val):
     return val % 2 == 1
 def isEvenIntegerVal(val):
@@ -159,6 +156,17 @@ def splitListInChunks(list, sizechunck):
     for i in range(0, len(list), sizechunck):
         listoflists.append( list[i:i+sizechunck] )
     return listoflists
+
+def flattenOutListOfLists(list):
+    return reduce(lambda el1, el2: el1 + el2, list)
+
+def mergeTwoListsIntoDictoinary(list1, list2):
+    new_dict = {}
+    map(lambda key, val: new_dict.update({key: val}), list1, list2)
+    return new_dict
+
+def parseListarg(args):
+    return args.replace('[','').replace(']','').split(',')
 
 def processBinaryMasks(masks_array):
     # Turn to binary masks (0, 1)

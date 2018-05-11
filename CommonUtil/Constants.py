@@ -92,7 +92,7 @@ LEARN_RATE  = 1.0e-05
 
 SLIDINGWINDOWIMAGES = True
 
-TRANSFORMATIONIMAGES = False
+TRANSFORMATIONIMAGES = True
 
 ROTATION_XY_RANGE = 10
 ROTATION_XZ_RANGE = 5
@@ -103,12 +103,18 @@ DEPTH_SHIFT_RANGE = 7
 HORIZONTAL_FLIP = True
 VERTICAL_FLIP = True
 DEPTHZ_FLIP = True
+# ******************** TRAINING PARAMETERS ********************
 
+
+# ******************** RESTART PARAMETERS ********************
 USE_RESTARTMODEL = False
 
-EPOCH_RESTART = 40
 RESTART_MODELFILE = 'lastEpoch'
-# ******************** TRAINING PARAMETERS ********************
+
+RESTART_ONLY_WEIGHTS = True
+
+EPOCH_RESTART = 40
+# ******************** RESTART PARAMETERS ********************
 
 
 # ******************** POST-PROCESSING PARAMETERS ********************
