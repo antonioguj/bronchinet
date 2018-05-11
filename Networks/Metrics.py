@@ -28,6 +28,7 @@ class Metrics(object):
 
     max_size_memory_safe = 5e+08
     val_exclude = -1
+    count = 0
 
     def __init__(self, isMasksExclude=False):
         self.isMasksExclude = isMasksExclude
@@ -97,7 +98,7 @@ class BinaryCrossEntropy(Metrics):
         return K.mean(K.binary_crossentropy(y_true, y_pred), axis=-1)
 
     def compute_vec_np(self, y_true, y_pred):
-        return np.mean(-y_true*np.log(y_pred) - (1.0-y_true)*np.log(1.0-y_pred))
+        return np.mean(-y_true * np.log(y_pred +_eps) - (1.0 - y_true) * np.log(1.0 - y_pred +_eps))
 
     def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -108,22 +109,34 @@ class BinaryCrossEntropy(Metrics):
 
 # Weighted Binary Cross entropy
 class WeightedBinaryCrossEntropy(Metrics):
-    weights_nomasks = [1.0, 300.0]
-    weights_masks   = [1.0, 80.0]
+    #weights_nomasks = [1.0, 80.0]
+    #weights_masks   = [1.0, 300.0]
 
     def __init__(self, isMasksExclude=False):
-        if isMasksExclude:
-            self.weights = self.weights_masks
-        else:
-            self.weights = self.weights_nomasks
+        #if isMasksExclude:
+        #    self.weights = self.weights_masks
+        #else:
+        #    self.weights = self.weights_nomasks
         super(WeightedBinaryCrossEntropy, self).__init__(isMasksExclude)
         self.name_out = 'wei_bin_cross'
 
+    def get_weights(self, y_true):
+        num_class_1 = K.tf.count_nonzero(y_true, dtype=K.tf.int32)
+        num_class_0 = K.tf.size(y_true) - num_class_1
+        return (1.0, K.cast(num_class_0, dtype=K.tf.float32) / (K.cast(num_class_1, dtype=K.tf.float32) + K.variable(_eps)))
+
+    def get_weights_np(self, y_true):
+        num_class_1 = np.count_nonzero(y_true == 1)
+        num_class_0 = np.size(y_true) - num_class_1
+        return (1.0, num_class_0 / (float(num_class_1) +_eps))
+
     def compute_vec(self, y_true, y_pred):
-        return K.mean(-self.weights[1]*y_true*K.log(y_pred+_eps) - self.weights[0]*(1.0-y_true)*K.log(1.0-y_pred+_eps))
+        weights = self.get_weights(y_true)
+        return K.mean(-weights[1] * y_true * K.log(y_pred +_eps) - weights[0] * (1.0 - y_true) * K.log(1.0 - y_pred +_eps))
 
     def compute_vec_np(self, y_true, y_pred):
-        return np.mean(-self.weights[1]*y_true*np.log(y_pred+_eps) - self.weights[0]*(1.0-y_true)*np.log(1.0-y_pred+_eps))
+        weights = self.get_weights_np(y_true)
+        return np.mean(-weights[1] * y_true * np.log(y_pred +_eps) - weights[0] * (1.0 - y_true) * np.log(1.0 - y_pred +_eps))
 
     def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -142,7 +155,8 @@ class CategoricalCrossEntropy(Metrics):
         return K.mean(K.categorical_crossentropy(y_true, y_pred), axis=-1)
 
     def compute_vec_np(self, y_true, y_pred):
-        return np.mean(-y_true * np.log(y_pred) - (1.0 - y_true) * np.log(1.0 - y_pred))
+        pass
+        #return np.mean(-y_true * np.log(y_pred +_eps) - (1.0 - y_true) * np.log(1.0 - y_pred +_eps))
 
     def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -159,13 +173,13 @@ class DiceCoefficient(Metrics):
         self.name_out = 'dice'
 
     def compute_vec(self, y_true, y_pred):
-        return (2.0*K.sum(y_true * y_pred) +_smooth) / (K.sum(y_true) + K.sum(y_pred) +_smooth)
+        return (2.0*K.sum(y_true * y_pred)) / (K.sum(y_true) + K.sum(y_pred) +_smooth)
 
     def compute_vec_np(self, y_true, y_pred):
-        return (2.0*np.sum(y_true * y_pred) +_smooth) / (np.sum(y_true) + np.sum(y_pred) +_smooth)
+        return (2.0*np.sum(y_true * y_pred)) / (np.sum(y_true) + np.sum(y_pred) +_smooth)
 
     def loss(self, y_true, y_pred):
-        return -self.compute(y_true, y_pred)
+        return 1.0-self.compute(y_true, y_pred)
 
     def dice(self, y_true, y_pred):
         return self.compute(y_true, y_pred)

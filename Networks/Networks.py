@@ -241,38 +241,38 @@ class Unet3D_Tailored(NeuralNetwork):
 
         nbfeamaps_upl4  = nbfeamaps_dwl4
         hidlayer_upl4_2 = Convolution3D(nbfeamaps_upl4, self.size_filter_uplys[3], activation='relu', padding='same')(hidlayer_upl4_1)
-        #hidlayer_upl4_3 = Convolution3D(nbfeamaps_upl4, self.size_filter_uplys[3], activation='relu', padding='same')(hidlayer_upl4_2)
+        hidlayer_upl4_3 = Convolution3D(nbfeamaps_upl4, self.size_filter_uplys[3], activation='relu', padding='same')(hidlayer_upl4_2)
         if self.is_dropout:
-            hidlayer_upl4_2 = Dropout(self.dropout_rate)(hidlayer_upl4_2)
+            hidlayer_upl4_3 = Dropout(self.dropout_rate)(hidlayer_upl4_3)
 
-        hidlayer_upl3_1 = UpSampling3D(size=self.size_pooling_lys[2])(hidlayer_upl4_2)
+        hidlayer_upl3_1 = UpSampling3D(size=self.size_pooling_lys[2])(hidlayer_upl4_3)
         hidlayer_upl3_1 = merge([hidlayer_upl3_1, hidlayer_dwl3_3], mode='concat', concat_axis=-1)
 
         nbfeamaps_upl3  = nbfeamaps_dwl3
         hidlayer_upl3_2 = Convolution3D(nbfeamaps_upl3, self.size_filter_uplys[2], activation='relu', padding='same')(hidlayer_upl3_1)
-        #hidlayer_upl3_3 = Convolution3D(nbfeamaps_upl3, self.size_filter_uplys[2], activation='relu', padding='same')(hidlayer_upl3_2)
+        hidlayer_upl3_3 = Convolution3D(nbfeamaps_upl3, self.size_filter_uplys[2], activation='relu', padding='same')(hidlayer_upl3_2)
         if self.is_dropout:
-            hidlayer_upl3_2 = Dropout(self.dropout_rate)(hidlayer_upl3_2)
+            hidlayer_upl3_3 = Dropout(self.dropout_rate)(hidlayer_upl3_3)
 
-        hidlayer_upl2_1 = UpSampling3D(size=self.size_pooling_lys[1])(hidlayer_upl3_2)
+        hidlayer_upl2_1 = UpSampling3D(size=self.size_pooling_lys[1])(hidlayer_upl3_3)
         hidlayer_upl2_1 = merge([hidlayer_upl2_1, hidlayer_dwl2_3], mode='concat', concat_axis=-1)
 
         nbfeamaps_upl2  = nbfeamaps_dwl2
         hidlayer_upl2_2 = Convolution3D(nbfeamaps_upl2, self.size_filter_uplys[1], activation='relu', padding='same')(hidlayer_upl2_1)
-        #hidlayer_upl2_3 = Convolution3D(nbfeamaps_upl2, self.size_filter_uplys[1], activation='relu', padding='same')(hidlayer_upl2_2)
+        hidlayer_upl2_3 = Convolution3D(nbfeamaps_upl2, self.size_filter_uplys[1], activation='relu', padding='same')(hidlayer_upl2_2)
         if self.is_dropout:
-            hidlayer_upl2_2 = Dropout(self.dropout_rate)(hidlayer_upl2_2)
+            hidlayer_upl2_3 = Dropout(self.dropout_rate)(hidlayer_upl2_3)
 
-        hidlayer_upl1_1 = UpSampling3D(size=self.size_pooling_lys[0])(hidlayer_upl2_2)
+        hidlayer_upl1_1 = UpSampling3D(size=self.size_pooling_lys[0])(hidlayer_upl2_3)
         hidlayer_upl1_1 = merge([hidlayer_upl1_1, hidlayer_dwl1_2], mode='concat', concat_axis=-1)
 
         nbfeamaps_upl1  = nbfeamaps_dwl1
         hidlayer_upl1_2 = Convolution3D(nbfeamaps_upl1, self.size_filter_uplys[0], activation='relu', padding='same')(hidlayer_upl1_1)
-        #hidlayer_upl1_3 = Convolution3D(nbfeamaps_upl1, self.size_filter_uplys[0], activation='relu', padding='same')(hidlayer_upl1_2)
+        hidlayer_upl1_3 = Convolution3D(nbfeamaps_upl1, self.size_filter_uplys[0], activation='relu', padding='same')(hidlayer_upl1_2)
         if self.is_dropout:
-            hidlayer_upl1_2 = Dropout(self.dropout_rate)(hidlayer_upl1_2)
+            hidlayer_upl1_3 = Dropout(self.dropout_rate)(hidlayer_upl1_3)
 
-        outputs = Convolution3D(self.num_classes_out, (1, 1, 1), activation='sigmoid')(hidlayer_upl1_2)
+        outputs = Convolution3D(self.num_classes_out, (1, 1, 1), activation='sigmoid')(hidlayer_upl1_3)
 
         model = Model(input=inputs, output=outputs)
 
@@ -325,20 +325,20 @@ class Unet3D_Shallow_Tailored(NeuralNetwork):
 
         nbfeamaps_upl2  = nbfeamaps_dwl2
         hidlayer_upl2_2 = Convolution3D(nbfeamaps_upl2, self.size_filter_uplys[1], activation='relu', padding='same')(hidlayer_upl2_1)
-        #hidlayer_upl2_3 = Convolution3D(nbfeamaps_upl2, self.size_filter_uplys[1], activation='relu', padding='same')(hidlayer_upl2_2)
+        hidlayer_upl2_3 = Convolution3D(nbfeamaps_upl2, self.size_filter_uplys[1], activation='relu', padding='same')(hidlayer_upl2_2)
         if self.is_dropout:
-            hidlayer_upl2_2 = Dropout(self.dropout_rate)(hidlayer_upl2_2)
+            hidlayer_upl2_3 = Dropout(self.dropout_rate)(hidlayer_upl2_3)
 
-        hidlayer_upl1_1 = UpSampling3D(size=self.size_pooling_lys[0])(hidlayer_upl2_2)
+        hidlayer_upl1_1 = UpSampling3D(size=self.size_pooling_lys[0])(hidlayer_upl2_3)
         hidlayer_upl1_1 = merge([hidlayer_upl1_1, hidlayer_dwl1_2], mode='concat', concat_axis=-1)
 
         nbfeamaps_upl1  = nbfeamaps_dwl1
         hidlayer_upl1_2 = Convolution3D(nbfeamaps_upl1, self.size_filter_uplys[0], activation='relu', padding='same')(hidlayer_upl1_1)
-        #hidlayer_upl1_3 = Convolution3D(nbfeamaps_upl1, self.size_filter_uplys[0], activation='relu', padding='same')(hidlayer_upl1_2)
+        hidlayer_upl1_3 = Convolution3D(nbfeamaps_upl1, self.size_filter_uplys[0], activation='relu', padding='same')(hidlayer_upl1_2)
         if self.is_dropout:
-            hidlayer_upl1_2 = Dropout(self.dropout_rate)(hidlayer_upl1_2)
+            hidlayer_upl1_3 = Dropout(self.dropout_rate)(hidlayer_upl1_3)
 
-        outputs = Convolution3D(self.num_classes_out, (1, 1, 1), activation='sigmoid')(hidlayer_upl1_2)
+        outputs = Convolution3D(self.num_classes_out, (1, 1, 1), activation='sigmoid')(hidlayer_upl1_3)
 
         model = Model(input=inputs, output=outputs)
 
