@@ -19,7 +19,7 @@ BASEDIR  = '/home/antonio/testSegmentation/'
 CODEDIR  = joinpathnames(BASEDIR, 'Code')
 TESTSDIR = joinpathnames(BASEDIR, 'Tests_LUVAR')
 
-script_Training = joinpathnames(CODEDIR, 'TrainingNetwork.py')
+script_Training = joinpathnames(CODEDIR, 'TrainingModel.py')
 
 listModels     = ['Unet3D']
 listOptimizers = ['Adam']

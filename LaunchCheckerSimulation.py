@@ -54,7 +54,7 @@ ARGUMENTS_TESTING = {'--basedir' : TESTSDIR,
 # ********** LAUNCH TRAINING **********
 measureTime = WallClockTime()
 
-script_Training   = joinpathnames(CODEDIR, 'TrainingNetwork.py')
+script_Training   = joinpathnames(CODEDIR, 'TrainingModel.py')
 
 # Launching Training script
 list_arguments = [i for (key, value) in ARGUMENTS_TRAINING.iteritems() for i in (key, value)]

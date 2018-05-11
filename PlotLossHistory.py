@@ -31,6 +31,12 @@ for i in range(num_plot_files):
 
     data_lossHistory = np.loadtxt(lossHistory_file, skiprows=1)
 
+    # if the file contains only one line, add extra dimension
+    if len(data_lossHistory.shape) == 1:
+        if len(data_lossHistory.shape) == 1:
+            data_lossHistory = np.array([data_lossHistory, data_lossHistory])
+            data_lossHistory[1][0] = data_lossHistory[0][0] + 1
+
 
     # run checks correct data format
     num_cols_header = len(header_lossHistory)

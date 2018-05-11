@@ -45,7 +45,7 @@ def main(args):
     # Loading Saved Model
     modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.prediction_modelFile))
 
-    train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun)] + [DICTAVAILMETRICS(imetrics, set_fun_name=True) for imetrics in LISTMETRICS]
+    train_model_funs = [DICTAVAILLOSSFUNS(ILOSSFUN)] + [DICTAVAILMETRICS(imetrics, set_fun_name=True) for imetrics in LISTMETRICS]
     custom_objects = dict(map(lambda fun: (fun.__name__, fun), train_model_funs))
 
     model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)

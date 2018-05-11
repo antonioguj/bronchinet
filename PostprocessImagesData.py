@@ -93,17 +93,21 @@ def main(args):
 
 
         # Compute accuracy measures
-        accuracy_dice = DiceCoefficient().compute_np_safememory(masks_array, predictions_array)
-        accuracy_TP   = TruePositiveRate().compute_np_safememory(masks_array, predictions_array)
-        accuracy_FP   = FalsePositiveRate().compute_np_safememory(masks_array, predictions_array)
-        accuracy_TN   = TrueNegativeRate().compute_np_safememory(masks_array, predictions_array)
-        accuracy_FN   = FalseNegativeRate().compute_np_safememory(masks_array, predictions_array)
+        accuracy_bin_cross    = BinaryCrossEntropy().compute_np_safememory(masks_array, predictions_array)
+        accuracy_wei_bin_cross= WeightedBinaryCrossEntropy().compute_np_safememory(masks_array, predictions_array)
+        accuracy_dice         = DiceCoefficient().compute_np_safememory(masks_array, predictions_array)
+        accuracy_tpr          = TruePositiveRate().compute_np_safememory(masks_array, predictions_array)
+        accuracy_fpr          = FalsePositiveRate().compute_np_safememory(masks_array, predictions_array)
+        accuracy_tnr          = TrueNegativeRate().compute_np_safememory(masks_array, predictions_array)
+        accuracy_fnr          = FalseNegativeRate().compute_np_safememory(masks_array, predictions_array)
 
+        print("Computed accuracy: binary cross-entropy: %s..." % (accuracy_bin_cross))
+        print("Computed accuracy: binary weighted cross-entropy: %s..." % (accuracy_wei_bin_cross))
         print("Computed accuracy: dice coefficient: %s..."%(accuracy_dice))
-        print("Computed accuracy: true positive rate: %s..." % (accuracy_TP))
-        print("Computed accuracy: false positive rate: %s..." % (accuracy_FP))
-        print("Computed accuracy: true negative rate: %s..." % (accuracy_TN))
-        print("Computed accuracy: false negative rate: %s..." % (accuracy_FN))
+        print("Computed accuracy: true positive rate: %s..." % (accuracy_tpr))
+        print("Computed accuracy: false positive rate: %s..." % (accuracy_fpr))
+        print("Computed accuracy: true negative rate: %s..." % (accuracy_tnr))
+        print("Computed accuracy: false negative rate: %s..." % (accuracy_fnr))
 
 
         # Save reconstructed prediction masks
