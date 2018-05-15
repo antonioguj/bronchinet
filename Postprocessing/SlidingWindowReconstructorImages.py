@@ -34,8 +34,8 @@ class SlidingWindowReconstructorImages(BaseImageReconstructor):
     def adding_reconstructed_image_sample_array(self, index, image_sample_array):
         pass
 
-    def set_calc_reconstructed_image_array(self, image_array):
-        self.reconstructed_image_array = image_array
+    def set_calc_reconstructed_image_array(self, input_array):
+        self.reconstructed_image_array = input_array
 
     def compute_factor_overlap_images_samples_per_voxel(self):
         # Compute how many times a batch image overlaps in same voxel
@@ -48,7 +48,7 @@ class SlidingWindowReconstructorImages(BaseImageReconstructor):
             self.adding_reconstructed_image_sample_array(index, np.ones(self.size_image_sample, dtype=np.int8))
         # endfor
 
-        # get position where there's no overlap
+        # get positions with result '0': there's no overlap
         pos_non_overlap = np.argwhere(num_overlap_images_samples_per_voxels == 0)
 
         self.factor_overlap_images_samples_per_voxel = np.divide(np.ones(self.size_total_image, dtype=np.float32),
