@@ -60,9 +60,11 @@ def main(args):
         initial_epoch = 0
 
     if args.use_restartModel and not args.restart_only_weights:
-        print('Loading full saved model: weights, optimizer, loss, metrics, ... and Restarting...')
+        print("Loading full saved model: weights, optimizer, loss, metrics, ... and restarting...")
 
         modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.restart_modelFile))
+
+        print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
         train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun)] + [DICTAVAILMETRICS(imetrics, set_fun_name=True) for imetrics in args.listmetrics]
         custom_objects = dict(map(lambda fun: (fun.__name__, fun), train_model_funs))
@@ -82,9 +84,11 @@ def main(args):
                       metrics  =[DICTAVAILMETRICS(imetrics, set_fun_name=True) for imetrics in args.listmetrics])
 
         if args.use_restartModel and args.restart_only_weights:
-            print('Loading saved weights and Restarting...')
+            print("Loading saved weights and restarting...")
 
             modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.restart_modelFile))
+
+            print("Restarting from file: \'%s\'..." % (modelSavedPath))
 
             model.load_weights(modelSavedPath)
     model.summary()
