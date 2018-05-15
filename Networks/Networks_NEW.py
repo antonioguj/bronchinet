@@ -151,6 +151,7 @@ class Unet3D_General(NeuralNetwork):
         elif self.type_padding=='same':
             return self.size_image
 
+
     def get_size_output_Unet_depth_validConvs(self, ilayer, size_input):
 
         size_output = size_input
@@ -166,7 +167,7 @@ class Unet3D_General(NeuralNetwork):
         # Pooling layer
         size_output = self.get_size_output_poolingLayer(size_output, self.size_pooling_layers[ilayer])
 
-        # Compute size_output of Unet of "depth-1" (Recurrent function)
+        # Compute size_output of Unet of 'depth-1' (Recurrent function)
         size_output = self.get_size_output_Unet_depth_validConvs(ilayer+1, size_output)
 
         # Upsampling Layer
@@ -178,6 +179,7 @@ class Unet3D_General(NeuralNetwork):
         # endfor
 
         return size_output
+
 
     def get_size_input_given_output_full_Unet(self, size_output):
 
@@ -214,6 +216,7 @@ class Unet3D_General(NeuralNetwork):
         elif self.type_padding=='same':
             return self.size_image
 
+
     def get_size_input_given_output_Unet_depth_validConvs(self, ilayer, size_output):
 
         size_input = size_output
@@ -229,7 +232,7 @@ class Unet3D_General(NeuralNetwork):
         # Pooling layer
         size_input = self.get_size_output_poolingLayer(size_input, self.size_pooling_layers[ilayer])
 
-        # Compute size_output of Unet of "depth-1" (Recurrent function)
+        # Compute size_output of Unet of 'depth-1' (Recurrent function)
         size_input = self.get_size_input_given_output_Unet_depth_validConvs(ilayer+1, size_input)
 
         # Upsampling Layer
@@ -242,6 +245,7 @@ class Unet3D_General(NeuralNetwork):
 
         return size_input
 
+
     def get_limits_cropImage_merge_downLayer_validConv(self, ilayer):
 
         # assume size of final upsampling layer
@@ -252,7 +256,7 @@ class Unet3D_General(NeuralNetwork):
         # Pooling layer
         size_input = self.get_size_output_poolingLayer(size_input, self.size_pooling_layers[ilayer])
 
-        # Compute size_input of Unet of "depth-1" (Recurrent function)
+        # Compute size_input of Unet of 'depth-1' (Recurrent function)
         size_input = self.get_size_input_given_output_Unet_depth_validConvs(ilayer+1, size_input)
 
         # Upsampling layer
@@ -319,7 +323,6 @@ class Unet3D_General(NeuralNetwork):
         elif self.type_padding=='same':
             # All Layers are correct for sure
             return True, 'everything good'
-
 
 
     def getModel(self):
@@ -417,17 +420,17 @@ class Unet3D_General(NeuralNetwork):
 
 # All Available Networks
 def DICTAVAILNETWORKS3D(size_image, option):
-    if   (option=="Unet3D"):
+    if   (option=='Unet3D'):
         return Unet3D_General(size_image, num_layers_depth=5)
-    elif (option=="Unet3D_Dropout"):
+    elif (option=='Unet3D_Dropout'):
         return Unet3D_General(size_image, num_layers_depth=5, isDropout=True)
-    elif (option=="Unet3D_Batchnorm"):
+    elif (option=='Unet3D_Batchnorm'):
         return Unet3D_General(size_image, num_layers_depth=5, isBatchNormalize=True)
-    elif (option=="Unet3D_Shallow"):
+    elif (option=='Unet3D_Shallow'):
         return Unet3D_General(size_image, num_layers_depth=3)
-    elif (option=="Unet3D_Shallow_Dropout"):
+    elif (option=='Unet3D_Shallow_Dropout'):
         return Unet3D_General(size_image, num_layers_depth=3, isDropout=True)
-    elif (option=="Unet3D_Shallow_Batchnorm"):
+    elif (option=='Unet3D_Shallow_Batchnorm'):
         return Unet3D_General(size_image, num_layers_depth=3, isBatchNormalize=True)
     else:
         return 0

@@ -255,52 +255,52 @@ class FalseNegativeRate(Metrics):
 
 # All Available Loss Functions and Metrics
 def DICTAVAILLOSSFUNS(option):
-    if   (option == "BinaryCrossEntropy"):
+    if   (option == 'BinaryCrossEntropy'):
         return BinaryCrossEntropy().loss
-    elif (option == "BinaryCrossEntropy_Masked"):
+    elif (option == 'BinaryCrossEntropy_Masked'):
         return BinaryCrossEntropy(isMasksExclude=True).loss
-    elif (option == "WeightedBinaryCrossEntropy"):
+    elif (option == 'WeightedBinaryCrossEntropy'):
         return WeightedBinaryCrossEntropy().loss
-    elif (option == "WeightedBinaryCrossEntropy_Masked"):
+    elif (option == 'WeightedBinaryCrossEntropy_Masked'):
         return WeightedBinaryCrossEntropy(isMasksExclude=True).loss
-    elif (option == "CategoricalCrossEntropy"):
+    elif (option == 'CategoricalCrossEntropy'):
         return 'categorical_crossentropy'
-    elif (option == "DiceCoefficient"):
+    elif (option == 'DiceCoefficient'):
         return DiceCoefficient().loss
-    elif (option == "DiceCoefficient_Masked"):
+    elif (option == 'DiceCoefficient_Masked'):
         return DiceCoefficient(isMasksExclude=True).loss
     else:
         return 0
 
 
 def DICTAVAILMETRICS(option, use_in_Keras=True, set_fun_name=False):
-    if   (option == "BinaryCrossEntropy"):
+    if   (option == 'BinaryCrossEntropy'):
         metrics = BinaryCrossEntropy()
-    elif (option == "BinaryCrossEntropy_Masked"):
+    elif (option == 'BinaryCrossEntropy_Masked'):
         metrics = BinaryCrossEntropy(isMasksExclude=True)
-    elif (option == "WeightedBinaryCrossEntropy"):
+    elif (option == 'WeightedBinaryCrossEntropy'):
         metrics = WeightedBinaryCrossEntropy()
-    elif (option == "WeightedBinaryCrossEntropy_Masked"):
+    elif (option == 'WeightedBinaryCrossEntropy_Masked'):
         metrics = WeightedBinaryCrossEntropy(isMasksExclude=True)
-    elif (option == "DiceCoefficient"):
+    elif (option == 'DiceCoefficient'):
         metrics = DiceCoefficient()
-    elif (option == "DiceCoefficient_Masked"):
+    elif (option == 'DiceCoefficient_Masked'):
         metrics = DiceCoefficient(isMasksExclude=True)
-    elif (option == "TruePositiveRate"):
+    elif (option == 'TruePositiveRate'):
         metrics = TruePositiveRate()
-    elif (option == "TruePositiveRate_Masked"):
+    elif (option == 'TruePositiveRate_Masked'):
         metrics = TruePositiveRate(isMasksExclude=True)
-    elif (option == "TrueNegativeRate"):
+    elif (option == 'TrueNegativeRate'):
         metrics = TrueNegativeRate()
-    elif (option == "TrueNegativeRate_Masked"):
+    elif (option == 'TrueNegativeRate_Masked'):
         metrics = TrueNegativeRate(isMasksExclude=True)
-    elif (option == "FalsePositiveRate"):
+    elif (option == 'FalsePositiveRate'):
         metrics = FalsePositiveRate()
-    elif (option == "FalsePositiveRate_Masked"):
+    elif (option == 'FalsePositiveRate_Masked'):
         metrics = FalsePositiveRate(isMasksExclude=True)
-    elif (option == "FalseNegativeRate"):
+    elif (option == 'FalseNegativeRate'):
         metrics = FalseNegativeRate()
-    elif (option == "FalseNegativeRate_Masked"):
+    elif (option == 'FalseNegativeRate_Masked'):
         metrics = FalseNegativeRate(isMasksExclude=True)
     else:
         return 0

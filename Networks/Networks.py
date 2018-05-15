@@ -347,21 +347,21 @@ class Unet3D_Shallow_Tailored(NeuralNetwork):
 
 # All Available Networks
 def DICTAVAILNETWORKS3D(size_image, option, num_classes_out=1):
-    if   (option=="Unet3D"):
+    if   (option=='Unet3D'):
         return Unet3D(size_image, num_classes_out)
-    elif (option=="Unet3D_Dropout"):
+    elif (option=='Unet3D_Dropout'):
         return Unet3D(size_image, num_classes_out, is_dropout=True)
-    elif (option=="Unet3D_Shallow"):
+    elif (option=='Unet3D_Shallow'):
         return Unet3D_Shallow(size_image)
-    elif (option=="Unet3D_Shallow_Dropout"):
+    elif (option=='Unet3D_Shallow_Dropout'):
         return Unet3D_Shallow(size_image, num_classes_out, is_dropout=True)
-    elif (option=="Unet3D_Tailored"):
+    elif (option=='Unet3D_Tailored'):
         return Unet3D_Tailored(size_image, num_classes_out)
-    elif (option=="Unet3D_Dropout_Tailored"):
+    elif (option=='Unet3D_Dropout_Tailored'):
         return Unet3D_Tailored(size_image, num_classes_out, is_dropout=True)
-    elif (option=="Unet3D_Shallow_Tailored"):
+    elif (option=='Unet3D_Shallow_Tailored'):
         return Unet3D_Shallow_Tailored(size_image, num_classes_out)
-    elif (option=="Unet3D_Shallow_Dropout_Tailored"):
+    elif (option=='Unet3D_Shallow_Dropout_Tailored'):
         return Unet3D_Shallow_Tailored(size_image, num_classes_out, is_dropout=True)
     else:
         return 0
