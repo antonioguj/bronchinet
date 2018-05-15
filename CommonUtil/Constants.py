@@ -28,9 +28,12 @@ IMAGES_WIDTH  = 240
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
 IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
 
+IMAGES_SIZE_OUT_NNET = (IMAGES_DEPTHZ/4, 6*IMAGES_HEIGHT/10, 6*IMAGES_WIDTH/10)
+
 FORMATIMAGEDATA   = np.int16
 FORMATMASKDATA    = np.int8
 FORMATPREDICTDATA = np.float32
+FORMATPROPDATA    = np.float32
 
 SHUFFLEIMAGES   = True
 NORMALIZEDATA   = False
@@ -78,7 +81,7 @@ NUM_EPOCHS  = 1000
 BATCH_SIZE  = 1
 IMODEL      = 'Unet3D_Tailored'
 IOPTIMIZER  = 'Adam'
-ILOSSFUN    = 'WeightedBinaryCrossEntropy_Masked'
+ILOSSFUN    = 'DiceCoefficient_Masked'
 #ILOSSFUN    = 'CategoricalCrossEntropy'
 LISTMETRICS =['BinaryCrossEntropy_Masked',
               'WeightedBinaryCrossEntropy_Masked',
@@ -111,7 +114,7 @@ USE_RESTARTMODEL = False
 
 RESTART_MODELFILE = 'lastEpoch'
 
-RESTART_ONLY_WEIGHTS = True
+RESTART_ONLY_WEIGHTS = False
 
 EPOCH_RESTART = 40
 # ******************** RESTART PARAMETERS ********************

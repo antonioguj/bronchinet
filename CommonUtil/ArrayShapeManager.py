@@ -80,10 +80,12 @@ class ArrayShapeManager(object):
 
     @staticmethod
     def get_limits_cropImage(size_image, size_outnnet):
-        if (size_image==size_outnnet):
-            return size_image
+        if (size_image == size_outnnet):
+            list_out_aux = [[0] + [s_i] for s_i in size_image]
         else:
-            return tuple([(s_i- s_o)/2, (s_i + s_o)/2] for (s_i, s_o) in zip(size_image, size_outnnet))
+            list_out_aux = [[(s_i - s_o) / 2] + [(s_i + s_o) / 2] for (s_i, s_o) in zip(size_image, size_outnnet)]
+        # flatten out list of lists and return tuple
+        return tuple(reduce(lambda el1, el2: el1 + el2, list_out_aux))
 
     def get_array_shaped_outNnet(self, yData):
         if (self.size_image==self.size_outnnet):
