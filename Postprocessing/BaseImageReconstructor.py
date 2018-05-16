@@ -30,14 +30,14 @@ class BaseImageReconstructor(object):
         else:
             return in_array_shape[-1]
 
-    def get_reconstructed_image_sample_array(self, image_sample_array):
+    def get_processed_image_sample_array(self, image_sample_array):
 
-        if self.get_num_channels_array(image_sample_array.shape) == 1:
+        if self.is_images_array_without_channels(image_sample_array.shape):
             return np.squeeze(image_sample_array, axis=-1)
         else:
-            return self.get_reconstructed_image_sample_multiclass(image_sample_array)
+            return self.get_processed_image_sample_multiclass(image_sample_array)
 
-    def get_reconstructed_image_sample_multiclass(self, image_sample_array):
+    def get_processed_image_sample_multiclass(self, image_sample_array):
 
         new_image_sample_array = np.ndarray(self.size_image_sample, dtype=image_sample_array.dtype)
 
@@ -65,3 +65,26 @@ class BaseImageReconstructor(object):
 
     def compute(self, predict_data):
         pass
+
+
+class BaseImageFilteredReconstructor(BaseImageReconstructor):
+
+    def __init__(self, size_image, filterImages_calculator):
+        self.filterImages_calculator = filterImages_calculator
+
+        super(BaseImageFilteredReconstructor, self).__init__(size_image)
+
+
+    def get_filtering_map_array(self):
+        return self.filterImages_calculator.get_prob_outnnet_array()
+
+    def get_filtered_image_sample_array(self, image_sample_array):
+
+        if self.filterImages_calculator:
+            return self.filterImages_calculator.get_image_array(image_sample_array)
+        else:
+            return image_sample_array
+
+    def get_processed_image_sample_array(self, image_sample_array):
+
+        return self.get_filtered_image_sample_array(super(BaseImageFilteredReconstructor, self).get_processed_image_sample_array(image_sample_array))

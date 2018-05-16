@@ -8,15 +8,16 @@
 # Last update: 09/02/2018
 ########################################################################################
 
+from Preprocessing.ProbabilityValidConvNnetOutput import *
 from Preprocessing.TransformationImages import *
 from Postprocessing.BaseImageReconstructor import *
 
 
-class TransformationReconstructorImages(BaseImageReconstructor):
+class TransformationReconstructorImages(BaseImageFilteredReconstructor):
 
-    def __init__(self, size_total_image, num_samples_total, transformImages_generator):
+    def __init__(self, size_image_sample, num_samples_total, transformImages_generator, size_outnnet_sample=None):
 
-        self.size_total_image  = size_total_image
+        self.size_image_sample = size_image_sample
         self.num_samples_total = num_samples_total
 
         self.transformImages_generator = transformImages_generator
@@ -25,14 +26,22 @@ class TransformationReconstructorImages(BaseImageReconstructor):
         # Inverse transformation must be the same ones as those applied to get predict data
         self.transformImages_generator.initialize_fixed_seed_0()
 
-        super(TransformationReconstructorImages, self).__init__(size_total_image)
+        if size_outnnet_sample and size_outnnet_sample != size_image_sample:
+            if len(size_image_sample)==2:
+                filterImages_calculator = ProbabilityValidConvNnetOutput2D(size_image_sample, size_outnnet_sample)
+            elif len(size_image_sample)==3:
+                filterImages_calculator = ProbabilityValidConvNnetOutput3D(size_image_sample, size_outnnet_sample)
+        else:
+            filterImages_calculator = None
+
+        super(TransformationReconstructorImages, self).__init__(size_image_sample, filterImages_calculator)
 
 
     def check_shape_predict_data(self, predict_data_shape):
 
-        return (len(predict_data_shape) == len(self.size_total_image) + 2) and \
+        return (len(predict_data_shape) == len(self.size_image_sample) + 2) and \
                (predict_data_shape[0] == self.num_samples_total) and \
-               (predict_data_shape[1:-2] != self.size_total_image)
+               (predict_data_shape[1:-2] != self.size_image_sample)
 
     def get_transformed_image_sample_array(self, image_sample_array):
 
@@ -44,12 +53,12 @@ class TransformationReconstructorImages(BaseImageReconstructor):
             message = "wrong shape of input predictions array..." % (predict_data.shape)
             CatchErrorException(message)
 
-        predict_full_array = np.zeros(self.size_total_image, dtype=FORMATPREDICTDATA)
+        predict_full_array = np.zeros(self.size_image_sample, dtype=FORMATPREDICTDATA)
 
         # Compute reconstructed image by computing the average of various transformation of patches
         #
         for index in range(self.num_samples_total):
-            predict_full_array += self.get_reconstructed_image_sample_array(self.get_transformed_image_sample_array(predict_data[index]))
+            predict_full_array += self.get_processed_image_sample_array(self.get_transformed_image_sample_array(predict_data[index]))
         # endfor
 
         # compute average over various transformations

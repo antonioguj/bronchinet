@@ -15,7 +15,7 @@ from Postprocessing.SlidingWindowReconstructorImages import *
 
 class SlidingWindowPlusTransformReconstructorImages(SlidingWindowReconstructorImages):
 
-    def __init__(self, size_image_sample, size_total_image, num_samples_total, transformImages_generator, num_trans_per_sample):
+    def __init__(self, size_image_sample, size_total_image, num_samples_total, transformImages_generator, num_trans_per_sample, filterImages_calculator=None):
 
         self.transformImages_generator = transformImages_generator
 
@@ -25,7 +25,7 @@ class SlidingWindowPlusTransformReconstructorImages(SlidingWindowReconstructorIm
 
         self.num_trans_per_sample = num_trans_per_sample
 
-        super(SlidingWindowPlusTransformReconstructorImages, self).__init__(size_image_sample, size_total_image, num_samples_total)
+        super(SlidingWindowPlusTransformReconstructorImages, self).__init__(size_image_sample, size_total_image, num_samples_total, filterImages_calculator)
 
         # take into account average over various transformations
         self.factor_overlap_images_samples_per_voxel = np.divide(self.factor_overlap_images_samples_per_voxel,
@@ -55,7 +55,7 @@ class SlidingWindowPlusTransformReconstructorImages(SlidingWindowReconstructorIm
 
         for i in range(self.num_trans_per_sample):
             for index in range(self.num_samples_total):
-                self.adding_reconstructed_image_sample_array(index, self.get_reconstructed_image_sample_array(self.get_transformed_image_sample_array(predict_data[i][index])))
+                self.adding_reconstructed_image_sample_array(index, self.get_processed_image_sample_array(self.get_transformed_image_sample_array(predict_data[i][index])))
             # endfor
         #endfor
 
@@ -65,13 +65,18 @@ class SlidingWindowPlusTransformReconstructorImages(SlidingWindowReconstructorIm
 
 class SlidingWindowPlusTransformReconstructorImages2D(SlidingWindowPlusTransformReconstructorImages):
 
-    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, prop_overlap):
+    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, prop_overlap, size_outnnet_sample=None):
 
         self.slidingWindow_generator = SlidingWindowImages2D(size_image_sample, prop_overlap, size_total=size_total_image)
 
         num_samples_total = self.slidingWindow_generator.get_num_images()
 
-        super(SlidingWindowPlusTransformReconstructorImages2D, self).__init__(size_image_sample, size_total_image, num_samples_total, transformImages_generator, num_trans_per_sample)
+        if size_outnnet_sample and size_outnnet_sample != size_image_sample:
+            filterImages_calculator = ProbabilityValidConvNnetOutput2D(size_image_sample, size_outnnet_sample)
+        else:
+            filterImages_calculator = None
+
+        super(SlidingWindowPlusTransformReconstructorImages2D, self).__init__(size_image_sample, size_total_image, num_samples_total, transformImages_generator, num_trans_per_sample, filterImages_calculator)
 
 
     def adding_reconstructed_image_sample_array(self, index, image_sample_array):
@@ -84,13 +89,18 @@ class SlidingWindowPlusTransformReconstructorImages2D(SlidingWindowPlusTransform
 
 class SlidingWindowPlusTransformReconstructorImages3D(SlidingWindowPlusTransformReconstructorImages):
 
-    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, prop_overlap):
+    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, prop_overlap, size_outnnet_sample=None):
 
         self.slidingWindow_generator = SlidingWindowImages3D(size_image_sample, prop_overlap, size_total=size_total_image)
 
         num_samples_total = self.slidingWindow_generator.get_num_images()
 
-        super(SlidingWindowPlusTransformReconstructorImages3D, self).__init__(size_image_sample, size_total_image, num_samples_total, transformImages_generator, num_trans_per_sample)
+        if size_outnnet_sample and size_outnnet_sample != size_image_sample:
+            filterImages_calculator = ProbabilityValidConvNnetOutput3D(size_image_sample, size_outnnet_sample)
+        else:
+            filterImages_calculator = None
+
+        super(SlidingWindowPlusTransformReconstructorImages3D, self).__init__(size_image_sample, size_total_image, num_samples_total, transformImages_generator, num_trans_per_sample, filterImages_calculator)
 
 
     def adding_reconstructed_image_sample_array(self, index, image_sample_array):
@@ -103,10 +113,10 @@ class SlidingWindowPlusTransformReconstructorImages3D(SlidingWindowPlusTransform
 
 class SlicingPlusTransformReconstructorImages2D(SlidingWindowPlusTransformReconstructorImages2D):
 
-    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample):
-        super(SlicingPlusTransformReconstructorImages2D, self).__init__(size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, (0.0, 0.0))
+    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, size_outnnet_sample=None):
+        super(SlicingPlusTransformReconstructorImages2D, self).__init__(size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, (0.0, 0.0), size_outnnet_sample)
 
 class SlicingPlusTransformReconstructorImages3D(SlidingWindowPlusTransformReconstructorImages3D):
 
-    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample):
-        super(SlicingPlusTransformReconstructorImages3D, self).__init__(size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, (0.0, 0.0, 0.0))
+    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, size_outnnet_sample=None):
+        super(SlicingPlusTransformReconstructorImages3D, self).__init__(size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, (0.0, 0.0, 0.0), size_outnnet_sample)
