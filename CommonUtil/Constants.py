@@ -12,14 +12,14 @@ import numpy as np
 np.random.seed(2017)
 
 
-DATADIR = '/home/antonio/testSegmentation/Data/LUVAR/'
-BASEDIR = '/home/antonio/testSegmentation/Tests_LUVAR/'
+DATADIR = '/home/antonio/Files_Project/testSegmentation/Data/LUVAR/'
+BASEDIR = '/home/antonio/Files_Project/testSegmentation/Tests_LUVAR/'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
-IMAGES_DEPTHZ = 76
+IMAGES_DEPTHZ = 104
 IMAGES_HEIGHT = 352
 #IMAGES_HEIGHT = 256
 IMAGES_WIDTH  = 240
@@ -70,7 +70,7 @@ CHECKBALANCECLASSES = True
 
 CREATEIMAGESBATCHES = False
 
-PROP_OVERLAP_Z_X_Y = (0.75, 0.0, 0.0)
+PROP_OVERLAP_Z_X_Y = (0.5, 0.0, 0.0)
 
 SAVEVISUALPROCESSDATA = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
@@ -81,7 +81,7 @@ NUM_EPOCHS  = 1000
 BATCH_SIZE  = 1
 IMODEL      = 'Unet3D_Tailored'
 IOPTIMIZER  = 'Adam'
-ILOSSFUN    = 'DiceCoefficient_Masked'
+ILOSSFUN    = 'Combine_DiceCoefficient_FalseNegativeRate_Masked'
 #ILOSSFUN    = 'CategoricalCrossEntropy'
 LISTMETRICS =['BinaryCrossEntropy_Masked',
               'WeightedBinaryCrossEntropy_Masked',
@@ -96,6 +96,8 @@ LEARN_RATE  = 1.0e-05
 SLIDINGWINDOWIMAGES = True
 
 TRANSFORMATIONIMAGES = True
+
+ELASTICDEFORMATIONIMAGES = False
 
 ROTATION_XY_RANGE = 10
 ROTATION_XZ_RANGE = 5
@@ -126,6 +128,11 @@ PREDICTION_MODELFILE = 'lastEpoch'
 PREDICTACCURACYMETRICS = 'DiceCoefficient_Masked'
 #PREDICTACCURACYMETRICS = 'DiceCoefficient'
 
+POSTPROCESSIMAGEMETRICS = ['DiceCoefficient',
+                           'TruePositiveRate',
+                           'TrueNegativeRate',
+                           'FalsePositiveRate',
+                           'FalseNegativeRate']
 THRESHOLDOUTIMAGES = False
 
 THRESHOLDVALUE = 0.5
