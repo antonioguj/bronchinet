@@ -93,7 +93,7 @@ class SlidingWindowReconstructorImages(BaseImageFilteredReconstructor):
         # endfor
 
         # multiply by factor to account for multiple overlaps of images samples
-        return np.multiply(predict_full_array, self.factor_overlap_images_samples_per_voxel)
+        return np.multiply(predict_full_array, self.factor_num_overlap_images_samples_per_voxel)
 
 
 class SlidingWindowReconstructorImages2D(SlidingWindowReconstructorImages):

@@ -32,7 +32,10 @@ class BaseImageReconstructor(object):
 
     def get_processed_image_sample_array(self, image_sample_array):
 
-        if self.is_images_array_without_channels(image_sample_array.shape):
+        num_channels_array = self.get_num_channels_array(image_sample_array.shape)
+        if not num_channels_array:
+            return image_sample_array
+        elif num_channels_array==1:
             return np.squeeze(image_sample_array, axis=-1)
         else:
             return self.get_processed_image_sample_multiclass(image_sample_array)
