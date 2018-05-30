@@ -117,18 +117,30 @@ for (key, data) in data_fields_lossHistory_files.iteritems():
         plt.plot(epochs[0], data[0][0], color='b', label='train')
         plt.plot(epochs[0], data[0][1], color='r', label='valid')
 
+        plt.xlabel('epoch')
+        plt.ylabel(str(key))
+        plt.legend(loc='best')
+        plt.show()
     else:
         cmap = plt.get_cmap('rainbow')
         colors = [ cmap(float(i)/(num_files_plot_data-1)) for i in range(num_files_plot_data) ]
 
+        fig, axs = plt.subplots(1, 2, figsize=(15, 5))
+
         for i in range(num_files_plot_data):
             # skip files that do not contain this data
             if data[i]:
-                plt.plot(epochs[i], data[i][0], color=colors[i], label='train_%i'%(i))
-                plt.plot(epochs[i], data[i][1], color=colors[i], linestyle='--', label='valid_%i'%(i))
+                axs[0].plot(epochs[i], data[i][0], color=colors[i], label='train_%i'%(i))
+                axs[1].plot(epochs[i], data[i][1], color=colors[i], label='valid_%i'%(i))
         #endfor
 
-    plt.xlabel('epoch')
-    plt.ylabel(str(key))
-    plt.legend(loc='best')
-    plt.show()
+        axs[0].set_title('Training Loss')
+        axs[0].set_xlabel('epoch')
+        axs[0].set_ylabel('loss')
+        axs[0].legend(loc='best')
+        axs[1].set_title('Validation Loss')
+        axs[1].set_xlabel('epoch')
+        axs[1].set_ylabel('loss')
+        axs[1].legend(loc='best')
+        plt.show()
+#endfor

@@ -109,28 +109,18 @@ class ResultsFilesManager(object):
         return max(list_outfiles_epochs)
 
 
-def main(args):
 
-    resultsFilesManager = ResultsFilesManager(args.resultsdir)
+if( len(sys.argv)<2 ):
+    print("ERROR. Please input the directory to clean... EXIT")
+    sys.exit(0)
 
-    if USE_RESTARTMODEL:
-        resultsFilesManager.completeLossHistoryRestart()
+cleanresultsdir = sys.argv[-1]
 
-    resultsFilesManager.cleanUpResultsDir_EndTests()
+print("Clean the directory: '%s'..." %(cleanresultsdir))
 
+resultsFilesManager = ResultsFilesManager(cleanresultsdir)
 
-if __name__ == "__main__":
+if USE_RESTARTMODEL:
+    resultsFilesManager.completeLossHistoryRestart()
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--resultsdir')
-    args = parser.parse_args()
-
-    print("Print input arguments...")
-    for key, value in vars(args).iteritems():
-        print("\'%s\' = %s" %(key, value))
-
-    if not args.resultsdir:
-        message = "\'ResultsDir\' not specified"
-        CatchErrorException(message)
-
-    main(args)
+resultsFilesManager.cleanUpResultsDir_EndTests()

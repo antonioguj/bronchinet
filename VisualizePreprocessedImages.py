@@ -13,6 +13,7 @@ from CommonUtil.ErrorMessages import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import *
+from Preprocessing.ElasticDeformationImages import *
 from Preprocessing.SlidingWindowImages import *
 from Preprocessing.SlidingWindowPlusTransformImages import *
 from Preprocessing.TransformationImages import *
@@ -44,18 +45,21 @@ def main(args):
 
 
     # tests Transformation parameters
-    rotation_XY_range = 20
-    rotation_XZ_range = 10
-    rotation_YZ_range = 10
-    width_shift_range = 50
-    height_shift_range = 70
-    depth_shift_range = 15
-    shear_XY_range = 10
-    shear_XZ_range = 5
-    shear_YZ_range = 5
-    horizontal_flip = True
-    vertical_flip = True
-    depthZ_flip = True
+    rotation_XY_range = 0
+    rotation_XZ_range = 0
+    rotation_YZ_range = 0
+    width_shift_range = 0
+    height_shift_range = 0
+    depth_shift_range = 0
+    shear_XY_range = 0
+    shear_XZ_range = 0
+    shear_YZ_range = 0
+    horizontal_flip = False
+    vertical_flip = False
+    depthZ_flip = False
+
+    elastic_deformation = True
+    type_elastic_deformation = 'gridwise'
 
 
     for i, (imagesFile, masksFile) in enumerate(zip(listImagesFiles, listMasksFiles)):
@@ -65,30 +69,41 @@ def main(args):
         images_array = FileReader.getImageArray(imagesFile)
         masks_array  = FileReader.getImageArray(masksFile)
 
+        transform_images_array = images_array
+        transform_masks_array  = masks_array
 
-        if (args.transformationImages):
-            print("compute random transformation of images...")
 
-            transformationImages = TransformationImages3D(IMAGES_DIMS_Z_X_Y,
-                                                          rotation_XY_range=rotation_XY_range,
-                                                          rotation_XZ_range=rotation_XZ_range,
-                                                          rotation_YZ_range=rotation_YZ_range,
-                                                          width_shift_range=width_shift_range,
-                                                          height_shift_range=height_shift_range,
-                                                          depth_shift_range=depth_shift_range,
-                                                          shear_XY_range=shear_XY_range,
-                                                          shear_XZ_range=shear_XZ_range,
-                                                          shear_YZ_range=shear_YZ_range,
-                                                          horizontal_flip=horizontal_flip,
-                                                          vertical_flip=vertical_flip,
-                                                          depthZ_flip=depthZ_flip)
+        if (elastic_deformation):
+            print("compute elastic deformation of images...")
+
+            if (type_elastic_deformation == 'pixelwise'):
+                elasticDeformationImages = ElasticDeformationPixelwiseImages3D(IMAGES_DIMS_Z_X_Y)
+            else: #type_elastic_deformation =='gridwise'
+                elasticDeformationImages = ElasticDeformationGridwiseImages3D(IMAGES_DIMS_Z_X_Y)
 
             # Important! set seed to apply same random transformation to images and masks
-            transform_images_array = transformationImages.get_image_array(images_array, seed=i)
-            transform_masks_array  = transformationImages.get_image_array(masks_array,  seed=i)
-        else:
-            transform_images_array = images_array
-            transform_masks_array  = masks_array
+            transform_images_array = elasticDeformationImages.get_image_array(transform_images_array, seed=i)
+            transform_masks_array  = elasticDeformationImages.get_image_array(transform_masks_array,  seed=i)
+
+
+        print("compute random transformation of images...")
+        transformationImages = TransformationImages3D(IMAGES_DIMS_Z_X_Y,
+                                                      rotation_XY_range=rotation_XY_range,
+                                                      rotation_XZ_range=rotation_XZ_range,
+                                                      rotation_YZ_range=rotation_YZ_range,
+                                                      width_shift_range=width_shift_range,
+                                                      height_shift_range=height_shift_range,
+                                                      depth_shift_range=depth_shift_range,
+                                                      shear_XY_range=shear_XY_range,
+                                                      shear_XZ_range=shear_XZ_range,
+                                                      shear_YZ_range=shear_YZ_range,
+                                                      horizontal_flip=horizontal_flip,
+                                                      vertical_flip=vertical_flip,
+                                                      depthZ_flip=depthZ_flip)
+
+        # Important! set seed to apply same random transformation to images and masks
+        transform_images_array = transformationImages.get_image_array(transform_images_array, seed=i)
+        transform_masks_array  = transformationImages.get_image_array(transform_masks_array,  seed=i)
 
 
         FileReader.writeImageArray(nameOutImagesFiles(imagesFile), transform_images_array)
@@ -100,7 +115,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
-    parser.add_argument('--transformationImages', type=str2bool, default=True)
     args = parser.parse_args()
 
     print("Print input arguments...")

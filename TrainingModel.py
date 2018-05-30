@@ -46,7 +46,7 @@ def main(args):
         use_validation_data = True
 
 
-
+    
     # BUILDING MODEL
     # ----------------------------------------------
     print("_" * 30)
@@ -66,7 +66,7 @@ def main(args):
 
         print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
-        train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun)] + [DICTAVAILMETRICS(imetrics, set_fun_name=True) for imetrics in args.listmetrics]
+        train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun)] + [DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in args.listmetrics]
         custom_objects = dict(map(lambda fun: (fun.__name__, fun), train_model_funs))
 
         model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)
@@ -81,7 +81,7 @@ def main(args):
         # Compile model
         model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(args.optimizer, args.learn_rate),
                       loss     = DICTAVAILLOSSFUNS(args.lossfun),
-                      metrics  =[DICTAVAILMETRICS(imetrics, set_fun_name=True) for imetrics in args.listmetrics])
+                      metrics  =[DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in args.listmetrics])
 
         if args.use_restartModel and args.restart_only_weights:
             print("Loading saved weights and restarting...")
@@ -95,7 +95,7 @@ def main(args):
 
     # Callbacks:
     callbacks_list = []
-    callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICS(imetrics, set_fun_name=True) for imetrics in LISTMETRICS]))
+    callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in LISTMETRICS]))
 
     filename = ModelsPath + '/model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5'
     callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))

@@ -25,8 +25,8 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
     TestingDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameDataPath(args.typedata))
-    ModelsPath      = workDirsManager.getNameExistPath(args.basedir, 'Models')
-    PredictDataPath = workDirsManager.getNameNewPath(args.basedir, 'Predictions')
+    ModelsPath      = workDirsManager.getNameExistPath(args.basedir, args.modelsdir)
+    PredictDataPath = workDirsManager.getNameNewPath(args.basedir, args.predictionsdir)
 
     # Get the file list:
     nameImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
@@ -45,12 +45,12 @@ def main(args):
     # Loading Saved Model
     modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.prediction_modelFile))
 
-    train_model_funs = [DICTAVAILLOSSFUNS(ILOSSFUN)] + [DICTAVAILMETRICS(imetrics, set_fun_name=True) for imetrics in LISTMETRICS]
+    train_model_funs = [DICTAVAILLOSSFUNS(ILOSSFUN)] + [DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in LISTMETRICS]
     custom_objects = dict(map(lambda fun: (fun.__name__, fun), train_model_funs))
 
     model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)
 
-    computePredictAccuracy = DICTAVAILMETRICS(args.predictAccuracyMetrics, use_in_Keras=False)
+    computePredictAccuracy = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics, use_in_Keras=False)
 
 
     print("-" * 30)
@@ -83,7 +83,7 @@ def main(args):
         predict_data = model.predict(test_xData, batch_size=1)
 
         # Compute test accuracy
-        accuracy = computePredictAccuracy(test_yData, predict_data)
+        accuracy = computePredictAccuracy(test_yData.astype(FORMATPREDICTDATA), predict_data)
 
         print("Computed accuracy: %s..."%(accuracy))
 
@@ -93,10 +93,9 @@ def main(args):
 
         if (args.slidingWindowImages or args.transformationImages):
 
-            images_reconstructor = getImagesReconstructor3D(args.slidingWindowImages, predictMasks_array_shape, args.prop_overlap_Z_X_Y, args.transformationImages)
+            images_reconstructor = getImagesReconstructor3D(args.slidingWindowImages, predictMasks_array_shape, args.prop_overlap_Z_X_Y) #args.transformationImages)
         else:
-            images_reconstructor = SlicingReconstructorImages3D(IMAGES_DIMS_Z_X_Y,
-                                                                predictMasks_array_shape)
+            images_reconstructor = SlicingReconstructorImages3D(IMAGES_DIMS_Z_X_Y, predictMasks_array_shape)
 
         predictMasks_array = images_reconstructor.compute(predict_data)
 
@@ -123,9 +122,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--typedata', default=TYPEDATA)
+    parser.add_argument('--modelsdir', default='Models')
+    parser.add_argument('--predictionsdir', default='Predictions')
+    parser.add_argument('--prediction_modelFile', default=PREDICTION_MODELFILE)
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
-    parser.add_argument('--prediction_modelFile', default=PREDICTION_MODELFILE)
     parser.add_argument('--predictAccuracyMetrics', default=PREDICTACCURACYMETRICS)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
