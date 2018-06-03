@@ -319,7 +319,7 @@ class FalseNegativeRate(Metrics):
 
 # Combination of Two Metrics
 class CombineLossTwoMetrics(Metrics):
-    weights_metrics = [1.0, 10.0]
+    weights_metrics = [1.0, 3.0]
 
     def __init__(self, metrics1, metrics2, isMasksExclude=False):
         super(CombineLossTwoMetrics, self).__init__(isMasksExclude)
