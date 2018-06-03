@@ -84,7 +84,7 @@ class BaseImageFilteredReconstructor(BaseImageReconstructor):
     def get_filtered_image_sample_array(self, image_sample_array):
 
         if self.filterImages_calculator:
-            return self.filterImages_calculator.get_image_array(image_sample_array)
+            return self.filterImages_calculator.get_images_array(image_sample_array)
         else:
             return image_sample_array
 
