@@ -42,7 +42,7 @@ class KerasTrainingBatchDataGenerator(image.Iterator):
         self.list_pairIndexes_samples = []
         for ifile, xData_array in enumerate(self.list_xData_array):
 
-            self.images_generator.complete_init_data(xData_array.shape[0:3])
+            self.images_generator.complete_init_data(xData_array.shape)
 
             num_samples_file = self.images_generator.get_num_images()
 
@@ -81,10 +81,11 @@ class KerasTrainingBatchDataGenerator(image.Iterator):
         for i, index in enumerate(indexes_batch):
             (index_file, index_sample_file) = self.list_pairIndexes_samples[index]
 
-            self.images_generator.complete_init_data(self.list_xData_array[index_file].shape[0:3])
+            self.images_generator.complete_init_data(self.list_xData_array[index_file].shape)
 
-            xData_elem = self.images_generator.get_image_array(self.list_xData_array[index_file], index_sample_file)
-            yData_elem = self.images_generator.get_image_array(self.list_yData_array[index_file], index_sample_file)
+            (xData_elem, yData_elem) = self.images_generator.get_images_array(self.list_xData_array[index_file],
+                                                                              index=index_sample_file,
+                                                                              masks_array=self.list_yData_array[index_file])
 
             out_xData_array[i] = self.array_shape_manager.get_xData_array_reshaped(xData_elem)
             out_yData_array[i] = self.array_shape_manager.get_yData_array_reshaped(yData_elem)
