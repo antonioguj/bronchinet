@@ -111,15 +111,13 @@ def main(args):
 
                 slidingWindowImagesGenerator = SlidingWindowImages3D(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y, images_array.shape)
 
-                images_array = slidingWindowImagesGenerator.compute_images_array_all(images_array)
-                masks_array  = slidingWindowImagesGenerator.compute_images_array_all(masks_array)
+                (images_array, masks_array) = slidingWindowImagesGenerator.compute_images_array_all(images_array, masks_array=masks_array)
 
                 print("Generate batches images by Sliding-window: size: %s; Overlap: %s. Final dimensions: %s..." %(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y, images_array.shape))
             else:
                 slicingImagesGenerator = SlicingImages3D(IMAGES_DIMS_Z_X_Y, images_array.shape)
 
-                images_array = slicingImagesGenerator.compute_images_array_all(images_array)
-                masks_array  = slicingImagesGenerator.compute_images_array_all(masks_array)
+                (images_array, masks_array) = slicingImagesGenerator.compute_images_array_all(images_array, masks_array=masks_array)
 
                 print("Generate batches images by Slicing volumes: size: %s. Final dimensions: %s..." %(IMAGES_DIMS_Z_X_Y, images_array.shape))
 
@@ -136,8 +134,7 @@ def main(args):
                                                                   vertical_flip=VERTICAL_FLIP,
                                                                   depthZ_flip=DEPTHZ_FLIP)
 
-                images_array = transformImagesGenerator.compute_images_array_all(images_array)
-                masks_array  = transformImagesGenerator.compute_images_array_all(masks_array)
+                (images_array, masks_array) = transformImagesGenerator.compute_images_array_all(images_array, masks_array=masks_array)
 
                 print("Generate random 3D transformations of images: size: %s. Final dimensions: %s..." %(IMAGES_DIMS_Z_X_Y, images_array.shape))
 

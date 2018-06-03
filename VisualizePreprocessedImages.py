@@ -82,8 +82,7 @@ def main(args):
                 elasticDeformationImages = ElasticDeformationGridwiseImages3D(IMAGES_DIMS_Z_X_Y)
 
             # Important! set seed to apply same random transformation to images and masks
-            transform_images_array = elasticDeformationImages.get_image_array(transform_images_array, seed=i)
-            transform_masks_array  = elasticDeformationImages.get_image_array(transform_masks_array,  seed=i)
+            (transform_images_array, transform_masks_array) = elasticDeformationImages.get_images_array(transform_images_array, masks_array=transform_masks_array)
 
 
         print("compute random transformation of images...")
@@ -102,8 +101,7 @@ def main(args):
                                                       depthZ_flip=depthZ_flip)
 
         # Important! set seed to apply same random transformation to images and masks
-        transform_images_array = transformationImages.get_image_array(transform_images_array, seed=i)
-        transform_masks_array  = transformationImages.get_image_array(transform_masks_array,  seed=i)
+        (transform_images_array, transform_masks_array) = transformationImages.get_images_array(transform_images_array, masks_array=transform_masks_array)
 
 
         FileReader.writeImageArray(nameOutImagesFiles(imagesFile), transform_images_array)

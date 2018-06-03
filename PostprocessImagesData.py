@@ -53,7 +53,7 @@ def main(args):
         listAddMasksFiles = findFilesDir(AddMasksPath, nameAddMasksFiles)
 
 
-    listFuns_computeAccuracy = {imetrics:DICTAVAILMETRICS(imetrics, use_in_Keras=False) for imetrics in POSTPROCESSIMAGEMETRICS}
+    listFuns_computeAccuracy = {imetrics:DICTAVAILMETRICFUNS(imetrics, use_in_Keras=False) for imetrics in POSTPROCESSIMAGEMETRICS}
 
 
     for i, predictionsFile in enumerate(listPredictionsFiles):

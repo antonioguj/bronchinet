@@ -134,13 +134,11 @@ for (key, data) in data_fields_lossHistory_files.iteritems():
                 axs[1].plot(epochs[i], data[i][1], color=colors[i], label='valid_%i'%(i))
         #endfor
 
-        axs[0].set_title('Training Loss')
         axs[0].set_xlabel('epoch')
-        axs[0].set_ylabel('loss')
+        axs[0].set_ylabel(str(key))
         axs[0].legend(loc='best')
-        axs[1].set_title('Validation Loss')
         axs[1].set_xlabel('epoch')
-        axs[1].set_ylabel('loss')
+        axs[1].set_ylabel(str(key))
         axs[1].legend(loc='best')
         plt.show()
 #endfor
