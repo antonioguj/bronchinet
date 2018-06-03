@@ -24,10 +24,10 @@ class SlidingWindowPlusTransformImages(BaseImageGenerator):
         super(SlidingWindowPlusTransformImages, self).__init__(slidingWindow_generator.size_image)
 
 
-    def complete_init_data(self, size_total):
+    def complete_init_data(self, in_array_shape):
 
-        self.slidingWindow_generator  .complete_init_data(size_total)
-        self.transformImages_generator.complete_init_data(size_total)
+        self.slidingWindow_generator  .complete_init_data(in_array_shape)
+        self.transformImages_generator.complete_init_data(in_array_shape)
 
     def get_mod_seed(self, seed):
         if self.use_seed_transform:
@@ -45,23 +45,43 @@ class SlidingWindowPlusTransformImages(BaseImageGenerator):
         return self.transformImages_generator.get_shape_out_array(self.slidingWindow_generator.get_shape_out_array(in_array_shape))
 
 
-    def get_image_array(self, images_array, index):
+    def get_images_array(self, images_array, index, masks_array=None, seed=None):
 
-        return self.transformImages_generator.get_image_array(self.slidingWindow_generator.get_image_array(images_array, index), seed=self.get_mod_seed(index))
+        if masks_array is None:
+            out_images_array = self.slidingWindow_generator.get_images_array(images_array, index)
+            out_images_array = self.transformImages_generator.get_images_array(out_images_array, seed=seed)
 
-    def compute_images_array_all(self, images_array, seed_0=None):
-        if seed_0:
-            self.transformImages_generator.update_fixed_seed_0(seed_0)
+            return out_images_array
+        else:
+            (out_images_array, out_masks_array) = self.slidingWindow_generator.get_images_array(images_array, index, masks_array=masks_array)
+            (out_images_array, out_masks_array) = self.transformImages_generator.get_images_array(out_images_array, masks_array=out_masks_array, seed=seed)
+
+            return (out_images_array, out_masks_array)
+
+    def compute_images_array_all(self, images_array,  masks_array=None, seed_0=None):
 
         out_array_shape  = self.get_shape_out_array(images_array.shape)
         out_images_array = np.ndarray(out_array_shape, dtype=images_array.dtype)
 
-        num_images = self.get_num_images()
-        for index in range(num_images):
-            out_images_array[index] = self.get_image_array(images_array, index)
-        #endfor
+        if masks_array is None:
+            num_images = self.get_num_images()
+            for index in range(num_images):
+                seed = self.get_seed_index_image(index, seed_0)
+                out_images_array[index] = self.get_images_array(images_array, index, seed=seed)
+            #endfor
 
-        return out_images_array
+            return out_images_array
+        else:
+            out_array_shape = self.get_shape_out_array(masks_array.shape)
+            out_masks_array = np.ndarray(out_array_shape, dtype=masks_array.dtype)
+
+            num_images = self.get_num_images()
+            for index in range(num_images):
+                seed = self.get_seed_index_image(index, seed_0)
+                (out_images_array[index], out_masks_array[index]) = self.get_images_array(images_array, index, masks_array=masks_array, seed=seed)
+            #endfor
+
+            return (out_images_array, out_masks_array)
 
 
 class SlidingWindowPlusTransformImages2D(SlidingWindowPlusTransformImages):

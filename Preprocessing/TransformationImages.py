@@ -28,10 +28,10 @@ class TransformationImages(BaseImageGenerator):
 
         super(TransformationImages, self).__init__(size_image)
 
-
-    def complete_init_data(self, size_total):
+    def complete_init_data(self, in_array_shape):
         if self.is_update_fixed_seed_0:
             self.update_fixed_seed_0()
+        self.num_images = in_array_shape[0]
 
     def initialize_fixed_seed_0(self):
         self.fixed_seed_0 = self.fixed_seed_0_class
@@ -57,7 +57,7 @@ class TransformationImages(BaseImageGenerator):
             return seed_0
 
     def get_num_images(self):
-        return 1
+        return self.num_images
 
     def get_shape_out_array(self, in_array_shape):
         num_images   = in_array_shape[0]
@@ -68,37 +68,106 @@ class TransformationImages(BaseImageGenerator):
             return [num_images] + list(self.size_image)
 
 
-    def get_transformed_image(self, images_array, seed=None):
+    def get_transformed_image(self, images_array, masks_array=None, seed=None):
         pass
 
-    def get_inverse_transformed_image(self, images_array, seed=None):
+    def get_images_array(self, images_array, index=None, masks_array=None, seed=None):
+
+        seed = self.get_mod_seed(seed)
+
+        if self.is_images_array_without_channels(images_array.shape):
+            images_array = np.expand_dims(images_array, axis=-1)
+            is_reshape_images_array = True
+        else:
+            is_reshape_images_array = False
+
+        if masks_array is not None:
+            if self.is_images_array_without_channels(masks_array.shape):
+                masks_array = np.expand_dims(masks_array, axis=-1)
+                is_reshape_masks_array = True
+            else:
+                is_reshape_masks_array = False
+
+        if masks_array is None:
+            out_images_array = self.get_transformed_image(images_array, seed=seed)
+
+            if is_reshape_images_array:
+                out_images_array = np.squeeze(out_images_array, axis=-1)
+
+            return out_images_array
+        else:
+            (out_images_array, out_masks_array) = self.get_transformed_image(images_array, masks_array=masks_array, seed=seed)
+
+            if is_reshape_images_array:
+                out_images_array = np.squeeze(out_images_array, axis=-1)
+            if is_reshape_masks_array:
+                out_masks_array = np.squeeze(out_masks_array, axis=-1)
+
+            return (out_images_array, out_masks_array)
+
+
+    def get_inverse_transformed_image(self, images_array, masks_array=None, seed=None):
         pass
 
-    def get_image_array(self, images_array, seed=None):
+    def get_inverse_image_array(self, images_array, index=None, masks_array=None, seed=None):
+
+        seed = self.get_mod_seed(seed)
 
         if self.is_images_array_without_channels(images_array.shape):
-            return np.squeeze(self.get_transformed_image(np.expand_dims(images_array, axis=-1), seed=self.get_mod_seed(seed)), axis=-1)
+            images_array = np.expand_dims(images_array, axis=-1)
+            is_reshape_images_array = True
         else:
-            return self.get_transformed_image(images_array, seed=self.get_mod_seed(seed))
+            is_reshape_images_array = False
 
-    def get_inverse_image_array(self, images_array, seed=None):
+        if masks_array is not None:
+            if self.is_images_array_without_channels(masks_array.shape):
+                masks_array = np.expand_dims(masks_array, axis=-1)
+                is_reshape_masks_array = True
+            else:
+                is_reshape_masks_array = False
 
-        if self.is_images_array_without_channels(images_array.shape):
-            return np.squeeze(self.get_inverse_transformed_image(np.expand_dims(images_array, axis=-1), seed=self.get_mod_seed(seed)), axis=-1)
+        if masks_array is None:
+            out_images_array = self.get_inverse_transformed_image(images_array, seed=seed)
+
+            if is_reshape_images_array:
+                out_images_array = np.squeeze(out_images_array, axis=-1)
+
+            return out_images_array
         else:
-            return self.get_inverse_transformed_image(images_array, seed=self.get_mod_seed(seed))
+            (out_images_array, out_masks_array) = self.get_inverse_transformed_image(images_array, masks_array=masks_array, seed=seed)
 
-    def compute_images_array_all(self, images_array, seed_0=None):
+            if is_reshape_images_array:
+                out_images_array = np.squeeze(out_images_array, axis=-1)
+            if is_reshape_masks_array:
+                out_masks_array = np.squeeze(out_masks_array, axis=-1)
+
+            return (out_images_array, out_masks_array)
+
+
+    def compute_images_array_all(self, images_array, masks_array=None, seed_0=None):
 
         out_array_shape  = self.get_shape_out_array(images_array.shape)
         out_images_array = np.ndarray(out_array_shape, dtype=images_array.dtype)
 
-        num_images = images_array.shape[0]
-        for index in range(num_images):
-            out_images_array[index] = self.get_image_array(images_array[index], seed=self.get_seed_index_image(index, seed_0))
-        #endfor
+        if masks_array is None:
+            num_images = images_array.shape[0]
+            for index in range(num_images):
+                seed = self.get_seed_index_image(index, seed_0)
+                out_images_array[index] = self.get_images_array(images_array[index], seed=seed)
+            #endfor
 
-        return out_images_array
+            return out_images_array
+        else:
+            out_array_shape = self.get_shape_out_array(masks_array.shape)
+            out_masks_array = np.ndarray(out_array_shape, dtype=masks_array.dtype)
+
+            num_images = images_array.shape[0]
+            for index in range(num_images):
+                seed = self.get_seed_index_image(index, seed_0)
+                (out_images_array[index], out_masks_array[index]) = self.get_images_array(images_array[index], masks_array=masks_array[index], seed=seed)
+            #endfor
+
+            return (out_images_array, out_masks_array)
 
 
 class TransformationImages2D(TransformationImages):
@@ -183,13 +252,31 @@ class TransformationImages2D(TransformationImages):
         super(TransformationImages2D, self).__init__(size_image)
 
 
-    def get_transformed_image(self, images_array, seed=None):
+    def get_transformed_image(self, images_array, masks_array=None, seed=None):
 
-        return self.standardize(self.random_transform(images_array, seed=seed))
+        if masks_array is None:
+            out_images_array = self.random_transform(images_array, seed=seed)
+            out_images_array = self.standardize(out_images_array)
 
-    def get_inverse_transformed_image(self, images_array, seed=None):
+            return out_images_array
+        else:
+            (out_images_array, out_masks_array) = self.random_transform(images_array, y=masks_array, seed=seed)
+            out_images_array = self.standardize(out_images_array)
 
-        return self.inverse_random_transform(self.inverse_standardize(images_array), seed=seed)
+            return (out_images_array, out_masks_array)
+
+    def get_inverse_transformed_image(self, images_array, masks_array=None, seed=None):
+
+        out_images_array = self.inverse_standardize(images_array)
+
+        if masks_array is None:
+            out_images_array = self.inverse_random_transform(out_images_array, seed=seed)
+
+            return out_images_array
+        else:
+            (out_images_array, out_masks_array) = self.inverse_random_transform(out_images_array, y=masks_array, seed=seed)
+
+            return (out_images_array, out_masks_array)
 
 
     def standardize(self, x):
@@ -244,14 +331,26 @@ class TransformationImages2D(TransformationImages):
         return x
 
 
-    def random_transform(self, x, seed=None):
+    def random_transform(self, x, y=None, seed=None):
 
-        return self.images_data_generator.random_transform(x, seed=seed)
+        if y is None:
+            return self.images_data_generator.random_transform(x, seed=seed)
+        else:
+            if not seed:
+                print("Error: 'TransformationImages2D:random_transform' needs to specify 'seed' as input... Exit")
+                exit(0)
+            return (self.images_data_generator.random_transform(x, seed=seed),
+                    self.images_data_generator.random_transform(y, seed=seed))
 
-    def inverse_random_transform(self, x, seed=None):
+
+    def inverse_random_transform(self, x, y=None, seed=None):
         # Use composition of inverse transformations,
         # Apply progressively transforms in inverse order to that in "random_transform"
         # Useful when doing data augmentation during testing
+
+        if y is not None and (y.shape != x.shape):
+            print("Error: input images 'x' and 'y' os different shape in 'random_transform'... Exit")
+            exit(0)
 
         if seed is not None:
             np.random.seed(seed)
@@ -315,11 +414,15 @@ class TransformationImages2D(TransformationImages):
         # Apply transformations (in inverse order)
         if self.horizontal_flip:
             if np.random.random() < 0.5:
-                x = image.flip_axis(x, self.img_col_axis)
+                x = image.flip_axis(x, axis=self.img_col_axis)
+                if y is not None:
+                    y = image.flip_axis(y, axis=self.img_col_axis)
 
         if self.vertical_flip:
             if np.random.random() < 0.5:
-                x = image.flip_axis(x, self.img_row_axis)
+                x = image.flip_axis(x, axis=self.img_row_axis)
+                if y is not None:
+                    y = image.flip_axis(y, axis=self.img_row_axis)
 
         if self.channel_shift_range != 0:
             x = image.random_channel_shift(x, self.channel_shift_range, channel_axis=self.img_channel_axis)
@@ -331,7 +434,16 @@ class TransformationImages2D(TransformationImages):
                                       channel_axis=self.img_channel_axis,
                                       fill_mode=self.fill_mode,
                                       cval=self.cval)
-        return x
+            if y is not None:
+                y = image.apply_transform(y, transform_matrix,
+                                          channel_axis=self.img_channel_axis,
+                                          fill_mode=self.fill_mode,
+                                          cval=self.cval)
+
+        if y is None:
+            return x
+        else:
+            return (x, y)
 
 
 class TransformationImages3D(TransformationImages2D):
@@ -395,10 +507,14 @@ class TransformationImages3D(TransformationImages2D):
             CatchErrorException('`zoom_range` should be a float or a tuple or list of two floats. Received arg: ', self.zoom_range)
 
 
-    def random_transform(self, x, seed=None):
+    def random_transform(self, x, y=None, seed=None):
         #Randomly augment a single image tensor.
         # use composition of homographies
         # to generate final transform that needs to be applied
+
+        if y is not None and (y.shape != x.shape):
+            print("Error: input images 'x' and 'y' os different shape in 'random_transform'... Exit")
+            exit(0)
 
         if seed is not None:
             np.random.seed(seed)
@@ -516,6 +632,11 @@ class TransformationImages3D(TransformationImages2D):
                                      channel_axis=self.img_channel_axis,
                                      fill_mode=self.fill_mode,
                                      cval=self.cval)
+            if y is not None:
+                y = self.apply_transform(y, transform_matrix,
+                                         channel_axis=self.img_channel_axis,
+                                         fill_mode=self.fill_mode,
+                                         cval=self.cval)
 
         if self.channel_shift_range != 0:
             x = image.random_channel_shift(x, self.channel_shift_range, channel_axis=self.img_channel_axis)
@@ -523,22 +644,35 @@ class TransformationImages3D(TransformationImages2D):
         if self.horizontal_flip:
             if np.random.random() < 0.5:
                 x = image.flip_axis(x, axis=self.img_col_axis)
+                if y is not None:
+                    y = image.flip_axis(y, axis=self.img_col_axis)
 
         if self.vertical_flip:
             if np.random.random() < 0.5:
                 x = image.flip_axis(x, axis=self.img_row_axis)
+                if y is not None:
+                    y = image.flip_axis(y, axis=self.img_row_axis)
 
         if self.depthZ_flip:
             if np.random.random() < 0.5:
                 x = image.flip_axis(x, axis=self.img_dep_axis)
+                if y is not None:
+                    y = image.flip_axis(y, axis=self.img_dep_axis)
 
-        return x
+        if y is None:
+            return x
+        else:
+            return (x, y)
 
 
-    def inverse_random_transform(self, x, seed=None):
+    def inverse_random_transform(self, x, y=None, seed=None):
         # Use composition of inverse transformations,
         # Apply progressively transforms in inverse order to that in "random_transform"
         # Useful when doing data augmentation during testing
+
+        if y is not None and (y.shape != x.shape):
+            print("Error: input images 'x' and 'y' os different shape in 'random_transform'... Exit")
+            exit(0)
 
         if seed is not None:
             np.random.seed(seed)
@@ -653,14 +787,20 @@ class TransformationImages3D(TransformationImages2D):
         if self.horizontal_flip:
             if np.random.random() < 0.5:
                 x = image.flip_axis(x, axis=self.img_col_axis)
+                if y is not None:
+                    y = image.flip_axis(y, axis=self.img_col_axis)
 
         if self.vertical_flip:
             if np.random.random() < 0.5:
                 x = image.flip_axis(x, axis=self.img_row_axis)
+                if y is not None:
+                    y = image.flip_axis(y, axis=self.img_row_axis)
 
         if self.depthZ_flip:
             if np.random.random() < 0.5:
                 x = image.flip_axis(x, axis=self.img_dep_axis)
+                if y is not None:
+                    y = image.flip_axis(y, axis=self.img_dep_axis)
 
         if self.channel_shift_range != 0:
             x = image.random_channel_shift(x, self.channel_shift_range, channel_axis=self.img_channel_axis)
@@ -672,7 +812,16 @@ class TransformationImages3D(TransformationImages2D):
                                      channel_axis=self.img_channel_axis,
                                      fill_mode=self.fill_mode,
                                      cval=self.cval)
-        return x
+            if y is not None:
+                y = self.apply_transform(y, transform_matrix,
+                                         channel_axis=self.img_channel_axis,
+                                         fill_mode=self.fill_mode,
+                                         cval=self.cval)
+
+        if y is None:
+            return x
+        else:
+            return (x, y)
 
 
     @staticmethod

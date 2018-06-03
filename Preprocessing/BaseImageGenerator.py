@@ -14,7 +14,7 @@ class BaseImageGenerator(object):
     def __init__(self, size_image):
         self.size_image = size_image
 
-    def complete_init_data(self, size_total):
+    def complete_init_data(self, in_array_shape):
         pass
 
     def get_num_images(self):
@@ -32,8 +32,8 @@ class BaseImageGenerator(object):
     def get_shape_out_array(self, in_array_shape):
         pass
 
-    def get_image_array(self, images_array, index):
+    def get_images_array(self, images_array, index, masks_array=None, seed=None):
         pass
 
-    def compute_images_array_all(self, images_array):
+    def compute_images_array_all(self, images_array, masks_array=None, seed_0=None):
         pass

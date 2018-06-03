@@ -99,11 +99,11 @@ class ProbabilityValidConvNnetOutput(BaseImageGenerator):
         pass
 
 
-    def complete_init_data(self, size_total):
-        pass
+    def complete_init_data(self, in_array_shape):
+        self.num_images = in_array_shape[0]
 
     def get_num_images(self):
-        return 1
+        return self.num_images
 
     def get_shape_out_array(self, in_array_shape):
         num_images   = in_array_shape[0]
@@ -173,25 +173,40 @@ class ProbabilityValidConvNnetOutput(BaseImageGenerator):
         else:
             return None
 
-    def get_image_array(self, images_array, index):
+    def get_images_array(self, images_array, index=None, masks_array=None, seed=None):
 
-        return self.get_filtered_proboutnnet_image_array(images_array)
+        out_images_array = self.get_filtered_proboutnnet_image_array(images_array)
 
-    def compute_images_array_all(self, images_array):
+        if masks_array is None:
+            return out_images_array
+        else:
+            out_masks_array = self.get_filtered_proboutnnet_image_array(masks_array)
+
+            return (out_images_array, out_masks_array)
+
+    def compute_images_array_all(self, images_array, masks_array=None, seed_0=None):
 
         out_array_shape  = self.get_shape_out_array(images_array.shape)
         out_images_array = np.ndarray(out_array_shape, dtype=images_array.dtype)
 
-        num_images = images_array.shape[0]
-        for index in range(num_images):
-            out_images_array[index] = self.get_filtered_proboutnnet_image_array(images_array[index])
-        #endfor
+        if masks_array is None:
+            num_images = images_array.shape[0]
+            for index in range(num_images):
+                out_images_array[index] = self.get_filtered_proboutnnet_image_array(images_array[index])
+            #endfor
 
-        return out_images_array
+            return out_images_array
+        else:
+            out_array_shape = self.get_shape_out_array(masks_array.shape)
+            out_masks_array = np.ndarray(out_array_shape, dtype=masks_array.dtype)
 
+            num_images = images_array.shape[0]
+            for index in range(num_images):
+                out_images_array[index] = self.get_filtered_proboutnnet_image_array(images_array[index])
+                out_masks_array [index] = self.get_filtered_proboutnnet_image_array(masks_array [index])
+            #endfor
 
-
-
+            return (out_images_array, out_masks_array)
 
     # def compute(self):
     #

@@ -21,16 +21,25 @@ class ElasticDeformationImages(TransformationImages):
     def __init__(self, size_images):
         super(ElasticDeformationImages, self).__init__(size_images)
 
-    def get_transformed_image(self, images_array, seed=None):
+    def get_transformed_image(self, X, Y=None, seed=None):
         pass
 
-    def get_inverse_transformed_image(self, images_array, seed=None):
+    def get_inverse_transformed_image(self, X, Y=None, seed=None):
         print("Error: Inverse transformation not implemented for 'ElasticDeformationImages'... Exit")
         return 0
 
-    def get_image_array(self, images_array, seed=None):
+    def get_images_array(self, images_array, index=None, masks_array=None, seed=None):
 
-        return self.get_transformed_image(images_array, seed=self.get_mod_seed(seed))
+        seed = self.get_mod_seed(seed)
+
+        if masks_array is None:
+            out_images_array = self.get_transformed_image(images_array, seed=seed)
+
+            return out_images_array
+        else:
+            (out_images_array, out_masks_array) = self.get_transformed_image(images_array, Y=masks_array, seed=seed)
+
+            return (out_images_array, out_masks_array)
 
 
 class ElasticDeformationPixelwiseImages2D(ElasticDeformationImages):
@@ -43,11 +52,12 @@ class ElasticDeformationPixelwiseImages2D(ElasticDeformationImages):
         self.sigma = sigma
         super(ElasticDeformationPixelwiseImages2D, self).__init__(size_images)
 
-    def get_transformed_image(self, images_array, seed=None):
+
+    def get_transformed_image(self, X, Y=None, seed=None):
         if seed is not None:
             np.random.seed(seed)
 
-        shape = images_array.shape
+        shape = X.shape
         # originally with random_state.rand * 2 - 1
         dx = gaussian_filter(np.random.randn(*shape), self.sigma, mode="constant", cval=0) * self.alpha
         dy = gaussian_filter(np.random.randn(*shape), self.sigma, mode="constant", cval=0) * self.alpha
@@ -55,7 +65,14 @@ class ElasticDeformationPixelwiseImages2D(ElasticDeformationImages):
         x, y = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), indexing='ij')
         indices = (x + dx, y + dy)
 
-        return map_coordinates(images_array, indices, order=3).reshape(shape)
+        out_X = map_coordinates(X, indices, order=3).reshape(shape)
+
+        if Y is None:
+            return out_X
+        else:
+            out_Y = map_coordinates(Y, indices, order=0).reshape(shape)
+
+            return (out_X, out_Y)
 
 
 class ElasticDeformationGridwiseImages2D(ElasticDeformationImages):
@@ -68,11 +85,12 @@ class ElasticDeformationGridwiseImages2D(ElasticDeformationImages):
         self.points = points
         super(ElasticDeformationGridwiseImages2D, self).__init__(size_images)
 
-    def get_transformed_image(self, images_array, seed=None):
+
+    def get_transformed_image(self, X, Y=None, seed=None):
         if seed is not None:
             np.random.seed(seed)
 
-        shape = images_array.shape
+        shape = X.shape
         # creates the grid of coordinates of the points of the image (an ndim array per dimension)
         coordinates = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), indexing='ij')
         # creates the grid of coordinates of the points of the image in the "deformation grid" frame of reference
@@ -88,7 +106,14 @@ class ElasticDeformationGridwiseImages2D(ElasticDeformationImages):
             # adding the displacement
             coordinates[i] = np.add(coordinates[i], y)
 
-        return map_coordinates(images_array, coordinates, order=3).reshape(shape)
+        out_X = map_coordinates(X, coordinates, order=3).reshape(shape)
+
+        if Y is None:
+            return out_X
+        else:
+            out_Y = map_coordinates(Y, coordinates, order=0).reshape(shape)
+
+            return (out_X, out_Y)
 
 
 class ElasticDeformationPixelwiseImages3D(ElasticDeformationImages):
@@ -101,11 +126,12 @@ class ElasticDeformationPixelwiseImages3D(ElasticDeformationImages):
         self.sigma = sigma
         super(ElasticDeformationPixelwiseImages3D, self).__init__(size_images)
 
-    def get_transformed_image(self, images_array, seed=None):
+
+    def get_transformed_image(self, X, Y=None, seed=None):
         if seed is not None:
             np.random.seed(seed)
 
-        shape = images_array.shape
+        shape = X.shape
         # originally with random_state.rand * 2 - 1
         dx = gaussian_filter(np.random.randn(*shape), self.sigma, mode="constant", cval=0) * self.alpha
         dy = gaussian_filter(np.random.randn(*shape), self.sigma, mode="constant", cval=0) * self.alpha
@@ -114,7 +140,14 @@ class ElasticDeformationPixelwiseImages3D(ElasticDeformationImages):
         x, y, z = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), np.arange(shape[2]), indexing='ij')
         indices = (x + dx, y + dy, z + dz)
 
-        return map_coordinates(images_array, indices, order=3).reshape(shape)
+        out_X = map_coordinates(X, indices, order=3).reshape(shape)
+
+        if Y is None:
+            return out_X
+        else:
+            out_Y = map_coordinates(Y, indices, order=0).reshape(shape)
+
+            return (out_X, out_Y)
 
 
 class ElasticDeformationGridwiseImages3D(ElasticDeformationImages):
@@ -127,11 +160,12 @@ class ElasticDeformationGridwiseImages3D(ElasticDeformationImages):
         self.points = points
         super(ElasticDeformationGridwiseImages3D, self).__init__(size_images)
 
-    def get_transformed_image(self, images_array, seed=None):
+
+    def get_transformed_image(self, X, Y=None, seed=None):
         if seed is not None:
             np.random.seed(seed)
 
-        shape = images_array.shape
+        shape = X.shape
         # creates the grid of coordinates of the points of the image (an ndim array per dimension)
         coordinates = np.meshgrid(np.arange(shape[0]), np.arange(shape[1]), np.arange(shape[2]), indexing='ij')
         # creates the grid of coordinates of the points of the image in the "deformation grid" frame of reference
@@ -147,4 +181,11 @@ class ElasticDeformationGridwiseImages3D(ElasticDeformationImages):
             # adding the displacement
             coordinates[i] = np.add(coordinates[i], y)
 
-        return map_coordinates(images_array, coordinates, order=3).reshape(shape)
+        out_X = map_coordinates(X, coordinates, order=3).reshape(shape)
+
+        if Y is None:
+            return out_X
+        else:
+            out_Y = map_coordinates(Y, coordinates, order=0).reshape(shape)
+
+            return (out_X, out_Y)

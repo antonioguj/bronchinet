@@ -20,7 +20,6 @@ class SlidingWindowImages(BaseImageGenerator):
 
         super(SlidingWindowImages, self).__init__(size_image)
 
-
     @staticmethod
     def get_num_images_1d(size_total, size_image, prop_overlap):
 
@@ -33,7 +32,7 @@ class SlidingWindowImages(BaseImageGenerator):
         coord_npl1 = coord_n + size_image
         return (coord_n, coord_npl1)
 
-    def complete_init_data(self, size_total):
+    def complete_init_data(self, in_array_shape):
         pass
 
     def get_num_images(self):
@@ -51,20 +50,39 @@ class SlidingWindowImages(BaseImageGenerator):
     def get_cropped_image(self, images_array, index):
         pass
 
-    def get_image_array(self, images_array, index):
+    def get_images_array(self, images_array, index, masks_array=None, seed=None):
 
-        return self.get_cropped_image(images_array, index)
+        out_images_array = self.get_cropped_image(images_array, index)
 
-    def compute_images_array_all(self, images_array):
+        if masks_array is None:
+            return out_images_array
+        else:
+            out_masks_array = self.get_cropped_image(masks_array, index)
+
+            return (out_images_array, out_masks_array)
+
+    def compute_images_array_all(self, images_array, masks_array=None, seed_0=None):
 
         out_array_shape  = self.get_shape_out_array(images_array.shape)
         out_images_array = np.ndarray(out_array_shape, dtype=images_array.dtype)
 
-        for index in range(self.num_images):
-            out_images_array[index] = self.get_image_array(images_array, index)
-        #endfor
+        if masks_array is None:
+            num_images = self.num_images
+            for index in range(num_images):
+                out_images_array[index] = self.get_images_array(images_array, index)
+            #endfor
 
-        return out_images_array
+            return out_images_array
+        else:
+            out_array_shape = self.get_shape_out_array(masks_array.shape)
+            out_masks_array = np.ndarray(out_array_shape, dtype=masks_array.dtype)
+
+            num_images = self.num_images
+            for index in range(num_images):
+                (out_images_array[index], out_masks_array[index]) = self.get_images_array(images_array, index, masks_array=masks_array)
+            #endfor
+
+            return (out_images_array, out_masks_array)
 
 
 class SlidingWindowImages2D(SlidingWindowImages):
@@ -79,16 +97,17 @@ class SlidingWindowImages2D(SlidingWindowImages):
 
         super(SlidingWindowImages2D, self).__init__(size_image, num_images_total)
 
-    def complete_init_data(self, size_total):
+    def complete_init_data(self, in_array_shape):
 
+        size_total = in_array_shape[0:2]
         (self.size_total_x, self.size_total_y) = size_total
         (self.num_images_x, self.num_images_y) = self.get_num_images_local()
         self.num_images = self.num_images_x * self.num_images_y
 
     def get_indexes_local(self, index):
 
-        index_y  = index // self.num_images_x
-        index_x  = index % self.num_images_x
+        index_y = index // self.num_images_x
+        index_x = index % self.num_images_x
         return (index_x, index_y)
 
     def get_num_images_local(self):
@@ -126,8 +145,9 @@ class SlidingWindowImages3D(SlidingWindowImages):
 
         super(SlidingWindowImages3D, self).__init__(size_image, num_images_total)
 
-    def complete_init_data(self, size_total):
+    def complete_init_data(self, in_array_shape):
 
+        size_total = in_array_shape[0:3]
         (self.size_total_z, self.size_total_x, self.size_total_y) = size_total
         (self.num_images_z, self.num_images_x, self.num_images_y) = self.get_num_images_local()
         self.num_images = self.num_images_x * self.num_images_y * self.num_images_z
