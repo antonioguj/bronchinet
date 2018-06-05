@@ -14,11 +14,15 @@ from Preprocessing.SlidingWindowPlusTransformImages import *
 from Preprocessing.TransformationImages import *
 
 
-def getImagesDataGenerator2D(use_slidingWindowImages, prop_overlap_X_Y, use_TransformationImages):
+def getImagesDataGenerator2D(use_slidingWindowImages, prop_overlap_X_Y, use_TransformationImages, use_ElasticDeformationImages):
 
     if (use_slidingWindowImages):
         # Images Data Generator by Sliding-window...
-        if (use_TransformationImages):
+        if (use_ElasticDeformationImages):
+            # Data augmentation by elastic deformation of input images...
+            return SlidingWindowPlusElasticDeformationImages2D(IMAGES_DIMS_Z_X_Y,
+                                                               prop_overlap_Z_X_Y)
+        elif (use_TransformationImages):
             # Data augmentation by random transformation of input images...
             return SlidingWindowPlusTransformImages2D(IMAGES_DIMS_X_Y,
                                                       prop_overlap_X_Y,
@@ -31,6 +35,8 @@ def getImagesDataGenerator2D(use_slidingWindowImages, prop_overlap_X_Y, use_Tran
             return SlidingWindowImages2D(IMAGES_DIMS_X_Y,
                                          prop_overlap_X_Y)
     else:
+        if (use_ElasticDeformationImages):
+            return SlicingPlusElasticDeformationImages2D(IMAGES_DIMS_Z_X_Y)
         if (use_TransformationImages):
             return SlicingPlusTransformImages2D(IMAGES_DIMS_X_Y,
                                                 rotation_range=ROTATION_XY_RANGE,
@@ -42,11 +48,15 @@ def getImagesDataGenerator2D(use_slidingWindowImages, prop_overlap_X_Y, use_Tran
             return SlicingImages2D(IMAGES_DIMS_X_Y)
 
 
-def getImagesDataGenerator3D(use_slidingWindowImages, prop_overlap_Z_X_Y, use_TransformationImages):
+def getImagesDataGenerator3D(use_slidingWindowImages, prop_overlap_Z_X_Y, use_TransformationImages, use_ElasticDeformationImages):
 
     if (use_slidingWindowImages):
         # Images Data Generator by Sliding-window...
-        if (use_TransformationImages):
+        if (use_ElasticDeformationImages):
+            # Data augmentation by elastic deformation of input images...
+            return SlidingWindowPlusElasticDeformationImages3D(IMAGES_DIMS_Z_X_Y,
+                                                               prop_overlap_Z_X_Y)
+        elif (use_TransformationImages):
             # Data augmentation by random transformation of input images...
             return SlidingWindowPlusTransformImages3D(IMAGES_DIMS_Z_X_Y,
                                                       prop_overlap_Z_X_Y,
@@ -63,7 +73,9 @@ def getImagesDataGenerator3D(use_slidingWindowImages, prop_overlap_Z_X_Y, use_Tr
             return SlidingWindowImages3D(IMAGES_DIMS_Z_X_Y,
                                          prop_overlap_Z_X_Y)
     else:
-        if (use_TransformationImages):
+        if (use_ElasticDeformationImages):
+            return SlicingPlusElasticDeformationImages3D(IMAGES_DIMS_Z_X_Y)
+        elif (use_TransformationImages):
             return SlicingPlusTransformImages3D(IMAGES_DIMS_Z_X_Y,
                                                 rotation_XY_range=ROTATION_XY_RANGE,
                                                 rotation_XZ_range=ROTATION_XZ_RANGE,

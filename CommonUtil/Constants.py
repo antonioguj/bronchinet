@@ -19,11 +19,8 @@ BASEDIR = '/home/antonio/Files_Project/testSegmentation/Tests_LUVAR/'
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
-IMAGES_DEPTHZ = 104
-IMAGES_HEIGHT = 352
-#IMAGES_HEIGHT = 256
-IMAGES_WIDTH  = 240
-#IMAGES_WIDTH  = 256
+#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (120, 352, 240)
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (76, 448, 256)
 
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
 IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
@@ -52,19 +49,22 @@ DISTRIBUTE_RANDOM = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 TYPEDATA = 'training'
 
+MULTICLASSCASE = False
+
+NUMCLASSESMASKS = 2
+
+CONFINEMASKSTOLUNGS = True
+
 REDUCESIZEIMAGES = False
 
 SIZEREDUCEDIMAGES = (256, 256)
 
 CROPIMAGES = True
 
-CROPSIZEBOUNDINGBOX = (352, 480)
+VOXELSBUFFERBORDER = (20, 0, 0, 0)
 
-MULTICLASSCASE = False
-
-NUMCLASSESMASKS = 2
-
-CONFINEMASKSTOLUNGS = True
+#CROPSIZEBOUNDINGBOX = (352, 480)
+CROPSIZEBOUNDINGBOX = (448, 512)
 
 CHECKBALANCECLASSES = True
 
@@ -81,7 +81,7 @@ NUM_EPOCHS  = 1000
 BATCH_SIZE  = 1
 IMODEL      = 'Unet3D_Tailored'
 IOPTIMIZER  = 'Adam'
-ILOSSFUN    = 'Combine_DiceCoefficient_FalseNegativeRate_Masked'
+ILOSSFUN    = 'DiceCoefficient_Masked'
 #ILOSSFUN    = 'CategoricalCrossEntropy'
 LISTMETRICS =['BinaryCrossEntropy_Masked',
               'WeightedBinaryCrossEntropy_Masked',
@@ -95,7 +95,7 @@ LEARN_RATE  = 1.0e-05
 
 SLIDINGWINDOWIMAGES = True
 
-TRANSFORMATIONIMAGES = False
+TRANSFORMATIONIMAGES = True
 
 ELASTICDEFORMATIONIMAGES = False
 
@@ -128,11 +128,11 @@ PREDICTION_MODELFILE = 'lastEpoch'
 PREDICTACCURACYMETRICS = 'DiceCoefficient_Masked'
 #PREDICTACCURACYMETRICS = 'DiceCoefficient'
 
-POSTPROCESSIMAGEMETRICS = ['DiceCoefficient',
-                           'TruePositiveRate',
-                           'TrueNegativeRate',
-                           'FalsePositiveRate',
-                           'FalseNegativeRate']
+POSTPROCESSIMAGEMETRICS = ['DiceCoefficient_Masked',
+                           'TruePositiveRate_Masked',
+                           'TrueNegativeRate_Masked',
+                           'FalsePositiveRate_Masked',
+                           'FalseNegativeRate_Masked']
 THRESHOLDOUTIMAGES = False
 
 THRESHOLDVALUE = 0.5
