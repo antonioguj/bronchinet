@@ -9,6 +9,7 @@
 ########################################################################################
 
 from Preprocessing.BaseImageGenerator import *
+from Preprocessing.ElasticDeformationImages import *
 from Preprocessing.SlidingWindowImages import *
 from Preprocessing.TransformationImages import *
 
@@ -166,6 +167,41 @@ class SlicingPlusTransformImages2D(SlidingWindowPlusTransformImages):
                                                                                   rescale=rescale,
                                                                                   preprocessing_function=preprocessing_function))
 
+class SlidingWindowPlusElasticDeformationImages2D(SlidingWindowPlusTransformImages):
+
+    def __init__(self,
+                 size_image,
+                 prop_overlap,
+                 size_total=(0, 0, 0),
+                 type_elastic_deformation='gridwise'):
+
+        if type_elastic_deformation == 'pixelwise':
+            super(SlidingWindowPlusElasticDeformationImages2D, self).__init__(SlidingWindowImages2D(size_image,
+                                                                                                    prop_overlap,
+                                                                                                    size_total=size_total),
+                                                                              ElasticDeformationPixelwiseImages2D(size_image))
+        else: #type_elastic_deformation == 'gridwise'
+            super(SlidingWindowPlusElasticDeformationImages2D, self).__init__(SlidingWindowImages2D(size_image,
+                                                                                                    prop_overlap,
+                                                                                                    size_total=size_total),
+                                                                              ElasticDeformationGridwiseImages2D(size_image))
+
+class SlicingPlusElasticDeformationImages2D(SlidingWindowPlusTransformImages):
+
+    def __init__(self,
+                 size_image,
+                 size_total=(0, 0, 0),
+                 type_elastic_deformation='gridwise'):
+
+        if type_elastic_deformation == 'pixelwise':
+            super(SlicingPlusElasticDeformationImages2D, self).__init__(SlicingImages2D(size_image,
+                                                                                        size_total=size_total),
+                                                                        ElasticDeformationPixelwiseImages2D(size_image))
+        else: #type_elastic_deformation == 'gridwise'
+            super(SlicingPlusElasticDeformationImages2D, self).__init__(SlicingImages2D(size_image,
+                                                                                        size_total=size_total),
+                                                                        ElasticDeformationGridwiseImages2D(size_image))
+
 class SlidingWindowPlusTransformImages3D(SlidingWindowPlusTransformImages):
 
     def __init__(self,
@@ -271,3 +307,38 @@ class SlicingPlusTransformImages3D(SlidingWindowPlusTransformImages):
                                                                                   depthZ_flip=depthZ_flip,
                                                                                   rescale=rescale,
                                                                                   preprocessing_function=preprocessing_function))
+
+class SlidingWindowPlusElasticDeformationImages3D(SlidingWindowPlusTransformImages):
+
+    def __init__(self,
+                 size_image,
+                 prop_overlap,
+                 size_total=(0, 0, 0),
+                 type_elastic_deformation='gridwise'):
+
+        if type_elastic_deformation == 'pixelwise':
+            super(SlidingWindowPlusElasticDeformationImages3D, self).__init__(SlidingWindowImages3D(size_image,
+                                                                                                    prop_overlap,
+                                                                                                    size_total=size_total),
+                                                                              ElasticDeformationPixelwiseImages3D(size_image))
+        else: #type_elastic_deformation == 'gridwise'
+            super(SlidingWindowPlusElasticDeformationImages3D, self).__init__(SlidingWindowImages3D(size_image,
+                                                                                                    prop_overlap,
+                                                                                                    size_total=size_total),
+                                                                              ElasticDeformationGridwiseImages3D(size_image))
+
+class SlicingPlusElasticDeformationImages3D(SlidingWindowPlusTransformImages):
+
+    def __init__(self,
+                 size_image,
+                 size_total=(0, 0, 0),
+                 type_elastic_deformation='gridwise'):
+
+        if type_elastic_deformation == 'pixelwise':
+            super(SlicingPlusElasticDeformationImages3D, self).__init__(SlicingImages3D(size_image,
+                                                                                        size_total=size_total),
+                                                                        ElasticDeformationPixelwiseImages3D(size_image))
+        else: #type_elastic_deformation == 'gridwise'
+            super(SlicingPlusElasticDeformationImages3D, self).__init__(SlicingImages3D(size_image,
+                                                                                        size_total=size_total),
+                                                                        ElasticDeformationGridwiseImages3D(size_image))

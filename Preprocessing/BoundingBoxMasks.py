@@ -10,78 +10,78 @@
 
 import numpy as np
 
-BORDER_EFFECTS = (0, 0, 0)
+BORDER_EFFECTS = (0, 0, 0, 0)
 
 
 class BoundingBoxMasks(object):
 
     @staticmethod
-    def getMirrorBoundingBox(boundingBox):
+    def get_mirror_bounding_box(bounding_box):
 
-        return ((boundingBox[0][0], boundingBox[0][1]),
-                (512 - boundingBox[1][1], 512 - boundingBox[1][0]))
-
-    @staticmethod
-    def computeSizeBoundingBox(boundingBox):
-
-        return ((boundingBox[0][1] - boundingBox[0][0]),
-                (boundingBox[1][1] - boundingBox[1][0]),
-                (boundingBox[2][1] - boundingBox[2][0]))
+        return ((bounding_box[0][0], bounding_box[0][1]),
+                (512 - bounding_box[1][1], 512 - bounding_box[1][0]))
 
     @staticmethod
-    def computeMaxSizeBoundingBox(boundingBox, max_boundingBox):
+    def compute_size_bounding_box(bounding_box):
 
-        return (max(boundingBox[0], max_boundingBox[0]),
-                max(boundingBox[1], max_boundingBox[1]),
-                max(boundingBox[2], max_boundingBox[2]))
-
-    @staticmethod
-    def computeCoords0BoundingBox(boundingBox):
-
-        return (boundingBox[0][0], boundingBox[1][0], boundingBox[2][0])
+        return ((bounding_box[0][1] - bounding_box[0][0]),
+                (bounding_box[1][1] - bounding_box[1][0]),
+                (bounding_box[2][1] - bounding_box[2][0]))
 
     @staticmethod
-    def fitBoundingBoxToImageMaxSize(boundingBox, (size_img_x, size_img_y)):
+    def compute_max_size_bounding_box(bounding_box, max_bounding_box):
+
+        return (max(bounding_box[0], max_bounding_box[0]),
+                max(bounding_box[1], max_bounding_box[1]),
+                max(bounding_box[2], max_bounding_box[2]))
+
+    @staticmethod
+    def compute_coords0_bounding_box(bounding_box):
+
+        return (bounding_box[0][0], bounding_box[1][0], bounding_box[2][0])
+
+    @staticmethod
+    def fit_bounding_box_to_image_max_size(bounding_box, size_img_x, size_img_y):
 
         translate_X = 0
         translate_Y = 0
 
-        if (boundingBox[1][0] < 0):
-            translate_X = -boundingBox[1][0]
-        elif (boundingBox[1][1] > size_img_x):
-            translate_X = -(boundingBox[1][1] - size_img_x)
+        if (bounding_box[1][0] < 0):
+            translate_X = -bounding_box[1][0]
+        elif (bounding_box[1][1] > size_img_x):
+            translate_X = -(bounding_box[1][1] - size_img_x)
 
-        if (boundingBox[2][0] < 0):
-            translate_Y = -boundingBox[2][0]
-        elif (boundingBox[2][1] > size_img_y):
-            translate_Y = -(boundingBox[2][1] - size_img_y)
+        if (bounding_box[2][0] < 0):
+            translate_Y = -bounding_box[2][0]
+        elif (bounding_box[2][1] > size_img_y):
+            translate_Y = -(bounding_box[2][1] - size_img_y)
 
         if (translate_X != 0 or
             translate_Y != 0):
-            return ((boundingBox[0][0], boundingBox[0][1]),
-                    (boundingBox[1][0] + translate_X, boundingBox[1][1] + translate_X),
-                    (boundingBox[2][0] + translate_Y, boundingBox[2][1] + translate_Y))
+            return ((bounding_box[0][0], bounding_box[0][1]),
+                    (bounding_box[1][0] + translate_X, bounding_box[1][1] + translate_X),
+                    (bounding_box[2][0] + translate_Y, bounding_box[2][1] + translate_Y))
         else:
-            return boundingBox
+            return bounding_box
 
     @staticmethod
-    def isBoundingBoxContained(orig_boundingBox, new_boundingBox):
+    def is_bounding_box_contained(orig_bounding_box, new_bounding_box):
 
-        return (orig_boundingBox[0][0] < new_boundingBox[0][0] or orig_boundingBox[0][1] > new_boundingBox[0][1] or
-                orig_boundingBox[1][0] < new_boundingBox[1][0] or orig_boundingBox[1][1] > new_boundingBox[1][1] or
-                orig_boundingBox[2][0] < new_boundingBox[2][0] or orig_boundingBox[2][1] > new_boundingBox[2][1])
+        return (orig_bounding_box[0][0] < new_bounding_box[0][0] or orig_bounding_box[0][1] > new_bounding_box[0][1] or
+                orig_bounding_box[1][0] < new_bounding_box[1][0] or orig_bounding_box[1][1] > new_bounding_box[1][1] or
+                orig_bounding_box[2][0] < new_bounding_box[2][0] or orig_bounding_box[2][1] > new_bounding_box[2][1])
 
     @classmethod
-    def computeCenteredBoundingBox(cls, orig_boundingBox, size_proc_boundingBox, (size_img_z, size_img_x, size_img_y)):
+    def compute_centered_bounding_box(cls, orig_bounding_box, size_proc_bounding_box, (size_img_z, size_img_x, size_img_y)):
 
-        center = (np.float(orig_boundingBox[1][1] + orig_boundingBox[1][0]) / 2,
-                  np.float(orig_boundingBox[2][1] + orig_boundingBox[2][0]) / 2)
+        center = (int(np.float(orig_bounding_box[1][1] + orig_bounding_box[1][0]) / 2),
+                  int(np.float(orig_bounding_box[2][1] + orig_bounding_box[2][0]) / 2))
 
-        new_boundingBox = ((orig_boundingBox[0][0], orig_boundingBox[0][1]),
-                           (int(center[0] - size_proc_boundingBox[0] / 2), int(center[0] + size_proc_boundingBox[0] / 2)),
-                           (int(center[1] - size_proc_boundingBox[1] / 2), int(center[1] + size_proc_boundingBox[1] / 2)))
+        new_bounding_box = ((orig_bounding_box[0][0], orig_bounding_box[0][1]),
+                           (int(center[0] - size_proc_bounding_box[0] / 2), int(center[0] + size_proc_bounding_box[0] / 2)),
+                           (int(center[1] - size_proc_bounding_box[1] / 2), int(center[1] + size_proc_bounding_box[1] / 2)))
 
-        return cls.fitBoundingBoxToImageMaxSize(new_boundingBox, (size_img_x, size_img_y))
+        return cls.fit_bounding_box_to_image_max_size(new_bounding_box, size_img_x, size_img_y)
 
 
     @classmethod
@@ -97,15 +97,15 @@ class BoundingBoxMasks(object):
     @classmethod
     def compute_with_border_effects(cls, masks_array, voxels_buffer_border=BORDER_EFFECTS):
 
-        boundingBox = cls.compute(masks_array)
+        bounding_box = cls.compute(masks_array)
 
         # account for border effects
-        boundingBox = ((boundingBox[0][0] - voxels_buffer_border[0], boundingBox[0][1] + voxels_buffer_border[0]),
-                       (boundingBox[1][0] - voxels_buffer_border[1], boundingBox[1][1] + voxels_buffer_border[1]),
-                       (boundingBox[2][0] - voxels_buffer_border[2], boundingBox[2][1] + voxels_buffer_border[2]))
+        bounding_box = ((bounding_box[0][0] - voxels_buffer_border[0], bounding_box[0][1] + voxels_buffer_border[1]),
+                        (bounding_box[1][0] - voxels_buffer_border[2], bounding_box[1][1] + voxels_buffer_border[2]),
+                        (bounding_box[2][0] - voxels_buffer_border[3], bounding_box[2][1] + voxels_buffer_border[3]))
 
         (size_img_z, size_img_x, size_img_y) = masks_array.shape
 
-        return ((max(boundingBox[0][0], 0), min(boundingBox[0][1], size_img_z)),
-                (max(boundingBox[1][0], 0), min(boundingBox[1][1], size_img_x)),
-                (max(boundingBox[2][0], 0), min(boundingBox[2][1], size_img_y)))
+        return ((max(bounding_box[0][0], 0), min(bounding_box[0][1], size_img_z)),
+                (max(bounding_box[1][0], 0), min(bounding_box[1][1], size_img_x)),
+                (max(bounding_box[2][0], 0), min(bounding_box[2][1], size_img_y)))
