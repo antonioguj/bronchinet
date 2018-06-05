@@ -23,24 +23,29 @@ import argparse
 
 def main(args):
 
-    workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath    = workDirsManager.getNameBaseDataPath()
-    OrigImagesPath  = workDirsManager.getNameExistPath(BaseDataPath, 'ProcImages')
-    OrigMasksPath   = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
-    ProcessDataPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcInputData')
+    workDirsManager     = WorkDirsManager(args.basedir)
+    BaseDataPath        = workDirsManager.getNameBaseDataPath()
+    OriginImagesPath    = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
+    OriginMasksPath     = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
+    ProcessedImagesPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcImagesData')
+    ProcessedMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, 'ProcMasksData')
+
 
     # Get the file list:
     nameImagesFiles = '*.nii'
     nameMasksFiles  = '*.nii'
 
-    listImagesFiles = findFilesDir(OrigImagesPath, nameImagesFiles)
-    listMasksFiles  = findFilesDir(OrigMasksPath,  nameMasksFiles)
+    listImagesFiles = findFilesDir(OriginImagesPath, nameImagesFiles)
+    listMasksFiles  = findFilesDir(OriginMasksPath,  nameMasksFiles)
 
     nbImagesFiles   = len(listImagesFiles)
     nbMasksFiles    = len(listMasksFiles)
 
     tempNameProcImagesFiles = 'images-%0.2i_dim'
     tempNameProcMasksFiles  = 'masks-%0.2i_dim'
+
+    outFilesExtension = getFileExtension(FORMATINOUTDATA)
+
 
     # Run checkers
     if (nbImagesFiles == 0):
@@ -53,15 +58,19 @@ def main(args):
 
     if (args.confineMasksToLungs):
 
-        AddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'ProcAddMasks')
+        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
 
         nameAddMasksFiles = '*.nii'
-        listAddMasksFiles = findFilesDir(AddMasksPath, nameAddMasksFiles)
+        listAddMasksFiles = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
         nbAddMasksFiles   = len(listAddMasksFiles)
 
         if (nbImagesFiles != nbAddMasksFiles):
             message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbAddMasksFiles)
             CatchErrorException(message)
+
+    if (args.cropImages):
+        namefile_dict = joinpathnames(BaseDataPath, "boundBoxesMasks.npy")
+        dict_masks_boundingBoxes = readDictionary(namefile_dict)
 
 
 
@@ -91,9 +100,32 @@ def main(args):
         if (args.confineMasksToLungs):
             print("Confine masks to exclude the area outside the lungs...")
 
-            exclude_masks_array = FileReader.getImageArray(listAddMasksFiles[i])
+            exclude_masksFile   = listAddMasksFiles[i]
+            exclude_masks_array = FileReader.getImageArray(exclude_masksFile)
 
             masks_array = ExclusionMasks.compute(masks_array, exclude_masks_array)
+
+
+        if (args.reduceSizeImages):
+
+            if isSmallerTuple(images_array.shape[-2:], args.sizeReducedImages):
+                message = "New reduced size: %s, smaller than size of original images: %s..." %(images_array.shape[-2:], args.sizeReducedImages)
+                CatchErrorException(message)
+
+            images_array = ResizeImages.compute2D(images_array, args.sizeReducedImages)
+            masks_array  = ResizeImages.compute2D(masks_array,  args.sizeReducedImages, isMasks=True)
+
+            print("Reduce resolution of images to size: %s. Final dimensions: %s..." %(args.sizeReducedImages, images_array.shape))
+
+
+        if (args.cropImages):
+
+            crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(imagesFile)]
+
+            images_array = CropImages.compute3D(images_array, crop_boundingBox)
+            masks_array  = CropImages.compute3D(masks_array,  crop_boundingBox)
+
+            print("Crop images to bounding-box: %s. Final dimensions: %s..." %(crop_boundingBox, images_array.shape))
 
 
         if (args.checkBalanceClasses):
@@ -142,8 +174,8 @@ def main(args):
         # Save processed data for training networks
         print("Saving processed data, with dims: %s..." %(tuple2str(images_array.shape)))
 
-        out_imagesFilename = joinpathnames(ProcessDataPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape) + getFileExtension(FORMATINOUTDATA))
-        out_masksFilename  = joinpathnames(ProcessDataPath, tempNameProcMasksFiles%(i)  + tuple2str(masks_array.shape)  + getFileExtension(FORMATINOUTDATA))
+        out_imagesFilename = joinpathnames(ProcessedImagesPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape) + outFilesExtension)
+        out_masksFilename  = joinpathnames(ProcessedMasksPath,  tempNameProcMasksFiles%(i)  + tuple2str(masks_array.shape)  + outFilesExtension)
 
         FileReader.writeImageArray(out_imagesFilename, images_array)
         FileReader.writeImageArray(out_masksFilename,  masks_array )
@@ -155,15 +187,15 @@ def main(args):
 
                 for j, (batch_images_array, batch_masks_array) in enumerate(zip(images_array, masks_array)):
 
-                    out_imagesFilename = joinpathnames(ProcessDataPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape[1:]) + '_batch%i'%(j) +'.nii')
-                    out_masksFilename  = joinpathnames(ProcessDataPath, tempNameProcMasksFiles%(i) +  tuple2str(masks_array.shape[1:])  + '_batch%i'%(j) +'.nii')
+                    out_imagesFilename = joinpathnames(ProcessedImagesPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape[1:]) + '_batch%i'%(j) +'.nii')
+                    out_masksFilename  = joinpathnames(ProcessedMasksPath,  tempNameProcMasksFiles%(i) +  tuple2str(masks_array.shape[1:])  + '_batch%i'%(j) +'.nii')
 
                     FileReader.writeImageArray(out_imagesFilename, batch_images_array)
                     FileReader.writeImageArray(out_masksFilename,  batch_masks_array )
                 #endfor
             else:
-                out_imagesFilename = joinpathnames(ProcessDataPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape) +'.nii')
-                out_masksFilename  = joinpathnames(ProcessDataPath, tempNameProcMasksFiles%(i)  + tuple2str(masks_array.shape)  +'.nii')
+                out_imagesFilename = joinpathnames(ProcessedImagesPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape) +'.nii')
+                out_masksFilename  = joinpathnames(ProcessedMasksPath,  tempNameProcMasksFiles%(i)  + tuple2str(masks_array.shape)  +'.nii')
 
                 FileReader.writeImageArray(out_imagesFilename, images_array)
                 FileReader.writeImageArray(out_masksFilename, masks_array)
@@ -177,6 +209,10 @@ if __name__ == "__main__":
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--confineMasksToLungs', default=CONFINEMASKSTOLUNGS)
+    parser.add_argument('--reduceSizeImages', type=str2bool, default=REDUCESIZEIMAGES)
+    parser.add_argument('--sizeReducedImages', type=str2bool, default=SIZEREDUCEDIMAGES)
+    parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
+    parser.add_argument('--cropSizeBoundingBox', type=str2tupleint, default=CROPSIZEBOUNDINGBOX)
     parser.add_argument('--checkBalanceClasses', type=str2bool, default=CHECKBALANCECLASSES)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)

@@ -57,17 +57,17 @@ def main(args):
         masks_array  = FileReader.getImageArray(masksFile)
 
 
-        boundingBox = BoundingBoxMasks.compute_with_border_effects(masks_array)
+        boundingBox = BoundingBoxMasks.compute_with_border_effects(masks_array, voxels_buffer_border=VOXELSBUFFERBORDER)
 
-        size_boundingBox = BoundingBoxMasks.computeSizeBoundingBox(boundingBox)
+        size_boundingBox = BoundingBoxMasks.compute_size_bounding_box(boundingBox)
 
-        maxSize_boundingBox = BoundingBoxMasks.computeMaxSizeBoundingBox(size_boundingBox, maxSize_boundingBox)
+        maxSize_boundingBox = BoundingBoxMasks.compute_max_size_bounding_box(size_boundingBox, maxSize_boundingBox)
 
 
         # Compute new bounding-box that fits all input images processed
-        processed_boundingBox = BoundingBoxMasks.computeCenteredBoundingBox(boundingBox, args.cropSizeBoundingBox, images_array.shape)
+        processed_boundingBox = BoundingBoxMasks.compute_centered_bounding_box(boundingBox, args.cropSizeBoundingBox, images_array.shape)
 
-        size_processed_boundingBox = BoundingBoxMasks.computeSizeBoundingBox(processed_boundingBox)
+        size_processed_boundingBox = BoundingBoxMasks.compute_size_bounding_box(processed_boundingBox)
 
         dict_masks_boundingBoxes[filenamenoextension(imagesFile)] = processed_boundingBox
 
@@ -78,7 +78,7 @@ def main(args):
             message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, args.cropSizeBoundingBox)
             CatchErrorException(message)
 
-        if BoundingBoxMasks.isBoundingBoxContained(boundingBox, processed_boundingBox):
+        if BoundingBoxMasks.is_bounding_box_contained(boundingBox, processed_boundingBox):
             message = "Processed bounding-box: %s smaller than original one: %s..." % (processed_boundingBox, boundingBox)
             CatchWarningException(message)
     #endfor
@@ -97,6 +97,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--voxelsBufferBorder', type=str2tuplefloat, default=VOXELSBUFFERBORDER)
     parser.add_argument('--cropSizeBoundingBox', type=str2tuplefloat, default=CROPSIZEBOUNDINGBOX)
     args = parser.parse_args()
 
