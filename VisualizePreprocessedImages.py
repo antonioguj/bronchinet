@@ -24,8 +24,8 @@ def main(args):
 
     workDirsManager  = WorkDirsManager(args.basedir)
     BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    OrigImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'ProcImages')
-    OrigMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
+    OrigImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
+    OrigMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
     VisualImagesPath = workDirsManager.getNameNewPath  (BaseDataPath, 'VisualTransformImages')
 
     # Get the file list:
