@@ -61,7 +61,7 @@ class TransformationImages(BaseImageGenerator):
 
     def get_shape_out_array(self, in_array_shape):
         num_images   = in_array_shape[0]
-        num_channels = self.get_num_channels_array(in_array_shape[1:0])
+        num_channels = self.get_num_channels_array(in_array_shape[1:])
         if num_channels:
             return [num_images] + list(self.size_image) + [num_channels]
         else:
