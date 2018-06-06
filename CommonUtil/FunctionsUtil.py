@@ -128,14 +128,14 @@ def isEqualTuple(var1, var2):
 def sumTwoTuples(var1, var2):
     return tuple(a+b for (a,b) in zip(var1, var2))
 
-def str2bool(str):
-    return str.lower() in ("yes", "true", "t", "1")
+def str2bool(strin):
+    return strin.lower() in ("yes", "true", "t", "1")
 
-def str2tupleint(str):
-    return tuple([int(i) for i in str.rsplit(',')])
+def str2tupleint(strin):
+    return tuple([int(i) for i in strin.rsplit(',')])
 
-def str2tuplefloat(str):
-    return tuple([float(i) for i in str.rsplit(',')])
+def str2tuplefloat(strin):
+    return tuple([float(i) for i in strin.rsplit(',')])
 
 def list2str(list):
     return "_".join(str(i) for i in list)

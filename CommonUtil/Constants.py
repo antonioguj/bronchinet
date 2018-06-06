@@ -19,8 +19,8 @@ BASEDIR = '/home/antonio/Files_Project/testSegmentation/Tests_LUVAR/'
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
-#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (120, 352, 240)
-(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (76, 448, 256)
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (104, 352, 240)
+#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (76, 448, 256)
 
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
 IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
@@ -63,8 +63,8 @@ CROPIMAGES = True
 
 VOXELSBUFFERBORDER = (20, 0, 0, 0)
 
-#CROPSIZEBOUNDINGBOX = (352, 480)
-CROPSIZEBOUNDINGBOX = (448, 512)
+CROPSIZEBOUNDINGBOX = (352, 480)
+#CROPSIZEBOUNDINGBOX = (448, 512)
 
 CHECKBALANCECLASSES = True
 
@@ -81,23 +81,20 @@ NUM_EPOCHS  = 1000
 BATCH_SIZE  = 1
 IMODEL      = 'Unet3D_Tailored'
 IOPTIMIZER  = 'Adam'
-ILOSSFUN    = 'DiceCoefficient_Masked'
+ILOSSFUN    = 'DiceCoefficient'
 #ILOSSFUN    = 'CategoricalCrossEntropy'
-LISTMETRICS =['BinaryCrossEntropy_Masked',
-              'WeightedBinaryCrossEntropy_Masked',
-              'DiceCoefficient_Masked',
-              'TruePositiveRate_Masked',
-              'TrueNegativeRate_Masked',
-              'FalsePositiveRate_Masked',
-              'FalseNegativeRate_Masked']
-#IMETRICS    = 'DiceCoefficient'
+LISTMETRICS =['BinaryCrossEntropy',
+              'WeightedBinaryCrossEntropy',
+              'DiceCoefficient',
+              'TruePositiveRate',
+              'TrueNegativeRate',
+              'FalsePositiveRate',
+              'FalseNegativeRate']
 LEARN_RATE  = 1.0e-05
 
 SLIDINGWINDOWIMAGES = True
 
 TRANSFORMATIONIMAGES = True
-
-ELASTICDEFORMATIONIMAGES = False
 
 ROTATION_XY_RANGE = 10
 ROTATION_XZ_RANGE = 5
@@ -108,6 +105,10 @@ DEPTH_SHIFT_RANGE = 7
 HORIZONTAL_FLIP = True
 VERTICAL_FLIP = True
 DEPTHZ_FLIP = True
+
+ELASTICDEFORMATIONIMAGES = True
+
+TYPEELASTICDEFORMATION = 'gridwise'
 # ******************** TRAINING PARAMETERS ********************
 
 
@@ -125,14 +126,13 @@ EPOCH_RESTART = 40
 # ******************** POST-PROCESSING PARAMETERS ********************
 PREDICTION_MODELFILE = 'lastEpoch'
 
-PREDICTACCURACYMETRICS = 'DiceCoefficient_Masked'
-#PREDICTACCURACYMETRICS = 'DiceCoefficient'
+PREDICTACCURACYMETRICS = 'DiceCoefficient'
 
-POSTPROCESSIMAGEMETRICS = ['DiceCoefficient_Masked',
-                           'TruePositiveRate_Masked',
-                           'TrueNegativeRate_Masked',
-                           'FalsePositiveRate_Masked',
-                           'FalseNegativeRate_Masked']
+LISTPOSTPROCESSMETRICS = ['DiceCoefficient',
+                          'TruePositiveRate',
+                          'TrueNegativeRate',
+                          'FalsePositiveRate',
+                          'FalseNegativeRate']
 THRESHOLDOUTIMAGES = False
 
 THRESHOLDVALUE = 0.5
