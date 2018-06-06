@@ -153,7 +153,18 @@ def main(args):
 
                 print("Generate batches images by Slicing volumes: size: %s. Final dimensions: %s..." %(IMAGES_DIMS_Z_X_Y, images_array.shape))
 
-            if (args.transformationImages):
+            if (args.elasticDeformationImages):
+
+                if (TYPEELASTICDEFORMATION=='pixelwise'):
+                    elasticDeformationImagesGenerator = ElasticDeformationPixelwiseImages3D(IMAGES_DIMS_Z_X_Y)
+                else: #TYPEELASTICDEFORMATION=='gridwise':
+                    elasticDeformationImagesGenerator = ElasticDeformationGridwiseImages3D(IMAGES_DIMS_Z_X_Y)
+
+                (images_array, masks_array) = elasticDeformationImagesGenerator.compute_images_array_all(images_array, masks_array=masks_array)
+
+                print("Generate transformed images by elastic deformations, of type '%s': size: %s. Final dimensions: %s..." %(TYPEELASTICDEFORMATION, IMAGES_DIMS_Z_X_Y, images_array.shape))
+
+            elif (args.transformationImages):
 
                 transformImagesGenerator = TransformationImages3D(IMAGES_DIMS_Z_X_Y,
                                                                   rotation_XY_range=ROTATION_XY_RANGE,
@@ -217,6 +228,7 @@ if __name__ == "__main__":
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
+    parser.add_argument('--elasticDeformationImages', type=str2bool, default=ELASTICDEFORMATIONIMAGES)
     parser.add_argument('--createImagesBatches', type=str2bool, default=CREATEIMAGESBATCHES)
     parser.add_argument('--saveVisualProcessData', type=str2bool, default=SAVEVISUALPROCESSDATA)
     args = parser.parse_args()

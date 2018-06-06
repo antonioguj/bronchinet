@@ -47,7 +47,7 @@ def main(args):
     # Loading Saved Model
     modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.prediction_modelFile))
 
-    train_model_funs = [DICTAVAILLOSSFUNS(ILOSSFUN)] + [DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in LISTMETRICS]
+    train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun)] + [DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in args.listmetrics]
     custom_objects = dict(map(lambda fun: (fun.__name__, fun), train_model_funs))
 
     model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)
@@ -126,15 +126,24 @@ if __name__ == "__main__":
     parser.add_argument('--typedata', default=TYPEDATA)
     parser.add_argument('--modelsdir', default='Models')
     parser.add_argument('--predictionsdir', default='Predictions')
+    parser.add_argument('--lossfun', default=ILOSSFUN)
+    parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
     parser.add_argument('--prediction_modelFile', default=PREDICTION_MODELFILE)
+    parser.add_argument('--predictAccuracyMetrics', default=PREDICTACCURACYMETRICS)
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
+    parser.add_argument('--confineMasksToLungs', default=CONFINEMASKSTOLUNGS)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=False)
-    parser.add_argument('--elasticDeformationImages', type=str2bool, default=ELASTICDEFORMATIONIMAGES)
+    parser.add_argument('--elasticDeformationImages', type=str2bool, default=False)
     parser.add_argument('--saveVisualPredictData', type=str2bool, default=SAVEVISUALPREDICTDATA)
     args = parser.parse_args()
+
+    if (args.confineMasksToLungs):
+        args.lossfun     = args.lossfun + '_Masked'
+        args.listmetrics = [item + '_Masked' for item in args.listmetrics]
+        args.predictAccuracyMetrics = args.predictAccuracyMetrics + '_Masked'
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

@@ -48,7 +48,7 @@ def main(args):
         CatchErrorException(message)
 
     if (args.cropImages):
-        namefile_dict = joinpathnames(BaseDataPath, "boundBoxesMasks_OLD.npy")
+        namefile_dict = joinpathnames(BaseDataPath, "boundBoxesMasks.npy")
         dict_masks_boundingBoxes = readDictionary(namefile_dict)
 
     if (args.confineMasksToLungs):
@@ -59,9 +59,9 @@ def main(args):
         listAddMasksFiles = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
 
 
-    computePredictAccuracy = DICTAVAILMETRICFUNS(PREDICTACCURACYMETRICS, use_in_Keras=False)
+    computePredictAccuracy = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics, use_in_Keras=False)
 
-    listFuns_computePredictAccuracy = {imetrics:DICTAVAILMETRICFUNS(imetrics, use_in_Keras=False) for imetrics in POSTPROCESSIMAGEMETRICS}
+    listFuns_computePredictAccuracy = {imetrics:DICTAVAILMETRICFUNS(imetrics, use_in_Keras=False) for imetrics in args.listPostprocessMetrics}
 
 
     # create file to save accuracy measures on test sets
@@ -201,6 +201,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--predictionsdir', default='Predictions')
+    parser.add_argument('--predictAccuracyMetrics', default=PREDICTACCURACYMETRICS)
+    parser.add_argument('--listPostprocessMetrics', type=parseListarg, default=LISTPOSTPROCESSMETRICS)
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
@@ -208,6 +210,10 @@ if __name__ == "__main__":
     parser.add_argument('--prediction_epoch', default='last')
     parser.add_argument('--savePredictionImages', default=SAVEPREDICTIONIMAGES)
     args = parser.parse_args()
+
+    if (args.confineMasksToLungs):
+        args.predictAccuracyMetrics = args.predictAccuracyMetrics + '_Masked'
+        args.listPostprocessMetrics = [item + '_Masked' for item in args.listPostprocessMetrics]
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

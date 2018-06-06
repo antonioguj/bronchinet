@@ -14,7 +14,7 @@ if( len(sys.argv)<2 ):
 num_plot_files = len(sys.argv)-1
 
 print("Plot loss history from %s files:..." %(num_plot_files))
-print(', '.join(map(lambda str: '\''+str+'\'', sys.argv[1:])))
+print(', '.join(map(lambda item: '\''+item+'\'', sys.argv[1:])))
 
 
 data_fields_lossHistory_files = OrderedDict()
@@ -27,7 +27,7 @@ for i in range(num_plot_files):
 
     with open(lossHistory_file, 'r') as infile:
         header_line = infile.readline()
-        header_lossHistory = map(lambda str: str.replace('/','').replace('\n',''), header_line.split(' '))
+        header_lossHistory = map(lambda item: item.replace('/','').replace('\n',''), header_line.split(' '))
 
     data_lossHistory = np.loadtxt(lossHistory_file, skiprows=1)
 
@@ -49,7 +49,7 @@ for i in range(num_plot_files):
         print("ERROR. mandatory fields \'epoch\' or \'loss'\ not found in file \'%s\': ... EXIT" %(lossHistory_file))
         sys.exit(0)
     # check that every field has in 'val_%' associated
-    headers_stdalone_fields = list(filter(lambda str: (str!='epoch') and (str[0:4]!='val_'), header_lossHistory))
+    headers_stdalone_fields = list(filter(lambda item: (item!='epoch') and (item[0:4]!='val_'), header_lossHistory))
     for name in headers_stdalone_fields:
         val_name = 'val_'+name
         if val_name not in header_lossHistory:
@@ -67,7 +67,7 @@ for i in range(num_plot_files):
 
     # Look for additional fields in loss History file:
     # get keys of additional fields already found in previous files:
-    keys_extra_fields_existing = list(filter(lambda str: (str!='epoch') and (str!='loss'), data_fields_lossHistory_files.keys()))
+    keys_extra_fields_existing = list(filter(lambda item: (item!='epoch') and (item!='loss'), data_fields_lossHistory_files.keys()))
 
     for (key, val) in data_fields_lossHistory_this.iteritems():
         if key[0:4]=='val_':
@@ -91,7 +91,7 @@ for i in range(num_plot_files):
 #endfor
 
 
-print("Found fields to plot loss history of: %s..." %(', '.join(map(lambda str: '/'+str+'/', data_fields_lossHistory_files.keys()))))
+print("Found fields to plot loss history of: %s..." %(', '.join(map(lambda item: '/'+item+'/', data_fields_lossHistory_files.keys()))))
 
 epochs = data_fields_lossHistory_files.pop('epoch')
 

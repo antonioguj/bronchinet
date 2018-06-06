@@ -95,7 +95,7 @@ def main(args):
 
     # Callbacks:
     callbacks_list = []
-    callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in LISTMETRICS]))
+    callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in args.listmetrics]))
 
     filename = ModelsPath + '/model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5'
     callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
@@ -207,6 +207,7 @@ if __name__ == "__main__":
     parser.add_argument('--lossfun', default=ILOSSFUN)
     parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
     parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
+    parser.add_argument('--confineMasksToLungs', default=CONFINEMASKSTOLUNGS)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
@@ -216,6 +217,10 @@ if __name__ == "__main__":
     parser.add_argument('--restart_only_weights', type=str2bool, default=RESTART_ONLY_WEIGHTS)
     parser.add_argument('--epoch_restart', type=int, default=EPOCH_RESTART)
     args = parser.parse_args()
+
+    if (args.confineMasksToLungs):
+        args.lossfun     = args.lossfun + '_Masked'
+        args.listmetrics = [item + '_Masked' for item in args.listmetrics]
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():
