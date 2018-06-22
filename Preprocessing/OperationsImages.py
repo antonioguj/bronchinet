@@ -117,3 +117,10 @@ class ExclusionMasks(object):
             CatchErrorException(message)
         else:
             return np.where(exclude_masks_array == 0, 0, images_array)
+
+
+class ThresholdImages(object):
+
+    @staticmethod
+    def compute(predictions_array, threshold_value = 0.5):
+        return np.where(predictions_array > threshold_value, 1, 0)
