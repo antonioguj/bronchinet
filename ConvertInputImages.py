@@ -13,7 +13,6 @@ from CommonUtil.ErrorMessages import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import *
-from Preprocessing.OperationsImages import *
 import argparse
 
 
@@ -41,7 +40,7 @@ def main(args):
 
     # Run checkers
     if (nbImagesFiles == 0):
-        message = "num CTs Images found in dir \'%s\'" %(OrigImagesPath)
+        message = "num CTs Images found in dir \'%s\'" %(InputImagesPath)
         CatchErrorException(message)
     if (nbImagesFiles != nbMasksFiles):
         message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbMasksFiles)

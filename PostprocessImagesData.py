@@ -29,13 +29,13 @@ def main(args):
     OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
 
     # Get the file list:
-    namePredictionsFiles= 'predict-masks*' + getFileExtension(FORMATINOUTDATA)
-    nameOrigImagesFiles = '*.nii'
-    nameOrigMasksFiles  = '*.nii'
+    namePredictionsFiles  = 'predict-masks*' + getFileExtension(FORMATINOUTDATA)
+    nameOriginImagesFiles = '*.dcm'
+    nameOriginMasksFiles  = '*.dcm'
 
-    listPredictionsFiles= findFilesDir(PredictDataPath,  namePredictionsFiles)
-    listOrigImagesFiles = findFilesDir(OriginImagesPath, nameOrigImagesFiles)
-    listOrigMasksFiles  = findFilesDir(OriginMasksPath,  nameOrigMasksFiles)
+    listPredictionsFiles  = findFilesDir(PredictDataPath,  namePredictionsFiles)
+    listOriginImagesFiles = findFilesDir(OriginImagesPath, nameOriginImagesFiles)
+    listOriginMasksFiles  = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
 
     nbPredictionsFiles = len(listPredictionsFiles)
 
@@ -44,7 +44,7 @@ def main(args):
 
     # Run checkers
     if (nbPredictionsFiles == 0):
-        message = "num Predictions found in dir \'%s\'" %(listPredictionsFiles)
+        message = "num Predictions found in dir \'%s\'" %(PredictDataPath)
         CatchErrorException(message)
 
     if (args.cropImages):
@@ -79,19 +79,18 @@ def main(args):
 
         print('\'%s\'...' %(predictionsFile))
 
-        predictions_array = FileReader.getImageArray(predictionsFile)
+        index_orig_images = getIndexOriginImagesFile(basename(predictionsFile), beginString='predict-masks')
 
-        print("Predictions masks array of size: %s..." % (str(predictions_array.shape)))
-
-
-        index_orig_images = getIndexOrigImagesFile(basename(predictionsFile), beginString='predict-masks')
-
-        imagesFile = listOrigImagesFiles[index_orig_images]
-        masksFile  = listOrigMasksFiles [index_orig_images]
+        imagesFile = listOriginImagesFiles[index_orig_images]
+        masksFile  = listOriginMasksFiles [index_orig_images]
 
         print("assigned to '%s' and '%s'..." %(basename(imagesFile), basename(masksFile)))
 
-        masks_array = FileReader.getImageArray(masksFile)
+
+        predictions_array = FileReader.getImageArray(predictionsFile)
+        masks_array       = FileReader.getImageArray(masksFile)
+
+        print("Predictions masks array of size: %s..." % (str(predictions_array.shape)))
 
 
         if (args.multiClassCase):
@@ -123,6 +122,12 @@ def main(args):
             if (predictions_array.shape != masks_array.shape):
                 message = "size of predictions array: %s, not equal to size of masks: %s..." %(predictions_array.shape, masks_array.shape)
                 CatchErrorException(message)
+
+
+        if (args.thresholdOutProbMaps):
+            print("Threshold probability maps to value %s..." %(args.thresholdValue))
+
+            predictions_array = ThresholdImages.compute(predictions_array, args.thresholdValue)
 
 
         if (args.confineMasksToLungs):
@@ -206,6 +211,8 @@ if __name__ == "__main__":
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
+    parser.add_argument('--thresholdOutProbMaps', type=str2bool, default=THRESHOLDOUTPROBMAPS)
+    parser.add_argument('--thresholdValue', type=float, default=THRESHOLDVALUE)
     parser.add_argument('--confineMasksToLungs', default=CONFINEMASKSTOLUNGS)
     parser.add_argument('--prediction_epoch', default='last')
     parser.add_argument('--savePredictionImages', default=SAVEPREDICTIONIMAGES)

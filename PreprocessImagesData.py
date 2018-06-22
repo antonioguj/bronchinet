@@ -32,8 +32,8 @@ def main(args):
 
 
     # Get the file list:
-    nameImagesFiles = '*.nii'
-    nameMasksFiles  = '*.nii'
+    nameImagesFiles = '*.dcm'
+    nameMasksFiles  = '*.dcm'
 
     listImagesFiles = findFilesDir(OriginImagesPath, nameImagesFiles)
     listMasksFiles  = findFilesDir(OriginMasksPath,  nameMasksFiles)
@@ -49,7 +49,7 @@ def main(args):
 
     # Run checkers
     if (nbImagesFiles == 0):
-        message = "num CTs Images found in dir \'%s\'" %(OrigImagesPath)
+        message = "num CTs Images found in dir \'%s\'" %(OriginImagesPath)
         CatchErrorException(message)
     if (nbImagesFiles != nbMasksFiles):
         message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbMasksFiles)
@@ -60,7 +60,7 @@ def main(args):
 
         OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
 
-        nameAddMasksFiles = '*.nii'
+        nameAddMasksFiles = '*.dcm'
         listAddMasksFiles = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
         nbAddMasksFiles   = len(listAddMasksFiles)
 
@@ -107,6 +107,7 @@ def main(args):
 
 
         if (args.reduceSizeImages):
+            print("Reduce resolution of images to size...")
 
             if isSmallerTuple(images_array.shape[-2:], args.sizeReducedImages):
                 message = "New reduced size: %s, smaller than size of original images: %s..." %(images_array.shape[-2:], args.sizeReducedImages)
@@ -115,17 +116,18 @@ def main(args):
             images_array = ResizeImages.compute2D(images_array, args.sizeReducedImages)
             masks_array  = ResizeImages.compute2D(masks_array,  args.sizeReducedImages, isMasks=True)
 
-            print("Reduce resolution of images to size: %s. Final dimensions: %s..." %(args.sizeReducedImages, images_array.shape))
+            print("Final dimensions: %s..." %(args.sizeReducedImages, images_array.shape))
 
 
         if (args.cropImages):
+            print("Crop images to bounding-box...")
 
             crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(imagesFile)]
 
             images_array = CropImages.compute3D(images_array, crop_boundingBox)
             masks_array  = CropImages.compute3D(masks_array,  crop_boundingBox)
 
-            print("Crop images to bounding-box: %s. Final dimensions: %s..." %(crop_boundingBox, images_array.shape))
+            print("Final dimensions: %s..." %(crop_boundingBox, images_array.shape))
 
 
         if (args.checkBalanceClasses):
@@ -140,20 +142,25 @@ def main(args):
 
         if (args.createImagesBatches):
             if (args.slidingWindowImages):
+                print("Generate batches images by Sliding-window: size: %s; Overlap: %s..." %(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y))
 
                 slidingWindowImagesGenerator = SlidingWindowImages3D(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y, images_array.shape)
 
                 (images_array, masks_array) = slidingWindowImagesGenerator.compute_images_array_all(images_array, masks_array=masks_array)
 
-                print("Generate batches images by Sliding-window: size: %s; Overlap: %s. Final dimensions: %s..." %(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y, images_array.shape))
+                print("Final dimensions: %s..." %(images_array.shape))
             else:
+                print("Generate batches images by Slicing volumes: size: %s..." %(IMAGES_DIMS_Z_X_Y))
+
                 slicingImagesGenerator = SlicingImages3D(IMAGES_DIMS_Z_X_Y, images_array.shape)
 
                 (images_array, masks_array) = slicingImagesGenerator.compute_images_array_all(images_array, masks_array=masks_array)
 
-                print("Generate batches images by Slicing volumes: size: %s. Final dimensions: %s..." %(IMAGES_DIMS_Z_X_Y, images_array.shape))
+                print("Final dimensions: %s..." %(images_array.shape))
+
 
             if (args.elasticDeformationImages):
+                print("Generate transformed images by elastic deformations, of type '%s': size: %s..." %(TYPEELASTICDEFORMATION, IMAGES_DIMS_Z_X_Y))
 
                 if (TYPEELASTICDEFORMATION=='pixelwise'):
                     elasticDeformationImagesGenerator = ElasticDeformationPixelwiseImages3D(IMAGES_DIMS_Z_X_Y)
@@ -162,9 +169,10 @@ def main(args):
 
                 (images_array, masks_array) = elasticDeformationImagesGenerator.compute_images_array_all(images_array, masks_array=masks_array)
 
-                print("Generate transformed images by elastic deformations, of type '%s': size: %s. Final dimensions: %s..." %(TYPEELASTICDEFORMATION, IMAGES_DIMS_Z_X_Y, images_array.shape))
+                print("Final dimensions: %s..." %(images_array.shape))
 
             elif (args.transformationImages):
+                print("Generate random 3D transformations of images: size: %s..." %(IMAGES_DIMS_Z_X_Y))
 
                 transformImagesGenerator = TransformationImages3D(IMAGES_DIMS_Z_X_Y,
                                                                   rotation_XY_range=ROTATION_XY_RANGE,
@@ -179,7 +187,7 @@ def main(args):
 
                 (images_array, masks_array) = transformImagesGenerator.compute_images_array_all(images_array, masks_array=masks_array)
 
-                print("Generate random 3D transformations of images: size: %s. Final dimensions: %s..." %(IMAGES_DIMS_Z_X_Y, images_array.shape))
+                print("Final dimensions: %s..." %(images_array.shape))
 
 
         # Save processed data for training networks

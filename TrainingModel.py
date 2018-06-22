@@ -117,7 +117,8 @@ def main(args):
         num_classes_out = 1
 
     print("Load Training data...")
-    if (args.slidingWindowImages or args.transformationImages):
+    if (args.slidingWindowImages or args.transformationImages or args.elasticDeformationImages):
+        print("Generate Training images with Batch Generator of Training data...")
 
         (train_xData, train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
 
@@ -140,7 +141,11 @@ def main(args):
 
     if use_validation_data:
         print("Load Validation data...")
-        if (args.slidingWindowImages or args.transformationImages):
+        if (args.slidingWindowImages or args.transformationImages or args.elasticDeformationImages):
+            print("Generate Validation images with Batch Generator of Validation data...")
+
+            args.transformationImages     = args.transformationImages and args.useTransformOnValidationData
+            args.elasticDeformationImages = args.elasticDeformationImages and args.useTransformOnValidationData
 
             (valid_xData, valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles, listValidMasksFiles)
 
@@ -212,6 +217,7 @@ if __name__ == "__main__":
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=ELASTICDEFORMATIONIMAGES)
+    parser.add_argument('--useTransformOnValidationData', type=str2bool, default=USETRANSFORMONVALIDATIONDATA)
     parser.add_argument('--use_restartModel', type=str2bool, default=USE_RESTARTMODEL)
     parser.add_argument('--restart_modelFile', default=RESTART_MODELFILE)
     parser.add_argument('--restart_only_weights', type=str2bool, default=RESTART_ONLY_WEIGHTS)
