@@ -12,7 +12,7 @@ from keras import backend as K
 import numpy as np
 
 _eps = 1.0e-06
-_smooth = 1
+_smooth = 1.0
 
 
 class LossFunction(object):
