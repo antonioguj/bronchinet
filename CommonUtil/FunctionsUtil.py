@@ -172,6 +172,10 @@ def processBinaryMasks(masks_array):
     # Turn to binary masks (0, 1)
     return np.where(masks_array != 0, 1, 0)
 
+def processBinaryMasks_Type2(masks_array):
+    # Turn to binary masks (0, 1)
+    return np.where(masks_array == 1, 1, 0)
+
 def processBinaryMasks_KeepExclusion(masks_array):
     # Turn to binary masks (0, 1)
     return np.where(np.logical_or(masks_array != 0, masks_array != -1), 1, 0)
@@ -209,7 +213,10 @@ def getSavedModelFileName(typeSavedModel):
         typeSavedModel = typeSavedModel + '.hdf5'
     return typeSavedModel
 
-def getIndexOrigImagesFile(imagesFile, beginString='images'):
+def getExtractSubstringPattern(string, substr_pattern):
+    return re.search(substr_pattern, string).group(0)
+
+def getIndexOriginImagesFile(imagesFile, beginString='images'):
     pattern = beginString + '-[0-9]*'
     if bool(re.match(pattern, imagesFile)):
         return int(re.search(pattern, imagesFile).group(0)[-2:])
