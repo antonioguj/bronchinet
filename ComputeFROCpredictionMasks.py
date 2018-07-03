@@ -15,6 +15,7 @@ from CommonUtil.FrocUtil import computeFROC, plotFROC
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.PlotsManager import *
 from CommonUtil.WorkDirsManager import *
+from Preprocessing.OperationsImages import *
 import argparse
 np.random.seed(2017)
 
@@ -24,19 +25,23 @@ def main(args):
     workDirsManager  = WorkDirsManager(args.basedir)
     BaseDataPath     = workDirsManager.getNameBaseDataPath()
     PredictMasksPath = workDirsManager.getNameExistPath(args.basedir, args.predictionsdir)
-    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
+    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
 
     # Get the file list:
     namePredictMasksFiles = '*.nii'
-    nameOriginMasksFiles  = '*.nii'
+    nameOriginMasksFiles  = '*.dcm'
 
     listPredictMasksFiles= findFilesDir(PredictMasksPath, namePredictMasksFiles)
     listOrigMasksFiles   = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
 
+    print listPredictMasksFiles
+    print listOrigMasksFiles
+    exit
+
     nbPredictMasksFiles = len(listPredictMasksFiles)
 
     # create file to save FROC values
-    tempFROCvaluesFilename = '%s-FROCvalues_NEW.txt'
+    tempFROCvaluesFilename = '%s-FROCvalues.txt'
 
 
     # Run checkers
@@ -44,12 +49,19 @@ def main(args):
         message = "num Predictions found in dir \'%s\'" %(PredictMasksPath)
         CatchErrorException(message)
 
+    if (args.confineMasksToLungs):
+
+        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
+
+        nameAddMasksFiles = '*.dcm'
+        listAddMasksFiles = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
+
 
     # parameters
-    nbr_of_thresholds = 7
-    range_threshold = [-8, -2]
-    #thresholds_list = (np.linspace(range_threshold[0], range_threshold[1], nbr_of_thresholds)).tolist()
-    thresholds_list = (np.logspace(range_threshold[0], range_threshold[1], nbr_of_thresholds)).tolist()
+    nbr_of_thresholds = 11
+    range_threshold = [0.0, 1.0]
+    thresholds_list = (np.linspace(range_threshold[0], range_threshold[1], nbr_of_thresholds)).tolist()
+    #thresholds_list = (np.logspace(range_threshold[0], range_threshold[1], nbr_of_thresholds)).tolist()
     allowedDistance = 0
 
 
@@ -62,6 +74,11 @@ def main(args):
 
         print('\'%s\'...' %(predictionsFile))
 
+        predict_masks_array = FileReader.getImageArray(predictionsFile)
+
+        print("Predictions masks array of size: %s..." % (str(predict_masks_array.shape)))
+
+
         index_origin_masks = re.search('av[0-9]*', predictionsFile).group(0)
 
         origin_masksFile = ''
@@ -72,13 +89,20 @@ def main(args):
 
         print("assigned to '%s'..." % (basename(origin_masksFile)))
 
-        predict_masks_array = FileReader.getImageArray(predictionsFile)
         origin_masks_array  = FileReader.getImageArray(origin_masksFile)
 
         # Turn to binary masks (0, 1)
         origin_masks_array = processBinaryMasks(origin_masks_array)
 
-        print("Predictions masks array of size: %s..." % (str(predict_masks_array.shape)))
+        if (args.confineMasksToLungs):
+            print("Confine masks to exclude the area outside the lungs...")
+
+            index_origin_masks = int(index_origin_masks.replace('av',''))
+
+            exclude_masksFile   = listAddMasksFiles[index_origin_masks]
+            exclude_masks_array = FileReader.getImageArray(exclude_masksFile)
+
+            origin_masks_array = ExclusionMasks.compute(origin_masks_array, exclude_masks_array)
 
 
         # need to convert to lists for FROC methods
@@ -141,6 +165,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--predictionsdir', default='Predictions')
+    parser.add_argument('--confineMasksToLungs', default=CONFINEMASKSTOLUNGS)
     args = parser.parse_args()
 
     print("Print input arguments...")

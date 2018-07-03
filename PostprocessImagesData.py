@@ -55,7 +55,7 @@ def main(args):
 
         OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
 
-        nameAddMasksFiles = '*.nii'
+        nameAddMasksFiles = '*.dcm'
         listAddMasksFiles = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
 
 

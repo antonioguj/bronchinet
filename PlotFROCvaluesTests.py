@@ -35,9 +35,11 @@ for i in range(num_data_files):
 
 mark_value = 0.5
 
-labels = ['wBEC_rand',
-          'dice_rand',
-          'dice_elas']
+labels = ['model_1',
+          'model_2',
+          'model_3',
+          'model_4',
+          'model_5']
 
 if num_data_files == 1:
     plt.plot(FPaverage_list[0], sensitivity_list[0], 'o-', color='b')
@@ -73,7 +75,26 @@ else:
             #find closest value to threshold 0.5 and mark it
             index_mark_value = np.argmin(np.abs(threshold_list[i] - mark_value))
 
-        plt.scatter(FPaverage_list[i][index_mark_value], sensitivity_list[i][index_mark_value], marker='o', color=colors[i])
+        # find the optimal value corresponding to the closest to the left-upper corner.
+        index_mark_value_2 = -1,
+        min_dist = 1.0e+06
+        max_x = 3.5e+05
+        for index_i, (x, y) in enumerate(zip(FPaverage_list[i], sensitivity_list[i])):
+            dist = np.sqrt((x/max_x)**2 + (y-1)**2)
+            if dist < min_dist:
+                index_mark_value_2 = index_i
+                min_dist = dist
+        #endfor
+
+        plt.scatter(FPaverage_list[i][index_mark_value],   sensitivity_list[i][index_mark_value],   marker='o', color=colors[i])
+        plt.scatter(FPaverage_list[i][index_mark_value_2], sensitivity_list[i][index_mark_value_2], marker='^', color=colors[i])
+
+        #include annotation of optimal threshold
+        #annotation_value = '%.2f' %(threshold_list[i][index_mark_value_2])
+        #xy_annotation = (FPaverage_list[i][index_mark_value_2] + 2000, sensitivity_list[i][index_mark_value_2] + 0.02)
+        #plt.annotate(str(annotation_value), xy=xy_annotation, textcoords='data')
+
+        print("Oprimal threshold value: %s..." %(threshold_list[i][index_mark_value_2]))
     # endfor
 
     plt.xlabel('False Positive Average')
