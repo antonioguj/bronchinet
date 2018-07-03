@@ -137,7 +137,7 @@ LISTPOSTPROCESSMETRICS = ['DiceCoefficient',
                           'FalseNegativeRate']
 THRESHOLDOUTPROBMAPS = True
 
-THRESHOLDVALUE = 0.5
+THRESHOLDVALUE = 0.9
 
 SAVEVISUALPREDICTDATA = False
 
