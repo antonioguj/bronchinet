@@ -9,6 +9,7 @@
 ########################################################################################
 
 from CommonUtil.ErrorMessages import *
+from CommonUtil.FunctionsUtil import *
 import SimpleITK as sitk
 import pydicom
 from pydicom.dataset import Dataset, FileDataset
@@ -24,12 +25,13 @@ class FileReader(object):
     @staticmethod
     def getImageSize(filename):
 
-        _, extension = os.path.splitext(filename)
+        basename, extension = ospath_splitext_recurse(filename)
+
         if (extension == '.dcm'):
             return DICOMreader.getImageSize(filename)
         elif (extension == '.nii'):
             return NIFTIreader.getImageSize(filename)
-        elif (extension == '.gz'):
+        elif (extension == '.nii.gz'):
             return NIFTIreader.getImageSize(filename)
         elif (extension == '.npy'):
             return NUMPYreader.getImageSize(filename)
@@ -42,12 +44,13 @@ class FileReader(object):
     @staticmethod
     def getImageArray(filename):
 
-        _, extension = os.path.splitext(filename)
+        basename, extension = ospath_splitext_recurse(filename)
+
         if (extension == '.dcm'):
             return DICOMreader.getImageArray(filename)
         elif (extension == '.nii'):
             return NIFTIreader.getImageArray(filename)
-        elif (extension == '.gz'):
+        elif (extension == '.nii.gz'):
             return NIFTIreader.getImageArray(filename)
         elif (extension == '.npy'):
             return NUMPYreader.getImageArray(filename)
@@ -60,12 +63,13 @@ class FileReader(object):
     @staticmethod
     def writeImageArray(filename, image_array):
 
-        _, extension = os.path.splitext(filename)
+        basename, extension = ospath_splitext_recurse(filename)
+
         if (extension == '.dcm'):
             DICOMreader.writeImageArray(filename, image_array)
         elif (extension == '.nii'):
             NIFTIreader.writeImageArray(filename, image_array)
-        elif (extension == '.gz'):
+        elif (extension == '.nii.gz'):
             NIFTIreader.writeImageArray(filename, image_array)
         elif (extension == '.npy'):
             NUMPYreader.writeImageArray(filename, image_array)

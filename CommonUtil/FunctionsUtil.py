@@ -66,14 +66,23 @@ def basename(filename):
 def dirnamepathfile(filename):
     return os.path.dirname(filename)
 
+def ospath_splitext_recurse(filename):
+    #account for extension that are compound: '.nii.gz'
+    basename, extension = os.path.splitext(filename)
+    if extension == '':
+        return (basename, extension)
+    else:
+        sub_basename, sub_extension = ospath_splitext_recurse(basename)
+        return (sub_basename, sub_extension + extension)
+
 def filenamenoextension(filename):
-    return os.path.splitext(basename(filename))[0]
+    return ospath_splitext_recurse(basename(filename))[0]
 
 def filenamepathnoextension(filename):
-    return os.path.splitext(filename)[0]
+    return ospath_splitext_recurse(filename)[0]
 
 def filenameextension(filename):
-    return os.path.splitext(filename)[1]
+    return ospath_splitext_recurse(filename)[1]
 
 def findFilesDir(filenames):
     return sorted(glob.glob(filenames))
