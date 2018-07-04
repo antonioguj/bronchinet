@@ -29,7 +29,7 @@ def main(args):
     listMasksFiles = findFilesDir(OriginMasksPath,  nameMasksFiles)
     nbMasksFiles   = len(listMasksFiles)
 
-    outFilesExtension = '.nii'
+    outFilesExtension = '.nii.gz'
 
     if (args.confineMasksToLungs):
 

@@ -22,8 +22,8 @@ def main(args):
     BaseDataPath     = workDirsManager.getNameBaseDataPath()
     InputImagesPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
     InputMasksPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
-    OutputImagesPath = workDirsManager.getNameNewPath(BaseDataPath, 'RawImages')
-    OutputMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, 'RawMasks')
+    OutputImagesPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcImages')
+    OutputMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, 'ProcMasks')
 
     # Get the file list:
     nameImagesFiles = '*.dcm'
@@ -35,7 +35,7 @@ def main(args):
     nbImagesFiles   = len(listImagesFiles)
     nbMasksFiles    = len(listMasksFiles)
 
-    outFilesExtension = '.nii'
+    outFilesExtension = '.nii.gz'
 
 
     # Run checkers

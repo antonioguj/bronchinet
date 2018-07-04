@@ -32,14 +32,14 @@ def main(args):
     nameImagesFiles  = 'images*'+ getFileExtension(FORMATINOUTDATA)
     nameMasksFiles   = 'masks*' + getFileExtension(FORMATINOUTDATA)
 
-    nameOutImagesFiles      = lambda in_name: joinpathnames(VisualImagesPath, filenamenoextension(in_name) + '_transform.nii')
-    nameOutImagesBatchFiles = lambda in_name, index: joinpathnames(VisualImagesPath, filenamenoextension(in_name) + '_batch' + str(index) + '_transform.nii')
+    nameOutImagesFiles      = lambda in_name: joinpathnames(VisualImagesPath, filenamenoextension(in_name) + '_transform.nii.gz')
+    nameOutImagesBatchFiles = lambda in_name, index: joinpathnames(VisualImagesPath, filenamenoextension(in_name) + '_batch' + str(index) + '_transform.nii.gz')
 
     listImagesFiles = findFilesDir(OriginImagesPath, nameImagesFiles)
     listMasksFiles  = findFilesDir(OriginMasksPath,  nameMasksFiles)
 
-    listImagesFiles = listImagesFiles[-2:-1]
-    listMasksFiles  = listMasksFiles [-2:-1]
+    listImagesFiles = listImagesFiles
+    listMasksFiles  = listMasksFiles
 
     nbImagesFiles = len(listImagesFiles)
     nbMasksFiles  = len(listMasksFiles)

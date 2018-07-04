@@ -25,18 +25,14 @@ def main(args):
     workDirsManager  = WorkDirsManager(args.basedir)
     BaseDataPath     = workDirsManager.getNameBaseDataPath()
     PredictMasksPath = workDirsManager.getNameExistPath(args.basedir, args.predictionsdir)
-    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
+    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
 
     # Get the file list:
-    namePredictMasksFiles = '*.nii'
-    nameOriginMasksFiles  = '*.dcm'
+    namePredictMasksFiles = '*.nii.gz'
+    nameOriginMasksFiles  = '*.nii.gz'
 
-    listPredictMasksFiles= findFilesDir(PredictMasksPath, namePredictMasksFiles)
-    listOrigMasksFiles   = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
-
-    print listPredictMasksFiles
-    print listOrigMasksFiles
-    exit
+    listPredictMasksFiles = findFilesDir(PredictMasksPath, namePredictMasksFiles)
+    listOriginMasksFiles  = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
 
     nbPredictMasksFiles = len(listPredictMasksFiles)
 
@@ -52,9 +48,8 @@ def main(args):
     if (args.confineMasksToLungs):
 
         OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
-
-        nameAddMasksFiles = '*.dcm'
-        listAddMasksFiles = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
+        nameAddMasksFiles  = '*.dcm'
+        listAddMasksFiles  = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
 
 
     # parameters
@@ -82,7 +77,7 @@ def main(args):
         index_origin_masks = re.search('av[0-9]*', predictionsFile).group(0)
 
         origin_masksFile = ''
-        for file in listOrigMasksFiles:
+        for file in listOriginMasksFiles:
             if index_origin_masks in file:
                 origin_masksFile = file
                 break
@@ -94,12 +89,18 @@ def main(args):
         # Turn to binary masks (0, 1)
         origin_masks_array = processBinaryMasks(origin_masks_array)
 
+
         if (args.confineMasksToLungs):
             print("Confine masks to exclude the area outside the lungs...")
 
-            index_origin_masks = int(index_origin_masks.replace('av',''))
+            exclude_masksFile = ''
+            for file in listAddMasksFiles:
+                if index_origin_masks in file:
+                    exclude_masksFile = file
+                    break
 
-            exclude_masksFile   = listAddMasksFiles[index_origin_masks]
+            print("assigned to '%s'..." % (basename(exclude_masksFile)))
+
             exclude_masks_array = FileReader.getImageArray(exclude_masksFile)
 
             origin_masks_array = ExclusionMasks.compute(origin_masks_array, exclude_masks_array)

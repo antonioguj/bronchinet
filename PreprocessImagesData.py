@@ -206,15 +206,15 @@ def main(args):
 
                 for j, (batch_images_array, batch_masks_array) in enumerate(zip(images_array, masks_array)):
 
-                    out_imagesFilename = joinpathnames(ProcessedImagesPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape[1:]) + '_batch%i'%(j) +'.nii')
-                    out_masksFilename  = joinpathnames(ProcessedMasksPath,  tempNameProcMasksFiles%(i) +  tuple2str(masks_array.shape[1:])  + '_batch%i'%(j) +'.nii')
+                    out_imagesFilename = joinpathnames(ProcessedImagesPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape[1:]) + '_batch%i'%(j) +'.nii.gz')
+                    out_masksFilename  = joinpathnames(ProcessedMasksPath,  tempNameProcMasksFiles%(i) +  tuple2str(masks_array.shape[1:])  + '_batch%i'%(j) +'.nii.gz')
 
                     FileReader.writeImageArray(out_imagesFilename, batch_images_array)
                     FileReader.writeImageArray(out_masksFilename,  batch_masks_array )
                 #endfor
             else:
-                out_imagesFilename = joinpathnames(ProcessedImagesPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape) +'.nii')
-                out_masksFilename  = joinpathnames(ProcessedMasksPath,  tempNameProcMasksFiles%(i)  + tuple2str(masks_array.shape)  +'.nii')
+                out_imagesFilename = joinpathnames(ProcessedImagesPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape) +'.nii.gz')
+                out_masksFilename  = joinpathnames(ProcessedMasksPath,  tempNameProcMasksFiles%(i)  + tuple2str(masks_array.shape)  +'.nii.gz')
 
                 FileReader.writeImageArray(out_imagesFilename, images_array)
                 FileReader.writeImageArray(out_masksFilename, masks_array)

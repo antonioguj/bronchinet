@@ -22,12 +22,12 @@ def main(args):
 
     workDirsManager  = WorkDirsManager(args.basedir)
     BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    OrigImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'ProcImages')
+    OrigImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
     ComputeMasksPath = workDirsManager.getNameNewPath  (BaseDataPath, 'ProbNnetoutMasks')
 
     # Get the file list:
-    nameImagesFiles   = '*.nii'
-    nameOutMasksFiles = lambda in_name: joinpathnames(ComputeMasksPath, filenamenoextension(in_name) + '_probnnetout.nii')
+    nameImagesFiles   = '*.dcm'
+    nameOutMasksFiles = lambda in_name: joinpathnames(ComputeMasksPath, filenamenoextension(in_name) + '_probnnetout.nii.gz')
 
     listImagesFiles = findFilesDir(OrigImagesPath, nameImagesFiles)
     nbImagesFiles   = len(listImagesFiles)
