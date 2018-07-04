@@ -12,8 +12,8 @@ import numpy as np
 np.random.seed(2017)
 
 
-DATADIR = '/home/antonio/Files_Project/testSegmentation/Data/LUVAR/'
-BASEDIR = '/home/antonio/Files_Project/testSegmentation/Tests_LUVAR/'
+DATADIR = '/home/antonio/testSegmentation/Data/LUVAR/'
+BASEDIR = '/home/antonio/testSegmentation/Tests_LUVAR/'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
@@ -137,11 +137,12 @@ LISTPOSTPROCESSMETRICS = ['DiceCoefficient',
                           'TrueNegativeRate',
                           'FalsePositiveRate',
                           'FalseNegativeRate']
-THRESHOLDOUTIMAGES = False
+
+SAVEPREDICTMASKSLICES = True
+
+THRESHOLDOUTPROBMAPS = False
 
 THRESHOLDVALUE = 0.5
 
-SAVEVISUALPREDICTDATA = False
-
-SAVEPREDICTIONIMAGES = True
+SAVETHRESHOLDIMAGES = True
 # ******************** POST-PROCESSING PARAMETERS ********************

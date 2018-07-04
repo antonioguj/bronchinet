@@ -29,6 +29,8 @@ class FileReader(object):
             return DICOMreader.getImageSize(filename)
         elif (extension == '.nii'):
             return NIFTIreader.getImageSize(filename)
+        elif (extension == '.gz'):
+            return NIFTIreader.getImageSize(filename)
         elif (extension == '.npy'):
             return NUMPYreader.getImageSize(filename)
         elif (extension == '.hdf5'):
@@ -45,6 +47,8 @@ class FileReader(object):
             return DICOMreader.getImageArray(filename)
         elif (extension == '.nii'):
             return NIFTIreader.getImageArray(filename)
+        elif (extension == '.gz'):
+            return NIFTIreader.getImageArray(filename)
         elif (extension == '.npy'):
             return NUMPYreader.getImageArray(filename)
         elif (extension == '.hdf5'):
@@ -60,6 +64,8 @@ class FileReader(object):
         if (extension == '.dcm'):
             DICOMreader.writeImageArray(filename, image_array)
         elif (extension == '.nii'):
+            NIFTIreader.writeImageArray(filename, image_array)
+        elif (extension == '.gz'):
             NIFTIreader.writeImageArray(filename, image_array)
         elif (extension == '.npy'):
             NUMPYreader.writeImageArray(filename, image_array)
