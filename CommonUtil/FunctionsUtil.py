@@ -16,6 +16,7 @@ import time
 import csv
 import os
 import re
+import multiprocessing
 
 
 def makedir(pathname):
@@ -228,6 +229,9 @@ class WallClockTime(object):
         self.start_time = time.time()
     def compute(self):
         return time.time() - self.start_time
+
+def getNumWorkingProcessesCPU():
+    return multiprocessing.cpu_count()
 
 
 # Manage GPU resources

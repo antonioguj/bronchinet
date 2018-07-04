@@ -12,8 +12,8 @@ import numpy as np
 np.random.seed(2017)
 
 
-DATADIR = '/home/antonio/testSegmentation/Data/LUVAR/'
-BASEDIR = '/home/antonio/testSegmentation/Tests_LUVAR/'
+DATADIR = '/home/antonio/Files_Project/testSegmentation/Data/LUVAR/'
+BASEDIR = '/home/antonio/Files_Project/testSegmentation/Tests_LUVAR/'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
@@ -106,11 +106,13 @@ HORIZONTAL_FLIP = True
 VERTICAL_FLIP = True
 DEPTHZ_FLIP = True
 
-ELASTICDEFORMATIONIMAGES = True
+ELASTICDEFORMATIONIMAGES = False
 
 TYPEELASTICDEFORMATION = 'gridwise'
 
 USETRANSFORMONVALIDATIONDATA = True
+
+USEMULTITHREADING = False
 # ******************** TRAINING PARAMETERS ********************
 
 
@@ -135,9 +137,9 @@ LISTPOSTPROCESSMETRICS = ['DiceCoefficient',
                           'TrueNegativeRate',
                           'FalsePositiveRate',
                           'FalseNegativeRate']
-THRESHOLDOUTPROBMAPS = True
+THRESHOLDOUTIMAGES = False
 
-THRESHOLDVALUE = 0.9
+THRESHOLDVALUE = 0.5
 
 SAVEVISUALPREDICTDATA = False
 
