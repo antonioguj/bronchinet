@@ -41,10 +41,8 @@ def main(args):
     nbImagesFiles   = len(listImagesFiles)
     nbMasksFiles    = len(listMasksFiles)
 
-    tempNameProcImagesFiles = 'images-%0.2i_dim'
-    tempNameProcMasksFiles  = 'masks-%0.2i_dim'
-
-    outFilesExtension = getFileExtension(FORMATINOUTDATA)
+    tempNameProcImagesFiles = 'images-%0.2i_dim' + getFileExtension(FORMATINOUTDATA)
+    tempNameProcMasksFiles  = 'masks-%0.2i_dim'  + getFileExtension(FORMATINOUTDATA)
 
 
     # Run checkers
@@ -193,8 +191,8 @@ def main(args):
         # Save processed data for training networks
         print("Saving processed data, with dims: %s..." %(tuple2str(images_array.shape)))
 
-        out_imagesFilename = joinpathnames(ProcessedImagesPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape) + outFilesExtension)
-        out_masksFilename  = joinpathnames(ProcessedMasksPath,  tempNameProcMasksFiles%(i)  + tuple2str(masks_array.shape)  + outFilesExtension)
+        out_imagesFilename = joinpathnames(ProcessedImagesPath, tempNameProcImagesFiles%(i) + tuple2str(images_array.shape))
+        out_masksFilename  = joinpathnames(ProcessedMasksPath,  tempNameProcMasksFiles%(i)  + tuple2str(masks_array.shape))
 
         FileReader.writeImageArray(out_imagesFilename, images_array)
         FileReader.writeImageArray(out_masksFilename,  masks_array )

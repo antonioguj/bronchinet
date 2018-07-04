@@ -35,8 +35,6 @@ def main(args):
     nbImagesFiles   = len(listImagesFiles)
     nbMasksFiles    = len(listMasksFiles)
 
-    outFilesExtension = '.nii.gz'
-
 
     # Run checkers
     if (nbImagesFiles == 0):
@@ -51,7 +49,7 @@ def main(args):
         isExistsAddMasks = True
 
         InputAddMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
-        OutputAddMasksPath = workDirsManager.getNameNewPath(BaseDataPath, 'RawAddMasks')
+        OutputAddMasksPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcAddMasks')
 
         nameAddMasksFiles = '*.dcm'
         listAddMasksFiles = findFilesDir(InputAddMasksPath, nameAddMasksFiles)
@@ -79,16 +77,16 @@ def main(args):
 
         print("Saving images in nifty '.nii' format of final dimensions: %s..." %(str(images_array.shape)))
 
-        out_imagesFilename = joinpathnames(OutputImagesPath, filenamenoextension(imagesFile) + outFilesExtension)
-        out_masksFilename  = joinpathnames(OutputMasksPath,  filenamenoextension(masksFile)  + outFilesExtension)
+        out_imagesFilename = joinpathnames(OutputImagesPath, filenamenoextension(imagesFile) + '.nii.gz')
+        out_masksFilename  = joinpathnames(OutputMasksPath,  filenamenoextension(masksFile)  + '.nii.gz')
 
-        FileReader.writeImageArray(out_imagesFilename, images_array)
-        FileReader.writeImageArray(out_masksFilename,  masks_array )
+        FileReader.writeImageArray(out_imagesFilename, images_array.astype(FORMATIMAGEDATA))
+        FileReader.writeImageArray(out_masksFilename,  masks_array .astype(FORMATIMAGEDATA))
 
         if isExistsAddMasks:
-            out_masksFilename = joinpathnames(OutputAddMasksPath, filenamenoextension(add_masksFile) + outFilesExtension)
+            out_masksFilename = joinpathnames(OutputAddMasksPath, filenamenoextension(add_masksFile) + '.nii.gz')
 
-            FileReader.writeImageArray(out_masksFilename, add_masks_array)
+            FileReader.writeImageArray(out_masksFilename, add_masks_array.astype(FORMATIMAGEDATA))
     #endfor
 
 

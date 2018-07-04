@@ -29,7 +29,12 @@ def main(args):
     listMasksFiles = findFilesDir(OriginMasksPath,  nameMasksFiles)
     nbMasksFiles   = len(listMasksFiles)
 
-    outFilesExtension = '.nii.gz'
+
+    # Run checkers
+    if (nbMasksFiles == 0):
+        message = "num CTs Images found in dir \'%s\'" %(OriginMasksPath)
+        CatchErrorException(message)
+
 
     if (args.confineMasksToLungs):
 
@@ -40,13 +45,6 @@ def main(args):
         listAddMasksFiles = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
         nbAddMasksFiles   = len(listAddMasksFiles)
 
-
-    # Run checkers
-    if (nbMasksFiles == 0):
-        message = "num CTs Images found in dir \'%s\'" %(OriginMasksPath)
-        CatchErrorException(message)
-
-    if (args.confineMasksToLungs):
         if (nbMasksFiles != nbAddMasksFiles):
             message = "num CTs Images %s not equal to num Masks %s" %(nbMasksFiles, nbAddMasksFiles)
             CatchErrorException(message)
@@ -85,12 +83,12 @@ def main(args):
 
         print("Saving images in nifty '.nii' format of final dimensions: %s..." % (str(masks_array.shape)))
 
-        out_masksFilename = joinpathnames(OutputMasksPath, filenamenoextension(masksFile) + outFilesExtension)
+        out_masksFilename = joinpathnames(OutputMasksPath, filenamenoextension(masksFile) + '.nii.gz')
 
         FileReader.writeImageArray(out_masksFilename, masks_array.astype(FORMATIMAGEDATA))
 
         if (args.confineMasksToLungs):
-            out_lungs_masksFilename   = joinpathnames(OutputAddMasksPath, filenamenoextension(exclude_masksFile) + outFilesExtension)
+            out_lungs_masksFilename   = joinpathnames(OutputAddMasksPath, filenamenoextension(exclude_masksFile) + '.nii.gz')
             out_traquea_masksFilename = out_lungs_masksFilename.replace('lungs','traquea')
 
             FileReader.writeImageArray(out_lungs_masksFilename,   lungs_masks_array  .astype(FORMATIMAGEDATA))

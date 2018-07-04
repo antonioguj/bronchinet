@@ -24,17 +24,17 @@ def main(args):
 
     workDirsManager  = WorkDirsManager(args.basedir)
     BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    OriginImagesPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
-    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
+    OriginImagesPath = workDirsManager.getNameExistPath(BaseDataPath, 'ProcImages')
+    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
     VisualImagesPath = workDirsManager.getNameNewPath  (BaseDataPath, 'VisualTransformImages')
 
     # Get the file list:
-    nameImagesFiles    = '*.nii'
-    nameMasksFiles     = '*.nii'
-    nameOutImagesFiles = lambda in_name: joinpathnames(VisualImagesPath, filenamenoextension(in_name) + '_transform.nii')
+    nameImagesFiles    = '*.nii.gz'
+    nameMasksFiles     = '*.nii.gz'
+    nameOutImagesFiles = lambda in_name: joinpathnames(VisualImagesPath, filenamenoextension(in_name) + '_transform.nii.gz')
 
-    listImagesFiles = findFilesDir(OrigImagesPath, nameImagesFiles)
-    listMasksFiles  = findFilesDir(OrigMasksPath,  nameMasksFiles)
+    listImagesFiles = findFilesDir(OriginImagesPath, nameImagesFiles)
+    listMasksFiles  = findFilesDir(OriginMasksPath,  nameMasksFiles)
 
     nbImagesFiles = len(listImagesFiles)
     nbMasksFiles  = len(listMasksFiles)

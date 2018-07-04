@@ -40,13 +40,13 @@ def main(args):
     listMasksFiles  = findFilesDir(TestingDataPath, nameMasksFiles )
 
     # Get the file list:
-    nameOriginImagesFiles = '*.dcm'
-    nameOriginMasksFiles  = '*.dcm'
+    nameOriginImagesFiles = '*.nii.gz'
+    nameOriginMasksFiles  = '*.nii.gz'
 
     listOriginImagesFiles = findFilesDir(OriginImagesPath, nameOriginImagesFiles)
     listOriginMasksFiles  = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
 
-    tempNamePredictMasksFiles = 'predictMasks-%s_acc%0.2f.nii.gz'
+    tempNamePredictMasksFiles = 'predictMasks-%s_acc%2.0f.nii.gz'
 
 
     if (args.cropImages):
@@ -142,7 +142,7 @@ def main(args):
                 message = "size of predictions array: %s, cannot be larger than that of original masks: %s..." %(predict_masks_array.shape, origin_masks_array_shape)
                 CatchErrorException(message)
             else:
-                print("Predictions are cropped. Augment size of predictions array from %s to original size %s..."%(predict_masks_array.shape, origin_masks_array_shape))
+                print("Predictions are cropped. Increase array size from %s to original size %s..."%(predict_masks_array.shape, origin_masks_array_shape))
 
             crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(origin_imagesFile)]
 
@@ -170,26 +170,27 @@ def main(args):
         # Compute test accuracy
         accuracy_before = computePredictAccuracy_before(test_yData.astype(FORMATPREDICTDATA), predict_data)
 
+        origin_masks_array = FileReader.getImageArray(origin_masksFile)
+
         accuracy_after  = computePredictAccuracy_after (origin_masks_array, predict_masks_array)
 
         print("Computed accuracy (before post-processing): %s..." %(accuracy_before))
         print("Computed accuracy (after post-processing): %s..." %(accuracy_after))
 
 
-        # Save reconstructed prediction maps (or thresholding masks)
-        print("Saving prediction masks, with dims: %s..." %(tuple2str(predict_masks_array.shape)))
+        # Save reconstructed predict probability maps (or thresholding masks)
+        print("Saving predict probability maps, with dims: %s..." %(tuple2str(predict_masks_array.shape)))
 
-        out_predictMasksFilename = joinpathnames(PredictDataPath, tempNamePredictMasksFiles%(filenamenoextension(origin_imagesFile), accuracy_after))
+        out_predictMasksFilename = joinpathnames(PredictDataPath, tempNamePredictMasksFiles%(filenamenoextension(origin_imagesFile), np.round(100*accuracy_after)))
 
         FileReader.writeImageArray(out_predictMasksFilename, predict_masks_array)
 
 
         # Save predictions in images
-        if (args.savePredictionImages):
+        if (args.savePredictMaskSlices):
             SaveImagesPath = workDirsManager.getNameNewPath(PredictDataPath, 'imagesSlices-%s'%(filenamenoextension(origin_imagesFile)))
 
             origin_images_array = FileReader.getImageArray(origin_imagesFile)
-            origin_masks_array  = FileReader.getImageArray(origin_masksFile)
 
             #take only slices in the middle of lungs (1/5 - 4/5)*depth_Z
             begin_slices = origin_images_array.shape[0] // 5

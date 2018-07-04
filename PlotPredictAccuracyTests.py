@@ -69,8 +69,8 @@ print("Found samples to plot: %s..." %(', '.join(map(lambda item: '/'+item+'/', 
 
 for (key, data) in data_fields_files.iteritems():
 
-    labels = ['model %s'%(i+1) for i in range(len(data))]
+    labels = ['model_%s'%(i+1) for i in range(len(data))]
     plt.boxplot(data, labels=labels)
-    plt.title('Dice Coefficient')
+    plt.title(str(key))
     plt.show()
 #endfor
