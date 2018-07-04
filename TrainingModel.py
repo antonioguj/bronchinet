@@ -178,23 +178,37 @@ def main(args):
     print("-" * 30)
 
     if (args.slidingWindowImages or args.transformationImages):
+        if (args.useMultiThreading):
+            print("STILL IN IMPLEMENTATION...EXIT")
+            exit(0)
 
-        model.fit_generator(train_batch_data_generator,
-                            steps_per_epoch=len(train_batch_data_generator),
-                            nb_epoch=args.num_epochs,
-                            verbose=1,
-                            shuffle=True,
-                            validation_data=validation_data,
-                            callbacks=callbacks_list,
-                            initial_epoch=initial_epoch)
+            model.fit_generator(train_batch_data_generator,
+                                steps_per_epoch=len(train_batch_data_generator),
+                                nb_epoch=args.num_epochs,
+                                verbose=1,
+                                callbacks=callbacks_list,
+                                validation_data=validation_data,
+                                use_multiprocessing=True,
+                                workers=getNumWorkingProcessesCPU(),
+                                shuffle=True,
+                                initial_epoch=initial_epoch)
+        else:
+            model.fit_generator(train_batch_data_generator,
+                                steps_per_epoch=len(train_batch_data_generator),
+                                nb_epoch=args.num_epochs,
+                                verbose=1,
+                                callbacks=callbacks_list,
+                                validation_data=validation_data,
+                                shuffle=True,
+                                initial_epoch=initial_epoch)
     else:
         model.fit(train_xData, train_yData,
                   batch_size=args.batch_size,
                   epochs=args.num_epochs,
                   verbose=1,
-                  shuffle=True,
-                  validation_data=validation_data,
                   callbacks=callbacks_list,
+                  validation_data=validation_data,
+                  shuffle=True,
                   initial_epoch=initial_epoch)
     # ----------------------------------------------
 
@@ -218,6 +232,7 @@ if __name__ == "__main__":
     parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=ELASTICDEFORMATIONIMAGES)
     parser.add_argument('--useTransformOnValidationData', type=str2bool, default=USETRANSFORMONVALIDATIONDATA)
+    parser.add_argument('--useMultiThreading', type=str2bool, default=USEMULTITHREADING)
     parser.add_argument('--use_restartModel', type=str2bool, default=USE_RESTARTMODEL)
     parser.add_argument('--restart_modelFile', default=RESTART_MODELFILE)
     parser.add_argument('--restart_only_weights', type=str2bool, default=RESTART_ONLY_WEIGHTS)

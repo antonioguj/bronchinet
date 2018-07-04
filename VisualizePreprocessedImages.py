@@ -24,22 +24,17 @@ def main(args):
 
     workDirsManager  = WorkDirsManager(args.basedir)
     BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    OriginImagesPath = workDirsManager.getNameExistPath(BaseDataPath, 'ProcImagesData')
-    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasksData')
+    OriginImagesPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
+    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
     VisualImagesPath = workDirsManager.getNameNewPath  (BaseDataPath, 'VisualTransformImages')
 
     # Get the file list:
-    nameImagesFiles  = 'images*'+ getFileExtension(FORMATINOUTDATA)
-    nameMasksFiles   = 'masks*' + getFileExtension(FORMATINOUTDATA)
+    nameImagesFiles    = '*.nii'
+    nameMasksFiles     = '*.nii'
+    nameOutImagesFiles = lambda in_name: joinpathnames(VisualImagesPath, filenamenoextension(in_name) + '_transform.nii')
 
-    nameOutImagesFiles      = lambda in_name: joinpathnames(VisualImagesPath, filenamenoextension(in_name) + '_transform.nii.gz')
-    nameOutImagesBatchFiles = lambda in_name, index: joinpathnames(VisualImagesPath, filenamenoextension(in_name) + '_batch' + str(index) + '_transform.nii.gz')
-
-    listImagesFiles = findFilesDir(OriginImagesPath, nameImagesFiles)
-    listMasksFiles  = findFilesDir(OriginMasksPath,  nameMasksFiles)
-
-    listImagesFiles = listImagesFiles
-    listMasksFiles  = listMasksFiles
+    listImagesFiles = findFilesDir(OrigImagesPath, nameImagesFiles)
+    listMasksFiles  = findFilesDir(OrigMasksPath,  nameMasksFiles)
 
     nbImagesFiles = len(listImagesFiles)
     nbMasksFiles  = len(listMasksFiles)
@@ -68,8 +63,8 @@ def main(args):
     vertical_flip = False
     depthZ_flip = False
 
+    elastic_deformation = True
     type_elastic_deformation = 'gridwise'
-
 
 
     for i, (imagesFile, masksFile) in enumerate(zip(listImagesFiles, listMasksFiles)):
@@ -84,59 +79,39 @@ def main(args):
         transform_masks_array  = masks_array
 
 
-        if (args.slidingWindowImages):
-            print("Generate batches images by Sliding-window: size: %s; Overlap: %s..." % (IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y))
-
-            slidingWindowImagesGenerator = SlidingWindowImages3D(IMAGES_DIMS_Z_X_Y, args.prop_overlap_Z_X_Y, images_array.shape)
-
-            (transform_images_array, transform_masks_array) = slidingWindowImagesGenerator.compute_images_array_all(transform_images_array, masks_array=transform_masks_array)
-
-            #print("Final dimensions: %s..." % (transform_images_array.shape))
-
-
-        if (args.elasticDeformationImages):
-            print("Generate transformed images by elastic deformations, of type '%s': size: %s..." % (TYPEELASTICDEFORMATION, IMAGES_DIMS_Z_X_Y))
+        if (elastic_deformation):
+            print("compute elastic deformation of images...")
 
             if (type_elastic_deformation == 'pixelwise'):
-                elasticDeformationImagesGenerator = ElasticDeformationPixelwiseImages3D(IMAGES_DIMS_Z_X_Y)
-            else:  # type_elastic_deformation=='gridwise':
-                elasticDeformationImagesGenerator = ElasticDeformationGridwiseImages3D(IMAGES_DIMS_Z_X_Y)
+                elasticDeformationImages = ElasticDeformationPixelwiseImages3D(IMAGES_DIMS_Z_X_Y)
+            else: #type_elastic_deformation =='gridwise'
+                elasticDeformationImages = ElasticDeformationGridwiseImages3D(IMAGES_DIMS_Z_X_Y)
 
-            (transform_images_array, transform_masks_array) = elasticDeformationImagesGenerator.compute_images_array_all(transform_images_array, masks_array=transform_masks_array)
-
-            #print("Final dimensions: %s..." % (transform_images_array.shape))
-
-        elif (args.transformationImages):
-            print("Generate random 3D transformations of images: size: %s..." % (IMAGES_DIMS_Z_X_Y))
-
-            transformImagesGenerator = TransformationImages3D(IMAGES_DIMS_Z_X_Y,
-                                                              rotation_XY_range=rotation_XY_range,
-                                                              rotation_XZ_range=rotation_XZ_range,
-                                                              rotation_YZ_range=rotation_YZ_range,
-                                                              width_shift_range=width_shift_range,
-                                                              height_shift_range=height_shift_range,
-                                                              depth_shift_range=depth_shift_range,
-                                                              shear_XY_range=shear_XY_range,
-                                                              shear_XZ_range=shear_XZ_range,
-                                                              shear_YZ_range=shear_YZ_range,
-                                                              horizontal_flip=horizontal_flip,
-                                                              vertical_flip=vertical_flip,
-                                                              depthZ_flip=depthZ_flip)
-
-            (transform_images_array, transform_masks_array) = transformImagesGenerator.compute_images_array_all(transform_images_array, masks_array=transform_masks_array)
-
-            #print("Final dimensions: %s..." % (transform_images_array.shape))
+            # Important! set seed to apply same random transformation to images and masks
+            (transform_images_array, transform_masks_array) = elasticDeformationImages.get_images_array(transform_images_array, masks_array=transform_masks_array)
 
 
-        if (args.slidingWindowImages):
-            for j, (batch_images_array, batch_masks_array) in enumerate(zip(transform_images_array, transform_masks_array)):
+        print("compute random transformation of images...")
+        transformationImages = TransformationImages3D(IMAGES_DIMS_Z_X_Y,
+                                                      rotation_XY_range=rotation_XY_range,
+                                                      rotation_XZ_range=rotation_XZ_range,
+                                                      rotation_YZ_range=rotation_YZ_range,
+                                                      width_shift_range=width_shift_range,
+                                                      height_shift_range=height_shift_range,
+                                                      depth_shift_range=depth_shift_range,
+                                                      shear_XY_range=shear_XY_range,
+                                                      shear_XZ_range=shear_XZ_range,
+                                                      shear_YZ_range=shear_YZ_range,
+                                                      horizontal_flip=horizontal_flip,
+                                                      vertical_flip=vertical_flip,
+                                                      depthZ_flip=depthZ_flip)
 
-                FileReader.writeImageArray(nameOutImagesBatchFiles(imagesFile,j), batch_images_array)
-                FileReader.writeImageArray(nameOutImagesBatchFiles(masksFile, j), batch_masks_array)
-            # endfor
-        else:
-            FileReader.writeImageArray(nameOutImagesFiles(imagesFile), transform_images_array)
-            FileReader.writeImageArray(nameOutImagesFiles(masksFile),  transform_masks_array )
+        # Important! set seed to apply same random transformation to images and masks
+        (transform_images_array, transform_masks_array) = transformationImages.get_images_array(transform_images_array, masks_array=transform_masks_array)
+
+
+        FileReader.writeImageArray(nameOutImagesFiles(imagesFile), transform_images_array)
+        FileReader.writeImageArray(nameOutImagesFiles(masksFile),  transform_masks_array )
     # endfor
 
 
@@ -144,10 +119,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
-    parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
-    parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
-    parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
-    parser.add_argument('--elasticDeformationImages', type=str2bool, default=ELASTICDEFORMATIONIMAGES)
     args = parser.parse_args()
 
     print("Print input arguments...")
