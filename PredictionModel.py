@@ -49,7 +49,7 @@ def main(args):
     tempNamePredictMasksFiles = 'predictMasks-%s_acc%2.0f.nii.gz'
 
 
-    if (args.cropImages):
+    if (args.cropImages or args.extendSizeImages):
         namefile_dict = joinpathnames(BaseDataPath, "boundBoxesMasks.npy")
         dict_masks_boundingBoxes = readDictionary(namefile_dict)
 
@@ -89,17 +89,17 @@ def main(args):
         num_classes_out = 1
 
 
-    for i, (imagesFile, masksFile) in enumerate(zip(listImagesFiles, listMasksFiles)):
+    for i, (images_file, masks_file) in enumerate(zip(listImagesFiles, listMasksFiles)):
 
-        print('\'%s\'...' % (imagesFile))
+        print('\'%s\'...' % (images_file))
 
         # Assign original imagea and masks files
-        index_origin_images = getIndexOriginImagesFile(basename(imagesFile), beginString='images')
+        index_origin_images = getIndexOriginImagesFile(basename(images_file), beginString='images')
 
-        origin_imagesFile = listOriginImagesFiles[index_origin_images]
-        origin_masksFile  = listOriginMasksFiles [index_origin_images]
+        origin_images_file = listOriginImagesFiles[index_origin_images]
+        origin_masks_file  = listOriginMasksFiles [index_origin_images]
 
-        print("assigned to original files: '%s' and '%s'..." %(basename(origin_imagesFile), basename(origin_masksFile)))
+        print("assigned to original files: '%s' and '%s'..." %(basename(origin_images_file), basename(origin_masks_file)))
 
 
         # Loading Data
@@ -107,13 +107,20 @@ def main(args):
 
         if (args.slidingWindowImages or args.transformationImages):
 
-            test_images_generator = getImagesDataGenerator3D(args.slidingWindowImages, args.prop_overlap_Z_X_Y, args.transformationImages, args.elasticDeformationImages)
+            test_images_generator = getImagesDataGenerator3D(args.slidingWindowImages,
+                                                             args.prop_overlap_Z_X_Y,
+                                                             args.transformationImages,
+                                                             args.elasticDeformationImages)
 
             (test_xData, test_yData) = LoadDataManagerInBatches_DataGenerator(IMAGES_DIMS_Z_X_Y,
                                                                               test_images_generator,
-                                                                              num_classes_out=num_classes_out).loadData_1File(imagesFile, masksFile, shuffle_images=False)
+                                                                              num_classes_out=num_classes_out).loadData_1File(images_file,
+                                                                                                                              masks_file,
+                                                                                                                              shuffle_images=False)
         else:
-            (test_xData, test_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_1File(imagesFile, masksFile, shuffle_images=False)
+            (test_xData, test_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_1File(images_file,
+                                                                                                  masks_file,
+                                                                                                  shuffle_images=False)
 
 
         # EVALUATE MODEL
@@ -122,7 +129,7 @@ def main(args):
 
 
         # Reconstruct batch images to full 3D array
-        predict_masks_array_shape = FileReader.getImageSize(masksFile)
+        predict_masks_array_shape = FileReader.getImageSize(masks_file)
 
         if (args.slidingWindowImages or args.transformationImages):
 
@@ -134,17 +141,16 @@ def main(args):
 
 
         # Reconstruct cropped image to original size
+        origin_masks_array_shape = FileReader.getImageSize(origin_masks_file)
+
         if (args.cropImages):
-
-            origin_masks_array_shape = FileReader.getImageSize(origin_masksFile)
-
             if (predict_masks_array.shape > origin_masks_array_shape):
                 message = "size of predictions array: %s, cannot be larger than that of original masks: %s..." %(predict_masks_array.shape, origin_masks_array_shape)
                 CatchErrorException(message)
             else:
                 print("Predictions are cropped. Increase array size from %s to original size %s..."%(predict_masks_array.shape, origin_masks_array_shape))
 
-            crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(origin_imagesFile)]
+            crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(origin_images_file)]
 
             new_predict_masks_array = np.zeros(origin_masks_array_shape)
             new_predict_masks_array[crop_boundingBox[0][0]:crop_boundingBox[0][1],
@@ -152,6 +158,19 @@ def main(args):
                                     crop_boundingBox[2][0]:crop_boundingBox[2][1]] = predict_masks_array
 
             predict_masks_array = new_predict_masks_array
+
+        elif (args.extendSizeImages):
+            if (predict_masks_array.shape < origin_masks_array_shape):
+                message = "size of predictions array: %s, cannot be smaller than that of original masks: %s..." %(predict_masks_array.shape, origin_masks_array_shape)
+                CatchErrorException(message)
+            else:
+                print("Predictions are extended. Decrease array size from %s to original size %s..."%(predict_masks_array.shape, origin_masks_array_shape))
+
+            crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(origin_images_file)]
+
+            predict_masks_array = predict_masks_array[crop_boundingBox[0][0]:crop_boundingBox[0][1],
+                                                      crop_boundingBox[1][0]:crop_boundingBox[1][1],
+                                                      crop_boundingBox[2][0]:crop_boundingBox[2][1]]
         else:
             if (predict_masks_array.shape != origin_masks_array_shape):
                 message = "size of predictions array: %s, not equal to size of masks: %s..." %(predict_masks_array.shape, origin_masks_array_shape)
@@ -161,18 +180,21 @@ def main(args):
         if (args.confineMasksToLungs):
             print("Confine masks to exclude the area outside the lungs...")
 
-            exclude_masksFile   = listAddMasksFiles[index_origin_images]
-            exclude_masks_array = FileReader.getImageArray(exclude_masksFile)
+            exclude_masks_file  = listAddMasksFiles[index_origin_images]
 
-            predict_masks_array = ExclusionMasks.computeInverse(predict_masks_array, exclude_masks_array)
+            print("assigned to: '%s'..." %(basename(exclude_masks_file)))
+
+            exclude_masks_array = FileReader.getImageArray(exclude_masks_file)
+
+            predict_masks_array = OperationsBinaryMasks.reverse_mask_exclude_voxels_fillzero(predict_masks_array, exclude_masks_array)
 
 
         # Compute test accuracy
         accuracy_before = computePredictAccuracy_before(test_yData.astype(FORMATPREDICTDATA), predict_data)
 
-        origin_masks_array = FileReader.getImageArray(origin_masksFile)
+        origin_masks_array = FileReader.getImageArray(origin_masks_file)
 
-        accuracy_after  = computePredictAccuracy_after (origin_masks_array, predict_masks_array)
+        accuracy_after  = computePredictAccuracy_after(origin_masks_array, predict_masks_array)
 
         print("Computed accuracy (before post-processing): %s..." %(accuracy_before))
         print("Computed accuracy (after post-processing): %s..." %(accuracy_after))
@@ -181,16 +203,16 @@ def main(args):
         # Save reconstructed predict probability maps (or thresholding masks)
         print("Saving predict probability maps, with dims: %s..." %(tuple2str(predict_masks_array.shape)))
 
-        out_predictMasksFilename = joinpathnames(PredictDataPath, tempNamePredictMasksFiles%(filenamenoextension(origin_imagesFile), np.round(100*accuracy_after)))
+        out_predictMasksFilename = joinpathnames(PredictDataPath, tempNamePredictMasksFiles%(filenamenoextension(origin_images_file), np.round(100*accuracy_after)))
 
         FileReader.writeImageArray(out_predictMasksFilename, predict_masks_array)
 
 
         # Save predictions in images
         if (args.savePredictMaskSlices):
-            SaveImagesPath = workDirsManager.getNameNewPath(PredictDataPath, 'imagesSlices-%s'%(filenamenoextension(origin_imagesFile)))
+            SaveImagesPath = workDirsManager.getNameNewPath(PredictDataPath, 'imagesSlices-%s'%(filenamenoextension(origin_images_file)))
 
-            origin_images_array = FileReader.getImageArray(origin_imagesFile)
+            origin_images_array = FileReader.getImageArray(origin_images_file)
 
             #take only slices in the middle of lungs (1/5 - 4/5)*depth_Z
             begin_slices = origin_images_array.shape[0] // 5
@@ -218,12 +240,13 @@ if __name__ == "__main__":
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
-    parser.add_argument('--confineMasksToLungs', default=CONFINEMASKSTOLUNGS)
+    parser.add_argument('--extendSizeImages', type=str2bool, default=EXTENDSIZEIMAGES)
+    parser.add_argument('--confineMasksToLungs', type=str2bool, default=CONFINEMASKSTOLUNGS)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=False)
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=False)
-    parser.add_argument('--savePredictMaskSlices', default=SAVEPREDICTMASKSLICES)
+    parser.add_argument('--savePredictMaskSlices', type=str2bool, default=SAVEPREDICTMASKSLICES)
     args = parser.parse_args()
 
     if (args.confineMasksToLungs):

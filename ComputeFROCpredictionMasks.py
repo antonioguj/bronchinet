@@ -76,34 +76,34 @@ def main(args):
 
         index_origin_masks = re.search('av[0-9]*', predictionsFile).group(0)
 
-        origin_masksFile = ''
+        origin_masks_file = ''
         for file in listOriginMasksFiles:
             if index_origin_masks in file:
-                origin_masksFile = file
+                origin_masks_file = file
                 break
 
-        print("assigned to '%s'..." % (basename(origin_masksFile)))
+        print("assigned to '%s'..." % (basename(origin_masks_file)))
 
-        origin_masks_array  = FileReader.getImageArray(origin_masksFile)
+        origin_masks_array  = FileReader.getImageArray(origin_masks_file)
 
         # Turn to binary masks (0, 1)
-        origin_masks_array = processBinaryMasks(origin_masks_array)
+        origin_masks_array = OperationsBinaryMasks.process_masks(origin_masks_array)
 
 
         if (args.confineMasksToLungs):
             print("Confine masks to exclude the area outside the lungs...")
 
-            exclude_masksFile = ''
+            exclude_masks_file = ''
             for file in listAddMasksFiles:
                 if index_origin_masks in file:
-                    exclude_masksFile = file
+                    exclude_masks_file = file
                     break
 
-            print("assigned to '%s'..." % (basename(exclude_masksFile)))
+            print("assigned to '%s'..." % (basename(exclude_masks_file)))
 
-            exclude_masks_array = FileReader.getImageArray(exclude_masksFile)
+            exclude_masks_array = FileReader.getImageArray(exclude_masks_file)
 
-            origin_masks_array = ExclusionMasks.compute(origin_masks_array, exclude_masks_array)
+            origin_masks_array = OperationsBinaryMasks.apply_mask_exclude_voxels_fillzero(origin_masks_array, exclude_masks_array)
 
 
         # need to convert to lists for FROC methods
@@ -117,7 +117,7 @@ def main(args):
         print("...done")
 
 
-        out_FROCvaluesFilename = joinpathnames(PredictMasksPath, tempFROCvaluesFilename %(filenamenoextension(origin_masksFile)))
+        out_FROCvaluesFilename = joinpathnames(PredictMasksPath, tempFROCvaluesFilename %(filenamenoextension(origin_masks_file)))
         fout = open(out_FROCvaluesFilename, 'w')
 
         strheader = '/threshold/ /sensitivity/ /FPaverage/' +'\n'
@@ -166,7 +166,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--predictionsdir', default='Predictions')
-    parser.add_argument('--confineMasksToLungs', default=CONFINEMASKSTOLUNGS)
+    parser.add_argument('--confineMasksToLungs', type=str2bool, default=CONFINEMASKSTOLUNGS)
     args = parser.parse_args()
 
     print("Print input arguments...")

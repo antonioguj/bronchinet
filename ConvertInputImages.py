@@ -13,6 +13,7 @@ from CommonUtil.ErrorMessages import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import *
+from Preprocessing.OperationsImages import *
 import argparse
 
 
@@ -63,30 +64,38 @@ def main(args):
 
 
 
-    for i, (imagesFile, masksFile) in enumerate(zip(listImagesFiles, listMasksFiles)):
+    for i, (images_file, masks_file) in enumerate(zip(listImagesFiles, listMasksFiles)):
 
-        print('\'%s\'...' %(imagesFile))
+        print('\'%s\'...' %(images_file))
 
-        images_array = FileReader.getImageArray(imagesFile)
-        masks_array  = FileReader.getImageArray(masksFile)
+        images_array = FileReader.getImageArray(images_file)
+        masks_array  = FileReader.getImageArray(masks_file)
+
+        if (args.invertImageAxial):
+            images_array = FlippingImages.compute(images_array, axis=0)
+            masks_array  = FlippingImages.compute(masks_array,  axis=0)
+
 
         if isExistsAddMasks:
-            add_masksFile   = listAddMasksFiles[i]
-            add_masks_array = FileReader.getImageArray(add_masksFile)
+            add_masks_file   = listAddMasksFiles[i]
+            add_masks_array = FileReader.getImageArray(add_masks_file)
+
+            if (args.invertImageAxial):
+                add_masks_array = FlippingImages.compute(add_masks_array, axis=0)
 
 
         print("Saving images in nifty '.nii' format of final dimensions: %s..." %(str(images_array.shape)))
 
-        out_imagesFilename = joinpathnames(OutputImagesPath, filenamenoextension(imagesFile) + '.nii.gz')
-        out_masksFilename  = joinpathnames(OutputMasksPath,  filenamenoextension(masksFile)  + '.nii.gz')
+        out_images_filename = joinpathnames(OutputImagesPath, filenamenoextension(images_file) + '.nii.gz')
+        out_masks_filename  = joinpathnames(OutputMasksPath,  filenamenoextension(masks_file)  + '.nii.gz')
 
-        FileReader.writeImageArray(out_imagesFilename, images_array.astype(FORMATIMAGEDATA))
-        FileReader.writeImageArray(out_masksFilename,  masks_array .astype(FORMATIMAGEDATA))
+        FileReader.writeImageArray(out_images_filename, images_array.astype(FORMATIMAGEDATA))
+        FileReader.writeImageArray(out_masks_filename,  masks_array .astype(FORMATIMAGEDATA))
 
         if isExistsAddMasks:
-            out_masksFilename = joinpathnames(OutputAddMasksPath, filenamenoextension(add_masksFile) + '.nii.gz')
+            out_masks_filename = joinpathnames(OutputAddMasksPath, filenamenoextension(add_masks_file) + '.nii.gz')
 
-            FileReader.writeImageArray(out_masksFilename, add_masks_array.astype(FORMATIMAGEDATA))
+            FileReader.writeImageArray(out_masks_filename, add_masks_array.astype(FORMATIMAGEDATA))
     #endfor
 
 
@@ -94,6 +103,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--invertImageAxial', type=str2bool, default=INVERTIMAGEAXIAL)
     args = parser.parse_args()
 
     print("Print input arguments...")

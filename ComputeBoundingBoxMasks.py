@@ -28,7 +28,8 @@ def main(args):
 
     dict_masks_boundingBoxes = {}
 
-    maxSize_boundingBox = (0, 0, 0)
+    max_size_boundingBox = (0, 0, 0)
+    min_size_boundingBox = (1.0e+03, 1.0e+03, 1.0e+03)
 
     # Get the file list:
     nameImagesFiles = '*.dcm'
@@ -49,33 +50,54 @@ def main(args):
         CatchErrorException(message)
 
 
-    for imagesFile, masksFile in zip(listImagesFiles, listMasksFiles):
+    for images_file, masks_file in zip(listImagesFiles, listMasksFiles):
 
-        print('\'%s\'...' % (imagesFile))
+        print('\'%s\'...' % (images_file))
 
-        images_array = FileReader.getImageArray(imagesFile)
-        masks_array  = FileReader.getImageArray(masksFile)
+        images_array = FileReader.getImageArray(images_file)
+        masks_array  = FileReader.getImageArray(masks_file)
+
+        if (args.invertImageAxial):
+            images_array = FlippingImages.compute(images_array, axis=0)
+            masks_array  = FlippingImages.compute(masks_array,  axis=0)
+
+        if (images_array.shape != masks_array.shape):
+            message = "size of images: %s, not equal to size of masks: %s..." %(images_array.shape, masks_array.shape)
+            CatchErrorException(message)
+        print("Original image of size: %s..." % (str(images_array.shape)))
 
 
         boundingBox = BoundingBoxMasks.compute_with_border_effects(masks_array, voxels_buffer_border=VOXELSBUFFERBORDER)
 
         size_boundingBox = BoundingBoxMasks.compute_size_bounding_box(boundingBox)
 
-        maxSize_boundingBox = BoundingBoxMasks.compute_max_size_bounding_box(size_boundingBox, maxSize_boundingBox)
+        if (size_boundingBox != images_array.shape):
+            message = "booundary-box size: %s, not equal to size of images: %s..." %(size_boundingBox, images_array.shape)
+            CatchErrorException(message)
+        print("Boundary-box size: %s..." % (str(size_boundingBox)))
+
+        max_size_boundingBox = BoundingBoxMasks.compute_max_size_bounding_box(size_boundingBox, max_size_boundingBox)
+        min_size_boundingBox = BoundingBoxMasks.compute_min_size_bounding_box(size_boundingBox, min_size_boundingBox)
+
+        print("computed bounding-box: %s..." %(str(boundingBox)))
 
 
         # Compute new bounding-box that fits all input images processed
-        processed_boundingBox = BoundingBoxMasks.compute_centered_bounding_box(boundingBox, args.cropSizeBoundingBox, images_array.shape)
+        processed_boundingBox = BoundingBoxMasks.compute_centered_bounding_box_type2(args.cropSizeBoundingBox, images_array.shape)
 
         size_processed_boundingBox = BoundingBoxMasks.compute_size_bounding_box(processed_boundingBox)
 
-        dict_masks_boundingBoxes[filenamenoextension(imagesFile)] = processed_boundingBox
+        dict_masks_boundingBoxes[filenamenoextension(images_file)] = processed_boundingBox
 
-        print("computed bounding-box: %s; processed bounding-box: %s; of size: %s" %(boundingBox, processed_boundingBox, size_processed_boundingBox))
+        print("processed bounding-box: %s; of size: %s" %(processed_boundingBox, size_processed_boundingBox))
 
 
-        if (size_processed_boundingBox[1:3] != args.cropSizeBoundingBox):
-            message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, args.cropSizeBoundingBox)
+        # if (size_processed_boundingBox[1:3] != args.cropSizeBoundingBox):
+        #     message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, args.cropSizeBoundingBox)
+        #     CatchErrorException(message)
+
+        if (size_processed_boundingBox != images_array.shape):
+            message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, images_array.shape)
             CatchErrorException(message)
 
         if BoundingBoxMasks.is_bounding_box_contained(boundingBox, processed_boundingBox):
@@ -84,7 +106,8 @@ def main(args):
     #endfor
 
 
-    print("max size bounding-box found: %s; set size bounding-box %s" %(maxSize_boundingBox, args.cropSizeBoundingBox))
+    print("max size bounding-box found: %s; set size bounding-box %s" %(max_size_boundingBox, args.cropSizeBoundingBox))
+
 
     # Save dictionary in csv file
     nameoutfile = joinpathnames(BaseDataPath, "boundBoxesMasks.npy")
@@ -97,6 +120,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--invertImageAxial', type=str2bool, default=INVERTIMAGEAXIAL)
     parser.add_argument('--voxelsBufferBorder', type=str2tuplefloat, default=VOXELSBUFFERBORDER)
     parser.add_argument('--cropSizeBoundingBox', type=str2tuplefloat, default=CROPSIZEBOUNDINGBOX)
     args = parser.parse_args()

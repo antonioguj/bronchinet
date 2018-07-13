@@ -40,11 +40,11 @@ def main():
     listCenterlinesFiles = findFilesDir(MatLabCenterlinesFilesPath + '/av*centerlines.mat')
 
 
-    for imagesFile, masksFile, centerlinesFile in zip(listImagesFiles, listMasksFiles, listCenterlinesFiles):
+    for images_file, masks_file, centerlinesFile in zip(listImagesFiles, listMasksFiles, listCenterlinesFiles):
 
-        print('\'%s\'...' % (imagesFile))
+        print('\'%s\'...' % (images_file))
 
-        voxel_size = DICOMreader.getImageVoxelSize(imagesFile)
+        voxel_size = DICOMreader.getImageVoxelSize(images_file)
 
         raw_airways_centerlines = scipy.io.loadmat(centerlinesFile)['airway'][0]
 

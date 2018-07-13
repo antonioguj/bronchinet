@@ -27,11 +27,11 @@ def main():
     nbMasksFiles     = len(listMasksFiles)
 
 
-    for i, masksFile in enumerate(listMasksFiles):
+    for i, masks_file in enumerate(listMasksFiles):
 
-        print('\'%s\'...' %(masksFile))
+        print('\'%s\'...' %(masks_file))
 
-        masks_array = FileReader.getImageArray(masksFile)
+        masks_array = FileReader.getImageArray(masks_file)
 
         indexes_segs_masks = np.unique(masks_array)
 
@@ -44,7 +44,7 @@ def main():
 
             mask_uniquesegs = np.where(masks_array == index, 1, 0).astype(dtype=masks_array.dtype)
 
-            nameoutfile = joinpathnames(ProcVolsDataPath, filenamenoextension(masksFile)+'_seg%0.2i.nii'%(index))
+            nameoutfile = joinpathnames(ProcVolsDataPath, filenamenoextension(masks_file)+'_seg%0.2i.nii'%(index))
 
             FileReader.writeImageArray(nameoutfile, mask_uniquesegs)
         #endfor

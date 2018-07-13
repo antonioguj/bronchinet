@@ -58,22 +58,22 @@ def main(args):
 
 
 
-    for i, predict_masksFile in enumerate(listPredictMasksFiles):
+    for i, predict_masks_file in enumerate(listPredictMasksFiles):
 
-        print('\'%s\'...' %(predict_masksFile))
+        print('\'%s\'...' %(predict_masks_file))
 
-        name_prefix_case = getExtractSubstringPattern(predict_masksFile, 'av[0-9]*')
+        name_prefix_case = getExtractSubstringPattern(predict_masks_file, 'vol[0-9]*_')
 
         for iterfile in listOriginMasksFiles:
             if name_prefix_case in iterfile:
-                origin_masksFile = iterfile
+                origin_masks_file = iterfile
         #endfor
 
-        print("assigned to '%s'..." %(basename(origin_masksFile)))
+        print("assigned to '%s'..." %(basename(origin_masks_file)))
 
 
-        predict_masks_array = FileReader.getImageArray(predict_masksFile)
-        origin_masks_array  = FileReader.getImageArray(origin_masksFile)
+        predict_masks_array = FileReader.getImageArray(predict_masks_file)
+        origin_masks_array  = FileReader.getImageArray(origin_masks_file)
 
         print("Predictions masks array of size: %s..." % (str(predict_masks_array.shape)))
 
@@ -108,7 +108,7 @@ def main(args):
         if (args.thresholdOutProbMaps and args.saveThresholdImages):
             print("Saving thresholded prediction masks, with dims: %s..." %(tuple2str(predict_masks_array.shape)))
 
-            out_predictMasksFilename = joinpathnames(PredictDataPath, filenamenoextension(predict_masksFile) + 'thres%s.nii.gz' %(args.thresholdValue))
+            out_predictMasksFilename = joinpathnames(PredictDataPath, filenamenoextension(predict_masks_file) + 'thres%s.nii.gz' %(args.thresholdValue))
 
             FileReader.writeImageArray(out_predictMasksFilename, predict_masks_array)
     #endfor
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     parser.add_argument('--listPostprocessMetrics', type=parseListarg, default=LISTPOSTPROCESSMETRICS)
     parser.add_argument('--thresholdOutProbMaps', type=str2bool, default=THRESHOLDOUTPROBMAPS)
     parser.add_argument('--thresholdValue', type=float, default=THRESHOLDVALUE)
-    parser.add_argument('--saveThresholdImages', default=SAVETHRESHOLDIMAGES)
+    parser.add_argument('--saveThresholdImages', type=str2bool, default=SAVETHRESHOLDIMAGES)
     args = parser.parse_args()
 
     print("Print input arguments...")

@@ -51,48 +51,67 @@ def main(args):
 
 
 
-    for i, masksFile in enumerate(listMasksFiles):
+    for i, masks_file in enumerate(listMasksFiles):
 
-        print('\'%s\'...' %(masksFile))
+        print('\'%s\'...' %(masks_file))
 
-        masks_array = FileReader.getImageArray(masksFile)
+        masks_array = FileReader.getImageArray(masks_file)
+
+        if (args.invertImageAxial):
+            masks_array = FlippingImages.compute(masks_array,  axis=0)
 
 
         if (args.multiClassCase):
-            # Check the correct multilabels in "masks_array"
-            if not checkCorrectNumClassesInMasks(masks_array, args.numClassesMasks):
-                message = "In multiclass case, found wrong values in masks array: %s..." %(np.unique(masks_array))
+            operationsMasks = OperationsMultiClassMasks(args.numClassesMasks)
+
+            # Check the correct labels in "masks_array"
+            if not operationsMasks.check_masks(masks_array):
+                message = "found wrong labels in masks array: %s..." %(np.unique(masks_array))
                 CatchErrorException(message)
+
+            message = "MULTICLASS CASE STILL IN IMPLEMENTATION...EXIT"
+            CatchErrorException(message)
         else:
             # Turn to binary masks (0, 1)
-            masks_array = processBinaryMasks(masks_array)
+            masks_array = OperationsBinaryMasks.process_masks(masks_array)
 
 
         if (args.confineMasksToLungs):
             print("Confine masks to exclude the area outside the lungs...")
 
-            exclude_masksFile   = listAddMasksFiles[i]
-            exclude_masks_array = FileReader.getImageArray(exclude_masksFile)
+            exclude_masks_file  = listAddMasksFiles[i]
+
+            print("assigned to: '%s'..." %(basename(exclude_masks_file)))
+
+            exclude_masks_array = FileReader.getImageArray(exclude_masks_file)
+
+            if (args.invertImageAxial):
+                exclude_masks_array = FlippingImages.compute(exclude_masks_array, axis=0)
 
             # Turn to binary masks (0, 1)
-            lungs_masks_array   = processBinaryMasks(exclude_masks_array)
+            lungs_masks_array   = OperationsBinaryMasks.process_masks(exclude_masks_array)
             traquea_masks_array = np.where(lungs_masks_array == 0, masks_array, 0)
 
-            masks_array = ExclusionMasks.computeInverse(masks_array, exclude_masks_array)
+            masks_plustraquea_array = masks_array
+
+            masks_array = OperationsBinaryMasks.apply_mask_exclude_voxels_fillzero(masks_array, exclude_masks_array)
 
 
         print("Saving images in nifty '.nii' format of final dimensions: %s..." % (str(masks_array.shape)))
 
-        out_masksFilename = joinpathnames(OutputMasksPath, filenamenoextension(masksFile) + '.nii.gz')
+        out_masks_filename = joinpathnames(OutputMasksPath, filenamenoextension(masks_file) + '.nii.gz')
 
-        FileReader.writeImageArray(out_masksFilename, masks_array.astype(FORMATIMAGEDATA))
+        FileReader.writeImageArray(out_masks_filename, masks_array.astype(FORMATIMAGEDATA))
 
         if (args.confineMasksToLungs):
-            out_lungs_masksFilename   = joinpathnames(OutputAddMasksPath, filenamenoextension(exclude_masksFile) + '.nii.gz')
-            out_traquea_masksFilename = out_lungs_masksFilename.replace('lungs','traquea')
 
-            FileReader.writeImageArray(out_lungs_masksFilename,   lungs_masks_array  .astype(FORMATIMAGEDATA))
-            FileReader.writeImageArray(out_traquea_masksFilename, traquea_masks_array.astype(FORMATIMAGEDATA))
+            out_masks_plustraquea_filename = joinpathnames(OutputAddMasksPath, filenamenoextension(masks_file) + '_full.nii.gz')
+            out_lungs_masks_filename       = joinpathnames(OutputAddMasksPath, filenamenoextension(exclude_masks_file) + '.nii.gz')
+            out_traquea_masks_filename     = out_lungs_masks_filename.replace('lungs','traquea')
+
+            FileReader.writeImageArray(out_masks_plustraquea_filename, masks_plustraquea_array.astype(FORMATIMAGEDATA))
+            FileReader.writeImageArray(out_lungs_masks_filename,       lungs_masks_array      .astype(FORMATIMAGEDATA))
+            FileReader.writeImageArray(out_traquea_masks_filename,     traquea_masks_array    .astype(FORMATIMAGEDATA))
     #endfor
 
 
@@ -102,7 +121,8 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
-    parser.add_argument('--confineMasksToLungs', default=CONFINEMASKSTOLUNGS)
+    parser.add_argument('--invertImageAxial', type=str2bool, default=INVERTIMAGEAXIAL)
+    parser.add_argument('--confineMasksToLungs', type=str2bool, default=CONFINEMASKSTOLUNGS)
     args = parser.parse_args()
 
     print("Print input arguments...")

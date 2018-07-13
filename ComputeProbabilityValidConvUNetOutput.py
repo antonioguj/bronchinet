@@ -15,6 +15,7 @@ from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import *
 from Networks.Networks_NEW import *
 from Postprocessing.SlidingWindowReconstructorImages import *
+from Preprocessing.OperationsImages import *
 import argparse
 
 
@@ -43,11 +44,14 @@ def main(args):
     print("For input images of size: %s; Output of Neural Networks are images of size: %s..." %(IMAGES_DIMS_Z_X_Y, args.size_out_nnet))
 
 
-    for imagesFile in listImagesFiles:
+    for images_file in listImagesFiles:
 
-        print('\'%s\'...' % (imagesFile))
+        print('\'%s\'...' % (images_file))
 
-        images_array = FileReader.getImageArray(imagesFile)
+        images_array = FileReader.getImageArray(images_file)
+
+        if (args.invertImageAxial):
+            images_array = FlippingImages.compute(images_array, axis=0)
 
 
         print("Compute masks proportion output...")
@@ -61,7 +65,7 @@ def main(args):
         masks_probValidConvNnet_output_array = images_reconstructor.get_filtering_map_array()
 
 
-        FileReader.writeImageArray(nameOutMasksFiles(imagesFile), masks_probValidConvNnet_output_array)
+        FileReader.writeImageArray(nameOutMasksFiles(images_file), masks_probValidConvNnet_output_array)
     #endfor
 
 
@@ -70,6 +74,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--model', default='Unet3D')
+    parser.add_argument('--invertImageAxial', type=str2bool, default=INVERTIMAGEAXIAL)
     parser.add_argument('--size_out_nnet', type=str2tuplefloat, default=IMAGES_SIZE_OUT_NNET)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
