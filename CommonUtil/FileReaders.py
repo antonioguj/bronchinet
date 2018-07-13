@@ -38,7 +38,7 @@ class FileReader(object):
         elif (extension == '.hdf5'):
             return HDF5reader.getImageSize(filename)
         else:
-            message = "No valid file extension found..."
+            message = "No valid file extension: %s..." %(extension)
             CatchErrorException(message)
 
     @staticmethod
@@ -57,7 +57,7 @@ class FileReader(object):
         elif (extension == '.hdf5'):
             return HDF5reader.getImageArray(filename)
         else:
-            message = "No valid file extension found..."
+            message = "No valid file extension: %s..." %(extension)
             CatchErrorException(message)
 
     @staticmethod
@@ -76,7 +76,7 @@ class FileReader(object):
         elif (extension == '.hdf5'):
             HDF5reader.writeImageArray(filename, image_array)
         else:
-            message = "No valid file extension found..."
+            message = "No valid file extension: %s..." %(extension)
             CatchErrorException(message)
 
 

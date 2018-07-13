@@ -10,6 +10,7 @@
 
 from CommonUtil.ErrorMessages import *
 import numpy as np
+import shutil
 import glob
 import datetime
 import time
@@ -40,6 +41,12 @@ def makelink(filesrc, linkdest):
 
 def realpathlink(filename):
     return os.path.realpath(filename)
+
+def copydir(dirsrc, dirdest):
+    shutil.copyfile(dirsrc, dirdest)
+
+def copyfile(filesrc, filedest):
+    shutil.copyfile(filesrc, filedest)
 
 def movedir(pathsrc, pathdest):
     os.rename(pathsrc, pathdest)
@@ -178,34 +185,6 @@ def mergeTwoListsIntoDictoinary(list1, list2):
 def parseListarg(args):
     return args.replace('[','').replace(']','').split(',')
 
-def processBinaryMasks(masks_array):
-    # Turn to binary masks (0, 1)
-    return np.where(masks_array != 0, 1, 0)
-
-def processBinaryMasks_Type2(masks_array):
-    # Turn to binary masks (0, 1)
-    return np.where(masks_array == 1, 1, 0)
-
-def processBinaryMasks_KeepExclusion(masks_array):
-    # Turn to binary masks (0, 1)
-    return np.where(np.logical_or(masks_array != 0, masks_array != -1), 1, 0)
-
-def processMulticlassMasks(masks_array, num_classes):
-    # Turn to binary masks (0, 1)
-    return np.where(masks_array > num_classes, 0, masks_array)
-
-def checkCorrectNumClassesInMasks(masks_array, num_classes):
-    #check that there are as many classes as labels in "masks_array"
-    #check also that values are between (0, num_classes)
-    return (len(np.unique(masks_array)) == num_classes+1) and (np.amin(masks_array) == 0) and (np.amax(masks_array) == num_classes)
-
-def revertStackImages(images_array):
-    # revert to start from traquea
-    return images_array[::-1]
-
-def getThresholdImage(image, threshold):
-    return np.where(image > threshold, 1, 0)
-
 def getFileExtension(formatoutfile):
     if formatoutfile=='dicom':
         return '.dcm'
@@ -226,10 +205,10 @@ def getSavedModelFileName(typeSavedModel):
 def getExtractSubstringPattern(string, substr_pattern):
     return re.search(substr_pattern, string).group(0)
 
-def getIndexOriginImagesFile(imagesFile, beginString='images'):
+def getIndexOriginImagesFile(images_file, beginString='images'):
     pattern = beginString + '-[0-9]*'
-    if bool(re.match(pattern, imagesFile)):
-        return int(re.search(pattern, imagesFile).group(0)[-2:])
+    if bool(re.match(pattern, images_file)):
+        return int(re.search(pattern, images_file).group(0)[-2:])
     else:
         return False
 
@@ -241,6 +220,29 @@ class WallClockTime(object):
 
 def getNumWorkingProcessesCPU():
     return multiprocessing.cpu_count()
+
+def findCommonElementsTwoLists_Option1(list1, list2):
+    if len(list1) == 0 or len(list2) == 0:
+        return False
+    elif type(list1[0]) != type(list2[0]):
+        return False
+    else:
+        list_common_elems = []
+        for elem1 in list1:
+            if elem1 in list2:
+                list_common_elems.append(elem1)
+        #endfor
+        return list_common_elems
+
+def findCommonElementsTwoLists_Option2(list1, list2):
+    if len(list1) == 0 or len(list2) == 0:
+        return False
+    elif type(list1[0]) != type(list2[0]):
+        return False
+    else:
+        setlist1 = set([tuple(elem) for elem in list1])
+        setlist2 = set([tuple(elem) for elem in list2])
+        return list([elem for elem in setlist1 & setlist2])
 
 
 # Manage GPU resources
