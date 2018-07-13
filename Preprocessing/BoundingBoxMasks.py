@@ -36,6 +36,13 @@ class BoundingBoxMasks(object):
                 max(bounding_box[2], max_bounding_box[2]))
 
     @staticmethod
+    def compute_min_size_bounding_box(bounding_box, min_bounding_box):
+
+        return (min(bounding_box[0], min_bounding_box[0]),
+                min(bounding_box[1], min_bounding_box[1]),
+                min(bounding_box[2], min_bounding_box[2]))
+
+    @staticmethod
     def compute_coords0_bounding_box(bounding_box):
 
         return (bounding_box[0][0], bounding_box[1][0], bounding_box[2][0])
@@ -82,6 +89,21 @@ class BoundingBoxMasks(object):
                            (int(center[1] - size_proc_bounding_box[1] / 2), int(center[1] + size_proc_bounding_box[1] / 2)))
 
         return cls.fit_bounding_box_to_image_max_size(new_bounding_box, size_img_x, size_img_y)
+
+    @classmethod
+    def compute_centered_bounding_box_type2(cls, size_proc_bounding_box, (size_img_z, size_img_x, size_img_y)):
+
+        center = (int(np.float(size_proc_bounding_box[0]) / 2),
+                  int(np.float(size_proc_bounding_box[1]) / 2))
+
+        half_boundary_box = (int(np.float(size_img_x) / 2),
+                             int(np.float(size_img_y) / 2))
+
+        new_bounding_box = ((0, size_img_z),
+                           (center[0] - half_boundary_box[0], center[0] + size_img_x - half_boundary_box[0]),
+                           (center[1] - half_boundary_box[1], center[1] + size_img_y - half_boundary_box[1]))
+
+        return new_bounding_box
 
 
     @classmethod
