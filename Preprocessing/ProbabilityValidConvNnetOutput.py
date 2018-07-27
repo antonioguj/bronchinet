@@ -16,7 +16,7 @@ from Preprocessing.BaseImageGenerator import *
 
 class ProbabilityValidConvNnetOutput(BaseImageGenerator):
 
-    type_progression_outside_output_nnet = 'quadratic'
+    type_progression_outside_output_nnet = 'linear'
     avail_type_progression_outside_output_nnet = ['linear', 'quadratic', 'cubic', 'exponential', 'all_outputs_Unet']
 
 

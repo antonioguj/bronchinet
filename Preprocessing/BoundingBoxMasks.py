@@ -105,6 +105,23 @@ class BoundingBoxMasks(object):
 
         return new_bounding_box
 
+    @classmethod
+    def compute_centered_bounding_box_type3(cls, size_bounding_box, (size_img_z, size_img_x, size_img_y)):
+
+        center = (int(np.float(size_img_z) / 2),
+                  int(np.float(size_img_x) / 2),
+                  int(np.float(size_img_y) / 2))
+
+        half_boundary_box = (int(np.float(size_bounding_box[0]) / 2),
+                             int(np.float(size_bounding_box[1]) / 2),
+                             int(np.float(size_bounding_box[2]) / 2))
+
+        new_bounding_box = ((center[0] - half_boundary_box[0], center[0] + half_boundary_box[0]),
+                            (center[1] - half_boundary_box[1], center[1] + half_boundary_box[1]),
+                            (center[2] - half_boundary_box[2], center[2] + half_boundary_box[2]))
+
+        return new_bounding_box
+
 
     @classmethod
     def compute(cls, masks_array):
