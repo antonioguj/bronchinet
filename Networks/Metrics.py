@@ -11,7 +11,7 @@
 from keras import backend as K
 import numpy as np
 
-_eps = 1.0e-06
+_eps = 1.0e-12
 _smooth = 1.0
 
 
@@ -139,6 +139,15 @@ class BinaryCrossEntropyFocalLoss(BinaryCrossEntropy):
         super(BinaryCrossEntropyFocalLoss, self).__init__(isMasksExclude)
         self.name_out = 'bin_cross_focal_loss'
 
+    def get_clip_ypred(self, y_pred):
+        # improve the stability of the focal loss
+        return K.clip(y_pred, self.eps_clip, 1.0-self.eps_clip)
+
+    def get_predprobs_classes(self, y_true, y_pred):
+        prob_1 = K.tf.where(K.tf.equal(y_true, 1.0), y_pred, K.ones_like(y_pred))
+        prob_0 = K.tf.where(K.tf.equal(y_true, 0.0), y_pred, K.zeros_like(y_pred))
+        return (prob_1, prob_0)
+
     def compute_vec(self, y_true, y_pred):
         return K.mean(- y_true * K.pow(1.0 - y_pred, self.param_gamma) * K.log(y_pred +_eps) -
                       (1.0 - y_true) * K.pow(y_pred, self.param_gamma) * K.log(1.0 - y_pred +_eps))
@@ -226,22 +235,40 @@ class WeightedBinaryCrossEntropyFocalLoss(WeightedBinaryCrossEntropy):
     #weights_masks   = [1.0, 300.0]
 
     param_gamma_default = 2.0
+    eps_clip = 1.0e-12
 
     def __init__(self, param_gamma=param_gamma_default, isMasksExclude=False):
         self.param_gamma = param_gamma
         super(WeightedBinaryCrossEntropyFocalLoss, self).__init__(isMasksExclude)
         self.name_out = 'wei_bin_cross_focal_loss'
 
+    def get_clip_ypred(self, y_pred):
+        # improve the stability of the focal loss
+        return K.clip(y_pred, self.eps_clip, 1.0-self.eps_clip)
+
+    def get_predprobs_classes(self, y_true, y_pred):
+        prob_1 = K.tf.where(K.tf.equal(y_true, 1.0), y_pred, K.ones_like(y_pred))
+        prob_0 = K.tf.where(K.tf.equal(y_true, 0.0), y_pred, K.zeros_like(y_pred))
+        return (prob_1, prob_0)
+
     def compute_vec(self, y_true, y_pred):
         weights = self.get_weights(y_true)
+        y_pred = self.get_clip_ypred(y_pred)
         return K.mean(- weights[1] * y_true * K.pow(1.0 - y_pred, self.param_gamma) * K.log(y_pred +_eps) -
                       weights[0] * (1.0 - y_true) * K.pow(y_pred, self.param_gamma) * K.log(1.0 - y_pred +_eps))
+        #(prob_1, prob_0) = self.get_predprobs_classes(y_true, y_pred)
+        #return K.mean(- weights[1] * K.pow(1.0 - prob_1, self.param_gamma) * K.log(prob_1) -
+        #              weights[0] * K.pow(prob_0, self.param_gamma) * K.log(1.0 - prob_0))
 
     def compute_vec_masked(self, y_true, y_pred):
         weights = self.get_weights(y_true)
         mask = self.get_mask(y_true)
+        y_pred = self.get_clip_ypred(y_pred)
         return K.mean((- weights[1] * y_true * K.pow(1.0 - y_pred, self.param_gamma) * K.log(y_pred +_eps) -
                        weights[0] * (1.0 - y_true) * K.pow(y_pred, self.param_gamma) * K.log(1.0 - y_pred +_eps)) * mask)
+        #(prob_1, prob_0) = self.get_predprobs_classes(y_true, y_pred)
+        #return K.mean((- weights[1] * K.pow(1.0 - prob_1, self.param_gamma) * K.log(prob_1 +_eps) -
+        #              weights[0] * K.pow(prob_0, self.param_gamma) * K.log(1.0 - prob_0 +_eps)) * mask)
 
     def compute_vec_np(self, y_true, y_pred):
         weights = self.get_weights_np(y_true)
