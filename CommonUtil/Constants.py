@@ -12,15 +12,15 @@ import numpy as np
 np.random.seed(2017)
 
 
-DATADIR = '/home/antonio/Files_Project/testSegmentation/Data/LUVAR/'
-BASEDIR = '/home/antonio/Files_Project/testSegmentation/Tests_LUVAR/'
+DATADIR = '/home/antonio/Files_Project/testSegmentation/Data/DLCST/'
+BASEDIR = '/home/antonio/Files_Project/testSegmentation/Tests_DLCST/'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (104, 336, 224)
-(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (120, 352, 240)
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (104, 352, 240)
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (76, 448, 256)
 
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
@@ -50,7 +50,7 @@ DISTRIBUTE_RANDOM = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 TYPEDATA = 'training'
 
-INVERTIMAGEAXIAL = True
+INVERTIMAGEAXIAL = False
 
 MULTICLASSCASE = False
 
@@ -66,10 +66,10 @@ CROPIMAGES = True
 
 EXTENDSIZEIMAGES = False
 
-VOXELSBUFFERBORDER = (20, 20, 20, 20)
+VOXELSBUFFERBORDER = (20, 0, 0, 0)
 
-CROPSIZEBOUNDINGBOX = (336, 448)
-#CROPSIZEBOUNDINGBOX = (352, 480)
+#CROPSIZEBOUNDINGBOX = (336, 448)
+CROPSIZEBOUNDINGBOX = (352, 480)
 #CROPSIZEBOUNDINGBOX = (448, 512)
 
 CHECKBALANCECLASSES = True
@@ -85,9 +85,9 @@ VISUALPROCDATAINBATCHES = True
 # ******************** TRAINING PARAMETERS ********************
 NUM_EPOCHS  = 1000
 BATCH_SIZE  = 1
-IMODEL      = 'Unet3D_Tailored'
+IMODEL      = 'Unet3D'
 IOPTIMIZER  = 'Adam'
-ILOSSFUN    = 'WeightedBinaryCrossEntropy'
+ILOSSFUN    = 'DiceCoefficient'
 #ILOSSFUN    = 'CategoricalCrossEntropy'
 LISTMETRICS =['BinaryCrossEntropy',
               'WeightedBinaryCrossEntropy',
@@ -96,6 +96,9 @@ LISTMETRICS =['BinaryCrossEntropy',
               'TrueNegativeRate',
               'FalsePositiveRate',
               'FalseNegativeRate']
+
+NUM_FEATMAPS_FIRSTLAYER = 16
+
 LEARN_RATE  = 1.0e-05
 
 SLIDINGWINDOWIMAGES = True

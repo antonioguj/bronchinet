@@ -145,6 +145,9 @@ def isEqualTuple(var1, var2):
 def sumTwoTuples(var1, var2):
     return tuple(a+b for (a,b) in zip(var1, var2))
 
+def substractTwoTuples(var1, var2):
+    return tuple(a-b for (a,b) in zip(var1, var2))
+
 def str2bool(strin):
     return strin.lower() in ("yes", "true", "t", "1")
 
