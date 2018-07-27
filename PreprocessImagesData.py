@@ -26,14 +26,14 @@ def main(args):
     workDirsManager     = WorkDirsManager(args.basedir)
     BaseDataPath        = workDirsManager.getNameBaseDataPath()
     OriginImagesPath    = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
-    OriginMasksPath     = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
+    OriginMasksPath     = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
     ProcessedImagesPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcImagesData')
     ProcessedMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, 'ProcMasksData')
 
 
     # Get the file list:
     nameImagesFiles = '*.dcm'
-    nameMasksFiles  = '*.dcm'
+    nameMasksFiles  = '*.nii.gz'
 
     listImagesFiles = findFilesDir(OriginImagesPath, nameImagesFiles)
     listMasksFiles  = findFilesDir(OriginMasksPath,  nameMasksFiles)
@@ -56,9 +56,9 @@ def main(args):
 
     if (args.confineMasksToLungs):
 
-        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
+        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'ProcAddMasks')
 
-        nameAddMasksFiles = '*.dcm'
+        nameAddMasksFiles = '*.nii.gz'
         listAddMasksFiles = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
         nbAddMasksFiles   = len(listAddMasksFiles)
 
@@ -107,7 +107,7 @@ def main(args):
         if (args.confineMasksToLungs):
             print("Confine masks to exclude the area outside the lungs...")
 
-            exclude_masks_file   = listAddMasksFiles[i]
+            exclude_masks_file  = listAddMasksFiles[i]
             exclude_masks_array = FileReader.getImageArray(exclude_masks_file)
 
             if (args.invertImageAxial):
@@ -117,7 +117,7 @@ def main(args):
 
 
         if (args.reduceSizeImages):
-            print("Reduce resolution of images to size...")
+            print("Reduce resolution of images to size: %s..." %(args.sizeReducedImages))
 
             if isSmallerTuple(images_array.shape[-2:], args.sizeReducedImages):
                 message = "New reduced size: %s, smaller than size of original images: %s..." %(images_array.shape[-2:], args.sizeReducedImages)
@@ -126,18 +126,18 @@ def main(args):
             images_array = ResizeImages.compute2D(images_array, args.sizeReducedImages)
             masks_array  = ResizeImages.compute2D(masks_array,  args.sizeReducedImages, isMasks=True)
 
-            print("Final dimensions: %s..." %(args.sizeReducedImages, images_array.shape))
+            print("Final dimensions: %s..." %(images_array.shape))
 
 
         if (args.cropImages):
-            print("Crop images to bounding-box...")
-
             crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(images_file)]
+
+            print("Crop images to bounding-box: %s..." %(str(crop_boundingBox)))
 
             images_array = CropImages.compute3D(images_array, crop_boundingBox)
             masks_array  = CropImages.compute3D(masks_array,  crop_boundingBox)
 
-            print("Final dimensions: %s..." %(crop_boundingBox, images_array.shape))
+            print("Final dimensions: %s..." %(str(images_array.shape)))
 
 
         if (args.extendSizeImages):

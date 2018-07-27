@@ -24,7 +24,7 @@ def main(args):
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath    = workDirsManager.getNameBaseDataPath()
     RawImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
-    RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
+    RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'ProcAddMasks')
 
     dict_masks_boundingBoxes = {}
 
@@ -33,7 +33,7 @@ def main(args):
 
     # Get the file list:
     nameImagesFiles = '*.dcm'
-    nameMasksFiles  = '*.dcm'
+    nameMasksFiles  = '*.nii.gz'
 
     listImagesFiles = findFilesDir(RawImagesPath, nameImagesFiles)
     listMasksFiles  = findFilesDir(RawMasksPath,  nameMasksFiles )
@@ -71,35 +71,39 @@ def main(args):
 
         size_boundingBox = BoundingBoxMasks.compute_size_bounding_box(boundingBox)
 
-        if (size_boundingBox != images_array.shape):
-            message = "booundary-box size: %s, not equal to size of images: %s..." %(size_boundingBox, images_array.shape)
-            CatchErrorException(message)
-        print("Boundary-box size: %s..." % (str(size_boundingBox)))
-
         max_size_boundingBox = BoundingBoxMasks.compute_max_size_bounding_box(size_boundingBox, max_size_boundingBox)
-        min_size_boundingBox = BoundingBoxMasks.compute_min_size_bounding_box(size_boundingBox, min_size_boundingBox)
 
-        print("computed bounding-box: %s..." %(str(boundingBox)))
+        print("computed bounding-box: %s, of size: %s" %(boundingBox, size_boundingBox))
+
+        # if (size_boundingBox != images_array.shape):
+        #     message = "booundary-box size: %s, not equal to size of images: %s..." %(size_boundingBox, images_array.shape)
+        #     CatchErrorException(message)
+        # print("Boundary-box size: %s..." % (str(size_boundingBox)))
+        #
+        # max_size_boundingBox = BoundingBoxMasks.compute_max_size_bounding_box(size_boundingBox, max_size_boundingBox)
+        # min_size_boundingBox = BoundingBoxMasks.compute_min_size_bounding_box(size_boundingBox, min_size_boundingBox)
+        #
+        # print("computed bounding-box: %s..." %(str(boundingBox)))
 
 
         # Compute new bounding-box that fits all input images processed
-        processed_boundingBox = BoundingBoxMasks.compute_centered_bounding_box_type2(args.cropSizeBoundingBox, images_array.shape)
+        processed_boundingBox = BoundingBoxMasks.compute_centered_bounding_box(boundingBox, args.cropSizeBoundingBox, images_array.shape)
 
         size_processed_boundingBox = BoundingBoxMasks.compute_size_bounding_box(processed_boundingBox)
 
         dict_masks_boundingBoxes[filenamenoextension(images_file)] = processed_boundingBox
 
-        print("processed bounding-box: %s; of size: %s" %(processed_boundingBox, size_processed_boundingBox))
+        print("processed bounding-box: %s, of size: %s" %(processed_boundingBox, size_processed_boundingBox))
 
 
-        # if (size_processed_boundingBox[1:3] != args.cropSizeBoundingBox):
-        #     message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, args.cropSizeBoundingBox)
-        #     CatchErrorException(message)
-
-        if (size_processed_boundingBox != images_array.shape):
-            message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, images_array.shape)
+        if (size_processed_boundingBox[1:3] != args.cropSizeBoundingBox):
+            message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, args.cropSizeBoundingBox)
             CatchErrorException(message)
 
+        # if (size_processed_boundingBox != images_array.shape):
+        #     message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, images_array.shape)
+        #     CatchErrorException(message)
+        #
         if BoundingBoxMasks.is_bounding_box_contained(boundingBox, processed_boundingBox):
             message = "Processed bounding-box: %s smaller than original one: %s..." % (processed_boundingBox, boundingBox)
             CatchWarningException(message)

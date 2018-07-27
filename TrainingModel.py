@@ -69,17 +69,24 @@ def main(args):
         train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun)] + [DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in args.listmetrics]
         custom_objects = dict(map(lambda fun: (fun.__name__, fun), train_model_funs))
 
-        model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)
+        model = NeuralNetwork.getLoadSavedModel(modelSavedPath,
+                                                custom_objects=custom_objects)
     else:
         if (args.multiClassCase):
-            modelConstructor = DICTAVAILNETWORKS3D(IMAGES_DIMS_Z_X_Y, args.model, args.numClassesMasks+1)
+            modelConstructor = DICTAVAILNETWORKS3D(IMAGES_DIMS_Z_X_Y,
+                                                   args.model,
+                                                   num_featmaps_firstlayer=args.num_featmaps_firstlayer,
+                                                   num_classes_out=args.numClassesMasks+1)
         else:
-            modelConstructor = DICTAVAILNETWORKS3D(IMAGES_DIMS_Z_X_Y, args.model)
+            modelConstructor = DICTAVAILNETWORKS3D(IMAGES_DIMS_Z_X_Y,
+                                                   args.model,
+                                                   num_featmaps_firstlayer=args.num_featmaps_firstlayer)
 
         model = modelConstructor.getModel()
 
         # Compile model
-        model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(args.optimizer, args.learn_rate),
+        model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(args.optimizer,
+                                                            lr=args.learn_rate),
                       loss     = DICTAVAILLOSSFUNS(args.lossfun),
                       metrics  =[DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in args.listmetrics])
 
@@ -120,7 +127,8 @@ def main(args):
     if (args.slidingWindowImages or args.transformationImages or args.elasticDeformationImages):
         print("Generate Training images with Batch Generator of Training data...")
 
-        (train_xData, train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
+        (train_xData, train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles,
+                                                                        listTrainMasksFiles)
 
         train_images_generator = getImagesDataGenerator3D(args.slidingWindowImages,
                                                           args.prop_overlap_Z_X_Y,
@@ -135,11 +143,14 @@ def main(args):
                                                                      batch_size=args.batch_size,
                                                                      shuffle=True)
 
-        print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles), len(train_batch_data_generator)))
+        print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
+                                                                          len(train_batch_data_generator)))
     else:
-        (train_xData, train_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listTrainImagesFiles, listTrainMasksFiles)
+        (train_xData, train_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listTrainImagesFiles,
+                                                                                                    listTrainMasksFiles)
 
-        print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles), len(train_xData)))
+        print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
+                                                                          len(train_xData)))
 
 
     if use_validation_data:
@@ -150,7 +161,8 @@ def main(args):
             args.transformationImages     = args.transformationImages and args.useTransformOnValidationData
             args.elasticDeformationImages = args.elasticDeformationImages and args.useTransformOnValidationData
 
-            (valid_xData, valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles, listValidMasksFiles)
+            (valid_xData, valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles,
+                                                                            listValidMasksFiles)
 
             valid_images_generator = getImagesDataGenerator3D(args.slidingWindowImages,
                                                               args.prop_overlap_Z_X_Y,
@@ -166,12 +178,15 @@ def main(args):
                                                                          shuffle=True)
             validation_data = valid_batch_data_generator
 
-            print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles), len(valid_batch_data_generator)))
+            print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles),
+                                                                              len(valid_batch_data_generator)))
         else:
-            (valid_xData, valid_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listValidImagesFiles, listValidMasksFiles)
+            (valid_xData, valid_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listValidImagesFiles,
+                                                                                                        listValidMasksFiles)
             validation_data = (valid_xData, valid_yData)
 
-            print("Number volumes: %s. Total Data batches generated: %s..." % (len(listTrainImagesFiles), len(valid_xData)))
+            print("Number volumes: %s. Total Data batches generated: %s..." % (len(listTrainImagesFiles),
+                                                                               len(valid_xData)))
     else:
         validation_data = None
 
@@ -231,6 +246,7 @@ if __name__ == "__main__":
     parser.add_argument('--optimizer', default=IOPTIMIZER)
     parser.add_argument('--lossfun', default=ILOSSFUN)
     parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
+    parser.add_argument('--num_featmaps_firstlayer', type=int, default=NUM_FEATMAPS_FIRSTLAYER)
     parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
     parser.add_argument('--confineMasksToLungs', type=str2bool, default=CONFINEMASKSTOLUNGS)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)

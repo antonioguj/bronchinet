@@ -76,7 +76,7 @@ def main(args):
 
     computePredictAccuracy_before = DICTAVAILMETRICFUNS(predictAccuracyMetrics_before, use_in_Keras=False)
 
-    computePredictAccuracy_after  = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics,   use_in_Keras=False)
+    computePredictAccuracy_after  = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics, use_in_Keras=False)
 
 
     print("-" * 30)
@@ -133,9 +133,12 @@ def main(args):
 
         if (args.slidingWindowImages or args.transformationImages):
 
-            images_reconstructor = getImagesReconstructor3D(args.slidingWindowImages, predict_masks_array_shape, args.prop_overlap_Z_X_Y) #args.transformationImages)
+            images_reconstructor = getImagesReconstructor3D(args.slidingWindowImages,
+                                                            predict_masks_array_shape,
+                                                            args.prop_overlap_Z_X_Y) #args.transformationImages)
         else:
-            images_reconstructor = SlicingReconstructorImages3D(IMAGES_DIMS_Z_X_Y, predict_masks_array_shape)
+            images_reconstructor = SlicingReconstructorImages3D(IMAGES_DIMS_Z_X_Y,
+                                                                predict_masks_array_shape)
 
         predict_masks_array = images_reconstructor.compute(predict_data)
 
@@ -145,14 +148,16 @@ def main(args):
 
         if (args.cropImages):
             if (predict_masks_array.shape > origin_masks_array_shape):
-                message = "size of predictions array: %s, cannot be larger than that of original masks: %s..." %(predict_masks_array.shape, origin_masks_array_shape)
+                message = "size of predictions array: %s, cannot be larger than that of original masks: %s..." %(predict_masks_array.shape,
+                                                                                                                 origin_masks_array_shape)
                 CatchErrorException(message)
             else:
-                print("Predictions are cropped. Increase array size from %s to original size %s..."%(predict_masks_array.shape, origin_masks_array_shape))
+                print("Predictions are cropped. Increase array size from %s to original size %s..."%(predict_masks_array.shape,
+                                                                                                     origin_masks_array_shape))
 
             crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(origin_images_file)]
 
-            new_predict_masks_array = np.zeros(origin_masks_array_shape)
+            new_predict_masks_array = np.zeros(origin_masks_array_shape, dtype=FORMATPREDICTDATA)
             new_predict_masks_array[crop_boundingBox[0][0]:crop_boundingBox[0][1],
                                     crop_boundingBox[1][0]:crop_boundingBox[1][1],
                                     crop_boundingBox[2][0]:crop_boundingBox[2][1]] = predict_masks_array
@@ -161,10 +166,12 @@ def main(args):
 
         elif (args.extendSizeImages):
             if (predict_masks_array.shape < origin_masks_array_shape):
-                message = "size of predictions array: %s, cannot be smaller than that of original masks: %s..." %(predict_masks_array.shape, origin_masks_array_shape)
+                message = "size of predictions array: %s, cannot be smaller than that of original masks: %s..." %(predict_masks_array.shape,
+                                                                                                                  origin_masks_array_shape)
                 CatchErrorException(message)
             else:
-                print("Predictions are extended. Decrease array size from %s to original size %s..."%(predict_masks_array.shape, origin_masks_array_shape))
+                print("Predictions are extended. Decrease array size from %s to original size %s..."%(predict_masks_array.shape,
+                                                                                                      origin_masks_array_shape))
 
             crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(origin_images_file)]
 
@@ -173,7 +180,8 @@ def main(args):
                                                       crop_boundingBox[2][0]:crop_boundingBox[2][1]]
         else:
             if (predict_masks_array.shape != origin_masks_array_shape):
-                message = "size of predictions array: %s, not equal to size of masks: %s..." %(predict_masks_array.shape, origin_masks_array_shape)
+                message = "size of predictions array: %s, not equal to size of masks: %s..." %(predict_masks_array.shape,
+                                                                                               origin_masks_array_shape)
                 CatchErrorException(message)
 
 
@@ -186,7 +194,8 @@ def main(args):
 
             exclude_masks_array = FileReader.getImageArray(exclude_masks_file)
 
-            predict_masks_array = OperationsBinaryMasks.reverse_mask_exclude_voxels_fillzero(predict_masks_array, exclude_masks_array)
+            predict_masks_array = OperationsBinaryMasks.reverse_mask_exclude_voxels_fillzero(predict_masks_array,
+                                                                                             exclude_masks_array)
 
 
         # Compute test accuracy
@@ -194,7 +203,8 @@ def main(args):
 
         origin_masks_array = FileReader.getImageArray(origin_masks_file)
 
-        accuracy_after  = computePredictAccuracy_after(origin_masks_array, predict_masks_array)
+        accuracy_after  = computePredictAccuracy_after(origin_masks_array,
+                                                       predict_masks_array)
 
         print("Computed accuracy (before post-processing): %s..." %(accuracy_before))
         print("Computed accuracy (after post-processing): %s..." %(accuracy_after))
@@ -234,6 +244,7 @@ if __name__ == "__main__":
     parser.add_argument('--predictionsdir', default='Predictions')
     parser.add_argument('--lossfun', default=ILOSSFUN)
     parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
+    parser.add_argument('--num_featmaps_firstlayer', type=int, default=NUM_FEATMAPS_FIRSTLAYER)
     parser.add_argument('--prediction_modelFile', default=PREDICTION_MODELFILE)
     parser.add_argument('--predictAccuracyMetrics', default=PREDICTACCURACYMETRICS)
     parser.add_argument('--listPostprocessMetrics', type=parseListarg, default=LISTPOSTPROCESSMETRICS)
