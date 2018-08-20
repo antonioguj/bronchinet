@@ -17,7 +17,6 @@ import time
 import csv
 import os
 import re
-import multiprocessing
 
 
 def makedir(pathname):
@@ -208,10 +207,11 @@ def getSavedModelFileName(typeSavedModel):
 def getExtractSubstringPattern(string, substr_pattern):
     return re.search(substr_pattern, string).group(0)
 
-def getIndexOriginImagesFile(images_file, beginString='images'):
+def getIndexOriginImagesFile(images_file, beginString='images', firstIndex='0'):
     pattern = beginString + '-[0-9]*'
     if bool(re.match(pattern, images_file)):
-        return int(re.search(pattern, images_file).group(0)[-2:])
+        index_origin = int(re.search(pattern, images_file).group(0)[-2:])
+        return index_origin - int(firstIndex)
     else:
         return False
 
@@ -220,9 +220,6 @@ class WallClockTime(object):
         self.start_time = time.time()
     def compute(self):
         return time.time() - self.start_time
-
-def getNumWorkingProcessesCPU():
-    return multiprocessing.cpu_count()
 
 def findCommonElementsTwoLists_Option1(list1, list2):
     if len(list1) == 0 or len(list2) == 0:
@@ -246,20 +243,3 @@ def findCommonElementsTwoLists_Option2(list1, list2):
         setlist1 = set([tuple(elem) for elem in list1])
         setlist2 = set([tuple(elem) for elem in list2])
         return list([elem for elem in setlist1 & setlist2])
-
-
-# Manage GPU resources
-DEFAULT_FRAC_GPU_USAGE = 0.5
-
-def set_limit_gpu_memory_usage(frac_gpu_usage=DEFAULT_FRAC_GPU_USAGE):
-
-    from keras import backend as k
-    import tensorflow as tf
-
-    config = tf.ConfigProto()
-    # Don't pre-allocate memory; allocate as-needed
-    config.gpu_options.allow_growth = True
-    # Only allow a total of half the GPU memory to be allocated
-    config.gpu_options.per_process_gpu_memory_fraction = frac_gpu_usage
-    # Create a session with the above options specified.
-    k.tensorflow_backend.set_session(tf.Session(config=config))

@@ -1,4 +1,4 @@
-#
+7#
 # created by
 # Antonio Garcia-Uceda Juarez
 # PhD student
@@ -20,7 +20,7 @@ BASEDIR = '/home/antonio/Files_Project/testSegmentation/Tests_DLCST/'
 # MUST BE MULTIPLES OF 16
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (104, 336, 224)
-(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (104, 352, 240)
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (120, 352, 240)
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (76, 448, 256)
 
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
@@ -87,7 +87,7 @@ NUM_EPOCHS  = 1000
 BATCH_SIZE  = 1
 IMODEL      = 'Unet3D'
 IOPTIMIZER  = 'Adam'
-ILOSSFUN    = 'DiceCoefficient'
+ILOSSFUN    = 'WeightedBinaryCrossEntropyFocalLoss'
 #ILOSSFUN    = 'CategoricalCrossEntropy'
 LISTMETRICS =['BinaryCrossEntropy',
               'WeightedBinaryCrossEntropy',
@@ -97,7 +97,7 @@ LISTMETRICS =['BinaryCrossEntropy',
               'FalsePositiveRate',
               'FalseNegativeRate']
 
-NUM_FEATMAPS_FIRSTLAYER = 16
+NUM_FEATMAPS_FIRSTLAYER = 8
 
 LEARN_RATE  = 1.0e-05
 
@@ -120,6 +120,8 @@ ELASTICDEFORMATIONIMAGES = False
 TYPEELASTICDEFORMATION = 'gridwise'
 
 USETRANSFORMONVALIDATIONDATA = True
+
+TYPEGPUINSTALLED = 'smaller_GPU'
 
 USEMULTITHREADING = False
 # ******************** TRAINING PARAMETERS ********************
@@ -149,7 +151,7 @@ LISTPOSTPROCESSMETRICS = ['DiceCoefficient',
 
 SAVEPREDICTMASKSLICES = True
 
-THRESHOLDOUTPROBMAPS = False
+THRESHOLDOUTPROBMAPS = True
 
 THRESHOLDVALUE = 0.5
 
