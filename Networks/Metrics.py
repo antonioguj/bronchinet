@@ -174,15 +174,47 @@ class BinaryCrossEntropyFocalLoss(BinaryCrossEntropy):
 
 
 # Weighted Binary Cross entropy
-class WeightedBinaryCrossEntropy(Metrics):
-    #weights_nomasks = [1.0, 80.0]
-    #weights_masks   = [1.0, 300.0]
+class WeightedBinaryCrossEntropyFixedWeights(Metrics):
+    weights_noMasksExclude = [1.0, 80.0]
+    weights_masksExclude   = [1.0, 300.0]
 
     def __init__(self, isMasksExclude=False):
-        #if isMasksExclude:
-        #    self.weights = self.weights_masks
-        #else:
-        #    self.weights = self.weights_nomasks
+        if isMasksExclude:
+            self.weights = self.weights_masksExclude
+        else:
+            self.weights = self.weights_noMasksExclude
+        super(WeightedBinaryCrossEntropyFixedWeights, self).__init__(isMasksExclude)
+        self.name_out = 'wei_bin_cross_fixed'
+
+    def compute_vec(self, y_true, y_pred):
+        return K.mean(- self.weights[1] * y_true * K.log(y_pred +_eps) -
+                      self.weights[0] * (1.0 - y_true) * K.log(1.0 - y_pred +_eps))
+
+    def compute_vec_masked(self, y_true, y_pred):
+        mask = self.get_mask(y_true)
+        return K.mean((- self.weights[1] * y_true * K.log(y_pred +_eps) -
+                       self.weights[0] * (1.0 - y_true) * K.log(1.0 - y_pred +_eps)) * mask)
+
+    def compute_vec_np(self, y_true, y_pred):
+        return np.mean(- self.weights[1] * y_true * np.log(y_pred +_eps) -
+                       self.weights[0] * (1.0 - y_true) * np.log(1.0 - y_pred +_eps))
+
+    def compute_vec_masked_np(self, y_true, y_pred):
+        mask = self.get_mask_np(y_true)
+        return np.mean((- self.weights[1] * y_true * np.log(y_pred +_eps) -
+                        self.weights[0] * (1.0 - y_true) * np.log(1.0 - y_pred +_eps)) * mask)
+
+    def loss(self, y_true, y_pred):
+        return self.compute(y_true, y_pred)
+
+    def wei_bin_cross_fixed(self, y_true, y_pred):
+        return self.compute(y_true, y_pred)
+
+
+# Weighted Binary Cross entropy
+class WeightedBinaryCrossEntropy(Metrics):
+
+    def __init__(self, isMasksExclude=False):
         super(WeightedBinaryCrossEntropy, self).__init__(isMasksExclude)
         self.name_out = 'wei_bin_cross'
 
@@ -231,8 +263,6 @@ class WeightedBinaryCrossEntropy(Metrics):
 
 # Weighted Binary Cross entropy + Focal Loss
 class WeightedBinaryCrossEntropyFocalLoss(WeightedBinaryCrossEntropy):
-    #weights_nomasks = [1.0, 80.0]
-    #weights_masks   = [1.0, 300.0]
 
     param_gamma_default = 2.0
     eps_clip = 1.0e-12
@@ -468,6 +498,8 @@ def DICTAVAILMETRICS(option):
         return BinaryCrossEntropy(isMasksExclude=isMasksExclude)
     if   (option == 'BinaryCrossEntropyFocalLoss'):
         return BinaryCrossEntropyFocalLoss(isMasksExclude=isMasksExclude)
+    elif (option == 'WeightedBinaryCrossEntropyFixedWeights'):
+        return WeightedBinaryCrossEntropyFixedWeights(isMasksExclude=isMasksExclude)
     elif (option == 'WeightedBinaryCrossEntropy'):
         return WeightedBinaryCrossEntropy(isMasksExclude=isMasksExclude)
     elif (option == 'WeightedBinaryCrossEntropyFocalLoss'):
