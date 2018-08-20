@@ -17,25 +17,38 @@ from Preprocessing.OperationsImages import *
 import argparse
 
 
+
 def main(args):
 
-    workDirsManager  = WorkDirsManager(args.basedir)
-    BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    InputImagesPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
-    InputMasksPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
-    OutputImagesPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcImages')
-    OutputMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, 'ProcMasks')
+    # ---------- SETTINGS ----------
+    nameInputImagesRelPath    = 'RawImages'
+    nameInputMasksRelPath     = 'RawMasks'
+    nameOutputImagesRelPath   = 'ProcImages'
+    nameOutputMasksRelPath    = 'ProcMasks'
+    nameInputAddMasksRelPath  = 'RawAddMasks'
+    nameOutputAddMasksRelPath = 'ProcAddMasks'
 
     # Get the file list:
     nameImagesFiles = '*.dcm'
     nameMasksFiles  = '*.dcm'
+    nameAddMasksFiles = '*.dcm'
+
+    nameOutImagesMasksFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager  = WorkDirsManager(args.basedir)
+    BaseDataPath     = workDirsManager.getNameBaseDataPath()
+    InputImagesPath  = workDirsManager.getNameExistPath(BaseDataPath, nameInputImagesRelPath)
+    InputMasksPath   = workDirsManager.getNameExistPath(BaseDataPath, nameInputMasksRelPath )
+    OutputImagesPath = workDirsManager.getNameNewPath(BaseDataPath, nameOutputImagesRelPath)
+    OutputMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, nameOutputMasksRelPath )
 
     listImagesFiles = findFilesDir(InputImagesPath, nameImagesFiles)
     listMasksFiles  = findFilesDir(InputMasksPath,  nameMasksFiles)
 
     nbImagesFiles   = len(listImagesFiles)
     nbMasksFiles    = len(listMasksFiles)
-
 
     # Run checkers
     if (nbImagesFiles == 0):
@@ -45,14 +58,12 @@ def main(args):
         message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbMasksFiles)
         CatchErrorException(message)
 
-
-    if isExistdir(joinpathnames(BaseDataPath, 'RawAddMasks')):
+    if isExistdir(joinpathnames(BaseDataPath, nameInputAddMasksRelPath)):
         isExistsAddMasks = True
 
-        InputAddMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
-        OutputAddMasksPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcAddMasks')
+        InputAddMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameInputAddMasksRelPath)
+        OutputAddMasksPath = workDirsManager.getNameNewPath(BaseDataPath, nameOutputAddMasksRelPath)
 
-        nameAddMasksFiles = '*.dcm'
         listAddMasksFiles = findFilesDir(InputAddMasksPath, nameAddMasksFiles)
         nbAddMasksFiles   = len(listAddMasksFiles)
 
@@ -86,17 +97,18 @@ def main(args):
 
         print("Saving images in nifty '.nii' format of final dimensions: %s..." %(str(images_array.shape)))
 
-        out_images_filename = joinpathnames(OutputImagesPath, filenamenoextension(images_file) + '.nii.gz')
-        out_masks_filename  = joinpathnames(OutputMasksPath,  filenamenoextension(masks_file)  + '.nii.gz')
+        out_images_filename = joinpathnames(OutputImagesPath, nameOutImagesMasksFiles(images_file))
+        out_masks_filename  = joinpathnames(OutputMasksPath,  nameOutImagesMasksFiles(masks_file) )
 
         FileReader.writeImageArray(out_images_filename, images_array.astype(FORMATIMAGEDATA))
         FileReader.writeImageArray(out_masks_filename,  masks_array .astype(FORMATIMAGEDATA))
 
         if isExistsAddMasks:
-            out_masks_filename = joinpathnames(OutputAddMasksPath, filenamenoextension(add_masks_file) + '.nii.gz')
+            out_masks_filename = joinpathnames(OutputAddMasksPath, nameOutImagesMasksFiles(add_masks_file))
 
             FileReader.writeImageArray(out_masks_filename, add_masks_array.astype(FORMATIMAGEDATA))
     #endfor
+
 
 
 if __name__ == "__main__":

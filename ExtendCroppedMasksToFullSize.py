@@ -21,17 +21,32 @@ import argparse
 
 def main(args):
 
-    workDirsManager     = WorkDirsManager(args.basedir)
-    BaseDataPath        = workDirsManager.getNameBaseDataPath()
-    RawMasksCroppedPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks_Cropped')
-    RawImagesFullPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages_Full')
-    RawImagesCroppedPath= workDirsManager.getNameExistPath(BaseDataPath, 'RawImages_Cropped')
-    RawOutMasksFullPath = workDirsManager.getNameNewPath  (BaseDataPath, 'ProcMasks_Full')
+    # ---------- SETTINGS ----------
+    nameRawMasksCroppedRelPath    = 'RawMasks_Cropped'
+    nameRawImagesFullRelPath      = 'RawImages_Full'
+    nameRawImagesCroppedRelPath   = 'RawImages_Cropped'
+    nameRawOutMasksFullRelPath    = 'ProcMasks_Full'
+    nameRawAddMasksCroppedRelPath = 'RawAddMasks_Cropped'
+    nameRawOutAddMasksFullRelPath = 'ProcAddMasks_Full'
 
     # Get the file list:
-    nameMasksCroppedFiles = '*.dcm'
-    nameImagesFullFiles   = '*.dcm'
-    nameImagesCroppedFiles= '*.dcm'
+    nameMasksCroppedFiles   = '*.dcm'
+    nameImagesFullFiles     = '*.dcm'
+    nameImagesCroppedFiles  = '*.dcm'
+    nameAddMasksCroppedFiles= '*.dcm'
+
+    nameBoundingBoxesMasks = 'found_boundBoxes_Original.npy'
+
+    nameOutMasksFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager     = WorkDirsManager(args.basedir)
+    BaseDataPath        = workDirsManager.getNameBaseDataPath()
+    RawMasksCroppedPath = workDirsManager.getNameExistPath(BaseDataPath, nameRawMasksCroppedRelPath)
+    RawImagesFullPath   = workDirsManager.getNameExistPath(BaseDataPath, nameRawImagesFullRelPath  )
+    RawImagesCroppedPath= workDirsManager.getNameExistPath(BaseDataPath, nameRawImagesCroppedRelPath)
+    RawOutMasksFullPath = workDirsManager.getNameNewPath  (BaseDataPath, nameRawOutMasksFullRelPath)
 
     listMasksCroppedFiles = findFilesDir(RawMasksCroppedPath, nameMasksCroppedFiles)
     listImagesFullFiles   = findFilesDir(RawImagesFullPath,   nameImagesFullFiles)
@@ -39,7 +54,6 @@ def main(args):
 
     nbMasksCroppedFiles = len(listMasksCroppedFiles)
     nbImagesFullFiles   = len(listImagesFullFiles)
-
 
     # Run checkers
     if (nameMasksCroppedFiles == 0):
@@ -49,14 +63,12 @@ def main(args):
         message = "num Cropped Masks %i not equal to num Full Images %i" %(nbMasksCroppedFiles, nbImagesFullFiles)
         CatchErrorException(message)
 
-
-    if isExistdir(joinpathnames(BaseDataPath, 'RawAddMasks_Cropped')):
+    if isExistdir(joinpathnames(BaseDataPath, nameRawAddMasksCroppedRelPath)):
         isExistsAddMasks = True
 
-        RawAddMasksCroppedPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks_Cropped')
-        RawOutAddMasksFullPath = workDirsManager.getNameNewPath  (BaseDataPath, 'ProcAddMasks_Full')
+        RawAddMasksCroppedPath = workDirsManager.getNameExistPath(BaseDataPath, nameRawAddMasksCroppedRelPath)
+        RawOutAddMasksFullPath = workDirsManager.getNameNewPath  (BaseDataPath, nameRawOutAddMasksFullRelPath)
 
-        nameAddMasksCroppedFiles = '*.dcm'
         listAddMasksCroppedFiles = findFilesDir(RawAddMasksCroppedPath, nameAddMasksCroppedFiles)
         nbAddMasksCroppedFiles   = len(listAddMasksCroppedFiles)
 
@@ -66,8 +78,7 @@ def main(args):
     else:
         isExistsAddMasks = False
 
-
-    namefile_dict = joinpathnames(BaseDataPath, "found_boundBoxes_Original.npy")
+    namefile_dict = joinpathnames(BaseDataPath, nameBoundingBoxesMasks)
     dict_boundingBoxes = readDictionary(namefile_dict)
 
 
@@ -112,15 +123,16 @@ def main(args):
 
         print("Saving Full Masks of final dimensions: %s..." % (str(masks_full_array.shape)))
 
-        out_masks_filename = joinpathnames(RawOutMasksFullPath, filenamenoextension(masks_cropped_file) + '.nii.gz')
+        out_masks_filename = joinpathnames(RawOutMasksFullPath, nameOutMasksFiles(masks_cropped_file))
 
         FileReader.writeImageArray(out_masks_filename, masks_full_array)
 
         if (isExistsAddMasks):
-            out_add_masks_filename = joinpathnames(RawOutAddMasksFullPath, filenamenoextension(add_masks_cropped_file) + '.nii.gz')
+            out_add_masks_filename = joinpathnames(RawOutAddMasksFullPath, nameOutMasksFiles(add_masks_cropped_file))
 
             FileReader.writeImageArray(out_add_masks_filename, add_masks_full_array)
     #endfor
+
 
 
 if __name__ == "__main__":

@@ -22,17 +22,35 @@ import argparse
 
 def main(args):
 
+    # ---------- SETTINGS ----------
+    nameOriginMasksRelPath = 'ProcMasks'
+
+    # Get the file list:
+    namePredictionsFiles = 'predict_probmaps*.nii.gz'
+    nameOriginMasksFiles = '*.nii.gz'
+
+    # template search files
+    tempSearchInputFiles = 'av[0-9]*'
+
+    if (args.thresholdOutProbMaps):
+        suffixPostProcessThreshold = '_thres%s'%(str(args.thresholdValue).replace('.','-'))
+    else:
+        suffixPostProcessThreshold = ''
+
+    # create file to save accuracy measures on test sets
+    nameAccuracyPredictFiles = 'predict_accuracy_tests%s.txt'%(suffixPostProcessThreshold)
+
+    tempOutPredictMasksFilename = lambda in_name: filenamenoextension(in_name).replace('predict_probmaps','predict_binmasks') + '%s.nii.gz'%(suffixPostProcessThreshold)
+    # ---------- SETTINGS ----------
+
+
     workDirsManager  = WorkDirsManager(args.basedir)
     BaseDataPath     = workDirsManager.getNameBaseDataPath()
     PredictDataPath  = workDirsManager.getNameExistPath(args.basedir, args.predictionsdir)
-    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
+    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameOriginMasksRelPath)
 
-    # Get the file list:
-    namePredictionsFiles  = 'predictMasks*.nii.gz'
-    nameOriginMasksFiles  = '*.nii.gz'
-
-    listPredictMasksFiles = findFilesDir(PredictDataPath,  namePredictionsFiles)
-    listOriginMasksFiles  = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
+    listPredictMasksFiles = findFilesDir(PredictDataPath, namePredictionsFiles)
+    listOriginMasksFiles  = findFilesDir(OriginMasksPath, nameOriginMasksFiles)
 
     nbPredictionsFiles = len(listPredictMasksFiles)
 
@@ -42,13 +60,6 @@ def main(args):
 
 
     listFuns_Metrics = {imetrics: DICTAVAILMETRICFUNS(imetrics, use_in_Keras=False) for imetrics in args.listPostprocessMetrics}
-
-    # create file to save accuracy measures on test sets
-    if (args.thresholdOutProbMaps):
-        nameAccuracyPredictFiles = 'predictAccuracyTests_thres%s.txt'%(args.thresholdValue)
-    else:
-        nameAccuracyPredictFiles = 'predictAccuracyTests.txt'
-
     out_predictAccuracyFilename = joinpathnames(PredictDataPath, nameAccuracyPredictFiles)
     fout = open(out_predictAccuracyFilename, 'w')
 
@@ -62,7 +73,7 @@ def main(args):
 
         print('\'%s\'...' %(predict_masks_file))
 
-        name_prefix_case = getExtractSubstringPattern(predict_masks_file, 'vol[0-9]*_')
+        name_prefix_case = getExtractSubstringPattern(predict_masks_file, tempSearchInputFiles)
 
         for iterfile in listOriginMasksFiles:
             if name_prefix_case in iterfile:
@@ -108,13 +119,14 @@ def main(args):
         if (args.thresholdOutProbMaps and args.saveThresholdImages):
             print("Saving thresholded prediction masks, with dims: %s..." %(tuple2str(predict_masks_array.shape)))
 
-            out_predictMasksFilename = joinpathnames(PredictDataPath, filenamenoextension(predict_masks_file) + 'thres%s.nii.gz' %(args.thresholdValue))
+            out_predictMasksFilename = joinpathnames(PredictDataPath, tempOutPredictMasksFilename(predict_masks_file))
 
             FileReader.writeImageArray(out_predictMasksFilename, predict_masks_array)
     #endfor
 
     #close list accuracies file
     fout.close()
+
 
 
 if __name__ == "__main__":

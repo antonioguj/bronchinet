@@ -18,13 +18,13 @@ from CommonUtil.WorkDirsManager import *
 import argparse
 
 
+
 def main(args):
 
-    workDirsManager  = WorkDirsManager(args.basedir)
-    BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    OriginImagesPath = workDirsManager.getNameExistPath(BaseDataPath, 'ProcImagesData')
-    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasksData')
-    VisualImagesPath = workDirsManager.getNameNewPath  (args.basedir, 'VisualInputData')
+    # ---------- SETTINGS ----------
+    nameOriginImagesRelPath = 'ProcImagesData'
+    nameOriginMasksRelPath  = 'ProcMasksData'
+    nameVisualImagesRelPath = 'VisualInputData'
 
     # Get the file list:
     nameInImagesFiles        = '*.npy'
@@ -35,13 +35,20 @@ def main(args):
     nameOutMasksFiles_type2  = 'visualMasks-%0.2i_dim%s-batch%0.2i.nii.gz'
     nameOutImagesFiles_type3 = 'visualImages-%0.2i_dim%s-batch%s.nii.gz'
     nameOutMasksFiles_type3  = 'visualMasks-%0.2i_dim%s-batch%s.nii.gz'
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager  = WorkDirsManager(args.basedir)
+    BaseDataPath     = workDirsManager.getNameBaseDataPath()
+    OriginImagesPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginImagesRelPath)
+    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameOriginMasksRelPath )
+    VisualImagesPath = workDirsManager.getNameNewPath  (args.basedir, nameVisualImagesRelPath)
 
     listImagesFiles = findFilesDir(OriginImagesPath, nameInImagesFiles)
     listMasksFiles  = findFilesDir(OriginMasksPath,  nameInMasksFiles)
 
     nbImagesFiles = len(listImagesFiles)
     nbMasksFiles  = len(listMasksFiles)
-
 
     # Run checkers
     if (nbImagesFiles == 0):
@@ -131,6 +138,7 @@ def main(args):
                 FileReader.writeImageArray(out_images_filename, visual_images_array)
                 FileReader.writeImageArray(out_masks_filename,  visual_masks_array)
     #endfor
+
 
 
 if __name__ == "__main__":

@@ -20,25 +20,40 @@ import argparse
 np.random.seed(2017)
 
 
+
 def main(args):
 
-    workDirsManager  = WorkDirsManager(args.basedir)
-    BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    PredictMasksPath = workDirsManager.getNameExistPath(args.basedir, args.predictionsdir)
-    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
+    # ---------- SETTINGS ----------
+    nameOriginMasksRelPath = 'ProcMasks'
 
     # Get the file list:
     namePredictMasksFiles = '*.nii.gz'
     nameOriginMasksFiles  = '*.nii.gz'
 
-    listPredictMasksFiles = findFilesDir(PredictMasksPath, namePredictMasksFiles)
-    listOriginMasksFiles  = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
-
-    nbPredictMasksFiles = len(listPredictMasksFiles)
+    # template search files
+    tempSearchInputFiles = 'av[0-9]*'
 
     # create file to save FROC values
     tempFROCvaluesFilename = '%s-FROCvalues.txt'
 
+    # parameters
+    nbr_of_thresholds = 11
+    range_threshold = [0.0, 1.0]
+    thresholds_list = (np.linspace(range_threshold[0], range_threshold[1], nbr_of_thresholds)).tolist()
+    #thresholds_list = (np.logspace(range_threshold[0], range_threshold[1], nbr_of_thresholds)).tolist()
+    allowedDistance = 0
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager  = WorkDirsManager(args.basedir)
+    BaseDataPath     = workDirsManager.getNameBaseDataPath()
+    PredictMasksPath = workDirsManager.getNameExistPath(args.basedir, args.predictionsdir)
+    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameOriginMasksRelPath)
+
+    listPredictMasksFiles = findFilesDir(PredictMasksPath, namePredictMasksFiles)
+    listOriginMasksFiles  = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
+
+    nbPredictMasksFiles = len(listPredictMasksFiles)
 
     # Run checkers
     if (nbPredictMasksFiles == 0):
@@ -50,14 +65,6 @@ def main(args):
         OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
         nameAddMasksFiles  = '*.dcm'
         listAddMasksFiles  = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
-
-
-    # parameters
-    nbr_of_thresholds = 11
-    range_threshold = [0.0, 1.0]
-    thresholds_list = (np.linspace(range_threshold[0], range_threshold[1], nbr_of_thresholds)).tolist()
-    #thresholds_list = (np.logspace(range_threshold[0], range_threshold[1], nbr_of_thresholds)).tolist()
-    allowedDistance = 0
 
 
     threshold_listcases   = np.zeros((nbr_of_thresholds, nbPredictMasksFiles))
@@ -74,7 +81,7 @@ def main(args):
         print("Predictions masks array of size: %s..." % (str(predict_masks_array.shape)))
 
 
-        index_origin_masks = re.search('av[0-9]*', predictionsFile).group(0)
+        index_origin_masks = re.search(tempSearchInputFiles, predictionsFile).group(0)
 
         origin_masks_file = ''
         for file in listOriginMasksFiles:

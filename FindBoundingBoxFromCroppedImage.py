@@ -21,13 +21,29 @@ import argparse
 
 def main(args):
 
-    workDirsManager     = WorkDirsManager(args.basedir)
-    BaseDataPath        = workDirsManager.getNameBaseDataPath()
-    RawImagesFullPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages_Full')
-    RawImagesCroppedPath= workDirsManager.getNameExistPath(BaseDataPath, 'RawImages_Cropped')
+    # ---------- SETTINGS ----------
+    nameRawImagesFullRelPath    = 'RawImages_Full'
+    nameRawImagesCroppedRelPath = 'RawImages_Cropped'
 
     # Get the file list:
     nameImagesFiles = '*.dcm'
+
+    #test_range_boundbox = ((16, 352), (109, 433), (45, 460))
+    _eps = 1.0e-06
+    _alpha_relax = 0.6
+    _z_min_top = 15
+    _z_numtest = 10
+
+    nameTempOutResFile = 'temp_found_boundBoxes_vol16.csv'
+    nameOutResultFileNPY = 'found_boundBoxes_vol16.npy'
+    nameOutResultFileCSV = 'found_boundBoxes_vol16.csv'
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager     = WorkDirsManager(args.basedir)
+    BaseDataPath        = workDirsManager.getNameBaseDataPath()
+    RawImagesFullPath   = workDirsManager.getNameExistPath(BaseDataPath, nameRawImagesFullRelPath)
+    RawImagesCroppedPath= workDirsManager.getNameExistPath(BaseDataPath, nameRawImagesCroppedRelPath)
 
     listImagesFullFiles    = findFilesDir(RawImagesFullPath,    nameImagesFiles)[15:16]
     listImagesCroppedFiles = findFilesDir(RawImagesCroppedPath, nameImagesFiles)[15:16]
@@ -45,17 +61,8 @@ def main(args):
         message = "num CTs Images %i not equal to num CTs cropped Images %i" %(nbImagesFullFiles, nbImagesCroppedFiles)
         CatchErrorException(message)
 
-    #test_range_boundbox = ((16, 352), (109, 433), (45, 460))
-
-    _eps = 1.0e-06
-    _alpha_relax = 0.6
-    _z_min_top = 15
-    _z_numtest = 10
-
-
     dict_found_boundingBoxes = {}
 
-    nameTempOutResFile = 'temp_found_boundBoxes_vol16.csv'
     nameTempOutResFile = joinpathnames(BaseDataPath, nameTempOutResFile)
 
     fout = open(nameTempOutResFile, 'w')
@@ -174,9 +181,9 @@ def main(args):
 
 
     # Save dictionary in csv file
-    nameoutfile = joinpathnames(BaseDataPath, "found_boundBoxes_vol16.npy")
+    nameoutfile = joinpathnames(BaseDataPath, nameOutResultFileNPY)
     saveDictionary(nameoutfile, dict_found_boundingBoxes)
-    nameoutfile = joinpathnames(BaseDataPath, "found_boundBoxes_vol16.csv")
+    nameoutfile = joinpathnames(BaseDataPath, nameOutResultFileCSV)
     saveDictionary_csv(nameoutfile, dict_found_boundingBoxes)
 
     fout.close()
@@ -218,6 +225,7 @@ def get_limits_test_boundbox(test_range_boundbox, size_cropped_image, index, opt
     else:
         return None
     return (x0, xm)
+
 
 
 if __name__ == "__main__":

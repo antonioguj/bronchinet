@@ -19,16 +19,23 @@ from Preprocessing.OperationsImages import *
 import argparse
 
 
+
 def main(args):
 
-    workDirsManager  = WorkDirsManager(args.basedir)
-    BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    OrigImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
-    ComputeMasksPath = workDirsManager.getNameNewPath  (BaseDataPath, 'ProbNnetoutMasks')
+    # ---------- SETTINGS ----------
+    nameRawImagesRelPath    = 'RawImages'
+    nameComputeMasksRelPath = 'ProbNnetoutMasks'
 
     # Get the file list:
     nameImagesFiles   = '*.dcm'
-    nameOutMasksFiles = lambda in_name: joinpathnames(ComputeMasksPath, filenamenoextension(in_name) + '_probnnetout.nii.gz')
+    nameOutMasksFiles = lambda in_name: filenamenoextension(in_name) + '_probnnetout.nii.gz'
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager  = WorkDirsManager(args.basedir)
+    BaseDataPath     = workDirsManager.getNameBaseDataPath()
+    OrigImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, nameRawImagesRelPath   )
+    ComputeMasksPath = workDirsManager.getNameNewPath  (BaseDataPath, nameComputeMasksRelPath)
 
     listImagesFiles = findFilesDir(OrigImagesPath, nameImagesFiles)
     nbImagesFiles   = len(listImagesFiles)
@@ -42,6 +49,7 @@ def main(args):
         args.size_out_nnet = modelConstructor.get_size_output_full_Unet()
 
     print("For input images of size: %s; Output of Neural Networks are images of size: %s..." %(IMAGES_DIMS_Z_X_Y, args.size_out_nnet))
+
 
 
     for images_file in listImagesFiles:
@@ -65,7 +73,9 @@ def main(args):
         masks_probValidConvNnet_output_array = images_reconstructor.get_filtering_map_array()
 
 
-        FileReader.writeImageArray(nameOutMasksFiles(images_file), masks_probValidConvNnet_output_array)
+        out_masksFilename = joinpathnames(ComputeMasksPath, nameOutMasksFiles(images_file))
+
+        FileReader.writeImageArray(out_masksFilename, masks_probValidConvNnet_output_array)
     #endfor
 
 

@@ -9,6 +9,7 @@
 ########################################################################################
 
 from CommonUtil.Constants import *
+from CommonUtil.CPUGPUdevicesManager import *
 from CommonUtil.ErrorMessages import *
 from CommonUtil.ImageGeneratorManager import *
 from CommonUtil.KerasBatchDataGenerator import *
@@ -22,16 +23,29 @@ from keras import callbacks as Kcallbacks
 import argparse
 
 
+
 def main(args):
 
-    workDirsManager    = WorkDirsManager(args.basedir)
-    TrainingDataPath   = workDirsManager.getNameExistPath(workDirsManager.getNameTrainingDataPath())
-    ValidationDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameValidationDataPath())
-    ModelsPath         = workDirsManager.getNameNewPath(args.basedir, 'Models')
+    # First thing, set session in the selected(s) devices: CPU or GPU
+    set_session_in_selected_device(use_GPU_device=True,
+                                   type_GPU_installed=args.typeGPUinstalled)
+
+    # ---------- SETTINGS ----------
+    if args.use_restartModel:
+        nameModelsRelPath = 'Models_Restart'
+    else:
+        nameModelsRelPath = 'Models'
 
     # Get the file list:
     nameImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
     nameMasksFiles  = 'masks*' + getFileExtension(FORMATINOUTDATA)
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager    = WorkDirsManager(args.basedir)
+    TrainingDataPath   = workDirsManager.getNameExistPath(workDirsManager.getNameTrainingDataPath())
+    ValidationDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameValidationDataPath())
+    ModelsPath         = workDirsManager.getNameUpdatePath(args.basedir, nameModelsRelPath)
 
     listTrainImagesFiles = findFilesDir(TrainingDataPath,   nameImagesFiles)
     listTrainMasksFiles  = findFilesDir(TrainingDataPath,   nameMasksFiles )
@@ -200,7 +214,7 @@ def main(args):
 
     if (args.slidingWindowImages or args.transformationImages):
         if (args.useMultiThreading):
-            message = "MULTITHREADING STILL IN IMPLEMENTATION...EXIT"
+            message = "MULTITHREADING STILL IN IMPLEMENTATION... EXIT"
             CatchErrorException(message)
 
             model.fit_generator(train_batch_data_generator,
@@ -210,7 +224,7 @@ def main(args):
                                 callbacks=callbacks_list,
                                 validation_data=validation_data,
                                 use_multiprocessing=True,
-                                workers=getNumWorkingProcessesCPU(),
+                                workers=CPUdevicesManager.get_num_working_cpu_processes(),
                                 shuffle=True,
                                 initial_epoch=initial_epoch)
         else:
@@ -234,6 +248,7 @@ def main(args):
     # ----------------------------------------------
 
 
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
@@ -254,6 +269,7 @@ if __name__ == "__main__":
     parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=ELASTICDEFORMATIONIMAGES)
     parser.add_argument('--useTransformOnValidationData', type=str2bool, default=USETRANSFORMONVALIDATIONDATA)
+    parser.add_argument('--typeGPUinstalled', type=str, default=TYPEGPUINSTALLED)
     parser.add_argument('--useMultiThreading', type=str2bool, default=USEMULTITHREADING)
     parser.add_argument('--use_restartModel', type=str2bool, default=USE_RESTARTMODEL)
     parser.add_argument('--restart_modelFile', default=RESTART_MODELFILE)

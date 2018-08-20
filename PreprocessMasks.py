@@ -17,31 +17,44 @@ from Preprocessing.OperationsImages import *
 import argparse
 
 
+
 def main(args):
 
-    workDirsManager  = WorkDirsManager(args.basedir)
-    BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'RawMasks')
-    OutputMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, 'ProcMasks')
+    # ---------- SETTINGS ----------
+    nameOriginMasksRelPath    = 'ProcOrigMasks'
+    nameOutputMasksRelPath    = 'ProcMasks'
+    nameOriginAddMasksRelPath = 'ProcOrigAddMasks'
+    nameOutputAddMasksRelPath = 'ProcAddMasks'
+
+    nameMasksFiles = '*.nii.gz'
+    nameAddMasksFiles = '*.nii.gz'
+
+    nameOutMasksFiles           = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    nameOutAirwayMasksPlusTraqueaFiles= lambda in_name: filenamenoextension(in_name) + '_full.nii.gz'
+    nameOutLungsMasksFiles      = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    nameOutTraqueaMasksFiles    = lambda in_name: filenamenoextension(in_name).replace('lungs','traquea')
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager = WorkDirsManager(args.basedir)
+    BaseDataPath    = workDirsManager.getNameBaseDataPath()
+    OriginMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginMasksRelPath)
+    OutputMasksPath = workDirsManager.getNameNewPath(BaseDataPath, nameOutputMasksRelPath)
 
     # Get the file list:
-    nameMasksFiles = '*.dcm'
     listMasksFiles = findFilesDir(OriginMasksPath,  nameMasksFiles)
     nbMasksFiles   = len(listMasksFiles)
-
 
     # Run checkers
     if (nbMasksFiles == 0):
         message = "num CTs Images found in dir \'%s\'" %(OriginMasksPath)
         CatchErrorException(message)
 
-
     if (args.confineMasksToLungs):
 
-        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
-        OutputAddMasksPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcAddMasks')
+        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginAddMasksRelPath)
+        OutputAddMasksPath = workDirsManager.getNameNewPath(BaseDataPath, nameOutputAddMasksRelPath)
 
-        nameAddMasksFiles = '*.dcm'
         listAddMasksFiles = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
         nbAddMasksFiles   = len(listAddMasksFiles)
 
@@ -99,20 +112,21 @@ def main(args):
 
         print("Saving images in nifty '.nii' format of final dimensions: %s..." % (str(masks_array.shape)))
 
-        out_masks_filename = joinpathnames(OutputMasksPath, filenamenoextension(masks_file) + '.nii.gz')
+        out_masks_filename = joinpathnames(OutputMasksPath, nameOutMasksFiles(masks_file))
 
         FileReader.writeImageArray(out_masks_filename, masks_array.astype(FORMATIMAGEDATA))
 
         if (args.confineMasksToLungs):
 
-            out_masks_plustraquea_filename = joinpathnames(OutputAddMasksPath, filenamenoextension(masks_file) + '_full.nii.gz')
-            out_lungs_masks_filename       = joinpathnames(OutputAddMasksPath, filenamenoextension(exclude_masks_file) + '.nii.gz')
-            out_traquea_masks_filename     = out_lungs_masks_filename.replace('lungs','traquea')
+            out_masks_plustraquea_filename = joinpathnames(OutputAddMasksPath, nameOutAirwayMasksPlusTraqueaFiles(masks_file))
+            out_lungs_masks_filename       = joinpathnames(OutputAddMasksPath, nameOutLungsMasksFiles(exclude_masks_file))
+            out_traquea_masks_filename     = joinpathnames(OutputAddMasksPath, nameOutTraqueaMasksFiles(basename(exclude_masks_file)))
 
             FileReader.writeImageArray(out_masks_plustraquea_filename, masks_plustraquea_array.astype(FORMATIMAGEDATA))
             FileReader.writeImageArray(out_lungs_masks_filename,       lungs_masks_array      .astype(FORMATIMAGEDATA))
             FileReader.writeImageArray(out_traquea_masks_filename,     traquea_masks_array    .astype(FORMATIMAGEDATA))
     #endfor
+
 
 
 if __name__ == "__main__":

@@ -21,19 +21,28 @@ import argparse
 
 def main(args):
 
-    workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath    = workDirsManager.getNameBaseDataPath()
-    RawImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
-    RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, 'ProcAddMasks')
-
+    # ---------- SETTINGS ----------
     dict_masks_boundingBoxes = {}
 
     max_size_boundingBox = (0, 0, 0)
     min_size_boundingBox = (1.0e+03, 1.0e+03, 1.0e+03)
 
+    nameRawImagesRelPath = 'RawImages'
+    nameRawMasksRelPath  = 'ProcAddMasks'
+
     # Get the file list:
     nameImagesFiles = '*.dcm'
     nameMasksFiles  = '*.nii.gz'
+
+    nameBoundingBoxesMasksNPY = 'boundBoxesMasks.npy'
+    nameBoundingBoxesMasksCSV = 'boundBoxesMasks.csv'
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager = WorkDirsManager(args.basedir)
+    BaseDataPath    = workDirsManager.getNameBaseDataPath()
+    RawImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, nameRawImagesRelPath)
+    RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, nameRawMasksRelPath )
 
     listImagesFiles = findFilesDir(RawImagesPath, nameImagesFiles)
     listMasksFiles  = findFilesDir(RawMasksPath,  nameMasksFiles )
@@ -48,6 +57,7 @@ def main(args):
     if (nbImagesFiles != nbMasksFiles):
         message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbMasksFiles)
         CatchErrorException(message)
+
 
 
     for images_file, masks_file in zip(listImagesFiles, listMasksFiles):
@@ -114,10 +124,11 @@ def main(args):
 
 
     # Save dictionary in csv file
-    nameoutfile = joinpathnames(BaseDataPath, "boundBoxesMasks.npy")
+    nameoutfile = joinpathnames(BaseDataPath, nameBoundingBoxesMasksNPY)
     saveDictionary(nameoutfile, dict_masks_boundingBoxes)
-    nameoutfile = joinpathnames(BaseDataPath, "boundBoxesMasks.csv")
+    nameoutfile = joinpathnames(BaseDataPath, nameBoundingBoxesMasksCSV)
     saveDictionary_csv(nameoutfile, dict_masks_boundingBoxes)
+
 
 
 if __name__ == "__main__":

@@ -21,29 +21,40 @@ from Preprocessing.TransformationImages import *
 import argparse
 
 
+
 def main(args):
+
+    # ---------- SETTINGS ----------
+    nameOriginImagesRelPath    = 'RawImages'
+    nameOriginMasksRelPath     = 'ProcMasks'
+    nameProcessedImagesRelPath = 'ProcImagesData'
+    nameProcessedMasksRelPath  = 'ProcMasksData'
+    nameOriginAddMasksRelPath  = 'ProcAddMasks'
+
+    # Get the file list:
+    nameImagesFiles   = '*.dcm'
+    nameMasksFiles    = '*.nii.gz'
+    nameAddMasksFiles = '*.nii.gz'
+
+    nameBoundingBoxesMasks = 'boundBoxesMasks.npy'
+
+    tempNameProcImagesFiles = 'images-%0.2i_dim%s' + getFileExtension(FORMATINOUTDATA)
+    tempNameProcMasksFiles  = 'masks-%0.2i_dim%s'  + getFileExtension(FORMATINOUTDATA)
+    # ---------- SETTINGS ----------
+
 
     workDirsManager     = WorkDirsManager(args.basedir)
     BaseDataPath        = workDirsManager.getNameBaseDataPath()
-    OriginImagesPath    = workDirsManager.getNameExistPath(BaseDataPath, 'RawImages')
-    OriginMasksPath     = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
-    ProcessedImagesPath = workDirsManager.getNameNewPath(BaseDataPath, 'ProcImagesData')
-    ProcessedMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, 'ProcMasksData')
-
-
-    # Get the file list:
-    nameImagesFiles = '*.dcm'
-    nameMasksFiles  = '*.nii.gz'
+    OriginImagesPath    = workDirsManager.getNameExistPath(BaseDataPath, nameOriginImagesRelPath)
+    OriginMasksPath     = workDirsManager.getNameExistPath(BaseDataPath, nameOriginMasksRelPath )
+    ProcessedImagesPath = workDirsManager.getNameNewPath(BaseDataPath, nameProcessedImagesRelPath)
+    ProcessedMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, nameProcessedMasksRelPath )
 
     listImagesFiles = findFilesDir(OriginImagesPath, nameImagesFiles)
     listMasksFiles  = findFilesDir(OriginMasksPath,  nameMasksFiles)
 
     nbImagesFiles   = len(listImagesFiles)
     nbMasksFiles    = len(listMasksFiles)
-
-    tempNameProcImagesFiles = 'images-%0.2i_dim%s' + getFileExtension(FORMATINOUTDATA)
-    tempNameProcMasksFiles  = 'masks-%0.2i_dim%s'  + getFileExtension(FORMATINOUTDATA)
-
 
     # Run checkers
     if (nbImagesFiles == 0):
@@ -53,12 +64,10 @@ def main(args):
         message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbMasksFiles)
         CatchErrorException(message)
 
-
     if (args.confineMasksToLungs):
 
-        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'ProcAddMasks')
+        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginAddMasksRelPath)
 
-        nameAddMasksFiles = '*.nii.gz'
         listAddMasksFiles = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
         nbAddMasksFiles   = len(listAddMasksFiles)
 
@@ -67,7 +76,7 @@ def main(args):
             CatchErrorException(message)
 
     if (args.cropImages or args.extendSizeImages):
-        namefile_dict = joinpathnames(BaseDataPath, "boundBoxesMasks.npy")
+        namefile_dict = joinpathnames(BaseDataPath, nameBoundingBoxesMasks)
         dict_masks_boundingBoxes = readDictionary(namefile_dict)
 
 
@@ -236,6 +245,7 @@ def main(args):
         FileReader.writeImageArray(out_images_filename, images_array)
         FileReader.writeImageArray(out_masks_filename,  masks_array )
     #endfor
+
 
 
 if __name__ == "__main__":

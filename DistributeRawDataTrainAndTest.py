@@ -14,35 +14,46 @@ from CommonUtil.WorkDirsManager import *
 import argparse
 
 
+
 def main(args):
 
-    workDirsManager    = WorkDirsManager(args.basedir)
-    OriginImagesPath   = workDirsManager.getNameExistPath(args.datadir, 'CTs')
-    OriginMasksPath    = workDirsManager.getNameExistPath(args.datadir, 'Airways')
-    OriginAddMasksPath = workDirsManager.getNameExistPath(args.datadir, 'Lungs')
-
-    TrainingDataPath     = workDirsManager.getNameTrainingDataPath()
-    TrainingImagesPath   = workDirsManager.getNameNewPath(TrainingDataPath, 'RawImages')
-    TrainingMasksPath    = workDirsManager.getNameNewPath(TrainingDataPath, 'RawMasks')
-    TrainingAddMasksPath = workDirsManager.getNameNewPath(TrainingDataPath, 'RawAddMasks')
-
-    ValidationDataPath     = workDirsManager.getNameValidationDataPath()
-    ValidationImagesPath   = workDirsManager.getNameNewPath(ValidationDataPath, 'RawImages')
-    ValidationMasksPath    = workDirsManager.getNameNewPath(ValidationDataPath, 'RawMasks')
-    ValidationAddMasksPath = workDirsManager.getNameNewPath(ValidationDataPath, 'RawAddMasks')
-
-    TestingDataPath     = workDirsManager.getNameTestingDataPath()
-    TestingImagesPath   = workDirsManager.getNameNewPath(TestingDataPath, 'RawImages')
-    TestingMasksPath    = workDirsManager.getNameNewPath(TestingDataPath, 'RawMasks')
-    TestingAddMasksPath = workDirsManager.getNameNewPath(TestingDataPath, 'RawAddMasks')
+    # ---------- SETTINGS ----------
+    nameOriginImagesRelPath   = 'CTs'
+    nameOriginMasksRelPath    = 'Airways'
+    nameOriginAddMasksRelPath = 'Lungs'
+    nameDestinImagesRelPath   = 'RawImages'
+    nameDestinMasksRelPath    = 'RawMasks'
+    nameDestinAddMasksRelPath = 'RawAddMasks'
 
     nameOriginImagesFiles   = 'av*.dcm'
     nameOriginMasksFiles    = 'av*surface1.dcm'
     nameOriginAddMasksFiles = 'av*lungs.dcm'
-
     nameDestinImagesFiles   = 'images-%0.2i.dcm'
     nameDestinMasksFiles    = 'masks-%0.2i.dcm'
     nameDestinAddMasksFiles = 'addMasks-%0.2i.dcm'
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager    = WorkDirsManager(args.basedir)
+
+    OriginImagesPath   = workDirsManager.getNameExistPath(args.datadir, nameOriginImagesRelPath)
+    OriginMasksPath    = workDirsManager.getNameExistPath(args.datadir, nameOriginMasksRelPath )
+    OriginAddMasksPath = workDirsManager.getNameExistPath(args.datadir, nameOriginAddMasksRelPath)
+
+    TrainingDataPath     = workDirsManager.getNameTrainingDataPath()
+    TrainingImagesPath   = workDirsManager.getNameNewPath(TrainingDataPath, nameDestinImagesRelPath)
+    TrainingMasksPath    = workDirsManager.getNameNewPath(TrainingDataPath, nameDestinMasksRelPath )
+    TrainingAddMasksPath = workDirsManager.getNameNewPath(TrainingDataPath, nameDestinAddMasksRelPath)
+
+    ValidationDataPath     = workDirsManager.getNameValidationDataPath()
+    ValidationImagesPath   = workDirsManager.getNameNewPath(ValidationDataPath, nameDestinImagesRelPath)
+    ValidationMasksPath    = workDirsManager.getNameNewPath(ValidationDataPath, nameDestinMasksRelPath )
+    ValidationAddMasksPath = workDirsManager.getNameNewPath(ValidationDataPath, nameDestinAddMasksRelPath)
+
+    TestingDataPath     = workDirsManager.getNameTestingDataPath()
+    TestingImagesPath   = workDirsManager.getNameNewPath(TestingDataPath, nameDestinImagesRelPath)
+    TestingMasksPath    = workDirsManager.getNameNewPath(TestingDataPath, nameDestinMasksRelPath )
+    TestingAddMasksPath = workDirsManager.getNameNewPath(TestingDataPath, nameDestinAddMasksRelPath)
 
     listImagesFiles   = findFilesDir(OriginImagesPath,   nameOriginImagesFiles)
     listMasksFiles    = findFilesDir(OriginMasksPath,    nameOriginMasksFiles)
@@ -51,7 +62,6 @@ def main(args):
     nbImagesFiles   = len(listImagesFiles)
     nbMasksFiles    = len(listMasksFiles)
     nbAddMasksFiles = len(listAddMasksFiles)
-
 
     if (nbImagesFiles != nbMasksFiles or
         nbImagesFiles != nbAddMasksFiles):
@@ -65,6 +75,7 @@ def main(args):
     print('Splitting full dataset in Training, Validation and Testing files...(%s, %s, %s)' %(nbTrainingFiles,
                                                                                               nbValidationFiles,
                                                                                               nbTestingFiles))
+
     if (args.distribute_random):
 
         randomIndexes     = np.random.choice(range(nbImagesFiles), size=nbImagesFiles, replace=False)
@@ -77,6 +88,7 @@ def main(args):
         indexesTraining   = orderedIndexes[0:nbTrainingFiles]
         indexesValidation = orderedIndexes[nbTrainingFiles:nbTrainingFiles+nbValidationFiles]
         indexesTesting    = orderedIndexes[nbTrainingFiles+nbValidationFiles::]
+
 
     print('Files assigned to Training Data: %s'   %([basename(listImagesFiles[index]) for index in indexesTraining  ]))
     print('Files assigned to Validation Data: %s' %([basename(listImagesFiles[index]) for index in indexesValidation]))
@@ -113,6 +125,7 @@ def main(args):
         count_file += 1
     #endfor
     # ******************** TESTING DATA ********************
+
 
 
 if __name__ == "__main__":

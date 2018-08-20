@@ -14,25 +14,31 @@ from CommonUtil.WorkDirsManager import *
 import argparse
 
 
+
 def main(args):
 
-    workDirsManager = WorkDirsManager(args.basedir)
-
-    OrigImagesDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameBaseDataPath(), 'ProcImagesData')
-    OrigMasksDataPath  = workDirsManager.getNameExistPath(workDirsManager.getNameBaseDataPath(), 'ProcMasksData')
-    TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath())
-    ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath())
-    TestingDataPath    = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath())
+    # ---------- SETTINGS ----------
+    nameOrigImagesDataRelPath = 'ProcImagesData'
+    nameOrigMasksDataRelPath  = 'ProcMasksData'
 
     nameOriginImagesFiles = 'images*.npy'
     nameOriginMasksFiles  = 'masks*.npy'
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager = WorkDirsManager(args.basedir)
+
+    OrigImagesDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameBaseDataPath(), nameOrigImagesDataRelPath)
+    OrigMasksDataPath  = workDirsManager.getNameExistPath(workDirsManager.getNameBaseDataPath(), nameOrigMasksDataRelPath )
+    TrainingDataPath   = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath())
+    ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath())
+    TestingDataPath    = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath())
 
     listImagesFiles = findFilesDir(OrigImagesDataPath, nameOriginImagesFiles)
     listMasksFiles  = findFilesDir(OrigMasksDataPath,  nameOriginMasksFiles)
 
     nbImagesFiles = len(listImagesFiles)
     nbMasksFiles  = len(listMasksFiles)
-
 
     if (nbImagesFiles != nbMasksFiles):
         message = "num Images files not equal to num Masks..."
@@ -45,6 +51,7 @@ def main(args):
     print('Splitting full dataset in Training, Validation and Testing files...(%s, %s, %s)' %(nbTrainingFiles,
                                                                                               nbValidationFiles,
                                                                                               nbTestingFiles))
+
     if (args.distribute_random):
 
         randomIndexes     = np.random.choice(range(nbImagesFiles), size=nbImagesFiles, replace=False)
@@ -57,6 +64,7 @@ def main(args):
         indexesTraining   = orderedIndexes[0:nbTrainingFiles]
         indexesValidation = orderedIndexes[nbTrainingFiles:nbTrainingFiles+nbValidationFiles]
         indexesTesting    = orderedIndexes[nbTrainingFiles+nbValidationFiles::]
+
 
     print('Files assigned to Training Data: %s'   %([basename(listImagesFiles[index]) for index in indexesTraining  ]))
     print('Files assigned to Validation Data: %s' %([basename(listImagesFiles[index]) for index in indexesValidation]))
@@ -85,6 +93,7 @@ def main(args):
         makelink(listMasksFiles[index],  joinpathnames(TestingDataPath,  basename(listMasksFiles[index])))
     #endfor
     # ******************** TESTING DATA ********************
+
 
 
 if __name__ == "__main__":

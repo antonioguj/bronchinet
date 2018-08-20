@@ -9,6 +9,7 @@
 ########################################################################################
 
 from CommonUtil.Constants import *
+from CommonUtil.CPUGPUdevicesManager import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.ImageGeneratorManager import *
@@ -22,41 +23,55 @@ from Preprocessing.OperationsImages import *
 import argparse
 
 
+
 def main(args):
 
-    workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath    = workDirsManager.getNameBaseDataPath()
-    TestingDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameDataPath(args.typedata))
-    ModelsPath      = workDirsManager.getNameExistPath(args.basedir, args.modelsdir)
-    PredictDataPath = workDirsManager.getNameNewPath(args.basedir, args.predictionsdir)
-    OriginImagesPath = workDirsManager.getNameExistPath(BaseDataPath, 'ProcImages')
-    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, 'ProcMasks')
+    # First thing, set session in the selected(s) devices: CPU or GPU
+    set_session_in_selected_device(use_GPU_device=True,
+                                   type_GPU_installed=args.typeGPUinstalled)
+
+    # ---------- SETTINGS ----------
+    nameOriginImagesRelPath  = 'ProcImages'
+    nameOriginMasksRelPath   = 'ProcMasks'
+    nameOriginAddMasksRelPath= 'ProcAddMasks'
 
     # Get the file list:
     nameImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
     nameMasksFiles  = 'masks*' + getFileExtension(FORMATINOUTDATA)
 
-    listImagesFiles = findFilesDir(TestingDataPath, nameImagesFiles)
-    listMasksFiles  = findFilesDir(TestingDataPath, nameMasksFiles )
-
-    # Get the file list:
     nameOriginImagesFiles = '*.nii.gz'
     nameOriginMasksFiles  = '*.nii.gz'
+    nameAddMasksFiles = '*lungs.nii.gz'
+
+    nameBoundingBoxesMasks = 'boundBoxesMasks.npy'
+
+    tempNamePredictMasksFiles = 'predict_probmaps-%s_acc%2.0f.nii.gz'
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager  = WorkDirsManager(args.basedir)
+    BaseDataPath     = workDirsManager.getNameBaseDataPath()
+    TestingDataPath  = workDirsManager.getNameExistPath(workDirsManager.getNameDataPath(args.typedata))
+    ModelsPath       = workDirsManager.getNameExistPath(args.basedir, args.modelsdir)
+    PredictDataPath  = workDirsManager.getNameNewPath  (args.basedir, args.predictionsdir)
+
+    OriginImagesPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginImagesRelPath)
+    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameOriginMasksRelPath )
+
+    listImagesFiles = findFilesDir(TestingDataPath, nameImagesFiles)
+    listMasksFiles  = findFilesDir(TestingDataPath, nameMasksFiles )
 
     listOriginImagesFiles = findFilesDir(OriginImagesPath, nameOriginImagesFiles)
     listOriginMasksFiles  = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
 
-    tempNamePredictMasksFiles = 'predictMasks-%s_acc%2.0f.nii.gz'
-
-
     if (args.cropImages or args.extendSizeImages):
-        namefile_dict = joinpathnames(BaseDataPath, "boundBoxesMasks.npy")
+        namefile_dict = joinpathnames(BaseDataPath, nameBoundingBoxesMasks)
         dict_masks_boundingBoxes = readDictionary(namefile_dict)
 
     if (args.confineMasksToLungs):
 
-        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
-        nameAddMasksFiles  = '*.dcm'
+        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginAddMasksRelPath)
+
         listAddMasksFiles  = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
 
 
@@ -78,23 +93,23 @@ def main(args):
 
     computePredictAccuracy_after  = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics, use_in_Keras=False)
 
-
-    print("-" * 30)
-    print("Predicting model...")
-    print("-" * 30)
-
     if (args.multiClassCase):
         num_classes_out = args.numClassesMasks + 1
     else:
         num_classes_out = 1
 
 
+        
+    print("-" * 30)
+    print("Predicting model...")
+    print("-" * 30)
+
     for i, (images_file, masks_file) in enumerate(zip(listImagesFiles, listMasksFiles)):
 
         print('\'%s\'...' % (images_file))
 
         # Assign original imagea and masks files
-        index_origin_images = getIndexOriginImagesFile(basename(images_file), beginString='images')
+        index_origin_images = getIndexOriginImagesFile(basename(images_file), beginString='images', firstIndex='01')
 
         origin_images_file = listOriginImagesFiles[index_origin_images]
         origin_masks_file  = listOriginMasksFiles [index_origin_images]
@@ -233,6 +248,7 @@ def main(args):
                                                              predict_masks_array[begin_slices:end_slices],
                                                              isSaveImages=True, outfilespath=SaveImagesPath)
     #endfor
+
 
 
 if __name__ == "__main__":
