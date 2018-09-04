@@ -21,8 +21,8 @@ def main(args):
     nameOrigImagesDataRelPath = 'ProcImagesData'
     nameOrigMasksDataRelPath  = 'ProcMasksData'
 
-    nameOriginImagesFiles = 'images*.npy'
-    nameOriginMasksFiles  = 'masks*.npy'
+    nameOriginImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
+    nameOriginMasksFiles  = 'masks*' + getFileExtension(FORMATINOUTDATA)
     # ---------- SETTINGS ----------
 
 

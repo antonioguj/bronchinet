@@ -23,11 +23,11 @@ def main(args):
     # ---------- SETTINGS ----------
     nameOriginMasksRelPath    = 'ProcOrigMasks'
     nameOutputMasksRelPath    = 'ProcMasks'
-    nameOriginAddMasksRelPath = 'ProcOrigAddMasks'
+    nameInputAddMasksRelPath  = 'ProcOrigAddMasks'
     nameOutputAddMasksRelPath = 'ProcAddMasks'
 
     nameMasksFiles = '*.nii.gz'
-    nameAddMasksFiles = '*.nii.gz'
+    nameExcludeMasksFiles = '*.nii.gz'
 
     nameOutMasksFiles           = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     nameOutAirwayMasksPlusTraqueaFiles= lambda in_name: filenamenoextension(in_name) + '_full.nii.gz'
@@ -52,14 +52,14 @@ def main(args):
 
     if (args.confineMasksToLungs):
 
-        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginAddMasksRelPath)
+        InputAddMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameInputAddMasksRelPath)
         OutputAddMasksPath = workDirsManager.getNameNewPath(BaseDataPath, nameOutputAddMasksRelPath)
 
-        listAddMasksFiles = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
-        nbAddMasksFiles   = len(listAddMasksFiles)
+        listExcludeMasksFiles = findFilesDir(InputAddMasksPath, nameExcludeMasksFiles)
+        nbExcludeMasksFiles   = len(listExcludeMasksFiles)
 
-        if (nbMasksFiles != nbAddMasksFiles):
-            message = "num CTs Images %s not equal to num Masks %s" %(nbMasksFiles, nbAddMasksFiles)
+        if (nbMasksFiles != nbExcludeMasksFiles):
+            message = "num CTs Images %s not equal to num Masks %s" %(nbMasksFiles, nbExcludeMasksFiles)
             CatchErrorException(message)
 
 
@@ -92,7 +92,7 @@ def main(args):
         if (args.confineMasksToLungs):
             print("Confine masks to exclude the area outside the lungs...")
 
-            exclude_masks_file  = listAddMasksFiles[i]
+            exclude_masks_file  = listExcludeMasksFiles[i]
 
             print("assigned to: '%s'..." %(basename(exclude_masks_file)))
 

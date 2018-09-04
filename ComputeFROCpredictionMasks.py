@@ -62,9 +62,9 @@ def main(args):
 
     if (args.confineMasksToLungs):
 
-        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
-        nameAddMasksFiles  = '*.dcm'
-        listAddMasksFiles  = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
+        OriginExcludeMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
+        nameExcludeMasksFiles  = '*.dcm'
+        listExcludeMasksFiles  = findFilesDir(OriginExcludeMasksPath, nameExcludeMasksFiles)
 
 
     threshold_listcases   = np.zeros((nbr_of_thresholds, nbPredictMasksFiles))
@@ -101,7 +101,7 @@ def main(args):
             print("Confine masks to exclude the area outside the lungs...")
 
             exclude_masks_file = ''
-            for file in listAddMasksFiles:
+            for file in listExcludeMasksFiles:
                 if index_origin_masks in file:
                     exclude_masks_file = file
                     break

@@ -23,17 +23,21 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameOriginMasksRelPath = 'ProcMasks'
+    nameOriginMasksRelPath  = 'ProcMasks'
+    nameOriginAddMasksRelPath = 'ProcAddMasks'
 
     # Get the file list:
-    namePredictionsFiles = 'predict_probmaps*.nii.gz'
-    nameOriginMasksFiles = '*.nii.gz'
+    namePredictionsFiles  = 'predict_probmaps*.nii.gz'
+    nameOriginMasksFiles  = '*.nii.gz'
+    nameTraqueaMasksFiles = '*traquea.nii.gz'
 
     # template search files
     tempSearchInputFiles = 'av[0-9]*'
 
-    if (args.thresholdOutProbMaps):
+    if (args.calcMasksThresholding):
         suffixPostProcessThreshold = '_thres%s'%(str(args.thresholdValue).replace('.','-'))
+        if (args.attachTraqueaToCalcMasks):
+            suffixPostProcessThreshold += '_withtraquea'
     else:
         suffixPostProcessThreshold = ''
 
@@ -58,6 +62,12 @@ def main(args):
         message = "num Predictions found in dir \'%s\'" %(PredictDataPath)
         CatchErrorException(message)
 
+    if (args.calcMasksThresholding and args.attachTraqueaToCalcMasks):
+
+        TraqueaMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginAddMasksRelPath)
+
+        listTraqueaMasksFiles = findFilesDir(TraqueaMasksPath, nameTraqueaMasksFiles)
+
 
     listFuns_Metrics = {imetrics: DICTAVAILMETRICFUNS(imetrics, use_in_Keras=False) for imetrics in args.listPostprocessMetrics}
     out_predictAccuracyFilename = joinpathnames(PredictDataPath, nameAccuracyPredictFiles)
@@ -79,7 +89,6 @@ def main(args):
             if name_prefix_case in iterfile:
                 origin_masks_file = iterfile
         #endfor
-
         print("assigned to '%s'..." %(basename(origin_masks_file)))
 
 
@@ -89,10 +98,24 @@ def main(args):
         print("Predictions masks array of size: %s..." % (str(predict_masks_array.shape)))
 
 
-        if (args.thresholdOutProbMaps):
-            print("Threshold probability maps to value %s..." % (args.thresholdValue))
+        if (args.calcMasksThresholding):
+            print("Threshold probability maps to compute binary masks with threshold value %s..." % (args.thresholdValue))
 
             predict_masks_array = ThresholdImages.compute(predict_masks_array, args.thresholdValue)
+
+            if (args.attachTraqueaToCalcMasks):
+                print("IMPORTANT: Attach masks of Traquea to computed prediction masks...")
+
+                for iterfile in listTraqueaMasksFiles:
+                    if name_prefix_case in iterfile:
+                        traquea_masks_file = iterfile
+                # endfor
+                print("assigned to: '%s'..." % (basename(traquea_masks_file)))
+
+                traquea_masks_array = FileReader.getImageArray(traquea_masks_file)
+
+                predict_masks_array = OperationsBinaryMasks.join_two_binmasks_one_image(predict_masks_array, traquea_masks_array)
+                origin_masks_array  = OperationsBinaryMasks.join_two_binmasks_one_image(origin_masks_array,  traquea_masks_array)
 
 
         list_predictAccuracy = OrderedDict()
@@ -116,8 +139,8 @@ def main(args):
 
 
         # Save thresholded final prediction masks
-        if (args.thresholdOutProbMaps and args.saveThresholdImages):
-            print("Saving thresholded prediction masks, with dims: %s..." %(tuple2str(predict_masks_array.shape)))
+        if (args.calcMasksThresholding and args.saveThresholdImages):
+            print("Saving prediction thresholded binary masks, with dims: %s..." %(tuple2str(predict_masks_array.shape)))
 
             out_predictMasksFilename = joinpathnames(PredictDataPath, tempOutPredictMasksFilename(predict_masks_file))
 
@@ -135,8 +158,9 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--predictionsdir', default='Predictions')
     parser.add_argument('--listPostprocessMetrics', type=parseListarg, default=LISTPOSTPROCESSMETRICS)
-    parser.add_argument('--thresholdOutProbMaps', type=str2bool, default=THRESHOLDOUTPROBMAPS)
+    parser.add_argument('--calcMasksThresholding', type=str2bool, default=CALCMASKSTHRESHOLDING)
     parser.add_argument('--thresholdValue', type=float, default=THRESHOLDVALUE)
+    parser.add_argument('--attachTraqueaToCalcMasks', type=str2bool, default=ATTACHTRAQUEATOCALCMASKS)
     parser.add_argument('--saveThresholdImages', type=str2bool, default=SAVETHRESHOLDIMAGES)
     args = parser.parse_args()
 

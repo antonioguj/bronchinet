@@ -29,12 +29,12 @@ def main(args):
     nameOriginMasksRelPath     = 'ProcMasks'
     nameProcessedImagesRelPath = 'ProcImagesData'
     nameProcessedMasksRelPath  = 'ProcMasksData'
-    nameOriginAddMasksRelPath  = 'ProcAddMasks'
+    nameExcludeMasksRelPath    = 'ProcAddMasks'
 
     # Get the file list:
-    nameImagesFiles   = '*.dcm'
-    nameMasksFiles    = '*.nii.gz'
-    nameAddMasksFiles = '*.nii.gz'
+    nameImagesFiles       = '*.dcm'
+    nameMasksFiles        = '*.nii.gz'
+    nameExcludeMasksFiles = '*.nii.gz'
 
     nameBoundingBoxesMasks = 'boundBoxesMasks.npy'
 
@@ -66,16 +66,17 @@ def main(args):
 
     if (args.confineMasksToLungs):
 
-        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginAddMasksRelPath)
+        ExcludeMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameExcludeMasksRelPath)
 
-        listAddMasksFiles = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
-        nbAddMasksFiles   = len(listAddMasksFiles)
+        listExcludeMasksFiles = findFilesDir(ExcludeMasksPath, nameExcludeMasksFiles)
+        nbExcludeMasksFiles   = len(listExcludeMasksFiles)
 
-        if (nbImagesFiles != nbAddMasksFiles):
-            message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbAddMasksFiles)
+        if (nbImagesFiles != nbExcludeMasksFiles):
+            message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbExcludeMasksFiles)
             CatchErrorException(message)
 
     if (args.cropImages or args.extendSizeImages):
+
         namefile_dict = joinpathnames(BaseDataPath, nameBoundingBoxesMasks)
         dict_masks_boundingBoxes = readDictionary(namefile_dict)
 
@@ -116,7 +117,7 @@ def main(args):
         if (args.confineMasksToLungs):
             print("Confine masks to exclude the area outside the lungs...")
 
-            exclude_masks_file  = listAddMasksFiles[i]
+            exclude_masks_file  = listExcludeMasksFiles[i]
             exclude_masks_array = FileReader.getImageArray(exclude_masks_file)
 
             if (args.invertImageAxial):

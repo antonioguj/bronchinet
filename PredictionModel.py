@@ -31,9 +31,9 @@ def main(args):
                                    type_GPU_installed=args.typeGPUinstalled)
 
     # ---------- SETTINGS ----------
-    nameOriginImagesRelPath  = 'ProcImages'
-    nameOriginMasksRelPath   = 'ProcMasks'
-    nameOriginAddMasksRelPath= 'ProcAddMasks'
+    nameOriginImagesRelPath = 'ProcImages'
+    nameOriginMasksRelPath  = 'ProcMasks'
+    nameExcludeMasksRelPath = 'ProcAddMasks'
 
     # Get the file list:
     nameImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
@@ -41,7 +41,7 @@ def main(args):
 
     nameOriginImagesFiles = '*.nii.gz'
     nameOriginMasksFiles  = '*.nii.gz'
-    nameAddMasksFiles = '*lungs.nii.gz'
+    nameExcludeMasksFiles = '*lungs.nii.gz'
 
     nameBoundingBoxesMasks = 'boundBoxesMasks.npy'
 
@@ -64,15 +64,16 @@ def main(args):
     listOriginImagesFiles = findFilesDir(OriginImagesPath, nameOriginImagesFiles)
     listOriginMasksFiles  = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
 
-    if (args.cropImages or args.extendSizeImages):
-        namefile_dict = joinpathnames(BaseDataPath, nameBoundingBoxesMasks)
-        dict_masks_boundingBoxes = readDictionary(namefile_dict)
-
     if (args.confineMasksToLungs):
 
-        OriginAddMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginAddMasksRelPath)
+        ExcludeMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameExcludeMasksRelPath)
 
-        listAddMasksFiles  = findFilesDir(OriginAddMasksPath, nameAddMasksFiles)
+        listExcludeMasksFiles = findFilesDir(ExcludeMasksPath, nameExcludeMasksFiles)
+
+    if (args.cropImages or args.extendSizeImages):
+
+        namefile_dict = joinpathnames(BaseDataPath, nameBoundingBoxesMasks)
+        dict_masks_boundingBoxes = readDictionary(namefile_dict)
 
 
     print("-" * 30)
@@ -108,7 +109,7 @@ def main(args):
 
         print('\'%s\'...' % (images_file))
 
-        # Assign original imagea and masks files
+        # Assign original images and masks files
         index_origin_images = getIndexOriginImagesFile(basename(images_file), beginString='images', firstIndex='01')
 
         origin_images_file = listOriginImagesFiles[index_origin_images]
@@ -203,7 +204,7 @@ def main(args):
         if (args.confineMasksToLungs):
             print("Confine masks to exclude the area outside the lungs...")
 
-            exclude_masks_file  = listAddMasksFiles[index_origin_images]
+            exclude_masks_file = listExcludeMasksFiles[index_origin_images]
 
             print("assigned to: '%s'..." %(basename(exclude_masks_file)))
 
@@ -273,6 +274,7 @@ if __name__ == "__main__":
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=False)
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=False)
+    parser.add_argument('--typeGPUinstalled', type=str, default=TYPEGPUINSTALLED)
     parser.add_argument('--savePredictMaskSlices', type=str2bool, default=SAVEPREDICTMASKSLICES)
     args = parser.parse_args()
 
