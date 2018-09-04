@@ -35,7 +35,7 @@ FORMATPROPDATA    = np.float32
 
 SHUFFLEIMAGES   = True
 NORMALIZEDATA   = False
-FORMATINOUTDATA = 'numpy'
+FORMATINOUTDATA = 'numpy_gzbi'
 # ******************** INPUT IMAGES PARAMETERS ********************
 
 
@@ -87,7 +87,7 @@ NUM_EPOCHS  = 1000
 BATCH_SIZE  = 1
 IMODEL      = 'Unet3D'
 IOPTIMIZER  = 'Adam'
-ILOSSFUN    = 'WeightedBinaryCrossEntropyFocalLoss'
+ILOSSFUN    = 'WeightedBinaryCrossEntropy'
 #ILOSSFUN    = 'CategoricalCrossEntropy'
 LISTMETRICS =['BinaryCrossEntropy',
               'WeightedBinaryCrossEntropy',
@@ -97,7 +97,7 @@ LISTMETRICS =['BinaryCrossEntropy',
               'FalsePositiveRate',
               'FalseNegativeRate']
 
-NUM_FEATMAPS_FIRSTLAYER = 8
+NUM_FEATMAPS_FIRSTLAYER = 16
 
 LEARN_RATE  = 1.0e-05
 
@@ -151,9 +151,11 @@ LISTPOSTPROCESSMETRICS = ['DiceCoefficient',
 
 SAVEPREDICTMASKSLICES = True
 
-THRESHOLDOUTPROBMAPS = True
+CALCMASKSTHRESHOLDING = True
 
 THRESHOLDVALUE = 0.5
+
+ATTACHTRAQUEATOCALCMASKS = True
 
 SAVETHRESHOLDIMAGES = True
 # ******************** POST-PROCESSING PARAMETERS ********************

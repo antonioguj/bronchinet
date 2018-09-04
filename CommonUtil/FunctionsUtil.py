@@ -192,10 +192,18 @@ def getFileExtension(formatoutfile):
         return '.dcm'
     elif formatoutfile=='nifti':
         return '.nii'
+    elif formatoutfile=='nifti_gz':
+        return '.nii.gz'
     elif formatoutfile=='numpy':
         return '.npy'
+    elif formatoutfile=='numpy_gzbi':
+        return '.npz'
+    elif formatoutfile=='numpy_gz':
+        return '.npy.gz'
     elif formatoutfile=='hdf5':
         return '.hdf5'
+    else:
+        return False
 
 def getSavedModelFileName(typeSavedModel):
     if 'model_' not in typeSavedModel:

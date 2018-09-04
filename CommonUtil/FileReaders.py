@@ -17,7 +17,22 @@ import nibabel as nib
 import numpy as np
 import h5py
 import datetime, time
-import os
+import gzip
+
+
+class GZIPmanager(object):
+
+    @staticmethod
+    def getReadFile(filename):
+        return gzip.GzipFile(filename, 'r')
+
+    @staticmethod
+    def getWriteFile(filename):
+        return gzip.GzipFile(filename, 'w')
+
+    @staticmethod
+    def closeFile(fileobj):
+        fileobj.close()
 
 
 class FileReader(object):
@@ -29,12 +44,26 @@ class FileReader(object):
 
         if (extension == '.dcm'):
             return DICOMreader.getImageSize(filename)
+        if (extension == '.dcm.gz'):
+            print("Not implemented for extension '.dcm.gz'...")
+            return False
+            # fileobj = GZIPmanager.getReadFile(filename)
+            # out_arrsize = DICOMreader.getImageSize(fileobj)
+            # GZIPmanager.closeFile(fileobj)
+            # return out_arrsize
         elif (extension == '.nii'):
             return NIFTIreader.getImageSize(filename)
         elif (extension == '.nii.gz'):
             return NIFTIreader.getImageSize(filename)
         elif (extension == '.npy'):
             return NUMPYreader.getImageSize(filename)
+        elif (extension == '.npz'):
+            return NUMPYZreader.getImageSize(filename)
+        elif (extension == '.npy.gz'):
+            fileobj = GZIPmanager.getReadFile(filename)
+            out_arrsize = NUMPYreader.getImageSize(fileobj)
+            GZIPmanager.closeFile(fileobj)
+            return out_arrsize
         elif (extension == '.hdf5'):
             return HDF5reader.getImageSize(filename)
         else:
@@ -48,12 +77,26 @@ class FileReader(object):
 
         if (extension == '.dcm'):
             return DICOMreader.getImageArray(filename)
+        if (extension == '.dcm.gz'):
+            print("Not implemented for extension '.dcm.gz'...")
+            return False
+            # fileobj = GZIPmanager.getReadFile(filename)
+            # out_array = DICOMreader.getImageArray(fileobj)
+            # GZIPmanager.closeFile(fileobj)
+            # return out_array
         elif (extension == '.nii'):
             return NIFTIreader.getImageArray(filename)
         elif (extension == '.nii.gz'):
             return NIFTIreader.getImageArray(filename)
         elif (extension == '.npy'):
             return NUMPYreader.getImageArray(filename)
+        elif (extension == '.npz'):
+            return NUMPYZreader.getImageArray(filename)
+        elif (extension == '.npy.gz'):
+            fileobj = GZIPmanager.getReadFile(filename)
+            out_array = NUMPYreader.getImageArray(fileobj)
+            GZIPmanager.closeFile(fileobj)
+            return out_array
         elif (extension == '.hdf5'):
             return HDF5reader.getImageArray(filename)
         else:
@@ -67,12 +110,24 @@ class FileReader(object):
 
         if (extension == '.dcm'):
             DICOMreader.writeImageArray(filename, image_array)
+        if (extension == '.dcm.gz'):
+            print("Not implemented for extension '.dcm.gz'...")
+            return False
+            # fileobj = GZIPmanager.getWriteFile(filename)
+            # DICOMreader.writeImageArray(fileobj, image_array)
+            # GZIPmanager.closeFile(fileobj)
         elif (extension == '.nii'):
             NIFTIreader.writeImageArray(filename, image_array)
         elif (extension == '.nii.gz'):
             NIFTIreader.writeImageArray(filename, image_array)
         elif (extension == '.npy'):
             NUMPYreader.writeImageArray(filename, image_array)
+        elif (extension == '.npz'):
+            NUMPYZreader.writeImageArray(filename, image_array)
+        elif (extension == '.npy.gz'):
+            fileobj = GZIPmanager.getWriteFile(filename)
+            NUMPYreader.writeImageArray(fileobj, image_array)
+            GZIPmanager.closeFile(fileobj)
         elif (extension == '.hdf5'):
             HDF5reader.writeImageArray(filename, image_array)
         else:
@@ -118,6 +173,24 @@ class NUMPYreader(FileReader):
     @staticmethod
     def writeImageArray(filename, image_array):
         np.save(filename, image_array)
+
+
+class NUMPYZreader(FileReader):
+
+    # get numpy image size:
+    @staticmethod
+    def getImageSize(filename):
+        return np.load(filename)['arr_0'].shape
+
+    # get numpy image array:
+    @staticmethod
+    def getImageArray(filename):
+        return np.load(filename)['arr_0']
+
+    # write numpy file array:
+    @staticmethod
+    def writeImageArray(filename, image_array):
+        np.savez_compressed(filename, image_array)
 
 
 class NIFTIreader(FileReader):
