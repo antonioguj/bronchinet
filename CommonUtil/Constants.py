@@ -1,4 +1,4 @@
-7#
+#
 # created by
 # Antonio Garcia-Uceda Juarez
 # PhD student
@@ -12,8 +12,8 @@ import numpy as np
 np.random.seed(2017)
 
 
-DATADIR = '/home/antonio/Files_Project/testSegmentation/Data/DLCST/'
-BASEDIR = '/home/antonio/Files_Project/testSegmentation/Tests_DLCST/'
+DATADIR = '/home/antonio/Data/DLCST_Raw/'
+BASEDIR = '/home/antonio/Results/AirwaySegmen_DLCST/'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
@@ -48,8 +48,6 @@ DISTRIBUTE_RANDOM = False
 
 
 # ******************** PRE-PROCESSING PARAMETERS ********************
-TYPEDATA = 'training'
-
 INVERTIMAGEAXIAL = False
 
 MULTICLASSCASE = False
@@ -87,7 +85,7 @@ NUM_EPOCHS  = 1000
 BATCH_SIZE  = 1
 IMODEL      = 'Unet3D'
 IOPTIMIZER  = 'Adam'
-ILOSSFUN    = 'WeightedBinaryCrossEntropy'
+ILOSSFUN    = 'WeightedBinaryCrossEntropyFixedWeights'
 #ILOSSFUN    = 'CategoricalCrossEntropy'
 LISTMETRICS =['BinaryCrossEntropy',
               'WeightedBinaryCrossEntropy',
@@ -121,7 +119,7 @@ TYPEELASTICDEFORMATION = 'gridwise'
 
 USETRANSFORMONVALIDATIONDATA = True
 
-TYPEGPUINSTALLED = 'smaller_GPU'
+TYPEGPUINSTALLED = 'larger_GPU'
 
 USEMULTITHREADING = False
 # ******************** TRAINING PARAMETERS ********************
@@ -139,6 +137,8 @@ EPOCH_RESTART = 40
 
 
 # ******************** POST-PROCESSING PARAMETERS ********************
+TYPEDATAPREDICT = 'testing'
+
 PREDICTION_MODELFILE = 'lastEpoch'
 
 PREDICTACCURACYMETRICS = 'DiceCoefficient'
