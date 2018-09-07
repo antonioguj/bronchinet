@@ -137,7 +137,8 @@ class BinaryCrossEntropyFocalLoss(BinaryCrossEntropy):
     def __init__(self, param_gamma=param_gamma_default, isMasksExclude=False):
         self.param_gamma = param_gamma
         super(BinaryCrossEntropyFocalLoss, self).__init__(isMasksExclude)
-        self.name_out = 'bin_cross_focal_loss'
+        self.name_out = 'bin_cross'
+        #self.name_out = 'bin_cross_focal_loss'
 
     def get_clip_ypred(self, y_pred):
         # improve the stability of the focal loss
@@ -175,8 +176,9 @@ class BinaryCrossEntropyFocalLoss(BinaryCrossEntropy):
 
 # Weighted Binary Cross entropy
 class WeightedBinaryCrossEntropyFixedWeights(Metrics):
-    weights_noMasksExclude = [1.0, 80.0]
-    weights_masksExclude   = [1.0, 300.0]
+    #weights_noMasksExclude = [1.0, 80.0]
+    #weights_masksExclude = [1.0, 300.0]  # for LUVAR data
+    weights_masksExclude = [1.0, 361.0]  # for DLCST data
 
     def __init__(self, isMasksExclude=False):
         if isMasksExclude:
@@ -270,7 +272,8 @@ class WeightedBinaryCrossEntropyFocalLoss(WeightedBinaryCrossEntropy):
     def __init__(self, param_gamma=param_gamma_default, isMasksExclude=False):
         self.param_gamma = param_gamma
         super(WeightedBinaryCrossEntropyFocalLoss, self).__init__(isMasksExclude)
-        self.name_out = 'wei_bin_cross_focal_loss'
+        self.name_out = 'wei_bin_cross'
+        #self.name_out = 'wei_bin_cross_focal_loss'
 
     def get_clip_ypred(self, y_pred):
         # improve the stability of the focal loss
