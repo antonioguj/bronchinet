@@ -45,7 +45,10 @@ def main(args):
     workDirsManager    = WorkDirsManager(args.basedir)
     TrainingDataPath   = workDirsManager.getNameExistPath(workDirsManager.getNameTrainingDataPath())
     ValidationDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameValidationDataPath())
-    ModelsPath         = workDirsManager.getNameUpdatePath(args.basedir, nameModelsRelPath)
+    if args.use_restartModel:
+        ModelsPath     = workDirsManager.getNameExistPath(args.basedir, nameModelsRelPath)
+    else:
+        ModelsPath     = workDirsManager.getNameUpdatePath(args.basedir, nameModelsRelPath)
 
     listTrainImagesFiles = findFilesDir(TrainingDataPath,   nameImagesFiles)
     listTrainMasksFiles  = findFilesDir(TrainingDataPath,   nameMasksFiles )

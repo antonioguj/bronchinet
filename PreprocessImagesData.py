@@ -13,7 +13,7 @@ from CommonUtil.ErrorMessages import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import *
-from Preprocessing.BalanceClassesCTs import *
+from Preprocessing.BalanceClassesMasks import *
 from Preprocessing.OperationsImages import *
 from Preprocessing.SlidingWindowImages import *
 from Preprocessing.SlidingWindowPlusTransformImages import *
@@ -25,16 +25,16 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameOriginImagesRelPath    = 'RawImages'
+    nameOriginImagesRelPath    = 'ProcImages'
     nameOriginMasksRelPath     = 'ProcMasks'
-    nameProcessedImagesRelPath = 'ProcImagesData'
-    nameProcessedMasksRelPath  = 'ProcMasksData'
+    nameProcessedImagesRelPath = 'ProcImagesExperData'
+    nameProcessedMasksRelPath  = 'ProcMasksExperData'
     nameExcludeMasksRelPath    = 'ProcAddMasks'
 
     # Get the file list:
-    nameImagesFiles       = '*.dcm'
+    nameImagesFiles       = '*.nii.gz'
     nameMasksFiles        = '*.nii.gz'
-    nameExcludeMasksFiles = '*.nii.gz'
+    nameExcludeMasksFiles = '*lungs.nii.gz'
 
     nameBoundingBoxesMasks = 'boundBoxesMasks.npy'
 
@@ -175,16 +175,6 @@ def main(args):
             masks_array [crop_boundingBox[0][0]:crop_boundingBox[0][1],
                          crop_boundingBox[1][0]:crop_boundingBox[1][1],
                          crop_boundingBox[2][0]:crop_boundingBox[2][1]] = sub_masks_array
-
-
-        if (args.checkBalanceClasses):
-            if (args.confineMasksToLungs):
-
-                (num_pos_class, num_neg_class) = BalanceClassesCTs.compute_excludeAreas(masks_array)
-            else:
-                (num_pos_class, num_neg_class) = BalanceClassesCTs.compute(masks_array)
-
-            print("Balance classes negative / positive: %s..." %(num_neg_class/num_pos_class))
 
 
         if (args.createImagesBatches):

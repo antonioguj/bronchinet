@@ -22,8 +22,8 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameOriginImagesRelPath = 'ProcImagesData'
-    nameOriginMasksRelPath  = 'ProcMasksData'
+    nameOriginImagesRelPath = 'ProcImagesExperData'
+    nameOriginMasksRelPath  = 'ProcMasksExperData'
     nameVisualImagesRelPath = 'VisualInputData'
 
     # Get the file list:

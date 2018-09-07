@@ -18,8 +18,8 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameOrigImagesDataRelPath = 'ProcImagesData'
-    nameOrigMasksDataRelPath  = 'ProcMasksData'
+    nameOrigImagesDataRelPath = 'ProcImagesExperData'
+    nameOrigMasksDataRelPath  = 'ProcMasksExperData'
 
     nameOriginImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
     nameOriginMasksFiles  = 'masks*' + getFileExtension(FORMATINOUTDATA)

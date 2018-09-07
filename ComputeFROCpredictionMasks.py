@@ -62,8 +62,8 @@ def main(args):
 
     if (args.confineMasksToLungs):
 
-        OriginExcludeMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'RawAddMasks')
-        nameExcludeMasksFiles  = '*.dcm'
+        OriginExcludeMasksPath = workDirsManager.getNameExistPath(BaseDataPath, 'ProcAddMasks')
+        nameExcludeMasksFiles  = '*.nii.gz'
         listExcludeMasksFiles  = findFilesDir(OriginExcludeMasksPath, nameExcludeMasksFiles)
 
 

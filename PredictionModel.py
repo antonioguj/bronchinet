@@ -51,15 +51,15 @@ def main(args):
 
     workDirsManager  = WorkDirsManager(args.basedir)
     BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    TestingDataPath  = workDirsManager.getNameExistPath(workDirsManager.getNameDataPath(args.typedata))
+    InputTestDataPath= workDirsManager.getNameExistPath(workDirsManager.getNameDataPath(args.typedata))
     ModelsPath       = workDirsManager.getNameExistPath(args.basedir, args.modelsdir)
     PredictDataPath  = workDirsManager.getNameNewPath  (args.basedir, args.predictionsdir)
 
     OriginImagesPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginImagesRelPath)
     OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameOriginMasksRelPath )
 
-    listImagesFiles = findFilesDir(TestingDataPath, nameImagesFiles)
-    listMasksFiles  = findFilesDir(TestingDataPath, nameMasksFiles )
+    listImagesFiles = findFilesDir(InputTestDataPath, nameImagesFiles)
+    listMasksFiles  = findFilesDir(InputTestDataPath, nameMasksFiles )
 
     listOriginImagesFiles = findFilesDir(OriginImagesPath, nameOriginImagesFiles)
     listOriginMasksFiles  = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
@@ -229,7 +229,8 @@ def main(args):
         # Save reconstructed predict probability maps (or thresholding masks)
         print("Saving predict probability maps, with dims: %s..." %(tuple2str(predict_masks_array.shape)))
 
-        out_predictMasksFilename = joinpathnames(PredictDataPath, tempNamePredictMasksFiles%(filenamenoextension(origin_images_file), np.round(100*accuracy_after)))
+        out_predictMasksFilename = joinpathnames(PredictDataPath, tempNamePredictMasksFiles%(filenamenoextension(origin_images_file),
+                                                                                             np.round(100*accuracy_after)))
 
         FileReader.writeImageArray(out_predictMasksFilename, predict_masks_array)
 
@@ -256,15 +257,14 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
-    parser.add_argument('--typedata', default=TYPEDATA)
-    parser.add_argument('--modelsdir', default='Models')
-    parser.add_argument('--predictionsdir', default='Predictions')
+    parser.add_argument('--typedata', default=TYPEDATAPREDICT)
+    parser.add_argument('--modelsdir', default='Models_Restart')
+    parser.add_argument('--predictionsdir', default='Predictions_NEW')
     parser.add_argument('--lossfun', default=ILOSSFUN)
     parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
     parser.add_argument('--num_featmaps_firstlayer', type=int, default=NUM_FEATMAPS_FIRSTLAYER)
     parser.add_argument('--prediction_modelFile', default=PREDICTION_MODELFILE)
     parser.add_argument('--predictAccuracyMetrics', default=PREDICTACCURACYMETRICS)
-    parser.add_argument('--listPostprocessMetrics', type=parseListarg, default=LISTPOSTPROCESSMETRICS)
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
