@@ -65,7 +65,11 @@ dice_coeff_list   = []
 
 for (i, in_file) in enumerate(list_input_data_files):
 
-    data_this = np.loadtxt(in_file, skiprows=2)
+    data_this = np.loadtxt(in_file, skiprows=1)
+
+    #TRICK to draw corectly the plots
+    data_this[ 0,1:] = [1.0, 1000000, 1.0, 1.0, 0.0]
+    data_this[-1,1:] = [0.0, 0.0, 0.0, 0.0, 0.0]
 
     threshold_list    .append(data_this[:, 0])
     sensitivity_list  .append(data_this[:, 1])
@@ -133,6 +137,8 @@ if num_input_data_files == 1:
     if threshold_list[0] is not None:
         plot_annotations_thresholds(FPaverage_list[0], sensitivity_list[0], threshold_list[0])
 
+    plt.xlim([0, 400000])
+    plt.ylim([0, 1.0])
     plt.xlabel('FalsePositives Average')
     plt.ylabel('True Positive Rate')
     plt.title('FROC curve')
@@ -146,6 +152,8 @@ if num_input_data_files == 1:
     if threshold_list[0] is not None:
         plot_annotations_thresholds(volumeleakage_list[0], completeness_list[0], threshold_list[0])
 
+    plt.xlim([0, 100])
+    plt.ylim([0, 100])
     plt.xlabel('Volume Leakage (%)')
     plt.ylabel('Completeness (%)')
     plt.show()
@@ -171,16 +179,17 @@ else:
         plt.plot(FPaverage_list[i], sensitivity_list[i], color=colors[i], label=labels[i])
 
         # find optimal threshold
-        index_mark_value = find_index_optimal_threshold_sensitTPspecifFP(FPaverage_list[i], sensitivity_list[i])
+        index_mark_value = find_index_optimal_threshold_dice_coeff(dice_coeff_list[i])
         # annotation threshold
         plt.scatter(FPaverage_list[i][index_mark_value], sensitivity_list[i][index_mark_value], marker='o', color=colors[i])
 
         print("file %s, optimal threshold: %s..." %(i, threshold_list[i][index_mark_value]))
     # endfor
 
+    plt.xlim([0, 400000])
+    plt.ylim([0, 1.0])
     plt.xlabel('False Positive Average')
     plt.ylabel('True Positive Rate')
-    plt.xlim([0, 400000])
     plt.title('FROC curve')
     plt.legend(loc='right')
     plt.show()
@@ -191,12 +200,12 @@ else:
     for i in range(num_input_data_files):
         plt.plot(volumeleakage_list[i], completeness_list[i], color=colors[i], label=labels[i])
 
-        # find optimal threshold
-        index_mark_value = find_index_optimal_threshold_sensitTPspecifFP(volumeleakage_list[i], completeness_list[i])
-        # annotation threshold
-        plt.scatter(volumeleakage_list[i][index_mark_value], completeness_list[i][index_mark_value], marker='o', color=colors[i])
+        # # find optimal threshold
+        # index_mark_value = find_index_optimal_threshold_sensitTPspecifFP(volumeleakage_list[i], completeness_list[i])
+        # # annotation threshold
+        # plt.scatter(volumeleakage_list[i][index_mark_value], completeness_list[i][index_mark_value], marker='o', color=colors[i])
 
-        print("file %s, optimal threshold: %s..." % (i, threshold_list[i][index_mark_value]))
+        #print("file %s, optimal threshold: %s..." % (i, threshold_list[i][index_mark_value]))
     # endfor
 
     # # Include annotations of other results
@@ -206,6 +215,8 @@ else:
     if completeness_reference2_list:
         plt.scatter(volumeleakage_reference2_list, completeness_reference2_list, marker='x', color='b')
 
+    plt.xlim([0, 100])
+    plt.ylim([0, 100])
     plt.xlabel('Volume Leakage (%)')
     plt.ylabel('Completeness (%)')
     plt.legend(loc='right')
