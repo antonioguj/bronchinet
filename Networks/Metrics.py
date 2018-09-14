@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-#from keras import backend as K
+from keras import backend as K
 import numpy as np
 
 _eps = 1.0e-12
