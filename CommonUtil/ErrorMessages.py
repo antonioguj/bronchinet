@@ -12,9 +12,9 @@ import sys
 
 
 def CatchErrorException(message):
-    print('ERROR. ' + message + '... EXIT')
+    print('ERROR: ' + message + '... EXIT')
     sys.exit(0)
 
 def CatchWarningException(message):
-    print('WARNING. ' + message + '...')
+    print('WARNING: ' + message + '...')
     pass

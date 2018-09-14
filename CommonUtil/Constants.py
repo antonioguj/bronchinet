@@ -12,15 +12,15 @@ import numpy as np
 np.random.seed(2017)
 
 
-DATADIR = '/home/antonio/Data/DLCST_Raw/'
-BASEDIR = '/home/antonio/Results/AirwaySegmen_DLCST/'
+DATADIR = '/home/antonio/Data/LUVAR_Raw/'
+BASEDIR = '/home/antonio/Results/AirwaySegmen_LUVAR/'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (104, 336, 224)
-(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (120, 352, 240)
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (104, 352, 240)
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (76, 448, 256)
 
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
@@ -54,7 +54,7 @@ MULTICLASSCASE = False
 
 NUMCLASSESMASKS = 2
 
-CONFINEMASKSTOLUNGS = True
+MASKTOREGIONINTEREST = True
 
 REDUCESIZEIMAGES = False
 
@@ -85,7 +85,7 @@ NUM_EPOCHS  = 1000
 BATCH_SIZE  = 1
 IMODEL      = 'Unet3D'
 IOPTIMIZER  = 'Adam'
-ILOSSFUN    = 'WeightedBinaryCrossEntropyFixedWeights'
+ILOSSFUN    = 'DiceCoefficient'
 #ILOSSFUN    = 'CategoricalCrossEntropy'
 LISTMETRICS =['BinaryCrossEntropy',
               'WeightedBinaryCrossEntropy',

@@ -47,7 +47,8 @@ class WorkDirsManager(object):
     def getNameModelsPath(self):
         return joinpathnames(self.basePath, self.modelsRelPath)
 
-    def getNameExistPath(self, basePath, existRelPath=None):
+    @staticmethod
+    def getNameExistPath(basePath, existRelPath=None):
         if existRelPath:
             existPath = joinpathnames(basePath, existRelPath)
         else:
@@ -57,7 +58,8 @@ class WorkDirsManager(object):
             CatchErrorException(message)
         return existPath
 
-    def getNameNewPath(self, basePath, newRelPath=None):
+    @staticmethod
+    def getNameNewPath(basePath, newRelPath=None):
         if newRelPath:
             newPath = joinpathnames(basePath, newRelPath)
         else:
@@ -66,7 +68,8 @@ class WorkDirsManager(object):
             makedir(newPath)
         return newPath
 
-    def getNameUpdatePath(self, basePath, updateRelPath=None):
+    @staticmethod
+    def getNameUpdatePath(basePath, updateRelPath=None):
         #datetoday_str= '%i-%i-%i'%(getdatetoday())
         #timenow_str  = '%0.2i-%0.2i-%0.2i'%(gettimenow())
         suffix_update = '_NEW%0.2i'

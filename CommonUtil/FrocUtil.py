@@ -17,6 +17,7 @@ from scipy import ndimage
 from scipy.spatial.distance import euclidean
 from scipy.optimize import linear_sum_assignment
 import pandas as pd
+from Networks.Metrics import *
 
 
 def computeAssignment(list_detections, list_gt, allowedDistance):
@@ -222,6 +223,59 @@ def computeFROC(proba_map, ground_truth, allowedDistance, threshold_list=None):
     return sensitivity_list_treshold, FPavg_list_treshold
 
 
+def computeROC_Completeness_VolumeLeakage(predict_probmaps_array, grndtruth_masks_array, centrelines_array, threshold_list=None):
+
+    # rescale ground truth and proba map between 0 and 1
+    predict_probmaps_array = predict_probmaps_array.astype(np.float32)
+    predict_probmaps_array = (predict_probmaps_array - np.min(predict_probmaps_array)) / (np.max(predict_probmaps_array) - np.min(predict_probmaps_array))
+
+    # define the thresholds
+    if threshold_list == None:
+        nbr_thresholds = 10
+        threshold_list = (np.linspace(np.min(predict_probmaps_array), np.max(predict_probmaps_array), nbr_thresholds)).tolist()
+
+    completeness_list_threshold = []
+    volumeleakage_list_threshold = []
+    dice_coeff_list_threshold = []
+
+    # loop over thresholds
+    for threshold in threshold_list:
+        completeness_list_probmap = []
+        volumeleakage_list_probmap = []
+        dice_coeff_list_probmap = []
+
+        # loop over proba map
+        for i in range(len(predict_probmaps_array)):
+
+            # threshold the proba map
+            thresholded_probmaps_array = np.zeros(np.shape(predict_probmaps_array[i]))
+            thresholded_probmaps_array[predict_probmaps_array[i] >= threshold] = 1
+
+            # compute Completeness
+            completeness_this = AirwayCompleteness().compute_np(centrelines_array, thresholded_probmaps_array)
+            # compute Volume Leakage
+            volume_leakage_this = AirwayVolumeLeakage().compute_np(grndtruth_masks_array, thresholded_probmaps_array)
+            # compute Dice Coefficient
+            dice_coeff_this = DiceCoefficient().compute_np(grndtruth_masks_array, thresholded_probmaps_array)
+
+            # append results to list
+            volumeleakage_list_probmap.append(volume_leakage_this)
+            dice_coeff_list_probmap.append(dice_coeff_this)
+
+            # check that ground truth contains at least one positive
+            if (type(grndtruth_masks_array[i]) == np.ndarray and
+                np.count_nonzero(grndtruth_masks_array[i]) > 0) or \
+                (type(grndtruth_masks_array[i]) == list and len(grndtruth_masks_array[i]) > 0):
+                completeness_list_probmap.append(completeness_this)
+
+        # average sensitivity and FP over the proba map, for a given threshold
+        completeness_list_threshold.append(np.mean(completeness_list_probmap))
+        volumeleakage_list_threshold.append(np.mean(volumeleakage_list_probmap))
+        dice_coeff_list_threshold.append(np.mean(dice_coeff_list_probmap))
+
+    return completeness_list_threshold, volumeleakage_list_threshold, dice_coeff_list_threshold
+
+
 def plotFROC(x, y, save_path=None, threshold_list=None):
     plt.figure()
     plt.plot(x, y, 'o-')
@@ -243,5 +297,5 @@ def plotFROC(x, y, save_path=None, threshold_list=None):
         plt.savefig(save_path)
         plt.close()
     else:
-        print("plotting figure...")
+        print("ploting figure...")
         plt.show()
