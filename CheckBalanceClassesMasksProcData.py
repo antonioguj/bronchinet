@@ -24,12 +24,12 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputMasksDataRelPath = 'ProcMasksExperData'
     #nameInputMasksDataRelPath = 'ProcMasks'
-    #nameExcludeMasksDataRelPath = 'ProcAddMasks'
+    #nameLungsMasksDataRelPath = 'ProcAllMasks'
 
     # Get the file list:
     nameMasksFiles = 'masks*' + getFileExtension(FORMATINOUTDATA)
     #nameMasksFiles = '*.nii.gz'
-    #nameExcludeMasksFiles = '*lungs.nii.gz'
+    #nameLungsMasksFiles = '*lungs.nii.gz'
     # ---------- SETTINGS ----------
 
     workDirsManager   = WorkDirsManager(args.basedir)
@@ -41,15 +41,15 @@ def main(args):
 
     nbMasksFiles  = len(listMasksFiles)
 
-    # if (args.confineMasksToLungs):
+    # if (args.masksRegionInterest):
     #
-    #     ExcludeMasksDataPath = workDirsManager.getNameExistPath(BaseDataPath, nameExcludeMasksDataRelPath)
+    #     LungsMasksDataPath = workDirsManager.getNameExistPath(BaseDataPath, nameLungsMasksDataRelPath)
     #
-    #     listExcludeMasksFiles = findFilesDir(ExcludeMasksDataPath, nameExcludeMasksFiles)
-    #     nbExcludeMasksFiles   = len(listExcludeMasksFiles)
+    #     listLungsMasksFiles = findFilesDir(LungsMasksDataPath, nameLungsMasksFiles)
+    #     nbLungsMasksFiles   = len(listLungsMasksFiles)
     #
-    #     if (nbMasksFiles != nbExcludeMasksFiles):
-    #         message = "num Masks %i not equal to num exclude Masks %i" %(nbMasksFiles, nbExcludeMasksFiles)
+    #     if (nbMasksFiles != nbLungsMasksFiles):
+    #         message = "num Masks %i not equal to num Lungs Masks %i" %(nbMasksFiles, nbLungsMasksFiles)
     #         CatchErrorException(message)
 
 
@@ -62,16 +62,16 @@ def main(args):
 
         masks_array  = FileReader.getImageArray(masks_file)
 
-        # if (args.confineMasksToLungs):
-        #     print("Confine masks to exclude the area outside the lungs...")
+        # if (args.masksToRegionInterest):
+        #     print("Mask ground-truth to Region of Interest: exclude voxels outside ROI: lungs...")
         #
-        #     exclude_masks_file  = listExcludeMasksFiles[i]
-        #     exclude_masks_array = FileReader.getImageArray(exclude_masks_file)
+        #     lungs_masks_file  = listLungsMasksFiles[i]
+        #     lungs_masks_array = FileReader.getImageArray(lungs_masks_file)
         #
-        #     masks_array = OperationsBinaryMasks.apply_mask_exclude_voxels(masks_array, exclude_masks_array)
+        #     masks_array = OperationsBinaryMasks.apply_mask_exclude_voxels(masks_array, lungs_masks_array)
 
 
-        if (args.confineMasksToLungs):
+        if (args.masksToRegionInterest):
 
             (num_foregrnd_class, num_backgrnd_class) = BalanceClassesMasks.compute_with_exclusion(masks_array)
         else:
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     parser.add_argument('--typedata', default='training')
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
-    parser.add_argument('--confineMasksToLungs', type=str2bool, default=CONFINEMASKSTOLUNGS)
+    parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     args = parser.parse_args()
 
     print("Print input arguments...")

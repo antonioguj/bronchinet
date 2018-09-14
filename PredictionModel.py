@@ -31,17 +31,17 @@ def main(args):
                                    type_GPU_installed=args.typeGPUinstalled)
 
     # ---------- SETTINGS ----------
-    nameOriginImagesRelPath = 'ProcImages'
-    nameOriginMasksRelPath  = 'ProcMasks'
-    nameExcludeMasksRelPath = 'ProcAddMasks'
+    nameInputImagesRelPath = 'ProcImages'
+    nameInputMasksRelPath  = 'ProcMasks'
+    nameLungsMasksRelPath  = 'ProcAllMasks'
 
     # Get the file list:
     nameImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
     nameMasksFiles  = 'masks*' + getFileExtension(FORMATINOUTDATA)
 
-    nameOriginImagesFiles = '*.nii.gz'
-    nameOriginMasksFiles  = '*.nii.gz'
-    nameExcludeMasksFiles = '*lungs.nii.gz'
+    nameInputImagesFiles = '*.nii.gz'
+    nameInputMasksFiles  = '*.nii.gz'
+    nameLungsMasksFiles  = '*_lungs.nii.gz'
 
     nameBoundingBoxesMasks = 'boundBoxesMasks.npy'
 
@@ -49,31 +49,33 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workDirsManager  = WorkDirsManager(args.basedir)
-    BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    InputTestDataPath= workDirsManager.getNameExistPath(workDirsManager.getNameDataPath(args.typedata))
-    ModelsPath       = workDirsManager.getNameExistPath(args.basedir, args.modelsdir)
-    PredictDataPath  = workDirsManager.getNameNewPath  (args.basedir, args.predictionsdir)
+    workDirsManager = WorkDirsManager(args.basedir)
+    BaseDataPath    = workDirsManager.getNameBaseDataPath()
+    TestingDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameDataPath(args.typedata))
+    ModelsPath      = workDirsManager.getNameExistPath(args.basedir, args.modelsdir)
+    PredictDataPath = workDirsManager.getNameNewPath  (args.basedir, args.predictionsdir)
 
-    OriginImagesPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginImagesRelPath)
-    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameOriginMasksRelPath )
+    listTestImagesDataFiles = findFilesDir(TestingDataPath, nameImagesFiles)
+    listTestMasksDataFiles  = findFilesDir(TestingDataPath, nameMasksFiles )
 
-    listImagesFiles = findFilesDir(InputTestDataPath, nameImagesFiles)
-    listMasksFiles  = findFilesDir(InputTestDataPath, nameMasksFiles )
+    InputImagesPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputImagesRelPath)
+    InputMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameInputMasksRelPath )
 
-    listOriginImagesFiles = findFilesDir(OriginImagesPath, nameOriginImagesFiles)
-    listOriginMasksFiles  = findFilesDir(OriginMasksPath,  nameOriginMasksFiles)
+    listFullImagesFiles     = findFilesDir(InputImagesPath, nameInputImagesFiles)
+    listGrndTruthMasksFiles = findFilesDir(InputMasksPath,  nameInputMasksFiles)
 
-    if (args.confineMasksToLungs):
 
-        ExcludeMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameExcludeMasksRelPath)
+    if (args.masksToRegionInterest):
 
-        listExcludeMasksFiles = findFilesDir(ExcludeMasksPath, nameExcludeMasksFiles)
+        LungsMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameLungsMasksRelPath)
+
+        listLungsMasksFiles = findFilesDir(LungsMasksPath, nameLungsMasksFiles)
 
     if (args.cropImages or args.extendSizeImages):
 
         namefile_dict = joinpathnames(BaseDataPath, nameBoundingBoxesMasks)
         dict_masks_boundingBoxes = readDictionary(namefile_dict)
+
 
 
     print("-" * 30)
@@ -88,7 +90,7 @@ def main(args):
 
     model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)
 
-    predictAccuracyMetrics_before = args.predictAccuracyMetrics + ('_Masked' if args.confineMasksToLungs else '')
+    predictAccuracyMetrics_before = args.predictAccuracyMetrics + ('_Masked' if args.masksToRegionInterest else '')
 
     computePredictAccuracy_before = DICTAVAILMETRICFUNS(predictAccuracyMetrics_before, use_in_Keras=False)
 
@@ -105,17 +107,17 @@ def main(args):
     print("Predicting model...")
     print("-" * 30)
 
-    for i, (images_file, masks_file) in enumerate(zip(listImagesFiles, listMasksFiles)):
+    for i, (test_xData_file, test_yData_file) in enumerate(zip(listTestImagesDataFiles, listTestMasksDataFiles)):
 
-        print('\'%s\'...' % (images_file))
+        print('\'%s\'...' % (test_xData_file))
 
         # Assign original images and masks files
-        index_origin_images = getIndexOriginImagesFile(basename(images_file), beginString='images', firstIndex='01')
+        index_input_images = getIndexOriginImagesFile(basename(test_xData_file), beginString='images', firstIndex='01')
 
-        origin_images_file = listOriginImagesFiles[index_origin_images]
-        origin_masks_file  = listOriginMasksFiles [index_origin_images]
+        full_images_file    = listFullImagesFiles    [index_input_images]
+        grndtruth_masks_file= listGrndTruthMasksFiles[index_input_images]
 
-        print("assigned to original files: '%s' and '%s'..." %(basename(origin_images_file), basename(origin_masks_file)))
+        print("assigned to original files: '%s' and '%s'..." %(basename(full_images_file), basename(grndtruth_masks_file)))
 
 
         # Loading Data
@@ -130,124 +132,120 @@ def main(args):
 
             (test_xData, test_yData) = LoadDataManagerInBatches_DataGenerator(IMAGES_DIMS_Z_X_Y,
                                                                               test_images_generator,
-                                                                              num_classes_out=num_classes_out).loadData_1File(images_file,
-                                                                                                                              masks_file,
+                                                                              num_classes_out=num_classes_out).loadData_1File(test_xData_file,
+                                                                                                                              test_yData_file,
                                                                                                                               shuffle_images=False)
         else:
-            (test_xData, test_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_1File(images_file,
-                                                                                                  masks_file,
+            (test_xData, test_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_1File(test_xData_file,
+                                                                                                  test_yData_file,
                                                                                                   shuffle_images=False)
 
 
         # EVALUATE MODEL
         print("Evaluate model...")
-        predict_data = model.predict(test_xData, batch_size=1)
+        predict_yData = model.predict(test_xData, batch_size=1)
 
 
         # Reconstruct batch images to full 3D array
-        predict_masks_array_shape = FileReader.getImageSize(masks_file)
+        fullsize_test_yData_shape = FileReader.getImageSize(test_yData_file)
 
         if (args.slidingWindowImages or args.transformationImages):
 
             images_reconstructor = getImagesReconstructor3D(args.slidingWindowImages,
-                                                            predict_masks_array_shape,
+                                                            fullsize_test_yData_shape,
                                                             args.prop_overlap_Z_X_Y) #args.transformationImages)
         else:
             images_reconstructor = SlicingReconstructorImages3D(IMAGES_DIMS_Z_X_Y,
-                                                                predict_masks_array_shape)
+                                                                fullsize_test_yData_shape)
 
-        predict_masks_array = images_reconstructor.compute(predict_data)
+        predict_probmaps_array = images_reconstructor.compute(predict_yData)
 
 
-        # Reconstruct cropped image to original size
-        origin_masks_array_shape = FileReader.getImageSize(origin_masks_file)
+
+        # Reconstruct output cropped probability maps to original size of input masks file
+        grndtruth_masks_array_shape = FileReader.getImageSize(grndtruth_masks_file)
 
         if (args.cropImages):
-            if (predict_masks_array.shape > origin_masks_array_shape):
-                message = "size of predictions array: %s, cannot be larger than that of original masks: %s..." %(predict_masks_array.shape,
-                                                                                                                 origin_masks_array_shape)
+            if (predict_probmaps_array.shape > grndtruth_masks_array_shape):
+                message = "size of predicted probability maps array: %s, cannot be larger than ground-truth masks: %s..." %(predict_probmaps_array.shape, grndtruth_masks_array_shape)
                 CatchErrorException(message)
             else:
-                print("Predictions are cropped. Increase array size from %s to original size %s..."%(predict_masks_array.shape,
-                                                                                                     origin_masks_array_shape))
+                print("Predicted probability maps are cropped. Increase array size from %s to original size %s..."%(predict_probmaps_array.shape, grndtruth_masks_array_shape))
 
-            crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(origin_images_file)]
+            crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(full_images_file)]
 
-            new_predict_masks_array = np.zeros(origin_masks_array_shape, dtype=FORMATPREDICTDATA)
-            new_predict_masks_array[crop_boundingBox[0][0]:crop_boundingBox[0][1],
-                                    crop_boundingBox[1][0]:crop_boundingBox[1][1],
-                                    crop_boundingBox[2][0]:crop_boundingBox[2][1]] = predict_masks_array
+            new_predict_probmaps_array = np.zeros(grndtruth_masks_array_shape, dtype=FORMATPREDICTDATA)
+            new_predict_probmaps_array[crop_boundingBox[0][0]:crop_boundingBox[0][1],
+                                       crop_boundingBox[1][0]:crop_boundingBox[1][1],
+                                       crop_boundingBox[2][0]:crop_boundingBox[2][1]] = predict_probmaps_array
 
-            predict_masks_array = new_predict_masks_array
+            predict_probmaps_array = new_predict_probmaps_array
 
         elif (args.extendSizeImages):
-            if (predict_masks_array.shape < origin_masks_array_shape):
-                message = "size of predictions array: %s, cannot be smaller than that of original masks: %s..." %(predict_masks_array.shape,
-                                                                                                                  origin_masks_array_shape)
+            if (predict_probmaps_array.shape < grndtruth_masks_array_shape):
+                message = "size of predicted probability maps array: %s, cannot be smaller than ground-truth masks: %s..." %(predict_probmaps_array.shape, grndtruth_masks_array_shape)
                 CatchErrorException(message)
             else:
-                print("Predictions are extended. Decrease array size from %s to original size %s..."%(predict_masks_array.shape,
-                                                                                                      origin_masks_array_shape))
+                print("Predicted probability maps are extended. Decrease array size from %s to original size %s..."%(predict_probmaps_array.shape, grndtruth_masks_array_shape))
 
-            crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(origin_images_file)]
+            crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(full_images_file)]
 
-            predict_masks_array = predict_masks_array[crop_boundingBox[0][0]:crop_boundingBox[0][1],
-                                                      crop_boundingBox[1][0]:crop_boundingBox[1][1],
-                                                      crop_boundingBox[2][0]:crop_boundingBox[2][1]]
+            predict_probmaps_array = predict_probmaps_array[crop_boundingBox[0][0]:crop_boundingBox[0][1],
+                                                            crop_boundingBox[1][0]:crop_boundingBox[1][1],
+                                                            crop_boundingBox[2][0]:crop_boundingBox[2][1]]
         else:
-            if (predict_masks_array.shape != origin_masks_array_shape):
-                message = "size of predictions array: %s, not equal to size of masks: %s..." %(predict_masks_array.shape,
-                                                                                               origin_masks_array_shape)
+            if (predict_probmaps_array.shape != grndtruth_masks_array_shape):
+                message = "size of predicted probability maps array: %s, not equal to size of ground-truth masks: %s..." %(predict_probmaps_array.shape, grndtruth_masks_array_shape)
                 CatchErrorException(message)
 
 
-        if (args.confineMasksToLungs):
-            print("Confine masks to exclude the area outside the lungs...")
+        if (args.masksToRegionInterest):
+            print("Mask ground-truth to Region of Interest: exclude voxels outside ROI: lungs...")
 
-            exclude_masks_file = listExcludeMasksFiles[index_origin_images]
+            lungs_masks_file = listLungsMasksFiles[index_input_images]
 
-            print("assigned to: '%s'..." %(basename(exclude_masks_file)))
+            print("assigned to: '%s'..." %(basename(lungs_masks_file)))
 
-            exclude_masks_array = FileReader.getImageArray(exclude_masks_file)
+            lungs_masks_array = FileReader.getImageArray(lungs_masks_file)
 
-            predict_masks_array = OperationsBinaryMasks.reverse_mask_exclude_voxels_fillzero(predict_masks_array,
-                                                                                             exclude_masks_array)
+            predict_probmaps_array = OperationsBinaryMasks.reverse_mask_exclude_voxels_fillzero(predict_probmaps_array,
+                                                                                                lungs_masks_array)
 
 
         # Compute test accuracy
-        accuracy_before = computePredictAccuracy_before(test_yData.astype(FORMATPREDICTDATA), predict_data)
+        accuracy_before = computePredictAccuracy_before(test_yData.astype(FORMATPREDICTDATA),
+                                                        predict_yData)
 
-        origin_masks_array = FileReader.getImageArray(origin_masks_file)
+        grndtruth_masks_array = FileReader.getImageArray(grndtruth_masks_file)
 
-        accuracy_after  = computePredictAccuracy_after(origin_masks_array,
-                                                       predict_masks_array)
+        accuracy_after  = computePredictAccuracy_after(grndtruth_masks_array,
+                                                       predict_probmaps_array)
 
         print("Computed accuracy (before post-processing): %s..." %(accuracy_before))
         print("Computed accuracy (after post-processing): %s..." %(accuracy_after))
 
 
         # Save reconstructed predict probability maps (or thresholding masks)
-        print("Saving predict probability maps, with dims: %s..." %(tuple2str(predict_masks_array.shape)))
+        print("Saving predict probability maps, with dims: %s..." %(tuple2str(predict_probmaps_array.shape)))
 
-        out_predictMasksFilename = joinpathnames(PredictDataPath, tempNamePredictMasksFiles%(filenamenoextension(origin_images_file),
-                                                                                             np.round(100*accuracy_after)))
+        out_predictMasksFilename = joinpathnames(PredictDataPath, tempNamePredictMasksFiles%(filenamenoextension(full_images_file), np.round(100*accuracy_after)))
 
-        FileReader.writeImageArray(out_predictMasksFilename, predict_masks_array)
+        FileReader.writeImageArray(out_predictMasksFilename, predict_probmaps_array)
 
 
         # Save predictions in images
         if (args.savePredictMaskSlices):
-            SaveImagesPath = workDirsManager.getNameNewPath(PredictDataPath, 'imagesSlices-%s'%(filenamenoextension(origin_images_file)))
+            SaveImagesPath = workDirsManager.getNameNewPath(PredictDataPath, 'imagesSlices-%s'%(filenamenoextension(full_images_file)))
 
-            origin_images_array = FileReader.getImageArray(origin_images_file)
+            full_images_array = FileReader.getImageArray(full_images_file)
 
             #take only slices in the middle of lungs (1/5 - 4/5)*depth_Z
-            begin_slices = origin_images_array.shape[0] // 5
-            end_slices   = 4 * origin_images_array.shape[0] // 5
+            begin_slices = full_images_array.shape[0] // 5
+            end_slices   = 4 * full_images_array.shape[0] // 5
 
-            PlotsManager.plot_compare_images_masks_allSlices(origin_images_array[begin_slices:end_slices],
-                                                             origin_masks_array [begin_slices:end_slices],
-                                                             predict_masks_array[begin_slices:end_slices],
+            PlotsManager.plot_compare_images_masks_allSlices(full_images_array     [begin_slices:end_slices],
+                                                             grndtruth_masks_array [begin_slices:end_slices],
+                                                             predict_probmaps_array[begin_slices:end_slices],
                                                              isSaveImages=True, outfilespath=SaveImagesPath)
     #endfor
 
@@ -269,7 +267,7 @@ if __name__ == "__main__":
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--extendSizeImages', type=str2bool, default=EXTENDSIZEIMAGES)
-    parser.add_argument('--confineMasksToLungs', type=str2bool, default=CONFINEMASKSTOLUNGS)
+    parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=False)
@@ -278,7 +276,7 @@ if __name__ == "__main__":
     parser.add_argument('--savePredictMaskSlices', type=str2bool, default=SAVEPREDICTMASKSLICES)
     args = parser.parse_args()
 
-    if (args.confineMasksToLungs):
+    if (args.masksToRegionInterest):
         args.lossfun     = args.lossfun + '_Masked'
         args.listmetrics = [item + '_Masked' for item in args.listmetrics]
 

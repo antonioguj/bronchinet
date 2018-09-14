@@ -28,7 +28,7 @@ def main(args):
     min_size_boundingBox = (1.0e+03, 1.0e+03, 1.0e+03)
 
     nameRawImagesRelPath = 'RawImages'
-    nameRawMasksRelPath  = 'ProcAddMasks'
+    nameRawMasksRelPath  = 'ProcAllMasks'
 
     # Get the file list:
     nameImagesFiles = '*.dcm'
@@ -52,7 +52,7 @@ def main(args):
 
     # Run checkers
     if (nbImagesFiles == 0):
-        message = "num CTs Images found in dir \'%s\'" %(RawImagesPath)
+        message = "0 Images found in dir \'%s\'" %(RawImagesPath)
         CatchErrorException(message)
     if (nbImagesFiles != nbMasksFiles):
         message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbMasksFiles)
@@ -72,7 +72,7 @@ def main(args):
             masks_array  = FlippingImages.compute(masks_array,  axis=0)
 
         if (images_array.shape != masks_array.shape):
-            message = "size of images: %s, not equal to size of masks: %s..." %(images_array.shape, masks_array.shape)
+            message = "size of Images and Masks not equal: %s != %s" % (images_array.shape, masks_array.shape)
             CatchErrorException(message)
         print("Original image of size: %s..." % (str(images_array.shape)))
 

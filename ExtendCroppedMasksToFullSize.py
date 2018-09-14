@@ -27,7 +27,7 @@ def main(args):
     nameRawImagesCroppedRelPath   = 'RawImages_Cropped'
     nameRawOutMasksFullRelPath    = 'ProcMasks_Full'
     nameRawAddMasksCroppedRelPath = 'RawAddMasks_Cropped'
-    nameRawOutAddMasksFullRelPath = 'ProcAddMasks_Full'
+    nameRawOutAddMasksFullRelPath = 'ProcAllMasks_Full'
 
     # Get the file list:
     nameMasksCroppedFiles   = '*.dcm'
@@ -57,11 +57,12 @@ def main(args):
 
     # Run checkers
     if (nameMasksCroppedFiles == 0):
-        message = "num Cropped Images found in dir \'%s\'" %(RawMasksCroppedPath)
+        message = "0 Cropped Images found in dir \'%s\'" %(RawMasksCroppedPath)
         CatchErrorException(message)
     if (nbMasksCroppedFiles != nbImagesFullFiles):
         message = "num Cropped Masks %i not equal to num Full Images %i" %(nbMasksCroppedFiles, nbImagesFullFiles)
         CatchErrorException(message)
+
 
     if isExistdir(joinpathnames(BaseDataPath, nameRawAddMasksCroppedRelPath)):
         isExistsAddMasks = True

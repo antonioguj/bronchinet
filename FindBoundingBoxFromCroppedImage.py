@@ -55,7 +55,7 @@ def main(args):
 
     # Run checkers
     if (nbImagesFullFiles == 0):
-        message = "num CTs Images found in dir \'%s\'" %(RawImagesFullPath)
+        message = "0 Images found in dir \'%s\'" %(RawImagesFullPath)
         CatchErrorException(message)
     if (nbImagesFullFiles != nbImagesCroppedFiles):
         message = "num CTs Images %i not equal to num CTs cropped Images %i" %(nbImagesFullFiles, nbImagesCroppedFiles)
@@ -79,8 +79,7 @@ def main(args):
         images_cropped_array = FlippingImages.compute(images_cropped_array, axis=0)
 
         if (images_cropped_array.shape > images_full_array.shape):
-            message = 'size cropped image: %s, larger than the size full image: %s...' %(images_cropped_array.shape,
-                                                                                         images_full_array.shape)
+            message = 'size cropped Image larger than full Image: %s > %s...' %(images_cropped_array.shape, images_full_array.shape)
             CatchErrorException(message)
 
 
@@ -96,8 +95,7 @@ def main(args):
         test_range_boundbox_shape = BoundingBoxMasks.compute_size_bounding_box(test_range_boundbox)
 
         if (test_range_boundbox_shape < images_cropped_array.shape):
-            message = 'size test range of bounding boxes: %s, smaller than the size of cropped image: %s...' %(test_range_boundbox_shape,
-                                                                                                               images_cropped_array.shape)
+            message = 'size test range of Bounding Boxes than cropped Image: %s < %s...' %(test_range_boundbox_shape, images_cropped_array.shape)
             CatchErrorException(message)
         else:
             test_range_boundbox_shape = np.array(test_range_boundbox_shape)

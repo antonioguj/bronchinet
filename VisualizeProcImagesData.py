@@ -22,8 +22,8 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameOriginImagesRelPath = 'ProcImagesExperData'
-    nameOriginMasksRelPath  = 'ProcMasksExperData'
+    nameInputImagesRelPath  = 'ProcImagesExperData'
+    nameInputMasksRelPath   = 'ProcMasksExperData'
     nameVisualImagesRelPath = 'VisualInputData'
 
     # Get the file list:
@@ -40,19 +40,19 @@ def main(args):
 
     workDirsManager  = WorkDirsManager(args.basedir)
     BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    OriginImagesPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginImagesRelPath)
-    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameOriginMasksRelPath )
+    InputImagesPath  = workDirsManager.getNameExistPath(BaseDataPath, nameInputImagesRelPath)
+    InputMasksPath   = workDirsManager.getNameExistPath(BaseDataPath, nameInputMasksRelPath )
     VisualImagesPath = workDirsManager.getNameNewPath  (args.basedir, nameVisualImagesRelPath)
 
-    listImagesFiles = findFilesDir(OriginImagesPath, nameInImagesFiles)
-    listMasksFiles  = findFilesDir(OriginMasksPath,  nameInMasksFiles)
+    listImagesFiles = findFilesDir(InputImagesPath, nameInImagesFiles)
+    listMasksFiles  = findFilesDir(InputMasksPath,  nameInMasksFiles)
 
     nbImagesFiles = len(listImagesFiles)
     nbMasksFiles  = len(listMasksFiles)
 
     # Run checkers
     if (nbImagesFiles == 0):
-        message = "num CTs Images found in dir \'%s\'" %(OriginImagesPath)
+        message = "0 Images found in dir \'%s\'" %(InputImagesPath)
         CatchErrorException(message)
     if (nbImagesFiles != nbMasksFiles):
         message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbMasksFiles)
@@ -68,7 +68,7 @@ def main(args):
         masks_array  = FileReader.getImageArray(masks_file)
 
         if (images_array.shape != masks_array.shape):
-            message = "size of images: %s, not equal to size of masks: %s..." % (images_array.shape, masks_array.shape)
+            message = "size of Images and Masks not equal: %s != %s" % (images_array.shape, masks_array.shape)
             CatchErrorException(message)
         print("Original image of size: %s..." %(str(images_array.shape)))
 

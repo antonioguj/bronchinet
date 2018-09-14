@@ -34,10 +34,10 @@ def main(args):
 
     workDirsManager  = WorkDirsManager(args.basedir)
     BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    OrigImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, nameRawImagesRelPath   )
+    InputImagesPath  = workDirsManager.getNameExistPath(BaseDataPath, nameRawImagesRelPath   )
     ComputeMasksPath = workDirsManager.getNameNewPath  (BaseDataPath, nameComputeMasksRelPath)
 
-    listImagesFiles = findFilesDir(OrigImagesPath, nameImagesFiles)
+    listImagesFiles = findFilesDir(InputImagesPath, nameImagesFiles)
     nbImagesFiles   = len(listImagesFiles)
 
 

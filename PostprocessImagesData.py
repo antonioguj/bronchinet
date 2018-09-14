@@ -23,21 +23,21 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameOriginMasksRelPath  = 'ProcMasks'
-    nameOriginAddMasksRelPath = 'ProcAddMasks'
+    nameInputMasksRelPath   = 'ProcMasks'
+    nameTracheaMasksRelPath = 'ProcAllMasks'
 
     # Get the file list:
     namePredictionsFiles  = 'predict_probmaps*.nii.gz'
-    nameOriginMasksFiles  = '*.nii.gz'
-    nameTraqueaMasksFiles = '*traquea.nii.gz'
+    nameInputMasksFiles   = '*outerwall.nii.gz'
+    nameTracheaMasksFiles = '*_trachea.nii.gz'
 
     # template search files
     tempSearchInputFiles = 'av[0-9]*'
 
     if (args.calcMasksThresholding):
         suffixPostProcessThreshold = '_thres%s'%(str(args.thresholdValue).replace('.','-'))
-        if (args.attachTraqueaToCalcMasks):
-            suffixPostProcessThreshold += '_withtraquea'
+        if (args.attachTracheaToCalcMasks):
+            suffixPostProcessThreshold += '_withtrachea'
     else:
         suffixPostProcessThreshold = ''
 
@@ -47,94 +47,105 @@ def main(args):
     def update_name_outfile(in_name, in_acc):
         pattern_accval = getExtractSubstringPattern(in_name, 'acc[0-9]*')
         new_accval_int = np.round(100*in_acc)
-        out_name = filenamenoextension(in_name).replace('predict_probmaps','predict_binmasks').replace(pattern_accval,
-                                                                                                       'acc%2.0f'%(new_accval_int))
+        out_name = filenamenoextension(in_name).replace('predict_probmaps','predict_binmasks').replace(pattern_accval, 'acc%2.0f'%(new_accval_int))
         return out_name + '%s.nii.gz'%(suffixPostProcessThreshold)
 
     tempOutPredictMasksFilename = update_name_outfile
     # ---------- SETTINGS ----------
 
 
-    workDirsManager  = WorkDirsManager(args.basedir)
-    BaseDataPath     = workDirsManager.getNameBaseDataPath()
-    PredictDataPath  = workDirsManager.getNameExistPath(args.basedir, args.predictionsdir)
-    OriginMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameOriginMasksRelPath)
+    workDirsManager       = WorkDirsManager(args.basedir)
+    BaseDataPath          = workDirsManager.getNameBaseDataPath()
+    InputPredictDataPath  = workDirsManager.getNameExistPath(args.basedir, args.predictionsdir)
+    InputMasksPath        = workDirsManager.getNameExistPath(BaseDataPath, nameInputMasksRelPath)
+    OutputPredictMasksPath= workDirsManager.getNameNewPath  (args.basedir, args.predictionsdir)
 
-    listPredictMasksFiles = findFilesDir(PredictDataPath, namePredictionsFiles)
-    listOriginMasksFiles  = findFilesDir(OriginMasksPath, nameOriginMasksFiles)
+    listPredictionsFiles    = findFilesDir(InputPredictDataPath, namePredictionsFiles)
+    listGrndTruthMasksFiles = findFilesDir(InputMasksPath,       nameInputMasksFiles)
 
-    nbPredictionsFiles = len(listPredictMasksFiles)
+    nbPredictionsFiles    = len(listPredictionsFiles)
+    nbGrndTruthMasksFiles = len(listGrndTruthMasksFiles)
 
+    # Run checkers
     if (nbPredictionsFiles == 0):
-        message = "num Predictions found in dir \'%s\'" %(PredictDataPath)
+        message = "0 Predictions found in dir \'%s\'" %(InputPredictDataPath)
+        CatchErrorException(message)
+    if (nbGrndTruthMasksFiles == 0):
+        message = "0 Ground-truth Masks found in dir \'%s\'" %(InputMasksPath)
         CatchErrorException(message)
 
-    if (args.calcMasksThresholding and args.attachTraqueaToCalcMasks):
 
-        TraqueaMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameOriginAddMasksRelPath)
+    if (args.calcMasksThresholding and args.attachTracheaToCalcMasks):
 
-        listTraqueaMasksFiles = findFilesDir(TraqueaMasksPath, nameTraqueaMasksFiles)
+        TracheaMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameTracheaMasksRelPath)
+
+        listTracheaMasksFiles = findFilesDir(TracheaMasksPath, nameTracheaMasksFiles)
+
+        nbTracheaMasksFiles = len(listTracheaMasksFiles)
+
+        if (nbGrndTruthMasksFiles != nbTracheaMasksFiles):
+            message = "num Ground-truth Masks %i not equal to num Trachea Masks %i" %(nbGrndTruthMasksFiles, nbTracheaMasksFiles)
+            CatchErrorException(message)
 
 
     computePredictAccuracy = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics, use_in_Keras=False)
 
     listFuns_Metrics = {imetrics: DICTAVAILMETRICFUNS(imetrics, use_in_Keras=False) for imetrics in args.listPostprocessMetrics}
-    out_predictAccuracyFilename = joinpathnames(PredictDataPath, nameAccuracyPredictFiles)
+    out_predictAccuracyFilename = joinpathnames(InputPredictDataPath, nameAccuracyPredictFiles)
     fout = open(out_predictAccuracyFilename, 'w')
 
-    strheader = '/case/ ' + ' '.join(
-        ['/%s/' % (key) for (key, _) in listFuns_Metrics.iteritems()]) + '\n'
+    strheader = '/case/ ' + ' '.join(['/%s/' % (key) for (key, _) in listFuns_Metrics.iteritems()]) + '\n'
     fout.write(strheader)
 
 
 
-    for i, predict_masks_file in enumerate(listPredictMasksFiles):
+    for i, predict_probmaps_file in enumerate(listPredictionsFiles):
 
-        print('\'%s\'...' %(predict_masks_file))
+        print('\'%s\'...' %(predict_probmaps_file))
 
-        name_prefix_case = getExtractSubstringPattern(basename(predict_masks_file),
+        name_prefix_case = getExtractSubstringPattern(basename(predict_probmaps_file),
                                                       tempSearchInputFiles)
 
-        for iterfile in listOriginMasksFiles:
+        for iterfile in listGrndTruthMasksFiles:
             if name_prefix_case in iterfile:
-                origin_masks_file = iterfile
+                grndtruth_masks_file = iterfile
         #endfor
-        print("assigned to '%s'..." %(basename(origin_masks_file)))
+        print("assigned to '%s'..." %(basename(grndtruth_masks_file)))
 
 
-        predict_masks_array = FileReader.getImageArray(predict_masks_file)
-        origin_masks_array  = FileReader.getImageArray(origin_masks_file)
+        predict_probmaps_array = FileReader.getImageArray(predict_probmaps_file)
+        grndtruth_masks_array  = FileReader.getImageArray(grndtruth_masks_file)
 
-        print("Predictions masks array of size: %s..." % (str(predict_masks_array.shape)))
+        print("Predictions masks array of size: %s..." % (str(predict_probmaps_array.shape)))
 
 
         if (args.calcMasksThresholding):
             print("Threshold probability maps to compute binary masks with threshold value %s..." % (args.thresholdValue))
 
-            predict_masks_array = ThresholdImages.compute(predict_masks_array, args.thresholdValue)
+            predict_masks_array = ThresholdImages.compute(predict_probmaps_array, args.thresholdValue)
 
-            if (args.attachTraqueaToCalcMasks):
-                print("IMPORTANT: Attach masks of Traquea to computed prediction masks...")
+            if (args.attachTracheaToCalcMasks):
+                print("IMPORTANT: Attach masks of Trachea to computed prediction masks...")
 
-                for iterfile in listTraqueaMasksFiles:
+                for iterfile in listTracheaMasksFiles:
                     if name_prefix_case in iterfile:
-                        traquea_masks_file = iterfile
+                        trachea_masks_file = iterfile
                 # endfor
-                print("assigned to: '%s'..." % (basename(traquea_masks_file)))
+                print("assigned to: '%s'..." % (basename(trachea_masks_file)))
 
-                traquea_masks_array = FileReader.getImageArray(traquea_masks_file)
+                trachea_masks_array = FileReader.getImageArray(trachea_masks_file)
 
-                predict_masks_array = OperationsBinaryMasks.join_two_binmasks_one_image(predict_masks_array, traquea_masks_array)
-                origin_masks_array  = OperationsBinaryMasks.join_two_binmasks_one_image(origin_masks_array,  traquea_masks_array)
+                predict_masks_array   = OperationsBinaryMasks.join_two_binmasks_one_image(predict_masks_array,   trachea_masks_array)
+                grndtruth_masks_array = OperationsBinaryMasks.join_two_binmasks_one_image(grndtruth_masks_array, trachea_masks_array)
 
 
 
-        accuracy = computePredictAccuracy(origin_masks_array, predict_masks_array)
+        accuracy = computePredictAccuracy(grndtruth_masks_array, predict_masks_array)
 
         list_predictAccuracy = OrderedDict()
 
         for (key, value) in listFuns_Metrics.iteritems():
-            acc_value = value(origin_masks_array, predict_masks_array)
+            acc_value = value(grndtruth_masks_array, predict_masks_array)
             list_predictAccuracy[key] = acc_value
         # endfor
 
@@ -145,9 +156,7 @@ def main(args):
         #endfor
 
         # print list accuracies in file
-        strdata  = '\'%s\' ' %(name_prefix_case)
-        strdata += ' '.join([str(value) for (_,value) in list_predictAccuracy.iteritems()])
-        strdata += '\n'
+        strdata = '\'%s\''%(name_prefix_case) + ' ' + ' '.join([str(value) for (_,value) in list_predictAccuracy.iteritems()]) +'\n'
         fout.write(strdata)
 
 
@@ -155,7 +164,7 @@ def main(args):
         if (args.calcMasksThresholding and args.saveThresholdImages):
             print("Saving prediction thresholded binary masks, with dims: %s..." %(tuple2str(predict_masks_array.shape)))
 
-            out_predictMasksFilename = joinpathnames(PredictDataPath, tempOutPredictMasksFilename(predict_masks_file, accuracy))
+            out_predictMasksFilename = joinpathnames(OutputPredictMasksPath, tempOutPredictMasksFilename(predict_probmaps_file, accuracy))
 
             FileReader.writeImageArray(out_predictMasksFilename, predict_masks_array)
     #endfor
@@ -174,7 +183,7 @@ if __name__ == "__main__":
     parser.add_argument('--listPostprocessMetrics', type=parseListarg, default=LISTPOSTPROCESSMETRICS)
     parser.add_argument('--calcMasksThresholding', type=str2bool, default=CALCMASKSTHRESHOLDING)
     parser.add_argument('--thresholdValue', type=float, default=THRESHOLDVALUE)
-    parser.add_argument('--attachTraqueaToCalcMasks', type=str2bool, default=ATTACHTRAQUEATOCALCMASKS)
+    parser.add_argument('--attachTracheaToCalcMasks', type=str2bool, default=ATTACHTRAQUEATOCALCMASKS)
     parser.add_argument('--saveThresholdImages', type=str2bool, default=SAVETHRESHOLDIMAGES)
     args = parser.parse_args()
 

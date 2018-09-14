@@ -266,7 +266,7 @@ if __name__ == "__main__":
     parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
     parser.add_argument('--num_featmaps_firstlayer', type=int, default=NUM_FEATMAPS_FIRSTLAYER)
     parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
-    parser.add_argument('--confineMasksToLungs', type=str2bool, default=CONFINEMASKSTOLUNGS)
+    parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
@@ -280,7 +280,7 @@ if __name__ == "__main__":
     parser.add_argument('--epoch_restart', type=int, default=EPOCH_RESTART)
     args = parser.parse_args()
 
-    if (args.confineMasksToLungs):
+    if (args.masksToRegionInterest):
         args.lossfun     = args.lossfun + '_Masked'
         args.listmetrics = [item + '_Masked' for item in args.listmetrics]
 

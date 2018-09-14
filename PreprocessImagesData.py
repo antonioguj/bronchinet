@@ -25,16 +25,16 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameOriginImagesRelPath    = 'ProcImages'
-    nameOriginMasksRelPath     = 'ProcMasks'
-    nameProcessedImagesRelPath = 'ProcImagesExperData'
-    nameProcessedMasksRelPath  = 'ProcMasksExperData'
-    nameExcludeMasksRelPath    = 'ProcAddMasks'
+    nameInputImagesRelPath  = 'ProcImages'
+    nameInputMasksRelPath   = 'ProcMasks'
+    nameLungsMasksRelPath   = 'ProcAllMasks'
+    nameOutputImagesRelPath = 'ProcImagesExperData'
+    nameOutputMasksRelPath  = 'ProcMasksExperData'
 
     # Get the file list:
-    nameImagesFiles       = '*.nii.gz'
-    nameMasksFiles        = '*.nii.gz'
-    nameExcludeMasksFiles = '*lungs.nii.gz'
+    nameInputImagesFiles = '*.nii.gz'
+    nameInputMasksFiles  = '*.nii.gz'
+    nameLungsMasksFiles  = '*_lungs.nii.gz'
 
     nameBoundingBoxesMasks = 'boundBoxesMasks.npy'
 
@@ -43,36 +43,37 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workDirsManager     = WorkDirsManager(args.basedir)
-    BaseDataPath        = workDirsManager.getNameBaseDataPath()
-    OriginImagesPath    = workDirsManager.getNameExistPath(BaseDataPath, nameOriginImagesRelPath)
-    OriginMasksPath     = workDirsManager.getNameExistPath(BaseDataPath, nameOriginMasksRelPath )
-    ProcessedImagesPath = workDirsManager.getNameNewPath(BaseDataPath, nameProcessedImagesRelPath)
-    ProcessedMasksPath  = workDirsManager.getNameNewPath(BaseDataPath, nameProcessedMasksRelPath )
+    workDirsManager  = WorkDirsManager(args.basedir)
+    BaseDataPath     = workDirsManager.getNameBaseDataPath()
+    InputImagesPath  = workDirsManager.getNameExistPath(BaseDataPath, nameInputImagesRelPath)
+    InputMasksPath   = workDirsManager.getNameExistPath(BaseDataPath, nameInputMasksRelPath )
+    OutputImagesPath = workDirsManager.getNameNewPath  (BaseDataPath, nameOutputImagesRelPath)
+    OutputMasksPath  = workDirsManager.getNameNewPath  (BaseDataPath, nameOutputMasksRelPath )
 
-    listImagesFiles = findFilesDir(OriginImagesPath, nameImagesFiles)
-    listMasksFiles  = findFilesDir(OriginMasksPath,  nameMasksFiles)
+    listImagesFiles = findFilesDir(InputImagesPath, nameInputImagesFiles)
+    listMasksFiles  = findFilesDir(InputMasksPath,  nameInputMasksFiles)
 
     nbImagesFiles   = len(listImagesFiles)
     nbMasksFiles    = len(listMasksFiles)
 
     # Run checkers
     if (nbImagesFiles == 0):
-        message = "num CTs Images found in dir \'%s\'" %(OriginImagesPath)
+        message = "num CTs Images found in dir \'%s\'" %(InputImagesPath)
         CatchErrorException(message)
     if (nbImagesFiles != nbMasksFiles):
         message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbMasksFiles)
         CatchErrorException(message)
 
-    if (args.confineMasksToLungs):
 
-        ExcludeMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameExcludeMasksRelPath)
+    if (args.masksToRegionInterest):
 
-        listExcludeMasksFiles = findFilesDir(ExcludeMasksPath, nameExcludeMasksFiles)
-        nbExcludeMasksFiles   = len(listExcludeMasksFiles)
+        LungsMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameLungsMasksRelPath)
 
-        if (nbImagesFiles != nbExcludeMasksFiles):
-            message = "num CTs Images %i not equal to num Masks %i" %(nbImagesFiles, nbExcludeMasksFiles)
+        listLungsMasksFiles = findFilesDir(LungsMasksPath, nameLungsMasksFiles)
+        nbLungsMasksFiles   = len(listLungsMasksFiles)
+
+        if (nbImagesFiles != nbLungsMasksFiles):
+            message = "num CTs Images %i not equal to num Lungs Masks %i" %(nbImagesFiles, nbLungsMasksFiles)
             CatchErrorException(message)
 
     if (args.cropImages or args.extendSizeImages):
@@ -94,7 +95,7 @@ def main(args):
             masks_array  = FlippingImages.compute(masks_array,  axis=0)
 
         if (images_array.shape != masks_array.shape):
-            message = "size of images: %s, not equal to size of masks: %s..." %(images_array.shape, masks_array.shape)
+            message = "size of Images and Masks not equal: %s != %s" % (images_array.shape, masks_array.shape)
             CatchErrorException(message)
         print("Original image of size: %s..." %(str(images_array.shape)))
 
@@ -114,16 +115,16 @@ def main(args):
             masks_array = OperationsBinaryMasks.process_masks(masks_array)
 
 
-        if (args.confineMasksToLungs):
-            print("Confine masks to exclude the area outside the lungs...")
+        if (args.masksToRegionInterest):
+            print("Mask ground-truth to Region of Interest: exclude voxels outside ROI: lungs...")
 
-            exclude_masks_file  = listExcludeMasksFiles[i]
-            exclude_masks_array = FileReader.getImageArray(exclude_masks_file)
+            lungs_masks_file  = listLungsMasksFiles[i]
+            lungs_masks_array = FileReader.getImageArray(lungs_masks_file)
 
             if (args.invertImageAxial):
-                exclude_masks_array = FlippingImages.compute(exclude_masks_array, axis=0)
+                lungs_masks_array = FlippingImages.compute(lungs_masks_array, axis=0)
 
-            masks_array = OperationsBinaryMasks.apply_mask_exclude_voxels(masks_array, exclude_masks_array)
+            masks_array = OperationsBinaryMasks.apply_mask_exclude_voxels(masks_array, lungs_masks_array)
 
 
         if (args.reduceSizeImages):
@@ -156,7 +157,7 @@ def main(args):
             size_new_image = (images_array.shape[0], CROPSIZEBOUNDINGBOX[0], CROPSIZEBOUNDINGBOX[1])
 
             backgr_val_images_array = -1000
-            backgr_val_masks_array  = -1 if args.confineMasksToLungs else 0
+            backgr_val_masks_array  = -1 if args.masksToRegionInterest else 0
 
             crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(images_file)]
 
@@ -230,8 +231,8 @@ def main(args):
         # Save processed data for training networks
         print("Saving processed data, with dims: %s..." %(tuple2str(images_array.shape)))
 
-        out_images_filename = joinpathnames(ProcessedImagesPath, tempNameProcImagesFiles%(i+1, tuple2str(images_array.shape)))
-        out_masks_filename  = joinpathnames(ProcessedMasksPath,  tempNameProcMasksFiles% (i+1, tuple2str(masks_array.shape )))
+        out_images_filename = joinpathnames(OutputImagesPath, tempNameProcImagesFiles%(i+1, tuple2str(images_array.shape)))
+        out_masks_filename  = joinpathnames(OutputMasksPath,  tempNameProcMasksFiles% (i+1, tuple2str(masks_array.shape )))
 
         FileReader.writeImageArray(out_images_filename, images_array)
         FileReader.writeImageArray(out_masks_filename,  masks_array )
@@ -246,7 +247,7 @@ if __name__ == "__main__":
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--invertImageAxial', type=str2bool, default=INVERTIMAGEAXIAL)
-    parser.add_argument('--confineMasksToLungs', type=str2bool, default=CONFINEMASKSTOLUNGS)
+    parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--reduceSizeImages', type=str2bool, default=REDUCESIZEIMAGES)
     parser.add_argument('--sizeReducedImages', type=str2bool, default=SIZEREDUCEDIMAGES)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
