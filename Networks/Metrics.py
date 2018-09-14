@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from keras import backend as K
+#from keras import backend as K
 import numpy as np
 
 _eps = 1.0e-12
@@ -469,6 +469,34 @@ class FalseNegativeRate(Metrics):
 
     def fnr(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
+
+
+# Airways completeness (percentage ground-truth centrelines found inside the predicted airways)
+class AirwayCompleteness(Metrics):
+
+    def __init__(self):
+        super(AirwayCompleteness, self).__init__(isMasksExclude=False)
+        self.name_out = 'completeness'
+
+    def compute_vec(self, y_centreline, y_pred_airway):
+        return K.sum(y_centreline * y_pred_airway) / (K.sum(y_centreline) +_smooth)
+
+    def compute_vec_np(self, y_centreline, y_pred_airway):
+        return np.sum(y_centreline * y_pred_airway) / (np.sum(y_centreline) +_smooth)
+
+
+# Airways volume leakage (percentage of voxels from predicted airways found outside the ground-truth airways)
+class AirwayVolumeLeakage(Metrics):
+
+    def __init__(self):
+        super(AirwayVolumeLeakage, self).__init__(isMasksExclude=False)
+        self.name_out = 'volume_leakage'
+
+    def compute_vec(self, y_true_airway, y_pred_airway):
+        return K.sum((1.0 - y_true_airway) * y_pred_airway) / (K.sum(y_pred_airway) +_smooth)
+
+    def compute_vec_np(self, y_true_airway, y_pred_airway):
+        return np.sum((1.0 - y_true_airway) * y_pred_airway) / (np.sum(y_pred_airway) +_smooth)
 
 
 # Combination of Two Metrics
