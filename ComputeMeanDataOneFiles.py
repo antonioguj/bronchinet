@@ -32,12 +32,18 @@ num_fields = len(fields_names)
 
 indexes_input_cases = []
 
-for in_case in input_cases_names:
-    if in_case in cases_names:
+if input_cases_names[0] == 'all':
+    input_cases_names = []
+    for in_case in cases_names:
+        input_cases_names.append(in_case)
         indexes_input_cases.append(cases_names.index(in_case))
-    else:
-        print("ERROR: case '%s' not found... EXIT" %(in_case))
-        sys.exit(0)
+else:
+    for in_case in input_cases_names:
+        if in_case in cases_names:
+            indexes_input_cases.append(cases_names.index(in_case))
+        else:
+            print("ERROR: case '%s' not found... EXIT" %(in_case))
+            sys.exit(0)
 
 print("Compute mean of data for fields: %s..." %(', '.join(map(lambda item: '/'+item+'/', fields_names))))
 print("Compute mean of data for cases: %s..." %(', '.join(map(lambda item: '/'+item+'/', input_cases_names))))

@@ -25,15 +25,36 @@ def main(args):
     nameInputMasksRelPath     = 'ProcAllMasks'
     nameCentrelinesRelPath    = 'ProcAllMasks_3b_i5'
 
-    namePredictMasksFiles   = 'predict_binmasks*thres0-9.nii.gz'
-    nameInputMasksFiles     = '*outerwall.nii.gz'
+    if (args.typepredictmasks=='outerwall'):
+        namePredictMasksFiles   = '*outerwall*opfront.nii.gz'
+    elif (args.typepredictmasks=='lumen'):
+        namePredictMasksFiles   = '*lumen*opfront.nii.gz'
+    else:
+        print("ERROR...")
+        CatchErrorException()
+    if (args.typegrndtruth=='outerwall'):
+        nameInputMasksFiles  = '*outerwall.nii.gz'
+    elif (args.typegrndtruth=='lumen'):
+        nameInputMasksFiles  = '*lumen.nii.gz'
+    else:
+        print("ERROR...")
+        CatchErrorException()
     nameCentrelinesFiles    = '*centrelines.nii.gz'
 
     # template search files
     tempSearchInputFiles  = 'av[0-9]*'
 
     # create file to save FROC values
-    temp_outfilename = 'results_leakage_test.txt'
+    if (args.typepredictmasks == 'outerwall'):
+        if (args.typegrndtruth=='outerwall'):
+            temp_outfilename  = 'leakagetest_outerwall_predictmasks_outerwall_grndtruth.txt'
+        elif (args.typegrndtruth=='lumen'):
+            temp_outfilename  = 'leakagetest_outerwall_predictmasks_lumen_grndtruth.txt'
+    elif (args.typepredictmasks=='lumen'):
+        if (args.typegrndtruth=='outerwall'):
+            temp_outfilename  = 'leakagetest_lumen_predictmasks_outerwall_grndtruth.txt'
+        elif (args.typegrndtruth=='lumen'):
+            temp_outfilename  = 'leakagetest_lumen_predictmasks_lumen_grndtruth.txt'
     # ---------- SETTINGS ----------
 
 
@@ -136,6 +157,8 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--typepredictmasks', default='')
+    parser.add_argument('--typegrndtruth', default='')
     parser.add_argument('--predictionsdir', default='Predictions_NEW')
     args = parser.parse_args()
 

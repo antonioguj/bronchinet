@@ -44,11 +44,11 @@ def find_index_optimal_threshold_dice_coeff(dice_data):
 #
 # num_data_files = len(sys.argv)-1
 
-list_input_data_files = ['SavedPredictions/Predictions_size352x240x120_LossWBEC_SlideWindow/mean_ROCsensTPspecFP.txt',
-                         'SavedPredictions/Predictions_size352x240x104_LossDice_SlideWindow/mean_ROCsensTPspecFP.txt',
-                         'SavedPredictions/Predictions_size352x240x120_LossWBEC_SlideWindow_TransformImages/mean_ROCsensTPspecFP.txt',
-                         'SavedPredictions/Predictions_size352x240x104_LossDice_SlideWindow_TransformImages/mean_ROCsensTPspecFP.txt',
-                         'SavedPredictions/Predictions_size352x240x104_LossDice_SlideWindow_ElasticDeformImages/mean_ROCsensTPspecFP.txt']
+list_input_data_files = ['SavedPredictions_FromCluster/Predictions_size352x240x120_LossWBEC_SlideWindow/mean_ROCsensTPspecFP.txt',
+                         'SavedPredictions_FromCluster/Predictions_size352x240x104_LossDice_SlideWindow/mean_ROCsensTPspecFP.txt',
+                         'SavedPredictions_FromCluster/Predictions_size352x240x120_LossWBEC_SlideWindow_TransformImages/mean_ROCsensTPspecFP.txt',
+                         'SavedPredictions_FromCluster/Predictions_size352x240x104_LossDice_SlideWindow_TransformImages/mean_ROCsensTPspecFP.txt',
+                         'SavedPredictions_FromCluster/Predictions_size352x240x104_LossDice_SlideWindow_ElasticDeformImages/mean_ROCsensTPspecFP.txt']
 
 num_input_data_files = len(list_input_data_files)
 
@@ -67,8 +67,6 @@ for (i, in_file) in enumerate(list_input_data_files):
 
     data_this = np.loadtxt(in_file, skiprows=1)
 
-    #TRICK to draw corectly the plots
-    data_this[ 0,1:] = [1.0, 1000000, 1.0, 1.0, 0.0]
     data_this[-1,1:] = [0.0, 0.0, 0.0, 0.0, 0.0]
 
     threshold_list    .append(data_this[:, 0])
@@ -81,21 +79,13 @@ for (i, in_file) in enumerate(list_input_data_files):
 
 
 
-list_reference1_files = ['SavedPredictions/Predictions_size352x240x120_LossWBEC_SlideWindow/mean_results_leakage_test.txt',
-                         'SavedPredictions/Predictions_size352x240x120_LossWBEC_SlideWindow_TransformImages/mean_results_leakage_test.txt',
-                         'SavedPredictions/Predictions_size352x240x104_LossDice_SlideWindow/mean_results_leakage_test.txt',
-                         'SavedPredictions/Predictions_size352x240x104_LossDice_SlideWindow_TransformImages/mean_results_leakage_test.txt',
-                         'SavedPredictions/Predictions_size352x240x104_LossDice_SlideWindow_ElasticDeformImages/mean_results_leakage_test.txt']
+list_reference1_files = ['SavedPredictions_FromCluster/Predictions_size352x240x120_LossWBEC_SlideWindow/mean_results_leakage_test.txt',
+                         'SavedPredictions_FromCluster/Predictions_size352x240x120_LossWBEC_SlideWindow_TransformImages/mean_results_leakage_test.txt',
+                         'SavedPredictions_FromCluster/Predictions_size352x240x104_LossDice_SlideWindow/mean_results_leakage_test.txt',
+                         'SavedPredictions_FromCluster/Predictions_size352x240x104_LossDice_SlideWindow_TransformImages/mean_results_leakage_test.txt',
+                         'SavedPredictions_FromCluster/Predictions_size352x240x104_LossDice_SlideWindow_ElasticDeformImages/mean_results_leakage_test.txt']
 
-list_reference2_files = ['/home/antonio/Results/AirwaySegmen_LUVAR/SavedPredictions/Predictions_Adria/Predictions_Airways_10_10_100_i64_I3_o64_O1/mean_results_leakage_test.txt',
-                         '/home/antonio/Results/AirwaySegmen_LUVAR/SavedPredictions/Predictions_Adria/Predictions_Airways_11_11_100_i64_I3_o64_O1/mean_results_leakage_test.txt',
-                         '/home/antonio/Results/AirwaySegmen_LUVAR/SavedPredictions/Predictions_Adria/Predictions_Airways_12_12_100_i64_I3_o64_O1/mean_results_leakage_test.txt',
-                         '/home/antonio/Results/AirwaySegmen_LUVAR/SavedPredictions/Predictions_Adria/Predictions_Airways_13_13_100_i64_I3_o64_O1/mean_results_leakage_test.txt',
-                         '/home/antonio/Results/AirwaySegmen_LUVAR/SavedPredictions/Predictions_Adria/Predictions_Airways_14_14_100_i64_I3_o64_O1/mean_results_leakage_test.txt',
-                         '/home/antonio/Results/AirwaySegmen_LUVAR/SavedPredictions/Predictions_Adria/Predictions_Airways_15_15_100_i64_I3_o64_O1/mean_results_leakage_test.txt',
-                         '/home/antonio/Results/AirwaySegmen_LUVAR/SavedPredictions/Predictions_Adria/Predictions_Airways_16_16_100_i64_I3_o64_O1/mean_results_leakage_test.txt',
-                         '/home/antonio/Results/AirwaySegmen_LUVAR/SavedPredictions/Predictions_Adria/Predictions_Airways_17_17_100_i64_I3_o64_O1/mean_results_leakage_test.txt',
-                         '/home/antonio/Results/AirwaySegmen_LUVAR/SavedPredictions/Predictions_Adria/Predictions_Airways_18_18_100_i64_I3_o64_O1/mean_results_leakage_test.txt']
+list_reference2_files = ['/home/antonio/Results/AirwaySegmen_LUVAR/Predictions_Adria/best_results_opfronted/mean_leakagetest_outerwall_predictmasks_outerwall_grndtruth.txt']
 
 
 completeness_reference1_list = []
@@ -122,12 +112,11 @@ for (i, in_file) in enumerate(list_reference2_files):
 
 
 
-
-labels = ['model_1',
-          'model_2',
-          'model_3',
-          'model_4',
-          'model_5']
+labels = ['wBEC_None',
+          'dice_None',
+          'wBEC_Rigid',
+          'dice_Rigid',
+          'dice_Elastic']
 
 if num_input_data_files == 1:
     # plot ROC: sensitivity - specificity
@@ -137,8 +126,6 @@ if num_input_data_files == 1:
     if threshold_list[0] is not None:
         plot_annotations_thresholds(FPaverage_list[0], sensitivity_list[0], threshold_list[0])
 
-    plt.xlim([0, 400000])
-    plt.ylim([0, 1.0])
     plt.xlabel('FalsePositives Average')
     plt.ylabel('True Positive Rate')
     plt.title('FROC curve')
@@ -152,8 +139,6 @@ if num_input_data_files == 1:
     if threshold_list[0] is not None:
         plot_annotations_thresholds(volumeleakage_list[0], completeness_list[0], threshold_list[0])
 
-    plt.xlim([0, 100])
-    plt.ylim([0, 100])
     plt.xlabel('Volume Leakage (%)')
     plt.ylabel('Completeness (%)')
     plt.show()
@@ -179,17 +164,16 @@ else:
         plt.plot(FPaverage_list[i], sensitivity_list[i], color=colors[i], label=labels[i])
 
         # find optimal threshold
-        index_mark_value = find_index_optimal_threshold_dice_coeff(dice_coeff_list[i])
+        index_mark_value = find_index_optimal_threshold_sensitTPspecifFP(FPaverage_list[i], sensitivity_list[i])
         # annotation threshold
         plt.scatter(FPaverage_list[i][index_mark_value], sensitivity_list[i][index_mark_value], marker='o', color=colors[i])
 
         print("file %s, optimal threshold: %s..." %(i, threshold_list[i][index_mark_value]))
     # endfor
 
-    plt.xlim([0, 400000])
-    plt.ylim([0, 1.0])
     plt.xlabel('False Positive Average')
     plt.ylabel('True Positive Rate')
+    plt.xlim([0, 400000])
     plt.title('FROC curve')
     plt.legend(loc='right')
     plt.show()
@@ -200,12 +184,12 @@ else:
     for i in range(num_input_data_files):
         plt.plot(volumeleakage_list[i], completeness_list[i], color=colors[i], label=labels[i])
 
-        # # find optimal threshold
-        # index_mark_value = find_index_optimal_threshold_sensitTPspecifFP(volumeleakage_list[i], completeness_list[i])
-        # # annotation threshold
-        # plt.scatter(volumeleakage_list[i][index_mark_value], completeness_list[i][index_mark_value], marker='o', color=colors[i])
+        # find optimal threshold
+        #index_mark_value = find_index_optimal_threshold_sensitTPspecifFP(volumeleakage_list[i], completeness_list[i])
+        # annotation threshold
+        #plt.scatter(volumeleakage_list[i][index_mark_value], completeness_list[i][index_mark_value], marker='o', color=colors[i])
 
-        #print("file %s, optimal threshold: %s..." % (i, threshold_list[i][index_mark_value]))
+        print("file %s, optimal threshold: %s..." % (i, threshold_list[i][index_mark_value]))
     # endfor
 
     # # Include annotations of other results
@@ -213,12 +197,12 @@ else:
     #     plt.scatter(volumeleakage_reference1_list, completeness_reference1_list, marker='^', color='b')
 
     if completeness_reference2_list:
-        plt.scatter(volumeleakage_reference2_list, completeness_reference2_list, marker='x', color='b')
+        plt.scatter(volumeleakage_reference2_list, completeness_reference2_list, s=100, marker='x', color='black', label='reference')
 
-    plt.xlim([0, 100])
-    plt.ylim([0, 100])
     plt.xlabel('Volume Leakage (%)')
     plt.ylabel('Completeness (%)')
+    plt.xlim([0,100])
+    plt.ylim([0,100])
     plt.legend(loc='right')
     plt.show()
 

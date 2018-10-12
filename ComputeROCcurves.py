@@ -43,8 +43,8 @@ def main(args):
     range_threshold = [-10, -3]
     #thresholds_list = (np.linspace(range_threshold[0], range_threshold[1], nbr_of_thresholds)).tolist()
     thresholds_list = (np.logspace(range_threshold[0], range_threshold[1], nbr_of_thresholds)).tolist()
-    #thresholds_list += [1.0 - elem for elem in reversed(thresholds_list)]
-    #nbr_of_thresholds *= 2
+    # thresholds_list += [1.0 - elem for elem in reversed(thresholds_list)]
+    # nbr_of_thresholds *= 2
     allowedDistance = 0
     # ---------- SETTINGS ----------
 

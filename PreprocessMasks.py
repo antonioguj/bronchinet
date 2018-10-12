@@ -21,39 +21,37 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameInputMasksRelPath    = 'RawMasks'
+    nameInputMasksRelPath    = args.inputdir
     nameLungsMasksRelPath    = 'RawAddMasks'
     nameCentrelinesRelPath   = 'RawAddMasks_Nosearch'
-    nameCourseAirMasksRelPath= 'RawAddMasks_Nosearch'
-    nameOutputMasksRelPath   = 'ProcMasks'
-    nameOutputAllMasksRelPath= 'ProcAllMasks'
+    nameOutputMasksRelPath   = nameInputMasksRelPath
+    nameOutputAllMasksRelPath= nameInputMasksRelPath
 
-    nameMasksFiles         = '*_surface1.dcm'
+    nameMasksFiles         = '*.dcm'
     nameLungsMasksFiles    = '*-lungs.dcm'
     nameCentrelinesFiles   = '*_centrelines.dcm'
-    nameCourseAirMasksFiles= '*-airways.dcm'
+
+    tempSearchInputFiles  = 'av[0-9]*'
 
     def rename_airways_files(in_name):
-        return in_name.replace('surface0','lumen').replace('surface1','outerwall')
+        return in_name.replace('surface0','lumen-opfront').replace('surface1','outerwall-opfront').replace('-result','_lumen-noopfront')
 
     nameOutAirwaysMasksFiles           = lambda in_name: rename_airways_files(filenamenoextension(in_name)) + '.nii.gz'
     nameOutLungsMasksFiles             = lambda in_name: filenamenoextension(in_name).replace('-lungs','_lungs') + '.nii.gz'
     nameOutTracheaMasksFiles           = lambda in_name: rename_airways_files(filenamenoextension(in_name)) + '_trachea.nii.gz'
-    nameOutAirwaysPlusTracheaMasksFiles= lambda in_name: rename_airways_files(filenamenoextension(in_name)) + '_airway-trachea.nii.gz'
+    nameOutAirwaysPlusTracheaMasksFiles= lambda in_name: rename_airways_files(filenamenoextension(in_name)) + '_withtrachea.nii.gz'
     nameOutLungsPlusTracheaMasksFiles  = lambda in_name: rename_airways_files(filenamenoextension(in_name)) + '_lung-trachea.nii.gz'
 
     nameOutCentrelinesFiles            = lambda in_name: filenamenoextension(in_name).replace('_centrelines','_centrelines') + '.nii.gz'
     nameOutCentrelinesPlusTracheaFiles = lambda in_name: filenamenoextension(in_name).replace('_centrelines','_centreline-trachea') + '.nii.gz'
-
-    nameOutCourseAirwaysMasksFiles     = lambda in_name: filenamenoextension(in_name).replace('-airways','_course-airways') + '.nii.gz'
-    nameOutTrachea2BronchiMasksFiles   = lambda in_name: filenamenoextension(in_name).replace('-airways','_trachea-2bronchi') + '.nii.gz'
     # ---------- SETTINGS ----------
 
 
 
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath    = workDirsManager.getNameBaseDataPath()
-    InputMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameInputMasksRelPath )
+    InputMasksPath  = workDirsManager.getNameExistPath(args.basedir, nameInputMasksRelPath)
+    OutputMasksPath = InputMasksPath
 
     # Get the file list:
     listMasksFiles = findFilesDir(InputMasksPath, nameMasksFiles)
@@ -76,9 +74,9 @@ def main(args):
             isExistsLungsMasks = True
             print("Found Lungs Masks files in dir \'%s\'" % (LungsMasksPath))
 
-            if (nbMasksFiles != nbLungsMasksFiles):
-                message = "num Masks %s not equal to num Lungs Masks %s" %(nbMasksFiles, nbLungsMasksFiles)
-                CatchErrorException(message)
+            #if (nbMasksFiles != nbLungsMasksFiles):
+            #    message = "num Masks %s not equal to num Lungs Masks %s" %(nbMasksFiles, nbLungsMasksFiles)
+            #    CatchErrorException(message)
         else:
             isExistsLungsMasks = False
     else:
@@ -105,30 +103,10 @@ def main(args):
         isExistsCentrelines = False
 
 
-    if (isExistdir(joinpathnames(BaseDataPath, nameCourseAirMasksRelPath))):
-
-        CourseAirwaysMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameCourseAirMasksRelPath)
-
-        listCourseAirwaysMasksFiles = findFilesDir(CourseAirwaysMasksPath, nameCourseAirMasksFiles)
-        nbCourseAirwaysMasksFiles   = len(listCourseAirwaysMasksFiles)
-
-        if nbCourseAirwaysMasksFiles > 0:
-            isCourseAirMasksFiles = True
-            print("Found Course Airways Masks files in dir \'%s\'" % (CourseAirwaysMasksPath))
-
-            if (nbMasksFiles != nbCourseAirwaysMasksFiles):
-                message = "num Masks %s not equal to num Course Airways Masks %s" % (nbMasksFiles, nbCourseAirwaysMasksFiles)
-                CatchErrorException(message)
-        else:
-            isCourseAirMasksFiles = False
-    else:
-        isCourseAirMasksFiles = False
-
-
-    if (isExistsLungsMasks or isExistsCentrelines or isCourseAirMasksFiles):
-        OutputMasksPath = workDirsManager.getNameNewPath(BaseDataPath, nameOutputAllMasksRelPath)
-    else:
-        OutputMasksPath = workDirsManager.getNameNewPath(BaseDataPath, nameOutputMasksRelPath)
+#    if (isExistsLungsMasks or isExistsCentrelines):
+#        OutputMasksPath = workDirsManager.getNameNewPath(BaseDataPath, nameOutputAllMasksRelPath)
+#    else:
+#        OutputMasksPath = workDirsManager.getNameNewPath(BaseDataPath, nameOutputMasksRelPath)
 
 
 
@@ -164,7 +142,12 @@ def main(args):
         if (isExistsLungsMasks):
             print("Preprocess Masks of Lungs and combinations with Airways Masks...")
 
-            lungs_masks_file  = listLungsMasksFiles[i]
+            name_prefix_case = getExtractSubstringPattern(basename(masks_file),
+                                                          tempSearchInputFiles)
+
+            for iterfile, in zip(listLungsMasksFiles):
+                if name_prefix_case in iterfile:
+                    lungs_masks_file = iterfile
 
             print("assigned to: '%s'..." %(basename(lungs_masks_file)))
 
@@ -177,7 +160,7 @@ def main(args):
             lungs_masks_array = OperationsBinaryMasks.process_masks(lungs_masks_array)
 
             # Extract voxels from ground-truth airways not contained in lungs
-            trachea_masks_array = np.where(lungs_masks_array == 0, masks_array, 0)
+            #trachea_masks_array = np.where(lungs_masks_array == 0, masks_array, 0)
 
             airwaysplustrachea_masks_array = masks_array
 
@@ -185,7 +168,7 @@ def main(args):
             airways_masks_array = OperationsBinaryMasks.apply_mask_exclude_voxels_fillzero(masks_array, lungs_masks_array)
 
             # Join both lungs and trachea masks
-            lungsplustrachea_masks_array = OperationsBinaryMasks.join_two_binmasks_one_image(lungs_masks_array, trachea_masks_array)
+            #lungsplustrachea_masks_array = OperationsBinaryMasks.join_two_binmasks_one_image(lungs_masks_array, trachea_masks_array)
 
             masks_array = airways_masks_array
 
@@ -212,46 +195,28 @@ def main(args):
                 centrelines_array = OperationsBinaryMasks.apply_mask_exclude_voxels_fillzero(centrelines_array, lungs_masks_array)
 
 
-        if (isCourseAirMasksFiles):
-            print("Preprocess Course Airways Masks...")
-
-            labels_traquea_2bronchi = [2,3,4]
-
-            course_airways_masks_file = listCourseAirwaysMasksFiles[i]
-
-            print("assigned to: '%s'..." % (basename(course_airways_masks_file)))
-
-            course_airways_masks_array = FileReader.getImageArray(course_airways_masks_file)
-
-            if (args.invertImageAxial):
-                course_airways_masks_array = FlippingImages.compute(course_airways_masks_array, axis=0)
-
-            # Extract masks corresponding to trachea [2] and 2 main bronchi [3,4]
-            traquea_2bronchi_masks_array = np.where((course_airways_masks_array >= labels_traquea_2bronchi[ 0]) &
-                                                    (course_airways_masks_array <= labels_traquea_2bronchi[-1]), 1, 0)
-
-            # Turn to binary masks (0, 1)
-            course_airways_masks_array = OperationsBinaryMasks.process_masks(course_airways_masks_array)
-
-
 
         print("Saving images in nifty '.nii' format of final dimensions: %s..." % (str(masks_array.shape)))
 
         out_masks_filename = joinpathnames(OutputMasksPath, basename(nameOutAirwaysMasksFiles(masks_file)))
 
+        print(out_masks_filename)
+
         FileReader.writeImageArray(out_masks_filename, masks_array.astype(FORMATIMAGEDATA))
 
         if (isExistsLungsMasks):
 
-            out_lungs_masks_filename        = joinpathnames(OutputMasksPath, nameOutLungsMasksFiles(lungs_masks_file))
-            out_trachea_masks_filename      = joinpathnames(OutputMasksPath, nameOutTracheaMasksFiles(masks_file))
+            #out_lungs_masks_filename        = joinpathnames(OutputMasksPath, nameOutLungsMasksFiles(lungs_masks_file))
+            #out_trachea_masks_filename      = joinpathnames(OutputMasksPath, nameOutTracheaMasksFiles(masks_file))
             out_airwaytrachea_masks_filename= joinpathnames(OutputMasksPath, nameOutAirwaysPlusTracheaMasksFiles(masks_file))
-            out_lungstrachea_masks_filename = joinpathnames(OutputMasksPath, nameOutLungsPlusTracheaMasksFiles(masks_file))
+            #out_lungstrachea_masks_filename = joinpathnames(OutputMasksPath, nameOutLungsPlusTracheaMasksFiles(masks_file))
 
-            FileReader.writeImageArray(out_lungs_masks_filename,         lungs_masks_array.astype(FORMATIMAGEDATA))
-            FileReader.writeImageArray(out_trachea_masks_filename,       trachea_masks_array.astype(FORMATIMAGEDATA))
+            print(out_airwaytrachea_masks_filename)
+
+            #FileReader.writeImageArray(out_lungs_masks_filename,         lungs_masks_array.astype(FORMATIMAGEDATA))
+            #FileReader.writeImageArray(out_trachea_masks_filename,       trachea_masks_array.astype(FORMATIMAGEDATA))
             FileReader.writeImageArray(out_airwaytrachea_masks_filename, airwaysplustrachea_masks_array.astype(FORMATIMAGEDATA))
-            FileReader.writeImageArray(out_lungstrachea_masks_filename,  lungsplustrachea_masks_array.astype(FORMATIMAGEDATA))
+            #FileReader.writeImageArray(out_lungstrachea_masks_filename,  lungsplustrachea_masks_array.astype(FORMATIMAGEDATA))
 
         if (isExistsCentrelines):
 
@@ -264,14 +229,6 @@ def main(args):
                 out_centrelinestrachea_filename = joinpathnames(OutputMasksPath, nameOutCentrelinesPlusTracheaFiles(centrelines_file))
 
                 FileReader.writeImageArray(out_centrelinestrachea_filename, centrelinesplustrachea_array.astype(FORMATIMAGEDATA))
-
-        if (isCourseAirMasksFiles):
-
-            out_course_airways_masks_filename   = joinpathnames(OutputMasksPath, nameOutCourseAirwaysMasksFiles           (course_airways_masks_file))
-            out_trachea_2bronchi_masks_filename = joinpathnames(OutputMasksPath, nameOutTrachea2BronchiMasksFiles         (course_airways_masks_file))
-
-            FileReader.writeImageArray(out_course_airways_masks_filename,   course_airways_masks_array.astype(FORMATIMAGEDATA))
-            FileReader.writeImageArray(out_trachea_2bronchi_masks_filename, traquea_2bronchi_masks_array.astype(FORMATIMAGEDATA))
     #endfor
 
 
@@ -280,6 +237,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--inputdir')
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--invertImageAxial', type=str2bool, default=INVERTIMAGEAXIAL)
