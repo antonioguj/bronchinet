@@ -501,10 +501,14 @@ class TransformationImages3D(TransformationImages2D):
         self.img_col_axis = 2
         self.img_channel_axis = 3
 
-        if np.isscalar(self.zoom_range):
-            self.zoom_range = (1 + self.zoom_range, 1 + self.zoom_range, 1 + self.zoom_range)
-        elif len(self.zoom_range) != 3:
-            CatchErrorException('`zoom_range` should be a float or a tuple or list of two floats. Received arg: ', self.zoom_range)
+        if np.isscalar(zoom_range):
+            self.zoom_range = (1 - zoom_range, 1 + zoom_range)
+        if len(self.zoom_range) == 2:
+            self.zoom_range = (zoom_range[0], zoom_range[1])
+        else:
+            raise ValueError('`zoom_range` should be a float or '
+                             'a tuple or list of two floats. '
+                             'Received arg: ', zoom_range)
 
 
     def random_transform(self, x, y=None, seed=None):
@@ -564,10 +568,10 @@ class TransformationImages3D(TransformationImages2D):
         else:
             shear_YZ = 0
 
-        if self.zoom_range == (1, 1, 1):
+        if self.zoom_range == (1, 1):
             (zx, zy, zz) = (1, 1, 1)
         else:
-            (zx, zy, zz) = np.random.uniform(self.zoom_range[0], self.zoom_range[1], self.zoom_range[2], 3)
+            (zx, zy, zz) = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 3)
 
 
         transform_matrix = None
