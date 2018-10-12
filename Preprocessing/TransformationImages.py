@@ -726,10 +726,10 @@ class TransformationImages3D(TransformationImages2D):
         else:
             shear_YZ = 0
 
-        if self.zoom_range == (1, 1, 1):
+        if self.zoom_range == (1, 1):
             (zx, zy, zz) = (1, 1, 1)
         else:
-            (zx, zy, zz) = np.random.uniform(self.zoom_range[0], self.zoom_range[1], self.zoom_range[2], 3)
+            (zx, zy, zz) = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 3)
 
 
         # Compute inverse transformations matrixes
