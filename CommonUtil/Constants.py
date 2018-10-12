@@ -83,7 +83,7 @@ VISUALPROCDATAINBATCHES = True
 # ******************** TRAINING PARAMETERS ********************
 NUM_EPOCHS  = 1000
 BATCH_SIZE  = 1
-IMODEL      = 'Unet3D'
+IMODEL      = 'Unet3D_Dropout_BatchNormalization'
 IOPTIMIZER  = 'Adam'
 ILOSSFUN    = 'DiceCoefficient'
 #ILOSSFUN    = 'CategoricalCrossEntropy'
@@ -112,6 +112,7 @@ DEPTH_SHIFT_RANGE = 7
 HORIZONTAL_FLIP = True
 VERTICAL_FLIP = True
 DEPTHZ_FLIP = True
+ZOOM_RANGE = 0
 
 ELASTICDEFORMATIONIMAGES = False
 
