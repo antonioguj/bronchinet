@@ -225,6 +225,15 @@ class TransformationImages2D(TransformationImages):
         self.std = None
         self.principal_components = None
 
+        if np.isscalar(zoom_range):
+            self.zoom_range = (1 - zoom_range, 1 + zoom_range)
+        elif len(zoom_range) == 2:
+            self.zoom_range = (zoom_range[0], zoom_range[1])
+        else:
+            raise ValueError('`zoom_range` should be a float or '
+                             'a tuple or list of two floats. '
+                             'Received arg: ', zoom_range)
+
         self.img_row_axis = 0
         self.img_col_axis = 1
         self.img_channel_axis = 2
@@ -480,10 +489,6 @@ class TransformationImages3D(TransformationImages2D):
         self.shear_XY_range = shear_XY_range
         self.shear_XZ_range = shear_XZ_range
         self.shear_YZ_range = shear_YZ_range
-        self.zoom_range = zoom_range
-        self.channel_shift_range = channel_shift_range
-        self.fill_mode = fill_mode
-        self.cval = cval
         self.horizontal_flip = horizontal_flip
         self.vertical_flip = vertical_flip
         self.depthZ_flip = depthZ_flip
@@ -494,21 +499,16 @@ class TransformationImages3D(TransformationImages2D):
                                                      is_normalize_data=is_normalize_data,
                                                      type_normalize_data=type_normalize_data,
                                                      zca_whitening=zca_whitening,
+                                                     zoom_range=zoom_range,
+                                                     channel_shift_range=channel_shift_range,
+                                                     fill_mode=fill_mode,
+                                                     cval=cval,
                                                      rescale=rescale,
                                                      preprocessing_function=preprocessing_function)
         self.img_dep_axis = 0
         self.img_row_axis = 1
         self.img_col_axis = 2
         self.img_channel_axis = 3
-
-        if np.isscalar(zoom_range):
-            self.zoom_range = (1 - zoom_range, 1 + zoom_range)
-        if len(self.zoom_range) == 2:
-            self.zoom_range = (zoom_range[0], zoom_range[1])
-        else:
-            raise ValueError('`zoom_range` should be a float or '
-                             'a tuple or list of two floats. '
-                             'Received arg: ', zoom_range)
 
 
     def random_transform(self, x, y=None, seed=None):
@@ -568,7 +568,7 @@ class TransformationImages3D(TransformationImages2D):
         else:
             shear_YZ = 0
 
-        if self.zoom_range == (1, 1):
+        if self.zoom_range[0] == 1 and self.zoom_range[1] == 1:
             (zx, zy, zz) = (1, 1, 1)
         else:
             (zx, zy, zz) = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 3)
@@ -726,7 +726,7 @@ class TransformationImages3D(TransformationImages2D):
         else:
             shear_YZ = 0
 
-        if self.zoom_range == (1, 1):
+        if self.zoom_range[0] == 1 and self.zoom_range[1] == 1:
             (zx, zy, zz) = (1, 1, 1)
         else:
             (zx, zy, zz) = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 3)
