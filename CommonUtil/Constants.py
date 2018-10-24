@@ -12,8 +12,8 @@ import numpy as np
 np.random.seed(2017)
 
 
-DATADIR = '/home/antonio/Data/LUVAR_Raw/'
-BASEDIR = '/home/antonio/Results/AirwaySegmen_LUVAR/'
+DATADIR = '/home/antonio/Data/DLCST_Raw/'
+BASEDIR = '/home/antonio/Results/AirwaySegmen_DLCST/'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
@@ -83,7 +83,7 @@ VISUALPROCDATAINBATCHES = True
 # ******************** TRAINING PARAMETERS ********************
 NUM_EPOCHS  = 1000
 BATCH_SIZE  = 1
-IMODEL      = 'Unet3D_Dropout_BatchNormalization'
+IMODEL      = 'Unet3D'
 IOPTIMIZER  = 'Adam'
 ILOSSFUN    = 'DiceCoefficient'
 #ILOSSFUN    = 'CategoricalCrossEntropy'
@@ -112,7 +112,7 @@ DEPTH_SHIFT_RANGE = 7
 HORIZONTAL_FLIP = True
 VERTICAL_FLIP = True
 DEPTHZ_FLIP = True
-ZOOM_RANGE = 0
+ZOOM_RANGE = 0.0
 
 ELASTICDEFORMATIONIMAGES = False
 
@@ -149,6 +149,10 @@ LISTPOSTPROCESSMETRICS = ['DiceCoefficient',
                           'TrueNegativeRate',
                           'FalsePositiveRate',
                           'FalseNegativeRate']
+
+SAVEFEATMAPSLAYERS = True
+
+NAMESAVEMODELLAYER = 'conv3d_18'
 
 SAVEPREDICTMASKSLICES = True
 
