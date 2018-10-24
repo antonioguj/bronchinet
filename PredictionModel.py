@@ -19,6 +19,7 @@ from CommonUtil.PlotsManager import *
 from CommonUtil.WorkDirsManager import *
 from Networks.Metrics import *
 from Networks.Networks import *
+from Networks.VisualModelParams import *
 from Preprocessing.OperationsImages import *
 import argparse
 
@@ -32,8 +33,8 @@ def main(args):
 
     # ---------- SETTINGS ----------
     nameInputImagesRelPath = 'ProcImages'
-    nameInputMasksRelPath  = 'ProcMasks'
-    nameLungsMasksRelPath  = 'ProcAllMasks'
+    nameInputMasksRelPath  = 'ProcOrigMasks'
+    nameLungsMasksRelPath  = 'ProcOrigAllMasks'
 
     # Get the file list:
     nameImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
@@ -41,11 +42,20 @@ def main(args):
 
     nameInputImagesFiles = '*.nii.gz'
     nameInputMasksFiles  = '*.nii.gz'
-    nameLungsMasksFiles  = '*_lungs.nii.gz'
+    nameLungsMasksFiles  = '*-lungs.nii.gz'
 
     nameBoundingBoxesMasks = 'boundBoxesMasks.npy'
 
     tempNamePredictMasksFiles = 'predict_probmaps-%s_acc%2.0f.nii.gz'
+
+    if (args.saveFeatMapsLayers):
+        tempNameSaveFeatMapsDirs  = 'featureMaps-%s'
+        tempNameSaveFeatMapsFiles = 'layer-%s_featmap-%0.2i.nii.gz'
+
+    if (args.savePredictMaskSlices):
+        tempNameSavePredictMaskSliceImagesDirs = 'imagesSlices-%s'
+        if (args.saveFeatMapsLayers):
+            tempNameSaveFeatMapsSliceImagesDirs = 'layer-%s_featmap-%0.2i_imagesSlices'
     # ---------- SETTINGS ----------
 
 
@@ -95,6 +105,9 @@ def main(args):
     computePredictAccuracy_before = DICTAVAILMETRICFUNS(predictAccuracyMetrics_before, use_in_Keras=False)
 
     computePredictAccuracy_after  = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics, use_in_Keras=False)
+
+    if (args.saveFeatMapsLayers):
+        visual_model_params = VisualModelParams(model, IMAGES_DIMS_Z_X_Y)
 
     if (args.multiClassCase):
         num_classes_out = args.numClassesMasks + 1
@@ -146,24 +159,48 @@ def main(args):
         predict_yData = model.predict(test_xData, batch_size=1)
 
 
-        # Reconstruct batch images to full 3D array
-        fullsize_test_yData_shape = FileReader.getImageSize(test_yData_file)
+        # VISUALIZE FEATURE MAPS EVALUATED AT TEST IMAGE
+        if (args.saveFeatMapsLayers):
+            print("Compute feature maps of evaluated model...")
+            predict_featmaps_data = visual_model_params.get_feature_maps(test_xData, args.nameSaveModelLayer)
+
+            num_save_featmaps = predict_featmaps_data.shape[-1]
+
+
+
+        # Reconstruct predicted batch images to full 3D array
+        fullsize_ydata_shape = FileReader.getImageSize(test_yData_file)
 
         if (args.slidingWindowImages or args.transformationImages):
-
             images_reconstructor = getImagesReconstructor3D(args.slidingWindowImages,
-                                                            fullsize_test_yData_shape,
-                                                            args.prop_overlap_Z_X_Y) #args.transformationImages)
+                                                            fullsize_ydata_shape,
+                                                            args.prop_overlap_Z_X_Y,
+                                                            use_TransformationImages=args.transformationImages)
         else:
             images_reconstructor = SlicingReconstructorImages3D(IMAGES_DIMS_Z_X_Y,
-                                                                fullsize_test_yData_shape)
+                                                                fullsize_ydata_shape)
 
         predict_probmaps_array = images_reconstructor.compute(predict_yData)
 
 
+        if (args.saveFeatMapsLayers):
+            fullsize_featmaps_shape = [num_save_featmaps] + list(fullsize_ydata_shape)
 
-        # Reconstruct output cropped probability maps to original size of input masks file
+            predict_featmaps_array = np.zeros(fullsize_featmaps_shape, dtype=FORMATPREDICTDATA)
+
+            for ifeatmap in range(num_save_featmaps):
+                in_predict_ifeatmap_data = np.expand_dims(predict_featmaps_data[...,ifeatmap], axis=-1)
+                predict_featmaps_array[ifeatmap] = images_reconstructor.compute(in_predict_ifeatmap_data)
+            #endfor
+
+
+
+        # Reconstruct predicted cropped probability maps to original size of input masks file
         grndtruth_masks_array_shape = FileReader.getImageSize(grndtruth_masks_file)
+
+        if (args.saveFeatMapsLayers):
+            new_predict_featmaps_array_shape = [num_save_featmaps] + list(grndtruth_masks_array_shape)
+
 
         if (args.cropImages):
             if (predict_probmaps_array.shape > grndtruth_masks_array_shape):
@@ -172,14 +209,23 @@ def main(args):
             else:
                 print("Predicted probability maps are cropped. Increase array size from %s to original size %s..."%(predict_probmaps_array.shape, grndtruth_masks_array_shape))
 
+
             crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(full_images_file)]
 
-            new_predict_probmaps_array = np.zeros(grndtruth_masks_array_shape, dtype=FORMATPREDICTDATA)
+            new_predict_probmaps_array = np.zeros(grndtruth_masks_array_shape, dtype=predict_probmaps_array.dtype)
             new_predict_probmaps_array[crop_boundingBox[0][0]:crop_boundingBox[0][1],
                                        crop_boundingBox[1][0]:crop_boundingBox[1][1],
                                        crop_boundingBox[2][0]:crop_boundingBox[2][1]] = predict_probmaps_array
-
             predict_probmaps_array = new_predict_probmaps_array
+
+
+            if (args.saveFeatMapsLayers):
+                new_predict_featmaps_array = np.zeros(new_predict_featmaps_array_shape, dtype=predict_featmaps_array.dtype)
+                new_predict_featmaps_array[:, crop_boundingBox[0][0]:crop_boundingBox[0][1],
+                                              crop_boundingBox[1][0]:crop_boundingBox[1][1],
+                                              crop_boundingBox[2][0]:crop_boundingBox[2][1]] = predict_featmaps_array
+                predict_featmaps_array = new_predict_featmaps_array
+
 
         elif (args.extendSizeImages):
             if (predict_probmaps_array.shape < grndtruth_masks_array_shape):
@@ -188,15 +234,23 @@ def main(args):
             else:
                 print("Predicted probability maps are extended. Decrease array size from %s to original size %s..."%(predict_probmaps_array.shape, grndtruth_masks_array_shape))
 
+
             crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(full_images_file)]
 
             predict_probmaps_array = predict_probmaps_array[crop_boundingBox[0][0]:crop_boundingBox[0][1],
                                                             crop_boundingBox[1][0]:crop_boundingBox[1][1],
                                                             crop_boundingBox[2][0]:crop_boundingBox[2][1]]
+
+            if (args.saveFeatMapsLayers):
+                predict_featmaps_array = predict_featmaps_array[:, crop_boundingBox[0][0]:crop_boundingBox[0][1],
+                                                                   crop_boundingBox[1][0]:crop_boundingBox[1][1],
+                                                                   crop_boundingBox[2][0]:crop_boundingBox[2][1]]
+
         else:
             if (predict_probmaps_array.shape != grndtruth_masks_array_shape):
                 message = "size of predicted probability maps array: %s, not equal to size of ground-truth masks: %s..." %(predict_probmaps_array.shape, grndtruth_masks_array_shape)
                 CatchErrorException(message)
+
 
 
         if (args.masksToRegionInterest):
@@ -210,6 +264,14 @@ def main(args):
 
             predict_probmaps_array = OperationsBinaryMasks.reverse_mask_exclude_voxels_fillzero(predict_probmaps_array,
                                                                                                 lungs_masks_array)
+
+            # if (args.saveFeatMapsLayers):
+            #     print("Mask also computed feature maps to Region of Interest...")
+            #     for ifeatmap in range(num_save_featmaps):
+            #         predict_featmaps_array[ifeatmap] = OperationsBinaryMasks.reverse_mask_exclude_voxels_fillzero(predict_featmaps_array[ifeatmap],
+            #                                                                                                       lungs_masks_array)
+            #     #endfor
+
 
 
         # Compute test accuracy
@@ -233,9 +295,23 @@ def main(args):
         FileReader.writeImageArray(out_predictMasksFilename, predict_probmaps_array)
 
 
+
+        # Save feature maps computed on evaluated model
+        if (args.saveFeatMapsLayers):
+            print("Saving computed feature maps, with dims: %s..." % (tuple2str(predict_featmaps_array.shape)))
+
+            SaveFeatMapsPath = workDirsManager.getNameNewPath(PredictDataPath, tempNameSaveFeatMapsDirs %(filenamenoextension(full_images_file)))
+
+            for ifeatmap in range(num_save_featmaps):
+                out_featMapsFilename = joinpathnames(SaveFeatMapsPath, tempNameSaveFeatMapsFiles %(args.nameSaveModelLayer, ifeatmap+1))
+
+                FileReader.writeImageArray(out_featMapsFilename, predict_featmaps_array[ifeatmap])
+            #endfor
+
+
         # Save predictions in images
         if (args.savePredictMaskSlices):
-            SaveImagesPath = workDirsManager.getNameNewPath(PredictDataPath, 'imagesSlices-%s'%(filenamenoextension(full_images_file)))
+            SaveImagesPath = workDirsManager.getNameNewPath(PredictDataPath, tempNameSavePredictMaskSliceImagesDirs %(filenamenoextension(full_images_file)))
 
             full_images_array = FileReader.getImageArray(full_images_file)
 
@@ -247,6 +323,16 @@ def main(args):
                                                              grndtruth_masks_array [begin_slices:end_slices],
                                                              predict_probmaps_array[begin_slices:end_slices],
                                                              isSaveImages=True, outfilespath=SaveImagesPath)
+
+            # Save feature maps in images
+            if (args.saveFeatMapsLayers):
+                for ifeatmap in range(num_save_featmaps):
+                    SaveImagesPath = workDirsManager.getNameNewPath(SaveFeatMapsPath, tempNameSaveFeatMapsSliceImagesDirs %(args.nameSaveModelLayer, ifeatmap + 1))
+
+                    PlotsManager.plot_images_masks_allSlices(full_images_array[begin_slices:end_slices],
+                                                             predict_featmaps_array[ifeatmap][begin_slices:end_slices],
+                                                             isSaveImages=True, outfilespath=SaveImagesPath)
+                #endfor
     #endfor
 
 
@@ -273,6 +359,8 @@ if __name__ == "__main__":
     parser.add_argument('--transformationImages', type=str2bool, default=False)
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=False)
     parser.add_argument('--typeGPUinstalled', type=str, default=TYPEGPUINSTALLED)
+    parser.add_argument('--saveFeatMapsLayers', type=str2bool, default=SAVEFEATMAPSLAYERS)
+    parser.add_argument('--nameSaveModelLayer', default=NAMESAVEMODELLAYER)
     parser.add_argument('--savePredictMaskSlices', type=str2bool, default=SAVEPREDICTMASKSLICES)
     args = parser.parse_args()
 

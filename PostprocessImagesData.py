@@ -28,8 +28,8 @@ def main(args):
 
     # Get the file list:
     namePredictionsFiles  = 'predict_probmaps*.nii.gz'
-    nameInputMasksFiles   = '*outerwall.nii.gz'
-    nameTracheaMasksFiles = '*_trachea.nii.gz'
+    nameInputMasksFiles   = '*lumen.nii.gz'
+    nameTracheaMasksFiles = '*lumen_traquea.nii.gz'
 
     # template search files
     tempSearchInputFiles = 'av[0-9]*'
