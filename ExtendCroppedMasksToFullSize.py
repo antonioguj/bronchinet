@@ -22,69 +22,66 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameRawMasksCroppedRelPath    = 'RawMasks_Cropped'
-    nameRawImagesFullRelPath      = 'RawImages_Full'
-    nameRawImagesCroppedRelPath   = 'RawImages_Cropped'
-    nameRawOutMasksFullRelPath    = 'ProcMasks_Full'
-    nameRawAddMasksCroppedRelPath = 'RawAddMasks_Cropped'
-    nameRawOutAddMasksFullRelPath = 'ProcAllMasks_Full'
+    nameRawInputImagesRelPath      = 'RawImages_Full'
+    nameRawInputMasksRelPath       = 'RawAirways'
+    nameRawInputLungsMasksRelPath  = 'RawLungs'
+    nameRawOutputMasksRelPath      = 'Airways_Full'
+    nameRawOutputLungsMasksRelPath = 'Lungs_Full'
 
     # Get the file list:
-    nameMasksCroppedFiles   = '*.dcm'
-    nameImagesFullFiles     = '*.dcm'
-    nameImagesCroppedFiles  = '*.dcm'
-    nameAddMasksCroppedFiles= '*.dcm'
+    nameInputImagesFiles     = '*.dcm'
+    nameInputMasksFiles      = '*surface0.dcm'
+    nameInputLungsMasksFiles = '*-lungs.dcm'
 
     nameBoundingBoxesMasks = 'found_boundBoxes_Original.npy'
 
-    nameOutMasksFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    nameOutputMasksFiles      = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    nameOutputLungsMasksFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager     = WorkDirsManager(args.basedir)
-    BaseDataPath        = workDirsManager.getNameBaseDataPath()
-    RawMasksCroppedPath = workDirsManager.getNameExistPath(BaseDataPath, nameRawMasksCroppedRelPath)
-    RawImagesFullPath   = workDirsManager.getNameExistPath(BaseDataPath, nameRawImagesFullRelPath  )
-    RawImagesCroppedPath= workDirsManager.getNameExistPath(BaseDataPath, nameRawImagesCroppedRelPath)
-    RawOutMasksFullPath = workDirsManager.getNameNewPath  (BaseDataPath, nameRawOutMasksFullRelPath)
+    workDirsManager    = WorkDirsManager(args.basedir)
+    BaseDataPath       = workDirsManager.getNameBaseDataPath()
+    RawInputImagesPath = workDirsManager.getNameExistPath(BaseDataPath, nameRawInputImagesRelPath)
+    RawInputMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameRawInputMasksRelPath)
+    RawOutputMasksPath = workDirsManager.getNameNewPath  (BaseDataPath, nameRawOutputMasksRelPath)
 
-    listMasksCroppedFiles = findFilesDir(RawMasksCroppedPath, nameMasksCroppedFiles)
-    listImagesFullFiles   = findFilesDir(RawImagesFullPath,   nameImagesFullFiles)
-    listImagesCroppedFiles= findFilesDir(RawImagesCroppedPath,nameImagesCroppedFiles)
+    listInputImagesFiles = findFilesDir(RawInputImagesPath, nameInputImagesFiles)
+    listInputMasksFiles  = findFilesDir(RawInputMasksPath,  nameInputMasksFiles)
 
-    nbMasksCroppedFiles = len(listMasksCroppedFiles)
-    nbImagesFullFiles   = len(listImagesFullFiles)
+    nbInputImagesFiles = len(listInputImagesFiles)
+    nbInputMasksFiles  = len(listInputMasksFiles)
 
     # Run checkers
-    if (nameMasksCroppedFiles == 0):
-        message = "0 Cropped Images found in dir \'%s\'" %(RawMasksCroppedPath)
+    if (nameInputMasksFiles == 0):
+        message = "0 Cropped Masks found in dir \'%s\'" %(RawInputMasksPath)
         CatchErrorException(message)
-    if (nbMasksCroppedFiles != nbImagesFullFiles):
-        message = "num Cropped Masks %i not equal to num Full Images %i" %(nbMasksCroppedFiles, nbImagesFullFiles)
+    if (nbInputMasksFiles != nbInputImagesFiles):
+        message = "num Cropped Masks %i not equal to num Images %i" %(nbInputMasksFiles, nbInputImagesFiles)
         CatchErrorException(message)
 
 
-    if isExistdir(joinpathnames(BaseDataPath, nameRawAddMasksCroppedRelPath)):
-        isExistsAddMasks = True
+    if isExistdir(joinpathnames(BaseDataPath, nameRawInputLungsMasksRelPath)):
+        isExistsLungsMasks = True
 
-        RawAddMasksCroppedPath = workDirsManager.getNameExistPath(BaseDataPath, nameRawAddMasksCroppedRelPath)
-        RawOutAddMasksFullPath = workDirsManager.getNameNewPath  (BaseDataPath, nameRawOutAddMasksFullRelPath)
+        RawInputLungsMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameRawInputLungsMasksRelPath)
+        RawOutputLungsMasksPath = workDirsManager.getNameNewPath  (BaseDataPath, nameRawOutputLungsMasksRelPath)
 
-        listAddMasksCroppedFiles = findFilesDir(RawAddMasksCroppedPath, nameAddMasksCroppedFiles)
-        nbAddMasksCroppedFiles   = len(listAddMasksCroppedFiles)
+        listInputLungsMasksFiles = findFilesDir(RawInputLungsMasksPath, nameInputLungsMasksFiles)
+        nbInputLungsMasksFiles   = len(listInputLungsMasksFiles)
 
-        if (nbAddMasksCroppedFiles != nbImagesFullFiles):
-            message = "num Cropped Masks %i not equal to num Full Images %i" % (nbAddMasksCroppedFiles, nbImagesFullFiles)
+        if (nbInputLungsMasksFiles != nbInputImagesFiles):
+            message = "num Cropped Lungs Masks %i not equal to num Images %i" % (nbInputLungsMasksFiles, nbInputImagesFiles)
             CatchErrorException(message)
     else:
-        isExistsAddMasks = False
+        isExistsLungsMasks = False
 
     namefile_dict = joinpathnames(BaseDataPath, nameBoundingBoxesMasks)
     dict_boundingBoxes = readDictionary(namefile_dict)
 
 
 
-    for i, (masks_cropped_file, images_full_file) in enumerate(zip(listMasksCroppedFiles, listImagesFullFiles)):
+    for i, (masks_cropped_file, images_full_file) in enumerate(zip(listInputMasksFiles, listInputImagesFiles)):
 
         print('\'%s\'...' %(masks_cropped_file))
 
@@ -94,44 +91,46 @@ def main(args):
 
         print("dimensions of Cropped Masks: %s..." %(str(masks_cropped_array.shape)))
 
+        if (isExistsLungsMasks):
+            lungs_masks_cropped_file = listInputLungsMasksFiles[i]
+
+            lungs_masks_cropped_array = FileReader.getImageArray(lungs_masks_cropped_file)
+
+            lungs_masks_cropped_array = FlippingImages.compute(lungs_masks_cropped_array, axis=0)
+
+
+        # Retrieve shape of full images
         images_full_shape = FileReader.getImageSize(images_full_file)
 
         masks_full_array = np.zeros(images_full_shape, dtype=FORMATMASKDATA)
 
-        if (isExistsAddMasks):
-            add_masks_cropped_file = listAddMasksCroppedFiles[i]
-
-            add_masks_cropped_array = FileReader.getImageArray(add_masks_cropped_file)
-
-            add_masks_cropped_array = FlippingImages.compute(add_masks_cropped_array, axis=0)
-
-            add_masks_full_array = np.zeros(images_full_shape, dtype=FORMATMASKDATA)
+        if (isExistsLungsMasks):
+            lungs_masks_full_array = np.zeros(images_full_shape, dtype=FORMATMASKDATA)
 
 
-        images_cropped_file = listImagesCroppedFiles[i]
-
-        bounding_box = dict_boundingBoxes[filenamenoextension(images_cropped_file)]
+        # Retrieve bounding-box of original cropped images
+        bounding_box = dict_boundingBoxes[filenamenoextension(images_full_file)]
 
         masks_full_array[bounding_box[0][0]:bounding_box[0][1],
                          bounding_box[1][0]:bounding_box[1][1],
                          bounding_box[2][0]:bounding_box[2][1]] = masks_cropped_array
 
-        if (isExistsAddMasks):
-            add_masks_full_array[bounding_box[0][0]:bounding_box[0][1],
-                                 bounding_box[1][0]:bounding_box[1][1],
-                                 bounding_box[2][0]:bounding_box[2][1]] = add_masks_cropped_array
+        if (isExistsLungsMasks):
+            lungs_masks_full_array[bounding_box[0][0]:bounding_box[0][1],
+                                   bounding_box[1][0]:bounding_box[1][1],
+                                   bounding_box[2][0]:bounding_box[2][1]] = lungs_masks_cropped_array
 
 
         print("Saving Full Masks of final dimensions: %s..." % (str(masks_full_array.shape)))
 
-        out_masks_filename = joinpathnames(RawOutMasksFullPath, nameOutMasksFiles(masks_cropped_file))
+        out_masks_full_filename = joinpathnames(RawOutputMasksPath, nameOutputMasksFiles(masks_cropped_file))
 
-        FileReader.writeImageArray(out_masks_filename, masks_full_array)
+        FileReader.writeImageArray(out_masks_full_filename, masks_full_array)
 
-        if (isExistsAddMasks):
-            out_add_masks_filename = joinpathnames(RawOutAddMasksFullPath, nameOutMasksFiles(add_masks_cropped_file))
+        if (isExistsLungsMasks):
+            out_lungs_masks_full_filename = joinpathnames(RawOutputLungsMasksPath, nameOutputLungsMasksFiles(lungs_masks_cropped_file))
 
-            FileReader.writeImageArray(out_add_masks_filename, add_masks_full_array)
+            FileReader.writeImageArray(out_lungs_masks_full_filename, lungs_masks_full_array)
     #endfor
 
 

@@ -25,7 +25,8 @@ def main(args):
     nameInputFiles  = '*.dcm'
     nameOutputFiles = '.nii.gz'
 
-    nameOutputFiles = lambda in_name: filenamenoextension(in_name).replace('surface0','lumen').replace('surface1','outerwall') + '.nii.gz'
+    #nameOutputFiles = lambda in_name: filenamenoextension(in_name).replace('surface0','lumen').replace('surface1','outerwall') + '.nii.gz'
+    nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
 

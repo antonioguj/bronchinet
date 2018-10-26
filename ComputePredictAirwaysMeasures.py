@@ -22,39 +22,17 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameInputMasksRelPath     = 'ProcAllMasks'
-    nameCentrelinesRelPath    = 'ProcAllMasks_3b_i5'
-
-    if (args.typepredictmasks=='outerwall'):
-        namePredictMasksFiles   = '*outerwall*opfront.nii.gz'
-    elif (args.typepredictmasks=='lumen'):
-        namePredictMasksFiles   = '*lumen*opfront.nii.gz'
-    else:
-        print("ERROR...")
-        CatchErrorException()
-    if (args.typegrndtruth=='outerwall'):
-        nameInputMasksFiles  = '*outerwall.nii.gz'
-    elif (args.typegrndtruth=='lumen'):
-        nameInputMasksFiles  = '*lumen.nii.gz'
-    else:
-        print("ERROR...")
-        CatchErrorException()
-    nameCentrelinesFiles    = '*centrelines.nii.gz'
+    nameInputMasksRelPath  = 'Myrian-opfronted_3b_i5'
+    nameCentrelinesRelPath = 'Myrian-opfronted_3b_i5'
+    namePredictMasksFiles  = '*thres0-5.nii.gz'
+    nameInputMasksFiles    = '*outerwall.nii.gz'
+    nameCentrelinesFiles   = '*centrelines_smoothed.nii.gz'
 
     # template search files
     tempSearchInputFiles  = 'av[0-9]*'
 
     # create file to save FROC values
-    if (args.typepredictmasks == 'outerwall'):
-        if (args.typegrndtruth=='outerwall'):
-            temp_outfilename  = 'leakagetest_outerwall_predictmasks_outerwall_grndtruth.txt'
-        elif (args.typegrndtruth=='lumen'):
-            temp_outfilename  = 'leakagetest_outerwall_predictmasks_lumen_grndtruth.txt'
-    elif (args.typepredictmasks=='lumen'):
-        if (args.typegrndtruth=='outerwall'):
-            temp_outfilename  = 'leakagetest_lumen_predictmasks_outerwall_grndtruth.txt'
-        elif (args.typegrndtruth=='lumen'):
-            temp_outfilename  = 'leakagetest_lumen_predictmasks_lumen_grndtruth.txt'
+    temp_outfilename  = 'res_completeness_voleakage.txt'
     # ---------- SETTINGS ----------
 
 
@@ -119,21 +97,21 @@ def main(args):
 
         dicecoeff = DiceCoefficient().compute_np(grndtruth_masks_array, predict_masks_array)
 
-        completeness = AirwayCompleteness().compute_np(centrelines_array, predict_masks_array)
+        completeness = AirwayCompleteness().compute_np(centrelines_array, predict_masks_array) * 100
 
-        volumeleakage = AirwayVolumeLeakage().compute_np(grndtruth_masks_array, predict_masks_array)
+        volumeleakage = AirwayVolumeLeakage().compute_np(grndtruth_masks_array, predict_masks_array) * 100
 
 
         completeness_list .append(completeness)
         volumeleakage_list.append(volumeleakage)
         dicecoeff_list   .append(dicecoeff)
 
-        strdata = '\'%s\''%(name_prefix_case) + ' ' + str(completeness) + ' ' + str(volumeleakage) + ' ' + str(dicecoeff) +'\n'
+        strdata = '\'%s\' %0.3f %0.3f %0.6f\n'%(name_prefix_case, completeness, volumeleakage, dicecoeff)
         fout.write(strdata)
 
         print("Computed Dice coefficient: %s..." %(dicecoeff))
         print("Computed Completeness: %s..." %(completeness))
-        print("Computed Volume Leakage 1: %s..." % (volumeleakage))
+        print("Computed Volume Leakage: %s..." % (volumeleakage))
     #endfor
 
 
@@ -157,8 +135,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
-    parser.add_argument('--typepredictmasks', default='')
-    parser.add_argument('--typegrndtruth', default='')
     parser.add_argument('--predictionsdir', default='Predictions_NEW')
     args = parser.parse_args()
 
