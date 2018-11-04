@@ -27,11 +27,11 @@ def main(args):
     max_size_boundingBox = (0, 0, 0)
     min_size_boundingBox = (1.0e+03, 1.0e+03, 1.0e+03)
 
-    nameRawImagesRelPath = 'RawImages'
-    nameRawMasksRelPath  = 'ProcAllMasks'
+    nameRawImagesRelPath = 'ProcImages'
+    nameRawMasksRelPath  = 'ProcMasks'
 
     # Get the file list:
-    nameImagesFiles = '*.dcm'
+    nameImagesFiles = '*.nii.gz'
     nameMasksFiles  = '*.nii.gz'
 
     nameBoundingBoxesMasksNPY = 'boundBoxesMasks.npy'
@@ -77,7 +77,7 @@ def main(args):
         print("Original image of size: %s..." % (str(images_array.shape)))
 
 
-        boundingBox = BoundingBoxMasks.compute_with_border_effects(masks_array, voxels_buffer_border=VOXELSBUFFERBORDER)
+        boundingBox = BoundingBoxMasks.compute_bounding_box_contain_masks_with_border_effects(masks_array, voxels_buffer_border=VOXELSBUFFERBORDER)
 
         size_boundingBox = BoundingBoxMasks.compute_size_bounding_box(boundingBox)
 
@@ -97,7 +97,7 @@ def main(args):
 
 
         # Compute new bounding-box that fits all input images processed
-        processed_boundingBox = BoundingBoxMasks.compute_centered_bounding_box(boundingBox, args.cropSizeBoundingBox, images_array.shape)
+        processed_boundingBox = BoundingBoxMasks.compute_centered_bounding_box_type1_2D(boundingBox, args.cropSizeBoundingBox, images_array.shape)
 
         size_processed_boundingBox = BoundingBoxMasks.compute_size_bounding_box(processed_boundingBox)
 

@@ -66,9 +66,9 @@ def main(args):
 
         if (args.slidingWindowImages):
 
-            images_reconstructor = SlidingWindowReconstructorImages3D(IMAGES_DIMS_Z_X_Y, images_array.shape, args.prop_overlap_Z_X_Y, size_outnnet_sample=args.size_out_nnet)
+            images_reconstructor = SlidingWindowReconstructorImages3D(IMAGES_DIMS_Z_X_Y, images_array.shape, args.prop_overlap_Z_X_Y, size_outUnet_sample=args.size_out_nnet)
         else:
-            images_reconstructor = SlidingWindowReconstructorImages3D(IMAGES_DIMS_Z_X_Y, images_array.shape, (0.0, 0.0, 0.0), size_outnnet_sample=args.size_out_nnet)
+            images_reconstructor = SlidingWindowReconstructorImages3D(IMAGES_DIMS_Z_X_Y, images_array.shape, (0.0, 0.0, 0.0), size_outUnet_sample=args.size_out_nnet)
 
         masks_probValidConvNnet_output_array = images_reconstructor.get_filtering_map_array()
 
@@ -85,7 +85,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--model', default='Unet3D')
     parser.add_argument('--invertImageAxial', type=str2bool, default=INVERTIMAGEAXIAL)
-    parser.add_argument('--size_out_nnet', type=str2tuplefloat, default=IMAGES_SIZE_OUT_NNET)
+    parser.add_argument('--size_out_nnet', type=str2tuplefloat, default=IMAGES_SIZE_OUT_UNET)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
     args = parser.parse_args()

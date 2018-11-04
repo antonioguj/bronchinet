@@ -22,8 +22,8 @@ def main(args):
 
     # ---------- SETTINGS ----------
     # Get the file list:
-    nameInputFiles  = '*.dcm'
-    nameOutputFiles = '.nii.gz'
+    nameInputFiles  = '*.nii.gz'
+    nameOutputFiles = '*.nii.gz'
 
     #nameOutputFiles = lambda in_name: filenamenoextension(in_name).replace('surface0','lumen').replace('surface1','outerwall') + '.nii.gz'
     nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
@@ -57,7 +57,7 @@ def main(args):
 
         out_images_filename = joinpathnames(OutputPath, nameOutputFiles(input_file))
 
-        FileReader.writeImageArray(out_images_filename, images_array.astype(FORMATIMAGEDATA))
+        FileReader.writeImageArray(out_images_filename, images_array)
     #endfor
 
 
@@ -74,6 +74,7 @@ if __name__ == "__main__":
     if not args.inputdir:
         message = 'Please input a valid input directory'
         CatchErrorException(message)
+
     if not args.outputdir:
         message = 'Output directory not indicated. Assume same as input directory'
         args.outputdir = args.inputdir

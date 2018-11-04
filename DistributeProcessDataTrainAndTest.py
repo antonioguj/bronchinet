@@ -15,6 +15,34 @@ import argparse
 
 
 
+def find_indexes_names_images_files(names_images_type_data, list_images_files):
+
+    indexes_names = []
+    for iname in names_images_type_data:
+        ifound = False
+        for i, ifile in enumerate(list_images_files):
+            if iname in ifile:
+                indexes_names.append(i)
+                ifound = True
+                break
+        #endfor
+        if not ifound:
+            message = 'data named: \'%s\' not found' % (iname)
+            CatchErrorException(message)
+
+    return indexes_names
+
+def find_element_repeated_two_indexes_names(names_images_type_data_1, names_images_type_data_2):
+
+    list_names_repeated = []
+    for ielem in names_images_type_data_1:
+        if ielem in names_images_type_data_2:
+            list_names_repeated.append(ielem)
+    #endfor
+    return list_names_repeated
+
+
+
 def main(args):
 
     # ---------- SETTINGS ----------
@@ -44,26 +72,41 @@ def main(args):
         message = "num Images files not equal to num Masks..."
         CatchErrorException(message)
 
-    nbTrainingFiles   = int(args.prop_training * nbImagesFiles)
-    nbValidationFiles = int(args.prop_validation * nbImagesFiles)
-    nbTestingFiles    = int(args.prop_testing * nbImagesFiles)
-
-    print('Splitting full dataset in Training, Validation and Testing files...(%s, %s, %s)' %(nbTrainingFiles,
-                                                                                              nbValidationFiles,
-                                                                                              nbTestingFiles))
 
     if (args.distribute_random):
+        print('Split dataset Randomly...')
 
-        randomIndexes     = np.random.choice(range(nbImagesFiles), size=nbImagesFiles, replace=False)
-        indexesTraining   = randomIndexes[0:nbTrainingFiles]
-        indexesValidation = randomIndexes[nbTrainingFiles:nbTrainingFiles+nbValidationFiles]
-        indexesTesting    = randomIndexes[nbTrainingFiles+nbValidationFiles::]
+        nbTrainingFiles   = int(args.prop_data_training * nbImagesFiles)
+        nbValidationFiles = int(args.prop_data_validation * nbImagesFiles)
+        nbTestingFiles    = int(args.prop_data_testing * nbImagesFiles)
+
+        print('Training (%s files)/ Validation (%s files)/ Testing (%s files)...' %(nbTrainingFiles,
+                                                                                    nbValidationFiles,
+                                                                                    nbTestingFiles))
+        randomIndexes    = np.random.choice(range(nbImagesFiles), size=nbImagesFiles, replace=False)
+
+        indexesTraining  = randomIndexes[0:nbTrainingFiles]
+        indexesValidation= randomIndexes[nbTrainingFiles:nbTrainingFiles+nbValidationFiles]
+        indexesTesting   = randomIndexes[nbTrainingFiles+nbValidationFiles::]
+
     else:
+        print('Split dataset with Fixed Names...')
 
-        orderedIndexes    = range(nbImagesFiles)
-        indexesTraining   = orderedIndexes[0:nbTrainingFiles]
-        indexesValidation = orderedIndexes[nbTrainingFiles:nbTrainingFiles+nbValidationFiles]
-        indexesTesting    = orderedIndexes[nbTrainingFiles+nbValidationFiles::]
+        names_repeated  = find_element_repeated_two_indexes_names(NAME_IMAGES_TRAINING, NAME_IMAGES_VALIDATION)
+        names_repeated += find_element_repeated_two_indexes_names(NAME_IMAGES_TRAINING, NAME_IMAGES_TESTING)
+        names_repeated += find_element_repeated_two_indexes_names(NAME_IMAGES_VALIDATION, NAME_IMAGES_TESTING)
+
+        if names_repeated:
+            message = "found names repeated in list Training / Validation / Testing names: %s" %(names_repeated)
+            CatchErrorException(message)
+
+        indexesTraining   = find_indexes_names_images_files(NAME_IMAGES_TRAINING,   listImagesFiles)
+        indexesValidation = find_indexes_names_images_files(NAME_IMAGES_VALIDATION, listImagesFiles)
+        indexesTesting    = find_indexes_names_images_files(NAME_IMAGES_TESTING,    listImagesFiles)
+
+        print('Training (%s files)/ Validation (%s files)/ Testing (%s files)...' %(len(indexesTraining),
+                                                                                    len(indexesValidation),
+                                                                                    len(indexesTesting)))
 
 
     print('Files assigned to Training Data: %s'   %([basename(listImagesFiles[index]) for index in indexesTraining  ]))
@@ -101,9 +144,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', default=DATADIR)
     parser.add_argument('--basedir', default=BASEDIR)
-    parser.add_argument('--prop_training', type=float, default=PROP_TRAINING)
-    parser.add_argument('--prop_validation', type=float, default=PROP_VALIDATION)
-    parser.add_argument('--prop_testing', type=float, default=PROP_TESTING)
+    parser.add_argument('--prop_data_training', type=float, default=PROP_DATA_TRAINING)
+    parser.add_argument('--prop_data_validation', type=float, default=PROP_DATA_VALIDATION)
+    parser.add_argument('--prop_data_testing', type=float, default=PROP_DATA_TESTING)
     parser.add_argument('--distribute_random', type=str2bool, default=DISTRIBUTE_RANDOM)
     args = parser.parse_args()
 

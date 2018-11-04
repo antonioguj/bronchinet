@@ -14,7 +14,9 @@ from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import *
 from Preprocessing.BalanceClassesMasks import *
+from Preprocessing.BoundingBoxMasks import *
 from Preprocessing.OperationsImages import *
+from Preprocessing.OperationsMasks import *
 from Preprocessing.SlidingWindowImages import *
 from Preprocessing.SlidingWindowPlusTransformImages import *
 from Preprocessing.TransformationImages import *
@@ -38,8 +40,14 @@ def main(args):
 
     nameBoundingBoxesMasks = 'boundBoxesMasks.npy'
 
-    tempNameProcImagesFiles = 'images-%0.2i_dim%s' + getFileExtension(FORMATINOUTDATA)
-    tempNameProcMasksFiles  = 'masks-%0.2i_dim%s'  + getFileExtension(FORMATINOUTDATA)
+    if (args.constructInputDataDLCST):
+        tempNameProcImagesFiles  = 'images-%0.2i_img1_dim%s' + getFileExtension(FORMATINOUTDATA)
+        tempNameProcMasksFiles   = 'masks-%0.2i_img1_dim%s'  + getFileExtension(FORMATINOUTDATA)
+        tempNameProcImagesFiles_2= 'images-%0.2i_img2_dim%s' + getFileExtension(FORMATINOUTDATA)
+        tempNameProcMasksFiles_2 = 'masks-%0.2i_img2_dim%s'  + getFileExtension(FORMATINOUTDATA)
+    else:
+        tempNameProcImagesFiles  = 'images-%0.2i_dim%s' + getFileExtension(FORMATINOUTDATA)
+        tempNameProcMasksFiles   = 'masks-%0.2i_dim%s'  + getFileExtension(FORMATINOUTDATA)
     # ---------- SETTINGS ----------
 
 
@@ -100,19 +108,20 @@ def main(args):
         print("Original image of size: %s..." %(str(images_array.shape)))
 
 
-        if (args.multiClassCase):
-            operationsMasks = OperationsMultiClassMasks(args.numClassesMasks)
+        if (args.isClassificationCase):
+            if (args.multiClassCase):
+                operationsMasks = OperationsMultiClassMasks(args.numClassesMasks)
 
-            # Check the correct labels in "masks_array"
-            if not operationsMasks.check_masks(masks_array):
-                message = "found wrong labels in masks array: %s..." %(np.unique(masks_array))
+                # Check the correct labels in "masks_array"
+                if not operationsMasks.check_masks(masks_array):
+                    message = "found wrong labels in masks array: %s..." %(np.unique(masks_array))
+                    CatchErrorException(message)
+
+                message = "MULTICLASS CASE STILL IN IMPLEMENTATION...EXIT"
                 CatchErrorException(message)
-
-            message = "MULTICLASS CASE STILL IN IMPLEMENTATION...EXIT"
-            CatchErrorException(message)
-        else:
-            # Turn to binary masks (0, 1)
-            masks_array = OperationsBinaryMasks.process_masks(masks_array)
+            else:
+                # Turn to binary masks (0, 1)
+                masks_array = OperationsBinaryMasks.process_masks(masks_array)
 
 
         if (args.masksToRegionInterest):
@@ -141,12 +150,12 @@ def main(args):
 
 
         if (args.cropImages):
-            crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(images_file)]
+            bounding_box = dict_masks_boundingBoxes[filenamenoextension(images_file)]
 
-            print("Crop images to bounding-box: %s..." %(str(crop_boundingBox)))
+            print("Crop images to bounding-box: %s..." %(str(bounding_box)))
 
-            images_array = CropImages.compute3D(images_array, crop_boundingBox)
-            masks_array  = CropImages.compute3D(masks_array,  crop_boundingBox)
+            images_array = CropImages.compute3D(images_array, bounding_box)
+            masks_array  = CropImages.compute3D(masks_array,  bounding_box)
 
             print("Final dimensions: %s..." %(str(images_array.shape)))
 
@@ -156,26 +165,42 @@ def main(args):
 
             size_new_image = (images_array.shape[0], CROPSIZEBOUNDINGBOX[0], CROPSIZEBOUNDINGBOX[1])
 
-            backgr_val_images_array = -1000
-            backgr_val_masks_array  = -1 if args.masksToRegionInterest else 0
+            backgr_val_images = -1000
+            backgr_val_masks  = -1 if args.masksToRegionInterest else 0
 
-            crop_boundingBox = dict_masks_boundingBoxes[filenamenoextension(images_file)]
+            bounding_box = dict_masks_boundingBoxes[filenamenoextension(images_file)]
 
-            sub_images_array = images_array
-            sub_masks_array  = masks_array
+            images_array = ExtendImages.compute3D(images_array, bounding_box, size_new_image, background_value=backgr_val_images)
+            masks_array  = ExtendImages.compute3D(masks_array,  bounding_box, size_new_image, background_value=backgr_val_masks)
 
-            images_array = np.ndarray(size_new_image, dtype=sub_images_array.dtype)
-            masks_array  = np.ndarray(size_new_image, dtype=sub_masks_array. dtype)
 
-            images_array[:,:,:] = backgr_val_images_array
-            masks_array [:,:,:] = backgr_val_masks_array
+        if (args.constructInputDataDLCST):
+            print("Construct data for DLCST: crop images and set one batch per image...")
 
-            images_array[crop_boundingBox[0][0]:crop_boundingBox[0][1],
-                         crop_boundingBox[1][0]:crop_boundingBox[1][1],
-                         crop_boundingBox[2][0]:crop_boundingBox[2][1]] = sub_images_array
-            masks_array [crop_boundingBox[0][0]:crop_boundingBox[0][1],
-                         crop_boundingBox[1][0]:crop_boundingBox[1][1],
-                         crop_boundingBox[2][0]:crop_boundingBox[2][1]] = sub_masks_array
+            backgr_val_images = -1000
+            backgr_val_masks  = -1 if args.masksToRegionInterest else 0
+
+            size_images_array = images_array.shape
+
+            default_bounding_box = BoundingBoxMasks.compute_default_bounding_box(size_images_array)
+
+            (bounding_box_defleft, bounding_box_defright) = BoundingBoxMasks.compute_split_bounding_boxes(default_bounding_box, axis=2)
+
+            bounding_box_left = BoundingBoxMasks.compute_centered_bounding_box_type1_3D(bounding_box_defleft,  IMAGES_DIMS_Z_X_Y, size_images_array)
+            bounding_box_right= BoundingBoxMasks.compute_centered_bounding_box_type1_3D(bounding_box_defright, IMAGES_DIMS_Z_X_Y, size_images_array)
+
+            size_bounding_new = BoundingBoxMasks.compute_size_bounding_box(bounding_box_left)
+
+            bounding_box_new = BoundingBoxMasks.compute_centered_bounding_box_type3_3D(size_bounding_new, IMAGES_DIMS_Z_X_Y)
+
+            images_array_2= ExtendImages.compute3D(CropImages.compute3D(images_array, bounding_box_right),
+                                                   bounding_box_new, IMAGES_DIMS_Z_X_Y, background_value=backgr_val_images)
+            images_array  = ExtendImages.compute3D(CropImages.compute3D(images_array, bounding_box_left),
+                                                   bounding_box_new, IMAGES_DIMS_Z_X_Y, background_value=backgr_val_images)
+            masks_array_2 = ExtendImages.compute3D(CropImages.compute3D(masks_array, bounding_box_right),
+                                                   bounding_box_new, IMAGES_DIMS_Z_X_Y, background_value=backgr_val_masks)
+            masks_array   = ExtendImages.compute3D(CropImages.compute3D(masks_array, bounding_box_left),
+                                                   bounding_box_new, IMAGES_DIMS_Z_X_Y, background_value=backgr_val_masks)
 
 
         if (args.createImagesBatches):
@@ -236,6 +261,13 @@ def main(args):
 
         FileReader.writeImageArray(out_images_filename, images_array)
         FileReader.writeImageArray(out_masks_filename,  masks_array )
+
+        if (args.constructInputDataDLCST):
+            out_images_filename = joinpathnames(OutputImagesPath, tempNameProcImagesFiles_2%(i+1, tuple2str(images_array.shape)))
+            out_masks_filename  = joinpathnames(OutputMasksPath,  tempNameProcMasksFiles_2 %(i+1, tuple2str(masks_array.shape)))
+
+            FileReader.writeImageArray(out_images_filename, images_array_2)
+            FileReader.writeImageArray(out_masks_filename,  masks_array_2)
     #endfor
 
 
@@ -244,6 +276,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--isClassificationCase', type=str, default=ISCLASSIFICATIONCASE)
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--invertImageAxial', type=str2bool, default=INVERTIMAGEAXIAL)
@@ -252,6 +285,7 @@ if __name__ == "__main__":
     parser.add_argument('--sizeReducedImages', type=str2bool, default=SIZEREDUCEDIMAGES)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--extendSizeImages', type=str2bool, default=EXTENDSIZEIMAGES)
+    parser.add_argument('--constructInputDataDLCST', type=str2bool, default=CONSTRUCTINPUTDATADLCST)
     parser.add_argument('--checkBalanceClasses', type=str2bool, default=CHECKBALANCECLASSES)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)

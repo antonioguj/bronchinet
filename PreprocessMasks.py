@@ -14,6 +14,7 @@ from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import *
 from Preprocessing.OperationsImages import *
+from Preprocessing.OperationsMasks import *
 import argparse
 
 
@@ -21,19 +22,19 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameInputMasksRelPath  = 'Airways_Full'
-    nameLungsMasksRelPath  = 'Lungs_Full'
-    nameCentrelinesRelPath = 'RawAddMasks_Nosearch'
-    nameOutputMasksRelPath = 'ProcAllMasks'
+    nameInputMasksRelPath    = args.inputdir
+    nameLungsMasksRelPath    = 'Lungs_Full'
+    nameCentrelinesRelPath   = 'RawAddMasks_Nosearch'
+    nameOutputMasksRelPath   = args.outputdir
 
-    nameMasksFiles       = '*surface0.nii.gz'
+    nameMasksFiles       = '*.nii.gz'
     nameLungsMasksFiles  = '*-lungs.nii.gz'
     nameCentrelinesFiles = '*_centrelines.dcm'
 
     tempSearchInputFiles = 'vol[0-9][0-9]_*'
 
     def rename_airways_files(in_name):
-        return in_name.replace('surface0','lumen').replace('surface1','outerwall')
+        return in_name.replace('surface0','lumen-opfront').replace('surface1','outerwall-opfront').replace('-result','_lumen-noopfront')
 
     nameOutAirwaysMasksFiles           = lambda in_name: rename_airways_files(filenamenoextension(in_name)) + '.nii.gz'
     nameOutLungsMasksFiles             = lambda in_name: filenamenoextension(in_name).replace('-lungs','_lungs') + '.nii.gz'
@@ -49,8 +50,8 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath    = workDirsManager.getNameBaseDataPath()
-    InputMasksPath  = workDirsManager.getNameExistPath(BaseDataPath, nameInputMasksRelPath)
-    OutputMasksPath = workDirsManager.getNameNewPath  (BaseDataPath, nameOutputMasksRelPath)
+    InputMasksPath  = workDirsManager.getNameExistPath(args.basedir, nameInputMasksRelPath)
+    OutputMasksPath = workDirsManager.getNameNewPath  (args.basedir, nameOutputMasksRelPath)
 
     # Get the file list:
     listMasksFiles = findFilesDir(InputMasksPath, nameMasksFiles)
@@ -73,9 +74,9 @@ def main(args):
             isExistsLungsMasks = True
             print("Found Lungs Masks files in dir \'%s\'" % (LungsMasksPath))
 
-            if (nbMasksFiles != nbLungsMasksFiles):
-               message = "num Masks %s not equal to num Lungs Masks %s" %(nbMasksFiles, nbLungsMasksFiles)
-               CatchErrorException(message)
+            #if (nbMasksFiles != nbLungsMasksFiles):
+            #    message = "num Masks %s not equal to num Lungs Masks %s" %(nbMasksFiles, nbLungsMasksFiles)
+            #    CatchErrorException(message)
         else:
             isExistsLungsMasks = False
     else:
@@ -113,9 +114,11 @@ def main(args):
 
         print('\'%s\'...' %(masks_file))
         if '_surface0' in masks_file:
-            print("Masks corresponding to Airways Lumen...")
+            print("Masks corresponding to airways lumen...")
+        elif '_surface1' in masks_file:
+            print("Masks corresponding to airways outer wall...")
         else:
-            print("Masks corresponding to Airways Outer-wall...")
+            print("Masks corresponding to other...")
 
         masks_array = FileReader.getImageArray(masks_file)
 
@@ -123,19 +126,20 @@ def main(args):
             masks_array = FlippingImages.compute(masks_array,  axis=0)
 
 
-        if (args.multiClassCase):
-            operationsMasks = OperationsMultiClassMasks(args.numClassesMasks)
+        if (args.isClassificationCase):
+            if (args.multiClassCase):
+                operationsMasks = OperationsMultiClassMasks(args.numClassesMasks)
 
-            # Check the correct labels in "masks_array"
-            if not operationsMasks.check_masks(masks_array):
-                message = "found wrong labels in masks array: %s..." %(np.unique(masks_array))
+                # Check the correct labels in "masks_array"
+                if not operationsMasks.check_masks(masks_array):
+                    message = "found wrong labels in masks array: %s..." %(np.unique(masks_array))
+                    CatchErrorException(message)
+
+                message = "MULTICLASS CASE STILL IN IMPLEMENTATION...EXIT"
                 CatchErrorException(message)
-
-            message = "MULTICLASS CASE STILL IN IMPLEMENTATION...EXIT"
-            CatchErrorException(message)
-        else:
-            # Turn to binary masks (0, 1)
-            masks_array = OperationsBinaryMasks.process_masks(masks_array)
+            else:
+                # Turn to binary masks (0, 1)
+                masks_array = OperationsBinaryMasks.process_masks(masks_array)
 
 
         if (isExistsLungsMasks):
@@ -199,9 +203,9 @@ def main(args):
 
         out_masks_filename = joinpathnames(OutputMasksPath, basename(nameOutAirwaysMasksFiles(masks_file)))
 
-        print (out_masks_filename)
+        print(out_masks_filename)
 
-        FileReader.writeImageArray(out_masks_filename, masks_array.astype(FORMATIMAGEDATA))
+        FileReader.writeImageArray(out_masks_filename, masks_array)
 
         if (isExistsLungsMasks):
 
@@ -210,27 +214,27 @@ def main(args):
             out_airwaytrachea_masks_filename= joinpathnames(OutputMasksPath, nameOutAirwaysPlusTracheaMasksFiles(masks_file))
             out_lungstrachea_masks_filename = joinpathnames(OutputMasksPath, nameOutLungsPlusTracheaMasksFiles(masks_file))
 
-            print (out_lungs_masks_filename)
-            print (out_trachea_masks_filename)
-            print (out_airwaytrachea_masks_filename)
-            print (out_lungstrachea_masks_filename)
+            print(out_lungs_masks_filename)
+            print(out_trachea_masks_filename)
+            print(out_airwaytrachea_masks_filename)
+            print(out_lungstrachea_masks_filename)
 
-            FileReader.writeImageArray(out_lungs_masks_filename,         lungs_masks_array.astype(FORMATIMAGEDATA))
-            FileReader.writeImageArray(out_trachea_masks_filename,       trachea_masks_array.astype(FORMATIMAGEDATA))
-            FileReader.writeImageArray(out_airwaytrachea_masks_filename, airwaysplustrachea_masks_array.astype(FORMATIMAGEDATA))
-            FileReader.writeImageArray(out_lungstrachea_masks_filename,  lungsplustrachea_masks_array.astype(FORMATIMAGEDATA))
+            FileReader.writeImageArray(out_lungs_masks_filename,         lungs_masks_array)
+            FileReader.writeImageArray(out_trachea_masks_filename,       trachea_masks_array)
+            FileReader.writeImageArray(out_airwaytrachea_masks_filename, airwaysplustrachea_masks_array)
+            FileReader.writeImageArray(out_lungstrachea_masks_filename,  lungsplustrachea_masks_array)
 
         if (isExistsCentrelines):
 
             out_centrelines_filename = joinpathnames(OutputMasksPath, nameOutCentrelinesFiles(centrelines_file))
 
-            FileReader.writeImageArray(out_centrelines_filename, centrelines_array.astype(FORMATIMAGEDATA))
+            FileReader.writeImageArray(out_centrelines_filename, centrelines_array)
 
             if (isExistsLungsMasks):
 
                 out_centrelinestrachea_filename = joinpathnames(OutputMasksPath, nameOutCentrelinesPlusTracheaFiles(centrelines_file))
 
-                FileReader.writeImageArray(out_centrelinestrachea_filename, centrelinesplustrachea_array.astype(FORMATIMAGEDATA))
+                FileReader.writeImageArray(out_centrelinestrachea_filename, centrelinesplustrachea_array)
     #endfor
 
 
@@ -239,11 +243,23 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--inputdir')
+    parser.add_argument('--outputdir')
+    parser.add_argument('--isClassificationCase', type=str, default=ISCLASSIFICATIONCASE)
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--invertImageAxial', type=str2bool, default=INVERTIMAGEAXIAL)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     args = parser.parse_args()
+
+    if not args.inputdir:
+        message = 'Please input a valid input directory'
+        CatchErrorException(message)
+
+    if not args.outputdir:
+        message = 'Output directory not indicated. Assume same as input directory'
+        args.outputdir = args.inputdir
+        CatchWarningException(message)
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

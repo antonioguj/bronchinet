@@ -16,6 +16,7 @@ from CommonUtil.PlotsManager import *
 from CommonUtil.WorkDirsManager import *
 from Networks.Metrics import *
 from Preprocessing.OperationsImages import *
+from Preprocessing.OperationsMasks import *
 from collections import OrderedDict
 import argparse
 
@@ -29,10 +30,10 @@ def main(args):
     # Get the file list:
     namePredictionsFiles  = 'predict_probmaps*.nii.gz'
     nameInputMasksFiles   = '*lumen.nii.gz'
-    nameTracheaMasksFiles = '*lumen_traquea.nii.gz'
+    nameTracheaMasksFiles = '*lumen_trachea.nii.gz'
 
     # template search files
-    tempSearchInputFiles = 'av[0-9]*'
+    tempSearchInputFiles = 'vol[0-9][0-9]_*'
 
     if (args.calcMasksThresholding):
         suffixPostProcessThreshold = '_thres%s'%(str(args.thresholdValue).replace('.','-'))
@@ -44,13 +45,11 @@ def main(args):
     # create file to save accuracy measures on test sets
     nameAccuracyPredictFiles = 'predict_accuracy_tests%s.txt'%(suffixPostProcessThreshold)
 
-    def update_name_outfile(in_name, in_acc):
-        pattern_accval = getExtractSubstringPattern(in_name, 'acc[0-9]*')
-        new_accval_int = np.round(100*in_acc)
-        out_name = filenamenoextension(in_name).replace('predict_probmaps','predict_binmasks').replace(pattern_accval, 'acc%2.0f'%(new_accval_int))
+    def gen_name_outfile(in_name, in_acc):
+        out_name = filenamenoextension(in_name).replace('predict_probmaps','predict_binmasks') + '_acc%2.0f' %(np.round(100*in_acc))
         return out_name + '%s.nii.gz'%(suffixPostProcessThreshold)
 
-    tempOutPredictMasksFilename = update_name_outfile
+    tempOutPredictMasksFilename = gen_name_outfile
     # ---------- SETTINGS ----------
 
 

@@ -20,8 +20,8 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    namesFilesDir1 = '*_lumen_airway-trachea.nii.gz'
-    namesFilesDir2 = '*_lumen_airway-trachea.nii.gz'
+    namesFilesDir1 = '*.npz'
+    namesFilesDir2 = '*.npz'
 
     max_rel_error_images = 1.0e-06
     # ---------- SETTINGS ----------
