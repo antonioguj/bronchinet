@@ -353,9 +353,9 @@ class TransformationImages2D(TransformationImages):
 
 
     def inverse_random_transform(self, x, y=None, seed=None):
-        # Use composition of inverse transformations,
-        # Apply progressively transforms in inverse order to that in "random_transform"
-        # Useful when doing data augmentation during testing
+        # use composition of inverse transformations,
+        # apply progressively transforms in inverse order to that in "random_transform"
+        # useful when doing data augmentation during testing
 
         if y is not None and (y.shape != x.shape):
             print("Error: input images 'x' and 'y' os different shape in 'random_transform'... Exit")
@@ -393,7 +393,7 @@ class TransformationImages2D(TransformationImages):
             zx, zy = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 2)
 
 
-        # Compute inverse transformations matrixes
+        # compute inverse transformations matrixes
         transform_matrix = None
         if theta != 0:
             rotation_matrix = np.array([[ np.cos(theta), np.sin(theta), 0],
@@ -420,7 +420,7 @@ class TransformationImages2D(TransformationImages):
             transform_matrix = zoom_matrix if transform_matrix is None else np.dot(transform_matrix, zoom_matrix)
 
 
-        # Apply transformations (in inverse order)
+        # apply transformations (in inverse order)
         if self.horizontal_flip:
             if np.random.random() < 0.5:
                 x = image.flip_axis(x, axis=self.img_col_axis)
@@ -493,7 +493,7 @@ class TransformationImages3D(TransformationImages2D):
         self.vertical_flip = vertical_flip
         self.depthZ_flip = depthZ_flip
 
-        # Delegate to "Transformation2D" the functions to "standardize" images
+        # delegate to "Transformation2D" the functions to "standardize" images
         # only provide parameters relevant for "standardize" functions
         super(TransformationImages3D, self).__init__(size_image,
                                                      is_normalize_data=is_normalize_data,
@@ -512,9 +512,8 @@ class TransformationImages3D(TransformationImages2D):
 
 
     def random_transform(self, x, y=None, seed=None):
-        #Randomly augment a single image tensor.
-        # use composition of homographies
-        # to generate final transform that needs to be applied
+        # randomly augment a single image tensor.
+        # use composition of homographies to generate final transform that needs to be applied
 
         if y is not None and (y.shape != x.shape):
             print("Error: input images 'x' and 'y' os different shape in 'random_transform'... Exit")
@@ -628,7 +627,7 @@ class TransformationImages3D(TransformationImages2D):
             transform_matrix = zoom_matrix if transform_matrix is None else np.dot(transform_matrix, zoom_matrix)
 
 
-        # Apply transformations
+        # apply transformations
         if transform_matrix is not None:
             (d, h, w) = (x.shape[self.img_dep_axis], x.shape[self.img_row_axis], x.shape[self.img_col_axis])
             transform_matrix = self.transform_matrix_offset_center(transform_matrix, d, h, w)
@@ -670,9 +669,9 @@ class TransformationImages3D(TransformationImages2D):
 
 
     def inverse_random_transform(self, x, y=None, seed=None):
-        # Use composition of inverse transformations,
-        # Apply progressively transforms in inverse order to that in "random_transform"
-        # Useful when doing data augmentation during testing
+        # use composition of inverse transformations,
+        # apply progressively transforms in inverse order to that in "random_transform"
+        # useful when doing data augmentation during testing
 
         if y is not None and (y.shape != x.shape):
             print("Error: input images 'x' and 'y' os different shape in 'random_transform'... Exit")
@@ -732,7 +731,7 @@ class TransformationImages3D(TransformationImages2D):
             (zx, zy, zz) = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 3)
 
 
-        # Compute inverse transformations matrixes
+        # compute inverse transformations matrixes
         transform_matrix = None
         if angle_XY != 0:
             rotation_matrix = np.array([[1, 0, 0, 0],
@@ -787,7 +786,7 @@ class TransformationImages3D(TransformationImages2D):
             transform_matrix = zoom_matrix if transform_matrix is None else np.dot(transform_matrix, zoom_matrix)
 
 
-        # Apply transformations (in inverse order)
+        # apply transformations (in inverse order)
         if self.horizontal_flip:
             if np.random.random() < 0.5:
                 x = image.flip_axis(x, axis=self.img_col_axis)

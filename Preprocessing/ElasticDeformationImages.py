@@ -43,7 +43,7 @@ class ElasticDeformationImages(TransformationImages):
 
 
 class ElasticDeformationPixelwiseImages2D(ElasticDeformationImages):
-    # Implemented by Florian Calvet: florian.calvet@centrale-marseille.fr
+    # implemented by Florian Calvet: florian.calvet@centrale-marseille.fr
     alpha_default = 15
     sigma_default = 3
 
@@ -76,7 +76,7 @@ class ElasticDeformationPixelwiseImages2D(ElasticDeformationImages):
 
 
 class ElasticDeformationGridwiseImages2D(ElasticDeformationImages):
-    # Implemented by Florian Calvet: florian.calvet@centrale-marseille.fr
+    # implemented by Florian Calvet: florian.calvet@centrale-marseille.fr
     sigma_default = 25
     points_default = 3
 
@@ -117,7 +117,7 @@ class ElasticDeformationGridwiseImages2D(ElasticDeformationImages):
 
 
 class ElasticDeformationPixelwiseImages3D(ElasticDeformationImages):
-    # Implemented by Florian Calvet: florian.calvet@centrale-marseille.fr
+    # implemented by Florian Calvet: florian.calvet@centrale-marseille.fr
     alpha_default = 15
     sigma_default = 3
 
@@ -151,7 +151,7 @@ class ElasticDeformationPixelwiseImages3D(ElasticDeformationImages):
 
 
 class ElasticDeformationGridwiseImages3D(ElasticDeformationImages):
-    # Implemented by Florian Calvet: florian.calvet@centrale-marseille.fr
+    # implemented by Florian Calvet: florian.calvet@centrale-marseille.fr
     sigma_default = 25
     points_default = 3
 
