@@ -227,11 +227,11 @@ class DICOMreader(FileReader):
 
     # get dcm voxel size:
     @staticmethod
-    def getImageVoxelSize(filename):
+    def getVoxelSize(filename):
         ds = pydicom.read_file(filename)
-        voxel_size = (float(ds.PixelSpacing[0]),
-                      float(ds.PixelSpacing[1]),
-                      float(ds.SpacingBetweenSlices))
+        voxel_size = (float(ds.SpacingBetweenSlices),
+                      float(ds.PixelSpacing[0]),
+                      float(ds.PixelSpacing[1]))
         return voxel_size
 
     # load dcm file array:
@@ -312,7 +312,7 @@ class DICOMreader(FileReader):
         orig_ds.save_as(origfilename)
 
 
-# All Available File Readers
+# all available file readers
 DICTAVAILFILEREADERS = {"numpy": NUMPYreader,
                         "dicom": DICOMreader,
                         "nifti": NIFTIreader }

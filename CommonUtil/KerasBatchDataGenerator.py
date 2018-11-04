@@ -17,7 +17,7 @@ np.random.seed(2017)
 
 class KerasTrainingBatchDataGenerator(image.Iterator):
 
-    def __init__(self, size_image, list_xData_array, list_yData_array, images_generator, num_classes_out=1, size_outnnet=None, batch_size=1, shuffle=True, seed=None):
+    def __init__(self, size_image, list_xData_array, list_yData_array, images_generator, num_classes_out=1, size_outUnet=None, batch_size=1, shuffle=True, seed=None):
 
         self.size_image       = size_image
         self.list_xData_array = list_xData_array
@@ -27,7 +27,7 @@ class KerasTrainingBatchDataGenerator(image.Iterator):
 
         self.images_generator = images_generator
 
-        self.array_shape_manager = ArrayShapeManager(size_image, is_shaped_Keras=True, num_classes_out=num_classes_out, size_outnnet=size_outnnet)
+        self.array_shape_manager = ArrayShapeManager(size_image, is_shaped_Keras=True, num_classes_out=num_classes_out, size_outUnet=size_outUnet)
 
         self.num_channels_in  = self.array_shape_manager.get_num_channels_array(self.list_xData_array[0].shape)
         self.num_classes_out  = num_classes_out

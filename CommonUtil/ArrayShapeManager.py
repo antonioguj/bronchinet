@@ -15,14 +15,14 @@ import numpy as np
 
 class ArrayShapeManager(object):
 
-    def __init__(self, size_image, is_shaped_Keras=False, num_classes_out=1, size_outnnet=None):
+    def __init__(self, size_image, is_shaped_Keras=False, num_classes_out=1, size_outUnet=None):
         self.size_image      = size_image
         self.is_shaped_Keras = is_shaped_Keras
         self.num_classes_out = num_classes_out
-        if size_outnnet and (size_outnnet != size_image):
-            self.size_outnnet = size_outnnet
+        if size_outUnet and (size_outUnet != size_image):
+            self.size_outUnet = size_outUnet
         else:
-            self.size_outnnet = size_image
+            self.size_outUnet = size_image
 
 
     def is_images_array_without_channels(self, in_array_shape):
@@ -79,16 +79,16 @@ class ArrayShapeManager(object):
 
 
     @staticmethod
-    def get_limits_cropImage(size_image, size_outnnet):
-        if (size_image == size_outnnet):
+    def get_limits_cropImage(size_image, size_outUnet):
+        if (size_image == size_outUnet):
             list_out_aux = [[0] + [s_i] for s_i in size_image]
         else:
-            list_out_aux = [[(s_i - s_o) / 2] + [(s_i + s_o) / 2] for (s_i, s_o) in zip(size_image, size_outnnet)]
+            list_out_aux = [[(s_i - s_o) / 2] + [(s_i + s_o) / 2] for (s_i, s_o) in zip(size_image, size_outUnet)]
         # flatten out list of lists and return tuple
         return tuple(reduce(lambda el1, el2: el1 + el2, list_out_aux))
 
     def get_array_shaped_outNnet(self, yData):
-        if (self.size_image==self.size_outnnet):
+        if (self.size_image==self.size_outUnet):
             return yData
         else:
             if len(self.size_image)==2:
@@ -97,7 +97,7 @@ class ArrayShapeManager(object):
                 return self.get_array_shaped_outNnet_3D(yData)
 
     def get_array_shaped_outNnet_2D(self, yData):
-        (x_left, x_right, y_down, y_up) = self.get_limits_cropImage(self.size_image, self.size_outnnet)
+        (x_left, x_right, y_down, y_up) = self.get_limits_cropImage(self.size_image, self.size_outUnet)
 
         if self.is_images_array_without_channels(yData.shape):
             return yData[..., x_left:x_right, y_down:y_up]
@@ -105,7 +105,7 @@ class ArrayShapeManager(object):
             return yData[..., x_left:x_right, y_down:y_up, :]
 
     def get_array_shaped_outNnet_3D(self, yData):
-        (z_back, z_front, x_left, x_right, y_down, y_up) = self.get_limits_cropImage(self.size_image, self.size_outnnet)
+        (z_back, z_front, x_left, x_right, y_down, y_up) = self.get_limits_cropImage(self.size_image, self.size_outUnet)
 
         if self.is_images_array_without_channels(yData.shape):
             return yData[..., z_back:z_front, x_left:x_right, y_down:y_up]
@@ -128,12 +128,12 @@ class ArrayShapeManager(object):
     def get_yData_array_reshaped(self, yData):
         if self.is_shaped_Keras:
             if self.num_classes_out > 1:
-                if (self.size_image==self.size_outnnet):
+                if (self.size_image==self.size_outUnet):
                     return self.get_array_reshaped_Keras(self.get_array_categorical_masks(yData))
                 else:
                     return self.get_array_reshaped_Keras(self.get_array_categorical_masks(self.get_array_shaped_outNnet(yData)))
             else:
-                if (self.size_image==self.size_outnnet):
+                if (self.size_image==self.size_outUnet):
                     if self.is_images_array_without_channels(yData.shape):
                         return self.get_array_reshaped_Keras(self.get_array_with_channels(yData))
                     else:
@@ -145,12 +145,12 @@ class ArrayShapeManager(object):
                         return self.get_array_reshaped_Keras(self.get_array_shaped_outNnet(yData))
         else:
             if self.num_classes_out > 1:
-                if (self.size_image==self.size_outnnet):
+                if (self.size_image==self.size_outUnet):
                     return self.get_array_categorical_masks(yData)
                 else:
                     return self.get_array_categorical_masks(self.get_array_shaped_outNnet(yData))
             else:
-                if (self.size_image==self.size_outnnet):
+                if (self.size_image==self.size_outUnet):
                     if self.is_images_array_without_channels(yData.shape):
                         return self.get_array_with_channels(yData)
                     else:
@@ -164,9 +164,9 @@ class ArrayShapeManager(object):
 
 class ArrayShapeManagerInBatches(ArrayShapeManager):
 
-    def __init__(self, size_image, is_shaped_Keras=False, num_classes_out=1, size_outnnet=None):
+    def __init__(self, size_image, is_shaped_Keras=False, num_classes_out=1, size_outUnet=None):
 
-        super(ArrayShapeManagerInBatches, self).__init__(size_image, is_shaped_Keras, num_classes_out, size_outnnet)
+        super(ArrayShapeManagerInBatches, self).__init__(size_image, is_shaped_Keras, num_classes_out, size_outUnet)
 
     def is_images_array_without_channels(self, in_array_shape):
         return len(in_array_shape) == len(self.size_image) + 1

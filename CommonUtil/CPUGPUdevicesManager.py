@@ -120,13 +120,13 @@ class GPUdevicesManager:
         config.gpu_options.visible_device_list = str(id_device_gpu)
 
         if allow_groth_gpu_memory:
-            # Don't pre-allocate memory; allocate as-needed
+            # don't pre-allocate memory; allocate as-needed
             config.gpu_options.allow_growth = True
         if set_limit_gpu_usage:
-            # Only allow a total of half the GPU memory to be allocated
+            # only allow a total of half the GPU memory to be allocated
             config.gpu_options.per_process_gpu_memory_fraction = frac_gpu_usage
 
-        # Create a session with the above options specified
+        # create a session with the above options specified
         session = tf.Session(config=config)
         K.set_session(session)
 
@@ -146,13 +146,13 @@ class GPUdevicesManager:
         config.gpu_options.visible_device_list = str('0,1')
 
         if allow_groth_gpu_memory:
-            # Don't pre-allocate memory; allocate as-needed
+            # don't pre-allocate memory; allocate as-needed
             config.gpu_options.allow_growth = True
         if set_limit_gpu_usage:
-            # Only allow a total of half the GPU memory to be allocated
+            # only allow a total of half the GPU memory to be allocated
             config.gpu_options.per_process_gpu_memory_fraction = frac_gpu_usage
 
-        # Create a session with the above options specified
+        # create a session with the above options specified
         session = tf.Session(config=config)
         K.set_session(session)
 

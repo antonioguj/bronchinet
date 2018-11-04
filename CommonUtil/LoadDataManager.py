@@ -42,7 +42,7 @@ class LoadDataManager(object):
 
     @classmethod
     def shuffle_images(cls, xData, yData):
-        # Generate random indexes to shuffle data
+        # generate random indexes to shuffle data
         randomIndexes = np.random.choice(range(xData.shape[0]), size=xData.shape[0], replace=False)
         return (xData[randomIndexes[:]],
                 yData[randomIndexes[:]])
@@ -50,28 +50,28 @@ class LoadDataManager(object):
     @staticmethod
     def loadData_1File(images_file, masks_file):
 
-        return (FileReader.getImageArray(images_file).astype(dtype=FORMATIMAGEDATA),
-                FileReader.getImageArray(masks_file ).astype(dtype=FORMATMASKDATA))
+        return (FileReader.getImageArray(images_file).astype(dtype=FORMATXDATA),
+                FileReader.getImageArray(masks_file ).astype(dtype=FORMATYDATA))
 
     @staticmethod
     def loadData_ListFiles(listImagesFiles, listMasksFiles):
 
-        return ([FileReader.getImageArray(file).astype(dtype=FORMATIMAGEDATA) for file in listImagesFiles],
-                [FileReader.getImageArray(file).astype(dtype=FORMATMASKDATA)  for file in listMasksFiles])
+        return ([FileReader.getImageArray(file).astype(dtype=FORMATXDATA) for file in listImagesFiles],
+                [FileReader.getImageArray(file).astype(dtype=FORMATYDATA)  for file in listMasksFiles])
 
 
 class LoadDataManagerInBatches(LoadDataManager):
 
-    def __init__(self, size_image, num_classes_out=1, size_outnnet=None):
+    def __init__(self, size_image, num_classes_out=1, size_outUnet=None):
 
         self.num_classes_out     = num_classes_out
-        self.array_shape_manager = ArrayShapeManagerInBatches(size_image, is_shaped_Keras=True, num_classes_out=num_classes_out, size_outnnet=size_outnnet)
+        self.array_shape_manager = ArrayShapeManagerInBatches(size_image, is_shaped_Keras=True, num_classes_out=num_classes_out, size_outUnet=size_outUnet)
 
 
     def loadData_1File(self, images_file, masks_file, max_num_images=10000, shuffle_images=SHUFFLEIMAGES):
 
-        xData = FileReader.getImageArray(images_file).astype(dtype=FORMATIMAGEDATA)
-        yData = FileReader.getImageArray(masks_file) .astype(dtype=FORMATMASKDATA )
+        xData = FileReader.getImageArray(images_file).astype(dtype=FORMATXDATA)
+        yData = FileReader.getImageArray(masks_file) .astype(dtype=FORMATYDATA)
 
         num_images = min(xData.shape[0], max_num_images)
 
@@ -105,14 +105,14 @@ class LoadDataManagerInBatches(LoadDataManager):
         xData_shape = self.array_shape_manager.get_shape_out_array(num_images, self.array_shape_manager.get_num_channels_array(xData_part_shape))
         yData_shape = self.array_shape_manager.get_shape_out_array(num_images, self.num_classes_out)
 
-        xData = np.ndarray(xData_shape, dtype=FORMATIMAGEDATA)
-        yData = np.ndarray(yData_shape, dtype=FORMATMASKDATA)
+        xData = np.ndarray(xData_shape, dtype=FORMATXDATA)
+        yData = np.ndarray(yData_shape, dtype=FORMATYDATA)
 
         count_images = 0
         for images_file, masks_file in zip(listImagesFiles, listMasksFiles):
 
-            xData_part = FileReader.getImageArray(images_file).astype(dtype=FORMATIMAGEDATA)
-            yData_part = FileReader.getImageArray(masks_file) .astype(dtype=FORMATMASKDATA )
+            xData_part = FileReader.getImageArray(images_file).astype(dtype=FORMATXDATA)
+            yData_part = FileReader.getImageArray(masks_file) .astype(dtype=FORMATYDATA)
 
             num_images_part = min(xData_part.shape[0], xData.shape[0] - count_images)
 
@@ -120,7 +120,7 @@ class LoadDataManagerInBatches(LoadDataManager):
             yData[count_images:count_images + num_images_part] = self.array_shape_manager.get_yData_array_reshaped(yData_part[0:num_images_part])
 
             count_images += num_images_part
-        # endfor
+        #endfor
 
         if (shuffle_images):
             return self.shuffle_images(xData, yData)
@@ -130,19 +130,19 @@ class LoadDataManagerInBatches(LoadDataManager):
 
 class LoadDataManagerInBatches_DataGenerator(LoadDataManager):
 
-    def __init__(self, size_image, images_generator, num_classes_out=1, size_outnnet=None):
+    def __init__(self, size_image, images_generator, num_classes_out=1, size_outUnet=None):
 
         self.size_image       = size_image
         self.images_generator = images_generator
 
         self.num_classes_out     = num_classes_out
-        self.array_shape_manager = ArrayShapeManager(size_image, is_shaped_Keras=True, num_classes_out=num_classes_out, size_outnnet=size_outnnet)
+        self.array_shape_manager = ArrayShapeManager(size_image, is_shaped_Keras=True, num_classes_out=num_classes_out, size_outUnet=size_outUnet)
 
 
     def loadData_1File(self, images_file, masks_file, max_num_images=10000, shuffle_images=SHUFFLEIMAGES):
 
-        xData = FileReader.getImageArray(images_file).astype(dtype=FORMATIMAGEDATA)
-        yData = FileReader.getImageArray(masks_file) .astype(dtype=FORMATMASKDATA )
+        xData = FileReader.getImageArray(images_file).astype(dtype=FORMATXDATA)
+        yData = FileReader.getImageArray(masks_file) .astype(dtype=FORMATYDATA)
 
         batch_data_generator = BatchDataGenerator_2Arrays(self.size_image, xData, yData, self.images_generator, size_batch=1, shuffle=shuffle_images)
 
@@ -151,8 +151,8 @@ class LoadDataManagerInBatches_DataGenerator(LoadDataManager):
         xData_shape = self.array_shape_manager.get_shape_out_array(num_images, self.array_shape_manager.get_num_channels_array(xData.shape))
         yData_shape = self.array_shape_manager.get_shape_out_array(num_images, self.num_classes_out)
 
-        xData = np.ndarray(xData_shape, dtype=FORMATIMAGEDATA)
-        yData = np.ndarray(yData_shape, dtype=FORMATMASKDATA)
+        xData = np.ndarray(xData_shape, dtype=FORMATXDATA)
+        yData = np.ndarray(yData_shape, dtype=FORMATYDATA)
 
         for i in range(num_images):
             # Retrieve (xData, yData) directly from imagesDataGenerator
@@ -171,7 +171,7 @@ class LoadDataManagerInBatches_DataGenerator(LoadDataManager):
         num_images = 0
         for i, (images_file, masks_file) in enumerate(zip(listImagesFiles, listMasksFiles)):
 
-            xData_part = FileReader.getImageArray(images_file).astype(dtype=FORMATIMAGEDATA)
+            xData_part = FileReader.getImageArray(images_file).astype(dtype=FORMATXDATA)
 
             batch_data_generator = BatchDataGenerator_1Array(self.size_image, xData_part, self.images_generator, size_batch=1, shuffle=shuffle_images)
 
@@ -188,14 +188,14 @@ class LoadDataManagerInBatches_DataGenerator(LoadDataManager):
         xData_shape = self.array_shape_manager.get_shape_out_array(num_images, self.array_shape_manager.get_num_channels_array(xData_part.shape))
         yData_shape = self.array_shape_manager.get_shape_out_array(num_images, self.num_classes_out)
 
-        xData = np.ndarray(xData_shape, dtype=FORMATIMAGEDATA)
-        yData = np.ndarray(yData_shape, dtype=FORMATMASKDATA)
+        xData = np.ndarray(xData_shape, dtype=FORMATXDATA)
+        yData = np.ndarray(yData_shape, dtype=FORMATYDATA)
 
         count_images = 0
         for images_file, masks_file in zip(listImagesFiles, listMasksFiles):
 
-            xData_part = FileReader.getImageArray(images_file).astype(dtype=FORMATIMAGEDATA)
-            yData_part = FileReader.getImageArray(masks_file) .astype(dtype=FORMATMASKDATA )
+            xData_part = FileReader.getImageArray(images_file).astype(dtype=FORMATXDATA)
+            yData_part = FileReader.getImageArray(masks_file) .astype(dtype=FORMATYDATA)
 
             batch_data_generator = BatchDataGenerator_2Arrays(self.size_image, xData_part, yData_part, self.images_generator, size_batch=1, shuffle=shuffle_images)
 

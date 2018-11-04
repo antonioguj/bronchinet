@@ -27,7 +27,7 @@ class PlotsManager(object):
 
     @staticmethod
     def plot_model_history(model_history):
-        "Function to plot model accuracy and loss"
+        "function to plot model accuracy and loss"
 
         fig, axs = plt.subplots(1,2,figsize=(15,5))
         # summarize history for accuracy
@@ -106,7 +106,7 @@ class PlotsManager(object):
                 axis[ind_i, ind_j].set_title('slice %s' % (index))
                 axis[ind_i, ind_j].imshow(images_slice_plot, cmap='gray')
                 axis[ind_i, ind_j].imshow(masks_slice_plot,  cmap='jet', alpha=0.5)
-            # endfor
+            #endfor
 
             count_slice += range_slices_figure
 
@@ -149,7 +149,7 @@ class PlotsManager(object):
                 axis[1, i].set_title('slice %s' % (index))
                 axis[1, i].imshow(images_slice_plot, cmap='gray')
                 axis[1, i].imshow(predict_masks_slice_plot, cmap='jet', alpha=0.5)
-            # endfor
+            #endfor
 
             count_slice += range_slices_figure
 
@@ -193,7 +193,7 @@ class PlotsManager(object):
                 axis[1, i].set_title('slice %s' % (index))
                 axis[1, i].imshow(transform_images_slice_plot, cmap='gray')
                 axis[1, i].imshow(transform_masks_slice_plot,  cmap='jet', alpha=0.5)
-            # endfor
+            #endfor
 
             count_slice += range_slices_figure
 
