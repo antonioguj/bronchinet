@@ -8,14 +8,13 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Preprocessing.ProbabilityValidConvNnetOutput import *
-from Preprocessing.TransformationImages import *
+from Postprocessing.FilteringValidUnetOutput import *
 from Postprocessing.BaseImageReconstructor import *
 
 
 class TransformationReconstructorImages(BaseImageFilteredReconstructor):
 
-    def __init__(self, size_image_sample, num_samples_total, transformImages_generator, size_outnnet_sample=None):
+    def __init__(self, size_image_sample, num_samples_total, transformImages_generator, size_outUnet_sample=None):
 
         self.size_image_sample = size_image_sample
         self.num_samples_total = num_samples_total
@@ -23,14 +22,14 @@ class TransformationReconstructorImages(BaseImageFilteredReconstructor):
         self.transformImages_generator = transformImages_generator
 
         # Important! seed the initial seed in transformation images
-        # Inverse transformation must be the same ones as those applied to get predict data
+        # inverse transformation must be the same ones as those applied to get predict data
         self.transformImages_generator.initialize_fixed_seed_0()
 
-        if size_outnnet_sample and size_outnnet_sample != size_image_sample:
+        if size_outUnet_sample and size_outUnet_sample != size_image_sample:
             if len(size_image_sample)==2:
-                filterImages_calculator = ProbabilityValidConvNnetOutput2D(size_image_sample, size_outnnet_sample)
+                filterImages_calculator = FilteringValidUnetOutput2D(size_image_sample, size_outUnet_sample)
             elif len(size_image_sample)==3:
-                filterImages_calculator = ProbabilityValidConvNnetOutput3D(size_image_sample, size_outnnet_sample)
+                filterImages_calculator = FilteringValidUnetOutput3D(size_image_sample, size_outUnet_sample)
         else:
             filterImages_calculator = None
 
@@ -53,9 +52,9 @@ class TransformationReconstructorImages(BaseImageFilteredReconstructor):
             message = "wrong shape of input predictions array..." % (predict_data.shape)
             CatchErrorException(message)
 
-        predict_full_array = np.zeros(self.size_image_sample, dtype=FORMATPREDICTDATA)
+        predict_full_array = np.zeros(self.size_image_sample, dtype=FORMATPROBABILITYDATA)
 
-        # Compute reconstructed image by computing the average of various transformation of patches
+        # compute reconstructed image by computing the average of various transformation of patches
         #
         for index in range(self.num_samples_total):
             predict_full_array += self.get_processed_image_sample_array(self.get_transformed_image_sample_array(predict_data[index]))

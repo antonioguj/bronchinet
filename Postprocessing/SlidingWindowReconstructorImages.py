@@ -8,8 +8,8 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Preprocessing.ProbabilityValidConvNnetOutput import *
 from Preprocessing.SlidingWindowImages import *
+from Postprocessing.FilteringValidUnetOutput import *
 from Postprocessing.BaseImageReconstructor import *
 
 
@@ -40,7 +40,7 @@ class SlidingWindowReconstructorImages(BaseImageFilteredReconstructor):
 
 
     def compute_factor_num_overlap_images_samples_per_voxel(self):
-        # Compute how many times a batch image overlaps in same voxel
+        # compute how many times a batch image overlaps in same voxel
 
         num_overlap_images_samples_per_voxels = np.zeros(self.size_total_image, dtype=np.int8)
 
@@ -64,7 +64,7 @@ class SlidingWindowReconstructorImages(BaseImageFilteredReconstructor):
 
     def get_filtering_map_array(self):
 
-        filtering_map_array = np.zeros(self.size_total_image, dtype=FORMATPROPDATA)
+        filtering_map_array = np.zeros(self.size_total_image, dtype=FORMATPROBABILITYDATA)
 
         self.set_calc_reconstructed_image_array(filtering_map_array)
 
@@ -84,7 +84,7 @@ class SlidingWindowReconstructorImages(BaseImageFilteredReconstructor):
             message = "wrong shape of input predictions data array..." % (predict_data.shape)
             CatchErrorException(message)
 
-        predict_full_array = np.zeros(self.size_total_image, dtype=FORMATPREDICTDATA)
+        predict_full_array = np.zeros(self.size_total_image, dtype=FORMATPROBABILITYDATA)
 
         self.set_calc_reconstructed_image_array(predict_full_array)
 
@@ -98,14 +98,14 @@ class SlidingWindowReconstructorImages(BaseImageFilteredReconstructor):
 
 class SlidingWindowReconstructorImages2D(SlidingWindowReconstructorImages):
 
-    def __init__(self, size_image_sample, size_total_image, prop_overlap, size_outnnet_sample=None):
+    def __init__(self, size_image_sample, size_total_image, prop_overlap, size_outUnet_sample=None):
 
         self.slidingWindow_generator = SlidingWindowImages2D(size_image_sample, prop_overlap, size_total=size_total_image)
 
         num_samples_total = self.slidingWindow_generator.get_num_images()
 
-        if size_outnnet_sample and size_outnnet_sample != size_image_sample:
-            filterImages_calculator = ProbabilityValidConvNnetOutput2D(size_image_sample, size_outnnet_sample)
+        if size_outUnet_sample and size_outUnet_sample != size_image_sample:
+            filterImages_calculator = FilteringValidUnetOutput2D(size_image_sample, size_outUnet_sample)
         else:
             filterImages_calculator = None
 
@@ -122,14 +122,14 @@ class SlidingWindowReconstructorImages2D(SlidingWindowReconstructorImages):
 
 class SlidingWindowReconstructorImages3D(SlidingWindowReconstructorImages):
 
-    def __init__(self, size_image_sample, size_total_image, prop_overlap, size_outnnet_sample=None):
+    def __init__(self, size_image_sample, size_total_image, prop_overlap, size_outUnet_sample=None):
 
         self.slidingWindow_generator = SlidingWindowImages3D(size_image_sample, prop_overlap, size_total=size_total_image)
 
         num_samples_total = self.slidingWindow_generator.get_num_images()
 
-        if size_outnnet_sample and size_outnnet_sample != size_image_sample:
-            filterImages_calculator = ProbabilityValidConvNnetOutput3D(size_image_sample, size_outnnet_sample)
+        if size_outUnet_sample and size_outUnet_sample != size_image_sample:
+            filterImages_calculator = FilteringValidUnetOutput3D(size_image_sample, size_outUnet_sample)
         else:
             filterImages_calculator = None
 
@@ -146,10 +146,10 @@ class SlidingWindowReconstructorImages3D(SlidingWindowReconstructorImages):
 
 class SlicingReconstructorImages2D(SlidingWindowReconstructorImages2D):
 
-    def __init__(self, size_image_sample, size_total_image, size_outnnet_sample=None):
-        super(SlicingReconstructorImages2D, self).__init__(size_image_sample, size_total_image, (0.0, 0.0), size_outnnet_sample)
+    def __init__(self, size_image_sample, size_total_image, size_outUnet_sample=None):
+        super(SlicingReconstructorImages2D, self).__init__(size_image_sample, size_total_image, (0.0, 0.0), size_outUnet_sample)
 
 class SlicingReconstructorImages3D(SlidingWindowReconstructorImages3D):
 
-    def __init__(self, size_image_sample, size_total_image, size_outnnet_sample=None):
-        super(SlicingReconstructorImages3D, self).__init__(size_image_sample, size_total_image, (0.0, 0.0, 0.0), size_outnnet_sample)
+    def __init__(self, size_image_sample, size_total_image, size_outUnet_sample=None):
+        super(SlicingReconstructorImages3D, self).__init__(size_image_sample, size_total_image, (0.0, 0.0, 0.0), size_outUnet_sample)

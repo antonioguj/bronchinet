@@ -20,7 +20,7 @@ class SlidingWindowPlusTransformReconstructorImages(SlidingWindowReconstructorIm
         self.transformImages_generator = transformImages_generator
 
         # Important! seed the initial seed in transformation images
-        # Inverse transformation must be the same ones as those applied to get predict data
+        # inverse transformation must be the same ones as those applied to get predict data
         self.transformImages_generator.initialize_fixed_seed_0()
 
         self.num_trans_per_sample = num_trans_per_sample
@@ -49,7 +49,7 @@ class SlidingWindowPlusTransformReconstructorImages(SlidingWindowReconstructorIm
             message = "wrong shape of input predictions data array..." % (predict_data.shape)
             CatchErrorException(message)
 
-        predict_full_array = np.zeros(self.size_total_image, dtype=FORMATPREDICTDATA)
+        predict_full_array = np.zeros(self.size_total_image, dtype=FORMATPROBABILITYDATA)
 
         self.set_calc_reconstructed_image_array(predict_full_array)
 
@@ -65,14 +65,14 @@ class SlidingWindowPlusTransformReconstructorImages(SlidingWindowReconstructorIm
 
 class SlidingWindowPlusTransformReconstructorImages2D(SlidingWindowPlusTransformReconstructorImages):
 
-    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, prop_overlap, size_outnnet_sample=None):
+    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, prop_overlap, size_outUnet_sample=None):
 
         self.slidingWindow_generator = SlidingWindowImages2D(size_image_sample, prop_overlap, size_total=size_total_image)
 
         num_samples_total = self.slidingWindow_generator.get_num_images()
 
-        if size_outnnet_sample and size_outnnet_sample != size_image_sample:
-            filterImages_calculator = ProbabilityValidConvNnetOutput2D(size_image_sample, size_outnnet_sample)
+        if size_outUnet_sample and size_outUnet_sample != size_image_sample:
+            filterImages_calculator = FilteringValidUnetOutput2D(size_image_sample, size_outUnet_sample)
         else:
             filterImages_calculator = None
 
@@ -89,14 +89,14 @@ class SlidingWindowPlusTransformReconstructorImages2D(SlidingWindowPlusTransform
 
 class SlidingWindowPlusTransformReconstructorImages3D(SlidingWindowPlusTransformReconstructorImages):
 
-    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, prop_overlap, size_outnnet_sample=None):
+    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, prop_overlap, size_outUnet_sample=None):
 
         self.slidingWindow_generator = SlidingWindowImages3D(size_image_sample, prop_overlap, size_total=size_total_image)
 
         num_samples_total = self.slidingWindow_generator.get_num_images()
 
-        if size_outnnet_sample and size_outnnet_sample != size_image_sample:
-            filterImages_calculator = ProbabilityValidConvNnetOutput3D(size_image_sample, size_outnnet_sample)
+        if size_outUnet_sample and size_outUnet_sample != size_image_sample:
+            filterImages_calculator = FilteringValidUnetOutput3D(size_image_sample, size_outUnet_sample)
         else:
             filterImages_calculator = None
 
@@ -113,10 +113,10 @@ class SlidingWindowPlusTransformReconstructorImages3D(SlidingWindowPlusTransform
 
 class SlicingPlusTransformReconstructorImages2D(SlidingWindowPlusTransformReconstructorImages2D):
 
-    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, size_outnnet_sample=None):
-        super(SlicingPlusTransformReconstructorImages2D, self).__init__(size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, (0.0, 0.0), size_outnnet_sample)
+    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, size_outUnet_sample=None):
+        super(SlicingPlusTransformReconstructorImages2D, self).__init__(size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, (0.0, 0.0), size_outUnet_sample)
 
 class SlicingPlusTransformReconstructorImages3D(SlidingWindowPlusTransformReconstructorImages3D):
 
-    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, size_outnnet_sample=None):
-        super(SlicingPlusTransformReconstructorImages3D, self).__init__(size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, (0.0, 0.0, 0.0), size_outnnet_sample)
+    def __init__(self, size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, size_outUnet_sample=None):
+        super(SlicingPlusTransformReconstructorImages3D, self).__init__(size_image_sample, size_total_image, transformImages_generator, num_trans_per_sample, (0.0, 0.0, 0.0), size_outUnet_sample)
