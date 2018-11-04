@@ -123,24 +123,24 @@ class Unet3D_General(NeuralNetwork):
             size_output = self.size_image
 
             for ilayer in range(self.num_layers_depth-1):
-                # Convolutional Layers
+                # convolutional layers
                 for iconv in range(self.num_convlayers_downpath[ilayer]):
                     size_output = self.get_size_output_convLayer_validConv(size_output, self.size_convfilter_downpath_layers[ilayer])
                 #endfor
-                # Pooling layer
+                # pooling layer
                 size_output = self.get_size_output_poolingLayer(size_output, self.size_pooling_layers[ilayer])
             #endfor
 
-            # Convolutional Layers
+            # convolutional layers
             ilayer = self.num_layers_depth-1
             for iconv in range(self.num_convlayers_downpath[ilayer]):
                 size_output = self.get_size_output_convLayer_validConv(size_output, self.size_convfilter_downpath_layers[ilayer])
             #endfor
 
             for ilayer in range(self.num_layers_depth-2, -1, -1):
-                # Upsampling Layer
+                # upsampling layer
                 size_output = self.get_size_output_upsampleLayer(size_output, self.size_pooling_layers[ilayer])
-                # Convolutional Layers
+                # convolutional layers
                 for iconv in range(self.num_convlayers_uppath[ilayer]):
                     size_output = self.get_size_output_convLayer_validConv(size_output, self.size_convfilter_uppath_layers[ilayer])
                 #endfor
@@ -156,7 +156,7 @@ class Unet3D_General(NeuralNetwork):
 
         size_output = size_input
 
-        # Convolutional Layers
+        # convolutional layers
         for iconv in range(self.num_convlayers_downpath[ilayer]):
             size_output = self.get_size_output_convLayer_validConv(size_output, self.size_convfilter_downpath_layers[ilayer])
         # endfor
@@ -164,16 +164,16 @@ class Unet3D_General(NeuralNetwork):
         if ilayer==self.num_layers_depth-1:
             return size_output
 
-        # Pooling layer
+        # pooling layer
         size_output = self.get_size_output_poolingLayer(size_output, self.size_pooling_layers[ilayer])
 
-        # Compute size_output of Unet of 'depth-1' (Recurrent function)
+        # compute size_output of Unet of 'depth-1' (recurrent function)
         size_output = self.get_size_output_Unet_depth_validConvs(ilayer+1, size_output)
 
-        # Upsampling Layer
+        # upsampling layer
         size_output = self.get_size_output_upsampleLayer(size_output, self.size_pooling_layers[ilayer])
 
-        # Convolutional Layers
+        # convolutional layers
         for iconv in range(self.num_convlayers_uppath[ilayer]):
             size_output = self.get_size_output_convLayer_validConv(size_output, self.size_convfilter_uppath_layers[ilayer])
         # endfor
@@ -188,24 +188,24 @@ class Unet3D_General(NeuralNetwork):
             size_input = size_output
 
             for ilayer in range(self.num_layers_depth-1):
-                # Convolutional Layers
+                # convolutional layers
                 for iconv in range(self.num_convlayers_uppath[ilayer]):
                     size_input = self.get_size_output_transpose_convLayer_validConv(size_input, self.size_convfilter_uppath_layers[ilayer])
                 #endfor
-                # Pooling layer
+                # pooling layer
                 size_input = self.get_size_output_poolingLayer(size_input, self.size_pooling_layers[ilayer])
             #endfor
 
-            # Convolutional Layers
+            # convolutional layers
             ilayer = self.num_layers_depth-1
             for iconv in range(self.num_convlayers_uppath[ilayer]):
                 size_input = self.get_size_output_transpose_convLayer_validConv(size_input, self.size_convfilter_uppath_layers[ilayer])
             #endfor
 
             for ilayer in range(self.num_layers_depth-2, -1, -1):
-                # Upsampling Layer
+                # upsampling layer
                 size_input = self.get_size_output_upsampleLayer(size_input, self.size_pooling_layers[ilayer])
-                # Convolutional Layers
+                # convolutional layers
                 for iconv in range(self.num_convlayers_downpath[ilayer]):
                     size_input = self.get_size_output_transpose_convLayer_validConv(size_input, self.size_convfilter_downpath_layers[ilayer])
                 #endfor
@@ -221,7 +221,7 @@ class Unet3D_General(NeuralNetwork):
 
         size_input = size_output
 
-        # Convolutional Layers
+        # convolutional layers
         for iconv in range(self.num_convlayers_downpath[ilayer]):
             size_input = self.get_size_output_transpose_convLayer_validConv(size_input, self.size_convfilter_downpath_layers[ilayer])
         # endfor
@@ -229,16 +229,16 @@ class Unet3D_General(NeuralNetwork):
         if ilayer==self.num_layers_depth-1:
             return size_input
 
-        # Pooling layer
+        # pooling layer
         size_input = self.get_size_output_poolingLayer(size_input, self.size_pooling_layers[ilayer])
 
-        # Compute size_output of Unet of 'depth-1' (Recurrent function)
+        # compute size_output of Unet of 'depth-1' (Recurrent function)
         size_input = self.get_size_input_given_output_Unet_depth_validConvs(ilayer+1, size_input)
 
-        # Upsampling Layer
+        # upsampling layer
         size_input = self.get_size_output_upsampleLayer(size_input, self.size_pooling_layers[ilayer])
 
-        # Convolutional Layers
+        # convolutional layers
         for iconv in range(self.num_convlayers_uppath[ilayer]):
             size_input = self.get_size_output_transpose_convLayer_validConv(size_input, self.size_convfilter_uppath_layers[ilayer])
         # endfor
@@ -256,10 +256,10 @@ class Unet3D_General(NeuralNetwork):
         # Pooling layer
         size_input = self.get_size_output_poolingLayer(size_input, self.size_pooling_layers[ilayer])
 
-        # Compute size_input of Unet of 'depth-1' (Recurrent function)
+        # compute size_input of Unet of 'depth-1' (Recurrent function)
         size_input = self.get_size_input_given_output_Unet_depth_validConvs(ilayer+1, size_input)
 
-        # Upsampling layer
+        # upsampling layer
         size_input = self.get_size_output_upsampleLayer(size_input, self.size_pooling_layers[ilayer])
 
         return self.get_limits_CropImage(size_input, size_final)
@@ -283,7 +283,7 @@ class Unet3D_General(NeuralNetwork):
 
             for ilayer in range(self.num_layers_depth-1):
 
-                # Convolutional Layers
+                # convolutional layers
                 for iconv in range(self.num_convlayers_downpath[ilayer]):
                     size_output = self.get_size_output_convLayer_validConv(size_output, self.size_convfilter_downpath_layers[ilayer])
 
@@ -294,11 +294,11 @@ class Unet3D_General(NeuralNetwork):
                 if self.check_correct_size_poolingLayer(size_output):
                     return False, 'wrong size of pooling layer in depth %s, of size %s' %(ilayer, size_output)
 
-                # Pooling layer
+                # pooling layer
                 size_output = self.get_size_output_poolingLayer(size_output, self.size_pooling_layers[ilayer])
             #endfor
 
-            # Convolutional Layers
+            # convolutional layers
             ilayer = self.num_layers_depth-1
             for iconv in range(self.num_convlayers_downpath[ilayer]):
                 size_output = self.get_size_output_convLayer_validConv(size_output, self.size_convfilter_downpath_layers[ilayer])
@@ -308,10 +308,10 @@ class Unet3D_General(NeuralNetwork):
             #endfor
 
             for ilayer in range(self.num_layers_depth-2, -1, -1):
-                # Upsampling Layer
+                # upsampling layer
                 size_output = self.get_size_output_upsampleLayer(size_output, self.size_pooling_layers[ilayer])
 
-                # Convolutional Layers
+                # convolutional layers
                 for iconv in range(self.num_convlayers_uppath[ilayer]):
                     size_output = self.get_size_output_convLayer_validConv(size_output, self.size_convfilter_uppath_layers[ilayer])
 
@@ -321,7 +321,7 @@ class Unet3D_General(NeuralNetwork):
             # endfor
 
         elif self.type_padding=='same':
-            # All Layers are correct for sure
+            # all layers are correct for sure
             return True, 'everything good'
 
 
@@ -335,7 +335,7 @@ class Unet3D_General(NeuralNetwork):
 
         for ilayer in range(self.num_layers_depth-1):
 
-            # Convolutional layers
+            # convolutional layers
             for iconv in range(self.num_convlayers_downpath[ilayer]):
 
                 last_layer = Convolution3D(filters=self.num_featuremaps_layers[ilayer],
@@ -349,16 +349,16 @@ class Unet3D_General(NeuralNetwork):
             if self.isBatchNormalize:
                 last_layer = BatchNormalization()(last_layer)
 
-            # Store last convolutional layer needed for upsampling path
+            # store last convolutional layer needed for upsampling path
             list_last_convlayer_downpath.append(last_layer)
 
-            # Pooling layer
+            # pooling layer
             last_layer = MaxPooling3D(pool_size=self.size_pooling_layers[ilayer],
                                       padding=self.type_padding)(last_layer)
         #endfor
         # ********** DOWNSAMPLING PATH **********
 
-        # Deepest convolutional layers
+        # deepest convolutional layers
         ilayer = self.num_layers_depth - 1
         for j in range(self.num_convlayers_downpath[ilayer]):
 
@@ -377,10 +377,10 @@ class Unet3D_General(NeuralNetwork):
         #
         for ilayer in range(self.num_layers_depth-2, -1, -1):
 
-            # Upsampling layer
+            # upsampling layer
             last_layer = UpSampling3D(size=self.size_pooling_layers[ilayer])(last_layer)
 
-            # Merge layers
+            # merge layers
             if self.type_padding=='valid':
                 # need to crop the downpath layer to the size of uppath layer
                 shape_cropping = self.get_limits_cropImage_merge_downLayer_validConv(ilayer)
@@ -393,7 +393,7 @@ class Unet3D_General(NeuralNetwork):
                                mode='concat',
                                concat_axis=-1)
 
-            # Convolutional Layers
+            # convolutional layers
             for j in range(self.num_convlayers_downpath[ilayer]):
 
                 last_layer = Convolution3D(filters=self.num_featuremaps_layers[ilayer],
@@ -414,11 +414,11 @@ class Unet3D_General(NeuralNetwork):
                                 padding=self.type_padding,
                                 activation=self.activation_output)(last_layer)
 
-        # Return complete model
+        # return complete model
         return Model(input=inputs, output=outputs)
 
 
-# All Available Networks
+# all available networks
 def DICTAVAILNETWORKS3D(size_image, option):
     if   (option=='Unet3D'):
         return Unet3D_General(size_image, num_layers_depth=5)

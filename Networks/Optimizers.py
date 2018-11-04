@@ -11,7 +11,7 @@
 from keras.optimizers import SGD, RMSprop, Adagrad, Adadelta, Adam
 
 
-# All Available Optimizers
+# all available optimizers
 DICTAVAILOPTIMIZERS = {'SGD':     SGD(lr=0.01),
                        'SGDmom':  SGD(lr=0.01, momentum=0.9),
                        'Adagrad': Adagrad(lr=0.01),

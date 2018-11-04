@@ -90,7 +90,7 @@ class VisualModelParams(object):
 
 def visualize_activation_in_layer_one_plot(model, input_list_images, namedir):
     """
-    Visualize activations in layers(By Shuai)
+    visualize activations in layers(By Shuai)
     """
 
     count_img = 1

@@ -185,9 +185,9 @@ class Unet3D_Tailored(NeuralNetwork):
 
     num_featmaps_firstlay_default = 16
 
-    size_filter_dwlys = [(3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3), (1, 3, 3)]
-    size_filter_uplys = [(3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3), (1, 3, 3)]
-    size_pooling_lys  = [(2, 2, 2), (2, 2, 2), (2, 2, 2), (1, 2, 2)]
+    size_filter_dwlys = [(3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3)]
+    size_filter_uplys = [(3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3)]
+    size_pooling_lys  = [(2, 2, 2), (2, 2, 2), (2, 2, 2), (2, 2, 2)]
     size_cropping_lys = [(0, 90, 90), (0, 41, 41), (0, 16, 16), (0, 4, 4)]
 
     dropout_rate = 0.2
@@ -373,7 +373,7 @@ class Unet3D_Shallow_Tailored(NeuralNetwork):
         return model
 
 
-# All Available Networks
+# all available networks
 def DICTAVAILNETWORKS3D(size_image,
                         model_name,
                         num_featmaps_firstlayer,
