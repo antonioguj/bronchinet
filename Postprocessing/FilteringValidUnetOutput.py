@@ -19,23 +19,27 @@ class FilteringValidUnetOutput(BaseImageGenerator):
     avail_type_progression_outside_output_Unet = ['linear', 'quadratic', 'cubic', 'exponential', 'all_outputs_Unet']
 
 
-    def __init__(self, size_image, size_outUnet):
-        self.size_image   = size_image
-        self.size_outUnet = size_outUnet
+    def __init__(self, size_image, size_valid_outUnet):
+        self.size_image         = size_image
+        self.size_valid_outUnet = size_valid_outUnet
         try:
-            # if len(self.size_outUnet) == 1:
+            # if len(self.size_valid_outUnet) == 1:
             # a bit sloppy: integer doesn't have attribute 'len'
-            dummy = len(self.size_outUnet[0])
-            self.size_boundbox_outUnet = self.size_outUnet + [self.size_image]
+            dummy = len(self.size_valid_outUnet[0])
+            self.size_boundbox_outUnet = self.size_valid_outUnet + [self.size_image]
             self.type_progression = 'all_outputs_Unet'
         except TypeError:
             self.type_progression = self.type_progression_outside_output_Unet
-            self.size_boundbox_outUnet = [self.size_outUnet] + [self.size_image]
+            self.size_boundbox_outUnet = [self.size_valid_outUnet] + [self.size_image]
 
         self.compute_filter_func_outUnet()
 
         super(FilteringValidUnetOutput, self).__init__(size_image)
 
+
+    @staticmethod
+    def multiply_matrixes_with_channels(matrix_1_withchannels, matrix_2):
+        pass
 
     @staticmethod
     def compute_tensor_product_2D(a, b):
@@ -80,11 +84,11 @@ class FilteringValidUnetOutput(BaseImageGenerator):
         return self.compute_progression_increasing(coord_0, coord_1)[::-1]
 
     @staticmethod
-    def get_limits_cropImage(size_image, size_outUnet):
-        if (size_image == size_outUnet):
+    def get_limits_cropImage(size_image, size_valid_outUnet):
+        if (size_image == size_valid_outUnet):
             list_out_aux = [[0] + [s_i] for s_i in size_image]
         else:
-            list_out_aux = [[(s_i - s_o) / 2] + [(s_i + s_o) / 2] for (s_i, s_o) in zip(size_image, size_outUnet)]
+            list_out_aux = [[(s_i - s_o) / 2] + [(s_i + s_o) / 2] for (s_i, s_o) in zip(size_image, size_valid_outUnet)]
         # flatten out list of lists and return tuple
         return tuple(reduce(lambda el1, el2: el1 + el2, list_out_aux))
 
@@ -135,7 +139,7 @@ class FilteringValidUnetOutput(BaseImageGenerator):
             # set piecewise probability distribution in between bounding boxes corresponding to outputs of Unet up to 'max_depth'
             # in between bounding boxes, assume quadratic distribution in between two values with diff: 1/num_output_Unet
 
-            num_output_Unet = len(self.size_outUnet)
+            num_output_Unet = len(self.size_valid_outUnet)
 
             boundbox_inner_outUnet = self.get_limits_cropImage(self.size_image, self.size_boundbox_outUnet[0])
 
@@ -162,32 +166,25 @@ class FilteringValidUnetOutput(BaseImageGenerator):
             self.fill_progression_between_two_boundboxes(boundbox_inner_outUnet, boundbox_size_image)
 
 
-    def get_filtered_image_array(self, images_array):
+    def get_filtered_images_array(self, images_array):
 
         if self.check_correct_dims_image_to_filter(images_array.shape):
             if self.is_images_array_without_channels(images_array.shape):
                 return np.multiply(self.filter_func_outUnet_array, images_array)
             else:
-                out_images_array = np.ndarray(images_array.shape, dtype=images_array.dtype)
-
-                num_channels = self.get_num_channels_array(images_array.shape)
-                for ichan in range(num_channels):
-                    out_images_array[..., ichan] = np.multiply(self.filter_func_outUnet_array, images_array[..., ichan])
-                #endfor
-
-                return out_images_array
+                return self.multiply_matrixes_with_channels(images_array, self.filter_func_outUnet_array)
         else:
             return None
 
 
     def get_images_array(self, images_array, index=None, masks_array=None, seed=None):
 
-        out_images_array = self.get_filtered_image_array(images_array)
+        out_images_array = self.get_filtered_images_array(images_array)
 
         if masks_array is None:
             return out_images_array
         else:
-            out_masks_array = self.get_filtered_image_array(masks_array)
+            out_masks_array = self.get_filtered_images_array(masks_array)
 
             return (out_images_array, out_masks_array)
 
@@ -199,7 +196,7 @@ class FilteringValidUnetOutput(BaseImageGenerator):
         if masks_array is None:
             num_images = images_array.shape[0]
             for index in range(num_images):
-                out_images_array[index] = self.get_filtered_image_array(images_array[index])
+                out_images_array[index] = self.get_filtered_images_array(images_array[index])
             #endfor
 
             return out_images_array
@@ -209,8 +206,8 @@ class FilteringValidUnetOutput(BaseImageGenerator):
 
             num_images = images_array.shape[0]
             for index in range(num_images):
-                out_images_array[index] = self.get_filtered_image_array(images_array[index])
-                out_masks_array [index] = self.get_filtered_image_array(masks_array [index])
+                out_images_array[index] = self.get_filtered_images_array(images_array[index])
+                out_masks_array [index] = self.get_filtered_images_array(masks_array [index])
             #endfor
 
             return (out_images_array, out_masks_array)
@@ -218,9 +215,13 @@ class FilteringValidUnetOutput(BaseImageGenerator):
 
 class FilteringValidUnetOutput2D(FilteringValidUnetOutput):
 
-    def __init__(self, size_image, size_outUnet):
-        super(FilteringValidUnetOutput2D, self).__init__(size_image, size_outUnet)
+    def __init__(self, size_image, size_valid_outUnet):
+        super(FilteringValidUnetOutput2D, self).__init__(size_image, size_valid_outUnet)
 
+
+    @staticmethod
+    def multiply_matrixes_with_channels(matrix_1_withchannels, matrix_2):
+        return np.einsum('ijk,ij->kij', matrix_1_withchannels, matrix_2)
 
     def fill_flat_interior_boundbox(self, boundbox_inner):
         # assign probability 'one' inside box
@@ -264,9 +265,13 @@ class FilteringValidUnetOutput2D(FilteringValidUnetOutput):
 
 class FilteringValidUnetOutput3D(FilteringValidUnetOutput):
 
-    def __init__(self, size_image, size_outUnet):
-        super(FilteringValidUnetOutput3D, self).__init__(size_image, size_outUnet)
+    def __init__(self, size_image, size_valid_outUnet):
+        super(FilteringValidUnetOutput3D, self).__init__(size_image, size_valid_outUnet)
 
+
+    @staticmethod
+    def multiply_matrixes_with_channels(matrix_1_withchannels, matrix_2):
+        return np.einsum('ijkl,ijk->ijkl', matrix_1_withchannels, matrix_2)
 
     def fill_flat_interior_boundbox(self, boundbox_inner):
         # assign probability 'one' inside box
