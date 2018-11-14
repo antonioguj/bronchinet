@@ -42,6 +42,7 @@ for i in range(num_plot_files):
     num_cols_header = len(header_lossHistory)
     num_cols_data   = data_lossHistory.shape[1]
 
+
     if (num_cols_header != num_cols_data):
         print("ERROR. Format input file not correct... EXIT")
         sys.exit(0)

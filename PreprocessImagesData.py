@@ -136,71 +136,64 @@ def main(args):
             masks_array = OperationsBinaryMasks.apply_mask_exclude_voxels(masks_array, lungs_masks_array)
 
 
-        if (args.reduceSizeImages):
-            print("Reduce resolution of images to size: %s..." %(args.sizeReducedImages))
-
-            if isSmallerTuple(images_array.shape[-2:], args.sizeReducedImages):
-                message = "New reduced size: %s, smaller than size of original images: %s..." %(images_array.shape[-2:], args.sizeReducedImages)
-                CatchErrorException(message)
-
-            images_array = ResizeImages.compute2D(images_array, args.sizeReducedImages)
-            masks_array  = ResizeImages.compute2D(masks_array,  args.sizeReducedImages, isMasks=True)
-
-            print("Final dimensions: %s..." %(images_array.shape))
-
-
-        if (args.cropImages):
-            bounding_box = dict_masks_boundingBoxes[filenamenoextension(images_file)]
-
-            print("Crop images to bounding-box: %s..." %(str(bounding_box)))
-
-            images_array = CropImages.compute3D(images_array, bounding_box)
-            masks_array  = CropImages.compute3D(masks_array,  bounding_box)
-
-            print("Final dimensions: %s..." %(str(images_array.shape)))
-
-
-        if (args.extendSizeImages):
-            print("Extend size images to constant size %s:..." %(str(CROPSIZEBOUNDINGBOX)))
-
-            size_new_image = (images_array.shape[0], CROPSIZEBOUNDINGBOX[0], CROPSIZEBOUNDINGBOX[1])
-
-            backgr_val_images = -1000
-            backgr_val_masks  = -1 if args.masksToRegionInterest else 0
-
-            bounding_box = dict_masks_boundingBoxes[filenamenoextension(images_file)]
-
-            images_array = ExtendImages.compute3D(images_array, bounding_box, size_new_image, background_value=backgr_val_images)
-            masks_array  = ExtendImages.compute3D(masks_array,  bounding_box, size_new_image, background_value=backgr_val_masks)
-
 
         if (args.constructInputDataDLCST):
             print("Construct data for DLCST: crop images and set one batch per image...")
 
-            backgr_val_images = -1000
-            backgr_val_masks  = -1 if args.masksToRegionInterest else 0
+            bounding_box = dict_masks_boundingBoxes[filenamenoextension(images_file)]
 
-            size_images_array = images_array.shape
+            print("Crop images to bounding-box: %s..." % (str(bounding_box)))
 
-            default_bounding_box = BoundingBoxMasks.compute_default_bounding_box(size_images_array)
+            (bounding_box_left, bounding_box_right) = BoundingBoxMasks.compute_split_bounding_boxes(bounding_box, axis=2)
 
-            (bounding_box_defleft, bounding_box_defright) = BoundingBoxMasks.compute_split_bounding_boxes(default_bounding_box, axis=2)
+            images_array_2 = CropImages.compute3D(images_array, bounding_box_right)
+            images_array   = CropImages.compute3D(images_array, bounding_box_left)
 
-            bounding_box_left = BoundingBoxMasks.compute_centered_bounding_box_type1_3D(bounding_box_defleft,  IMAGES_DIMS_Z_X_Y, size_images_array)
-            bounding_box_right= BoundingBoxMasks.compute_centered_bounding_box_type1_3D(bounding_box_defright, IMAGES_DIMS_Z_X_Y, size_images_array)
+            masks_array_2 = CropImages.compute3D(masks_array, bounding_box_right)
+            masks_array   = CropImages.compute3D(masks_array, bounding_box_left)
 
-            size_bounding_new = BoundingBoxMasks.compute_size_bounding_box(bounding_box_left)
+            print("Final dimensions: %s..." % (str(images_array.shape)))
 
-            bounding_box_new = BoundingBoxMasks.compute_centered_bounding_box_type3_3D(size_bounding_new, IMAGES_DIMS_Z_X_Y)
+        else:
+            if (args.reduceSizeImages):
+                print("Reduce resolution of images to size: %s..." %(args.sizeReducedImages))
 
-            images_array_2= ExtendImages.compute3D(CropImages.compute3D(images_array, bounding_box_right),
-                                                   bounding_box_new, IMAGES_DIMS_Z_X_Y, background_value=backgr_val_images)
-            images_array  = ExtendImages.compute3D(CropImages.compute3D(images_array, bounding_box_left),
-                                                   bounding_box_new, IMAGES_DIMS_Z_X_Y, background_value=backgr_val_images)
-            masks_array_2 = ExtendImages.compute3D(CropImages.compute3D(masks_array, bounding_box_right),
-                                                   bounding_box_new, IMAGES_DIMS_Z_X_Y, background_value=backgr_val_masks)
-            masks_array   = ExtendImages.compute3D(CropImages.compute3D(masks_array, bounding_box_left),
-                                                   bounding_box_new, IMAGES_DIMS_Z_X_Y, background_value=backgr_val_masks)
+                if isSmallerTuple(images_array.shape[-2:], args.sizeReducedImages):
+                    message = "New reduced size: %s, smaller than size of original images: %s..." %(images_array.shape[-2:], args.sizeReducedImages)
+                    CatchErrorException(message)
+
+                images_array = ResizeImages.compute2D(images_array, args.sizeReducedImages)
+                masks_array  = ResizeImages.compute2D(masks_array,  args.sizeReducedImages, isMasks=True)
+
+                print("Final dimensions: %s..." %(images_array.shape))
+
+
+            if (args.cropImages):
+                bounding_box = dict_masks_boundingBoxes[filenamenoextension(images_file)]
+
+                print("Crop images to bounding-box: %s..." % (str(bounding_box)))
+
+                images_array = CropImages.compute3D(images_array, bounding_box)
+                masks_array  = CropImages.compute3D(masks_array,  bounding_box)
+
+                print("Final dimensions: %s..." %(str(images_array.shape)))
+
+
+            if (args.extendSizeImages):
+                print("Extend size images to constant size %s:..." %(str(CROPSIZEBOUNDINGBOX)))
+
+                size_new_image = (images_array.shape[0], CROPSIZEBOUNDINGBOX[0], CROPSIZEBOUNDINGBOX[1])
+
+                backgr_val_images = -1000
+                backgr_val_masks  = -1 if args.masksToRegionInterest else 0
+
+                bounding_box = dict_masks_boundingBoxes[filenamenoextension(images_file)]
+
+                images_array = ExtendImages.compute3D(images_array, bounding_box, size_new_image, background_value=backgr_val_images)
+                masks_array  = ExtendImages.compute3D(masks_array,  bounding_box, size_new_image, background_value=backgr_val_masks)
+
+                print("Final dimensions: %s..." % (str(images_array.shape)))
+
 
 
         if (args.createImagesBatches):
@@ -251,6 +244,7 @@ def main(args):
                 (images_array, masks_array) = transformImagesGenerator.compute_images_array_all(images_array, masks_array=masks_array)
 
                 print("Final dimensions: %s..." %(images_array.shape))
+
 
 
         # Save processed data for training networks

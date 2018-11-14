@@ -20,8 +20,8 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    namesFilesDir1 = '*.npz'
-    namesFilesDir2 = '*.npz'
+    namesFilesDir1 = 'predict_binmasks*.nii.gz'
+    namesFilesDir2 = 'predict_binmasks*.nii.gz'
 
     max_rel_error_images = 1.0e-06
     # ---------- SETTINGS ----------

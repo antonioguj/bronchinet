@@ -34,8 +34,8 @@ def main(args):
     nameImagesFiles = '*.nii.gz'
     nameMasksFiles  = '*.nii.gz'
 
-    nameBoundingBoxesMasksNPY = 'boundBoxesMasks.npy'
-    nameBoundingBoxesMasksCSV = 'boundBoxesMasks.csv'
+    nameBoundingBoxesMasksNPY = 'boundBoxesMasks_FULLLUNG_240.npy'
+    nameBoundingBoxesMasksCSV = 'boundBoxesMasks_FULLLUNG_240.csv'
     # ---------- SETTINGS ----------
 
 
@@ -77,7 +77,7 @@ def main(args):
         print("Original image of size: %s..." % (str(images_array.shape)))
 
 
-        boundingBox = BoundingBoxMasks.compute_bounding_box_contain_masks_with_border_effects(masks_array, voxels_buffer_border=VOXELSBUFFERBORDER)
+        boundingBox = BoundingBoxMasks.compute_bounding_box_contain_masks_with_border_effects_3D(masks_array, voxels_buffer_border=VOXELSBUFFERBORDER)
 
         size_boundingBox = BoundingBoxMasks.compute_size_bounding_box(boundingBox)
 
@@ -97,7 +97,7 @@ def main(args):
 
 
         # Compute new bounding-box that fits all input images processed
-        processed_boundingBox = BoundingBoxMasks.compute_centered_bounding_box_type1_2D(boundingBox, args.cropSizeBoundingBox, images_array.shape)
+        processed_boundingBox = BoundingBoxMasks.compute_bounding_box_centered_bounding_box_3D(boundingBox, args.cropSizeBoundingBox, images_array.shape)
 
         size_processed_boundingBox = BoundingBoxMasks.compute_size_bounding_box(processed_boundingBox)
 
@@ -106,7 +106,7 @@ def main(args):
         print("processed bounding-box: %s, of size: %s" %(processed_boundingBox, size_processed_boundingBox))
 
 
-        if (size_processed_boundingBox[1:3] != args.cropSizeBoundingBox):
+        if (size_processed_boundingBox != args.cropSizeBoundingBox):
             message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, args.cropSizeBoundingBox)
             CatchErrorException(message)
 

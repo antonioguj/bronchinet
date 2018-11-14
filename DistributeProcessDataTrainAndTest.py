@@ -46,8 +46,8 @@ def find_element_repeated_two_indexes_names(names_images_type_data_1, names_imag
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameOrigImagesDataRelPath = 'ProcImagesExperData'
-    nameOrigMasksDataRelPath  = 'ProcMasksExperData'
+    nameOrigImagesDataRelPath = 'ProcImagesExperData_FULLLUNG'
+    nameOrigMasksDataRelPath  = 'ProcMasksExperData_FULLLUNG'
 
     nameOriginImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
     nameOriginMasksFiles  = 'masks*' + getFileExtension(FORMATINOUTDATA)
@@ -73,23 +73,8 @@ def main(args):
         CatchErrorException(message)
 
 
-    if (args.distribute_random):
-        print('Split dataset Randomly...')
 
-        nbTrainingFiles   = int(args.prop_data_training * nbImagesFiles)
-        nbValidationFiles = int(args.prop_data_validation * nbImagesFiles)
-        nbTestingFiles    = int(args.prop_data_testing * nbImagesFiles)
-
-        print('Training (%s files)/ Validation (%s files)/ Testing (%s files)...' %(nbTrainingFiles,
-                                                                                    nbValidationFiles,
-                                                                                    nbTestingFiles))
-        randomIndexes    = np.random.choice(range(nbImagesFiles), size=nbImagesFiles, replace=False)
-
-        indexesTraining  = randomIndexes[0:nbTrainingFiles]
-        indexesValidation= randomIndexes[nbTrainingFiles:nbTrainingFiles+nbValidationFiles]
-        indexesTesting   = randomIndexes[nbTrainingFiles+nbValidationFiles::]
-
-    else:
+    if (args.distribute_fixed_names):
         print('Split dataset with Fixed Names...')
 
         names_repeated  = find_element_repeated_two_indexes_names(NAME_IMAGES_TRAINING, NAME_IMAGES_VALIDATION)
@@ -107,6 +92,25 @@ def main(args):
         print('Training (%s files)/ Validation (%s files)/ Testing (%s files)...' %(len(indexesTraining),
                                                                                     len(indexesValidation),
                                                                                     len(indexesTesting)))
+    else:
+        nbTrainingFiles   = int(args.prop_data_training * nbImagesFiles)
+        nbValidationFiles = int(args.prop_data_validation * nbImagesFiles)
+        nbTestingFiles    = int(args.prop_data_testing * nbImagesFiles)
+
+        print('Training (%s files)/ Validation (%s files)/ Testing (%s files)...' %(nbTrainingFiles,
+                                                                                    nbValidationFiles,
+                                                                                    nbTestingFiles))
+        if (args.distribute_random):
+            print('Split dataset Randomly...')
+            indexesAllFiles = np.random.choice(range(nbImagesFiles), size=nbImagesFiles, replace=False)
+        else:
+            print('Split dataset In Order...')
+            indexesAllFiles = range(nbImagesFiles)
+
+        indexesTraining  = indexesAllFiles[0:nbTrainingFiles]
+        indexesValidation= indexesAllFiles[nbTrainingFiles:nbTrainingFiles+nbValidationFiles]
+        indexesTesting   = indexesAllFiles[nbTrainingFiles+nbValidationFiles::]
+
 
 
     print('Files assigned to Training Data: %s'   %([basename(listImagesFiles[index]) for index in indexesTraining  ]))
@@ -148,6 +152,7 @@ if __name__ == "__main__":
     parser.add_argument('--prop_data_validation', type=float, default=PROP_DATA_VALIDATION)
     parser.add_argument('--prop_data_testing', type=float, default=PROP_DATA_TESTING)
     parser.add_argument('--distribute_random', type=str2bool, default=DISTRIBUTE_RANDOM)
+    parser.add_argument('--distribute_fixed_names', type=str2bool, default=DISTRIBUTE_FIXED_NAMES)
     args = parser.parse_args()
 
     print("Print input arguments...")
