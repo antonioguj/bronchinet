@@ -22,11 +22,12 @@ class RecordLossHistory(callbacks.Callback):
             self.name_metrics_funs = list(map(lambda fun: ['%s'%(fun.__name__),'val_%s'%(fun.__name__)], metrics_funs))
             self.name_metrics_funs = flattenOutListOfLists(self.name_metrics_funs)
         else:
-            self.name_metrics_funs = None
+            self.name_metrics_funs = []
 
     def on_train_begin(self, logs=None):
-        strheader = '/epoch/ /loss/ /val_loss/ '
-        strheader += ' '.join(['/%s/' %(fun) for fun in self.name_metrics_funs])
+        strheader = '/epoch/ /loss/ /val_loss/'
+        if self.name_metrics_funs:
+            strheader += ' ' + ' '.join(['/%s/' %(fun) for fun in self.name_metrics_funs])
         strheader += '\n'
 
         self.fout = open(self.filename, 'w')
@@ -34,8 +35,9 @@ class RecordLossHistory(callbacks.Callback):
         self.fout.close()
 
     def on_epoch_end(self, epoch, logs=None):
-        strdataline = '%s %s %s ' %(epoch, logs.get('loss'), logs.get('val_loss'))
-        strdataline += ' '.join(['%s' %(logs.get(fun)) for fun in self.name_metrics_funs])
+        strdataline = '%s %s %s' %(epoch, logs.get('loss'), logs.get('val_loss'))
+        if self.name_metrics_funs:
+            strdataline += ' ' + ' '.join(['%s' %(logs.get(fun)) for fun in self.name_metrics_funs])
         strdataline += '\n'
 
         self.fout = open(self.filename, 'a')

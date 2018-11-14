@@ -28,7 +28,7 @@ class VisualModelParams(object):
         print('ERROR: layer "%s" not found...')
         return -1
 
-    def is_list_patches_image_array(self, in_array_shape):
+    def is_list_patches_images_array(self, in_array_shape):
 
         if(len(in_array_shape) == len(self.size_image) + 1):
             return False
@@ -39,7 +39,7 @@ class VisualModelParams(object):
             return None
 
 
-    def get_feature_maps(self, in_image_array, name_layer):
+    def get_feature_maps(self, in_images_array, name_layer):
 
         # find index for "name_layer"
         idx_layer = self.find_layer_index_from_name(name_layer)
@@ -51,18 +51,18 @@ class VisualModelParams(object):
         num_featmaps = layer_cls.output.shape[-1].value
 
 
-        if (self.is_list_patches_image_array(in_image_array.shape)):
+        if (self.is_list_patches_images_array(in_images_array.shape)):
             #input: list of image patches arrays
 
-            num_images = in_image_array.shape[0]
+            num_images = in_images_array.shape[0]
 
             out_featmaps_shape = [num_images] + list(self.size_image) + [num_featmaps]
-            out_featmaps_array = np.zeros(out_featmaps_shape, dtype=in_image_array.dtype)
+            out_featmaps_array = np.zeros(out_featmaps_shape, dtype=in_images_array.dtype)
 
-            for i, ipatch_image_array in enumerate(in_image_array):
+            for i, ipatch_images_array in enumerate(in_images_array):
 
                 # compute the feature maps (reformat input image)
-                ipatch_featmaps_array = layer_func([[ipatch_image_array]])
+                ipatch_featmaps_array = layer_func([[ipatch_images_array]])
                 out_featmaps_array[i] = ipatch_featmaps_array[0]
             #endfor
 
@@ -71,17 +71,17 @@ class VisualModelParams(object):
         else:
             #input: one image array
             # compute the feature maps (reformat input image)
-            out_featmaps_array = layer_func([[in_image_array]])
+            out_featmaps_array = layer_func([[in_images_array]])
 
             return out_featmaps_array[0]
 
 
-    def get_feature_maps_all_layers(self, in_image_array):
+    def get_feature_maps_all_layers(self, in_images_array):
 
         # save output in a dictionary
         out_featmaps_array = {}
         for it_layer in self.model.layers:
-            out_featmaps_array[it_layer.name] = self.get_feature_maps(in_image_array, it_layer.name)
+            out_featmaps_array[it_layer.name] = self.get_feature_maps(in_images_array, it_layer.name)
         #endfor
 
         return out_featmaps_array
