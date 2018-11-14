@@ -109,7 +109,7 @@ class TransformationImages(BaseImageGenerator):
     def get_inverse_transformed_image(self, images_array, masks_array=None, seed=None):
         pass
 
-    def get_inverse_image_array(self, images_array, index=None, masks_array=None, seed=None):
+    def get_inverse_images_array(self, images_array, index=None, masks_array=None, seed=None):
 
         seed = self.get_mod_seed(seed)
 

@@ -30,6 +30,22 @@ class CropImages(object):
                             bounding_box[2][0]:bounding_box[2][1]]
 
 
+class IncludeImages(object):
+
+    @staticmethod
+    def compute2D(images_array, bounding_box, images_full_array):
+
+        images_full_array[bounding_box[0][0]:bounding_box[0][1],
+                          bounding_box[1][0]:bounding_box[1][1]] = images_array
+
+    @staticmethod
+    def compute3D(images_array, bounding_box, images_full_array):
+
+        images_full_array[bounding_box[0][0]:bounding_box[0][1],
+                          bounding_box[1][0]:bounding_box[1][1],
+                          bounding_box[2][0]:bounding_box[2][1]] = images_array
+
+
 class ExtendImages(object):
 
     @staticmethod
