@@ -168,5 +168,5 @@ class ArrayShapeManagerInBatches(ArrayShapeManager):
 
         super(ArrayShapeManagerInBatches, self).__init__(size_image, is_shaped_Keras, num_classes_out, size_outUnet)
 
-    def is_images_array_without_channels(self, in_array_shape):
-        return len(in_array_shape) == len(self.size_image) + 1
+    # def is_images_array_without_channels(self, in_array_shape):
+    #     return len(in_array_shape) == len(self.size_image) + 1

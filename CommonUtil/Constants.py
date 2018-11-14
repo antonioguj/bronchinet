@@ -19,7 +19,7 @@ BASEDIR = '/home/antonio/Results/AirwaySegmen_DLCST/'
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
-(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (208, 352, 240)
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (224, 352, 240)
 
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
 IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
@@ -59,6 +59,7 @@ PROP_DATA_VALIDATION = 0.25
 PROP_DATA_TESTING    = 0.25
 
 DISTRIBUTE_RANDOM = False
+DISTRIBUTE_FIXED_NAMES = False
 
 NAME_IMAGES_TRAINING = ['images-03_img1', 'images-03_img2',
                         'images-04_img1', 'images-04_img2',
@@ -110,9 +111,11 @@ EXTENDSIZEIMAGES = False
 
 CONSTRUCTINPUTDATADLCST = True
 
-VOXELSBUFFERBORDER = (20, 0, 0, 0)
+VOXELSBUFFERBORDER = (0, 0, 0, 0)
+#VOXELSBUFFERBORDER = (30, 30, 0, 0)
 
-CROPSIZEBOUNDINGBOX = (352, 480)
+CROPSIZEBOUNDINGBOX = (224, 352, 480)
+#CROPSIZEBOUNDINGBOX = (352, 480)
 
 CHECKBALANCECLASSES = True
 
@@ -130,13 +133,7 @@ BATCH_SIZE  = 1
 IMODEL      = 'Unet3D'
 IOPTIMIZER  = 'Adam'
 ILOSSFUN    = 'DiceCoefficient'
-LISTMETRICS =['BinaryCrossEntropy',
-              'WeightedBinaryCrossEntropy',
-              'DiceCoefficient',
-              'TruePositiveRate',
-              'TrueNegativeRate',
-              'FalsePositiveRate',
-              'FalseNegativeRate']
+LISTMETRICS =[]
 
 NUM_FEATMAPS_FIRSTLAYER = 8
 
@@ -197,7 +194,7 @@ FILTERPREDICTPROBMAPS = True
 
 PROP_VALID_OUTUNET = 0.75
 
-SAVEFEATMAPSLAYERS = True
+SAVEFEATMAPSLAYERS = False
 
 NAMESAVEMODELLAYER = 'conv3d_18'
 

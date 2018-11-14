@@ -14,7 +14,10 @@ from Preprocessing.SlidingWindowPlusTransformImages import *
 from Preprocessing.TransformationImages import *
 
 
-def getImagesDataGenerator2D(use_slidingWindowImages, prop_overlap_X_Y, use_TransformationImages, use_ElasticDeformationImages):
+def getImagesDataGenerator2D(use_slidingWindowImages,
+                             prop_overlap_X_Y,
+                             use_TransformationImages,
+                             use_ElasticDeformationImages):
 
     if (use_slidingWindowImages):
         # images data generator by sliding-window...
@@ -50,7 +53,10 @@ def getImagesDataGenerator2D(use_slidingWindowImages, prop_overlap_X_Y, use_Tran
             return SlicingImages2D(IMAGES_DIMS_X_Y)
 
 
-def getImagesDataGenerator3D(use_slidingWindowImages, prop_overlap_Z_X_Y, use_TransformationImages, use_ElasticDeformationImages):
+def getImagesDataGenerator3D(use_slidingWindowImages,
+                             prop_overlap_Z_X_Y,
+                             use_TransformationImages,
+                             use_ElasticDeformationImages):
 
     if (use_slidingWindowImages):
         # images data generator by sliding-window...
@@ -94,7 +100,10 @@ def getImagesDataGenerator3D(use_slidingWindowImages, prop_overlap_Z_X_Y, use_Tr
             return SlicingImages3D(IMAGES_DIMS_Z_X_Y)
 
 
-def getImagesVolumeTransformator2D(size_image, use_TransformationImages, use_ElasticDeformationImages, type_elastic_deformation='gridwise'):
+def getImagesVolumeTransformator2D(size_image,
+                                   use_TransformationImages,
+                                   use_ElasticDeformationImages,
+                                   type_elastic_deformation='gridwise'):
 
     if (use_ElasticDeformationImages):
         if type_elastic_deformation == 'pixelwise':
@@ -113,7 +122,10 @@ def getImagesVolumeTransformator2D(size_image, use_TransformationImages, use_Ela
         return False
 
 
-def getImagesVolumeTransformator3D(size_image, use_TransformationImages, use_ElasticDeformationImages, type_elastic_deformation='gridwise'):
+def getImagesVolumeTransformator3D(size_image,
+                                   use_TransformationImages,
+                                   use_ElasticDeformationImages,
+                                   type_elastic_deformation='gridwise'):
 
     if (use_ElasticDeformationImages):
         if type_elastic_deformation == 'pixelwise':

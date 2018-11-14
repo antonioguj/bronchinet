@@ -104,32 +104,32 @@ class FileReader(object):
             CatchErrorException(message)
 
     @staticmethod
-    def writeImageArray(filename, image_array):
+    def writeImageArray(filename, images_array):
 
         basename, extension = ospath_splitext_recurse(filename)
 
         if (extension == '.dcm'):
-            DICOMreader.writeImageArray(filename, image_array)
+            DICOMreader.writeImageArray(filename, images_array)
         if (extension == '.dcm.gz'):
             print("Not implemented for extension '.dcm.gz'...")
             return False
             # fileobj = GZIPmanager.getWriteFile(filename)
-            # DICOMreader.writeImageArray(fileobj, image_array)
+            # DICOMreader.writeImageArray(fileobj, images_array)
             # GZIPmanager.closeFile(fileobj)
         elif (extension == '.nii'):
-            NIFTIreader.writeImageArray(filename, image_array)
+            NIFTIreader.writeImageArray(filename, images_array)
         elif (extension == '.nii.gz'):
-            NIFTIreader.writeImageArray(filename, image_array)
+            NIFTIreader.writeImageArray(filename, images_array)
         elif (extension == '.npy'):
-            NUMPYreader.writeImageArray(filename, image_array)
+            NUMPYreader.writeImageArray(filename, images_array)
         elif (extension == '.npz'):
-            NUMPYZreader.writeImageArray(filename, image_array)
+            NUMPYZreader.writeImageArray(filename, images_array)
         elif (extension == '.npy.gz'):
             fileobj = GZIPmanager.getWriteFile(filename)
-            NUMPYreader.writeImageArray(fileobj, image_array)
+            NUMPYreader.writeImageArray(fileobj, images_array)
             GZIPmanager.closeFile(fileobj)
         elif (extension == '.hdf5'):
-            HDF5reader.writeImageArray(filename, image_array)
+            HDF5reader.writeImageArray(filename, images_array)
         else:
             message = "No valid file extension: %s..." %(extension)
             CatchErrorException(message)
@@ -151,9 +151,9 @@ class HDF5reader(FileReader):
 
     # write h5py file array:
     @staticmethod
-    def writeImageArray(filename, image_array):
+    def writeImageArray(filename, images_array):
         data_file = h5py.File(filename, 'w')
-        data_file.create_dataset('data', data=image_array)
+        data_file.create_dataset('data', data=images_array)
         data_file.close()
 
 
@@ -171,8 +171,8 @@ class NUMPYreader(FileReader):
 
     # write numpy file array:
     @staticmethod
-    def writeImageArray(filename, image_array):
-        np.save(filename, image_array)
+    def writeImageArray(filename, images_array):
+        np.save(filename, images_array)
 
 
 class NUMPYZreader(FileReader):
@@ -189,8 +189,8 @@ class NUMPYZreader(FileReader):
 
     # write numpy file array:
     @staticmethod
-    def writeImageArray(filename, image_array):
-        np.savez_compressed(filename, image_array)
+    def writeImageArray(filename, images_array):
+        np.savez_compressed(filename, images_array)
 
 
 class NIFTIreader(FileReader):
@@ -211,8 +211,8 @@ class NIFTIreader(FileReader):
 
     # write nifti file array:
     @staticmethod
-    def writeImageArray(filename, image_array):
-        nib_im = nib.Nifti1Image(np.swapaxes(image_array, 0, 2), np.eye(4))
+    def writeImageArray(filename, images_array):
+        nib_im = nib.Nifti1Image(np.swapaxes(images_array, 0, 2), np.eye(4))
         nib.save(nib_im, filename)
 
 
@@ -242,12 +242,12 @@ class DICOMreader(FileReader):
 
     # write dcm file array:
     @staticmethod
-    def writeImageArray(filename, image_array):
-        ds = sitk.GetImageFromArray(image_array)
+    def writeImageArray(filename, images_array):
+        ds = sitk.GetImageFromArray(images_array)
         sitk.WriteImage(ds, filename)
 
     @staticmethod
-    def writeDICOMimage(filename, image_array):
+    def writeDICOMimage(filename, images_array):
 
         ## This code block was taken from the output of a MATLAB secondary
         ## capture.  I do not know what the long dotted UIDs mean, but
@@ -276,11 +276,11 @@ class DICOMreader(FileReader):
         ds.BitsAllocated = 16
         ds.SmallestImagePixelValue = '\\x00\\x00'
         ds.LargestImagePixelValue = '\\xff\\xff'
-        ds.Rows = image_array.shape[0]
-        ds.Columns = image_array.shape[1]
-        if image_array.dtype != np.uint16:
-            image_array = image_array.astype(np.uint16)
-        ds.PixelData = image_array.tostring()
+        ds.Rows = images_array.shape[0]
+        ds.Columns = images_array.shape[1]
+        if images_array.dtype != np.uint16:
+            images_array = images_array.astype(np.uint16)
+        ds.PixelData = images_array.tostring()
 
         ds.save_as(filename)
 

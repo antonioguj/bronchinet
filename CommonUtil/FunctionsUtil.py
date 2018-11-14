@@ -57,6 +57,10 @@ def listfilesDir(pathname):
     listfiles = os.listdir(pathname)
     return [joinpathnames(pathname, file) for file in listfiles]
 
+def listlinksDir(pathname):
+    listfiles = listfilesDir(pathname)
+    return [file for file in listfiles if os.path.islink(file)]
+
 def isExistdir(pathname):
     return os.path.exists(pathname)
 
@@ -228,6 +232,9 @@ class WallClockTime(object):
         self.start_time = time.time()
     def compute(self):
         return time.time() - self.start_time
+
+def findElementsSubstringInListStrings(list, pattern):
+    return [elem for elem in list if pattern in elem]
 
 def findCommonElementsTwoLists_Option1(list1, list2):
     if len(list1) == 0 or len(list2) == 0:

@@ -23,7 +23,7 @@ class WorkDirsManager(object):
     def __init__(self, basePath):
         self.basePath = basePath
         if not isExistdir(basePath):
-            message = "WorkDirsManager: base path does not exist..."
+            message = "WorkDirsManager: base path '%s' does not exist..." %(basePath)
             CatchErrorException(message)
 
     def getNameDataPath(self, typedata):
