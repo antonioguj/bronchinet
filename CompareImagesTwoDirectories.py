@@ -71,7 +71,7 @@ def main(args):
             message = "Images 1 and 2 are not equal"
             CatchWarningException(message)
 
-            error_images_array = images_1_array - images_2_array
+            error_images_array = abs(images_1_array - images_2_array)
 
             num_voxels_diff      = np.count_nonzero(error_images_array)
             num_voxels_1_nonzero = np.count_nonzero(images_1_array)

@@ -30,8 +30,8 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    InputPath  = WorkDirsManager.getNameExistPath(args.basedir, args.inputdir )
-    OutputPath = WorkDirsManager.getNameNewPath  (args.basedir, args.outputdir)
+    InputPath  = WorkDirsManager.getNameExistPath(args.inputdir )
+    OutputPath = WorkDirsManager.getNameNewPath  (args.outputdir)
 
     listInputFiles = findFilesDir(InputPath, nameInputFiles)
 
