@@ -20,16 +20,16 @@ import argparse
 def main(args):
 
     # ---------- SETTINGS ----------
-    namesFilesDir1 = 'predict_binmasks*.nii.gz'
-    namesFilesDir2 = 'predict_binmasks*.nii.gz'
+    namesFilesDir1 = '*.nii.gz'
+    namesFilesDir2 = '*.nii.gz'
 
     max_rel_error_images = 1.0e-06
     # ---------- SETTINGS ----------
 
 
     workDirsManager = WorkDirsManager(args.basedir)
-    Directory1Path  = workDirsManager.getNameExistPath(args.basedir, args.dir1)
-    Directory2Path  = workDirsManager.getNameExistPath(args.basedir, args.dir2)
+    Directory1Path  = workDirsManager.getNameExistPath(args.dir1)
+    Directory2Path  = workDirsManager.getNameExistPath(args.dir2)
 
     listImagesFilesDir1 = findFilesDir(Directory1Path, namesFilesDir1)
     listImagesFilesDir2 = findFilesDir(Directory2Path, namesFilesDir2)
