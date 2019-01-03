@@ -63,6 +63,7 @@ def main(args):
     for i, (images_file, masks_file) in enumerate(zip(listImagesFiles, listMasksFiles)):
 
         print('\'%s\'...' % (images_file))
+        print('\'%s\'...' % (masks_file))
 
         images_array = FileReader.getImageArray(images_file)
         masks_array  = FileReader.getImageArray(masks_file)

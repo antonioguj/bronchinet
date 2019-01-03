@@ -28,10 +28,10 @@ def main(args):
 
     # ---------- SETTINGS ----------
     nameInputImagesRelPath  = 'ProcImages'
-    nameInputMasksRelPath   = 'ProcMasks'
+    nameInputMasksRelPath   = 'ProcDistTrans'
     nameLungsMasksRelPath   = 'ProcAllMasks'
-    nameOutputImagesRelPath = 'ProcImagesExperData'
-    nameOutputMasksRelPath  = 'ProcMasksExperData'
+    nameOutputImagesRelPath = 'ProcImagesExperData_NEW_CHRISTMAS_NEW_NEW'
+    nameOutputMasksRelPath  = 'ProcDistTransExperData_NEW_CHRISTMAS'
 
     # Get the file list:
     nameInputImagesFiles = '*.nii.gz'
@@ -101,6 +101,7 @@ def main(args):
     for i, (images_file, masks_file) in enumerate(zip(listImagesFiles, listMasksFiles)):
 
         print('\'%s\'...' %(images_file))
+        print('\'%s\'...' %(masks_file))
 
         images_array = FileReader.getImageArray(images_file)
         masks_array  = FileReader.getImageArray(masks_file)
