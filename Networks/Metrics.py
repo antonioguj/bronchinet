@@ -98,25 +98,26 @@ class Metrics(object):
 # mean squared error
 class MeanSquared(Metrics):
 
-    def __init__(self, isMasksExclude=False):
+    def __init__(self, isMasksExclude=False, exp_y_true=2):
         super(MeanSquared, self).__init__(isMasksExclude)
-        self.name_out = 'mean_squared'
+        self.name_out  = 'mean_squared'
+        self.exp_y_true= exp_y_true
 
     def compute_vec(self, y_true, y_pred):
-        return K.mean(K.square(y_pred - y_true), axis=-1)
-        #return K.mean((y_pred - y_true)**2)
+        return K.mean(K.square(y_pred - y_true**self.exp_y_true), axis=-1)
+        #return K.mean((y_pred - y_true**self.exp_y_true))**2)
 
     def compute_vec_masked(self, y_true, y_pred):
         mask = self.get_mask(y_true)
-        return K.mean(K.square(y_pred - y_true) * mask, axis=-1)
-        #return K.mean((y_pred - y_true)**2 * mask)
+        return K.mean(K.square(y_pred - y_true**self.exp_y_true) * mask, axis=-1)
+        #return K.mean((y_pred - y_true**self.exp_y_true)**2 * mask)
 
     def compute_vec_np(self, y_true, y_pred):
-        return np.mean(np.squared(y_pred - y_true))
+        return np.mean(np.squared(y_pred - y_true**self.exp_y_true))
 
     def compute_vec_masked_np(self, y_true, y_pred):
         mask = self.get_mask_np(y_true)
-        return np.mean(np.squared(y_pred - y_true) * mask)
+        return np.mean(np.squared(y_pred - y_true**self.exp_y_true) * mask)
 
     def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)

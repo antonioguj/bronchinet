@@ -19,22 +19,20 @@ class SlidingWindowPlusTransformReconstructorImages(SlidingWindowReconstructorIm
                  transformImages_generator,
                  num_trans_per_sample,
                  size_total_image,
-                 num_samples_total=None,
                  isfilterImages=False,
                  prop_valid_outUnet=None,
                  is_onehotmulticlass=False):
 
         self.transformImages_generator = transformImages_generator
 
-        self.num_trans_per_sample = num_trans_per_sample
-
         # Important! seed the initial seed in transformation images
         # inverse transformation must be the same ones as those applied to get predict data
         self.transformImages_generator.initialize_fixed_seed_0()
 
+        self.num_trans_per_sample = num_trans_per_sample
+
         super(SlidingWindowPlusTransformReconstructorImages, self).__init__(size_image_sample,
                                                                             size_total_image=size_total_image,
-                                                                            num_samples_total=num_samples_total,
                                                                             isfilterImages=isfilterImages,
                                                                             prop_valid_outUnet=prop_valid_outUnet,
                                                                             is_onehotmulticlass=is_onehotmulticlass)
@@ -96,17 +94,14 @@ class SlidingWindowPlusTransformReconstructorImages2D(SlidingWindowPlusTransform
         self.slidingWindow_generator = SlidingWindowImages2D(size_image_sample,
                                                              prop_overlap,
                                                              size_total=size_total_image)
-        self.complete_init_data_step1(size_total_image)
 
         super(SlidingWindowPlusTransformReconstructorImages2D, self).__init__(size_image_sample,
                                                                               transformImages_generator,
                                                                               num_trans_per_sample,
                                                                               size_total_image=size_total_image,
-                                                                              num_samples_total=self.num_samples_total,
                                                                               isfilterImages=isfilterImages,
                                                                               prop_valid_outUnet=prop_valid_outUnet,
                                                                               is_onehotmulticlass=is_onehotmulticlass)
-        self.complete_init_data_step2()
 
 
     @staticmethod
@@ -140,17 +135,14 @@ class SlidingWindowPlusTransformReconstructorImages3D(SlidingWindowPlusTransform
         self.slidingWindow_generator = SlidingWindowImages3D(size_image_sample,
                                                              prop_overlap,
                                                              size_total=size_total_image)
-        self.complete_init_data_step1(size_total_image)
 
         super(SlidingWindowPlusTransformReconstructorImages3D, self).__init__(size_image_sample,
                                                                               transformImages_generator,
                                                                               num_trans_per_sample,
                                                                               size_total_image=size_total_image,
-                                                                              num_samples_total=self.num_samples_total,
                                                                               isfilterImages=isfilterImages,
                                                                               prop_valid_outUnet=prop_valid_outUnet,
                                                                               is_onehotmulticlass=is_onehotmulticlass)
-        self.complete_init_data_step2()
 
 
     @staticmethod

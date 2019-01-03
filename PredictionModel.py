@@ -61,6 +61,7 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
+
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath    = workDirsManager.getNameBaseDataPath()
     TestingDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameDataPath(args.typedata))
@@ -126,11 +127,18 @@ def main(args):
     if (args.saveFeatMapsLayers):
         visual_model_params = VisualModelParams(model, IMAGES_DIMS_Z_X_Y)
 
+        if args.firstSaveFeatMapsLayers:
+            get_index_featmap = lambda i: args.firstSaveFeatMapsLayers+i
+        else:
+            get_index_featmap = lambda i: i
+
     predictAccuracyMetrics = args.predictAccuracyMetrics + ('_Masked' if args.masksToRegionInterest else '')
     computePredictAccuracy = DICTAVAILMETRICFUNS(predictAccuracyMetrics, use_in_Keras=False)
 
 
 
+    # START ANALYSIS
+    # ------------------------------
     print("-" * 30)
     print("Predicting model...")
     print("-" * 30)
@@ -148,7 +156,7 @@ def main(args):
         print("assigned to original files: '%s' and '%s'..." %(basename(full_images_file), basename(grndtruth_masks_file)))
 
 
-        # Loading Data
+        # LOADING DATA
         print("Loading data...")
         if (args.slidingWindowImages or args.transformationImages):
             (test_xData, test_yData) = LoadDataManagerInBatches_DataGenerator(IMAGES_DIMS_Z_X_Y,
@@ -164,6 +172,7 @@ def main(args):
             test_yData = np.expand_dims(test_yData, axis=0)
 
 
+
         # EVALUATE MODEL
         print("Evaluate model...")
         predict_yData = model.predict(test_xData, batch_size=1)
@@ -173,8 +182,9 @@ def main(args):
 
         if (args.saveFeatMapsLayers):
             print("Compute feature maps of evaluated model...")
-            predict_featmaps_data = visual_model_params.get_feature_maps(test_xData, args.nameSaveModelLayer)
-
+            predict_featmaps_data = visual_model_params.get_feature_maps(test_xData, args.nameSaveModelLayer,
+                                                                         max_num_feat_maps=args.maxNumSaveFeatMapsLayers,
+                                                                         first_feat_maps=args.firstSaveFeatMapsLayers)
 
         # RECONSTRUCT FULL PREDICTED PROBABILITY MAPS
         print("Reconstruct full predicted data from sliding-window batches...")
@@ -189,6 +199,7 @@ def main(args):
             predict_featmaps_array = images_reconstructor.compute(predict_featmaps_data)
 
 
+
         # **********************************************************************************
         # FOR DLCST DATA: SPLIT EACH CT IN TWO LUNGS. ANALYSE SECOND LUNG. RECONSTRUCT LATER
         if (args.constructInputDataDLCST):
@@ -200,7 +211,7 @@ def main(args):
             print("assigned to original files: '%s' and '%s'..." % (basename(test_xData_file_2), basename(test_yData_file_2)))
 
 
-            # Loading Data
+            # LOADING DATA
             print("Loading data (2nd batch)...")
             if (args.slidingWindowImages or args.transformationImages):
                 (test_xData, test_yData) = LoadDataManagerInBatches_DataGenerator(IMAGES_DIMS_Z_X_Y,
@@ -216,6 +227,7 @@ def main(args):
                 test_yData = np.expand_dims(test_yData, axis=0)
 
 
+
             # EVALUATE MODEL
             print("Evaluate model (2nd batch)...")
             predict_yData_2 = model.predict(test_xData, batch_size=1)
@@ -225,7 +237,9 @@ def main(args):
 
             if (args.saveFeatMapsLayers):
                 print("Compute feature maps of evaluated model...")
-                predict_featmaps_data_2 = visual_model_params.get_feature_maps(test_xData, args.nameSaveModelLayer)
+                predict_featmaps_data_2 = visual_model_params.get_feature_maps(test_xData, args.nameSaveModelLayer,
+                                                                               max_num_feat_maps=args.maxNumSaveFeatMapsLayers,
+                                                                               first_feat_maps=args.firstSaveFeatMapsLayers)
 
 
             # RECONSTRUCT FULL PREDICTED PROBABILITY MAPS
@@ -240,6 +254,7 @@ def main(args):
             if (args.saveFeatMapsLayers):
                 predict_featmaps_array_2 = images_reconstructor.compute(predict_featmaps_data_2)
         # **********************************************************************************
+
 
 
         # RECONSTRUCT FULL SIZE IMAGE FROM CROPPED IMAGES
@@ -260,9 +275,12 @@ def main(args):
                                     predict_probmaps_array)
 
             if (args.saveFeatMapsLayers):
+                num_save_featmaps = predict_featmaps_array.shape[-1]
+                predict_featmaps_array_fullshape = list(grndtruth_masks_array_shape) + [num_save_featmaps]
+
                 predict_featmaps_array = ExtendImages.compute3D(predict_featmaps_array,
                                                                 bounding_box_left,
-                                                                grndtruth_masks_array_shape)
+                                                                predict_featmaps_array_fullshape)
                 IncludeImages.compute3D(predict_featmaps_array_2,
                                         bounding_box_right,
                                         predict_featmaps_array)
@@ -279,9 +297,12 @@ def main(args):
                                                                 grndtruth_masks_array_shape)
 
                 if (args.saveFeatMapsLayers):
+                    num_save_featmaps = predict_featmaps_array.shape[-1]
+                    predict_featmaps_array_fullshape = list(grndtruth_masks_array_shape) + [num_save_featmaps]
+
                     predict_featmaps_array = ExtendImages.compute3D(predict_featmaps_array,
                                                                     bounding_box,
-                                                                    grndtruth_masks_array_shape)
+                                                                    predict_featmaps_array_fullshape)
 
             elif (args.extendSizeImages):
                 print("Predicted data are extended. Crop array size from %s to original %s..."%(predict_probmaps_array.shape,
@@ -302,6 +323,7 @@ def main(args):
                     CatchErrorException(message)
 
 
+
         # MASKS PREDICTED DATA TO REGION OF INTEREST
         if (args.masksToRegionInterest):
             print("Mask predicted data to Region of Interest: lungs...")
@@ -314,8 +336,8 @@ def main(args):
             predict_probmaps_array = OperationsBinaryMasks.reverse_mask_exclude_voxels_fillzero(predict_probmaps_array,
                                                                                                 lungs_masks_array)
             if (args.saveFeatMapsLayers):
-                predict_featmaps_array = OperationsBinaryMasks.reverse_mask_exclude_voxels_fillzero(predict_featmaps_array,
-                                                                                                    lungs_masks_array)
+                OperationsBinaryMasks.reverse_mask_exclude_voxels_fillzero(predict_featmaps_array, lungs_masks_array)
+
 
 
         # SAVE RECONSTRUCTED PREDICTED DATA
@@ -327,16 +349,17 @@ def main(args):
         FileReader.writeImageArray(out_predictMasksFilename, predict_probmaps_array)
 
         if (args.saveFeatMapsLayers):
-            print("Saving computed %s feature maps, with dims: %s..." %(predict_featmaps_array.shape[0],
-                                                                        tuple2str(predict_featmaps_array.shape[1:])))
+            print("Saving computed %s feature maps, with dims: %s..." %(predict_featmaps_array.shape[-1],
+                                                                        tuple2str(predict_featmaps_array.shape[0:-1])))
 
             SaveFeatMapsRelPath = tempNameSaveFeatMapsDirs %(filenamenoextension(full_images_file), args.nameSaveModelLayer)
             SaveFeatMapsPath    = workDirsManager.getNameNewPath(PredictDataPath, SaveFeatMapsRelPath)
 
-            num_save_featmaps = predict_featmaps_array.shape[0]
+            num_save_featmaps = predict_featmaps_array.shape[-1]
 
             for ifeatmap in range(num_save_featmaps):
-                out_featMapsFilename = tempNameSaveFeatMapsFiles %(filenamenoextension(full_images_file), args.nameSaveModelLayer, ifeatmap+1)
+                ind_featmap = get_index_featmap(ifeatmap)
+                out_featMapsFilename = tempNameSaveFeatMapsFiles %(filenamenoextension(full_images_file), args.nameSaveModelLayer, ind_featmap+1)
                 out_featMapsFilename = joinpathnames(SaveFeatMapsPath, out_featMapsFilename)
 
                 FileReader.writeImageArray(out_featMapsFilename, predict_featmaps_array[...,ifeatmap])
@@ -362,7 +385,8 @@ def main(args):
 
             if (args.saveFeatMapsLayers):
                 for ifeatmap in range(num_save_featmaps):
-                    SaveImagesRelPath = tempNameSaveFeatMapsSliceImagesDirs %(filenamenoextension(full_images_file), args.nameSaveModelLayer, ifeatmap+1)
+                    ind_featmap = get_index_featmap(ifeatmap)
+                    SaveImagesRelPath = tempNameSaveFeatMapsSliceImagesDirs %(filenamenoextension(full_images_file), args.nameSaveModelLayer, ind_featmap+1)
                     SaveImagesPath    = workDirsManager.getNameNewPath(SaveFeatMapsPath, SaveImagesRelPath)
 
                     PlotsManager.plot_images_masks_allSlices(full_images_array[begin_slices:end_slices],
@@ -382,7 +406,6 @@ if __name__ == "__main__":
     parser.add_argument('--predictionsdir', default='Predictions_NEW')
     parser.add_argument('--lossfun', default=ILOSSFUN)
     parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
-    parser.add_argument('--num_featmaps_firstlayer', type=int, default=NUM_FEATMAPS_FIRSTLAYER)
     parser.add_argument('--prediction_modelFile', default=PREDICTION_MODELFILE)
     parser.add_argument('--predictAccuracyMetrics', default=PREDICTACCURACYMETRICS)
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
@@ -400,6 +423,8 @@ if __name__ == "__main__":
     parser.add_argument('--typeGPUinstalled', type=str, default=TYPEGPUINSTALLED)
     parser.add_argument('--saveFeatMapsLayers', type=str2bool, default=SAVEFEATMAPSLAYERS)
     parser.add_argument('--nameSaveModelLayer', default=NAMESAVEMODELLAYER)
+    parser.add_argument('--maxNumSaveFeatMapsLayers', type=int, default=None)
+    parser.add_argument('--firstSaveFeatMapsLayers', type=int, default=None)
     parser.add_argument('--savePredictMaskSlices', type=str2bool, default=SAVEPREDICTMASKSLICES)
     args = parser.parse_args()
 

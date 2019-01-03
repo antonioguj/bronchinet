@@ -26,7 +26,7 @@ class VisualModelParams(object):
                 return ilay_idx
         #endfor
         print('ERROR: layer "%s" not found...')
-        return -1
+        return None
 
     def is_list_patches_images_array(self, in_array_shape):
 
@@ -39,16 +39,30 @@ class VisualModelParams(object):
             return None
 
 
-    def get_feature_maps(self, in_images_array, name_layer):
+    def get_feature_maps(self, in_images_array, name_layer, max_num_feat_maps=None, first_feat_maps=None):
 
         # find index for "name_layer"
         idx_layer = self.find_layer_index_from_name(name_layer)
+        if not idx_layer:
+            return None
 
         # define function for "idx_layer"
         layer_cls = self.model.layers[idx_layer]
-        layer_func = K.function([self.model.input], [layer_cls.output])
 
-        num_featmaps = layer_cls.output.shape[-1].value
+        num_featmaps_all = layer_cls.output.shape[-1].value
+
+        if max_num_feat_maps:
+            if not first_feat_maps:
+                first_feat_maps = 0
+
+            num_featmaps = min(max_num_feat_maps, num_featmaps_all-first_feat_maps)
+            last_feat_maps = first_feat_maps + num_featmaps
+
+            get_feat_maps_layer_func = K.function([self.model.input], [layer_cls.output[..., first_feat_maps:last_feat_maps]])
+        else:
+            num_featmaps = num_featmaps_all
+
+            get_feat_maps_layer_func = K.function([self.model.input], [layer_cls.output])
 
 
         if (self.is_list_patches_images_array(in_images_array.shape)):
@@ -62,116 +76,29 @@ class VisualModelParams(object):
             for i, ipatch_images_array in enumerate(in_images_array):
 
                 # compute the feature maps (reformat input image)
-                ipatch_featmaps_array = layer_func([[ipatch_images_array]])
+                ipatch_featmaps_array = get_feat_maps_layer_func([[ipatch_images_array]])
                 out_featmaps_array[i] = ipatch_featmaps_array[0]
             #endfor
 
-            return out_featmaps_array
+            return out_featmaps_array.astype(np.float32)
 
         else:
             #input: one image array
             # compute the feature maps (reformat input image)
-            out_featmaps_array = layer_func([[in_images_array]])
+            out_featmaps_array = get_feat_maps_layer_func([[in_images_array]])
 
-            return out_featmaps_array[0]
+            return out_featmaps_array[0].astype(np.float32)
 
 
-    def get_feature_maps_all_layers(self, in_images_array):
+    def get_feature_maps_all_layers(self, in_images_array, max_num_feat_maps=None, first_feat_maps=None):
 
         # save output in a dictionary
         out_featmaps_array = {}
         for it_layer in self.model.layers:
-            out_featmaps_array[it_layer.name] = self.get_feature_maps(in_images_array, it_layer.name)
+            out_featmaps_array[it_layer.name] = self.get_feature_maps(in_images_array,
+                                                                      it_layer.name,
+                                                                      max_num_feat_maps=max_num_feat_maps,
+                                                                      first_feat_maps=first_feat_maps)
         #endfor
 
-        return out_featmaps_array
-
-
-
-def visualize_activation_in_layer_one_plot(model, input_list_images, namedir):
-    """
-    visualize activations in layers(By Shuai)
-    """
-
-    count_img = 1
-
-    for input_image in input_list_images:
-
-        # reformat input image
-        input_image = [input_image.tolist()]
-
-        namesubdir_img = 'featmaps_img-%0.2i' %(count_img)
-        namesubdir_img = os.path.join(namedir, namesubdir_img)
-
-        if not os.path.exists(namesubdir_img):
-            os.makedirs(namesubdir_img)
-        count_img = count_img+1
-
-
-        # iterate across layers
-        for layer_index in range(len(model.layers)):
-
-            layer_name = model.layers[layer_index].name
-
-            # define function
-            convout1 = model.layers[layer_index]
-            convout1_f = K.function([model.input], [convout1.output])
-
-            # compute the activation map
-            C1 = convout1_f([input_image])
-            C1 = np.squeeze(C1)
-            print(layer_index, ' ', layer_name, ' ', 'featmaps dims: ', C1.shape)
-
-
-            newfigname = 'featmaps_%s' %(layer_name)
-            newfigname = os.path.join(namesubdir_img, newfigname)
-
-            # save results
-            if len(C1.shape) == 3:  # if only a single filter in the layer (basically to save the input)
-
-                C1 = C1[int(C1.shape[0] * 0.4), :, :]
-
-                # Plot feature maps:
-                plt.figure(layer_index, figsize=(3, 3))
-                plt.figure(layer_index)
-
-                ax1 = plt.subplot(1, 1, 1)
-                # title = 'feature maps ' + str(plt_num+1)
-                # plt.title(title)
-                plt.axis('off')
-                ax1.imshow(C1[:, :], cmap = 'viridis')
-
-                plt.savefig(newfigname)
-                plt.close()
-
-            elif len(C1.shape) == 4:  # if several filters in the layer
-
-                C1 = C1[int(C1.shape[0] * 0.4), :, :, :]
-
-                # Plot feature maps:
-                plt_row = 4
-                plt_col = int(C1.shape[-1] / plt_row)
-
-                if plt_col == 0:
-                    plt_row = 1
-                    plt_col = C1.shape[-1]
-
-                plt.figure(layer_index, figsize=(3 * plt_col, 3 * plt_row))
-                plt.figure(layer_index)
-
-                for plt_num in range (C1.shape[-1]):
-                    ax1 = plt.subplot(plt_row, plt_col, plt_num + 1)
-                    # title = 'feature maps ' + str(plt_num+1)
-                    # plt.title(title)
-                    plt.axis('off')
-                    ax1.imshow(C1[:, :, plt_num], cmap = 'viridis')
-                #endfor
-
-                plt.savefig(newfigname)
-                plt.close()
-
-            else:
-                print('error: wrong dimensions for C1')
-                return False
-        #endfor
-    #endfor
+        return out_featmaps_array.astype(np.float32)

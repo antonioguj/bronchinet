@@ -46,8 +46,8 @@ def find_element_repeated_two_indexes_names(names_images_type_data_1, names_imag
 def main(args):
 
     # ---------- SETTINGS ----------
-    nameOrigImagesDataRelPath = 'ProcImagesExperData_FULLLUNG'
-    nameOrigMasksDataRelPath  = 'ProcMasksExperData_FULLLUNG'
+    nameOrigImagesDataRelPath = 'ProcImagesExperData'
+    nameOrigMasksDataRelPath  = 'ProcMasksExperData'
 
     nameOriginImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
     nameOriginMasksFiles  = 'masks*' + getFileExtension(FORMATINOUTDATA)

@@ -14,39 +14,50 @@ from scipy.misc import imresize
 import numpy as np
 
 
-class CropImages(object):
+class OperationsImages(object):
+
+    @staticmethod
+    def check_images_array_2D_without_channels(images_array_shape):
+        return len(images_array_shape) == 2
+
+    @staticmethod
+    def check_images_array_3D_without_channels(images_array_shape):
+        return len(images_array_shape) == 3
+
+
+class CropImages(OperationsImages):
 
     @staticmethod
     def compute2D(images_array, bounding_box):
 
         return images_array[:, bounding_box[0][0]:bounding_box[0][1],
-                               bounding_box[1][0]:bounding_box[1][1]]
+                               bounding_box[1][0]:bounding_box[1][1], ...]
 
     @staticmethod
     def compute3D(images_array, bounding_box):
 
         return images_array[bounding_box[0][0]:bounding_box[0][1],
                             bounding_box[1][0]:bounding_box[1][1],
-                            bounding_box[2][0]:bounding_box[2][1]]
+                            bounding_box[2][0]:bounding_box[2][1], ...]
 
 
-class IncludeImages(object):
+class IncludeImages(OperationsImages):
 
     @staticmethod
     def compute2D(images_array, bounding_box, images_full_array):
 
         images_full_array[bounding_box[0][0]:bounding_box[0][1],
-                          bounding_box[1][0]:bounding_box[1][1]] = images_array
+                          bounding_box[1][0]:bounding_box[1][1], ...] = images_array
 
     @staticmethod
     def compute3D(images_array, bounding_box, images_full_array):
 
         images_full_array[bounding_box[0][0]:bounding_box[0][1],
                           bounding_box[1][0]:bounding_box[1][1],
-                          bounding_box[2][0]:bounding_box[2][1]] = images_array
+                          bounding_box[2][0]:bounding_box[2][1], ...] = images_array
 
 
-class ExtendImages(object):
+class ExtendImages(OperationsImages):
 
     @staticmethod
     def compute2D(images_array, bounding_box, out_array_shape, background_value=0):
@@ -57,7 +68,7 @@ class ExtendImages(object):
             out_images_array = np.full(out_array_shape, background_value, dtype=images_array.dtype)
 
         out_images_array[bounding_box[0][0]:bounding_box[0][1],
-                         bounding_box[1][0]:bounding_box[1][1]] = images_array
+                         bounding_box[1][0]:bounding_box[1][1], ...] = images_array
 
         return out_images_array
 
@@ -71,12 +82,12 @@ class ExtendImages(object):
 
         out_images_array[bounding_box[0][0]:bounding_box[0][1],
                          bounding_box[1][0]:bounding_box[1][1],
-                         bounding_box[2][0]:bounding_box[2][1]] = images_array
+                         bounding_box[2][0]:bounding_box[2][1], ...] = images_array
 
         return out_images_array
 
 
-class ResizeImages(object):
+class ResizeImages(OperationsImages):
 
     type_interp_images = 'bilinear'
     type_interp_masks  = 'nearest'
@@ -145,14 +156,14 @@ class ResizeImages(object):
         return new_images_array
 
 
-class ThresholdImages(object):
+class ThresholdImages(OperationsImages):
 
     @staticmethod
     def compute(predictions_array, threshold_value):
         return np.where(predictions_array > threshold_value, 1.0, 0.0)
 
 
-class FlippingImages(object):
+class FlippingImages(OperationsImages):
 
     @staticmethod
     def compute(images_array, axis = 0):

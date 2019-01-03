@@ -14,13 +14,11 @@ from Postprocessing.BaseImageReconstructor import *
 class TransformationReconstructorImages(BaseImageReconstructor):
 
     def __init__(self, size_image_sample,
-                 num_samples_total,
                  transformImages_generator,
+                 num_samples_total,
                  isfilterImages=False,
                  prop_valid_outUnet=None,
                  is_onehotmulticlass=False):
-
-        self.num_samples_total = num_samples_total
 
         self.transformImages_generator = transformImages_generator
 
@@ -28,7 +26,10 @@ class TransformationReconstructorImages(BaseImageReconstructor):
         # inverse transformation must be the same ones as those applied to get predict data
         self.transformImages_generator.initialize_fixed_seed_0()
 
+        self.num_samples_total = num_samples_total
+
         super(TransformationReconstructorImages, self).__init__(size_image_sample,
+                                                                size_total_image=size_image_sample,
                                                                 isfilterImages=isfilterImages,
                                                                 prop_valid_outUnet=prop_valid_outUnet,
                                                                 is_onehotmulticlass=is_onehotmulticlass)

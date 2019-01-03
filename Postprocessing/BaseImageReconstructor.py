@@ -16,8 +16,13 @@ import numpy as np
 
 class BaseImageReconstructor(object):
 
-    def __init__(self, size_image, isfilterImages=False, prop_valid_outUnet=None, is_onehotmulticlass=False):
+    def __init__(self, size_image,
+                 size_total_image,
+                 isfilterImages=False,
+                 prop_valid_outUnet=None,
+                 is_onehotmulticlass=False):
         self.size_image         = size_image
+        self.size_total_image   = size_total_image
         self.isfilterImages     = isfilterImages
         self.is_onehotmulticlass= is_onehotmulticlass
 
@@ -48,7 +53,7 @@ class BaseImageReconstructor(object):
 
     def get_shape_out_array(self, in_array_shape):
         num_channels = self.get_num_channels_array(in_array_shape[1:])
-        return list(self.size_image) + [num_channels]
+        return list(self.size_total_image) + [num_channels]
 
     def get_reshaped_in_array(self, in_array):
         num_channels = self.get_num_channels_array(in_array.shape[1:])

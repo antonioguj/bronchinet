@@ -51,6 +51,7 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
+
     workDirsManager  = WorkDirsManager(args.basedir)
     BaseDataPath     = workDirsManager.getNameBaseDataPath()
     InputImagesPath  = workDirsManager.getNameExistPath(BaseDataPath, nameInputImagesRelPath)
@@ -91,6 +92,12 @@ def main(args):
 
 
 
+    # START ANALYSIS
+    # ------------------------------
+    print("-" * 30)
+    print("Preprocessing...")
+    print("-" * 30)
+
     for i, (images_file, masks_file) in enumerate(zip(listImagesFiles, listMasksFiles)):
 
         print('\'%s\'...' %(images_file))
@@ -108,6 +115,7 @@ def main(args):
         print("Original image of size: %s..." %(str(images_array.shape)))
 
 
+
         if (args.isClassificationCase):
             if (args.multiClassCase):
                 operationsMasks = OperationsMultiClassMasks(args.numClassesMasks)
@@ -122,6 +130,7 @@ def main(args):
             else:
                 # Turn to binary masks (0, 1)
                 masks_array = OperationsBinaryMasks.process_masks(masks_array)
+
 
 
         if (args.masksToRegionInterest):
@@ -205,6 +214,7 @@ def main(args):
                 (images_array, masks_array) = slidingWindowImagesGenerator.compute_images_array_all(images_array, masks_array=masks_array)
 
                 print("Final dimensions: %s..." %(images_array.shape))
+
             else:
                 print("Generate batches images by Slicing volumes: size: %s..." %(IMAGES_DIMS_Z_X_Y))
 
@@ -213,6 +223,7 @@ def main(args):
                 (images_array, masks_array) = slicingImagesGenerator.compute_images_array_all(images_array, masks_array=masks_array)
 
                 print("Final dimensions: %s..." %(images_array.shape))
+
 
 
             if (args.elasticDeformationImages):
@@ -226,6 +237,7 @@ def main(args):
                 (images_array, masks_array) = elasticDeformationImagesGenerator.compute_images_array_all(images_array, masks_array=masks_array)
 
                 print("Final dimensions: %s..." %(images_array.shape))
+
 
             elif (args.transformationImages):
                 print("Generate random 3D transformations of images: size: %s..." %(IMAGES_DIMS_Z_X_Y))
@@ -280,7 +292,6 @@ if __name__ == "__main__":
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--extendSizeImages', type=str2bool, default=EXTENDSIZEIMAGES)
     parser.add_argument('--constructInputDataDLCST', type=str2bool, default=CONSTRUCTINPUTDATADLCST)
-    parser.add_argument('--checkBalanceClasses', type=str2bool, default=CHECKBALANCECLASSES)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)

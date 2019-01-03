@@ -72,9 +72,13 @@ for file in list_models_files:
     model_file_list_valoss.append(float(attributes[2]))
 # endfor
 
-model_file_maxepoch  = list_models_files[model_file_list_epochs.index(max(model_file_list_epochs))]
-model_file_minloss   = list_models_files[model_file_list_loss  .index(min(model_file_list_loss  ))]
-model_file_minvaloss = list_models_files[model_file_list_valoss.index(min(model_file_list_valoss))]
+max_epoch  = max(model_file_list_epochs)
+min_loss   = min(model_file_list_loss  )
+min_valoss = min(model_file_list_valoss)
+
+model_file_maxepoch  = list_models_files[model_file_list_epochs.index(max_epoch )]
+model_file_minloss   = list_models_files[model_file_list_loss  .index(min_loss  )]
+model_file_minvaloss = list_models_files[model_file_list_valoss.index(min_valoss)]
 
 list_save_files.append(model_file_maxepoch)
 list_save_files.append(model_file_minloss)
@@ -87,20 +91,16 @@ print("model with min valoss: %s..." %(model_file_minvaloss))
 
 print("also save models every '%s':..." %(freq_save_model_file))
 
-indexes_save_models = range(0, len(list_models_files), freq_save_model_file)
-
 list_save_freq_models = []
-for index in indexes_save_models:
-    prefix = 'model_%s_'%(index)
-    for file in list_models_files:
-        if prefix in file:
-            list_save_freq_models.append(file)
-            list_save_files.append(file)
-            continue
-    #endfor
+for file in list_models_files:
+    attributes = basename(file).replace('model_', '').replace('.hdf5', '').split('_')
+    i_epoch = int(attributes[0])
+    if (i_epoch % freq_save_model_file == 0):
+        list_save_freq_models.append(file)
+        list_save_files.append(file)
 #endfor
 
-print("list saved files: '%s'..." %(list_save_freq_models))
+print("list saved files: '%s'..." %(list_save_files))
 
 
 print("remove every other files...")

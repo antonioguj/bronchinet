@@ -18,44 +18,99 @@ class OperationsMasks(object):
     val_mask_background     = 0
     val_mask_exclude_voxels = -1
 
+
+    @staticmethod
+    def is_images_array_without_channels(images_array_shape, masks_exclude_voxels_array_shape):
+        return len(images_array_shape) == len(masks_exclude_voxels_array_shape)
+
+    @classmethod
+    def check_correct_shape_input_array(cls, images_array_shape, masks_exclude_voxels_array_shape):
+
+        if cls.is_images_array_without_channels(images_array_shape, masks_exclude_voxels_array_shape):
+            if (images_array_shape == masks_exclude_voxels_array_shape):
+                return True
+        else:
+            if (images_array_shape[0:-1] == masks_exclude_voxels_array_shape):
+                return True
+        message = "size of input array, %s; not equal to size of mask, %s..." %(images_array_shape, masks_exclude_voxels_array_shape)
+        CatchErrorException(message)
+
+
+    @classmethod
+    def template_apply_mask_to_image_with_channels_2args(cls, function_apply_mask_without_channels,
+                                                         images_array, masks_exclude_voxels_array):
+        num_channels = images_array.shape[-1]
+        for ichan in range(num_channels):
+            images_array[..., ichan] = function_apply_mask_without_channels(images_array[..., ichan], masks_exclude_voxels_array)
+        #endfor
+        #return images_array
+
+    @classmethod
+    def template_apply_mask_to_image_with_channels_3args(cls, function_apply_mask_without_channels,
+                                                         images_array, original_images_array, masks_exclude_voxels_array):
+        num_channels = images_array.shape[-1]
+        for ichan in range(num_channels):
+            images_array[..., ichan] = function_apply_mask_without_channels(images_array[..., ichan], original_images_array, masks_exclude_voxels_array)
+        # endfor
+        #return images_array
+
+
+    @classmethod
+    def function_apply_mask_exclude_voxels(cls, images_array, masks_exclude_voxels_array):
+        return np.where(masks_exclude_voxels_array == cls.val_mask_background, cls.val_mask_exclude_voxels, images_array)
+
+    @classmethod
+    def function_apply_mask_exclude_voxels_fillzero(cls, images_array, masks_exclude_voxels_array):
+        return np.where(masks_exclude_voxels_array == cls.val_mask_background, cls.val_mask_background, images_array)
+
+    @classmethod
+    def function_reverse_mask_exclude_voxels(cls, images_array, original_images_array, masks_exclude_voxels_array):
+        return np.where(masks_exclude_voxels_array == cls.val_mask_background, original_images_array, images_array)
+
+    @classmethod
+    def function_reverse_mask_exclude_voxels_fillzero(cls, images_array, masks_exclude_voxels_array):
+        return np.where(masks_exclude_voxels_array == cls.val_mask_background, cls.val_mask_background, images_array)
+
+
     @classmethod
     def apply_mask_exclude_voxels(cls, images_array, masks_exclude_voxels_array):
 
-        if (images_array.shape  != masks_exclude_voxels_array.shape):
-            message = "size of input array, %s; not equal to size of mask, %s..."%(images_array.shape, masks_exclude_voxels_array.shape)
-            CatchErrorException(message)
-        else:
-            return np.where(masks_exclude_voxels_array == cls.val_mask_background, cls.val_mask_exclude_voxels, images_array)
+        if cls.check_correct_shape_input_array(images_array.shape, masks_exclude_voxels_array.shape):
+            if cls.is_images_array_without_channels(images_array.shape, masks_exclude_voxels_array.shape):
+                return cls.function_apply_mask_exclude_voxels(images_array, masks_exclude_voxels_array)
+            else:
+                cls.template_apply_mask_to_image_with_channels_2args(cls.function_apply_mask_exclude_voxels,
+                                                                     images_array, masks_exclude_voxels_array)
 
     @classmethod
     def apply_mask_exclude_voxels_fillzero(cls, images_array, masks_exclude_voxels_array):
 
-        if (images_array.shape  != masks_exclude_voxels_array.shape):
-            message = "size of input array, %s; not equal to size of mask, %s..."%(images_array.shape, masks_exclude_voxels_array.shape)
-            CatchErrorException(message)
-        else:
-            return np.where(masks_exclude_voxels_array == cls.val_mask_background, cls.val_mask_background, images_array)
+        if cls.check_correct_shape_input_array(images_array.shape, masks_exclude_voxels_array.shape):
+            if cls.is_images_array_without_channels(images_array.shape, masks_exclude_voxels_array.shape):
+                return cls.function_apply_mask_exclude_voxels_fillzero(images_array, masks_exclude_voxels_array)
+            else:
+                cls.template_apply_mask_to_image_with_channels_2args(cls.function_apply_mask_exclude_voxels_fillzero,
+                                                                     images_array, masks_exclude_voxels_array)
 
     @classmethod
-    def reverse_mask_exclude_voxels(cls, images_array, original_images_array, masks_exclude_voxels_array):
+    def reverse_mask_exclude_voxels(cls, images_array, masks_exclude_voxels_array, original_images_array):
 
-        if (images_array.shape  != original_images_array.shape) and \
-            (images_array.shape != masks_exclude_voxels_array.shape):
-            message = "size of input array, %s; not equal to size of original array %s, or size of mask, %s..."%(images_array.shape,
-                                                                                                                 original_images_array.shape,
-                                                                                                                 masks_exclude_voxels_array.shape)
-            CatchErrorException(message)
-        else:
-            return np.where(masks_exclude_voxels_array == cls.val_mask_background, original_images_array, images_array)
+        if cls.check_correct_shape_input_array(images_array.shape, masks_exclude_voxels_array.shape):
+            if cls.is_images_array_without_channels(images_array.shape, masks_exclude_voxels_array.shape):
+                return cls.function_reverse_mask_exclude_voxels(images_array, masks_exclude_voxels_array, original_images_array)
+            else:
+                cls.template_apply_mask_to_image_with_channels_3args(cls.function_reverse_mask_exclude_voxels,
+                                                                     images_array, masks_exclude_voxels_array. original_images_array)
 
     @classmethod
     def reverse_mask_exclude_voxels_fillzero(cls, images_array, masks_exclude_voxels_array):
 
-        if (images_array.shape  != masks_exclude_voxels_array.shape):
-            message = "size of input array, %s; not equal to size of mask, %s..."%(images_array.shape, masks_exclude_voxels_array.shape)
-            CatchErrorException(message)
-        else:
-            return np.where(masks_exclude_voxels_array == cls.val_mask_background, cls.val_mask_background, images_array)
+        if cls.check_correct_shape_input_array(images_array.shape, masks_exclude_voxels_array.shape):
+            if cls.is_images_array_without_channels(images_array.shape, masks_exclude_voxels_array.shape):
+                return cls.function_reverse_mask_exclude_voxels_fillzero(images_array, masks_exclude_voxels_array)
+            else:
+                cls.template_apply_mask_to_image_with_channels_2args(cls.function_reverse_mask_exclude_voxels_fillzero,
+                                                                     images_array, masks_exclude_voxels_array)
 
 
 class OperationsBinaryMasks(OperationsMasks):

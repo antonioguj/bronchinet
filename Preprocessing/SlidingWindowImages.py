@@ -21,15 +21,18 @@ class SlidingWindowImages(BaseImageGenerator):
         super(SlidingWindowImages, self).__init__(size_image)
 
     @staticmethod
-    def get_num_images_1d(size_total, size_image, prop_overlap):
+    def get_num_images_1d(size_image, size_total, prop_overlap):
 
-        return max(int(np.floor((size_total - prop_overlap*size_image) /(1-prop_overlap) /size_image)), 0)
+        return max(int(np.ceil((size_total - prop_overlap*size_image) /(1-prop_overlap) /size_image)), 0)
 
     @staticmethod
-    def get_limits_image_1d(index, size_image, prop_overlap):
+    def get_limits_image_1d(index, size_image, size_total, prop_overlap):
 
         coord_n    = int(index * (1.0-prop_overlap) * size_image)
         coord_npl1 = coord_n + size_image
+        if coord_npl1 > size_total:
+            coord_npl1 = size_total
+            coord_n    = size_total - size_image
         return (coord_n, coord_npl1)
 
     def complete_init_data(self, in_array_shape):
@@ -112,8 +115,8 @@ class SlidingWindowImages2D(SlidingWindowImages):
 
     def get_num_images_local(self):
 
-        num_images_x = self.get_num_images_1d(self.size_total_x, self.size_image_x, self.prop_overlap_x)
-        num_images_y = self.get_num_images_1d(self.size_total_y, self.size_image_y, self.prop_overlap_y)
+        num_images_x = self.get_num_images_1d(self.size_image_x, self.size_total_x, self.prop_overlap_x)
+        num_images_y = self.get_num_images_1d(self.size_image_y, self.size_total_y, self.prop_overlap_y)
 
         return (num_images_x, num_images_y)
 
@@ -121,8 +124,8 @@ class SlidingWindowImages2D(SlidingWindowImages):
 
         (index_x, index_y) = self.get_indexes_local(index)
 
-        (x_left, x_right) = self.get_limits_image_1d(index_x, self.size_image_x, self.prop_overlap_x)
-        (y_down, y_up   ) = self.get_limits_image_1d(index_y, self.size_image_y, self.prop_overlap_y)
+        (x_left, x_right) = self.get_limits_image_1d(index_x, self.size_image_x, self.size_total_x, self.prop_overlap_x)
+        (y_down, y_up   ) = self.get_limits_image_1d(index_y, self.size_image_y, self.size_total_y, self.prop_overlap_y)
 
         return (x_left, x_right, y_down, y_up)
 
@@ -163,9 +166,9 @@ class SlidingWindowImages3D(SlidingWindowImages):
 
     def get_num_images_local(self):
 
-        num_images_x = self.get_num_images_1d(self.size_total_x, self.size_image_x, self.prop_overlap_x)
-        num_images_y = self.get_num_images_1d(self.size_total_y, self.size_image_y, self.prop_overlap_y)
-        num_images_z = self.get_num_images_1d(self.size_total_z, self.size_image_z, self.prop_overlap_z)
+        num_images_x = self.get_num_images_1d(self.size_image_x, self.size_total_x, self.prop_overlap_x)
+        num_images_y = self.get_num_images_1d(self.size_image_y, self.size_total_y, self.prop_overlap_y)
+        num_images_z = self.get_num_images_1d(self.size_image_z, self.size_total_z, self.prop_overlap_z)
 
         return (num_images_z, num_images_x, num_images_y)
 
@@ -173,9 +176,9 @@ class SlidingWindowImages3D(SlidingWindowImages):
 
         (index_z, index_x, index_y) = self.get_indexes_local(index)
 
-        (x_left, x_right) = self.get_limits_image_1d(index_x, self.size_image_x, self.prop_overlap_x)
-        (y_down, y_up   ) = self.get_limits_image_1d(index_y, self.size_image_y, self.prop_overlap_y)
-        (z_back, z_front) = self.get_limits_image_1d(index_z, self.size_image_z, self.prop_overlap_z)
+        (x_left, x_right) = self.get_limits_image_1d(index_x, self.size_image_x, self.size_total_x, self.prop_overlap_x)
+        (y_down, y_up   ) = self.get_limits_image_1d(index_y, self.size_image_y, self.size_total_y, self.prop_overlap_y)
+        (z_back, z_front) = self.get_limits_image_1d(index_z, self.size_image_z, self.size_total_z, self.prop_overlap_z)
 
         return (z_back, z_front, x_left, x_right, y_down, y_up)
 

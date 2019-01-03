@@ -16,19 +16,18 @@ class SlidingWindowReconstructorImages(BaseImageReconstructor):
 
     def __init__(self, size_image_sample,
                  size_total_image,
-                 num_samples_total,
                  isfilterImages=False,
                  prop_valid_outUnet=None,
                  is_onehotmulticlass=False):
 
-        self.size_total_image  = size_total_image
-        self.num_samples_total = num_samples_total
-
         super(SlidingWindowReconstructorImages, self).__init__(size_image_sample,
+                                                               size_total_image=size_total_image,
                                                                isfilterImages=isfilterImages,
                                                                prop_valid_outUnet=prop_valid_outUnet,
                                                                is_onehotmulticlass=is_onehotmulticlass)
-        self.compute_normfact_overlap_images_samples()
+        # initialize generator data
+        self.num_samples_total = 0
+        self.complete_init_data(size_total_image)
 
 
     @staticmethod
@@ -119,15 +118,12 @@ class SlidingWindowReconstructorImages2D(SlidingWindowReconstructorImages):
         self.slidingWindow_generator = SlidingWindowImages2D(size_image_sample,
                                                              prop_overlap,
                                                              size_total=size_total_image)
-        self.complete_init_data_step1(size_total_image)
 
         super(SlidingWindowReconstructorImages2D, self).__init__(size_image_sample,
                                                                  size_total_image=size_total_image,
-                                                                 num_samples_total=self.num_samples_total,
                                                                  isfilterImages=isfilterImages,
                                                                  prop_valid_outUnet=prop_valid_outUnet,
                                                                  is_onehotmulticlass=is_onehotmulticlass)
-        self.complete_init_data_step2()
 
 
     @staticmethod
@@ -159,15 +155,12 @@ class SlidingWindowReconstructorImages3D(SlidingWindowReconstructorImages):
         self.slidingWindow_generator = SlidingWindowImages3D(size_image_sample,
                                                              prop_overlap,
                                                              size_total=size_total_image)
-        self.complete_init_data_step1(size_total_image)
 
         super(SlidingWindowReconstructorImages3D, self).__init__(size_image_sample,
                                                                  size_total_image=size_total_image,
-                                                                 num_samples_total=self.num_samples_total,
                                                                  isfilterImages=isfilterImages,
                                                                  prop_valid_outUnet=prop_valid_outUnet,
                                                                  is_onehotmulticlass=is_onehotmulticlass)
-        self.complete_init_data_step2()
 
 
     @staticmethod

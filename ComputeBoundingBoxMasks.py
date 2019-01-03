@@ -27,22 +27,23 @@ def main(args):
     max_size_boundingBox = (0, 0, 0)
     min_size_boundingBox = (1.0e+03, 1.0e+03, 1.0e+03)
 
-    nameRawImagesRelPath = 'ProcImages'
-    nameRawMasksRelPath  = 'ProcMasks'
+    nameRawImagesRelPath    = 'ProcImages'
+    nameRawMasksRelPath     = 'ProcMasks'
+    nameRawLungMasksRelPath = 'ProcAllMasks'
 
     # Get the file list:
     nameImagesFiles = '*.nii.gz'
-    nameMasksFiles  = '*.nii.gz'
+    nameMasksFiles  = '*lungs.nii.gz'
 
-    nameBoundingBoxesMasksNPY = 'boundBoxesMasks_FULLLUNG_240.npy'
-    nameBoundingBoxesMasksCSV = 'boundBoxesMasks_FULLLUNG_240.csv'
+    nameBoundingBoxesMasksNPY = 'boundBoxesMasks.npy'
+    nameBoundingBoxesMasksCSV = 'boundBoxesMasks.csv'
     # ---------- SETTINGS ----------
 
 
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath    = workDirsManager.getNameBaseDataPath()
     RawImagesPath   = workDirsManager.getNameExistPath(BaseDataPath, nameRawImagesRelPath)
-    RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, nameRawMasksRelPath )
+    RawMasksPath    = workDirsManager.getNameExistPath(BaseDataPath, nameRawLungMasksRelPath)
 
     listImagesFiles = findFilesDir(RawImagesPath, nameImagesFiles)
     listMasksFiles  = findFilesDir(RawMasksPath,  nameMasksFiles )
@@ -77,7 +78,7 @@ def main(args):
         print("Original image of size: %s..." % (str(images_array.shape)))
 
 
-        boundingBox = BoundingBoxMasks.compute_bounding_box_contain_masks_with_border_effects_3D(masks_array, voxels_buffer_border=VOXELSBUFFERBORDER)
+        boundingBox = BoundingBoxMasks.compute_bounding_box_contain_masks_with_border_effects_2D(masks_array, voxels_buffer_border=VOXELSBUFFERBORDER)
 
         size_boundingBox = BoundingBoxMasks.compute_size_bounding_box(boundingBox)
 
@@ -97,7 +98,7 @@ def main(args):
 
 
         # Compute new bounding-box that fits all input images processed
-        processed_boundingBox = BoundingBoxMasks.compute_bounding_box_centered_bounding_box_3D(boundingBox, args.cropSizeBoundingBox, images_array.shape)
+        processed_boundingBox = BoundingBoxMasks.compute_bounding_box_centered_bounding_box_2D(boundingBox, args.cropSizeBoundingBox, images_array.shape)
 
         size_processed_boundingBox = BoundingBoxMasks.compute_size_bounding_box(processed_boundingBox)
 
@@ -106,17 +107,17 @@ def main(args):
         print("processed bounding-box: %s, of size: %s" %(processed_boundingBox, size_processed_boundingBox))
 
 
-        if (size_processed_boundingBox != args.cropSizeBoundingBox):
-            message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, args.cropSizeBoundingBox)
-            CatchErrorException(message)
+        # if (size_processed_boundingBox != args.cropSizeBoundingBox):
+        #     message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, args.cropSizeBoundingBox)
+        #     CatchErrorException(message)
 
         # if (size_processed_boundingBox != images_array.shape):
         #     message = "size processed bounding-box not correct: %s != %s" % (size_processed_boundingBox, images_array.shape)
         #     CatchErrorException(message)
         #
-        if BoundingBoxMasks.is_bounding_box_contained(boundingBox, processed_boundingBox):
-            message = "Processed bounding-box: %s smaller than original one: %s..." % (processed_boundingBox, boundingBox)
-            CatchWarningException(message)
+        # if BoundingBoxMasks.is_bounding_box_contained(boundingBox, processed_boundingBox):
+        #     message = "Processed bounding-box: %s smaller than original one: %s..." % (processed_boundingBox, boundingBox)
+        #     CatchWarningException(message)
     #endfor
 
 

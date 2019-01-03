@@ -19,7 +19,8 @@ BASEDIR = '/home/antonio/Results/AirwaySegmen_DLCST/'
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
-(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (224, 352, 240)
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (104, 352, 240)
+#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (224, 256, 256)
 
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
 IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
@@ -61,38 +62,9 @@ PROP_DATA_TESTING    = 0.25
 DISTRIBUTE_RANDOM = False
 DISTRIBUTE_FIXED_NAMES = False
 
-NAME_IMAGES_TRAINING = ['images-03_img1', 'images-03_img2',
-                        'images-04_img1', 'images-04_img2',
-                        'images-05_img1', 'images-05_img2',
-                        'images-08_img1', 'images-08_img2',
-                        'images-09_img1', 'images-09_img2',
-                        'images-10_img1', 'images-10_img2',
-                        'images-11_img1', 'images-11_img2',
-                        'images-14_img1', 'images-14_img2',
-                        'images-16_img1', 'images-16_img2',
-                        'images-19_img1', 'images-19_img2',
-                        'images-23_img1', 'images-23_img2',
-                        'images-25_img1', 'images-25_img2',
-                        'images-27_img1', 'images-27_img2',
-                        'images-28_img1', 'images-28_img2',
-                        'images-30_img1', 'images-30_img2',
-                        'images-31_img1', 'images-31_img2']
-NAME_IMAGES_VALIDATION = ['images-01_img1', 'images-01_img2',
-                          'images-02_img1', 'images-02_img2',
-                          'images-17_img1', 'images-17_img2',
-                          'images-20_img1', 'images-20_img2',
-                          'images-21_img1', 'images-21_img2',
-                          'images-24_img1', 'images-24_img2',
-                          'images-29_img1', 'images-29_img2',
-                          'images-32_img1', 'images-32_img2',]
-NAME_IMAGES_TESTING = ['images-06_img1', 'images-06_img2',
-                       'images-07_img1', 'images-07_img2',
-                       'images-12_img1', 'images-12_img2',
-                       'images-13_img1', 'images-13_img2',
-                       'images-15_img1', 'images-15_img2',
-                       'images-18_img1', 'images-18_img2',
-                       'images-22_img1', 'images-22_img2',
-                       'images-26_img1', 'images-26_img2']
+NAME_IMAGES_TRAINING = []
+NAME_IMAGES_VALIDATION = []
+NAME_IMAGES_TESTING = []
 # ******************** DATA DISTRIBUTION ********************
 
 
@@ -109,21 +81,19 @@ CROPIMAGES = True
 
 EXTENDSIZEIMAGES = False
 
-CONSTRUCTINPUTDATADLCST = True
+CONSTRUCTINPUTDATADLCST = False
 
 VOXELSBUFFERBORDER = (0, 0, 0, 0)
 #VOXELSBUFFERBORDER = (30, 30, 0, 0)
 
-CROPSIZEBOUNDINGBOX = (224, 352, 480)
-#CROPSIZEBOUNDINGBOX = (352, 480)
-
-CHECKBALANCECLASSES = True
+#CROPSIZEBOUNDINGBOX = (240, 352, 480)
+CROPSIZEBOUNDINGBOX = (352, 480)
 
 CREATEIMAGESBATCHES = False
 
 PROP_OVERLAP_Z_X_Y = (0.75, 0.0, 0.0)
 
-VISUALPROCDATAINBATCHES = True
+VISUALPROCDATAINBATCHES = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 
 
@@ -135,11 +105,14 @@ IOPTIMIZER  = 'Adam'
 ILOSSFUN    = 'DiceCoefficient'
 LISTMETRICS =[]
 
-NUM_FEATMAPS_FIRSTLAYER = 8
+NUM_FEATMAPS_FIRSTLAYER = 16
 
 LEARN_RATE  = 1.0e-05
 
-SLIDINGWINDOWIMAGES = False
+if CONSTRUCTINPUTDATADLCST:
+    SLIDINGWINDOWIMAGES = False
+else:
+    SLIDINGWINDOWIMAGES = True
 
 TRANSFORMATIONIMAGES = True
 
@@ -204,7 +177,7 @@ CALCMASKSTHRESHOLDING = True
 
 THRESHOLDVALUE = 0.5
 
-ATTACHTRAQUEATOCALCMASKS = False
+ATTACHTRAQUEATOCALCMASKS = True
 
 SAVETHRESHOLDIMAGES = True
 # ******************** POST-PROCESSING PARAMETERS ********************
