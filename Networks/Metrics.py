@@ -133,18 +133,18 @@ class MeanSquared_Tailored(MeanSquared):
         self.exp_y_true = exp_y_true
 
     def compute_vec(self, y_true, y_pred):
-        return K.mean(K.square(y_pred - abs(y_true)**self.exp_y_true), axis=-1)
+        return K.mean(K.square(y_pred - y_true**self.exp_y_true), axis=-1)
 
     def compute_vec_masked(self, y_true, y_pred):
         mask = self.get_mask(y_true)
-        return K.mean(K.square(y_pred - abs(y_true)**self.exp_y_true) * mask, axis=-1)
+        return K.mean(K.square(y_pred - y_true**self.exp_y_true) * mask, axis=-1)
 
     def compute_vec_np(self, y_true, y_pred):
-        return np.mean(np.squared(y_pred - abs(y_true)**self.exp_y_true))
+        return np.mean(np.squared(y_pred - y_true**self.exp_y_true))
 
     def compute_vec_masked_np(self, y_true, y_pred):
         mask = self.get_mask_np(y_true)
-        return np.mean(np.squared(y_pred - abs(y_true)**self.exp_y_true) * mask)
+        return np.mean(np.squared(y_pred - y_true**self.exp_y_true) * mask)
 
 
 # binary cross entropy
@@ -598,11 +598,11 @@ def DICTAVAILMETRICS(option, is_masks_exclude=False):
 
 def DICTAVAILLOSSFUNS(option, is_masks_exclude=False, option2_combine=None):
     if option2_combine:
-        metrics_sub1 = DICTAVAILMETRICS(option)
-        metrics_sub2 = DICTAVAILMETRICS(option2_combine)
+        metrics_sub1 = DICTAVAILMETRICS(option, is_masks_exclude)
+        metrics_sub2 = DICTAVAILMETRICS(option2_combine, is_masks_exclude)
         metrics = CombineLossTwoMetrics(metrics_sub1, metrics_sub2, is_masks_exclude=is_masks_exclude)
     else:
-        metrics = DICTAVAILMETRICS(option)
+        metrics = DICTAVAILMETRICS(option, is_masks_exclude)
     return metrics.loss
 
 
