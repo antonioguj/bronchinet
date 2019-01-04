@@ -30,12 +30,12 @@ class Metrics(object):
     val_exclude = -1
     count = 0
 
-    def __init__(self, isMasksExclude=False):
-        self.isMasksExclude = isMasksExclude
-        self.name_out = None
+    def __init__(self, is_masks_exclude=False):
+        self.is_masks_exclude = is_masks_exclude
+        self.name_fun_out = None
 
     def compute(self, y_true, y_pred):
-        if self.isMasksExclude:
+        if self.is_masks_exclude:
             return self.compute_vec_masked(K.flatten(y_true),
                                            K.flatten(y_pred))
         else:
@@ -49,7 +49,7 @@ class Metrics(object):
         pass
 
     def compute_np(self, y_true, y_pred):
-        if self.isMasksExclude:
+        if self.is_masks_exclude:
             return self.compute_vec_masked_np(y_true.flatten(),
                                               y_pred.flatten())
         else:
@@ -91,33 +91,32 @@ class Metrics(object):
         pass
 
     def get_renamed_compute(self):
-        if self.name_out:
-            return getattr(self, self.name_out)
+        if self.name_fun_out:
+            return getattr(self, self.name_fun_out)
 
 
 # mean squared error
 class MeanSquared(Metrics):
 
-    def __init__(self, isMasksExclude=False, exp_y_true=2):
-        super(MeanSquared, self).__init__(isMasksExclude)
-        self.name_out  = 'mean_squared'
-        self.exp_y_true= exp_y_true
+    def __init__(self, is_masks_exclude=False):
+        super(MeanSquared, self).__init__(is_masks_exclude)
+        self.name_fun_out  = 'mean_squared'
 
     def compute_vec(self, y_true, y_pred):
-        return K.mean(K.square(y_pred - y_true**self.exp_y_true), axis=-1)
-        #return K.mean((y_pred - y_true**self.exp_y_true))**2)
+        return K.mean(K.square(y_pred - y_true), axis=-1)
+        #return K.mean((y_pred - y_true)**2)
 
     def compute_vec_masked(self, y_true, y_pred):
         mask = self.get_mask(y_true)
-        return K.mean(K.square(y_pred - y_true**self.exp_y_true) * mask, axis=-1)
-        #return K.mean((y_pred - y_true**self.exp_y_true)**2 * mask)
+        return K.mean(K.square(y_pred - y_true) * mask, axis=-1)
+        #return K.mean((y_pred - y_true)**2 * mask)
 
     def compute_vec_np(self, y_true, y_pred):
-        return np.mean(np.squared(y_pred - y_true**self.exp_y_true))
+        return np.mean(np.squared(y_pred - y_true))
 
     def compute_vec_masked_np(self, y_true, y_pred):
         mask = self.get_mask_np(y_true)
-        return np.mean(np.squared(y_pred - y_true**self.exp_y_true) * mask)
+        return np.mean(np.squared(y_pred - y_true) * mask)
 
     def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -126,12 +125,34 @@ class MeanSquared(Metrics):
         return self.compute(y_true, y_pred)
 
 
+# mean squared error
+class MeanSquared_Tailored(MeanSquared):
+
+    def __init__(self, is_masks_exclude=False, exp_y_true=1):
+        super(MeanSquared_Tailored, self).__init__(is_masks_exclude)
+        self.exp_y_true = exp_y_true
+
+    def compute_vec(self, y_true, y_pred):
+        return K.mean(K.square(y_pred - abs(y_true)**self.exp_y_true), axis=-1)
+
+    def compute_vec_masked(self, y_true, y_pred):
+        mask = self.get_mask(y_true)
+        return K.mean(K.square(y_pred - abs(y_true)**self.exp_y_true) * mask, axis=-1)
+
+    def compute_vec_np(self, y_true, y_pred):
+        return np.mean(np.squared(y_pred - abs(y_true)**self.exp_y_true))
+
+    def compute_vec_masked_np(self, y_true, y_pred):
+        mask = self.get_mask_np(y_true)
+        return np.mean(np.squared(y_pred - abs(y_true)**self.exp_y_true) * mask)
+
+
 # binary cross entropy
 class BinaryCrossEntropy(Metrics):
 
-    def __init__(self, isMasksExclude=False):
-        super(BinaryCrossEntropy, self).__init__(isMasksExclude)
-        self.name_out = 'bin_cross'
+    def __init__(self, is_masks_exclude=False):
+        super(BinaryCrossEntropy, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'bin_cross'
 
     def compute_vec(self, y_true, y_pred):
         return K.mean(K.binary_crossentropy(y_true, y_pred), axis=-1)
@@ -163,9 +184,9 @@ class BinaryCrossEntropy(Metrics):
 # weighted binary cross entropy
 class WeightedBinaryCrossEntropy(Metrics):
 
-    def __init__(self, isMasksExclude=False):
-        super(WeightedBinaryCrossEntropy, self).__init__(isMasksExclude)
-        self.name_out = 'wei_bin_cross'
+    def __init__(self, is_masks_exclude=False):
+        super(WeightedBinaryCrossEntropy, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'wei_bin_cross'
 
     def get_weights(self, y_true):
         num_class_1 = K.tf.count_nonzero(K.tf.where(K.tf.equal(y_true, 1.0),
@@ -216,13 +237,13 @@ class WeightedBinaryCrossEntropyFixedWeights(Metrics):
     #weights_masksExclude = [1.0, 300.0]  # for LUVAR data
     weights_masksExclude = [1.0, 361.0]  # for DLCST data
 
-    def __init__(self, isMasksExclude=False):
-        if isMasksExclude:
+    def __init__(self, is_masks_exclude=False):
+        if is_masks_exclude:
             self.weights = self.weights_masksExclude
         else:
             self.weights = self.weights_noMasksExclude
-        super(WeightedBinaryCrossEntropyFixedWeights, self).__init__(isMasksExclude)
-        self.name_out = 'wei_bin_cross_fixed'
+        super(WeightedBinaryCrossEntropyFixedWeights, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'wei_bin_cross_fixed'
 
     def compute_vec(self, y_true, y_pred):
         return K.mean(- self.weights[1] * y_true * K.log(y_pred +_eps) -
@@ -254,11 +275,11 @@ class BinaryCrossEntropyFocalLoss(BinaryCrossEntropy):
 
     param_gamma_default = 2.0
 
-    def __init__(self, param_gamma=param_gamma_default, isMasksExclude=False):
+    def __init__(self, param_gamma=param_gamma_default, is_masks_exclude=False):
         self.param_gamma = param_gamma
-        super(BinaryCrossEntropyFocalLoss, self).__init__(isMasksExclude)
-        self.name_out = 'bin_cross'
-        #self.name_out = 'bin_cross_focal_loss'
+        super(BinaryCrossEntropyFocalLoss, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'bin_cross'
+        #self.name_fun_out = 'bin_cross_focal_loss'
 
     def get_clip_ypred(self, y_pred):
         # improve the stability of the focal loss
@@ -300,11 +321,11 @@ class WeightedBinaryCrossEntropyFocalLoss(WeightedBinaryCrossEntropy):
     param_gamma_default = 2.0
     eps_clip = 1.0e-12
 
-    def __init__(self, param_gamma=param_gamma_default, isMasksExclude=False):
+    def __init__(self, param_gamma=param_gamma_default, is_masks_exclude=False):
         self.param_gamma = param_gamma
-        super(WeightedBinaryCrossEntropyFocalLoss, self).__init__(isMasksExclude)
-        self.name_out = 'wei_bin_cross'
-        #self.name_out = 'wei_bin_cross_focal_loss'
+        super(WeightedBinaryCrossEntropyFocalLoss, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'wei_bin_cross'
+        #self.name_fun_out = 'wei_bin_cross_focal_loss'
 
     def get_clip_ypred(self, y_pred):
         # improve the stability of the focal loss
@@ -354,9 +375,9 @@ class WeightedBinaryCrossEntropyFocalLoss(WeightedBinaryCrossEntropy):
 
 # categorical cross entropy
 class CategoricalCrossEntropy(Metrics):
-    def __init__(self, isMasksExclude=False):
-        super(CategoricalCrossEntropy, self).__init__(isMasksExclude)
-        self.name_out = 'cat_cross'
+    def __init__(self, is_masks_exclude=False):
+        super(CategoricalCrossEntropy, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'cat_cross'
 
     def compute_vec(self, y_true, y_pred):
         return K.mean(K.categorical_crossentropy(y_true, y_pred), axis=-1)
@@ -375,9 +396,9 @@ class CategoricalCrossEntropy(Metrics):
 # Dice coefficient
 class DiceCoefficient(Metrics):
 
-    def __init__(self, isMasksExclude=False):
-        super(DiceCoefficient, self).__init__(isMasksExclude)
-        self.name_out = 'dice'
+    def __init__(self, is_masks_exclude=False):
+        super(DiceCoefficient, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'dice'
 
     def compute_vec(self, y_true, y_pred):
         return (2.0*K.sum(y_true * y_pred)) / (K.sum(y_true) + K.sum(y_pred) +_smooth)
@@ -401,9 +422,9 @@ class DiceCoefficient(Metrics):
 # true positive rate
 class TruePositiveRate(Metrics):
 
-    def __init__(self, isMasksExclude=False):
-        super(TruePositiveRate, self).__init__(isMasksExclude)
-        self.name_out = 'tpr'
+    def __init__(self, is_masks_exclude=False):
+        super(TruePositiveRate, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'tpr'
 
     def compute_vec(self, y_true, y_pred):
         return K.sum(y_true * y_pred) / (K.sum(y_true) +_smooth)
@@ -427,9 +448,9 @@ class TruePositiveRate(Metrics):
 # true negative rate
 class TrueNegativeRate(Metrics):
 
-    def __init__(self, isMasksExclude=False):
-        super(TrueNegativeRate, self).__init__(isMasksExclude)
-        self.name_out = 'tnr'
+    def __init__(self, is_masks_exclude=False):
+        super(TrueNegativeRate, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'tnr'
 
     def compute_vec(self, y_true, y_pred):
         return K.sum((1.0 - y_true) * (1.0 - y_pred)) / (K.sum((1.0 - y_true)) +_smooth)
@@ -453,9 +474,9 @@ class TrueNegativeRate(Metrics):
 # false positive rate
 class FalsePositiveRate(Metrics):
 
-    def __init__(self, isMasksExclude=False):
-        super(FalsePositiveRate, self).__init__(isMasksExclude)
-        self.name_out = 'fpr'
+    def __init__(self, is_masks_exclude=False):
+        super(FalsePositiveRate, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'fpr'
 
     def compute_vec(self, y_true, y_pred):
         return K.sum((1.0 - y_true) * y_pred) / (K.sum((1.0 - y_true)) +_smooth)
@@ -479,9 +500,9 @@ class FalsePositiveRate(Metrics):
 # false negative rate
 class FalseNegativeRate(Metrics):
 
-    def __init__(self, isMasksExclude=False):
-        super(FalseNegativeRate, self).__init__(isMasksExclude)
-        self.name_out = 'fnr'
+    def __init__(self, is_masks_exclude=False):
+        super(FalseNegativeRate, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'fnr'
 
     def compute_vec(self, y_true, y_pred):
         return K.sum(y_true * (1.0 - y_pred)) / (K.sum(y_true) +_smooth)
@@ -506,8 +527,8 @@ class FalseNegativeRate(Metrics):
 class AirwayCompleteness(Metrics):
 
     def __init__(self):
-        super(AirwayCompleteness, self).__init__(isMasksExclude=False)
-        self.name_out = 'completeness'
+        super(AirwayCompleteness, self).__init__(is_masks_exclude=False)
+        self.name_fun_out = 'completeness'
 
     def compute_vec(self, y_centreline, y_pred_airway):
         return K.sum(y_centreline * y_pred_airway) / (K.sum(y_centreline) +_smooth)
@@ -520,8 +541,8 @@ class AirwayCompleteness(Metrics):
 class AirwayVolumeLeakage(Metrics):
 
     def __init__(self):
-        super(AirwayVolumeLeakage, self).__init__(isMasksExclude=False)
-        self.name_out = 'volume_leakage'
+        super(AirwayVolumeLeakage, self).__init__(is_masks_exclude=False)
+        self.name_fun_out = 'volume_leakage'
 
     def compute_vec(self, y_true_airway, y_pred_airway):
         return K.sum((1.0 - y_true_airway) * y_pred_airway) / (K.sum(y_pred_airway) +_smooth)
@@ -534,11 +555,11 @@ class AirwayVolumeLeakage(Metrics):
 class CombineLossTwoMetrics(Metrics):
     weights_metrics = [1.0, 3.0]
 
-    def __init__(self, metrics1, metrics2, isMasksExclude=False):
-        super(CombineLossTwoMetrics, self).__init__(isMasksExclude)
+    def __init__(self, metrics1, metrics2, is_masks_exclude=False):
+        super(CombineLossTwoMetrics, self).__init__(is_masks_exclude)
         self.metrics1 = metrics1
         self.metrics2 = metrics2
-        self.name_out = '_'.join(['comb', metrics1.name_out, metrics2.name_out])
+        self.name_fun_out = '_'.join(['comb', metrics1.name_fun_out, metrics2.name_fun_out])
 
     def loss(self, y_true, y_pred):
         return self.weights_metrics[0] * self.metrics1.loss(y_true, y_pred) + \
@@ -546,65 +567,47 @@ class CombineLossTwoMetrics(Metrics):
 
 
 # all available metrics
-def DICTAVAILMETRICS(option):
-    opts_split = option.split('_')
-    if (len(opts_split) == 1):
-        option = opts_split[0]
-        isMasksExclude = False
-    elif (len(opts_split) == 2 and opts_split[-1] == 'Masked'):
-        option = opts_split[0]
-        isMasksExclude = True
-    else:
-        return 0  # failure
+def DICTAVAILMETRICS(option, is_masks_exclude=False):
     if   (option == 'MeanSquared'):
-        return MeanSquared(isMasksExclude=isMasksExclude)
+        return MeanSquared(is_masks_exclude=is_masks_exclude)
+    elif (option == 'MeanSquared_Tailored'):
+        return MeanSquared_Tailored(is_masks_exclude=is_masks_exclude)
     elif (option == 'BinaryCrossEntropy'):
-        return BinaryCrossEntropy(isMasksExclude=isMasksExclude)
+        return BinaryCrossEntropy(is_masks_exclude=is_masks_exclude)
     elif (option == 'BinaryCrossEntropyFocalLoss'):
-        return BinaryCrossEntropyFocalLoss(isMasksExclude=isMasksExclude)
+        return BinaryCrossEntropyFocalLoss(is_masks_exclude=is_masks_exclude)
     elif (option == 'WeightedBinaryCrossEntropyFixedWeights'):
-        return WeightedBinaryCrossEntropyFixedWeights(isMasksExclude=isMasksExclude)
+        return WeightedBinaryCrossEntropyFixedWeights(is_masks_exclude=is_masks_exclude)
     elif (option == 'WeightedBinaryCrossEntropy'):
-        return WeightedBinaryCrossEntropy(isMasksExclude=isMasksExclude)
+        return WeightedBinaryCrossEntropy(is_masks_exclude=is_masks_exclude)
     elif (option == 'WeightedBinaryCrossEntropyFocalLoss'):
-        return WeightedBinaryCrossEntropyFocalLoss(isMasksExclude=isMasksExclude)
+        return WeightedBinaryCrossEntropyFocalLoss(is_masks_exclude=is_masks_exclude)
     elif (option == 'DiceCoefficient'):
-        return DiceCoefficient(isMasksExclude=isMasksExclude)
+        return DiceCoefficient(is_masks_exclude=is_masks_exclude)
     elif (option == 'TruePositiveRate'):
-        return TruePositiveRate(isMasksExclude=isMasksExclude)
+        return TruePositiveRate(is_masks_exclude=is_masks_exclude)
     elif (option == 'TrueNegativeRate'):
-        return TrueNegativeRate(isMasksExclude=isMasksExclude)
+        return TrueNegativeRate(is_masks_exclude=is_masks_exclude)
     elif (option == 'FalsePositiveRate'):
-        return FalsePositiveRate(isMasksExclude=isMasksExclude)
+        return FalsePositiveRate(is_masks_exclude=is_masks_exclude)
     elif (option == 'FalseNegativeRate'):
-        return FalseNegativeRate(isMasksExclude=isMasksExclude)
+        return FalseNegativeRate(is_masks_exclude=is_masks_exclude)
     else:
         return 0
 
 
-def DICTAVAILLOSSFUNS(option):
-    opts_split = option.split('_')
-    if (opts_split[0] == 'Combine'):
-        if (len(opts_split) == 3):
-            option_sub1 = opts_split[1]
-            option_sub2 = opts_split[2]
-            isMasksExclude = False
-        elif (len(opts_split) == 4 and opts_split[-1] == 'Masked'):
-            option_sub1 = opts_split[1] +'_Masked'
-            option_sub2 = opts_split[2] +'_Masked'
-            isMasksExclude = True
-        else:
-            return 0  # failure
-        metrics_sub1 = DICTAVAILMETRICS(option_sub1)
-        metrics_sub2 = DICTAVAILMETRICS(option_sub2)
-        metrics = CombineLossTwoMetrics(metrics_sub1, metrics_sub2, isMasksExclude=isMasksExclude)
+def DICTAVAILLOSSFUNS(option, is_masks_exclude=False, option2_combine=None):
+    if option2_combine:
+        metrics_sub1 = DICTAVAILMETRICS(option)
+        metrics_sub2 = DICTAVAILMETRICS(option2_combine)
+        metrics = CombineLossTwoMetrics(metrics_sub1, metrics_sub2, is_masks_exclude=is_masks_exclude)
     else:
         metrics = DICTAVAILMETRICS(option)
     return metrics.loss
 
 
-def DICTAVAILMETRICFUNS(option, use_in_Keras=True, set_fun_name=False):
-    metrics = DICTAVAILMETRICS(option)
+def DICTAVAILMETRICFUNS(option, is_masks_exclude=False, use_in_Keras=True, set_fun_name=False):
+    metrics = DICTAVAILMETRICS(option, is_masks_exclude)
     if use_in_Keras:
         if set_fun_name:
             return metrics.get_renamed_compute()

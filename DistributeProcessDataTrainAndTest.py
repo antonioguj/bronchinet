@@ -47,7 +47,7 @@ def main(args):
 
     # ---------- SETTINGS ----------
     nameOrigImagesDataRelPath = 'ProcImagesExperData'
-    nameOrigMasksDataRelPath  = 'ProcMasksExperData'
+    nameOrigMasksDataRelPath  = 'ProcDistTransExperData'
 
     nameOriginImagesFiles = 'images*'+ getFileExtension(FORMATINOUTDATA)
     nameOriginMasksFiles  = 'masks*' + getFileExtension(FORMATINOUTDATA)

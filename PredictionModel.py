@@ -119,10 +119,11 @@ def main(args):
     # Loading Saved Model
     modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.prediction_modelFile))
 
-    train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun)] + [DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in args.listmetrics]
+    train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)] \
+                       + [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
     custom_objects = dict(map(lambda fun: (fun.__name__, fun), train_model_funs))
 
-    model = NeuralNetwork.getLoadSavedModel(modelSavedPath, custom_objects=custom_objects)
+    model = NeuralNetwork.get_load_saved_model(modelSavedPath, custom_objects=custom_objects)
 
     if (args.saveFeatMapsLayers):
         visual_model_params = VisualModelParams(model, IMAGES_DIMS_Z_X_Y)
@@ -427,10 +428,6 @@ if __name__ == "__main__":
     parser.add_argument('--firstSaveFeatMapsLayers', type=int, default=None)
     parser.add_argument('--savePredictMaskSlices', type=str2bool, default=SAVEPREDICTMASKSLICES)
     args = parser.parse_args()
-
-    if (args.masksToRegionInterest):
-        args.lossfun     = args.lossfun + '_Masked'
-        args.listmetrics = [item + '_Masked' for item in args.listmetrics]
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

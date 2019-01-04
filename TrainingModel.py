@@ -70,6 +70,11 @@ def main(args):
     print("Building model...")
     print("_" * 30)
 
+    if (args.multiClassCase):
+        num_classes_out = args.numClassesMasks + 1
+    else:
+        num_classes_out = 1
+
     if args.use_restartModel:
         initial_epoch   = args.epoch_restart
         args.num_epochs += initial_epoch
@@ -83,29 +88,29 @@ def main(args):
 
         print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
-        train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun)] + [DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in args.listmetrics]
+        train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)] \
+                           + [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
         custom_objects = dict(map(lambda fun: (fun.__name__, fun), train_model_funs))
 
-        model = NeuralNetwork.getLoadSavedModel(modelSavedPath,
-                                                custom_objects=custom_objects)
+        model = NeuralNetwork.get_load_saved_model(modelSavedPath,
+                                                   custom_objects=custom_objects)
     else:
-        if (args.multiClassCase):
-            modelConstructor = DICTAVAILNETWORKS3D(IMAGES_DIMS_Z_X_Y,
-                                                   args.model,
-                                                   num_featmaps_firstlayer=args.num_featmaps_firstlayer,
-                                                   num_classes_out=args.numClassesMasks+1)
-        else:
-            modelConstructor = DICTAVAILNETWORKS3D(IMAGES_DIMS_Z_X_Y,
-                                                   args.model,
-                                                   num_featmaps_firstlayer=args.num_featmaps_firstlayer)
+        model_constructor = DICTAVAILMODELS3D(IMAGES_DIMS_Z_X_Y,
+                                              num_layers=args.num_layers,
+                                              num_featmaps_firstlayer=args.num_featmaps_firstlayer,
+                                              type_network=args.type_network,
+                                              is_disable_convol_pooling_lastlayer=args.disable_convol_pooling_lastlayer,
+                                              isuse_dropout=args.isUse_dropout,
+                                              isuse_batchnormalize=args.isUse_batchnormalize,
 
-        model = modelConstructor.getModel()
+                                              num_classes_out=num_classes_out)
+        model = model_constructor.get_model()
 
         # Compile model
         model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(args.optimizer,
                                                             lr=args.learn_rate),
-                      loss     = DICTAVAILLOSSFUNS(args.lossfun),
-                      metrics  =[DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in args.listmetrics])
+                      loss     = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest),
+                      metrics  =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics])
 
         if args.use_restartModel and args.restart_only_weights:
             print("Loading saved weights and restarting...")
@@ -119,7 +124,7 @@ def main(args):
 
     # Callbacks:
     callbacks_list = []
-    callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, set_fun_name=True) for imetrics in args.listmetrics]))
+    callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]))
 
     filename = ModelsPath + '/model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5'
     callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
@@ -134,11 +139,6 @@ def main(args):
     print("-" * 30)
     print("Loading data...")
     print("-" * 30)
-
-    if (args.multiClassCase):
-        num_classes_out = args.numClassesMasks + 1
-    else:
-        num_classes_out = 1
 
     print("Load Training data...")
     if (args.slidingWindowImages or args.transformationImages or args.elasticDeformationImages):
@@ -258,14 +258,18 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
+    parser.add_argument('--type_network', type=str, default=TYPE_NETWORK)
+    parser.add_argument('--num_layers', type=int, default=NUM_LAYERS)
+    parser.add_argument('--num_featmaps_firstlayer', type=int, default=NUM_FEATMAPS_FIRSTLAYER)
+    parser.add_argument('--isUse_dropout', type=str2bool, default=ISUSE_DROPOUT)
+    parser.add_argument('--isUse_batchnormalize', type=str2bool, default=ISUSE_BATCHNORMALIZE)
+    parser.add_argument('--disable_convol_pooling_lastlayer', type=str2bool, default=DISABLE_CONVOL_POOLING_LASTLAYER)
+    parser.add_argument('--optimizer', default=IOPTIMIZER)
     parser.add_argument('--num_epochs', type=int, default=NUM_EPOCHS)
     parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
-    parser.add_argument('--model', default=IMODEL)
-    parser.add_argument('--optimizer', default=IOPTIMIZER)
+    parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
     parser.add_argument('--lossfun', default=ILOSSFUN)
     parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
-    parser.add_argument('--num_featmaps_firstlayer', type=int, default=NUM_FEATMAPS_FIRSTLAYER)
-    parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
@@ -279,10 +283,6 @@ if __name__ == "__main__":
     parser.add_argument('--restart_only_weights', type=str2bool, default=RESTART_ONLY_WEIGHTS)
     parser.add_argument('--epoch_restart', type=int, default=EPOCH_RESTART)
     args = parser.parse_args()
-
-    if (args.masksToRegionInterest):
-        args.lossfun     = args.lossfun + '_Masked'
-        args.listmetrics = [item + '_Masked' for item in args.listmetrics]
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():
