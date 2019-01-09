@@ -13,7 +13,6 @@ from CommonUtil.ErrorMessages import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import *
-from Preprocessing.BalanceClassesMasks import *
 from Preprocessing.BoundingBoxMasks import *
 from Preprocessing.OperationsImages import *
 from Preprocessing.OperationsMasks import *
@@ -30,8 +29,8 @@ def main(args):
     nameInputImagesRelPath  = 'ProcImages'
     nameInputMasksRelPath   = 'ProcDistTrans'
     nameLungsMasksRelPath   = 'ProcAllMasks'
-    nameOutputImagesRelPath = 'ProcImagesExperData_NEW_CHRISTMAS_NEW_NEW'
-    nameOutputMasksRelPath  = 'ProcDistTransExperData_NEW_CHRISTMAS'
+    nameOutputImagesRelPath = 'ProcImagesExperData'
+    nameOutputMasksRelPath  = 'ProcDistTransExperData'
 
     # Get the file list:
     nameInputImagesFiles = '*.nii.gz'
@@ -48,6 +47,11 @@ def main(args):
     else:
         tempNameProcImagesFiles  = 'images-%0.2i_dim%s' + getFileExtension(FORMATINOUTDATA)
         tempNameProcMasksFiles   = 'masks-%0.2i_dim%s'  + getFileExtension(FORMATINOUTDATA)
+
+    if (args.saveVisualizeProcData):
+        nameVisualOutputRelPath = 'VisualizeProcExperData'
+
+        tempNameVisualProcFiles = lambda filename: basename(filename).replace('.npz','.nii.gz')
     # ---------- SETTINGS ----------
 
 
@@ -58,6 +62,9 @@ def main(args):
     InputMasksPath   = workDirsManager.getNameExistPath(BaseDataPath, nameInputMasksRelPath )
     OutputImagesPath = workDirsManager.getNameNewPath  (BaseDataPath, nameOutputImagesRelPath)
     OutputMasksPath  = workDirsManager.getNameNewPath  (BaseDataPath, nameOutputMasksRelPath )
+
+    if (args.saveVisualizeProcData):
+        VisualOutputPath = workDirsManager.getNameNewPath(BaseDataPath, nameVisualOutputRelPath)
 
     listImagesFiles = findFilesDir(InputImagesPath, nameInputImagesFiles)
     listMasksFiles  = findFilesDir(InputMasksPath,  nameInputMasksFiles)
@@ -275,6 +282,15 @@ def main(args):
 
             FileReader.writeImageArray(out_images_filename, images_array_2)
             FileReader.writeImageArray(out_masks_filename,  masks_array_2)
+
+        if (args.saveVisualizeProcData):
+            print("Saving processed data to visualize...")
+
+            out_images_filename = joinpathnames(VisualOutputPath, tempNameVisualProcFiles(out_images_filename))
+            out_masks_filename  = joinpathnames(VisualOutputPath, tempNameVisualProcFiles(out_masks_filename))
+
+            FileReader.writeImageArray(out_images_filename, images_array)
+            FileReader.writeImageArray(out_masks_filename,  masks_array )
     #endfor
 
 
@@ -298,6 +314,7 @@ if __name__ == "__main__":
     parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=ELASTICDEFORMATIONIMAGES)
     parser.add_argument('--createImagesBatches', type=str2bool, default=CREATEIMAGESBATCHES)
+    parser.add_argument('--saveVisualizeProcData', type=str2bool, default=SAVEVISUALIZEPROCDATA)
     args = parser.parse_args()
 
     print("Print input arguments...")

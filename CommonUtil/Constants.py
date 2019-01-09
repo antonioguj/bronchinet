@@ -19,6 +19,7 @@ BASEDIR = '/home/antonio/Results/AirwaySegmen_DLCST/'
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
+#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (240, 352, 240)
 (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (104, 352, 240)
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (224, 256, 256)
 
@@ -62,16 +63,18 @@ PROP_DATA_TESTING    = 0.25
 DISTRIBUTE_RANDOM = False
 DISTRIBUTE_FIXED_NAMES = False
 
-NAME_IMAGES_TRAINING = []
-NAME_IMAGES_VALIDATION = []
-NAME_IMAGES_TESTING = []
+#for LUVAR Data
+# NAME_IMAGES_TRAINING = ['images-01', 'images-02', 'images-03', 'images-06', 'images-08', 'images-10',
+#                         'images-11', 'images-12', 'images-14', 'images-15', 'images-16', 'images-18']
+# NAME_IMAGES_VALIDATION = ['images-05', 'images-09', 'images-13', 'images-17', 'images-19', 'images-20']
+# NAME_IMAGES_TESTING = ['images-04', 'images-07', 'images-21', 'images-22', 'images-23', 'images-24']
 # ******************** DATA DISTRIBUTION ********************
 
 
 # ******************** PRE-PROCESSING PARAMETERS ********************
 INVERTIMAGEAXIAL = False
 
-MASKTOREGIONINTEREST = False
+MASKTOREGIONINTEREST = True
 
 REDUCESIZEIMAGES = False
 
@@ -93,7 +96,7 @@ CREATEIMAGESBATCHES = False
 
 PROP_OVERLAP_Z_X_Y = (0.75, 0.0, 0.0)
 
-VISUALPROCDATAINBATCHES = False
+SAVEVISUALIZEPROCDATA = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 
 
@@ -105,7 +108,7 @@ NUM_FEATMAPS_FIRSTLAYER = 16
 ISUSE_DROPOUT   = False
 ISUSE_BATCHNORMALIZE = False
 
-ILOSSFUN    = 'MeanSquared_Tailored'
+ILOSSFUN    = 'MeanSquared'
 LISTMETRICS = []
 
 DISABLE_CONVOL_POOLING_LASTLAYER = True

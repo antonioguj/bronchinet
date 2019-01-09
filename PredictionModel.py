@@ -133,8 +133,7 @@ def main(args):
         else:
             get_index_featmap = lambda i: i
 
-    predictAccuracyMetrics = args.predictAccuracyMetrics + ('_Masked' if args.masksToRegionInterest else '')
-    computePredictAccuracy = DICTAVAILMETRICFUNS(predictAccuracyMetrics, use_in_Keras=False)
+    computePredictAccuracy = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics, use_in_Keras=False)
 
 
 
