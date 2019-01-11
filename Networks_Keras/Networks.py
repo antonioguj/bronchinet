@@ -108,7 +108,7 @@ class Unet3D_General(NeuralNetwork):
     #size_cropping_layers = [(0, 4, 4), (0, 16, 16), (0, 41, 41), (0, 90, 90)]
 
     type_activate_hidden_default = 'relu'
-    type_activate_output_default = 'linear'
+    type_activate_output_default = 'sigmoid'
     type_padding_convol_default  = 'same'
 
     dropout_rate_default = 0.2
@@ -129,10 +129,10 @@ class Unet3D_General(NeuralNetwork):
                  size_convolfilter_downlayers=size_convolfilter_downlayers_default,
                  size_convolfilter_uplayers=size_convolfilter_uplayers_default,
                  size_pooling_downlayers=size_pooling_layers_default,
-                 is_disable_convol_pooling_zdim_lastlayer=False,
                  type_activate_hidden=type_activate_hidden_default,
                  type_activate_output=type_activate_output_default,
                  type_padding_convol=type_padding_convol_default,
+                 is_disable_convol_pooling_zdim_lastlayer=False,
                  isuse_dropout=False,
                  dropout_rate=dropout_rate_default,
                  where_dropout_downlayers=where_dropout_downlayers_default,
@@ -260,6 +260,8 @@ def DICTAVAILMODELS3D(size_image,
                       num_featmaps_firstlayer,
                       type_model='general',
                       type_network='classification',
+                      type_activate_hidden='relu',
+                      type_activate_output='sigmoid',
                       type_padding_convol='same',
                       is_disable_convol_pooling_lastlayer=False,
                       isuse_dropout=False,
@@ -270,20 +272,17 @@ def DICTAVAILMODELS3D(size_image,
         return Unet3D_Original(size_image)
 
     elif type_model=='general':
-        if type_network == 'classification':
-            type_activate_output = 'sigmoid'
-        elif type_network == 'regression':
+        if type_network == 'regression':
             type_activate_output = 'linear'
-        else:
-            return 0
 
         return Unet3D_General(size_image,
                               num_classes_out=num_classes_out,
                               num_layers=num_layers,
                               num_featmaps_firstlayer=num_featmaps_firstlayer,
-                              is_disable_convol_pooling_zdim_lastlayer=is_disable_convol_pooling_lastlayer,
+                              type_activate_hidden=type_activate_hidden,
                               type_activate_output=type_activate_output,
                               type_padding_convol=type_padding_convol,
+                              is_disable_convol_pooling_zdim_lastlayer=is_disable_convol_pooling_lastlayer,
                               isuse_dropout=isuse_dropout,
                               isuse_batchnormalize=isuse_batchnormalize)
 
