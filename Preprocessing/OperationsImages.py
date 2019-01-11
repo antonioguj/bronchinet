@@ -25,6 +25,41 @@ class OperationsImages(object):
         return len(images_array_shape) == 3
 
 
+class NormalizeImages(OperationsImages):
+
+    @staticmethod
+    def compute_nochannels(images_array):
+
+        max_val = np.max(images_array)
+        min_val = np.min(images_array)
+        return (images_array - min_val) / (max_val - min_val)
+
+    @staticmethod
+    def compute_withchannels(images_array):
+
+        num_channels = images_array.shape[-1]
+        for i in range(num_channels):
+            max_val = np.max(images_array[..., i])
+            min_val = np.min(images_array[..., i])
+            images_array[..., i] = (images_array[..., i] - min_val) / (max_val - min_val)
+        #endfor
+        return images_array
+
+    @classmethod
+    def compute2D(cls, images_array):
+        if (cls.check_images_array_2D_without_channels(images_array.shape)):
+            cls.compute_nochannels(images_array)
+        else:
+            cls.compute_withchannels(images_array)
+
+    @classmethod
+    def compute3D(cls, images_array):
+        if (cls.check_images_array_3D_without_channels(images_array.shape)):
+            cls.compute_nochannels(images_array)
+        else:
+            cls.compute_withchannels(images_array)
+
+
 class CropImages(OperationsImages):
 
     @staticmethod

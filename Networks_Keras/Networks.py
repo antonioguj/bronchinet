@@ -32,19 +32,20 @@ class NeuralNetwork(object):
 class Unet3D_Original(NeuralNetwork):
 
     num_layers = 5
-    num_featmaps_firstlayer = 16
+    num_featmaps_base = 16
 
     size_convolfilter = (3, 3, 3)
     size_pooling = (2, 2, 2)
 
-    def __init__(self, size_image):
-        self.size_image = size_image
+    def __init__(self, size_image, num_channels_in=1):
+        self.size_image     = size_image
+        self.num_channels_in= num_channels_in
 
     def get_model(self):
 
-        inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], 1))
+        inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
 
-        num_featmaps_lay1   = self.num_featmaps_firstlayer
+        num_featmaps_lay1   = self.num_featmaps_base
         hiddenlayer_down1_2 = Convolution3D(num_featmaps_lay1, self.size_convolfilter, activation='relu', padding='same')(inputlayer)
         hiddenlayer_down1_3 = Convolution3D(num_featmaps_lay1, self.size_convolfilter, activation='relu', padding='same')(hiddenlayer_down1_2)
         hiddenlayer_down2_1 = MaxPooling3D(pool_size=self.size_pooling)(hiddenlayer_down1_3)
@@ -98,7 +99,7 @@ class Unet3D_Original(NeuralNetwork):
 class Unet3D_General(NeuralNetwork):
 
     num_layers_default = 5
-    num_featmaps_firstlayer_default = 16
+    num_featmaps_base_default = 16
 
     num_convols_downlayers_default = 2
     num_convols_uplayers_default   = 2
@@ -120,10 +121,11 @@ class Unet3D_General(NeuralNetwork):
 
 
     def __init__(self, size_image,
-                 num_classes_out,
+                 num_channels_in=1,
+                 num_classes_out=1,
                  num_layers=num_layers_default,
+                 num_featmaps_base=num_featmaps_base_default,
                  num_featmaps_layers=None,
-                 num_featmaps_firstlayer=num_featmaps_firstlayer_default,
                  num_convols_downlayers=num_convols_downlayers_default,
                  num_convols_uplayers=num_convols_uplayers_default,
                  size_convolfilter_downlayers=size_convolfilter_downlayers_default,
@@ -141,7 +143,8 @@ class Unet3D_General(NeuralNetwork):
                  where_batchnormalize_downlayers=where_batchnormalize_downlayers_default,
                  where_batchnormalize_uplayers=where_batchnormalize_uplayers_default):
 
-        self.size_image = size_image
+        self.size_image      = size_image
+        self.num_channels_in = num_channels_in
         self.num_classes_out = num_classes_out
 
         self.num_layers = num_layers
@@ -149,7 +152,7 @@ class Unet3D_General(NeuralNetwork):
             self.num_featmaps_layers = num_featmaps_layers
         else:
             # Default: double featmaps after every pooling
-            self.num_featmaps_layers = [num_featmaps_firstlayer] + [0]*(self.num_layers-1)
+            self.num_featmaps_layers = [num_featmaps_base] + [0]*(self.num_layers-1)
             for i in range(1, self.num_layers):
                 self.num_featmaps_layers[i] = 2 * self.num_featmaps_layers[i-1]
 
@@ -185,7 +188,7 @@ class Unet3D_General(NeuralNetwork):
 
     def get_model(self):
 
-        inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], 1))
+        inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
 
         list_hiddenlayer_toskipconnect = []
         hiddenlayer_next = inputlayer
@@ -239,12 +242,13 @@ class Unet3D_General(NeuralNetwork):
 
 class Unet3D_Tailored(NeuralNetwork):
 
-    def __init__(self, size_image):
-        self.size_image = size_image
+    def __init__(self, size_image, num_channels_in=1):
+        self.size_image      = size_image
+        self.num_channels_in = num_channels_in
 
     def get_model(self):
 
-        inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], 1))
+        inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
 
         #...IMPLEMENT HERE...
         outputlayer = inputlayer
@@ -256,8 +260,10 @@ class Unet3D_Tailored(NeuralNetwork):
 
 # all available networks
 def DICTAVAILMODELS3D(size_image,
-                      num_layers,
-                      num_featmaps_firstlayer,
+                      num_channels_in=1,
+                      num_classes_out=1,
+                      num_layers=5,
+                      num_featmaps_base=16,
                       type_model='general',
                       type_network='classification',
                       type_activate_hidden='relu',
@@ -265,20 +271,21 @@ def DICTAVAILMODELS3D(size_image,
                       type_padding_convol='same',
                       is_disable_convol_pooling_lastlayer=False,
                       isuse_dropout=False,
-                      isuse_batchnormalize=False,
-                      num_classes_out=1):
+                      isuse_batchnormalize=False):
 
     if type_model=='original':
-        return Unet3D_Original(size_image)
+        return Unet3D_Original(size_image,
+                               num_channels_in=num_channels_in)
 
     elif type_model=='general':
         if type_network == 'regression':
             type_activate_output = 'linear'
 
         return Unet3D_General(size_image,
+                              num_channels_in=num_channels_in,
                               num_classes_out=num_classes_out,
                               num_layers=num_layers,
-                              num_featmaps_firstlayer=num_featmaps_firstlayer,
+                              num_featmaps_base=num_featmaps_base,
                               type_activate_hidden=type_activate_hidden,
                               type_activate_output=type_activate_output,
                               type_padding_convol=type_padding_convol,
@@ -287,7 +294,8 @@ def DICTAVAILMODELS3D(size_image,
                               isuse_batchnormalize=isuse_batchnormalize)
 
     elif type_model=='tailored':
-        return Unet3D_Tailored(size_image)
+        return Unet3D_Tailored(size_image,
+                               num_channels_in=num_channels_in)
 
     else:
         return 0

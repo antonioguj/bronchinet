@@ -17,7 +17,7 @@ from scipy import ndimage
 from scipy.spatial.distance import euclidean
 from scipy.optimize import linear_sum_assignment
 import pandas as pd
-from Networks.Metrics import *
+from Networks_Keras.Metrics import *
 
 
 def computeAssignment(list_detections, list_gt, allowedDistance):

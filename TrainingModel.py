@@ -15,10 +15,10 @@ from CommonUtil.ImageGeneratorManager import *
 from CommonUtil.KerasBatchDataGenerator import *
 from CommonUtil.LoadDataManager import *
 from CommonUtil.WorkDirsManager import *
-from Networks.Callbacks import *
-from Networks.Metrics import *
-from Networks.Networks import *
-from Networks.Optimizers import *
+from Networks_Keras.Callbacks import *
+from Networks_Keras.Metrics import *
+from Networks_Keras.Networks import *
+from Networks_Keras.Optimizers import *
 from keras import callbacks as Kcallbacks
 import argparse
 
@@ -97,12 +97,14 @@ def main(args):
     else:
         model_constructor = DICTAVAILMODELS3D(IMAGES_DIMS_Z_X_Y,
                                               num_layers=args.num_layers,
-                                              num_featmaps_firstlayer=args.num_featmaps_firstlayer,
+                                              num_featmaps_base=args.num_featmaps_base,
                                               type_network=args.type_network,
+                                              type_activate_hidden=args.type_activate_hidden,
+                                              type_activate_output=args.type_activate_output,
+                                              type_padding_convol=args.type_padding_convol,
                                               is_disable_convol_pooling_lastlayer=args.disable_convol_pooling_lastlayer,
                                               isuse_dropout=args.isUse_dropout,
                                               isuse_batchnormalize=args.isUse_batchnormalize,
-
                                               num_classes_out=num_classes_out)
         model = model_constructor.get_model()
 
@@ -260,10 +262,13 @@ if __name__ == "__main__":
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
     parser.add_argument('--type_network', type=str, default=TYPE_NETWORK)
     parser.add_argument('--num_layers', type=int, default=NUM_LAYERS)
-    parser.add_argument('--num_featmaps_firstlayer', type=int, default=NUM_FEATMAPS_FIRSTLAYER)
+    parser.add_argument('--num_featmaps_base', type=int, default=NUM_FEATMAPS_BASE)
+    parser.add_argument('--type_activate_hidden', type=str, default=TYPE_ACTIVATE_HIDDEN)
+    parser.add_argument('--type_activate_output', type=str, default=TYPE_ACTIVATE_OUTPUT)
+    parser.add_argument('--type_padding_convol', type=str, default=TYPE_PADDING_CONVOL)
+    parser.add_argument('--disable_convol_pooling_lastlayer', type=str2bool, default=DISABLE_CONVOL_POOLING_LASTLAYER)
     parser.add_argument('--isUse_dropout', type=str2bool, default=ISUSE_DROPOUT)
     parser.add_argument('--isUse_batchnormalize', type=str2bool, default=ISUSE_BATCHNORMALIZE)
-    parser.add_argument('--disable_convol_pooling_lastlayer', type=str2bool, default=DISABLE_CONVOL_POOLING_LASTLAYER)
     parser.add_argument('--optimizer', default=IOPTIMIZER)
     parser.add_argument('--num_epochs', type=int, default=NUM_EPOCHS)
     parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)

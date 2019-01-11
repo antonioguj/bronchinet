@@ -13,7 +13,7 @@ from CommonUtil.ErrorMessages import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import *
-from Networks.Metrics import *
+from Networks_Keras.Metrics import *
 from Preprocessing.OperationsImages import *
 import argparse
 

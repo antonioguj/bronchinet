@@ -13,7 +13,7 @@ from CommonUtil.ErrorMessages import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *
 from CommonUtil.WorkDirsManager import *
-from Networks.Networks_NEW import *
+from Networks_Keras.Networks_NEW import *
 from Postprocessing.SlidingWindowReconstructorImages import *
 from Preprocessing.OperationsImages import *
 import argparse
@@ -48,7 +48,7 @@ def main(args):
     if args.size_out_nnet == None:
         args.size_out_nnet = modelConstructor.get_size_output_full_Unet()
 
-    print("For input images of size: %s; Output of Neural Networks are images of size: %s..." %(IMAGES_DIMS_Z_X_Y, args.size_out_nnet))
+    print("For input images of size: %s; Output of Neural Networks_Keras are images of size: %s..." %(IMAGES_DIMS_Z_X_Y, args.size_out_nnet))
 
 
 

@@ -17,9 +17,9 @@ from CommonUtil.ImageReconstructorManager import *
 from CommonUtil.LoadDataManager import *
 from CommonUtil.PlotsManager import *
 from CommonUtil.WorkDirsManager import *
-from Networks.Metrics import *
-from Networks.Networks import *
-from Networks.VisualModelParams import *
+from Networks_Keras.Metrics import *
+from Networks_Keras.Networks import *
+from Networks_Keras.VisualModelParams import *
 from Preprocessing.BoundingBoxMasks import *
 from Preprocessing.OperationsImages import *
 from Preprocessing.OperationsMasks import *
