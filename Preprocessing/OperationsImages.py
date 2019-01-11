@@ -8,7 +8,6 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.ErrorMessages import *
 from CommonUtil.FunctionsUtil import *
 from scipy.misc import imresize
 import numpy as np
@@ -48,16 +47,16 @@ class NormalizeImages(OperationsImages):
     @classmethod
     def compute2D(cls, images_array):
         if (cls.check_images_array_2D_without_channels(images_array.shape)):
-            cls.compute_nochannels(images_array)
+            return cls.compute_nochannels(images_array)
         else:
-            cls.compute_withchannels(images_array)
+            return cls.compute_withchannels(images_array)
 
     @classmethod
     def compute3D(cls, images_array):
         if (cls.check_images_array_3D_without_channels(images_array.shape)):
-            cls.compute_nochannels(images_array)
+            return cls.compute_nochannels(images_array)
         else:
-            cls.compute_withchannels(images_array)
+            return cls.compute_withchannels(images_array)
 
 
 class CropImages(OperationsImages):

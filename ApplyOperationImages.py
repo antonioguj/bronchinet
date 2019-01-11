@@ -8,7 +8,6 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.ErrorMessages import *
 from CommonUtil.FileReaders import *
 from Preprocessing.OperationsImages import *
 
