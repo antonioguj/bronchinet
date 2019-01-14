@@ -8,10 +8,11 @@
 # Last update: 09/02/2018
 ########################################################################################
 
+from keras.losses import mean_squared_error, binary_crossentropy
 from keras import backend as K
 import numpy as np
 
-_eps = 1.0e-12
+_eps = K.epsilon()
 _smooth = 1.0
 
 
@@ -104,19 +105,49 @@ class MeanSquared(Metrics):
 
     def compute_vec(self, y_true, y_pred):
         return K.mean(K.square(y_pred - y_true), axis=-1)
-        #return K.mean((y_pred - y_true)**2)
 
     def compute_vec_masked(self, y_true, y_pred):
         mask = self.get_mask(y_true)
         return K.mean(K.square(y_pred - y_true) * mask, axis=-1)
-        #return K.mean((y_pred - y_true)**2 * mask)
 
     def compute_vec_np(self, y_true, y_pred):
-        return np.mean(np.squared(y_pred - y_true))
+        return np.mean(np.square(y_pred - y_true))
 
     def compute_vec_masked_np(self, y_true, y_pred):
         mask = self.get_mask_np(y_true)
-        return np.mean(np.squared(y_pred - y_true) * mask)
+        return np.mean(np.square(y_pred - y_true) * mask)
+
+    def loss(self, y_true, y_pred):
+        return self.compute(y_true, y_pred)
+
+    def mean_squared(self, y_true, y_pred):
+        return self.compute(y_true, y_pred)
+
+
+# mean squared logarithmic error
+class MeanSquaredLogarithmic(Metrics):
+
+    def __init__(self, is_masks_exclude=False):
+        super(MeanSquaredLogarithmic, self).__init__(is_masks_exclude)
+        self.name_fun_out  = 'mean_squared_logarithmic'
+
+    def compute_vec(self, y_true, y_pred):
+        return K.mean(K.square(K.log(K.clip(y_pred, _eps, None) + 1.0) -
+                               K.log(K.clip(y_true, _eps, None) + 1.0)), axis=-1)
+
+    def compute_vec_masked(self, y_true, y_pred):
+        mask = self.get_mask(y_true)
+        return K.mean(K.square(K.log(K.clip(y_pred, _eps, None) + 1.0) -
+                               K.log(K.clip(y_true, _eps, None) + 1.0)) * mask, axis=-1)
+
+    def compute_vec_np(self, y_true, y_pred):
+        return np.mean(np.square(np.log(np.clip(y_pred, _eps, None) + 1.0) -
+                                 np.log(np.clip(y_true, _eps, None) + 1.0)))
+
+    def compute_vec_masked_np(self, y_true, y_pred):
+        mask = self.get_mask_np(y_true)
+        return np.mean(np.square(np.log(np.clip(y_pred, _eps, None) + 1.0) -
+                                 np.log(np.clip(y_true, _eps, None) + 1.0)) * mask)
 
     def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -140,11 +171,11 @@ class MeanSquared_Tailored(MeanSquared):
         return K.mean(K.square(y_pred - y_true**self.exp_y_true) * mask, axis=-1)
 
     def compute_vec_np(self, y_true, y_pred):
-        return np.mean(np.squared(y_pred - y_true**self.exp_y_true))
+        return np.mean(np.square(y_pred - y_true**self.exp_y_true))
 
     def compute_vec_masked_np(self, y_true, y_pred):
         mask = self.get_mask_np(y_true)
-        return np.mean(np.squared(y_pred - y_true**self.exp_y_true) * mask)
+        return np.mean(np.square(y_pred - y_true**self.exp_y_true) * mask)
 
 
 # binary cross entropy
@@ -404,16 +435,18 @@ class DiceCoefficient(Metrics):
         return (2.0*K.sum(y_true * y_pred)) / (K.sum(y_true) + K.sum(y_pred) +_smooth)
 
     def compute_vec_masked(self, y_true, y_pred):
-        return self.compute_vec(self.get_masked_array(y_true, y_true), self.get_masked_array(y_true, y_pred))
+        return self.compute_vec(self.get_masked_array(y_true, y_true),
+                                self.get_masked_array(y_true, y_pred))
 
     def compute_vec_np(self, y_true, y_pred):
         return (2.0*np.sum(y_true * y_pred)) / (np.sum(y_true) + np.sum(y_pred) +_smooth)
 
     def compute_vec_masked_np(self, y_true, y_pred):
-        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true), self.get_masked_array_np(y_true, y_pred))
+        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
+                                   self.get_masked_array_np(y_true, y_pred))
 
     def loss(self, y_true, y_pred):
-        return 1.0-self.compute(y_true, y_pred)
+        return 1.0 - self.compute(y_true, y_pred)
 
     def dice(self, y_true, y_pred):
         return self.compute(y_true, y_pred)

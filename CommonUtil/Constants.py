@@ -15,6 +15,8 @@ np.random.seed(2017)
 DATADIR = '/home/antonio/Data/DLCST_Raw/'
 BASEDIR = '/home/antonio/Results/AirwaySegmen_DLCST/'
 
+TYPE_DNNLIBRARY_USED = 'Keras'
+
 
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
@@ -106,7 +108,7 @@ NUM_LAYERS           = 5
 NUM_FEATMAPS_BASE    = 16
 TYPE_NETWORK         = 'regression'
 TYPE_ACTIVATE_HIDDEN = 'relu'
-TYPE_ACTIVATE_OUTPUT = 'sigmoid'
+TYPE_ACTIVATE_OUTPUT = 'linear'
 TYPE_PADDING_CONVOL  = 'same'
 DISABLE_CONVOL_POOLING_LASTLAYER = True
 ISUSE_DROPOUT        = False

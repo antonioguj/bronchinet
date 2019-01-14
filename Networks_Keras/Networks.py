@@ -295,6 +295,5 @@ def DICTAVAILMODELS3D(size_image,
     elif type_model=='tailored':
         return Unet3D_Tailored(size_image,
                                num_channels_in=num_channels_in)
-
     else:
         return 0

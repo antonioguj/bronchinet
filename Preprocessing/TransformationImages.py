@@ -10,10 +10,11 @@
 
 from CommonUtil.ErrorMessages import *
 from Preprocessing.BaseImageGenerator import *
-from keras.preprocessing import image
 import scipy.ndimage as ndi
 import numpy as np
 np.random.seed(2017)
+
+_epsilon = 1e-7
 
 
 class TransformationImages(BaseImageGenerator):
@@ -170,6 +171,7 @@ class TransformationImages(BaseImageGenerator):
             return (out_images_array, out_masks_array)
 
 
+
 class TransformationImages2D(TransformationImages):
 
     def __init__(self, size_image,
@@ -179,6 +181,7 @@ class TransformationImages2D(TransformationImages):
                  rotation_range=0.0,
                  width_shift_range=0.0,
                  height_shift_range=0.0,
+                 brightness_range=None,
                  shear_range=0.0,
                  zoom_range=0.0,
                  channel_shift_range=0.0,
@@ -211,6 +214,7 @@ class TransformationImages2D(TransformationImages):
         self.rotation_range = rotation_range
         self.width_shift_range = width_shift_range
         self.height_shift_range = height_shift_range
+        self.brightness_range = brightness_range
         self.shear_range = shear_range
         self.zoom_range = zoom_range
         self.channel_shift_range = channel_shift_range
@@ -225,6 +229,10 @@ class TransformationImages2D(TransformationImages):
         self.std = None
         self.principal_components = None
 
+        self.img_row_axis = 0
+        self.img_col_axis = 1
+        self.img_channel_axis = 2
+
         if np.isscalar(zoom_range):
             self.zoom_range = (1 - zoom_range, 1 + zoom_range)
         elif len(zoom_range) == 2:
@@ -233,30 +241,6 @@ class TransformationImages2D(TransformationImages):
             raise ValueError('`zoom_range` should be a float or '
                              'a tuple or list of two floats. '
                              'Received arg: ', zoom_range)
-
-        self.img_row_axis = 0
-        self.img_col_axis = 1
-        self.img_channel_axis = 2
-
-        self.images_data_generator = image.ImageDataGenerator(featurewise_center=self.featurewise_center,
-                                                              samplewise_center=self.samplewise_center,
-                                                              featurewise_std_normalization=self.featurewise_std_normalization,
-                                                              samplewise_std_normalization=self.samplewise_std_normalization,
-                                                              zca_whitening=self.zca_whitening,
-                                                              zca_epsilon=self.zca_epsilon,
-                                                              rotation_range=self.rotation_range,
-                                                              width_shift_range=self.width_shift_range,
-                                                              height_shift_range=self.height_shift_range,
-                                                              shear_range=self.shear_range,
-                                                              zoom_range=self.zoom_range,
-                                                              channel_shift_range=self.channel_shift_range,
-                                                              fill_mode=self.fill_mode,
-                                                              cval=self.cval,
-                                                              horizontal_flip=self.horizontal_flip,
-                                                              vertical_flip=self.vertical_flip,
-                                                              rescale=self.rescale,
-                                                              preprocessing_function=self.preprocessing_function,
-                                                              data_format='channels_last')
 
         super(TransformationImages2D, self).__init__(size_image)
 
@@ -290,13 +274,45 @@ class TransformationImages2D(TransformationImages):
 
     def standardize(self, x):
 
-        return self.images_data_generator.standardize(x)
+        if self.preprocessing_function:
+            x = self.preprocessing_function(x)
+        if self.rescale:
+            x *= self.rescale
+        if self.samplewise_center:
+            x -= np.mean(x, keepdims=True)
+        if self.samplewise_std_normalization:
+            x /= (np.std(x, keepdims=True) +_epsilon)
+
+        if self.featurewise_center:
+            if self.mean is not None:
+                x -= self.mean
+            else:
+                CatchErrorException('This ImageDataGenerator specifies '
+                                    '`featurewise_center`, but it hasn\'t '
+                                    'been fit on any training data. Fit it '
+                                    'first by calling `.fit(numpy_data)`.')
+        if self.featurewise_std_normalization:
+            if self.std is not None:
+                x /= (self.std +_epsilon)
+            else:
+                CatchErrorException('This ImageDataGenerator specifies '
+                                    '`featurewise_std_normalization`, but it hasn\'t '
+                                    'been fit on any training data. Fit it '
+                                    'first by calling `.fit(numpy_data)`.')
+        if self.zca_whitening:
+            if self.principal_components is not None:
+                flatx = np.reshape(x, (-1, np.prod(x.shape[-3:])))
+                whitex = np.dot(flatx, self.principal_components)
+                x = np.reshape(whitex, x.shape)
+            else:
+                CatchErrorException('This ImageDataGenerator specifies '
+                                    '`zca_whitening`, but it hasn\'t '
+                                    'been fit on any training data. Fit it '
+                                    'first by calling `.fit(numpy_data)`.')
+        return x
+
 
     def inverse_standardize(self, x):
-
-        self.mean                = self.images_data_generator.mean
-        self.std                 = self.images_data_generator.std
-        self.principal_components= self.images_data_generator.principal_components
 
         if self.zca_whitening:
             if self.principal_components is not None:
@@ -309,7 +325,6 @@ class TransformationImages2D(TransformationImages):
                                     '`zca_whitening`, but it hasn\'t '
                                     'been fit on any training data. Fit it '
                                     'first by calling `.fit(numpy_data)`.')
-
         if self.featurewise_std_normalization:
             if self.std is not None:
                 x *= self.std
@@ -341,24 +356,104 @@ class TransformationImages2D(TransformationImages):
 
 
     def random_transform(self, x, y=None, seed=None):
+        # use composition of homographies
+        # to generate final transform that needs to be applied
+        if y is not None and (y.shape != x.shape):
+            print("Error: input images 'x' and 'y' of different shape in 'random_transform'... Exit")
+            exit(0)
+
+        if seed is not None:
+            np.random.seed(seed)
+
+        if self.rotation_range:
+            theta = np.deg2rad(np.random.uniform(-self.rotation_range, self.rotation_range))
+        else:
+            theta = 0
+
+        if self.height_shift_range:
+            tx = np.random.uniform(-self.height_shift_range, self.height_shift_range)
+            if np.max(self.height_shift_range) < 1:
+                tx *= x.shape[self.img_row_axis]
+        else:
+            tx = 0
+
+        if self.width_shift_range:
+            ty = np.random.uniform(-self.width_shift_range, self.width_shift_range)
+            if np.max(self.width_shift_range) < 1:
+                ty *= x.shape[self.img_col_axis]
+        else:
+            ty = 0
+
+        if self.shear_range:
+            shear = np.deg2rad(np.random.uniform(-self.shear_range, self.shear_range))
+        else:
+            shear = 0
+
+        if self.zoom_range[0] == 1 and self.zoom_range[1] == 1:
+            zx, zy = 1, 1
+        else:
+            zx, zy = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 2)
+
+        transform_matrix = None
+        if theta != 0:
+            rotation_matrix = np.array([[np.cos(theta), -np.sin(theta), 0],
+                                        [np.sin(theta), np.cos(theta), 0],
+                                        [0, 0, 1]])
+            transform_matrix = rotation_matrix
+
+        if tx != 0 or ty != 0:
+            shift_matrix = np.array([[1, 0, tx],
+                                     [0, 1, ty],
+                                     [0, 0, 1]])
+            transform_matrix = shift_matrix if transform_matrix is None else np.dot(transform_matrix, shift_matrix)
+
+        if shear != 0:
+            shear_matrix = np.array([[1, -np.sin(shear), 0],
+                                    [0, np.cos(shear), 0],
+                                    [0, 0, 1]])
+            transform_matrix = shear_matrix if transform_matrix is None else np.dot(transform_matrix, shear_matrix)
+
+        if zx != 1 or zy != 1:
+            zoom_matrix = np.array([[zx, 0, 0],
+                                    [0, zy, 0],
+                                    [0, 0, 1]])
+            transform_matrix = zoom_matrix if transform_matrix is None else np.dot(transform_matrix, zoom_matrix)
+
+        if transform_matrix is not None:
+            h, w = x.shape[self.img_row_axis], x.shape[self.img_col_axis]
+            transform_matrix = self.transform_matrix_offset_center(transform_matrix, h, w)
+            x = self.apply_transform(x, transform_matrix,
+                                     channel_axis=self.img_channel_axis, fill_mode=self.fill_mode, cval=self.cval)
+            if y is not None:
+                y = self.apply_transform(y, transform_matrix,
+                                         channel_axis=self.img_channel_axis, fill_mode=self.fill_mode, cval=self.cval)
+
+        if self.channel_shift_range != 0:
+            x = self.random_channel_shift(x, self.channel_shift_range, channel_axis=self.img_channel_axis)
+
+        if self.horizontal_flip:
+            if np.random.random() < 0.5:
+                x = self.flip_axis(x, axis=self.img_col_axis)
+                if y is not None:
+                    y = self.flip_axis(y, axis=self.img_col_axis)
+
+        if self.vertical_flip:
+            if np.random.random() < 0.5:
+                x = self.flip_axis(x, axis=self.img_row_axis)
+                if y is not None:
+                    y = self.flip_axis(y, axis=self.img_row_axis)
 
         if y is None:
-            return self.images_data_generator.random_transform(x, seed=seed)
+            return x
         else:
-            if not seed:
-                print("Error: 'TransformationImages2D:random_transform' needs to specify 'seed' as input... Exit")
-                exit(0)
-            return (self.images_data_generator.random_transform(x, seed=seed),
-                    self.images_data_generator.random_transform(y, seed=seed))
+            return (x, y)
 
 
     def inverse_random_transform(self, x, y=None, seed=None):
-        # use composition of inverse transformations,
-        # apply progressively transforms in inverse order to that in "random_transform"
-        # useful when doing data augmentation during testing
-
+        # use composition of inverse homographies,
+        # apply transforms in inverse order to that in "random_transform"
         if y is not None and (y.shape != x.shape):
-            print("Error: input images 'x' and 'y' os different shape in 'random_transform'... Exit")
+            print("Error: input images 'x' and 'y' of different shape in 'random_transform'... Exit")
             exit(0)
 
         if seed is not None:
@@ -392,8 +487,6 @@ class TransformationImages2D(TransformationImages):
         else:
             zx, zy = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 2)
 
-
-        # compute inverse transformations matrixes
         transform_matrix = None
         if theta != 0:
             rotation_matrix = np.array([[ np.cos(theta), np.sin(theta), 0],
@@ -419,40 +512,75 @@ class TransformationImages2D(TransformationImages):
                                     [0, 0, 1]])
             transform_matrix = zoom_matrix if transform_matrix is None else np.dot(transform_matrix, zoom_matrix)
 
-
-        # apply transformations (in inverse order)
         if self.horizontal_flip:
             if np.random.random() < 0.5:
-                x = image.flip_axis(x, axis=self.img_col_axis)
+                x = self.flip_axis(x, axis=self.img_col_axis)
                 if y is not None:
-                    y = image.flip_axis(y, axis=self.img_col_axis)
+                    y = self.flip_axis(y, axis=self.img_col_axis)
 
         if self.vertical_flip:
             if np.random.random() < 0.5:
-                x = image.flip_axis(x, axis=self.img_row_axis)
+                x = self.flip_axis(x, axis=self.img_row_axis)
                 if y is not None:
-                    y = image.flip_axis(y, axis=self.img_row_axis)
+                    y = self.flip_axis(y, axis=self.img_row_axis)
 
         if self.channel_shift_range != 0:
-            x = image.random_channel_shift(x, self.channel_shift_range, channel_axis=self.img_channel_axis)
+            x = self.random_channel_shift(x, self.channel_shift_range, channel_axis=self.img_channel_axis)
 
         if transform_matrix is not None:
             h, w = x.shape[self.img_row_axis], x.shape[self.img_col_axis]
-            transform_matrix = image.transform_matrix_offset_center(transform_matrix, h, w)
-            x = image.apply_transform(x, transform_matrix,
-                                      channel_axis=self.img_channel_axis,
-                                      fill_mode=self.fill_mode,
-                                      cval=self.cval)
+            transform_matrix = self.transform_matrix_offset_center(transform_matrix, h, w)
+            x = self.apply_transform(x, transform_matrix,
+                                     channel_axis=self.img_channel_axis, fill_mode=self.fill_mode, cval=self.cval)
             if y is not None:
-                y = image.apply_transform(y, transform_matrix,
-                                          channel_axis=self.img_channel_axis,
-                                          fill_mode=self.fill_mode,
-                                          cval=self.cval)
+                y = self.apply_transform(y, transform_matrix,
+                                         channel_axis=self.img_channel_axis, fill_mode=self.fill_mode, cval=self.cval)
 
         if y is None:
             return x
         else:
             return (x, y)
+
+
+    @staticmethod
+    def transform_matrix_offset_center(matrix, x, y):
+
+        o_x = float(x) / 2 + 0.5
+        o_y = float(y) / 2 + 0.5
+        offset_matrix = np.array([[1, 0, o_x], [0, 1, o_y], [0, 0, 1]])
+        reset_matrix  = np.array([[1, 0,-o_x], [0, 1,-o_y], [0, 0, 1]])
+        transform_matrix = np.dot(np.dot(offset_matrix, matrix), reset_matrix)
+        return transform_matrix
+
+    @staticmethod
+    def apply_transform(x, transform_matrix, channel_axis=0, fill_mode='nearest', cval=0.):
+
+        x = np.rollaxis(x, channel_axis, 0)
+        final_affine_matrix = transform_matrix[:2, :2]
+        final_offset = transform_matrix[:2, 2]
+        channel_images = [ndi.interpolation.affine_transform(x_channel, final_affine_matrix, final_offset,
+                                                             order=1, mode=fill_mode, cval=cval) for x_channel in x]
+        x = np.stack(channel_images, axis=0)
+        x = np.rollaxis(x, 0, channel_axis + 1)
+        return x
+
+    @staticmethod
+    def flip_axis(x, axis):
+        x = np.asarray(x).swapaxes(axis, 0)
+        x = x[::-1, ...]
+        x = x.swapaxes(0, axis)
+        return x
+
+    @staticmethod
+    def random_channel_shift(x, intensity, channel_axis=0):
+
+        x = np.rollaxis(x, channel_axis, 0)
+        min_x, max_x = np.min(x), np.max(x)
+        channel_images = [np.clip(x_channel + np.random.uniform(-intensity, intensity), min_x, max_x) for x_channel in x]
+        x = np.stack(channel_images, axis=0)
+        x = np.rollaxis(x, 0, channel_axis + 1)
+        return x
+
 
 
 class TransformationImages3D(TransformationImages2D):
@@ -467,6 +595,7 @@ class TransformationImages3D(TransformationImages2D):
                  width_shift_range=0.0,
                  height_shift_range=0.0,
                  depth_shift_range=0.0,
+                 brightness_range=None,
                  shear_XY_range=0.0,
                  shear_XZ_range=0.0,
                  shear_YZ_range=0.0,
@@ -493,28 +622,29 @@ class TransformationImages3D(TransformationImages2D):
         self.vertical_flip = vertical_flip
         self.depthZ_flip = depthZ_flip
 
+        self.img_dep_axis = 0
+        self.img_row_axis = 1
+        self.img_col_axis = 2
+        self.img_channel_axis = 3
+
         # delegate to "Transformation2D" the functions to "standardize" images
         # only provide parameters relevant for "standardize" functions
         super(TransformationImages3D, self).__init__(size_image,
                                                      is_normalize_data=is_normalize_data,
                                                      type_normalize_data=type_normalize_data,
                                                      zca_whitening=zca_whitening,
+                                                     brightness_range=brightness_range,
                                                      zoom_range=zoom_range,
                                                      channel_shift_range=channel_shift_range,
                                                      fill_mode=fill_mode,
                                                      cval=cval,
                                                      rescale=rescale,
                                                      preprocessing_function=preprocessing_function)
-        self.img_dep_axis = 0
-        self.img_row_axis = 1
-        self.img_col_axis = 2
-        self.img_channel_axis = 3
 
 
     def random_transform(self, x, y=None, seed=None):
-        # randomly augment a single image tensor.
-        # use composition of homographies to generate final transform that needs to be applied
-
+        # use composition of homographies
+        # to generate final transform that needs to be applied
         if y is not None and (y.shape != x.shape):
             print("Error: input images 'x' and 'y' os different shape in 'random_transform'... Exit")
             exit(0)
@@ -571,7 +701,6 @@ class TransformationImages3D(TransformationImages2D):
             (zx, zy, zz) = (1, 1, 1)
         else:
             (zx, zy, zz) = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 3)
-
 
         transform_matrix = None
         if angle_XY != 0:
@@ -626,41 +755,35 @@ class TransformationImages3D(TransformationImages2D):
                                     [0, 0, 0, 1]])
             transform_matrix = zoom_matrix if transform_matrix is None else np.dot(transform_matrix, zoom_matrix)
 
-
-        # apply transformations
         if transform_matrix is not None:
             (d, h, w) = (x.shape[self.img_dep_axis], x.shape[self.img_row_axis], x.shape[self.img_col_axis])
             transform_matrix = self.transform_matrix_offset_center(transform_matrix, d, h, w)
             x = self.apply_transform(x, transform_matrix,
-                                     channel_axis=self.img_channel_axis,
-                                     fill_mode=self.fill_mode,
-                                     cval=self.cval)
+                                     channel_axis=self.img_channel_axis, fill_mode=self.fill_mode, cval=self.cval)
             if y is not None:
                 y = self.apply_transform(y, transform_matrix,
-                                         channel_axis=self.img_channel_axis,
-                                         fill_mode=self.fill_mode,
-                                         cval=self.cval)
+                                         channel_axis=self.img_channel_axis, fill_mode=self.fill_mode, cval=self.cval)
 
         if self.channel_shift_range != 0:
-            x = image.random_channel_shift(x, self.channel_shift_range, channel_axis=self.img_channel_axis)
+            x = self.random_channel_shift(x, self.channel_shift_range, channel_axis=self.img_channel_axis)
 
         if self.horizontal_flip:
             if np.random.random() < 0.5:
-                x = image.flip_axis(x, axis=self.img_col_axis)
+                x = self.flip_axis(x, axis=self.img_col_axis)
                 if y is not None:
-                    y = image.flip_axis(y, axis=self.img_col_axis)
+                    y = self.flip_axis(y, axis=self.img_col_axis)
 
         if self.vertical_flip:
             if np.random.random() < 0.5:
-                x = image.flip_axis(x, axis=self.img_row_axis)
+                x = self.flip_axis(x, axis=self.img_row_axis)
                 if y is not None:
-                    y = image.flip_axis(y, axis=self.img_row_axis)
+                    y = self.flip_axis(y, axis=self.img_row_axis)
 
         if self.depthZ_flip:
             if np.random.random() < 0.5:
-                x = image.flip_axis(x, axis=self.img_dep_axis)
+                x = self.flip_axis(x, axis=self.img_dep_axis)
                 if y is not None:
-                    y = image.flip_axis(y, axis=self.img_dep_axis)
+                    y = self.flip_axis(y, axis=self.img_dep_axis)
 
         if y is None:
             return x
@@ -669,10 +792,8 @@ class TransformationImages3D(TransformationImages2D):
 
 
     def inverse_random_transform(self, x, y=None, seed=None):
-        # use composition of inverse transformations,
-        # apply progressively transforms in inverse order to that in "random_transform"
-        # useful when doing data augmentation during testing
-
+        # use composition of inverse homographies,
+        # apply transforms in inverse order to that in "random_transform"
         if y is not None and (y.shape != x.shape):
             print("Error: input images 'x' and 'y' os different shape in 'random_transform'... Exit")
             exit(0)
@@ -730,8 +851,6 @@ class TransformationImages3D(TransformationImages2D):
         else:
             (zx, zy, zz) = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 3)
 
-
-        # compute inverse transformations matrixes
         transform_matrix = None
         if angle_XY != 0:
             rotation_matrix = np.array([[1, 0, 0, 0],
@@ -785,41 +904,35 @@ class TransformationImages3D(TransformationImages2D):
                                     [0, 0, 0, 1]])
             transform_matrix = zoom_matrix if transform_matrix is None else np.dot(transform_matrix, zoom_matrix)
 
-
-        # apply transformations (in inverse order)
         if self.horizontal_flip:
             if np.random.random() < 0.5:
-                x = image.flip_axis(x, axis=self.img_col_axis)
+                x = self.flip_axis(x, axis=self.img_col_axis)
                 if y is not None:
-                    y = image.flip_axis(y, axis=self.img_col_axis)
+                    y = self.flip_axis(y, axis=self.img_col_axis)
 
         if self.vertical_flip:
             if np.random.random() < 0.5:
-                x = image.flip_axis(x, axis=self.img_row_axis)
+                x = self.flip_axis(x, axis=self.img_row_axis)
                 if y is not None:
-                    y = image.flip_axis(y, axis=self.img_row_axis)
+                    y = self.flip_axis(y, axis=self.img_row_axis)
 
         if self.depthZ_flip:
             if np.random.random() < 0.5:
-                x = image.flip_axis(x, axis=self.img_dep_axis)
+                x = self.flip_axis(x, axis=self.img_dep_axis)
                 if y is not None:
-                    y = image.flip_axis(y, axis=self.img_dep_axis)
+                    y = self.flip_axis(y, axis=self.img_dep_axis)
 
         if self.channel_shift_range != 0:
-            x = image.random_channel_shift(x, self.channel_shift_range, channel_axis=self.img_channel_axis)
+            x = self.random_channel_shift(x, self.channel_shift_range, channel_axis=self.img_channel_axis)
 
         if transform_matrix is not None:
             (d, h, w) = (x.shape[self.img_dep_axis], x.shape[self.img_row_axis], x.shape[self.img_col_axis])
             transform_matrix = self.transform_matrix_offset_center(transform_matrix, d, h, w)
             x = self.apply_transform(x, transform_matrix,
-                                     channel_axis=self.img_channel_axis,
-                                     fill_mode=self.fill_mode,
-                                     cval=self.cval)
+                                     channel_axis=self.img_channel_axis, fill_mode=self.fill_mode, cval=self.cval)
             if y is not None:
                 y = self.apply_transform(y, transform_matrix,
-                                         channel_axis=self.img_channel_axis,
-                                         fill_mode=self.fill_mode,
-                                         cval=self.cval)
+                                         channel_axis=self.img_channel_axis, fill_mode=self.fill_mode, cval=self.cval)
 
         if y is None:
             return x
@@ -829,6 +942,7 @@ class TransformationImages3D(TransformationImages2D):
 
     @staticmethod
     def transform_matrix_offset_center(matrix, x, y, z):
+
         o_x = float(x) / 2 + 0.5
         o_y = float(y) / 2 + 0.5
         o_z = float(z) / 2 + 0.5
@@ -839,6 +953,7 @@ class TransformationImages3D(TransformationImages2D):
 
     @staticmethod
     def apply_transform(x, transform_matrix, channel_axis=0, fill_mode='nearest', cval=0.):
+
         x = np.rollaxis(x, channel_axis, 0)
         final_affine_matrix = transform_matrix[:3, :3]
         final_offset = transform_matrix[:3, 3]

@@ -8,7 +8,6 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.ArrayShapeManager import *
 from CommonUtil.BatchDataGenerator import *
 from CommonUtil.FileReaders import *
 from CommonUtil.FunctionsUtil import *

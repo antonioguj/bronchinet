@@ -177,3 +177,44 @@ class Unet3D_General(NeuralNetwork):
 
     def forward(self, input):
         pass
+
+
+# all available networks
+def DICTAVAILMODELS3D(size_image,
+                      num_channels_in=1,
+                      num_classes_out=1,
+                      num_layers=5,
+                      num_featmaps_base=16,
+                      type_model='general',
+                      type_network='classification',
+                      type_activate_hidden='relu',
+                      type_activate_output='sigmoid',
+                      type_padding_convol='same',
+                      is_disable_convol_pooling_lastlayer=False,
+                      isuse_dropout=False,
+                      isuse_batchnormalize=False):
+
+    return Unet3D_Original(size_image,
+                           num_channels_in=num_channels_in)
+
+    # if type_model=='original':
+    #     return Unet3D_Original(size_image,
+    #                            num_channels_in=num_channels_in)
+    #
+    # elif type_model=='general':
+    #     if type_network == 'regression':
+    #         type_activate_output = 'linear'
+    #
+    #     return Unet3D_General(size_image,
+    #                           num_channels_in=num_channels_in,
+    #                           num_classes_out=num_classes_out,
+    #                           num_layers=num_layers,
+    #                           num_featmaps_base=num_featmaps_base,
+    #                           type_activate_hidden=type_activate_hidden,
+    #                           type_activate_output=type_activate_output,
+    #                           type_padding_convol=type_padding_convol,
+    #                           is_disable_convol_pooling_zdim_lastlayer=is_disable_convol_pooling_lastlayer,
+    #                           isuse_dropout=isuse_dropout,
+    #                           isuse_batchnormalize=isuse_batchnormalize)
+    # else:
+    #     return 0

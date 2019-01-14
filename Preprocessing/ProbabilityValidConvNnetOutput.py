@@ -10,7 +10,6 @@
 
 from CommonUtil.Constants import *
 from CommonUtil.ErrorMessages import *
-from Networks_Keras.Networks_NEW import *
 from Preprocessing.BaseImageGenerator import *
 
 
