@@ -12,14 +12,13 @@ from CommonUtil.Constants import *
 from CommonUtil.CPUGPUdevicesManager import *
 from CommonUtil.ErrorMessages import *
 from CommonUtil.ImageGeneratorManager import *
-from CommonUtil.KerasBatchDataGenerator import *
+from CommonUtil.BatchDataGenerator_Keras import *
 from CommonUtil.LoadDataManager import *
 from CommonUtil.WorkDirsManager import *
 from Networks_Keras.Callbacks import *
 from Networks_Keras.Metrics import *
 from Networks_Keras.Networks import *
 from Networks_Keras.Optimizers import *
-from keras import callbacks as Kcallbacks
 import argparse
 
 
@@ -96,6 +95,7 @@ def main(args):
                                                    custom_objects=custom_objects)
     else:
         model_constructor = DICTAVAILMODELS3D(IMAGES_DIMS_Z_X_Y,
+                                              tailored_build_model=args.tailored_build_model,
                                               num_layers=args.num_layers,
                                               num_featmaps_base=args.num_featmaps_base,
                                               type_network=args.type_network,
@@ -109,8 +109,7 @@ def main(args):
         model = model_constructor.get_model()
 
         # Compile model
-        model.compile(optimizer= DICTAVAILOPTIMIZERS_USERLR(args.optimizer,
-                                                            lr=args.learn_rate),
+        model.compile(optimizer= DICTAVAILOPTIMIZERS(args.optimizer, lr=args.learn_rate),
                       loss     = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest),
                       metrics  =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics])
 
@@ -130,8 +129,7 @@ def main(args):
 
     filename = ModelsPath + '/model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5'
     callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
-    #callbacks_list.append(Kcallbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
-    callbacks_list.append(Kcallbacks.TerminateOnNaN())
+    #callbacks_list.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
     # ----------------------------------------------
 
 
@@ -154,13 +152,13 @@ def main(args):
                                                           args.transformationImages,
                                                           args.elasticDeformationImages)
 
-        train_batch_data_generator = KerasTrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
-                                                                     train_xData,
-                                                                     train_yData,
-                                                                     train_images_generator,
-                                                                     num_classes_out=num_classes_out,
-                                                                     batch_size=args.batch_size,
-                                                                     shuffle=True)
+        train_batch_data_generator = TrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
+                                                                train_xData,
+                                                                train_yData,
+                                                                train_images_generator,
+                                                                num_classes_out=num_classes_out,
+                                                                batch_size=args.batch_size,
+                                                                shuffle=True)
 
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(train_batch_data_generator)))
@@ -188,13 +186,13 @@ def main(args):
                                                               args.transformationImages,
                                                               args.elasticDeformationImages)
 
-            valid_batch_data_generator = KerasTrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
-                                                                         valid_xData,
-                                                                         valid_yData,
-                                                                         valid_images_generator,
-                                                                         num_classes_out=num_classes_out,
-                                                                         batch_size=args.batch_size,
-                                                                         shuffle=True)
+            valid_batch_data_generator = TrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
+                                                                    valid_xData,
+                                                                    valid_yData,
+                                                                    valid_images_generator,
+                                                                    num_classes_out=num_classes_out,
+                                                                    batch_size=args.batch_size,
+                                                                    shuffle=True)
             validation_data = valid_batch_data_generator
 
             print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles),
@@ -260,6 +258,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--multiClassCase', type=str2bool, default=MULTICLASSCASE)
     parser.add_argument('--numClassesMasks', type=int, default=NUMCLASSESMASKS)
+    parser.add_argument('--tailored_build_model', type=str2bool, default=TAILORED_BUILD_MODEL)
     parser.add_argument('--type_network', type=str, default=TYPE_NETWORK)
     parser.add_argument('--num_layers', type=int, default=NUM_LAYERS)
     parser.add_argument('--num_featmaps_base', type=int, default=NUM_FEATMAPS_BASE)

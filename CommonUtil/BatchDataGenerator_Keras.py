@@ -15,7 +15,7 @@ import numpy as np
 np.random.seed(2017)
 
 
-class KerasTrainingBatchDataGenerator(image.Iterator):
+class TrainingBatchDataGenerator(image.Iterator):
 
     def __init__(self, size_image, list_xData_array, list_yData_array, images_generator, num_classes_out=1, size_outUnet=None, batch_size=1, shuffle=True, seed=None):
 
@@ -34,7 +34,7 @@ class KerasTrainingBatchDataGenerator(image.Iterator):
 
         numtot_samples = self.compute_pairIndexes_samples(shuffle, seed)
 
-        super(KerasTrainingBatchDataGenerator, self).__init__(numtot_samples, batch_size, shuffle, seed)
+        super(TrainingBatchDataGenerator, self).__init__(numtot_samples, batch_size, shuffle, seed)
 
 
     def compute_pairIndexes_samples(self, shuffle, seed=None):

@@ -244,13 +244,78 @@ class Unet3D_Tailored(NeuralNetwork):
         self.size_image      = size_image
         self.num_channels_in = num_channels_in
         self.num_classes_out = num_classes_out
+        self.num_featmaps_base = 16
+        self.dropout_rate      = 0.5
 
     def get_model(self):
 
         inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
 
-        #...IMPLEMENT HERE...
-        outputlayer = Convolution3D(self.num_classes_out, (1, 1, 1))(inputlayer)
+        num_featmaps_lay1   = self.num_featmaps_base
+        hiddenlayer_down1_2 = Convolution3D(num_featmaps_lay1, kernel_size=(3, 3, 3), activation='relu', padding='same')(inputlayer)
+        hiddenlayer_down1_2 = BatchNormalization()(hiddenlayer_down1_2)
+        hiddenlayer_down1_3 = Convolution3D(num_featmaps_lay1, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down1_2)
+        hiddenlayer_down1_3 = BatchNormalization()(hiddenlayer_down1_3)
+        hiddenlayer_down2_1 = MaxPooling3D(pool_size=(2, 2, 2))(hiddenlayer_down1_3)
+
+        num_featmaps_lay2   = 2 * num_featmaps_lay1
+        hiddenlayer_down2_2 = Convolution3D(num_featmaps_lay2, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down2_1)
+        hiddenlayer_down2_2 = BatchNormalization()(hiddenlayer_down2_2)
+        hiddenlayer_down2_3 = Convolution3D(num_featmaps_lay2, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down2_2)
+        hiddenlayer_down2_3 = BatchNormalization()(hiddenlayer_down2_3)
+        hiddenlayer_down3_1 = MaxPooling3D(pool_size=(2, 2, 2))(hiddenlayer_down2_3)
+
+        num_featmaps_lay3   = 2 * num_featmaps_lay2
+        hiddenlayer_down3_2 = Convolution3D(num_featmaps_lay3, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down3_1)
+        hiddenlayer_down3_2 = BatchNormalization()(hiddenlayer_down3_2)
+        hiddenlayer_down3_3 = Convolution3D(num_featmaps_lay3, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down3_2)
+        hiddenlayer_down3_3 = BatchNormalization()(hiddenlayer_down3_3)
+        hiddenlayer_down4_1 = MaxPooling3D(pool_size=(2, 2, 2))(hiddenlayer_down3_3)
+
+        num_featmaps_lay4   = 2 * num_featmaps_lay3
+        hiddenlayer_down4_2 = Convolution3D(num_featmaps_lay4, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down4_1)
+        hiddenlayer_down4_2 = BatchNormalization()(hiddenlayer_down4_2)
+        hiddenlayer_down4_3 = Convolution3D(num_featmaps_lay4, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down4_2)
+        hiddenlayer_down4_3 = BatchNormalization()(hiddenlayer_down4_3)
+        hiddenlayer_down5_1 = MaxPooling3D(pool_size=(1, 2, 2))(hiddenlayer_down4_3)
+
+        num_featmaps_lay5   = 2 * num_featmaps_lay4
+        hiddenlayer_down5_2 = Convolution3D(num_featmaps_lay5, kernel_size=(1, 3, 3), activation='relu', padding='same')(hiddenlayer_down5_1)
+        hiddenlayer_down5_2 = BatchNormalization()(hiddenlayer_down5_2)
+        hiddenlayer_down5_3 = Convolution3D(num_featmaps_lay5, kernel_size=(1, 3, 3), activation='relu', padding='same')(hiddenlayer_down5_2)
+        hiddenlayer_down5_3 = BatchNormalization()(hiddenlayer_down5_3)
+
+        hiddenlayer_up4_1 = UpSampling3D(size=(1, 2, 2))(hiddenlayer_down5_3)
+        hiddenlayer_up4_1 = merge([hiddenlayer_up4_1, hiddenlayer_down4_3], mode='concat', concat_axis=-1)
+        hiddenlayer_up4_2 = Convolution3D(num_featmaps_lay4, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up4_1)
+        hiddenlayer_up4_2 = BatchNormalization()(hiddenlayer_up4_2)
+        hiddenlayer_up4_3 = Convolution3D(num_featmaps_lay4, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up4_2)
+        hiddenlayer_up4_3 = BatchNormalization()(hiddenlayer_up4_3)
+
+        hiddenlayer_up3_1 = UpSampling3D(size=(2, 2, 2))(hiddenlayer_up4_3)
+        hiddenlayer_up3_1 = merge([hiddenlayer_up3_1, hiddenlayer_down3_3], mode='concat', concat_axis=-1)
+        hiddenlayer_up3_2 = Convolution3D(num_featmaps_lay3, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up3_1)
+        hiddenlayer_up3_2 = BatchNormalization()(hiddenlayer_up3_2)
+        hiddenlayer_up3_3 = Convolution3D(num_featmaps_lay3, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up3_2)
+        hiddenlayer_up3_3 = BatchNormalization()(hiddenlayer_up3_3)
+
+        hiddenlayer_up2_1 = UpSampling3D(size=(2, 2, 2))(hiddenlayer_up3_3)
+        hiddenlayer_up2_1 = merge([hiddenlayer_up2_1, hiddenlayer_down2_3], mode='concat', concat_axis=-1)
+        hiddenlayer_up2_2 = Convolution3D(num_featmaps_lay2, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up2_1)
+        hiddenlayer_up2_2 = BatchNormalization()(hiddenlayer_up2_2)
+        hiddenlayer_up2_3 = Convolution3D(num_featmaps_lay2, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up2_2)
+        hiddenlayer_up2_3 = BatchNormalization()(hiddenlayer_up2_3)
+
+        hiddenlayer_up1_1 = UpSampling3D(size=(2, 2, 2))(hiddenlayer_up2_3)
+        hiddenlayer_up1_1 = merge([hiddenlayer_up1_1, hiddenlayer_down1_3], mode='concat', concat_axis=-1)
+        hiddenlayer_up1_2 = Convolution3D(num_featmaps_lay1, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up1_1)
+        hiddenlayer_up1_2 = BatchNormalization()(hiddenlayer_up1_2)
+        hiddenlayer_up1_3 = Convolution3D(num_featmaps_lay1, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up1_2)
+        hiddenlayer_up1_3 = BatchNormalization()(hiddenlayer_up1_3)
+
+        hiddenlayer_up1_4 = Dropout(self.dropout_rate)(hiddenlayer_up1_3)
+
+        outputlayer = Convolution3D(self.num_classes_out, kernel_size=(1, 1, 1), activation='sigmoid')(hiddenlayer_up1_4)
 
         out_model = Model(input=inputlayer, output=outputlayer)
 
@@ -261,9 +326,9 @@ class Unet3D_Tailored(NeuralNetwork):
 def DICTAVAILMODELS3D(size_image,
                       num_channels_in=1,
                       num_classes_out=1,
+                      tailored_build_model=False,
                       num_layers=5,
                       num_featmaps_base=16,
-                      type_model='general',
                       type_network='classification',
                       type_activate_hidden='relu',
                       type_activate_output='sigmoid',
@@ -272,11 +337,10 @@ def DICTAVAILMODELS3D(size_image,
                       isuse_dropout=False,
                       isuse_batchnormalize=False):
 
-    if type_model=='original':
-        return Unet3D_Original(size_image,
+    if tailored_build_model:
+        return Unet3D_Tailored(size_image,
                                num_channels_in=num_channels_in)
-
-    elif type_model=='general':
+    else:
         if type_network == 'regression':
             type_activate_output = 'linear'
 
@@ -291,9 +355,3 @@ def DICTAVAILMODELS3D(size_image,
                               is_disable_convol_pooling_zdim_lastlayer=is_disable_convol_pooling_lastlayer,
                               isuse_dropout=isuse_dropout,
                               isuse_batchnormalize=isuse_batchnormalize)
-
-    elif type_model=='tailored':
-        return Unet3D_Tailored(size_image,
-                               num_channels_in=num_channels_in)
-    else:
-        return 0
