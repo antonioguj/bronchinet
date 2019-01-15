@@ -12,13 +12,20 @@ from CommonUtil.Constants import *
 from CommonUtil.CPUGPUdevicesManager import *
 from CommonUtil.ErrorMessages import *
 from CommonUtil.ImageGeneratorManager import *
-from CommonUtil.BatchDataGenerator_Keras import *
 from CommonUtil.LoadDataManager import *
 from CommonUtil.WorkDirsManager import *
-from Networks_Keras.Callbacks import *
-from Networks_Keras.Metrics import *
-from Networks_Keras.Networks import *
-from Networks_Keras.Optimizers import *
+if TYPE_DNNLIBRARY_USED == 'Keras':
+    from CommonUtil.BatchDataGenerator_Keras import *
+    from Networks_Keras.Callbacks import *
+    from Networks_Keras.Metrics import *
+    from Networks_Keras.Networks import *
+    from Networks_Keras.Optimizers import *
+elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+    from CommonUtil.BatchDataGenerator_Pytorch import *
+    from CommonUtil.TrainManager_Pytorch import *
+    from Networks_Pytorch.Metrics import *
+    from Networks_Pytorch.Networks import *
+    from Networks_Pytorch.Optimizers import *
 import argparse
 
 
@@ -85,51 +92,71 @@ def main(args):
 
         modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.restart_modelFile))
 
-        print("Restarting from file: \'%s\'..." %(modelSavedPath))
+        if TYPE_DNNLIBRARY_USED == 'Keras':
+            print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
-        train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)] \
-                           + [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
-        custom_objects = dict(map(lambda fun: (fun.__name__, fun), train_model_funs))
+            train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)] \
+                               + [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
+            custom_objects = dict(map(lambda fun: (fun.__name__, fun), train_model_funs))
 
-        model = NeuralNetwork.get_load_saved_model(modelSavedPath,
+            model = NeuralNetwork.get_load_saved_model(modelSavedPath,
                                                    custom_objects=custom_objects)
+        elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+            print("Restarting from file not implemented yet...")
+
     else:
-        model_constructor = DICTAVAILMODELS3D(IMAGES_DIMS_Z_X_Y,
-                                              tailored_build_model=args.tailored_build_model,
-                                              num_layers=args.num_layers,
-                                              num_featmaps_base=args.num_featmaps_base,
-                                              type_network=args.type_network,
-                                              type_activate_hidden=args.type_activate_hidden,
-                                              type_activate_output=args.type_activate_output,
-                                              type_padding_convol=args.type_padding_convol,
-                                              is_disable_convol_pooling_lastlayer=args.disable_convol_pooling_lastlayer,
-                                              isuse_dropout=args.isUse_dropout,
-                                              isuse_batchnormalize=args.isUse_batchnormalize,
-                                              num_classes_out=num_classes_out)
-        model = model_constructor.get_model()
+        if TYPE_DNNLIBRARY_USED == 'Keras':
+            model_constructor = DICTAVAILMODELS3D(IMAGES_DIMS_Z_X_Y,
+                                                  tailored_build_model=args.tailored_build_model,
+                                                  num_layers=args.num_layers,
+                                                  num_featmaps_base=args.num_featmaps_base,
+                                                  type_network=args.type_network,
+                                                  type_activate_hidden=args.type_activate_hidden,
+                                                  type_activate_output=args.type_activate_output,
+                                                  type_padding_convol=args.type_padding_convol,
+                                                  is_disable_convol_pooling_lastlayer=args.disable_convol_pooling_lastlayer,
+                                                  isuse_dropout=args.isUse_dropout,
+                                                  isuse_batchnormalize=args.isUse_batchnormalize,
+                                                  num_classes_out=num_classes_out)
+            model = model_constructor.get_model()
 
-        # Compile model
-        model.compile(optimizer= DICTAVAILOPTIMIZERS(args.optimizer, lr=args.learn_rate),
-                      loss     = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest),
-                      metrics  =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics])
+            # Compile model
+            model.compile(optimizer= DICTAVAILOPTIMIZERS(args.optimizer, lr=args.learn_rate),
+                          loss     = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest),
+                          metrics  =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics])
 
-        if args.use_restartModel and args.restart_only_weights:
-            print("Loading saved weights and restarting...")
+            if args.use_restartModel and args.restart_only_weights:
+                print("Loading saved weights and restarting...")
 
-            modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.restart_modelFile))
+                modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.restart_modelFile))
 
-            print("Restarting from file: \'%s\'..." % (modelSavedPath))
+                print("Restarting from file: \'%s\'..." % (modelSavedPath))
 
-            model.load_weights(modelSavedPath)
-    model.summary()
+                model.load_weights(modelSavedPath)
 
-    # Callbacks:
-    callbacks_list = []
-    callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]))
+            model.summary()
 
-    filename = ModelsPath + '/model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5'
-    callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
-    #callbacks_list.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
+            # Callbacks:
+            callbacks_list = []
+            callbacks_list.append(RecordLossHistory(ModelsPath, [
+                DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for
+                imetrics in args.listmetrics]))
+
+            filename = ModelsPath + '/model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5'
+            callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
+            # callbacks_list.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
+
+        elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+            model_net = DICTAVAILMODELS3D(IMAGES_DIMS_Z_X_Y)
+
+            optimizer = DICTAVAILOPTIMIZERS(args.optimizer, model_net.parameters(), lr=args.learn_rate),
+            loss_fun  = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest),
+            metrics   =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
+
+            if args.use_restartModel and args.restart_only_weights:
+                print("Restarting from file not implemented yet...")
+
+            train_manager = TrainManager(model_net, optimizer, loss_fun, metrics)
     # ----------------------------------------------
 
 
@@ -215,39 +242,32 @@ def main(args):
     print("Training model...")
     print("-" * 30)
 
-    if (args.slidingWindowImages or args.transformationImages):
-        if (args.useMultiThreading):
-            message = "MULTITHREADING STILL IN IMPLEMENTATION... EXIT"
-            CatchErrorException(message)
-
+    if TYPE_DNNLIBRARY_USED == 'Keras':
+        if (args.slidingWindowImages or
+            args.transformationImages):
             model.fit_generator(train_batch_data_generator,
                                 steps_per_epoch=len(train_batch_data_generator),
                                 nb_epoch=args.num_epochs,
                                 verbose=1,
                                 callbacks=callbacks_list,
                                 validation_data=validation_data,
-                                use_multiprocessing=True,
-                                workers=CPUdevicesManager.get_num_working_cpu_processes(),
                                 shuffle=True,
                                 initial_epoch=initial_epoch)
         else:
-            model.fit_generator(train_batch_data_generator,
-                                steps_per_epoch=len(train_batch_data_generator),
-                                nb_epoch=args.num_epochs,
-                                verbose=1,
-                                callbacks=callbacks_list,
-                                validation_data=validation_data,
-                                shuffle=True,
-                                initial_epoch=initial_epoch)
-    else:
-        model.fit(train_xData, train_yData,
-                  batch_size=args.batch_size,
-                  epochs=args.num_epochs,
-                  verbose=1,
-                  callbacks=callbacks_list,
-                  validation_data=validation_data,
-                  shuffle=True,
-                  initial_epoch=initial_epoch)
+            model.fit(train_xData, train_yData,
+                      batch_size=args.batch_size,
+                      epochs=args.num_epochs,
+                      verbose=1,
+                      callbacks=callbacks_list,
+                      validation_data=validation_data,
+                      shuffle=True,
+                      initial_epoch=initial_epoch)
+
+    elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+        train_manager.train(train_batch_data_generator,
+                            valid_batch_data_generator,
+                            num_epochs=args.num_epochs,
+                            initial_epoch=initial_epoch)
     # ----------------------------------------------
 
 

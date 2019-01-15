@@ -9,6 +9,7 @@
 ########################################################################################
 
 from torch.nn import CrossEntropyLoss
+import torch.nn as nn
 import torch
 import numpy as np
 
@@ -16,16 +17,21 @@ _eps = 1.0e-12
 _smooth = 1.0
 
 
-class LossFunction(object):
+class LossFunction(nn.Module):
     def __init__(self, Metrics):
         self.Metrics = Metrics
+
+        super(LossFunction, self).__init__()
+
+    def forward(self, y_true, y_pred):
+        return self.compute(y_true, y_pred)
 
     def compute(self, y_true, y_pred):
         return self.Metrics.loss(y_true, y_pred)
 
 
 # DIFFERENT METRICS:
-class Metrics(object):
+class Metrics(nn.Module):
 
     max_size_memory_safe = 5e+08
     val_exclude = -1
@@ -34,6 +40,11 @@ class Metrics(object):
     def __init__(self, is_masks_exclude=False):
         self.is_masks_exclude = is_masks_exclude
         self.name_fun_out = None
+
+        super(Metrics, self).__init__()
+
+    def forward(self, y_true, y_pred):
+        return self.compute(y_true, y_pred)
 
     def compute(self, y_true, y_pred):
         if self.is_masks_exclude:
@@ -177,3 +188,51 @@ class DiceCoefficient(Metrics):
 
     def dice(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
+
+
+# combination of two metrics
+class CombineLossTwoMetrics(Metrics):
+    weights_metrics = [1.0, 3.0]
+
+    def __init__(self, metrics1, metrics2, is_masks_exclude=False):
+        super(CombineLossTwoMetrics, self).__init__(is_masks_exclude)
+        self.metrics1 = metrics1
+        self.metrics2 = metrics2
+        self.name_fun_out = '_'.join(['comb', metrics1.name_fun_out, metrics2.name_fun_out])
+
+    def loss(self, y_true, y_pred):
+        return self.weights_metrics[0] * self.metrics1.loss(y_true, y_pred) + \
+               self.weights_metrics[1] * self.metrics2.loss(y_true, y_pred)
+
+
+# all available metrics
+def DICTAVAILMETRICS(option, is_masks_exclude=False):
+    if   (option == 'MeanSquared'):
+        return MeanSquared(is_masks_exclude=is_masks_exclude)
+    elif (option == 'BinaryCrossEntropy'):
+        return BinaryCrossEntropy(is_masks_exclude=is_masks_exclude)
+    elif (option == 'DiceCoefficient'):
+        return DiceCoefficient(is_masks_exclude=is_masks_exclude)
+    else:
+        return 0
+
+
+def DICTAVAILLOSSFUNS(option, is_masks_exclude=False, option2_combine=None):
+    if option2_combine:
+        metrics_sub1 = DICTAVAILMETRICS(option, is_masks_exclude)
+        metrics_sub2 = DICTAVAILMETRICS(option2_combine, is_masks_exclude)
+        metrics = CombineLossTwoMetrics(metrics_sub1, metrics_sub2, is_masks_exclude=is_masks_exclude)
+    else:
+        metrics = DICTAVAILMETRICS(option, is_masks_exclude)
+    return metrics.loss
+
+
+def DICTAVAILMETRICFUNS(option, is_masks_exclude=False, use_in_Keras=True, set_fun_name=False):
+    metrics = DICTAVAILMETRICS(option, is_masks_exclude)
+    if use_in_Keras:
+        if set_fun_name:
+            return metrics.get_renamed_compute()
+        else:
+            return metrics.compute
+    else:
+        return metrics.compute_np_safememory

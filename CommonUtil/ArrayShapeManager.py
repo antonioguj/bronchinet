@@ -8,8 +8,9 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from keras.backend import image_data_format as K_image_data_format
-from keras.utils import to_categorical as K_to_categorical
+
+#from keras.backend import image_data_format as K_image_data_format
+#from keras.utils import to_categorical as K_to_categorical
 import numpy as np
 
 
@@ -54,28 +55,30 @@ class ArrayShapeManager(object):
         else:
             return in_array
 
-    def get_array_categorical_masks(self, yData):
-        return K_to_categorical(yData, num_classes=self.num_classes_out)
+    # def get_array_categorical_masks(self, yData):
+    #     return K_to_categorical(yData, num_classes=self.num_classes_out)
 
 
     @staticmethod
     def get_shape_Keras(num_images, size_image, num_channels):
-        if K_image_data_format() == 'channels_first':
-            return [num_images, num_channels] + list(size_image)
-        elif K_image_data_format() == 'channels_last':
-            return [num_images] + list(size_image) + [num_channels]
-        else:
-            return 0
+        return [num_images] + list(size_image) + [num_channels]
+        # if K_image_data_format() == 'channels_first':
+        #     return [num_images, num_channels] + list(size_image)
+        # elif K_image_data_format() == 'channels_last':
+        #     return [num_images] + list(size_image) + [num_channels]
+        # else:
+        #     return 0
 
     @staticmethod
     def get_array_reshaped_Keras(array):
-        if K_image_data_format() == 'channels_first':
-            # need to roll last dimensions, channels, to second dim:
-            return np.rollaxis(array, -1, 1)
-        elif K_image_data_format() == 'channels_last':
-            return array
-        else:
-            return 0
+        return array
+        # if K_image_data_format() == 'channels_first':
+        #     # need to roll last dimensions, channels, to second dim:
+        #     return np.rollaxis(array, -1, 1)
+        # elif K_image_data_format() == 'channels_last':
+        #     return array
+        # else:
+        #     return 0
 
 
     @staticmethod

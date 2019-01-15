@@ -18,7 +18,6 @@ np.random.seed(2017)
 class TrainingBatchDataGenerator(image.Iterator):
 
     def __init__(self, size_image, list_xData_array, list_yData_array, images_generator, num_classes_out=1, size_outUnet=None, batch_size=1, shuffle=True, seed=None):
-
         self.size_image       = size_image
         self.list_xData_array = list_xData_array
         self.type_xData       = list_xData_array[0].dtype
@@ -32,9 +31,9 @@ class TrainingBatchDataGenerator(image.Iterator):
         self.num_channels_in  = self.array_shape_manager.get_num_channels_array(self.list_xData_array[0].shape)
         self.num_classes_out  = num_classes_out
 
-        numtot_samples = self.compute_pairIndexes_samples(shuffle, seed)
+        num_samples = self.compute_pairIndexes_samples(shuffle, seed)
 
-        super(TrainingBatchDataGenerator, self).__init__(numtot_samples, batch_size, shuffle, seed)
+        super(TrainingBatchDataGenerator, self).__init__(num_samples, batch_size, shuffle, seed)
 
 
     def compute_pairIndexes_samples(self, shuffle, seed=None):
@@ -52,12 +51,12 @@ class TrainingBatchDataGenerator(image.Iterator):
             #endfor
         #endfor
 
-        numtot_samples = len(self.list_pairIndexes_samples)
+        num_samples = len(self.list_pairIndexes_samples)
 
         if (shuffle):
             if seed:
                 np.random.seed(seed)
-            randomIndexes = np.random.choice(numtot_samples, size=numtot_samples, replace=False)
+            randomIndexes = np.random.choice(num_samples, size=num_samples, replace=False)
 
             self.list_pairIndexes_samples_old = self.list_pairIndexes_samples
             self.list_pairIndexes_samples = []
@@ -65,7 +64,7 @@ class TrainingBatchDataGenerator(image.Iterator):
                 self.list_pairIndexes_samples.append(self.list_pairIndexes_samples_old[index])
             #endfor
 
-        return numtot_samples
+        return num_samples
 
 
     def _get_batches_of_transformed_samples(self, indexes_batch):

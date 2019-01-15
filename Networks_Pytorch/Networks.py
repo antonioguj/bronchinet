@@ -9,15 +9,16 @@
 ########################################################################################
 
 from torch.nn import Conv3d, MaxPool3d, Upsample
+import torch.nn as nn
 import torch
 
 
-class NeuralNetwork(object):
+class NeuralNetwork(nn.Module):
+
+    def __init__(self):
+        super(NeuralNetwork, self).__init__()
 
     def build_model(self):
-        pass
-
-    def forward(self, input):
         pass
 
 
@@ -30,6 +31,10 @@ class Unet3D_Original(NeuralNetwork):
         self.num_channels_in = num_channels_in
         self.num_classes_out = num_classes_out
         self.num_featmaps_base = 16
+
+        super(Unet3D_Original, self).__init__()
+
+        self.build_model()
 
     def build_model(self):
 
@@ -171,6 +176,10 @@ class Unet3D_General(NeuralNetwork):
 
             temp_size_pooling_lastlayer = self.size_pooling_downlayers[-1]
             self.size_pooling_downlayers[-1] = (1, temp_size_pooling_lastlayer[1], temp_size_pooling_lastlayer[2])
+
+        super(Unet3D_General, self).__init__()
+
+        self.build_model()
 
     def build_model(self):
         pass
