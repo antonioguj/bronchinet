@@ -57,10 +57,10 @@ def main(args):
     else:
         ModelsPath     = workDirsManager.getNameUpdatePath(args.basedir, nameModelsRelPath)
 
-    listTrainImagesFiles = findFilesDir(TrainingDataPath,   nameImagesFiles)[0:1]
-    listTrainMasksFiles  = findFilesDir(TrainingDataPath,   nameMasksFiles )[0:1]
-    listValidImagesFiles = findFilesDir(ValidationDataPath, nameImagesFiles)[0:1]
-    listValidMasksFiles  = findFilesDir(ValidationDataPath, nameMasksFiles )[0:1]
+    listTrainImagesFiles = findFilesDir(TrainingDataPath,   nameImagesFiles)
+    listTrainMasksFiles  = findFilesDir(TrainingDataPath,   nameMasksFiles )
+    listValidImagesFiles = findFilesDir(ValidationDataPath, nameImagesFiles)
+    listValidMasksFiles  = findFilesDir(ValidationDataPath, nameMasksFiles )
 
     if not listValidImagesFiles or not listValidMasksFiles:
         use_validation_data = False
