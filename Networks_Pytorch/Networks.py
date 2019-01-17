@@ -11,6 +11,7 @@
 from torch.nn import Conv3d, MaxPool3d, Upsample
 import torch.nn as nn
 import torch
+from torchsummary import summary
 
 
 class NeuralNetwork(nn.Module):
@@ -63,20 +64,24 @@ class Unet3D_Original(NeuralNetwork):
         self.convolut_downlay5_2 = Conv3d(num_featmaps_lay5, num_featmaps_lay5, kernel_size=3, stride=1, padding=1)
         self.upsample_uplay5     = Upsample(scale_factor=2, mode='nearest')
 
-        self.convolut_uplay4_1   = Conv3d(num_featmaps_lay5, num_featmaps_lay4, kernel_size=3, stride=1, padding=1)
-        self.convolut_uplay4_2   = Conv3d(num_featmaps_lay4, num_featmaps_lay4, kernel_size=3, stride=1, padding=1)
+        num_featmaps_lay4pl5     = num_featmaps_lay4 + num_featmaps_lay5
+        self.convolut_uplay4_1   = Conv3d(num_featmaps_lay4pl5, num_featmaps_lay4, kernel_size=3, stride=1, padding=1)
+        self.convolut_uplay4_2   = Conv3d(num_featmaps_lay4,    num_featmaps_lay4, kernel_size=3, stride=1, padding=1)
         self.upsample_uplay4     = Upsample(scale_factor=2, mode='nearest')
 
-        self.convolut_uplay3_1   = Conv3d(num_featmaps_lay4, num_featmaps_lay3, kernel_size=3, stride=1, padding=1)
-        self.convolut_uplay3_2   = Conv3d(num_featmaps_lay3, num_featmaps_lay3, kernel_size=3, stride=1, padding=1)
+        num_featmaps_lay3pl4     = num_featmaps_lay3 + num_featmaps_lay4
+        self.convolut_uplay3_1   = Conv3d(num_featmaps_lay3pl4, num_featmaps_lay3, kernel_size=3, stride=1, padding=1)
+        self.convolut_uplay3_2   = Conv3d(num_featmaps_lay3,    num_featmaps_lay3, kernel_size=3, stride=1, padding=1)
         self.upsample_uplay3     = Upsample(scale_factor=2, mode='nearest')
 
-        self.convolut_uplay2_1   = Conv3d(num_featmaps_lay3, num_featmaps_lay2, kernel_size=3, stride=1, padding=1)
-        self.convolut_uplay2_2   = Conv3d(num_featmaps_lay2, num_featmaps_lay2, kernel_size=3, stride=1, padding=1)
+        num_featmaps_lay2pl3     = num_featmaps_lay2 + num_featmaps_lay3
+        self.convolut_uplay2_1   = Conv3d(num_featmaps_lay2pl3, num_featmaps_lay2, kernel_size=3, stride=1, padding=1)
+        self.convolut_uplay2_2   = Conv3d(num_featmaps_lay2,    num_featmaps_lay2, kernel_size=3, stride=1, padding=1)
         self.upsample_uplay2     = Upsample(scale_factor=2, mode='nearest')
 
-        self.convolut_uplay1_1   = Conv3d(num_featmaps_lay2, num_featmaps_lay1, kernel_size=3, stride=1, padding=1)
-        self.convolut_uplay1_2   = Conv3d(num_featmaps_lay1, num_featmaps_lay1, kernel_size=3, stride=1, padding=1)
+        num_featmaps_lay1pl2     = num_featmaps_lay1 + num_featmaps_lay2
+        self.convolut_uplay1_1   = Conv3d(num_featmaps_lay1pl2, num_featmaps_lay1, kernel_size=3, stride=1, padding=1)
+        self.convolut_uplay1_2   = Conv3d(num_featmaps_lay1,    num_featmaps_lay1, kernel_size=3, stride=1, padding=1)
         self.convolut_lastlayer  = Conv3d(num_featmaps_lay1, self.num_classes_out, kernel_size=1, stride=1, padding=0)
 
     def forward(self, input):
@@ -101,22 +106,22 @@ class Unet3D_Original(NeuralNetwork):
         hidden_down5_3 = self.convolut_downlay5_2(hidden_down5_2)
         hidden_up4_1   = self.upsample_uplay5    (hidden_down5_3)
 
-        hidden_up4_2   = torch.cat([hidden_up4_1, hidden_down4_3])
+        hidden_up4_2   = torch.cat([hidden_up4_1, hidden_down4_3], dim=1)
         hidden_up4_3   = self.convolut_uplay4_1  (hidden_up4_2)
         hidden_up4_4   = self.convolut_uplay4_2  (hidden_up4_3)
         hidden_up3_1   = self.upsample_uplay4    (hidden_up4_4)
 
-        hidden_up3_2   = torch.cat([hidden_up3_1, hidden_down3_3])
+        hidden_up3_2   = torch.cat([hidden_up3_1, hidden_down3_3], dim=1)
         hidden_up3_3   = self.convolut_uplay3_1  (hidden_up3_2)
         hidden_up3_4   = self.convolut_uplay3_2  (hidden_up3_3)
         hidden_up2_1   = self.upsample_uplay3    (hidden_up3_4)
 
-        hidden_up2_2   = torch.cat([hidden_up2_1, hidden_down2_3])
+        hidden_up2_2   = torch.cat([hidden_up2_1, hidden_down2_3], dim=1)
         hidden_up2_3   = self.convolut_uplay2_1  (hidden_up2_2)
         hidden_up2_4   = self.convolut_uplay2_2  (hidden_up2_3)
         hidden_up1_1   = self.upsample_uplay2    (hidden_up2_4)
 
-        hidden_up1_2   = torch.cat([hidden_up1_1, hidden_down1_2])
+        hidden_up1_2   = torch.cat([hidden_up1_1, hidden_down1_2], dim=1)
         hidden_up1_3   = self.convolut_uplay1_1  (hidden_up1_2)
         hidden_up1_4   = self.convolut_uplay1_2  (hidden_up1_3)
         output         = self.convolut_lastlayer (hidden_up1_4)

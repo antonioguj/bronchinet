@@ -87,11 +87,15 @@ class Metrics(nn.Module):
         else:
             return self.compute_np(y_true, y_pred)
 
+
+    def get_tensor_val_exclude(self, in_shape):
+        return torch.ones(in_shape, device='cuda:0') * self.val_exclude
+
     def get_mask(self, y_true):
-        return torch.where(torch.equal(y_true, self.val_exclude), torch.zeros_like(y_true), torch.ones_like(y_true))
+        return torch.where(y_true == self.val_exclude, torch.zeros_like(y_true), torch.ones_like(y_true))
 
     def get_masked_array(self, y_true, y_array):
-        return torch.where(torch.equal(y_true, self.val_exclude), torch.zeros_like(y_array), y_array)
+        return torch.where(y_true == self.val_exclude, torch.zeros_like(y_array), y_array)
 
     def get_mask_np(self, y_true):
         return np.where(y_true == self.val_exclude, 0, 1)
@@ -224,7 +228,7 @@ def DICTAVAILLOSSFUNS(option, is_masks_exclude=False, option2_combine=None):
         metrics = CombineLossTwoMetrics(metrics_sub1, metrics_sub2, is_masks_exclude=is_masks_exclude)
     else:
         metrics = DICTAVAILMETRICS(option, is_masks_exclude)
-    return metrics.loss
+    return metrics
 
 
 def DICTAVAILMETRICFUNS(option, is_masks_exclude=False, use_in_Keras=True, set_fun_name=False):

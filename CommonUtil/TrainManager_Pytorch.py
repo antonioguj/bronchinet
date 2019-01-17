@@ -11,6 +11,8 @@
 from CommonUtil.Constants import *
 import torch.nn as nn
 import torch
+from tqdm import tqdm
+from collections import OrderedDict
 
 
 class TrainManager(object):
@@ -24,7 +26,7 @@ class TrainManager(object):
         self.callbacks = callbacks
 
         self.device    = self.get_device()
-        #self.model_net = self.model_net.to(self.device)
+        self.model_net = self.model_net.to(self.device)
 
 
     @staticmethod
@@ -34,13 +36,14 @@ class TrainManager(object):
     def _criterion(self, prediction, ground_truth):
         return self.loss_fun.forward(prediction, ground_truth)
 
-    def _run_callbacks(self):
-
-        for callback in self.callbacks:
-            callback()
-        #endfor
 
     def _train_epoch(self):
+
+        num_batches = len(self.train_data_generator)
+
+        progressbar = tqdm(total=num_batches,
+                           desc="Epochs {}/{}".format(self.epoch_count, self.num_epochs),
+                           bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{remaining}{postfix}]')
 
         loss_total = 0.0
         # run a train pass on the current epoch
@@ -57,9 +60,13 @@ class TrainManager(object):
             self.optimizer.step()
 
             loss_total += loss.detach().item()
+
+            progressbar.set_postfix(loss='{0:1.5f}'.format(loss_total))
+            progressbar.update(1)
         # endfor
 
         return loss_total
+
 
     def _validation_epoch(self):
 
@@ -94,7 +101,12 @@ class TrainManager(object):
         valid_loss = self._validation_epoch()
 
         # callbacks
-        self._run_callbacks()
+        for callback in self.callbacks:
+            callback(model_net=self.model_net,
+                     epoch_count=self.epoch_count,
+                     train_loss=train_loss,
+                     valid_loss=valid_loss)
+        #endfor
 
 
     def train(self, train_data_generator, valid_data_generator, num_epochs, initial_epoch=0):
@@ -102,6 +114,11 @@ class TrainManager(object):
         self.train_data_generator = train_data_generator
         self.valid_data_generator = valid_data_generator
 
+        self.num_epochs  = num_epochs
+        self.epoch_count = initial_epoch
+
         for iepoch in range(initial_epoch, num_epochs):
+
             self._run_epoch()
+            self.epoch_count += 1
         #endfor

@@ -23,6 +23,7 @@ if TYPE_DNNLIBRARY_USED == 'Keras':
 elif TYPE_DNNLIBRARY_USED == 'Pytorch':
     from CommonUtil.BatchDataGenerator_Pytorch import *
     from CommonUtil.TrainManager_Pytorch import *
+    from Networks_Pytorch.Callbacks import *
     from Networks_Pytorch.Metrics import *
     from Networks_Pytorch.Networks import *
     from Networks_Pytorch.Optimizers import *
@@ -56,10 +57,10 @@ def main(args):
     else:
         ModelsPath     = workDirsManager.getNameUpdatePath(args.basedir, nameModelsRelPath)
 
-    listTrainImagesFiles = findFilesDir(TrainingDataPath,   nameImagesFiles)
-    listTrainMasksFiles  = findFilesDir(TrainingDataPath,   nameMasksFiles )
-    listValidImagesFiles = findFilesDir(ValidationDataPath, nameImagesFiles)
-    listValidMasksFiles  = findFilesDir(ValidationDataPath, nameMasksFiles )
+    listTrainImagesFiles = findFilesDir(TrainingDataPath,   nameImagesFiles)[0:1]
+    listTrainMasksFiles  = findFilesDir(TrainingDataPath,   nameMasksFiles )[0:1]
+    listValidImagesFiles = findFilesDir(ValidationDataPath, nameImagesFiles)[0:1]
+    listValidMasksFiles  = findFilesDir(ValidationDataPath, nameMasksFiles )[0:1]
 
     if not listValidImagesFiles or not listValidMasksFiles:
         use_validation_data = False
@@ -149,14 +150,20 @@ def main(args):
         elif TYPE_DNNLIBRARY_USED == 'Pytorch':
             model_net = DICTAVAILMODELS3D(IMAGES_DIMS_Z_X_Y)
 
-            optimizer = DICTAVAILOPTIMIZERS(args.optimizer, model_net.parameters(), lr=args.learn_rate),
-            loss_fun  = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest),
+            optimizer = DICTAVAILOPTIMIZERS(args.optimizer, model_net.parameters(), lr=args.learn_rate)
+            loss_fun  = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
             metrics   =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
 
             if args.use_restartModel and args.restart_only_weights:
                 print("Restarting from file not implemented yet...")
 
-            train_manager = TrainManager(model_net, optimizer, loss_fun, metrics)
+            callbacks_list = []
+            callbacks_list.append(RecordLossHistory(ModelsPath))
+            callbacks_list.append(ModelCheckpoint(ModelsPath))
+
+            train_manager = TrainManager(model_net, optimizer, loss_fun, metrics, callbacks=callbacks_list)
+
+            summary(model_net, (1, IMAGES_DIMS_Z_X_Y[0], IMAGES_DIMS_Z_X_Y[1], IMAGES_DIMS_Z_X_Y[2]))
     # ----------------------------------------------
 
 

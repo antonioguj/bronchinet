@@ -11,6 +11,7 @@
 from CommonUtil.Constants import *
 from CommonUtil.ArrayShapeManager import *
 from torch.utils import data
+import torch
 import numpy as np
 np.random.seed(2017)
 
@@ -61,6 +62,11 @@ class DataSampleGenerator(data.Dataset):
         num_samples = len(self.list_pairIndexes_samples)
         return num_samples
 
+    @staticmethod
+    def convert_image_torchtensor(in_array):
+        in_array = np.transpose(in_array, axes=(-1,0,1,2))
+        return torch.from_numpy(in_array.copy()).type(torch.FloatTensor)
+
 
     def __getitem__(self, index):
 
@@ -72,8 +78,8 @@ class DataSampleGenerator(data.Dataset):
                                                                           index=index_sample_file,
                                                                           masks_array=self.list_yData_array[index_file])
 
-        out_xData_array = self.array_shape_manager.get_xData_array_reshaped(xData_elem)
-        out_yData_array = self.array_shape_manager.get_yData_array_reshaped(yData_elem)
+        out_xData_array = self.convert_image_torchtensor(self.array_shape_manager.get_xData_array_reshaped(xData_elem))
+        out_yData_array = self.convert_image_torchtensor(self.array_shape_manager.get_yData_array_reshaped(yData_elem))
 
         return (out_xData_array, out_yData_array)
 
