@@ -105,9 +105,9 @@ SAVEVISUALIZEPROCDATA = False
 # ******************** TRAINING PARAMETERS ********************
 NUM_LAYERS           = 5
 NUM_FEATMAPS_BASE    = 16
-TYPE_NETWORK         = 'classification'
+TYPE_NETWORK         = 'regression'
 TYPE_ACTIVATE_HIDDEN = 'relu'
-TYPE_ACTIVATE_OUTPUT = 'sigmoid'
+TYPE_ACTIVATE_OUTPUT = 'linear'
 TYPE_PADDING_CONVOL  = 'same'
 DISABLE_CONVOL_POOLING_LASTLAYER = True
 ISUSE_DROPOUT        = False
@@ -115,7 +115,7 @@ ISUSE_BATCHNORMALIZE = False
 
 TAILORED_BUILD_MODEL = False
 
-ILOSSFUN    = 'DiceCoefficient'
+ILOSSFUN    = 'MeanSquared'
 LISTMETRICS = []
 
 IOPTIMIZER = 'Adam'

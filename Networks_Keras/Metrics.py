@@ -37,11 +37,9 @@ class Metrics(object):
 
     def compute(self, y_true, y_pred):
         if self.is_masks_exclude:
-            return self.compute_vec_masked(K.flatten(y_true),
-                                           K.flatten(y_pred))
+            return self.compute_vec_masked(K.flatten(y_true), K.flatten(y_pred))
         else:
-            return self.compute_vec(K.flatten(y_true),
-                                    K.flatten(y_pred))
+            return self.compute_vec(K.flatten(y_true), K.flatten(y_pred))
 
     def compute_vec(self, y_true, y_pred):
         pass
@@ -51,11 +49,9 @@ class Metrics(object):
 
     def compute_np(self, y_true, y_pred):
         if self.is_masks_exclude:
-            return self.compute_vec_masked_np(y_true.flatten(),
-                                              y_pred.flatten())
+            return self.compute_vec_masked_np(y_true.flatten(), y_pred.flatten())
         else:
-            return self.compute_vec_np(y_true.flatten(),
-                                       y_pred.flatten())
+            return self.compute_vec_np(y_true.flatten(), y_pred.flatten())
 
     def compute_vec_np(self, y_true, y_pred):
         pass
