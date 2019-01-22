@@ -154,9 +154,9 @@ class Unet3D_General(NeuralNetwork):
 
         self.num_convols_downlayers      = num_convols_downlayers
         self.num_convols_uplayers        = num_convols_uplayers
-        self.size_convolfilter_downlayers= size_convolfilter_downlayers
-        self.size_convolfilter_uplayers  = size_convolfilter_uplayers
-        self.size_pooling_downlayers     = size_pooling_downlayers
+        self.size_convolfilter_downlayers= size_convolfilter_downlayers[0:self.num_layers]
+        self.size_convolfilter_uplayers  = size_convolfilter_uplayers[0:self.num_layers]
+        self.size_pooling_downlayers     = size_pooling_downlayers[0:self.num_layers-1]
         self.size_upsample_uplayers      = self.size_pooling_downlayers
 
         if is_disable_convol_pooling_zdim_lastlayer:
@@ -186,7 +186,7 @@ class Unet3D_General(NeuralNetwork):
 
         inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
 
-        list_hiddenlayer_toskipconnect = []
+        list_hiddenlayer_skipconn = []
         hiddenlayer_next = inputlayer
 
         # ENCODING LAYERS
@@ -205,7 +205,7 @@ class Unet3D_General(NeuralNetwork):
                 hiddenlayer_next = BatchNormalization()(hiddenlayer_next)
 
             if i!=self.num_layers-1:
-                list_hiddenlayer_toskipconnect.append(hiddenlayer_next)
+                list_hiddenlayer_skipconn.append(hiddenlayer_next)
 
                 hiddenlayer_next = MaxPooling3D(pool_size=self.size_pooling_downlayers[i])(hiddenlayer_next)
         #endfor
@@ -213,7 +213,7 @@ class Unet3D_General(NeuralNetwork):
         # DECODING LAYERS
         for i in range(self.num_layers-2,-1,-1):
             hiddenlayer_next = UpSampling3D(size=self.size_upsample_uplayers[i])(hiddenlayer_next)
-            hiddenlayer_next = merge([hiddenlayer_next, list_hiddenlayer_toskipconnect[i]], mode='concat', concat_axis=-1)
+            hiddenlayer_next = merge([hiddenlayer_next, list_hiddenlayer_skipconn[i]], mode='concat', concat_axis=-1)
 
             for j in range(self.num_convols_downlayers):
                 hiddenlayer_next = Convolution3D(self.num_featmaps_layers[i],

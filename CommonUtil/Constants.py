@@ -12,8 +12,8 @@ import numpy as np
 np.random.seed(2017)
 
 
-DATADIR = '/home/antonio/Data/DLCST_Raw/'
-BASEDIR = '/home/antonio/Results/AirwaySegmen_DLCST/'
+DATADIR = '/home/antonio/Data/LUVAR_Raw/'
+BASEDIR = '/home/antonio/Results/AirwaySegmen_LUVAR/'
 
 TYPE_DNNLIBRARY_USED = 'Keras'
 
@@ -76,7 +76,7 @@ DISTRIBUTE_FIXED_NAMES = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 INVERTIMAGEAXIAL = False
 
-MASKTOREGIONINTEREST = True
+MASKTOREGIONINTEREST = False
 
 REDUCESIZEIMAGES = False
 
@@ -103,32 +103,32 @@ SAVEVISUALIZEPROCDATA = False
 
 
 # ******************** TRAINING PARAMETERS ********************
-NUM_LAYERS           = 5
+NUM_LAYERS           = 3
 NUM_FEATMAPS_BASE    = 16
-TYPE_NETWORK         = 'regression'
+TYPE_NETWORK         = 'classification'
 TYPE_ACTIVATE_HIDDEN = 'relu'
-TYPE_ACTIVATE_OUTPUT = 'linear'
+TYPE_ACTIVATE_OUTPUT = 'sigmoid'
 TYPE_PADDING_CONVOL  = 'same'
-DISABLE_CONVOL_POOLING_LASTLAYER = True
+DISABLE_CONVOL_POOLING_LASTLAYER = False
 ISUSE_DROPOUT        = False
 ISUSE_BATCHNORMALIZE = False
 
 TAILORED_BUILD_MODEL = False
 
-ILOSSFUN    = 'MeanSquared'
+ILOSSFUN    = 'DiceCoefficient'
 LISTMETRICS = []
 
 IOPTIMIZER = 'Adam'
 NUM_EPOCHS = 1000
 BATCH_SIZE = 1
-LEARN_RATE = 1.0e-05
+LEARN_RATE = 1.0e-04
 
 if CONSTRUCTINPUTDATADLCST:
     SLIDINGWINDOWIMAGES = False
 else:
     SLIDINGWINDOWIMAGES = True
 
-TRANSFORMATIONIMAGES = True
+TRANSFORMATIONIMAGES = False
 
 ROTATION_XY_RANGE = 10
 ROTATION_XZ_RANGE = 5

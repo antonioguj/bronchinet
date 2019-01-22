@@ -32,6 +32,8 @@ class TrainManager(object):
         self.device = self.get_device()
         self.model_net = self.model_net.to(self.device)
 
+        # self._criterion = nn.BCELoss()
+
     @staticmethod
     def get_device():
         return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -59,12 +61,12 @@ class TrainManager(object):
             # time_now = dt.now()
             # time_loaddata += (time_now - time_loaddata_ini).seconds
 
-            output = self.model_net.forward(x_batch)
+            self.optimizer.zero_grad()
+            output = self.model_net(x_batch)
             loss = self._criterion(output, y_batch)
             loss.backward()
-            self.optimizer.zero_grad()
             self.optimizer.step()
-            loss.detach()
+            # loss.detach()
             sumrun_loss += loss.item()
             # time_now = dt.now()
             # time_train += (time_now - time_train_ini).seconds
@@ -99,10 +101,10 @@ class TrainManager(object):
             # time_now = dt.now()
             # time_loaddata += (time_now - time_loaddata_ini).seconds
 
-            output = self.model_net.forward(x_batch)
+            output = self.model_net(x_batch)
             loss = self._criterion(output, y_batch)
             loss.backward()
-            loss.detach()
+            # loss.detach()
             sumrun_loss += loss.item()
             # time_now = dt.now()
             # time_valid += (time_now - time_train_ini).seconds
@@ -125,7 +127,7 @@ class TrainManager(object):
         for (x_batch, y_batch) in self.test_data_generator:
             x_batch = x_batch.to(self.device)
 
-            output = self.model_net.forward(x_batch)
+            output = self.model_net(x_batch)
 
 
     def _run_callbacks(self, train_loss, valid_loss):
@@ -139,14 +141,14 @@ class TrainManager(object):
 
     def _run_epoch(self):
         # switch to train mode
-        self.model_net.train()
+        self.model_net = self.model_net.train()
 
         # run a train pass on the current epoch
         train_loss = self._train_epoch()
 
         if self.valid_data_generator:
             # switch to evaluate mode
-            self.model_net.eval()
+            self.model_net = self.model_net.eval()
 
             # run the validation pass
             valid_loss = self._validation_epoch()
@@ -197,6 +199,6 @@ class TrainManager(object):
         self.num_batches_test = len(self.test_data_generator)
 
         # switch to evaluate mode
-        self.model_net.eval()
+        self.model_net = self.model_net.eval()
 
         return self._calc_prediction()

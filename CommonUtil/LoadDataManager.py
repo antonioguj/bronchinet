@@ -56,7 +56,7 @@ class LoadDataManager(object):
     def loadData_ListFiles(listImagesFiles, listMasksFiles):
 
         return ([FileReader.getImageArray(file).astype(dtype=FORMATXDATA) for file in listImagesFiles],
-                [FileReader.getImageArray(file).astype(dtype=FORMATYDATA)  for file in listMasksFiles])
+                [FileReader.getImageArray(file).astype(dtype=FORMATYDATA) for file in listMasksFiles])
 
 
 class LoadDataManagerInBatches(LoadDataManager):
