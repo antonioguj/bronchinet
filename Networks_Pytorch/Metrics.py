@@ -185,12 +185,19 @@ class DiceCoefficient(Metrics):
     def compute_vec(self, y_true, y_pred):
         return (2.0 * torch.sum(y_true * y_pred)) / (torch.sum(y_true) + torch.sum(y_pred) +_smooth)
 
+    def get_masked_array(self, y_true, y_array):
+        return torch.where(y_true == self.val_exclude,
+                           torch.zeros_like(y_array),
+                           y_array)
+
     def compute_vec_masked(self, y_true, y_pred):
         return self.compute_vec(self.get_masked_array(y_true, y_true),
                                 self.get_masked_array(y_true, y_pred))
 
     def forward(self, y_true, y_pred):
-        return 1.0 - (2.0 * torch.sum(y_true * y_pred)) / (torch.sum(y_true) + torch.sum(y_pred) + _smooth)
+        y_true = self.get_masked_array(y_true, y_true)
+        y_pred = self.get_masked_array(y_true, y_pred)
+        return 1.0 - (2.0 * torch.sum(y_true * y_pred)) / (torch.sum(y_true) + torch.sum(y_pred) +_smooth)
 
     def loss(self, y_true, y_pred):
         return 1.0 - self.compute(y_true, y_pred)
