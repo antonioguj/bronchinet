@@ -27,10 +27,10 @@ def main(args):
 
     # ---------- SETTINGS ----------
     nameInputImagesRelPath  = 'ProcImages'
-    nameInputMasksRelPath   = 'ProcDistTrans'
+    nameInputMasksRelPath   = 'ProcMasks'
     nameLungsMasksRelPath   = 'ProcAllMasks'
     nameOutputImagesRelPath = 'ProcImagesExperData'
-    nameOutputMasksRelPath  = 'ProcDistTransExperData'
+    nameOutputMasksRelPath  = 'ProcMasksExperData'
 
     # Get the file list:
     nameInputImagesFiles = '*.nii.gz'

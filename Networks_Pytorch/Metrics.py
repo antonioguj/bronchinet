@@ -17,19 +17,7 @@ _eps = 1e-7
 _smooth = 1.0
 
 
-# class LossFunction(nn.Module):
-#     def __init__(self, metrics):
-#         super(LossFunction, self).__init__()
-#         self.metrics = metrics
-#
-#     def forward(self, y_true, y_pred):
-#         return self.metrics.loss(y_true, y_pred)
-#
-#     def compute(self, y_true, y_pred):
-#         return self.metrics.loss(y_true, y_pred)
-
-
-# DIFFERENT METRICS:
+# VARIOUS METRICS:
 class Metrics(nn.Module):
 
     max_size_memory_safe = 5e+08
@@ -42,14 +30,17 @@ class Metrics(nn.Module):
 
         super(Metrics, self).__init__()
 
-    def forward(self, y_true, y_pred):
-        return self.compute(y_true, y_pred)
-
     def compute(self, y_true, y_pred):
         if self.is_masks_exclude:
             return self.compute_vec_masked(y_true, y_pred)
         else:
             return self.compute_vec(y_true, y_pred)
+
+    def forward(self, y_true, y_pred):
+        raise NotImplemented
+
+    def loss(self, y_true, y_pred):
+        return self.forward(y_true, y_pred)
 
     def compute_vec(self, y_true, y_pred):
         raise NotImplemented
@@ -57,40 +48,33 @@ class Metrics(nn.Module):
     def compute_vec_masked(self, y_true, y_pred):
         raise NotImplemented
 
-    # def compute_np(self, y_true, y_pred):
-    #     if self.is_masks_exclude:
-    #         return self.compute_vec_masked_np(y_true.flatten(), y_pred.flatten())
-    #     else:
-    #         return self.compute_vec_np(y_true.flatten(), y_pred.flatten())
-    #
-    # def compute_vec_np(self, y_true, y_pred):
-    #     raise NotImplemented
-    #
-    # def compute_vec_masked_np(self, y_true, y_pred):
-    #     raise NotImplemented
-    #
-    # def get_mask(self, y_true):
-    #     return torch.where(y_true == self.val_exclude,
-    #                        torch.zeros_like(y_true),
-    #                        torch.ones_like(y_true))
-    #
-    # def get_masked_array(self, y_true, y_array):
-    #     return torch.where(y_true == self.val_exclude,
-    #                        torch.zeros_like(y_array),
-    #                        y_array)
-    #
-    # def get_mask_np(self, y_true):
-    #     return np.where(y_true == self.val_exclude, 0, 1)
-    #
-    # def get_masked_array_np(self, y_true, y_array):
-    #     return np.where(y_true == self.val_exclude, 0, y_array)
+    def compute_np(self, y_true, y_pred):
+        if self.is_masks_exclude:
+            return self.compute_vec_masked_np(y_true.flatten(), y_pred.flatten())
+        else:
+            return self.compute_vec_np(y_true.flatten(), y_pred.flatten())
 
-    def loss(self, y_true, y_pred):
+    def compute_vec_np(self, y_true, y_pred):
         raise NotImplemented
 
-    def get_renamed_compute(self):
-        if self.name_fun_out:
-            return getattr(self, self.name_fun_out)
+    def compute_vec_masked_np(self, y_true, y_pred):
+        raise NotImplemented
+
+    def get_mask(self, y_true):
+        return torch.where(y_true == self.val_exclude,
+                           torch.zeros_like(y_true),
+                           torch.ones_like(y_true))
+
+    def get_masked_array(self, y_true, y_array):
+        return torch.where(y_true == self.val_exclude,
+                           torch.zeros_like(y_array),
+                           y_array)
+
+    def get_mask_np(self, y_true):
+        return np.where(y_true == self.val_exclude, 0, 1)
+
+    def get_masked_array_np(self, y_true, y_array):
+        return np.where(y_true == self.val_exclude, 0, y_array)
 
 
 # mean squared error
@@ -107,7 +91,7 @@ class MeanSquared(Metrics):
         mask = self.get_mask(y_true)
         return torch.mean(torch.square(y_pred - y_true) * mask)
 
-    def loss(self, y_true, y_pred):
+    def forward(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
 
     def mean_squared(self, y_true, y_pred):
@@ -131,10 +115,6 @@ class BinaryCrossEntropy(Metrics):
                            (1.0 - y_true) * torch.log(1.0 - y_pred +_eps)) * mask)
 
     def forward(self, y_true, y_pred):
-        return torch.mean(- y_true * torch.log(y_pred +_eps) -
-                          (1.0 - y_true) * torch.log(1.0 - y_pred +_eps))
-
-    def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
 
     def bin_cross(self, y_true, y_pred):
@@ -165,10 +145,6 @@ class WeightedBinaryCrossEntropyFixedWeights(Metrics):
                            self.weights[0] * (1.0 - y_true) * torch.log(1.0 - y_pred +_eps)) * mask)
 
     def forward(self, y_true, y_pred):
-        return torch.mean(- self.weights[1] * y_true * torch.log(y_pred +_eps) -
-                          self.weights[0] * (1.0 - y_true) * torch.log(1.0 - y_pred +_eps))
-
-    def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
 
     def wei_bin_cross_fixed(self, y_true, y_pred):
@@ -185,21 +161,11 @@ class DiceCoefficient(Metrics):
     def compute_vec(self, y_true, y_pred):
         return (2.0 * torch.sum(y_true * y_pred)) / (torch.sum(y_true) + torch.sum(y_pred) +_smooth)
 
-    def get_masked_array(self, y_true, y_array):
-        return torch.where(y_true == self.val_exclude,
-                           torch.zeros_like(y_array),
-                           y_array)
-
     def compute_vec_masked(self, y_true, y_pred):
         return self.compute_vec(self.get_masked_array(y_true, y_true),
                                 self.get_masked_array(y_true, y_pred))
 
     def forward(self, y_true, y_pred):
-        y_true = self.get_masked_array(y_true, y_true)
-        y_pred = self.get_masked_array(y_true, y_pred)
-        return 1.0 - (2.0 * torch.sum(y_true * y_pred)) / (torch.sum(y_true) + torch.sum(y_pred) +_smooth)
-
-    def loss(self, y_true, y_pred):
         return 1.0 - self.compute(y_true, y_pred)
 
     def dice(self, y_true, y_pred):
@@ -222,7 +188,7 @@ class CombineLossTwoMetrics(Metrics):
 
 
 # all available metrics
-def DICTAVAILMETRICS(option, is_masks_exclude= False):
+def DICTAVAILMETRICLASS(option, is_masks_exclude= False):
     if   (option == 'MeanSquared'):
         return MeanSquared(is_masks_exclude= is_masks_exclude)
     elif (option == 'BinaryCrossEntropy'):
@@ -237,19 +203,12 @@ def DICTAVAILMETRICS(option, is_masks_exclude= False):
 
 def DICTAVAILLOSSFUNS(option, is_masks_exclude= False, option2_combine= None):
     if option2_combine:
-        metrics_sub1 = DICTAVAILMETRICS(option, is_masks_exclude)
-        metrics_sub2 = DICTAVAILMETRICS(option2_combine, is_masks_exclude)
+        metrics_sub1 = DICTAVAILMETRICLASS(option, is_masks_exclude)
+        metrics_sub2 = DICTAVAILMETRICLASS(option2_combine, is_masks_exclude)
         return CombineLossTwoMetrics(metrics_sub1, metrics_sub2, is_masks_exclude= is_masks_exclude)
     else:
-        return DICTAVAILMETRICS(option, is_masks_exclude)
+        return DICTAVAILMETRICLASS(option, is_masks_exclude)
 
 
-def DICTAVAILMETRICFUNS(option, is_masks_exclude=False, use_in_Keras=True, set_fun_name=False):
-    metrics = DICTAVAILMETRICS(option, is_masks_exclude)
-    if use_in_Keras:
-        if set_fun_name:
-            return metrics.get_renamed_compute()
-        else:
-            return metrics.compute
-    else:
-        raise NotImplemented
+def DICTAVAILMETRICFUNS(option, is_masks_exclude=False):
+    return DICTAVAILMETRICLASS(option, is_masks_exclude)

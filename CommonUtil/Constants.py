@@ -12,8 +12,8 @@ import numpy as np
 np.random.seed(2017)
 
 
-DATADIR = '/home/antonio/Data/LUVAR_Raw/'
-BASEDIR = '/home/antonio/Results/AirwaySegmen_LUVAR/'
+DATADIR = '/home/antonio/Data/DLCST_Raw/'
+BASEDIR = '/home/antonio/Results/AirwaySegmen_DLCST/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
 
@@ -103,13 +103,13 @@ SAVEVISUALIZEPROCDATA = False
 
 
 # ******************** TRAINING PARAMETERS ********************
-NUM_LAYERS           = 3
+NUM_LAYERS           = 5
 NUM_FEATMAPS_BASE    = 16
 TYPE_NETWORK         = 'classification'
 TYPE_ACTIVATE_HIDDEN = 'relu'
 TYPE_ACTIVATE_OUTPUT = 'sigmoid'
 TYPE_PADDING_CONVOL  = 'same'
-DISABLE_CONVOL_POOLING_LASTLAYER = False
+DISABLE_CONVOL_POOLING_LASTLAYER = True
 ISUSE_DROPOUT        = False
 ISUSE_BATCHNORMALIZE = False
 
@@ -128,7 +128,7 @@ if CONSTRUCTINPUTDATADLCST:
 else:
     SLIDINGWINDOWIMAGES = True
 
-TRANSFORMATIONIMAGES = False
+TRANSFORMATIONIMAGES = True
 
 ROTATION_XY_RANGE = 10
 ROTATION_XZ_RANGE = 5

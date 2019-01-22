@@ -11,12 +11,16 @@
 from CommonUtil.Constants import *
 from CommonUtil.ErrorMessages import *
 from CommonUtil.FunctionsUtil import *
+if TYPE_DNNLIBRARY_USED == 'Keras':
+    EXT_MODELFILE = '.hdf5'
+elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+    EXT_MODELFILE = '.pt'
 
 
 name_rel_loss_history_file     = 'lossHistory.txt'
-name_link_rel_model_last_epoch = 'model_lastEpoch.hdf5'
-name_link_rel_model_min_loss   = 'model_minLoss.hdf5'
-name_link_rel_model_min_valoss = 'model_minValoss.hdf5'
+name_link_rel_model_last_epoch = 'model_lastEpoch' + EXT_MODELFILE
+name_link_rel_model_min_loss   = 'model_minLoss' + EXT_MODELFILE
+name_link_rel_model_min_valoss = 'model_minValoss' + EXT_MODELFILE
 
 freq_save_model_file = 10
 
@@ -66,7 +70,7 @@ model_file_list_loss   = []
 model_file_list_valoss = []
 
 for file in list_models_files:
-    attributes = basename(file).replace('model_', '').replace('.hdf5', '').split('_')
+    attributes = basename(file).replace('model_', '').replace(EXT_MODELFILE, '').split('_')
     model_file_list_epochs.append(int  (attributes[0]))
     model_file_list_loss  .append(float(attributes[1]))
     model_file_list_valoss.append(float(attributes[2]))
@@ -93,7 +97,7 @@ print("also save models every '%s':..." %(freq_save_model_file))
 
 list_save_freq_models = []
 for file in list_models_files:
-    attributes = basename(file).replace('model_', '').replace('.hdf5', '').split('_')
+    attributes = basename(file).replace('model_', '').replace(EXT_MODELFILE, '').split('_')
     i_epoch = int(attributes[0])
     if (i_epoch % freq_save_model_file == 0):
         list_save_freq_models.append(file)

@@ -209,13 +209,6 @@ def getFileExtension(formatoutfile):
     else:
         return False
 
-def getSavedModelFileName(typeSavedModel):
-    if 'model_' not in typeSavedModel:
-        typeSavedModel = 'model_' + typeSavedModel
-    if '.hdf5' not in typeSavedModel:
-        typeSavedModel = typeSavedModel + '.hdf5'
-    return typeSavedModel
-
 def getExtractSubstringPattern(string, substr_pattern):
     return re.search(substr_pattern, string).group(0)
 

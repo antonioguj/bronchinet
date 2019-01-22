@@ -8,9 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.Constants import *
 from CommonUtil.CPUGPUdevicesManager import *
-from CommonUtil.ErrorMessages import *
 from CommonUtil.ImageGeneratorManager import *
 from CommonUtil.LoadDataManager import *
 from CommonUtil.WorkDirsManager import *
@@ -22,11 +20,11 @@ if TYPE_DNNLIBRARY_USED == 'Keras':
     from Networks_Keras.Optimizers import *
 elif TYPE_DNNLIBRARY_USED == 'Pytorch':
     from CommonUtil.BatchDataGenerator_Pytorch import *
-    from CommonUtil.TrainManager_Pytorch import *
     from Networks_Pytorch.Callbacks import *
     from Networks_Pytorch.Metrics import *
     from Networks_Pytorch.Networks import *
     from Networks_Pytorch.Optimizers import *
+    from Networks_Pytorch.Trainers import *
 import argparse
 
 
@@ -90,10 +88,7 @@ def main(args):
 
 
     if TYPE_DNNLIBRARY_USED == 'Keras':
-
-        if (not args.use_restartModel) or \
-            (args.use_restartModel and not args.restart_only_weights):
-
+        if (not args.use_restartModel) or (args.use_restartModel and args.restart_only_weights):
             model_constructor = DICTAVAILMODELS3D(IMAGES_DIMS_Z_X_Y,
                                                   tailored_build_model=args.tailored_build_model,
                                                   num_layers=args.num_layers,
@@ -106,69 +101,72 @@ def main(args):
                                                   isuse_dropout=args.isUse_dropout,
                                                   isuse_batchnormalize=args.isUse_batchnormalize,
                                                   num_classes_out=num_classes_out)
-
             optimizer = DICTAVAILOPTIMIZERS(args.optimizer, lr=args.learn_rate)
             loss_fun  = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
             metrics   =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
 
-            # Callbacks:
-            callbacks_list = []
-            callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]))
-
-            filename = ModelsPath + '/model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5'
-            callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
-            # callbacks_list.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
-
             model = model_constructor.get_model()
-
-            # Compile model
+            # compile model
             model.compile(optimizer=optimizer, loss=loss_fun, metrics=metrics)
-
             # output model summary
             model.summary()
 
             if args.use_restartModel:
                 print("Loading saved weights and restarting...")
-                modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.restart_modelFile))
-
+                modelSavedPath = joinpathnames(ModelsPath, 'model_'+ args.restart_modelFile +'.hdf5')
                 print("Restarting from file: \'%s\'..." % (modelSavedPath))
-
                 model.load_weights(modelSavedPath)
 
         else: #args.use_restartModel and args.restart_only_weights:
-            print("Loading full saved model: weights, optimizer, loss, metrics, ... and restarting...")
-            modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.restart_modelFile))
-
+            print("Loading full model: weights, optimizer, loss, metrics ... and restarting...")
+            modelSavedPath = joinpathnames(ModelsPath, 'model_'+ args.restart_modelFile +'.hdf5')
             print("Restarting from file: \'%s\'..." % (modelSavedPath))
 
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
             metrics  =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
-
             custom_objects = dict(map(lambda fun: (fun.__name__, fun), [loss_fun] + metrics))
 
+            # load and compile model
             model = NeuralNetwork.get_load_saved_model(modelSavedPath, custom_objects=custom_objects)
 
-
-    elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-        model_net = DICTAVAILMODELS3D(IMAGES_DIMS_Z_X_Y,
-                                      tailored_build_model=args.tailored_build_model)
-
-        optimizer = DICTAVAILOPTIMIZERS(args.optimizer, model_net.parameters(), lr=args.learn_rate)
-        loss_fun  = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
-        metrics   =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
+        # output model summary
+        model.summary()
 
         # Callbacks:
         callbacks_list = []
-        callbacks_list.append(RecordLossHistory(ModelsPath))
-        callbacks_list.append(ModelCheckpoint(ModelsPath))
+        callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]))
+        filename = joinpathnames(ModelsPath, 'model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5')
+        callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
+        # callbacks_list.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
 
-        train_manager = TrainManager(model_net, optimizer, loss_fun, metrics, callbacks=callbacks_list)
+
+    elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+        if (not args.use_restartModel) or (args.use_restartModel and args.restart_only_weights):
+            model_net = DICTAVAILMODELS3D(IMAGES_DIMS_Z_X_Y,
+                                          tailored_build_model=args.tailored_build_model)
+            optimizer = DICTAVAILOPTIMIZERS(args.optimizer, model_net.parameters(), lr=args.learn_rate)
+            loss_fun  = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
+
+            trainer = Trainer(model_net, optimizer, loss_fun)
+
+            if args.use_restartModel:
+                print("Loading saved weights and restarting...")
+                modelSavedPath = joinpathnames(ModelsPath, 'model_'+ args.restart_modelFile +'.pt')
+                print("Restarting from file: \'%s\'..." % (modelSavedPath))
+                trainer.load_model_only_weights(modelSavedPath)
+
+        else: #args.use_restartModel and args.restart_only_weights:
+            print("Loading full model: weights, optimizer, loss, metrics ... and restarting...")
+            modelSavedPath = joinpathnames(ModelsPath, 'model_'+ args.restart_modelFile +'.pt')
+            print("Restarting from file: \'%s\'..." % (modelSavedPath))
+
+            trainer = Trainer.load_model_full(modelSavedPath)
 
         # output model summary
-        model_net.summary_model()
+        trainer.get_summary_model()
 
-        if args.use_restartModel:
-            print("Restarting from file not implemented yet...")
+        trainer.setup_losshistory_filepath(ModelsPath)
+        trainer.setup_savemodel_filepath(ModelsPath)
     # ----------------------------------------------
 
 
@@ -259,6 +257,7 @@ def main(args):
             args.transformationImages):
             model.fit_generator(train_batch_data_generator,
                                 nb_epoch=args.num_epochs,
+                                steps_per_epoch=args.max_steps_epoch,
                                 verbose=1,
                                 callbacks=callbacks_list,
                                 validation_data=validation_data,
@@ -268,6 +267,7 @@ def main(args):
             model.fit(train_xData, train_yData,
                       batch_size=args.batch_size,
                       epochs=args.num_epochs,
+                      steps_per_epoch=args.max_steps_epoch,
                       verbose=1,
                       callbacks=callbacks_list,
                       validation_data=validation_data,
@@ -275,10 +275,11 @@ def main(args):
                       initial_epoch=initial_epoch)
 
     elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-        train_manager.train(train_batch_data_generator,
-                            num_epochs=args.num_epochs,
-                            valid_data_generator=validation_data,
-                            initial_epoch=initial_epoch)
+        trainer.train(train_batch_data_generator,
+                      num_epochs=args.num_epochs,
+                      max_steps_epoch=args.max_steps_epoch,
+                      valid_data_generator=validation_data,
+                      initial_epoch=initial_epoch)
     # ----------------------------------------------
 
 
@@ -301,6 +302,7 @@ if __name__ == "__main__":
     parser.add_argument('--isUse_batchnormalize', type=str2bool, default=ISUSE_BATCHNORMALIZE)
     parser.add_argument('--optimizer', default=IOPTIMIZER)
     parser.add_argument('--num_epochs', type=int, default=NUM_EPOCHS)
+    parser.add_argument('--max_steps_epoch', type=int, default=None)
     parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
     parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
     parser.add_argument('--lossfun', default=ILOSSFUN)

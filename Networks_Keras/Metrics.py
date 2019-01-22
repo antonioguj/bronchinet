@@ -16,15 +16,7 @@ _eps = K.epsilon()
 _smooth = 1.0
 
 
-class LossFunction(object):
-    def __init__(self, Metrics):
-        self.Metrics = Metrics
-
-    def compute(self, y_true, y_pred):
-        return self.Metrics.loss(y_true, y_pred)
-
-
-# DIFFERENT METRICS:
+# VARIOUS METRICS:
 class Metrics(object):
 
     max_size_memory_safe = 5e+08
@@ -41,11 +33,14 @@ class Metrics(object):
         else:
             return self.compute_vec(K.flatten(y_true), K.flatten(y_pred))
 
+    def loss(self, y_true, y_pred):
+        raise NotImplemented
+
     def compute_vec(self, y_true, y_pred):
-        pass
+        raise NotImplemented
 
     def compute_vec_masked(self, y_true, y_pred):
-        pass
+        raise NotImplemented
 
     def compute_np(self, y_true, y_pred):
         if self.is_masks_exclude:
@@ -54,10 +49,11 @@ class Metrics(object):
             return self.compute_vec_np(y_true.flatten(), y_pred.flatten())
 
     def compute_vec_np(self, y_true, y_pred):
-        pass
+        raise NotImplemented
 
     def compute_vec_masked_np(self, y_true, y_pred):
-        pass
+        raise NotImplemented
+
 
     def compute_np_safememory(self, y_true, y_pred):
 
@@ -83,9 +79,6 @@ class Metrics(object):
 
     def get_masked_array_np(self, y_true, y_array):
         return np.where(y_true == self.val_exclude, 0, y_array)
-
-    def loss(self, y_true, y_pred):
-        pass
 
     def get_renamed_compute(self):
         if self.name_fun_out:
@@ -468,7 +461,7 @@ class TruePositiveRate(Metrics):
         return self.compute_vec_np(self.get_masked_array_np(y_true, y_true), self.get_masked_array_np(y_true, y_pred))
 
     def loss(self, y_true, y_pred):
-        return 1.0-self.compute(y_true, y_pred)
+        return 1.0 - self.compute(y_true, y_pred)
 
     def tpr(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -494,7 +487,7 @@ class TrueNegativeRate(Metrics):
         return self.compute_vec_np(self.get_masked_array_np(y_true, y_true), self.get_masked_array_np(y_true, y_pred))
 
     def loss(self, y_true, y_pred):
-        return 1.0-self.compute(y_true, y_pred)
+        return 1.0 - self.compute(y_true, y_pred)
 
     def tnr(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -596,7 +589,7 @@ class CombineLossTwoMetrics(Metrics):
 
 
 # all available metrics
-def DICTAVAILMETRICS(option, is_masks_exclude=False):
+def DICTAVAILMETRICLASS(option, is_masks_exclude=False):
     if   (option == 'MeanSquared'):
         return MeanSquared(is_masks_exclude=is_masks_exclude)
     elif (option == 'MeanSquared_Tailored'):
@@ -627,16 +620,16 @@ def DICTAVAILMETRICS(option, is_masks_exclude=False):
 
 def DICTAVAILLOSSFUNS(option, is_masks_exclude=False, option2_combine=None):
     if option2_combine:
-        metrics_sub1 = DICTAVAILMETRICS(option, is_masks_exclude)
-        metrics_sub2 = DICTAVAILMETRICS(option2_combine, is_masks_exclude)
+        metrics_sub1 = DICTAVAILMETRICLASS(option, is_masks_exclude)
+        metrics_sub2 = DICTAVAILMETRICLASS(option2_combine, is_masks_exclude)
         metrics = CombineLossTwoMetrics(metrics_sub1, metrics_sub2, is_masks_exclude=is_masks_exclude)
     else:
-        metrics = DICTAVAILMETRICS(option, is_masks_exclude)
+        metrics = DICTAVAILMETRICLASS(option, is_masks_exclude)
     return metrics.loss
 
 
 def DICTAVAILMETRICFUNS(option, is_masks_exclude=False, use_in_Keras=True, set_fun_name=False):
-    metrics = DICTAVAILMETRICS(option, is_masks_exclude)
+    metrics = DICTAVAILMETRICLASS(option, is_masks_exclude)
     if use_in_Keras:
         if set_fun_name:
             return metrics.get_renamed_compute()

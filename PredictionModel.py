@@ -8,18 +8,22 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.Constants import *
 from CommonUtil.CPUGPUdevicesManager import *
-from CommonUtil.FileReaders import *
-from CommonUtil.FunctionsUtil import *
 from CommonUtil.ImageGeneratorManager import *
 from CommonUtil.ImageReconstructorManager import *
 from CommonUtil.LoadDataManager import *
 from CommonUtil.PlotsManager import *
 from CommonUtil.WorkDirsManager import *
-from Networks_Keras.Metrics import *
-from Networks_Keras.Networks import *
-from Networks_Keras.VisualModelParams import *
+if TYPE_DNNLIBRARY_USED == 'Keras':
+    from CommonUtil.BatchDataGenerator_Keras import *
+    from Networks_Keras.Metrics import *
+    from Networks_Keras.Networks import *
+    from Networks_Keras.VisualModelParams import *
+elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+    from CommonUtil.BatchDataGenerator_Pytorch import *
+    from Networks_Pytorch.Trainers import *
+    from Networks_Keras.Metrics import *  #CHECK THIS OUT !!!
+    from Networks_Pytorch.Networks import *
 from Preprocessing.BoundingBoxMasks import *
 from Preprocessing.OperationsImages import *
 from Preprocessing.OperationsMasks import *
@@ -117,23 +121,33 @@ def main(args):
     print("-" * 30)
 
     # Loading Saved Model
-    modelSavedPath = joinpathnames(ModelsPath, getSavedModelFileName(args.prediction_modelFile))
+    if TYPE_DNNLIBRARY_USED == 'Keras':
+        print("Loading full model: weights, optimizer, loss, metrics...")
+        modelSavedPath = joinpathnames(ModelsPath, 'model_' + args.prediction_modelFile + '.hdf5')
+        print("Restarting from file: \'%s\'..." % (modelSavedPath))
 
-    train_model_funs = [DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)] \
-                       + [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
-    custom_objects = dict(map(lambda fun: (fun.__name__, fun), train_model_funs))
+        loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
+        metrics  = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
+        custom_objects = dict(map(lambda fun: (fun.__name__, fun), [loss_fun] + metrics))
 
-    model = NeuralNetwork.get_load_saved_model(modelSavedPath, custom_objects=custom_objects)
+        model = NeuralNetwork.get_load_saved_model(modelSavedPath, custom_objects=custom_objects)
 
-    if (args.saveFeatMapsLayers):
-        visual_model_params = VisualModelParams(model, IMAGES_DIMS_Z_X_Y)
+        if (args.saveFeatMapsLayers):
+            visual_model_params = VisualModelParams(model, IMAGES_DIMS_Z_X_Y)
+            if args.firstSaveFeatMapsLayers:
+                get_index_featmap = lambda i: args.firstSaveFeatMapsLayers+i
+            else:
+                get_index_featmap = lambda i: i
 
-        if args.firstSaveFeatMapsLayers:
-            get_index_featmap = lambda i: args.firstSaveFeatMapsLayers+i
-        else:
-            get_index_featmap = lambda i: i
+        computePredictAccuracy = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics, use_in_Keras=False)
 
-    computePredictAccuracy = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics, use_in_Keras=False)
+    if TYPE_DNNLIBRARY_USED == 'Pytorch':
+        print("Loading full model: weights, optimizer, loss, metrics...")
+        modelSavedPath = joinpathnames(ModelsPath, 'model_' + args.prediction_modelFile + '.pt')
+        print("Restarting from file: \'%s\'..." % (modelSavedPath))
+
+        # load and compile model
+        trainer = Trainer.load_model_full(modelSavedPath)
 
 
 
@@ -159,11 +173,22 @@ def main(args):
         # LOADING DATA
         print("Loading data...")
         if (args.slidingWindowImages or args.transformationImages):
-            (test_xData, test_yData) = LoadDataManagerInBatches_DataGenerator(IMAGES_DIMS_Z_X_Y,
-                                                                              test_images_generator,
-                                                                              num_classes_out=num_classes_out).loadData_1File(test_xData_file,
-                                                                                                                              test_yData_file,
-                                                                                                                              shuffle_images=False)
+            if TYPE_DNNLIBRARY_USED == 'Keras':
+                (test_xData, test_yData) = LoadDataManagerInBatches_DataGenerator(IMAGES_DIMS_Z_X_Y,
+                                                                                  test_images_generator,
+                                                                                  num_classes_out=num_classes_out).loadData_1File(test_xData_file,
+                                                                                                                                  test_yData_file,
+                                                                                                                                  shuffle_images=False)
+            elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+                (test_xData, test_yData) = LoadDataManager.loadData_1File(test_xData_file, test_yData_file)
+
+                test_batch_data_generator = TrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
+                                                                       [test_xData],
+                                                                       [test_yData],
+                                                                       test_images_generator,
+                                                                       num_classes_out=num_classes_out,
+                                                                       batch_size=1,
+                                                                       shuffle=False)
         else:
             (test_xData, test_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_1File(test_xData_file,
                                                                                                   test_yData_file,
@@ -173,12 +198,19 @@ def main(args):
 
 
 
+
+
         # EVALUATE MODEL
         print("Evaluate model...")
-        predict_yData = model.predict(test_xData, batch_size=1)
+        if TYPE_DNNLIBRARY_USED == 'Keras':
+            predict_yData = model.predict(test_xData, batch_size=1)
 
-        accuracy = computePredictAccuracy(test_yData.astype(FORMATPROBABILITYDATA), predict_yData)
-        print("Computed accuracy: %s..." % (accuracy))
+            accuracy = computePredictAccuracy(test_yData.astype(FORMATPROBABILITYDATA), predict_yData)
+            print("Computed accuracy: %s..." % (accuracy))
+
+        if TYPE_DNNLIBRARY_USED == 'Pytorch':
+            predict_yData = trainer.predict(test_batch_data_generator)
+
 
         if (args.saveFeatMapsLayers):
             print("Compute feature maps of evaluated model...")

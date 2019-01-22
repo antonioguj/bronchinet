@@ -12,25 +12,39 @@ from torch.nn import Conv3d, MaxPool3d, Upsample, ReLU, Sigmoid, Softmax
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
-from torchsummary import summary
 
 
 class NeuralNetwork(nn.Module):
 
     def __init__(self, size_image,
-                 num_channels_in= 1):
+                 num_channels_in= 1,
+                 num_classes_out= 1):
         super(NeuralNetwork, self).__init__()
         self.size_image = size_image
         self.num_channels_in = num_channels_in
+        self.num_classes_out = num_classes_out
 
-    def build_model(self):
-        raise NotImplemented
+    @staticmethod
+    def get_create_model(type_model, dict_input_args):
+        if type_model == 'Unet3D_Original':
+            return Unet3D_Original(**dict_input_args)
+        elif type_model == 'Unet3D_Tailored':
+            return Unet3D_Tailored(**dict_input_args)
+
+    def get_size_input(self):
+        return [self.num_channels_in] + list(self.size_image)
+
+    def get_size_output(self):
+        return [self.num_classes_out] + list(self.size_image)
 
     def count_model_params(self):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
-    def summary_model(self):
-        summary(self, (self.num_channels_in, self.size_image[0], self.size_image[1], self.size_image[2]))
+    def get_arch_desc(self):
+        raise NotImplemented
+
+    def build_model(self):
+        raise NotImplemented
 
 
 class Unet3D_Original(NeuralNetwork):
@@ -38,11 +52,15 @@ class Unet3D_Original(NeuralNetwork):
     def __init__(self, size_image,
                  num_channels_in= 1,
                  num_classes_out= 1):
-        super(Unet3D_Original, self).__init__(size_image, num_channels_in)
-        self.num_classes_out = num_classes_out
+        super(Unet3D_Original, self).__init__(size_image, num_channels_in, num_classes_out)
         self.num_featmaps_base = 16
 
         self.build_model()
+
+    def get_arch_desc(self):
+        return ['Unet3D_Original', {'size_image': self.size_image,
+                                    'num_channels_in': self.num_channels_in,
+                                    'num_classes_out': self.num_classes_out}]
 
     def build_model(self):
 
@@ -164,8 +182,7 @@ class Unet3D_General(NeuralNetwork):
                  size_pooling_downlayers= size_pooling_layers_default,
                  is_disable_convolutionpooling_zdim_lastlayer= False):
 
-        super(Unet3D_General, self).__init__(size_image, num_channels_in)
-        self.num_classes_out = num_classes_out
+        super(Unet3D_General, self).__init__(size_image, num_channels_in, num_classes_out)
         self.num_layers = num_layers
         if num_featmaps_layers:
             self.num_featmaps_layers = num_featmaps_layers
@@ -177,9 +194,9 @@ class Unet3D_General(NeuralNetwork):
 
         self.num_convolution_downlays = num_convolution_downlays
         self.num_convolution_uplays = num_convolution_uplays
-        self.size_convolutionkernel_downlayers = size_convolutionkernel_downlayers
-        self.size_convolutionkernel_uplayers = size_convolutionkernel_uplayers
-        self.size_pooling_downlayers = size_pooling_downlayers
+        self.size_convolutionkernel_downlayers = size_convolutionkernel_downlayers[0:self.num_layers]
+        self.size_convolutionkernel_uplayers = size_convolutionkernel_uplayers[0:self.num_layers]
+        self.size_pooling_downlayers = size_pooling_downlayers[0:self.num_layers-1]
         self.size_upsample_uplayers = self.size_pooling_downlayers
 
         if is_disable_convolutionpooling_zdim_lastlayer:
@@ -202,11 +219,15 @@ class Unet3D_Tailored(NeuralNetwork):
     def __init__(self, size_image,
                  num_channels_in= 1,
                  num_classes_out= 1):
-        super(Unet3D_Tailored, self).__init__(size_image, num_channels_in)
-        self.num_classes_out = num_classes_out
+        super(Unet3D_Tailored, self).__init__(size_image, num_channels_in, num_classes_out)
         self.num_featmaps_base = 16
 
         self.build_model()
+
+    def get_arch_desc(self):
+        return ['Unet3D_Tailored', {'size_image': self.size_image,
+                                    'num_channels_in': self.num_channels_in,
+                                    'num_classes_out': self.num_classes_out}]
 
     def build_model(self):
 
@@ -260,111 +281,69 @@ class Unet3D_Tailored(NeuralNetwork):
 
     def forward(self, input):
 
-        hiddenlayer_next_lev1 = self.convolution_downlay1_1(input)
-        hiddenlayer_next_lev1 = self.activation_hiddenlay(hiddenlayer_next_lev1)
-        hiddenlayer_next_lev1 = self.convolution_downlay1_2(hiddenlayer_next_lev1)
-        hiddenlayer_next_lev1 = self.activation_hiddenlay(hiddenlayer_next_lev1)
-        # hiddenlayer_skipconn_lev1 = hiddenlayer_next
-        hiddenlayer_next_lev2 = self.pooling_downlay1(hiddenlayer_next_lev1)
+        hiddenlayer_next = self.convolution_downlay1_1(input)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.convolution_downlay1_2(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_skipconn_lev1 = hiddenlayer_next
+        hiddenlayer_next = self.pooling_downlay1(hiddenlayer_next)
 
-        hiddenlayer_next_lev2 = self.convolution_downlay2_1(hiddenlayer_next_lev2)
-        hiddenlayer_next_lev2 = self.activation_hiddenlay(hiddenlayer_next_lev2)
-        hiddenlayer_next_lev2 = self.convolution_downlay2_2(hiddenlayer_next_lev2)
-        hiddenlayer_next_lev2 = self.activation_hiddenlay(hiddenlayer_next_lev2)
-        # hiddenlayer_skipconn_lev2 = hiddenlayer_next
-        hiddenlayer_next_lev3 = self.pooling_downlay2(hiddenlayer_next_lev2)
+        hiddenlayer_next = self.convolution_downlay2_1(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.convolution_downlay2_2(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_skipconn_lev2 = hiddenlayer_next
+        hiddenlayer_next = self.pooling_downlay2(hiddenlayer_next)
 
-        hiddenlayer_next_lev3 = self.convolution_downlay3_1(hiddenlayer_next_lev3)
-        hiddenlayer_next_lev3 = self.activation_hiddenlay(hiddenlayer_next_lev3)
-        hiddenlayer_next_lev3 = self.convolution_downlay3_2(hiddenlayer_next_lev3)
-        hiddenlayer_next_lev3 = self.activation_hiddenlay(hiddenlayer_next_lev3)
-        # hiddenlayer_skipconn_lev3 = hiddenlayer_next
-        #hiddenlayer_next = self.pooling_downlay3(hiddenlayer_next)
-        #
-        # hiddenlayer_next = self.convolution_downlay4_1(hiddenlayer_next)
-        # hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
-        # hiddenlayer_next = self.convolution_downlay4_2(hiddenlayer_next)
-        # hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
-        # hiddenlayer_skipconn_lev4 = hiddenlayer_next
-        #hiddenlayer_next = self.pooling_downlay4(hiddenlayer_next)
-        #
-        # hiddenlayer_next = self.convolution_downlay5_1(hiddenlayer_next)
-        # hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
-        # hiddenlayer_next = self.convolution_downlay5_2(hiddenlayer_next)
-        # hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
-        #hiddenlayer_next = self.upsample_uplay5(hiddenlayer_next)
-        #
-        # hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev4], dim=1)
-        # hiddenlayer_next = self.convolution_uplay4_1(hiddenlayer_next)
-        # hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
-        # hiddenlayer_next = self.convolution_uplay4_2(hiddenlayer_next)
-        # hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
-        #hiddenlayer_next = self.upsample_uplay4(hiddenlayer_next)
-        #
-        # hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev3], dim=1)
-        # hiddenlayer_next = self.convolution_uplay3_1(hiddenlayer_next)
-        # hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
-        # hiddenlayer_next = self.convolution_uplay3_2(hiddenlayer_next)
-        # hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
-        hiddenlayer_next_lev3 = self.upsample_uplay3(hiddenlayer_next_lev3)
+        hiddenlayer_next = self.convolution_downlay3_1(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.convolution_downlay3_2(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_skipconn_lev3 = hiddenlayer_next
+        hiddenlayer_next = self.pooling_downlay3(hiddenlayer_next)
 
-        hiddenlayer_next_lev2 = torch.cat([hiddenlayer_next_lev3, hiddenlayer_next_lev2], dim=1)
-        hiddenlayer_next_lev2 = self.convolution_uplay2_1(hiddenlayer_next_lev2)
-        hiddenlayer_next_lev2 = self.activation_hiddenlay(hiddenlayer_next_lev2)
-        hiddenlayer_next_lev2 = self.convolution_uplay2_2(hiddenlayer_next_lev2)
-        hiddenlayer_next_lev2 = self.activation_hiddenlay(hiddenlayer_next_lev2)
-        hiddenlayer_next_lev2 = self.upsample_uplay2(hiddenlayer_next_lev2)
+        hiddenlayer_next = self.convolution_downlay4_1(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.convolution_downlay4_2(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_skipconn_lev4 = hiddenlayer_next
+        hiddenlayer_next = self.pooling_downlay4(hiddenlayer_next)
 
-        hiddenlayer_next_lev1 = torch.cat([hiddenlayer_next_lev2, hiddenlayer_next_lev1], dim=1)
-        hiddenlayer_next_lev1 = self.convolution_uplay1_1(hiddenlayer_next_lev1)
-        hiddenlayer_next_lev1 = self.activation_hiddenlay(hiddenlayer_next_lev1)
-        hiddenlayer_next_lev1 = self.convolution_uplay1_2(hiddenlayer_next_lev1)
-        hiddenlayer_next_lev1 = self.activation_hiddenlay(hiddenlayer_next_lev1)
+        hiddenlayer_next = self.convolution_downlay5_1(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.convolution_downlay5_2(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.upsample_uplay5(hiddenlayer_next)
 
-        output = self.classification_layer(hiddenlayer_next_lev1)
+        hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev4], dim=1)
+        hiddenlayer_next = self.convolution_uplay4_1(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.convolution_uplay4_2(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.upsample_uplay4(hiddenlayer_next)
+
+        hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev3], dim=1)
+        hiddenlayer_next = self.convolution_uplay3_1(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.convolution_uplay3_2(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.upsample_uplay3(hiddenlayer_next)
+
+        hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev2], dim=1)
+        hiddenlayer_next = self.convolution_uplay2_1(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.convolution_uplay2_2(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.upsample_uplay2(hiddenlayer_next)
+
+        hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev1], dim=1)
+        hiddenlayer_next = self.convolution_uplay1_1(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+        hiddenlayer_next = self.convolution_uplay1_2(hiddenlayer_next)
+        hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
+
+        output = self.classification_layer(hiddenlayer_next)
         output = self.activation_output(output)
-
-        # hiddenlay_lev1 = self.convolution_downlay1_1(input)
-        # hiddenlay_lev1 = self.convolution_downlay1_2(hiddenlay_lev1)
-        # hiddenlay_lev2 = self.pooling_downlay1(hiddenlay_lev1)
-        #
-        # hiddenlay_lev2 = self.convolution_downlay2_1(hiddenlay_lev2)
-        # hiddenlay_lev2 = self.convolution_downlay2_2(hiddenlay_lev2)
-        # hiddenlay_lev3 = self.pooling_downlay2(hiddenlay_lev2)
-        #
-        # hiddenlay_lev3 = self.convolution_downlay3_1(hiddenlay_lev3)
-        # hiddenlay_lev3 = self.convolution_downlay3_2(hiddenlay_lev3)
-        # hiddenlay_lev4 = self.pooling_downlay3(hiddenlay_lev3)
-        #
-        # hiddenlay_lev4 = self.convolution_downlay4_1(hiddenlay_lev4)
-        # hiddenlay_lev4 = self.convolution_downlay4_2(hiddenlay_lev4)
-        # hiddenlay_lev5 = self.pooling_downlay4(hiddenlay_lev4)
-        #
-        # hiddenlay_lev5 = self.convolution_downlay5_1(hiddenlay_lev5)
-        # hiddenlay_lev5 = self.convolution_downlay5_2(hiddenlay_lev5)
-        # hiddenlay_lev5 = self.upsample_uplay5(hiddenlay_lev5)
-        #
-        # hiddenlay_lev4 = torch.cat([hiddenlay_lev4, hiddenlay_lev5], dim=1)
-        # hiddenlay_lev4 = self.convolution_uplay4_1(hiddenlay_lev4)
-        # hiddenlay_lev4 = self.convolution_uplay4_2(hiddenlay_lev4)
-        # hiddenlay_lev4 = self.upsample_uplay4(hiddenlay_lev4)
-        #
-        # hiddenlay_lev3 = torch.cat([hiddenlay_lev3, hiddenlay_lev4], dim=1)
-        # hiddenlay_lev3 = self.convolution_uplay3_1(hiddenlay_lev3)
-        # hiddenlay_lev3 = self.convolution_uplay3_2(hiddenlay_lev3)
-        # hiddenlay_lev3 = self.upsample_uplay3(hiddenlay_lev3)
-        #
-        # hiddenlay_lev2 = torch.cat([hiddenlay_lev2, hiddenlay_lev3], dim=1)
-        # hiddenlay_lev2 = self.convolution_uplay2_1(hiddenlay_lev2)
-        # hiddenlay_lev2 = self.convolution_uplay2_2(hiddenlay_lev2)
-        # hiddenlay_lev2 = self.upsample_uplay2(hiddenlay_lev2)
-        #
-        # hiddenlay_lev1 = torch.cat([hiddenlay_lev1, hiddenlay_lev2], dim=1)
-        # hiddenlay_lev1 = self.convolution_uplay1_1(hiddenlay_lev1)
-        # hiddenlay_lev1 = self.convolution_uplay1_2(hiddenlay_lev1)
-        #
-        # classifier = self.classification_layer(hiddenlay_lev1)
-        # output = self.activation_layer(classifier)
 
         return output
 
@@ -385,7 +364,9 @@ def DICTAVAILMODELS3D(size_image,
                       isuse_batchnormalize= False):
     if tailored_build_model:
         return Unet3D_Tailored(size_image,
-                               num_channels_in= num_channels_in)
+                               num_channels_in= num_channels_in,
+                               num_classes_out= num_classes_out)
     else:
         return Unet3D_Original(size_image,
-                               num_channels_in= num_channels_in)
+                               num_channels_in= num_channels_in,
+                               num_classes_out= num_classes_out)
