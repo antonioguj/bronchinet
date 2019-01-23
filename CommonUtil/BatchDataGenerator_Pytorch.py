@@ -67,6 +67,19 @@ class DataSampleGenerator(data.Dataset):
         return torch.from_numpy(np.expand_dims(in_array, axis=0).copy()).type(torch.FloatTensor)
 
 
+    def get_full_data(self):
+
+        out_data_shape  = [self.num_samples] + list(self.size_image)
+        out_xData_array = np.ndarray(out_data_shape, dtype= self.type_xData)
+        out_yData_array = np.ndarray(out_data_shape, dtype= self.type_yData)
+
+        for i in range(self.num_samples):
+            (out_xData_array[i], out_yData_array[i]) = self.__getitem__(i)
+        #endfor
+
+        return (out_xData_array, out_yData_array)
+
+
     def __getitem__(self, index):
 
         (index_file, index_sample_file) = self.list_pairIndexes_samples[index]

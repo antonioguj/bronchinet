@@ -127,7 +127,7 @@ def main(args):
         print("Restarting from file: \'%s\'..." % (modelSavedPath))
 
         loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
-        metrics  = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
+        metrics  = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute for imetrics in args.listmetrics]
         custom_objects = dict(map(lambda fun: (fun.__name__, fun), [loss_fun] + metrics))
 
         model = NeuralNetwork.get_load_saved_model(modelSavedPath, custom_objects=custom_objects)
@@ -139,8 +139,6 @@ def main(args):
             else:
                 get_index_featmap = lambda i: i
 
-        computePredictAccuracy = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics, use_in_Keras=False)
-
     if TYPE_DNNLIBRARY_USED == 'Pytorch':
         print("Loading full model: weights, optimizer, loss, metrics...")
         modelSavedPath = joinpathnames(ModelsPath, 'model_' + args.prediction_modelFile + '.pt')
@@ -148,6 +146,8 @@ def main(args):
 
         # load and compile model
         trainer = Trainer.load_model_full(modelSavedPath)
+
+    computePredictAccuracy = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics).compute_np_safememory
 
 
 
@@ -189,6 +189,11 @@ def main(args):
                                                                        num_classes_out=num_classes_out,
                                                                        batch_size=1,
                                                                        shuffle=False)
+                (test_yData, test_yData) = DataSampleGenerator(IMAGES_DIMS_Z_X_Y,
+                                                               [test_yData],
+                                                               [test_yData],
+                                                               test_images_generator,
+                                                               num_classes_out=num_classes_out).get_full_data()
         else:
             (test_xData, test_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_1File(test_xData_file,
                                                                                                   test_yData_file,
@@ -204,12 +209,11 @@ def main(args):
         print("Evaluate model...")
         if TYPE_DNNLIBRARY_USED == 'Keras':
             predict_yData = model.predict(test_xData, batch_size=1)
-
-            accuracy = computePredictAccuracy(test_yData.astype(FORMATPROBABILITYDATA), predict_yData)
-            print("Computed accuracy: %s..." % (accuracy))
-
         if TYPE_DNNLIBRARY_USED == 'Pytorch':
             predict_yData = trainer.predict(test_batch_data_generator)
+
+        accuracy = computePredictAccuracy(test_yData.astype(FORMATPROBABILITYDATA), predict_yData)
+        print("Computed accuracy: %s..." % (accuracy))
 
 
         if (args.saveFeatMapsLayers):

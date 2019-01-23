@@ -54,6 +54,18 @@ class Metrics(nn.Module):
         else:
             return self.compute_vec_np(y_true.flatten(), y_pred.flatten())
 
+    def compute_np_safememory(self, y_true, y_pred):
+        if(y_true.size > self.max_size_memory_safe):
+            #if arrays are too large, split then in two and compute metrics twice, and return size-weighted metrics
+            totaldim_0= y_true.shape[0]
+            metrics_1 = self.compute_np(y_true[0:totaldim_0/2], y_pred[:totaldim_0/2])
+            metrics_2 = self.compute_np(y_true[totaldim_0/2:],  y_pred[totaldim_0/2:])
+            size_1    = y_true[0:totaldim_0/2].size
+            size_2    = y_true[totaldim_0/2:].size
+            return (metrics_1*size_1 + metrics_2*size_2)/(size_1 + size_2)
+        else:
+            return self.compute_np(y_true, y_pred)
+
     def compute_vec_np(self, y_true, y_pred):
         raise NotImplemented
 
@@ -61,14 +73,10 @@ class Metrics(nn.Module):
         raise NotImplemented
 
     def get_mask(self, y_true):
-        return torch.where(y_true == self.val_exclude,
-                           torch.zeros_like(y_true),
-                           torch.ones_like(y_true))
+        return torch.where(y_true == self.val_exclude, torch.zeros_like(y_true), torch.ones_like(y_true))
 
     def get_masked_array(self, y_true, y_array):
-        return torch.where(y_true == self.val_exclude,
-                           torch.zeros_like(y_array),
-                           y_array)
+        return torch.where(y_true == self.val_exclude, torch.zeros_like(y_array), y_array)
 
     def get_mask_np(self, y_true):
         return np.where(y_true == self.val_exclude, 0, 1)

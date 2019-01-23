@@ -176,7 +176,9 @@ class Trainer(object):
             progressbar.update(1)
         #endfor
 
-        return out_prediction
+        # rollaxis to output in "channels_last"
+        ndim_out = len(out_prediction.shape)
+        return np.rollaxis(out_prediction, 1, ndim_out)
 
 
     def train(self, train_data_generator,

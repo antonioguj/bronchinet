@@ -87,9 +87,9 @@ def main(args):
             CatchErrorException(message)
 
 
-    computePredictAccuracy = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics, use_in_Keras=False)
+    computePredictAccuracy = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics).compute_np_safememory
 
-    listFuns_Metrics = {imetrics: DICTAVAILMETRICFUNS(imetrics, use_in_Keras=False) for imetrics in args.listPostprocessMetrics}
+    listFuns_Metrics = {imetrics: DICTAVAILMETRICFUNS(imetrics).compute_np_safememory for imetrics in args.listPostprocessMetrics}
     out_predictAccuracyFilename = joinpathnames(InputPredictDataPath, nameAccuracyPredictFiles)
     fout = open(out_predictAccuracyFilename, 'w')
 

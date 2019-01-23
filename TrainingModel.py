@@ -103,7 +103,7 @@ def main(args):
                                                   num_classes_out=num_classes_out)
             optimizer = DICTAVAILOPTIMIZERS(args.optimizer, lr=args.learn_rate)
             loss_fun  = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
-            metrics   =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
+            metrics   =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute for imetrics in args.listmetrics]
 
             model = model_constructor.get_model()
             # compile model
@@ -123,7 +123,7 @@ def main(args):
             print("Restarting from file: \'%s\'..." % (modelSavedPath))
 
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
-            metrics  =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]
+            metrics  =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute for imetrics in args.listmetrics]
             custom_objects = dict(map(lambda fun: (fun.__name__, fun), [loss_fun] + metrics))
 
             # load and compile model
@@ -134,7 +134,7 @@ def main(args):
 
         # Callbacks:
         callbacks_list = []
-        callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest, set_fun_name=True) for imetrics in args.listmetrics]))
+        callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute for imetrics in args.listmetrics]))
         filename = joinpathnames(ModelsPath, 'model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5')
         callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
         # callbacks_list.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
@@ -195,7 +195,7 @@ def main(args):
                                                                 train_images_generator,
                                                                 num_classes_out=num_classes_out,
                                                                 batch_size=args.batch_size,
-                                                                shuffle=True)
+                                                                shuffle=False)
 
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(train_batch_data_generator)))
@@ -229,7 +229,7 @@ def main(args):
                                                                     valid_images_generator,
                                                                     num_classes_out=num_classes_out,
                                                                     batch_size=args.batch_size,
-                                                                    shuffle=True)
+                                                                    shuffle=False)
             validation_data = valid_batch_data_generator
 
             print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles),
@@ -261,7 +261,7 @@ def main(args):
                                 verbose=1,
                                 callbacks=callbacks_list,
                                 validation_data=validation_data,
-                                shuffle=True,
+                                shuffle=False,
                                 initial_epoch=initial_epoch)
         else:
             model.fit(train_xData, train_yData,
@@ -271,7 +271,7 @@ def main(args):
                       verbose=1,
                       callbacks=callbacks_list,
                       validation_data=validation_data,
-                      shuffle=True,
+                      shuffle=False,
                       initial_epoch=initial_epoch)
 
     elif TYPE_DNNLIBRARY_USED == 'Pytorch':

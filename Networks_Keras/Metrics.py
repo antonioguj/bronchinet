@@ -48,15 +48,7 @@ class Metrics(object):
         else:
             return self.compute_vec_np(y_true.flatten(), y_pred.flatten())
 
-    def compute_vec_np(self, y_true, y_pred):
-        raise NotImplemented
-
-    def compute_vec_masked_np(self, y_true, y_pred):
-        raise NotImplemented
-
-
     def compute_np_safememory(self, y_true, y_pred):
-
         if(y_true.size > self.max_size_memory_safe):
             #if arrays are too large, split then in two and compute metrics twice, and return size-weighted metrics
             totaldim_0= y_true.shape[0]
@@ -67,6 +59,12 @@ class Metrics(object):
             return (metrics_1*size_1 + metrics_2*size_2)/(size_1 + size_2)
         else:
             return self.compute_np(y_true, y_pred)
+
+    def compute_vec_np(self, y_true, y_pred):
+        raise NotImplemented
+
+    def compute_vec_masked_np(self, y_true, y_pred):
+        raise NotImplemented
 
     def get_mask(self, y_true):
         return K.tf.where(K.tf.equal(y_true, self.val_exclude), K.zeros_like(y_true), K.ones_like(y_true))
@@ -622,18 +620,10 @@ def DICTAVAILLOSSFUNS(option, is_masks_exclude=False, option2_combine=None):
     if option2_combine:
         metrics_sub1 = DICTAVAILMETRICLASS(option, is_masks_exclude)
         metrics_sub2 = DICTAVAILMETRICLASS(option2_combine, is_masks_exclude)
-        metrics = CombineLossTwoMetrics(metrics_sub1, metrics_sub2, is_masks_exclude=is_masks_exclude)
+        return CombineLossTwoMetrics(metrics_sub1, metrics_sub2, is_masks_exclude=is_masks_exclude)
     else:
-        metrics = DICTAVAILMETRICLASS(option, is_masks_exclude)
-    return metrics.loss
+        return DICTAVAILMETRICLASS(option, is_masks_exclude)
 
 
-def DICTAVAILMETRICFUNS(option, is_masks_exclude=False, use_in_Keras=True, set_fun_name=False):
-    metrics = DICTAVAILMETRICLASS(option, is_masks_exclude)
-    if use_in_Keras:
-        if set_fun_name:
-            return metrics.get_renamed_compute()
-        else:
-            return metrics.compute
-    else:
-        return metrics.compute_np_safememory
+def DICTAVAILMETRICFUNS(option, is_masks_exclude=False):
+    return DICTAVAILMETRICLASS(option, is_masks_exclude)

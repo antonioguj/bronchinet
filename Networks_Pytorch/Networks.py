@@ -287,6 +287,7 @@ class Unet3D_Tailored(NeuralNetwork):
         hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
         hiddenlayer_skipconn_lev1 = hiddenlayer_next
         hiddenlayer_next = self.pooling_downlay1(hiddenlayer_next)
+        #hiddenlayer_next = F.max_pool3d(hiddenlayer_next, kernel_size= 2)
 
         hiddenlayer_next = self.convolution_downlay2_1(hiddenlayer_next)
         hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
@@ -294,6 +295,7 @@ class Unet3D_Tailored(NeuralNetwork):
         hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
         hiddenlayer_skipconn_lev2 = hiddenlayer_next
         hiddenlayer_next = self.pooling_downlay2(hiddenlayer_next)
+        #hiddenlayer_next = F.max_pool3d(hiddenlayer_next, kernel_size=2)
 
         hiddenlayer_next = self.convolution_downlay3_1(hiddenlayer_next)
         hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
@@ -301,6 +303,7 @@ class Unet3D_Tailored(NeuralNetwork):
         hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
         hiddenlayer_skipconn_lev3 = hiddenlayer_next
         hiddenlayer_next = self.pooling_downlay3(hiddenlayer_next)
+        #hiddenlayer_next = F.max_pool3d(hiddenlayer_next, kernel_size=2)
 
         hiddenlayer_next = self.convolution_downlay4_1(hiddenlayer_next)
         hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
@@ -308,12 +311,14 @@ class Unet3D_Tailored(NeuralNetwork):
         hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
         hiddenlayer_skipconn_lev4 = hiddenlayer_next
         hiddenlayer_next = self.pooling_downlay4(hiddenlayer_next)
+        #hiddenlayer_next = F.max_pool3d(hiddenlayer_next, kernel_size=2)
 
         hiddenlayer_next = self.convolution_downlay5_1(hiddenlayer_next)
         hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
         hiddenlayer_next = self.convolution_downlay5_2(hiddenlayer_next)
         hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
         hiddenlayer_next = self.upsample_uplay5(hiddenlayer_next)
+        #hiddenlayer_next = F.interpolate(hiddenlayer_next, scale_factor=2)
 
         hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev4], dim=1)
         hiddenlayer_next = self.convolution_uplay4_1(hiddenlayer_next)
@@ -321,6 +326,7 @@ class Unet3D_Tailored(NeuralNetwork):
         hiddenlayer_next = self.convolution_uplay4_2(hiddenlayer_next)
         hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
         hiddenlayer_next = self.upsample_uplay4(hiddenlayer_next)
+        #hiddenlayer_next = F.interpolate(hiddenlayer_next, scale_factor=2)
 
         hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev3], dim=1)
         hiddenlayer_next = self.convolution_uplay3_1(hiddenlayer_next)
@@ -328,6 +334,7 @@ class Unet3D_Tailored(NeuralNetwork):
         hiddenlayer_next = self.convolution_uplay3_2(hiddenlayer_next)
         hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
         hiddenlayer_next = self.upsample_uplay3(hiddenlayer_next)
+        #hiddenlayer_next = F.interpolate(hiddenlayer_next, scale_factor=2)
 
         hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev2], dim=1)
         hiddenlayer_next = self.convolution_uplay2_1(hiddenlayer_next)
@@ -335,6 +342,7 @@ class Unet3D_Tailored(NeuralNetwork):
         hiddenlayer_next = self.convolution_uplay2_2(hiddenlayer_next)
         hiddenlayer_next = self.activation_hiddenlay(hiddenlayer_next)
         hiddenlayer_next = self.upsample_uplay2(hiddenlayer_next)
+        #hiddenlayer_next = F.interpolate(hiddenlayer_next, scale_factor=2)
 
         hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev1], dim=1)
         hiddenlayer_next = self.convolution_uplay1_1(hiddenlayer_next)
