@@ -162,7 +162,6 @@ class Unet3D_General(NeuralNetwork):
         if is_disable_convol_pooling_zdim_lastlayer:
             temp_size_filter_lastlayer = self.size_convolfilter_downlayers[-1]
             self.size_convolfilter_downlayers[-1] = (1, temp_size_filter_lastlayer[1], temp_size_filter_lastlayer[2])
-
             temp_size_pooling_lastlayer = self.size_pooling_downlayers[-1]
             self.size_pooling_downlayers[-1] = (1, temp_size_pooling_lastlayer[1], temp_size_pooling_lastlayer[2])
 

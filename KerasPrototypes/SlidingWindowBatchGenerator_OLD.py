@@ -8,7 +8,6 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.LoadDataManager import *
 from Preprocessing.SlidingWindowImages import *
 from keras.preprocessing import image
 import numpy as np

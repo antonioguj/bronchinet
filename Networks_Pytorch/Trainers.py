@@ -8,8 +8,8 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.Constants import *
-from CommonUtil.FunctionsUtil import *
+from Common.Constants import *
+from Common.FunctionsUtil import *
 from Networks_Pytorch.Metrics import *
 from Networks_Pytorch.Networks import *
 from Networks_Pytorch.Optimizers import *

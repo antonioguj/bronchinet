@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.ErrorMessages import *
+from Common.ErrorMessages import *
 from Preprocessing.BaseImageGenerator import *
 import scipy.ndimage as ndi
 import numpy as np

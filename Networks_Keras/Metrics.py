@@ -83,6 +83,33 @@ class Metrics(object):
             return getattr(self, self.name_fun_out)
 
 
+# composed uncertainty loss (ask Shuai)
+class MetricsWithUncertaintyLoss(Metrics):
+
+    epsilon_default = 0.01
+
+    def __init__(self, metrics_loss, epsilon=epsilon_default):
+        self.metrics_loss = metrics_loss
+        self.epsilon = epsilon
+        super(MetricsWithUncertaintyLoss, self).__init__(self.metrics_loss.is_masks_exclude)
+        #self.name_fun_out = 'bin_cross'
+        self.name_fun_out = self.metrics_loss.name_fun_out + '_uncerloss'
+
+    def compute_vec(self, y_true, y_pred):
+        return (1.0 - self.epsilon) * self.metrics_loss.compute_vec(y_true, y_pred) + \
+               self.epsilon * self.metrics_loss.compute_vec(K.ones_like(y_pred) / 3, y_pred)
+
+    def compute_vec_masked(self, y_true, y_pred):
+        return (1.0 - self.epsilon) * self.metrics_loss.compute_vec_masked(y_true, y_pred) + \
+               self.epsilon * self.metrics_loss.compute_vec_masked(K.ones_like(y_pred) / 3, y_pred)
+
+    def loss(self, y_true, y_pred):
+        return (1.0 - self.epsilon) * self.metrics_loss.loss(y_true, y_pred) + \
+               self.epsilon * self.metrics_loss.loss(K.ones_like(y_pred) / 3, y_pred)
+
+
+
+
 # mean squared error
 class MeanSquared(Metrics):
 
@@ -151,18 +178,22 @@ class MeanSquared_Tailored(MeanSquared):
         self.exp_y_true = exp_y_true
 
     def compute_vec(self, y_true, y_pred):
-        return K.mean(K.square(y_pred - y_true**self.exp_y_true), axis=-1)
+        #return K.mean(K.square(y_pred - y_true**self.exp_y_true), axis=-1)
+        return K.mean(y_true * K.square(y_pred - y_true), axis=-1)
 
     def compute_vec_masked(self, y_true, y_pred):
         mask = self.get_mask(y_true)
-        return K.mean(K.square(y_pred - y_true**self.exp_y_true) * mask, axis=-1)
+        #return K.mean(K.square(y_pred - y_true**self.exp_y_true) * mask, axis=-1)
+        return K.mean(y_true * K.square(y_pred - y_true) * mask, axis=-1)
 
     def compute_vec_np(self, y_true, y_pred):
-        return np.mean(np.square(y_pred - y_true**self.exp_y_true))
+        #return np.mean(np.square(y_pred - y_true**self.exp_y_true))
+        return np.mean(y_true * np.square(y_pred - y_true))
 
     def compute_vec_masked_np(self, y_true, y_pred):
         mask = self.get_mask_np(y_true)
-        return np.mean(np.square(y_pred - y_true**self.exp_y_true) * mask)
+        #return np.mean(np.square(y_pred - y_true**self.exp_y_true) * mask)
+        return np.mean(y_true * np.square(y_pred - y_true) * mask)
 
 
 # binary cross entropy
@@ -291,10 +322,10 @@ class WeightedBinaryCrossEntropyFixedWeights(Metrics):
 # binary cross entropy + Focal loss
 class BinaryCrossEntropyFocalLoss(BinaryCrossEntropy):
 
-    param_gamma_default = 2.0
+    gamma_default = 2.0
 
-    def __init__(self, param_gamma=param_gamma_default, is_masks_exclude=False):
-        self.param_gamma = param_gamma
+    def __init__(self, gamma=gamma_default, is_masks_exclude=False):
+        self.gamma = gamma
         super(BinaryCrossEntropyFocalLoss, self).__init__(is_masks_exclude)
         self.name_fun_out = 'bin_cross'
         #self.name_fun_out = 'bin_cross_focal_loss'
@@ -309,22 +340,22 @@ class BinaryCrossEntropyFocalLoss(BinaryCrossEntropy):
         return (prob_1, prob_0)
 
     def compute_vec(self, y_true, y_pred):
-        return K.mean(- y_true * K.pow(1.0 - y_pred, self.param_gamma) * K.log(y_pred +_eps) -
-                      (1.0 - y_true) * K.pow(y_pred, self.param_gamma) * K.log(1.0 - y_pred +_eps))
+        return K.mean(- y_true * K.pow(1.0 - y_pred, self.gamma) * K.log(y_pred +_eps) -
+                      (1.0 - y_true) * K.pow(y_pred, self.gamma) * K.log(1.0 - y_pred +_eps))
 
     def compute_vec_masked(self, y_true, y_pred):
         mask = self.get_mask(y_true)
-        return K.mean((- y_true * K.pow(1.0 - y_pred, self.param_gamma) * K.log(y_pred +_eps) -
-                       (1.0 - y_true) * K.pow(y_pred, self.param_gamma) * K.log(1.0 - y_pred +_eps)) * mask)
+        return K.mean((- y_true * K.pow(1.0 - y_pred, self.gamma) * K.log(y_pred +_eps) -
+                       (1.0 - y_true) * K.pow(y_pred, self.gamma) * K.log(1.0 - y_pred +_eps)) * mask)
 
     def compute_vec_np(self, y_true, y_pred):
-        return np.mean(- y_true * pow(1.0 - y_pred, self.param_gamma) * np.log(y_pred +_eps) -
-                       (1.0 - y_true) * pow(y_pred, self.param_gamma) * np.log(1.0 - y_pred +_eps))
+        return np.mean(- y_true * pow(1.0 - y_pred, self.gamma) * np.log(y_pred +_eps) -
+                       (1.0 - y_true) * pow(y_pred, self.gamma) * np.log(1.0 - y_pred +_eps))
 
     def compute_vec_masked_np(self, y_true, y_pred):
         mask = self.get_mask_np(y_true)
-        return np.mean((- y_true * pow(1.0 - y_pred, self.param_gamma) * np.log(y_pred +_eps) -
-                        (1.0 - y_true) * pow(y_pred, self.param_gamma) * np.log(1.0 - y_pred +_eps)) * mask)
+        return np.mean((- y_true * pow(1.0 - y_pred, self.gamma) * np.log(y_pred +_eps) -
+                        (1.0 - y_true) * pow(y_pred, self.gamma) * np.log(1.0 - y_pred +_eps)) * mask)
 
     def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -336,11 +367,11 @@ class BinaryCrossEntropyFocalLoss(BinaryCrossEntropy):
 # weighted binary cross entropy + Focal Loss
 class WeightedBinaryCrossEntropyFocalLoss(WeightedBinaryCrossEntropy):
 
-    param_gamma_default = 2.0
+    gamma_default = 2.0
     eps_clip = 1.0e-12
 
-    def __init__(self, param_gamma=param_gamma_default, is_masks_exclude=False):
-        self.param_gamma = param_gamma
+    def __init__(self, gamma=gamma_default, is_masks_exclude=False):
+        self.gamma = gamma
         super(WeightedBinaryCrossEntropyFocalLoss, self).__init__(is_masks_exclude)
         self.name_fun_out = 'wei_bin_cross'
         #self.name_fun_out = 'wei_bin_cross_focal_loss'
@@ -357,32 +388,32 @@ class WeightedBinaryCrossEntropyFocalLoss(WeightedBinaryCrossEntropy):
     def compute_vec(self, y_true, y_pred):
         weights = self.get_weights(y_true)
         y_pred = self.get_clip_ypred(y_pred)
-        return K.mean(- weights[1] * y_true * K.pow(1.0 - y_pred, self.param_gamma) * K.log(y_pred +_eps) -
-                      weights[0] * (1.0 - y_true) * K.pow(y_pred, self.param_gamma) * K.log(1.0 - y_pred +_eps))
+        return K.mean(- weights[1] * y_true * K.pow(1.0 - y_pred, self.gamma) * K.log(y_pred +_eps) -
+                      weights[0] * (1.0 - y_true) * K.pow(y_pred, self.gamma) * K.log(1.0 - y_pred +_eps))
         #(prob_1, prob_0) = self.get_predprobs_classes(y_true, y_pred)
-        #return K.mean(- weights[1] * K.pow(1.0 - prob_1, self.param_gamma) * K.log(prob_1) -
-        #              weights[0] * K.pow(prob_0, self.param_gamma) * K.log(1.0 - prob_0))
+        #return K.mean(- weights[1] * K.pow(1.0 - prob_1, self.gamma) * K.log(prob_1) -
+        #              weights[0] * K.pow(prob_0, self.gamma) * K.log(1.0 - prob_0))
 
     def compute_vec_masked(self, y_true, y_pred):
         weights = self.get_weights(y_true)
         mask = self.get_mask(y_true)
         y_pred = self.get_clip_ypred(y_pred)
-        return K.mean((- weights[1] * y_true * K.pow(1.0 - y_pred, self.param_gamma) * K.log(y_pred +_eps) -
-                       weights[0] * (1.0 - y_true) * K.pow(y_pred, self.param_gamma) * K.log(1.0 - y_pred +_eps)) * mask)
+        return K.mean((- weights[1] * y_true * K.pow(1.0 - y_pred, self.gamma) * K.log(y_pred +_eps) -
+                       weights[0] * (1.0 - y_true) * K.pow(y_pred, self.gamma) * K.log(1.0 - y_pred +_eps)) * mask)
         #(prob_1, prob_0) = self.get_predprobs_classes(y_true, y_pred)
-        #return K.mean((- weights[1] * K.pow(1.0 - prob_1, self.param_gamma) * K.log(prob_1 +_eps) -
-        #              weights[0] * K.pow(prob_0, self.param_gamma) * K.log(1.0 - prob_0 +_eps)) * mask)
+        #return K.mean((- weights[1] * K.pow(1.0 - prob_1, self.gamma) * K.log(prob_1 +_eps) -
+        #              weights[0] * K.pow(prob_0, self.gamma) * K.log(1.0 - prob_0 +_eps)) * mask)
 
     def compute_vec_np(self, y_true, y_pred):
         weights = self.get_weights_np(y_true)
-        return np.mean(- weights[1] * y_true * pow(1.0 - y_pred, self.param_gamma) * np.log(y_pred +_eps) -
-                       weights[0] * (1.0 - y_true) * pow(y_pred, self.param_gamma) * np.log(1.0 - y_pred +_eps))
+        return np.mean(- weights[1] * y_true * pow(1.0 - y_pred, self.gamma) * np.log(y_pred +_eps) -
+                       weights[0] * (1.0 - y_true) * pow(y_pred, self.gamma) * np.log(1.0 - y_pred +_eps))
 
     def compute_vec_masked_np(self, y_true, y_pred):
         weights = self.get_weights_np(y_true)
         mask = self.get_mask_np(y_true)
-        return np.mean((- weights[1] * y_true * pow(1.0 - y_pred, self.param_gamma) * np.log(y_pred +_eps) -
-                        weights[0] * (1.0 - y_true) * pow(y_pred, self.param_gamma) * np.log(1.0 - y_pred +_eps)) * mask)
+        return np.mean((- weights[1] * y_true * pow(1.0 - y_pred, self.gamma) * np.log(y_pred +_eps) -
+                        weights[0] * (1.0 - y_true) * pow(y_pred, self.gamma) * np.log(1.0 - y_pred +_eps)) * mask)
 
     def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -596,6 +627,8 @@ def DICTAVAILMETRICLASS(option, is_masks_exclude=False):
         return BinaryCrossEntropy(is_masks_exclude=is_masks_exclude)
     elif (option == 'BinaryCrossEntropyFocalLoss'):
         return BinaryCrossEntropyFocalLoss(is_masks_exclude=is_masks_exclude)
+    elif (option == 'BinaryCrossEntropyUncertaintyLoss'):
+        return MetricsWithUncertaintyLoss(BinaryCrossEntropy(is_masks_exclude=is_masks_exclude))
     elif (option == 'WeightedBinaryCrossEntropyFixedWeights'):
         return WeightedBinaryCrossEntropyFixedWeights(is_masks_exclude=is_masks_exclude)
     elif (option == 'WeightedBinaryCrossEntropy'):
@@ -604,6 +637,8 @@ def DICTAVAILMETRICLASS(option, is_masks_exclude=False):
         return WeightedBinaryCrossEntropyFocalLoss(is_masks_exclude=is_masks_exclude)
     elif (option == 'DiceCoefficient'):
         return DiceCoefficient(is_masks_exclude=is_masks_exclude)
+    elif (option == 'DiceCoefficientUncertaintyLoss'):
+        return MetricsWithUncertaintyLoss(DiceCoefficient(is_masks_exclude=is_masks_exclude))
     elif (option == 'TruePositiveRate'):
         return TruePositiveRate(is_masks_exclude=is_masks_exclude)
     elif (option == 'TrueNegativeRate'):

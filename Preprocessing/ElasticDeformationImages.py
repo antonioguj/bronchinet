@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.ErrorMessages import *
+from Common.ErrorMessages import *
 from Preprocessing.TransformationImages import *
 import scipy.ndimage as ndi
 from scipy.ndimage import map_coordinates, gaussian_filter

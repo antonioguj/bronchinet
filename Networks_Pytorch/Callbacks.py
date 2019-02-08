@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.FunctionsUtil import *
+from Common.FunctionsUtil import *
 import torch
 
 

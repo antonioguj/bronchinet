@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.LoadDataManager import OperationsArraysUseInKeras
+from DataLoaders.LoadDataManager import OperationsArraysUseInKeras
 from Preprocessing.SlidingWindowImages import *
 from keras.preprocessing import image
 import numpy as np

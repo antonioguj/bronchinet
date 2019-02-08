@@ -8,8 +8,8 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from CommonUtil.Constants import *
-from CommonUtil.ErrorMessages import *
+from Common.Constants import *
+from Common.ErrorMessages import *
 from Preprocessing.BaseImageGenerator import *
 
 
