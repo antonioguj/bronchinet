@@ -33,14 +33,16 @@ class Trainer(object):
         self.loss_fun = loss_fun
         self.metrics = metrics
         self.callbacks = callbacks
-
-        self.device = self.get_device()
-        self.model_net = self.model_net.to(self.device)
+        
+        #self.device = self.get_device()
+        #self.model_net = self.model_net.to(self.device)
+        self.model_net.cuda()
 
 
     @staticmethod
     def get_device():
-        return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        raise NotImplemented
+        #return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def _criterion(self, prediction, ground_truth):
         return self.loss_fun.forward(ground_truth, prediction)
@@ -56,19 +58,19 @@ class Trainer(object):
                            desc= 'Epochs {}/{}'.format(self.epoch_count, self.num_epochs),
                            bar_format= '{l_bar}{bar}| {n_fmt}/{total_fmt} [{remaining}{postfix}]')
 
-        # time_loaddata = 0.0
-        # time_train = 0.0
+        time_compute = 0.0
+        time_total_ini = dt.now()
         sumrun_loss = 0.0
-        # time_loaddata_ini = dt.now()
-        # time_train_ini = dt.now()
-        # run a train pass on the current epoch
-        icount_batch = 0
-        for (x_batch, y_batch) in self.train_data_generator:
-            x_batch = x_batch.to(self.device)
-            y_batch = y_batch.to(self.device)
-            # time_now = dt.now()
-            # time_loaddata += (time_now - time_loaddata_ini).seconds
 
+        # run a train pass on the current epoch
+        i_batch = 0
+        for (x_batch, y_batch) in self.train_data_generator:
+            #x_batch = x_batch.to(self.device)
+            #y_batch = y_batch.to(self.device)
+            x_batch.cuda()
+            y_batch.cuda()
+
+            time_ini = dt.now()
             self.optimizer.zero_grad()
             pred_batch = self.model_net(x_batch)
             loss = self._criterion(pred_batch, y_batch)
@@ -76,19 +78,26 @@ class Trainer(object):
             self.optimizer.step()
             # loss.detach()
             sumrun_loss += loss.item()
-            # time_now = dt.now()
-            # time_train += (time_now - time_train_ini).seconds
+            time_now = dt.now()
+            time_compute += (time_now - time_ini).seconds
 
-            loss_partial = sumrun_loss/(icount_batch+1)
+            loss_partial = sumrun_loss/(i_batch+1)
             progressbar.set_postfix(loss='{0:1.5f}'.format(loss_partial))
             progressbar.update(1)
 
-            icount_batch += 1
-            if icount_batch > num_batches:
+            i_batch += 1
+            if i_batch > num_batches:
                 break
         # endfor
 
-        total_loss = sumrun_loss/icount_batch
+        time_now = dt.now()
+        time_total = (time_now - time_total_ini).seconds
+        time_loaddata = time_total - time_compute
+
+        print("\ntime total = {0:.3f}".format(time_total))
+        print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
+
+        total_loss = sumrun_loss/num_batches
         return total_loss
 
 
@@ -100,35 +109,42 @@ class Trainer(object):
 
         progressbar = tqdm(total= num_batches, desc= 'Validation', leave= False)
 
-        # time_loaddata = 0.0
-        # time_valid = 0.0
+        time_compute = 0.0
+        time_total_ini = dt.now()
         sumrun_loss = 0.0
-        # time_loaddata_ini = dt.now()
-        # time_train_ini = dt.now()
-        # run a validation pass on the current epoch
-        icount_batch = 0
-        for (x_batch, y_batch) in self.valid_data_generator:
-            x_batch = x_batch.to(self.device)
-            y_batch = y_batch.to(self.device)
-            # time_now = dt.now()
-            # time_loaddata += (time_now - time_loaddata_ini).seconds
 
+        # run a validation pass on the current epoch
+        i_batch = 0
+        for (x_batch, y_batch) in self.valid_data_generator:
+            #x_batch = x_batch.to(self.device)
+            #y_batch = y_batch.to(self.device)
+            x_batch.cuda()
+            y_batch.cuda()
+
+            time_ini = dt.now()
             pred_batch = self.model_net(x_batch)
             loss = self._criterion(pred_batch, y_batch)
             loss.backward()
             # loss.detach()
             sumrun_loss += loss.item()
-            # time_now = dt.now()
-            # time_valid += (time_now - time_train_ini).seconds
+            time_now = dt.now()
+            time_compute += (time_now - time_ini).seconds
 
             progressbar.update(1)
 
-            icount_batch += 1
-            if icount_batch > num_batches:
+            i_batch += 1
+            if i_batch > num_batches:
                 break
         # endfor
 
-        total_loss = sumrun_loss/icount_batch
+        time_now = dt.now()
+        time_total = (time_now - time_total_ini).seconds
+        time_loaddata = time_total - time_compute
+
+        print("\ntime total = {0:.3f}".format(time_total))
+        print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
+
+        total_loss = sumrun_loss/num_batches
         return total_loss
 
 
@@ -146,8 +162,6 @@ class Trainer(object):
             # run the validation pass
             self.valid_loss = self._validation_epoch()
 
-        self.output_loss_end_epoch()
-
         # run callbacks
         if self.callbacks:
            self._run_callbacks()
@@ -162,19 +176,31 @@ class Trainer(object):
 
         progressbar = tqdm(total= num_batches, desc='Prediction')
 
+        time_compute = 0.0
+        time_total_ini = dt.now()
+
         # run prediction pass
         for i_batch, (x_batch, y_batch) in enumerate(self.test_data_generator):
-            x_batch = x_batch.to(self.device)
-            # time_now = dt.now()
-            # time_loaddata += (time_now - time_loaddata_ini).seconds
+            #x_batch = x_batch.to(self.device)
+            x_batch.cuda()
 
+            time_ini = dt.now()
             pred_batch = self.model_net(x_batch)
-            out_prediction[i_batch] = pred_batch.detach().to('cpu')
-            # time_now = dt.now()
-            # time_valid += (time_now - time_train_ini).seconds
+            #out_prediction[i_batch] = pred_batch.detach().to('cpu')
+            out_prediction[i_batch] = pred_batch.detach().cpu()
+            time_now = dt.now()
+            time_compute_i = (time_now - time_ini).seconds
+            time_compute += time_compute_i
 
             progressbar.update(1)
         #endfor
+
+        time_now = dt.now()
+        time_total = (time_now - time_total_ini).seconds
+        time_loaddata = time_total - time_compute
+
+        print("\ntime total = {0:.3f}".format(time_total))
+        print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
         # rollaxis to output in "channels_last"
         ndim_out = len(out_prediction.shape)
@@ -198,10 +224,19 @@ class Trainer(object):
             self.epoch_count += 1
 
             # write loss history
-            self.update_losshistory_file()
+            print("\ntrain loss = {0:.3f}".format(self.train_loss))
+            if self.valid_data_generator:
+                print("valid loss = {0:.3f}".format(self.valid_loss))
+
+            if self.is_write_lossfile:
+                self.update_losshistory_file()
+
             # save model
-            self.save_model_full()
+            if self.is_save_model and \
+                (self.type_save_models=='last_epoch' or (i_epoch%self.freq_save_models==0)):
+                self.save_model()
         #endfor
+
 
     def predict(self, test_data_generator):
         self.test_data_generator = test_data_generator
@@ -218,13 +253,9 @@ class Trainer(object):
         #endfor
 
 
-    def output_loss_end_epoch(self):
-        print
-        print("train loss = {:03f}".format(self.train_loss))
-        if self.valid_data_generator:
-            print("valid loss = {:03f}".format(self.valid_loss))
-
-    def setup_losshistory_filepath(self, filepath, relfilename= 'lossHistory.txt'):
+    def setup_losshistory_filepath(self, filepath,
+                                   relfilename= 'lossHistory.txt'):
+        self.is_write_lossfile = True
         self.losshistory_filename = joinpathnames(filepath, relfilename)
         strheader = '/epoch/ /loss/ /val_loss/\n'
         self.fout = open(self.losshistory_filename, 'w')
@@ -240,21 +271,55 @@ class Trainer(object):
         self.fout.close()
 
 
-    def setup_savemodel_filepath(self, filepath, relfilename= 'model_%0.2i_%0.5f_%0.5f.pt'):
+    def setup_savemodel_filepath(self, filepath,
+                                 type_save_models= 'full_model',
+                                 freq_save_models= 1,
+                                 type_num_models_saved= 'every_epoch'):
+        self.is_save_model = True
+        self.type_save_models = type_save_models
+        self.freq_save_models = freq_save_models
+
+        if type_num_models_saved=='every_epoch':
+            self.filename_withindexes = True
+            self.setup_savemodel_everyepoch_filepath(filepath)
+        elif type_num_models_saved=='only_last_epoch':
+            self.filename_withindexes = False
+            self.setup_savemodel_onlylastepoch_filepath(filepath)
+
+    def setup_savemodel_everyepoch_filepath(self, filepath,
+                                            relfilename= 'model_%0.2i_%0.5f_%0.5f.pt'):
         self.modelsave_filename = joinpathnames(filepath, relfilename)
 
+    def setup_savemodel_onlylastepoch_filepath(self, filepath,
+                                               relfilename= 'model_last.pt'):
+        self.modelsave_filename = joinpathnames(filepath, relfilename)
+
+
+    def save_model(self):
+        if self.type_save_models == 'only_weights':
+            self.save_model_only_weights()
+        elif self.type_save_models == 'full_model':
+            self.save_model_full()
+
     def save_model_only_weights(self):
-        filename = self.modelsave_filename %(self.epoch_count, self.train_loss, self.valid_loss)
+        if self.filename_withindexes:
+            filename = self.modelsave_filename %(self.epoch_count, self.train_loss, self.valid_loss)
+        else:
+            filename = self.modelsave_filename
         torch.save(self.model_net.state_dict(), filename)
 
     def save_model_full(self):
-        filename = self.modelsave_filename % (self.epoch_count, self.train_loss, self.valid_loss)
+        if self.filename_withindexes:
+            filename = self.modelsave_filename %(self.epoch_count, self.train_loss, self.valid_loss)
+        else:
+            filename = self.modelsave_filename
         torch.save({'model_desc': self.model_net.get_arch_desc(),
                     'model_state_dict': self.model_net.state_dict(),
                     'optimizer_desc': 'Adam',
                     'optimizer_state_dict': self.optimizer.state_dict(),
                     'loss_fun_desc': [self.loss_fun.__class__.__name__, {'is_masks_exclude': self.loss_fun.is_masks_exclude}]},
                    filename)
+
 
     def load_model_only_weights(self, filename):
         self.model_net.load_state_dict(torch.load(filename, map_location= self.device))

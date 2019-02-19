@@ -149,9 +149,10 @@ def main(args):
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
             trainer = Trainer.load_model_full(modelSavedPath)
 
-        trainer.setup_losshistory_filepath(ModelsPath)
-        trainer.setup_savemodel_filepath(ModelsPath)
-
+    	trainer.setup_losshistory_filepath(ModelsPath)
+    	trainer.setup_savemodel_filepath(ModelsPath,
+                                     	 type_save_models='full_model',
+                                     	 type_num_models_saved='only_last_epoch')
         # output model summary
         trainer.get_summary_model()
     # ----------------------------------------------

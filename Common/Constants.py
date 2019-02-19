@@ -12,10 +12,10 @@ import numpy as np
 np.random.seed(2017)
 
 
-DATADIR = '/home/antonio/Data/LUVAR_Raw/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
+DATADIR = '/home/antonio/Data/DLCST_Raw/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 
-TYPE_DNNLIBRARY_USED = 'Keras'
+TYPE_DNNLIBRARY_USED = 'Pytorch'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
@@ -93,15 +93,15 @@ SAVEVISUALIZEPROCDATA = False
 
 # ******************** TRAINING PARAMETERS ********************
 NUM_LAYERS           = 5
-NUM_FEATMAPS_BASE    = 16
+NUM_FEATMAPS_BASE    = 8
 TYPE_NETWORK         = 'classification'
 TYPE_ACTIVATE_HIDDEN = 'relu'
 TYPE_ACTIVATE_OUTPUT = 'sigmoid'
 TYPE_PADDING_CONVOL  = 'same'
-DISABLE_CONVOL_POOLING_LASTLAYER = False
+DISABLE_CONVOL_POOLING_LASTLAYER = True
 ISUSE_DROPOUT        = False
 ISUSE_BATCHNORMALIZE = False
-TAILORED_BUILD_MODEL = False
+TAILORED_BUILD_MODEL = True
 
 NUM_EPOCHS = 1000
 BATCH_SIZE = 1

@@ -63,7 +63,7 @@ class DataSampleGenerator(data.Dataset):
 
     @staticmethod
     def convert_image_torchtensor(in_array):
-        return torch.from_numpy(np.expand_dims(in_array, axis=0).copy()).type(torch.FloatTensor)
+        return torch.from_numpy(np.expand_dims(in_array, axis=0).copy()).type(torch.cuda.FloatTensor)
 
 
     def get_full_data(self):
