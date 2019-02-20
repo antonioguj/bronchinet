@@ -52,11 +52,11 @@ def main(args):
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath = workDirsManager.getNameBaseDataPath()
     InputPredictionsPath = workDirsManager.getNameExistPath(args.basedir, nameInputPredictionsRelPath)
-    InputrefermasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputReferMasksRelPath)
+    InputReferenceMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputReferMasksRelPath)
     OutputPredictionsPath = workDirsManager.getNameNewPath(args.basedir, nameOutputPredictionsRelPath)
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath, nameInputPredictionsFiles)
-    listInputReferenceMasksFiles = findFilesDirAndCheck(InputrefermasksPath, nameInputReferMasksFiles)
+    listInputReferenceMasksFiles = findFilesDirAndCheck(InputReferenceMasksPath, nameInputReferMasksFiles)
 
     if (args.masksToRegionInterest):
         InputRoiMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputRoiMasksRelPath)

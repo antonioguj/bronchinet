@@ -15,6 +15,7 @@ from keras.models import Model, load_model
 
 
 class NeuralNetwork(object):
+
     @classmethod
     def getModel(cls):
         return NotImplemented

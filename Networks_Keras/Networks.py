@@ -14,6 +14,7 @@ from keras.models import Model, load_model
 
 
 class NeuralNetwork(object):
+
     def get_model(self):
         return NotImplemented
 
@@ -181,10 +182,9 @@ class Unet3D_General(NeuralNetwork):
 
     def get_model(self):
         inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
-
-        list_hiddenlayer_skipconn = []
         hiddenlayer_next = inputlayer
 
+        list_hiddenlayer_skipconn = []
         # ENCODING LAYERS
         for i in range(self.num_layers):
             for j in range(self.num_convols_downlayers):
@@ -196,13 +196,10 @@ class Unet3D_General(NeuralNetwork):
 
             if self.isuse_dropout and self.where_dropout_downlayers[i]:
                 hiddenlayer_next = Dropout(self.dropout_rate)(hiddenlayer_next)
-
             if self.isuse_batchnormalize and self.where_batchnormalize_downlayers[i]:
                 hiddenlayer_next = BatchNormalization()(hiddenlayer_next)
-
             if i!=self.num_layers-1:
                 list_hiddenlayer_skipconn.append(hiddenlayer_next)
-
                 hiddenlayer_next = MaxPooling3D(pool_size=self.size_pooling_downlayers[i])(hiddenlayer_next)
         #endfor
 
@@ -220,7 +217,6 @@ class Unet3D_General(NeuralNetwork):
 
             if self.isuse_dropout and self.where_dropout_uplayers[i]:
                 hiddenlayer_next = Dropout(self.dropout_rate)(hiddenlayer_next)
-
             if self.isuse_batchnormalize and self.where_batchnormalize_uplayers[i]:
                 hiddenlayer_next = BatchNormalization()(hiddenlayer_next)
         #endfor
