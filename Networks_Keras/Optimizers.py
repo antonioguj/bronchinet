@@ -26,6 +26,6 @@ def DICTAVAILOPTIMIZERS(option, lr):
     elif (option=='Adam'):
         return Adam(lr=lr)
     else:
-        return 0
+        return NotImplemented
 
 

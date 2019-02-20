@@ -101,11 +101,6 @@ def main(args):
                 roimask_array = RescaleImages.compute3D(roimask_array, rescale_factor, is_binary_mask=True)
                 image_maskedToRoi_array = RescaleImages.compute3D(image_maskedToRoi_array, rescale_factor, is_binary_mask=True)
 
-            print np.unique(image_array)
-            if (args.masksToRegionInterest):
-                print np.unique(roimask_array)
-                print np.unique(image_maskedToRoi_array)
-
 
         out_file = joinpathnames(OutputImagesPath, nameOutputImagesFiles(basename(in_image_file)))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_file), str(image_array.shape)))

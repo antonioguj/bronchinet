@@ -14,9 +14,8 @@ from keras.models import Model, load_model
 
 
 class NeuralNetwork(object):
-
     def get_model(self):
-        pass
+        return NotImplemented
 
     def get_model_and_compile(self, optimizer, lossfunction, metrics):
         return self.get_model().compile(optimizer=optimizer,
@@ -38,7 +37,6 @@ class Unet3D_Original(NeuralNetwork):
         self.num_featmaps_base = 16
 
     def get_model(self):
-
         inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
 
         num_featmaps_lay1   = self.num_featmaps_base
@@ -182,7 +180,6 @@ class Unet3D_General(NeuralNetwork):
 
 
     def get_model(self):
-
         inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
 
         list_hiddenlayer_skipconn = []
@@ -247,7 +244,6 @@ class Unet3D_Tailored(NeuralNetwork):
         self.dropout_rate      = 0.5
 
     def get_model(self):
-
         inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
 
         num_featmaps_lay1   = self.num_featmaps_base
@@ -335,7 +331,6 @@ def DICTAVAILMODELS3D(size_image,
                       is_disable_convol_pooling_lastlayer=False,
                       isuse_dropout=False,
                       isuse_batchnormalize=False):
-
     if tailored_build_model:
         return Unet3D_Tailored(size_image,
                                num_channels_in=num_channels_in)

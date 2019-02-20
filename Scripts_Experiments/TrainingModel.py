@@ -110,7 +110,7 @@ def main(args):
 
         else: #args.use_restartModel and args.restart_only_weights:
             print("Loading full model: weights, optimizer, loss, metrics ... and restarting...")
-            modelSavedPath = joinpathnames(ModelsPath, 'model_'+ args.restart_modelFile +'.hdf5')
+            modelSavedPath = joinpathnames(ModelsPath, 'model_' + args.restart_modelFile + '.hdf5')
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).loss
@@ -145,14 +145,13 @@ def main(args):
 
         else: #args.use_restartModel and args.restart_only_weights:
             print("Loading full model: weights, optimizer, loss, metrics ... and restarting...")
-            modelSavedPath = joinpathnames(ModelsPath, 'model_'+ args.restart_modelFile +'.pt')
+            modelSavedPath = joinpathnames(ModelsPath, 'model_' + args.restart_modelFile + '.pt')
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
             trainer = Trainer.load_model_full(modelSavedPath)
 
-    	trainer.setup_losshistory_filepath(ModelsPath)
-    	trainer.setup_savemodel_filepath(ModelsPath,
-                                     	 type_save_models='full_model',
-                                     	 type_num_models_saved='only_last_epoch')
+        trainer.setup_losshistory_filepath(ModelsPath)
+        trainer.setup_savemodel_filepath(ModelsPath, type_num_models_saved='only_last_epoch')
+
         # output model summary
         trainer.get_summary_model()
     # ----------------------------------------------

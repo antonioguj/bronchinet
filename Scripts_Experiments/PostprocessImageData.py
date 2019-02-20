@@ -11,7 +11,10 @@
 from Common.Constants import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
-from Networks_Keras.Metrics import *
+if TYPE_DNNLIBRARY_USED == 'Keras':
+    from Networks_Keras.Metrics import *
+elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+    from Networks_Pytorch.Metrics import *
 from Preprocessing.OperationImages import *
 from Preprocessing.OperationMasks import *
 from collections import OrderedDict
@@ -21,12 +24,12 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputPredictionsRelPath = args.predictionsdirs
+    nameInputPredictionsRelPath = args.predictionsdir
     nameInputReferMasksRelPath = 'Airways_Full'
     nameInputRoiMasksRelPath = 'Lungs_Full'
     nameOutputPredictionsRelPath = nameInputPredictionsRelPath
 
-    nameInputPredictionsFiles = 'predict_probmaps*.nii.gz'
+    nameInputPredictionsFiles = 'predict-probmaps_*.nii.gz'
     nameInputReferMasksFiles = '*_lumen.nii.gz'
     nameInputRoiMasksFiles = '*_lungs.nii.gz'
     # prefixPatternInputFiles = 'av[0-9][0-9]*'
@@ -41,7 +44,7 @@ def main(args):
     nameAccuracyPredictFiles = 'predict_accuracy_tests%s.txt'%(suffixPostProcessThreshold)
 
     def nameOutputFiles(in_name, in_acc):
-        out_name = filenamenoextension(in_name).replace('predict_probmaps','predict_binmasks') + '_acc%2.0f' %(np.round(100*in_acc))
+        out_name = filenamenoextension(in_name).replace('predict-probmaps','predict-binmasks') + '_acc%2.0f' %(np.round(100*in_acc))
         return out_name + '%s.nii.gz'%(suffixPostProcessThreshold)
     # ---------- SETTINGS ----------
 
@@ -49,24 +52,24 @@ def main(args):
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath = workDirsManager.getNameBaseDataPath()
     InputPredictionsPath = workDirsManager.getNameExistPath(args.basedir, nameInputPredictionsRelPath)
-    InputReferMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputReferMasksRelPath)
+    InputrefermasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputReferMasksRelPath)
     OutputPredictionsPath = workDirsManager.getNameNewPath(args.basedir, nameOutputPredictionsRelPath)
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath, nameInputPredictionsFiles)
-    listInputReferMasksFiles = findFilesDirAndCheck(InputReferMasksPath, nameInputReferMasksFiles)
+    listInputReferenceMasksFiles = findFilesDirAndCheck(InputrefermasksPath, nameInputReferMasksFiles)
 
-    if (args.calcMasksThresholding and args.attachTracheaToCalcMasks):
+    if (args.masksToRegionInterest):
         InputRoiMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputRoiMasksRelPath)
-
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
 
-        def compute_trachea_masks(refermask_array, roimask_array):
-            return np.where(roimask_array == 1, 0, refermask_array)
+        if (args.attachTracheaToCalcMasks):
+            def compute_trachea_masks(refermask_array, roimask_array):
+                return np.where(roimask_array == 1, 0, refermask_array)
 
 
     computePredictAccuracy = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics).compute_np_safememory
-
     listFuns_Metrics = {imetrics: DICTAVAILMETRICFUNS(imetrics).compute_np_safememory for imetrics in args.listPostprocessMetrics}
+
     out_predictAccuracyFilename = joinpathnames(InputPredictionsPath, nameAccuracyPredictFiles)
     fout = open(out_predictAccuracyFilename, 'w')
 
@@ -78,15 +81,13 @@ def main(args):
     for i, in_prediction_file in enumerate(listInputPredictionsFiles):
         print("\nInput: \'%s\'..." % (basename(in_prediction_file)))
 
-        in_refermask_file = findFileWithSamePrefix(basename(in_prediction_file), listInputReferMasksFiles)
+        in_refermask_file = findFileWithSamePrefix(basename(in_prediction_file).replace('predict-probmaps',''),
+                                                   listInputReferenceMasksFiles,
+                                                   prefix_pattern='vol[0-9][0-9]_')
         print("Refer mask file: \'%s\'..." % (basename(in_refermask_file)))
-        in_roimask_file = findFileWithSamePrefix(basename(in_prediction_file), listInputRoiMasksFiles)
-        print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
         prediction_array = FileReader.getImageArray(in_prediction_file)
         refermask_array = FileReader.getImageArray(in_refermask_file)
-        roimask_array = FileReader.getImageArray(in_roimask_file)
-
         print("Predictions of size: %s..." % (str(prediction_array.shape)))
 
         if (args.calcMasksThresholding):
@@ -94,13 +95,20 @@ def main(args):
             prediction_array = ThresholdImages.compute(prediction_array, args.thresholdValue)
 
 
-        if (args.attachTracheaToCalcMasks):
-            print("Attach trachea mask to computed prediction masks...")
-            trachea_masks_array = compute_trachea_masks(refermask_array, roimask_array)
+        if (args.masksToRegionInterest):
+            in_roimask_file = findFileWithSamePrefix(basename(in_prediction_file).replace('predict-probmaps',''),
+                                                     listInputRoiMasksFiles,
+                                                     prefix_pattern='vol[0-9][0-9]_')
+            print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
-            prediction_array = OperationBinaryMasks.join_two_binmasks_one_image(prediction_array, trachea_masks_array)
-        else:
-            refermask_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(refermask_array, roimask_array)
+            roimask_array = FileReader.getImageArray(in_roimask_file)
+
+            if (args.attachTracheaToCalcMasks):
+                print("Attach trachea mask to computed prediction masks...")
+                trachea_masks_array = compute_trachea_masks(refermask_array, roimask_array)
+                prediction_array = OperationBinaryMasks.join_two_binmasks_one_image(prediction_array, trachea_masks_array)
+            else:
+                refermask_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(refermask_array, roimask_array)
 
 
         accuracy = computePredictAccuracy(refermask_array, prediction_array)
@@ -122,7 +130,7 @@ def main(args):
         fout.write(strdata)
 
 
-        out_file = joinpathnames(OutputPredictionsPath, nameOutputFiles(basename(in_prediction_file, accuracy)))
+        out_file = joinpathnames(OutputPredictionsPath, nameOutputFiles(basename(in_prediction_file), accuracy))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_file), str(prediction_array.shape)))
 
         FileReader.writeImageArray(out_file, prediction_array)
@@ -139,7 +147,8 @@ if __name__ == "__main__":
     parser.add_argument('--predictionsdir', default='Predictions_NEW')
     parser.add_argument('--predictAccuracyMetrics', default=PREDICTACCURACYMETRICS)
     parser.add_argument('--listPostprocessMetrics', type=parseListarg, default=LISTPOSTPROCESSMETRICS)
-    parser.add_argument('--calcMasksThresholding', type=str2bool, default=CALCMASKSTHRESHOLDING)
+    parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
+    parser.add_argument('--calcMasksThresholding', type=str2bool, default=True)
     parser.add_argument('--thresholdValue', type=float, default=THRESHOLDVALUE)
     parser.add_argument('--attachTracheaToCalcMasks', type=str2bool, default=ATTACHTRAQUEATOCALCMASKS)
     parser.add_argument('--saveThresholdImages', type=str2bool, default=SAVETHRESHOLDIMAGES)

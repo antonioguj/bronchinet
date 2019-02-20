@@ -41,10 +41,10 @@ class NeuralNetwork(nn.Module):
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
     def get_arch_desc(self):
-        raise NotImplemented
+        return NotImplemented
 
     def build_model(self):
-        raise NotImplemented
+        return NotImplemented
 
 
 class Unet3D_Original(NeuralNetwork):

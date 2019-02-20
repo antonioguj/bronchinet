@@ -9,13 +9,12 @@
 ########################################################################################
 
 from Common.FunctionsUtil import *
-from skimage.transform import rescale
+#from skimage.transform import rescale
 #from scipy.misc import imresize
 import numpy as np
 
 
 class OperationImages(object):
-
     @staticmethod
     def check_in_array_2D_without_channels(in_array_shape):
         return len(in_array_shape) == 2
@@ -26,7 +25,6 @@ class OperationImages(object):
 
 
 class NormalizeImages(OperationImages):
-
     @staticmethod
     def compute_nochannels(in_array):
         max_val = np.max(in_array)
@@ -59,7 +57,6 @@ class NormalizeImages(OperationImages):
 
 
 class CropImages(OperationImages):
-
     @staticmethod
     def compute2D(in_array, bound_box):
         return in_array[:, bound_box[0][0]:bound_box[0][1], bound_box[1][0]:bound_box[1][1], ...]
@@ -70,7 +67,6 @@ class CropImages(OperationImages):
 
 
 class IncludeImages(OperationImages):
-
     @staticmethod
     def compute2D(in_array, bound_box, out_array):
         out_array[bound_box[0][0]:bound_box[0][1], bound_box[1][0]:bound_box[1][1], ...] = in_array
@@ -81,7 +77,6 @@ class IncludeImages(OperationImages):
 
 
 class ExtendImages(OperationImages):
-
     @staticmethod
     def compute2D(in_array, bound_box, out_array_shape, background_value=0):
         if background_value==0:
@@ -97,7 +92,7 @@ class ExtendImages(OperationImages):
             out_array = np.zeros(out_array_shape, dtype=in_array.dtype)
         else:
             out_array = np.full(out_array_shape, background_value, dtype=in_array.dtype)
-        IncludeImages.compute2D(in_array, bound_box, out_array)
+        IncludeImages.compute3D(in_array, bound_box, out_array)
         return out_array
 
 
@@ -124,7 +119,6 @@ class RescaleImages(OperationImages):
 
 
 # class RescaleImages(OperationImages):
-#
 #     type_interp_images = 'bilinear'
 #     type_interp_masks  = 'nearest'
 #
@@ -197,7 +191,6 @@ class ThresholdImages(OperationImages):
 
 
 class FlippingImages(OperationImages):
-
     @staticmethod
     def compute(in_array, axis = 0):
         if axis == 0:

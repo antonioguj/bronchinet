@@ -19,7 +19,6 @@ _smooth = 1.0
 
 # VARIOUS METRICS:
 class Metrics(nn.Module):
-
     max_size_memory_safe = 5e+08
     val_exclude = -1
     count = 0
@@ -37,16 +36,16 @@ class Metrics(nn.Module):
             return self.compute_vec(y_true, y_pred)
 
     def forward(self, y_true, y_pred):
-        raise NotImplemented
+        return NotImplemented
 
     def loss(self, y_true, y_pred):
         return self.forward(y_true, y_pred)
 
     def compute_vec(self, y_true, y_pred):
-        raise NotImplemented
+        return NotImplemented
 
     def compute_vec_masked(self, y_true, y_pred):
-        raise NotImplemented
+        return NotImplemented
 
     def compute_np(self, y_true, y_pred):
         if self.is_masks_exclude:
@@ -67,10 +66,10 @@ class Metrics(nn.Module):
             return self.compute_np(y_true, y_pred)
 
     def compute_vec_np(self, y_true, y_pred):
-        raise NotImplemented
+        return NotImplemented
 
     def compute_vec_masked_np(self, y_true, y_pred):
-        raise NotImplemented
+        return NotImplemented
 
     def get_mask(self, y_true):
         return torch.where(y_true == self.val_exclude, torch.zeros_like(y_true), torch.ones_like(y_true))
@@ -173,11 +172,170 @@ class DiceCoefficient(Metrics):
         return self.compute_vec(self.get_masked_array(y_true, y_true),
                                 self.get_masked_array(y_true, y_pred))
 
+    def compute_vec_np(self, y_true, y_pred):
+        return (2.0*np.sum(y_true * y_pred)) / (np.sum(y_true) + np.sum(y_pred) +_smooth)
+
+    def compute_vec_masked_np(self, y_true, y_pred):
+        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
+                                   self.get_masked_array_np(y_true, y_pred))
+
     def forward(self, y_true, y_pred):
         return 1.0 - self.compute(y_true, y_pred)
 
     def dice(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
+
+
+# true positive rate
+class TruePositiveRate(Metrics):
+
+    def __init__(self, is_masks_exclude=False):
+        super(TruePositiveRate, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'tpr'
+
+    def compute_vec(self, y_true, y_pred):
+        return torch.sum(y_true * y_pred) / (torch.sum(y_true) +_smooth)
+
+    def compute_vec_masked(self, y_true, y_pred):
+        return self.compute_vec(self.get_masked_array(y_true, y_true),
+                                self.get_masked_array(y_true, y_pred))
+
+    def compute_vec_np(self, y_true, y_pred):
+        return np.sum(y_true * y_pred) / (np.sum(y_true) +_smooth)
+
+    def compute_vec_masked_np(self, y_true, y_pred):
+        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
+                                   self.get_masked_array_np(y_true, y_pred))
+
+    def loss(self, y_true, y_pred):
+        return 1.0 - self.compute(y_true, y_pred)
+
+    def tpr(self, y_true, y_pred):
+        return self.compute(y_true, y_pred)
+
+
+# true negative rate
+class TrueNegativeRate(Metrics):
+
+    def __init__(self, is_masks_exclude=False):
+        super(TrueNegativeRate, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'tnr'
+
+    def compute_vec(self, y_true, y_pred):
+        return torch.sum((1.0 - y_true) * (1.0 - y_pred)) / (torch.sum((1.0 - y_true)) +_smooth)
+
+    def compute_vec_masked(self, y_true, y_pred):
+        return self.compute_vec(self.get_masked_array(y_true, y_true),
+                                self.get_masked_array(y_true, y_pred))
+
+    def compute_vec_np(self, y_true, y_pred):
+        return np.sum((1.0 - y_true) * (1.0 - y_pred)) / (np.sum((1.0 - y_true)) +_smooth)
+
+    def compute_vec_masked_np(self, y_true, y_pred):
+        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
+                                   self.get_masked_array_np(y_true, y_pred))
+
+    def loss(self, y_true, y_pred):
+        return 1.0 - self.compute(y_true, y_pred)
+
+    def tnr(self, y_true, y_pred):
+        return self.compute(y_true, y_pred)
+
+
+# false positive rate
+class FalsePositiveRate(Metrics):
+
+    def __init__(self, is_masks_exclude=False):
+        super(FalsePositiveRate, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'fpr'
+
+    def compute_vec(self, y_true, y_pred):
+        return torch.sum((1.0 - y_true) * y_pred) / (torch.sum((1.0 - y_true)) +_smooth)
+
+    def compute_vec_masked(self, y_true, y_pred):
+        return self.compute_vec(self.get_masked_array(y_true, y_true),
+                                self.get_masked_array(y_true, y_pred))
+
+    def compute_vec_np(self, y_true, y_pred):
+        return np.sum((1.0 - y_true) * y_pred) / (np.sum((1.0 - y_true)) +_smooth)
+
+    def compute_vec_masked_np(self, y_true, y_pred):
+        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
+                                   self.get_masked_array_np(y_true, y_pred))
+
+    def loss(self, y_true, y_pred):
+        return self.compute(y_true, y_pred)
+
+    def fpr(self, y_true, y_pred):
+        return self.compute(y_true, y_pred)
+
+
+# false negative rate
+class FalseNegativeRate(Metrics):
+
+    def __init__(self, is_masks_exclude=False):
+        super(FalseNegativeRate, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'fnr'
+
+    def compute_vec(self, y_true, y_pred):
+        return torch.sum(y_true * (1.0 - y_pred)) / (torch.sum(y_true) +_smooth)
+
+    def compute_vec_masked(self, y_true, y_pred):
+        return self.compute_vec(self.get_masked_array(y_true, y_true),
+                                self.get_masked_array(y_true, y_pred))
+
+    def compute_vec_np(self, y_true, y_pred):
+        return np.sum(y_true * (1.0 - y_pred)) / (np.sum(y_true) +_smooth)
+
+    def compute_vec_masked_np(self, y_true, y_pred):
+        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
+                                   self.get_masked_array_np(y_true, y_pred))
+
+    def loss(self, y_true, y_pred):
+        return self.compute(y_true, y_pred)
+
+    def fnr(self, y_true, y_pred):
+        return self.compute(y_true, y_pred)
+
+
+# airways completeness (percentage ground-truth centrelines found inside the predicted airways)
+class AirwayCompleteness(Metrics):
+
+    def __init__(self):
+        super(AirwayCompleteness, self).__init__(is_masks_exclude=False)
+        self.name_fun_out = 'completeness'
+
+    def compute_vec(self, y_true_cenline, y_pred_segmen):
+        return torch.sum(y_true_cenline * y_pred_segmen) / (torch.sum(y_true_cenline) +_smooth)
+
+    def compute_vec_masked(self, y_true_cenline, y_pred_segmen):
+        return self.compute_vec(y_true_cenline, y_pred_segmen)
+
+    def compute_vec_np(self, y_true_cenline, y_pred_segmen):
+        return np.sum(y_true_cenline * y_pred_segmen) / (np.sum(y_true_cenline) +_smooth)
+
+    def compute_vec_masked_np(self, y_true_cenline, y_pred_segmen):
+        return self.compute_vec_np(y_true_cenline, y_pred_segmen)
+
+
+# airways volume leakage (percentage of voxels from predicted airways found outside the ground-truth airways)
+class AirwayVolumeLeakage(Metrics):
+
+    def __init__(self):
+        super(AirwayVolumeLeakage, self).__init__(is_masks_exclude=False)
+        self.name_fun_out = 'volume_leakage'
+
+    def compute_vec(self, y_true_segmen, y_pred_segmen):
+        return torch.sum((1.0 - y_true_segmen) * y_pred_segmen) / (torch.sum(y_pred_segmen) +_smooth)
+
+    def compute_vec_masked(self, y_true_cenline, y_pred_segmen):
+        return self.compute_vec(y_true_cenline, y_pred_segmen)
+
+    def compute_vec_np(self, y_true_segmen, y_pred_segmen):
+        return np.sum((1.0 - y_true_segmen) * y_pred_segmen) / (np.sum(y_pred_segmen) +_smooth)
+
+    def compute_vec_masked_np(self, y_true_cenline, y_pred_segmen):
+        return self.compute_vec_np(y_true_cenline, y_pred_segmen)
 
 
 # combination of two metrics
@@ -205,8 +363,20 @@ def DICTAVAILMETRICLASS(option, is_masks_exclude= False):
         return WeightedBinaryCrossEntropyFixedWeights(is_masks_exclude=is_masks_exclude)
     elif (option == 'DiceCoefficient'):
         return DiceCoefficient(is_masks_exclude= is_masks_exclude)
+    elif (option == 'TruePositiveRate'):
+        return TruePositiveRate(is_masks_exclude=is_masks_exclude)
+    elif (option == 'TrueNegativeRate'):
+        return TrueNegativeRate(is_masks_exclude=is_masks_exclude)
+    elif (option == 'FalsePositiveRate'):
+        return FalsePositiveRate(is_masks_exclude=is_masks_exclude)
+    elif (option == 'FalseNegativeRate'):
+        return FalseNegativeRate(is_masks_exclude=is_masks_exclude)
+    elif (option == 'AirwayCompleteness'):
+        return FalsePositiveRate(is_masks_exclude=is_masks_exclude)
+    elif (option == 'AirwayVolumeLeakage'):
+        return FalseNegativeRate(is_masks_exclude=is_masks_exclude)
     else:
-        raise NotImplemented
+        return NotImplemented
 
 
 def DICTAVAILLOSSFUNS(option, is_masks_exclude= False, option2_combine= None):

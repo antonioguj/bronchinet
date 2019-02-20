@@ -26,4 +26,4 @@ def DICTAVAILOPTIMIZERS(option, model_params, lr):
     elif (option=='Adam'):
         return Adam(model_params, lr= lr)
     else:
-        raise NotImplemented
+        return NotImplemented

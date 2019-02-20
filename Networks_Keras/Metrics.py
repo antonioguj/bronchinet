@@ -18,7 +18,6 @@ _smooth = 1.0
 
 # VARIOUS METRICS:
 class Metrics(object):
-
     max_size_memory_safe = 5e+08
     val_exclude = -1
     count = 0
@@ -34,13 +33,13 @@ class Metrics(object):
             return self.compute_vec(K.flatten(y_true), K.flatten(y_pred))
 
     def loss(self, y_true, y_pred):
-        raise NotImplemented
+        return NotImplemented
 
     def compute_vec(self, y_true, y_pred):
-        raise NotImplemented
+        return NotImplemented
 
     def compute_vec_masked(self, y_true, y_pred):
-        raise NotImplemented
+        return NotImplemented
 
     def compute_np(self, y_true, y_pred):
         if self.is_masks_exclude:
@@ -61,10 +60,10 @@ class Metrics(object):
             return self.compute_np(y_true, y_pred)
 
     def compute_vec_np(self, y_true, y_pred):
-        raise NotImplemented
+        return NotImplemented
 
     def compute_vec_masked_np(self, y_true, y_pred):
-        raise NotImplemented
+        return NotImplemented
 
     def get_mask(self, y_true):
         return K.tf.where(K.tf.equal(y_true, self.val_exclude), K.zeros_like(y_true), K.ones_like(y_true))
@@ -85,7 +84,6 @@ class Metrics(object):
 
 # composed uncertainty loss (ask Shuai)
 class MetricsWithUncertaintyLoss(Metrics):
-
     epsilon_default = 0.01
 
     def __init__(self, metrics_loss, epsilon=epsilon_default):
@@ -321,7 +319,6 @@ class WeightedBinaryCrossEntropyFixedWeights(Metrics):
 
 # binary cross entropy + Focal loss
 class BinaryCrossEntropyFocalLoss(BinaryCrossEntropy):
-
     gamma_default = 2.0
 
     def __init__(self, gamma=gamma_default, is_masks_exclude=False):
@@ -366,7 +363,6 @@ class BinaryCrossEntropyFocalLoss(BinaryCrossEntropy):
 
 # weighted binary cross entropy + Focal Loss
 class WeightedBinaryCrossEntropyFocalLoss(WeightedBinaryCrossEntropy):
-
     gamma_default = 2.0
     eps_clip = 1.0e-12
 
@@ -424,6 +420,7 @@ class WeightedBinaryCrossEntropyFocalLoss(WeightedBinaryCrossEntropy):
 
 # categorical cross entropy
 class CategoricalCrossEntropy(Metrics):
+
     def __init__(self, is_masks_exclude=False):
         super(CategoricalCrossEntropy, self).__init__(is_masks_exclude)
         self.name_fun_out = 'cat_cross'
@@ -481,13 +478,15 @@ class TruePositiveRate(Metrics):
         return K.sum(y_true * y_pred) / (K.sum(y_true) +_smooth)
 
     def compute_vec_masked(self, y_true, y_pred):
-        return self.compute_vec(self.get_masked_array(y_true, y_true), self.get_masked_array(y_true, y_pred))
+        return self.compute_vec(self.get_masked_array(y_true, y_true),
+                                self.get_masked_array(y_true, y_pred))
 
     def compute_vec_np(self, y_true, y_pred):
         return np.sum(y_true * y_pred) / (np.sum(y_true) +_smooth)
 
     def compute_vec_masked_np(self, y_true, y_pred):
-        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true), self.get_masked_array_np(y_true, y_pred))
+        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
+                                   self.get_masked_array_np(y_true, y_pred))
 
     def loss(self, y_true, y_pred):
         return 1.0 - self.compute(y_true, y_pred)
@@ -507,13 +506,15 @@ class TrueNegativeRate(Metrics):
         return K.sum((1.0 - y_true) * (1.0 - y_pred)) / (K.sum((1.0 - y_true)) +_smooth)
 
     def compute_vec_masked(self, y_true, y_pred):
-        return self.compute_vec(self.get_masked_array(y_true, y_true), self.get_masked_array(y_true, y_pred))
+        return self.compute_vec(self.get_masked_array(y_true, y_true),
+                                self.get_masked_array(y_true, y_pred))
 
     def compute_vec_np(self, y_true, y_pred):
         return np.sum((1.0 - y_true) * (1.0 - y_pred)) / (np.sum((1.0 - y_true)) +_smooth)
 
     def compute_vec_masked_np(self, y_true, y_pred):
-        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true), self.get_masked_array_np(y_true, y_pred))
+        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
+                                   self.get_masked_array_np(y_true, y_pred))
 
     def loss(self, y_true, y_pred):
         return 1.0 - self.compute(y_true, y_pred)
@@ -533,13 +534,15 @@ class FalsePositiveRate(Metrics):
         return K.sum((1.0 - y_true) * y_pred) / (K.sum((1.0 - y_true)) +_smooth)
 
     def compute_vec_masked(self, y_true, y_pred):
-        return self.compute_vec(self.get_masked_array(y_true, y_true), self.get_masked_array(y_true, y_pred))
+        return self.compute_vec(self.get_masked_array(y_true, y_true),
+                                self.get_masked_array(y_true, y_pred))
 
     def compute_vec_np(self, y_true, y_pred):
         return np.sum((1.0 - y_true) * y_pred) / (np.sum((1.0 - y_true)) +_smooth)
 
     def compute_vec_masked_np(self, y_true, y_pred):
-        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true), self.get_masked_array_np(y_true, y_pred))
+        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
+                                   self.get_masked_array_np(y_true, y_pred))
 
     def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -559,13 +562,15 @@ class FalseNegativeRate(Metrics):
         return K.sum(y_true * (1.0 - y_pred)) / (K.sum(y_true) +_smooth)
 
     def compute_vec_masked(self, y_true, y_pred):
-        return self.compute_vec(self.get_masked_array(y_true, y_true), self.get_masked_array(y_true, y_pred))
+        return self.compute_vec(self.get_masked_array(y_true, y_true),
+                                self.get_masked_array(y_true, y_pred))
 
     def compute_vec_np(self, y_true, y_pred):
         return np.sum(y_true * (1.0 - y_pred)) / (np.sum(y_true) +_smooth)
 
     def compute_vec_masked_np(self, y_true, y_pred):
-        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true), self.get_masked_array_np(y_true, y_pred))
+        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
+                                   self.get_masked_array_np(y_true, y_pred))
 
     def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -581,11 +586,17 @@ class AirwayCompleteness(Metrics):
         super(AirwayCompleteness, self).__init__(is_masks_exclude=False)
         self.name_fun_out = 'completeness'
 
-    def compute_vec(self, y_centreline, y_pred_airway):
-        return K.sum(y_centreline * y_pred_airway) / (K.sum(y_centreline) +_smooth)
+    def compute_vec(self, y_true_cenline, y_pred_segmen):
+        return K.sum(y_true_cenline * y_pred_segmen) / (K.sum(y_true_cenline) +_smooth)
 
-    def compute_vec_np(self, y_centreline, y_pred_airway):
-        return np.sum(y_centreline * y_pred_airway) / (np.sum(y_centreline) +_smooth)
+    def compute_vec_masked(self, y_true_cenline, y_pred_segmen):
+        return self.compute_vec(y_true_cenline, y_pred_segmen)
+
+    def compute_vec_np(self, y_true_cenline, y_pred_segmen):
+        return np.sum(y_true_cenline * y_pred_segmen) / (np.sum(y_true_cenline) +_smooth)
+
+    def compute_vec_masked_np(self, y_true_cenline, y_pred_segmen):
+        return self.compute_vec_np(y_true_cenline, y_pred_segmen)
 
 
 # airways volume leakage (percentage of voxels from predicted airways found outside the ground-truth airways)
@@ -595,11 +606,17 @@ class AirwayVolumeLeakage(Metrics):
         super(AirwayVolumeLeakage, self).__init__(is_masks_exclude=False)
         self.name_fun_out = 'volume_leakage'
 
-    def compute_vec(self, y_true_airway, y_pred_airway):
-        return K.sum((1.0 - y_true_airway) * y_pred_airway) / (K.sum(y_pred_airway) +_smooth)
+    def compute_vec(self, y_true_segmen, y_pred_segmen):
+        return K.sum((1.0 - y_true_segmen) * y_pred_segmen) / (K.sum(y_pred_segmen) +_smooth)
 
-    def compute_vec_np(self, y_true_airway, y_pred_airway):
-        return np.sum((1.0 - y_true_airway) * y_pred_airway) / (np.sum(y_pred_airway) +_smooth)
+    def compute_vec_masked(self, y_true_cenline, y_pred_segmen):
+        return self.compute_vec(y_true_cenline, y_pred_segmen)
+
+    def compute_vec_np(self, y_true_segmen, y_pred_segmen):
+        return np.sum((1.0 - y_true_segmen) * y_pred_segmen) / (np.sum(y_pred_segmen) +_smooth)
+
+    def compute_vec_masked_np(self, y_true_cenline, y_pred_segmen):
+        return self.compute_vec_np(y_true_cenline, y_pred_segmen)
 
 
 # combination of two metrics
@@ -647,8 +664,12 @@ def DICTAVAILMETRICLASS(option, is_masks_exclude=False):
         return FalsePositiveRate(is_masks_exclude=is_masks_exclude)
     elif (option == 'FalseNegativeRate'):
         return FalseNegativeRate(is_masks_exclude=is_masks_exclude)
+    elif (option == 'AirwayCompleteness'):
+        return FalsePositiveRate(is_masks_exclude=is_masks_exclude)
+    elif (option == 'AirwayVolumeLeakage'):
+        return FalseNegativeRate(is_masks_exclude=is_masks_exclude)
     else:
-        return 0
+        return NotImplemented
 
 
 def DICTAVAILLOSSFUNS(option, is_masks_exclude=False, option2_combine=None):

@@ -15,10 +15,9 @@ from keras.models import Model, load_model
 
 
 class NeuralNetwork(object):
-
     @classmethod
     def getModel(cls):
-        pass
+        return NotImplemented
     @classmethod
     def getModelAndCompile(cls, optimizer, lossfunction, metrics):
         return cls.getModel().compile(optimizer=optimizer,
@@ -326,7 +325,6 @@ class Unet3D_General(NeuralNetwork):
 
 
     def getModel(self):
-
         inputs = Input(shape=self.size_image + (1,))
 
         # ********** DOWNSAMPLING PATH **********
@@ -433,4 +431,4 @@ def DICTAVAILNETWORKS3D(size_image, option):
     elif (option=='Unet3D_Shallow_Batchnorm'):
         return Unet3D_General(size_image, num_layers_depth=3, isBatchNormalize=True)
     else:
-        return 0
+        return NotImplemented

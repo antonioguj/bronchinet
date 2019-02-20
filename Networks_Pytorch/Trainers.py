@@ -41,7 +41,7 @@ class Trainer(object):
 
     @staticmethod
     def get_device():
-        raise NotImplemented
+        return NotImplemented
         #return torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     def _criterion(self, prediction, ground_truth):
@@ -322,11 +322,11 @@ class Trainer(object):
 
 
     def load_model_only_weights(self, filename):
-        self.model_net.load_state_dict(torch.load(filename, map_location= self.device))
+        self.model_net.load_state_dict(torch.load(filename, map_location= 'cuda:0'))#map_location= self.device))
 
     @staticmethod
     def load_model_full(filename):
-        trainer_desc = torch.load(filename, map_location= Trainer.get_device())
+        trainer_desc = torch.load(filename, map_location= 'cuda:0')#map_location= Trainer.get_device())
         # create new model
         model_type = trainer_desc['model_desc'][0]
         model_input_args = trainer_desc['model_desc'][1]
