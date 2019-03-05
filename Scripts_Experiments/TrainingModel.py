@@ -133,7 +133,7 @@ def main(args):
 
     elif TYPE_DNNLIBRARY_USED == 'Pytorch':
         if (not args.use_restartModel) or (args.use_restartModel and args.restart_only_weights):
-            model_net = DICTAVAILMODELS(args.imodel, IMAGES_DIMS_Z_X_Y, nfeat=args.num_featmaps_base)
+            model_net = DICTAVAILMODELS3D(IMAGES_DIMS_Z_X_Y)
             optimizer = DICTAVAILOPTIMIZERS(args.optimizer, model_net.parameters(), lr=args.learn_rate)
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
             trainer = Trainer(model_net, optimizer, loss_fun)
@@ -150,11 +150,11 @@ def main(args):
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
             trainer = Trainer.load_model_full(modelSavedPath)
 
-    trainer.setup_losshistory_filepath(ModelsPath,
-                                       isexists_lossfile=args.use_restartModel)
-    trainer.setup_savemodel_filepath(ModelsPath,
-                                     type_save_models='full_model',
-                                     type_num_models_saved='only_last_epoch')
+        trainer.setup_losshistory_filepath(ModelsPath,
+                                           isexists_lossfile=args.use_restartModel)
+        trainer.setup_savemodel_filepath(ModelsPath,
+                                         type_save_models='full_model',
+                                         type_num_models_saved='only_last_epoch')
         # output model summary
         trainer.get_summary_model()
     # ----------------------------------------------
