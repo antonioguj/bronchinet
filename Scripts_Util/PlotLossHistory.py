@@ -18,10 +18,20 @@ import argparse
 
 def main(args):
 
-    num_plot_files = len(args.infiles)
+    if args.fromfile:
+        if not isExistfile(args.listinfiles):
+            message = "File \'%s\' not found..." %(args.listinfiles)
+            CatchErrorException(message)
+        fout = open(args.listinfiles, 'r')
+        list_in_files = [infile.replace('\n','') for infile in fout.readlines()]
+    else:
+        list_in_files = [infile.replace('\n','') for infile in args.infiles]
+    num_plot_files = len(list_in_files)
 
-    print("Plot loss history from \'%s\' files:..." %(num_plot_files))
-    print(', '.join(map(lambda item: '\''+item+'\'', sys.argv[1:])))
+    print("Files to plot (\'%s\')..." %(num_plot_files))
+    for i, ifile in enumerate(list_in_files):
+        print("%s: \'%s\'" %(i, ifile))
+    #endfor
 
 
     data_fields_lossHistory_files = OrderedDict()
@@ -29,7 +39,7 @@ def main(args):
     data_fields_lossHistory_files['loss'] = []
 
     for i in range(num_plot_files):
-        lossHistory_file = str(args.infiles[i])
+        lossHistory_file = list_in_files[i]
 
         with open(lossHistory_file, 'r') as infile:
             header_line = infile.readline()
@@ -145,7 +155,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('infiles', type=str, nargs='+')
+    parser.add_argument('infiles', type=str, nargs='*')
+    parser.add_argument('--fromfile', type=bool, default=False)
+    parser.add_argument('--listinfiles', type=str, default='listfiles_plotLossHistory.txt')
     args = parser.parse_args()
 
     print("Print input arguments...")

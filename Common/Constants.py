@@ -15,7 +15,7 @@ np.random.seed(2017)
 DATADIR = '/home/antonio/Data/DLCST_Raw/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 
-TYPE_DNNLIBRARY_USED = 'Pytorch'
+TYPE_DNNLIBRARY_USED = 'Keras'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
@@ -72,7 +72,7 @@ DISTRIBUTE_FIXED_NAMES = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 MASKTOREGIONINTEREST = True
 
-RESCALEIMAGES = True
+RESCALEIMAGES = False
 
 FIXEDRESCALERES = (0.6, 0.6, 0.6)
 
@@ -105,6 +105,10 @@ TAILORED_BUILD_MODEL = True
 
 NUM_EPOCHS = 1000
 BATCH_SIZE = 1
+#IMODEL     = 'GNN-AlterOtf'
+IMODEL     = 'GNN-Skip1-GNN23'
+#IMODEL     = 'GNNSkip2'
+SOURCEDIR_ADJS = 'storedAdjacencyMatrix/'
 IOPTIMIZER = 'Adam'
 LEARN_RATE = 1.0e-04
 ILOSSFUN   = 'DiceCoefficient'
@@ -136,6 +140,7 @@ ELASTICDEFORMATIONIMAGES = False
 
 TYPEELASTICDEFORMATION = 'gridwise'
 
+USEVALIDATIONDATA = False
 USETRANSFORMONVALIDATIONDATA = True
 
 TYPEGPUINSTALLED = 'larger_GPU'
@@ -160,13 +165,13 @@ TYPEDATAPREDICT = 'testing'
 
 PREDICTION_MODELFILE = 'lastEpoch'
 
-PREDICTACCURACYMETRICS = 'DiceCoefficient'
-
 LISTPOSTPROCESSMETRICS = ['DiceCoefficient',
                           'TruePositiveRate',
                           'TrueNegativeRate',
                           'FalsePositiveRate',
-                          'FalseNegativeRate']
+                          'FalseNegativeRate',
+                          'AirwayCompleteness',
+                          'AirwayVolumeLeakage']
 
 FILTERPREDICTPROBMAPS = True
 

@@ -9,10 +9,13 @@
 ########################################################################################
 
 from torch.optim import SGD, RMSprop, Adagrad, Adadelta, Adam
+from Common.ErrorMessages import *
 
 
 # all available optimizers
 def DICTAVAILOPTIMIZERS(option, model_params, lr):
+    list_optimizer_avail = ['SGD', 'SGDmom', 'Adagrad', 'RMSprop', 'Adadelta', 'Adam']
+
     if (option=='SGD'):
         return SGD(model_params, lr= lr)
     elif (option=='SGDmom'):
@@ -26,4 +29,6 @@ def DICTAVAILOPTIMIZERS(option, model_params, lr):
     elif (option=='Adam'):
         return Adam(model_params, lr= lr)
     else:
+        message = 'Optimizer chosen not found. Optimizers available: (%s)' % (', '.join(list_optimizer_avail))
+        CatchErrorException(message)
         return NotImplemented

@@ -27,17 +27,21 @@ def main(args):
     nameInputPredictionsRelPath = args.predictionsdir
     nameInputReferMasksRelPath = 'Airways_Full'
     nameInputRoiMasksRelPath = 'Lungs_Full'
+    nameInputCentrelinesRelPath = 'Centrelines_Full'
     nameOutputPredictionsRelPath = nameInputPredictionsRelPath
 
     nameInputPredictionsFiles = 'predict-probmaps_*.nii.gz'
     nameInputReferMasksFiles = '*_lumen.nii.gz'
     nameInputRoiMasksFiles = '*_lungs.nii.gz'
+    nameInputCentrelinesFiles = '*_centrelines.nii.gz'
     # prefixPatternInputFiles = 'av[0-9][0-9]*'
 
     if (args.calcMasksThresholding):
         suffixPostProcessThreshold = '_thres%s'%(str(args.thresholdValue).replace('.','-'))
         if (args.attachTracheaToCalcMasks):
             suffixPostProcessThreshold += '_withtrachea'
+        else:
+            suffixPostProcessThreshold += '_notrachea'
     else:
         suffixPostProcessThreshold = ''
 
@@ -67,13 +71,22 @@ def main(args):
                 return np.where(roimask_array == 1, 0, refermask_array)
 
 
-    computePredictAccuracy = DICTAVAILMETRICFUNS(args.predictAccuracyMetrics).compute_np_safememory
-    listFuns_Metrics = {imetrics: DICTAVAILMETRICFUNS(imetrics).compute_np_safememory for imetrics in args.listPostprocessMetrics}
+    listPostProcessMetrics = OrderedDict()
+    list_isUseCenlineFiles = []
+    for imetrics in args.listPostprocessMetrics:
+        listPostProcessMetrics[imetrics] = DICTAVAILMETRICFUNS(imetrics).compute_np_safememory
+        list_isUseCenlineFiles.append(DICTAVAILMETRICFUNS(imetrics)._is_cenline_grndtru)
+    #endfor
+    isuse_centreline_files = any(list_isUseCenlineFiles)
+
+    if isuse_centreline_files:
+        InputCentrelinesPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputCentrelinesRelPath)
+        listInputCentrelinesFiles = findFilesDirAndCheck(InputCentrelinesPath, nameInputCentrelinesFiles)
+
 
     out_predictAccuracyFilename = joinpathnames(InputPredictionsPath, nameAccuracyPredictFiles)
     fout = open(out_predictAccuracyFilename, 'w')
-
-    strheader = '/case/ ' + ' '.join(['/%s/' % (key) for (key, _) in listFuns_Metrics.iteritems()]) + '\n'
+    strheader = '/case/ ' + ' '.join(['/%s/' % (key) for (key, _) in listPostProcessMetrics.iteritems()]) + '\n'
     fout.write(strheader)
 
 
@@ -90,9 +103,18 @@ def main(args):
         refermask_array = FileReader.getImageArray(in_refermask_file)
         print("Predictions of size: %s..." % (str(prediction_array.shape)))
 
+
         if (args.calcMasksThresholding):
             print("Compute prediction masks by thresholding probability maps to value %s..." % (args.thresholdValue))
             prediction_array = ThresholdImages.compute(prediction_array, args.thresholdValue)
+
+
+        if isuse_centreline_files:
+            in_centreline_file = findFileWithSamePrefix(basename(in_prediction_file).replace('predict-probmaps', ''),
+                                                        listInputCentrelinesFiles,
+                                                        prefix_pattern='vol[0-9][0-9]_')
+            print("Centrelines file: \'%s\'..." % (basename(in_centreline_file)))
+            centrelines_array = FileReader.getImageArray(in_centreline_file)
 
 
         if (args.masksToRegionInterest):
@@ -100,37 +122,48 @@ def main(args):
                                                      listInputRoiMasksFiles,
                                                      prefix_pattern='vol[0-9][0-9]_')
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
-
             roimask_array = FileReader.getImageArray(in_roimask_file)
 
             if (args.attachTracheaToCalcMasks):
                 print("Attach trachea mask to computed prediction masks...")
                 trachea_masks_array = compute_trachea_masks(refermask_array, roimask_array)
-                prediction_array = OperationBinaryMasks.join_two_binmasks_one_image(prediction_array, trachea_masks_array)
+                prediction_array = OperationBinaryMasks.join_two_binmasks_one_image(prediction_array,
+                                                                                    trachea_masks_array)
             else:
-                refermask_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(refermask_array, roimask_array)
+                prediction_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(prediction_array,
+                                                                                           roimask_array)
+                refermask_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(refermask_array,
+                                                                                          roimask_array)
+                if isuse_centreline_files:
+                    centrelines_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(centrelines_array,
+                                                                                                roimask_array)
 
 
-        accuracy = computePredictAccuracy(refermask_array, prediction_array)
-
-        list_predictAccuracy = OrderedDict()
-        for (key, value) in listFuns_Metrics.iteritems():
-            acc_value = value(refermask_array, prediction_array)
-            list_predictAccuracy[key] = acc_value
+        # ---------- COMPUTE POST PROCESSING MEASURES ----------
+        list_postprocess_measures = OrderedDict()
+        for i, (key, value) in enumerate(listPostProcessMetrics.iteritems()):
+            if list_isUseCenlineFiles[i]:
+                acc_value = value(centrelines_array, prediction_array)
+            else:
+                acc_value = value(refermask_array, prediction_array)
+            list_postprocess_measures[key] = acc_value
         # endfor
+        main_postprocess_accuracy = list_postprocess_measures.values()[0]
 
-        # print list accuracies on screen
-        for (key, value) in list_predictAccuracy.iteritems():
-            print("Computed '%s': %s..." %(key, value))
+
+        # print list accuracies on screen and in file
+        prefix_casename = getSubstringPatternFilename(basename(in_prediction_file), substr_pattern='vol[0-9][0-9]_')[:-1]
+        strdata = '\'%s\'' % (prefix_casename)
+        for (key, value) in list_postprocess_measures.iteritems():
+            print("Metric \'%s\': %s..." %(key, value))
+            strdata += ' %s'%(str(value))
         #endfor
-
-        # print list accuracies in file
-        prefix_casename = basename(in_prediction_file).split('_')[0]
-        strdata = '\'%s\''%(prefix_casename) + ' ' + ' '.join([str(value) for (_,value) in list_predictAccuracy.iteritems()]) +'\n'
+        strdata += '\n'
         fout.write(strdata)
+        # ---------- COMPUTE POST PROCESSING MEASURES ----------
 
 
-        out_file = joinpathnames(OutputPredictionsPath, nameOutputFiles(basename(in_prediction_file), accuracy))
+        out_file = joinpathnames(OutputPredictionsPath, nameOutputFiles(basename(in_prediction_file), main_postprocess_accuracy))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_file), str(prediction_array.shape)))
 
         FileReader.writeImageArray(out_file, prediction_array)
@@ -145,7 +178,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('--predictionsdir', default='Predictions_NEW')
-    parser.add_argument('--predictAccuracyMetrics', default=PREDICTACCURACYMETRICS)
     parser.add_argument('--listPostprocessMetrics', type=parseListarg, default=LISTPOSTPROCESSMETRICS)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--calcMasksThresholding', type=str2bool, default=True)

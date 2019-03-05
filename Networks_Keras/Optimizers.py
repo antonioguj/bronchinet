@@ -9,10 +9,13 @@
 ########################################################################################
 
 from keras.optimizers import SGD, RMSprop, Adagrad, Adadelta, Adam
+from Common.ErrorMessages import *
 
 
 # all available optimizers
 def DICTAVAILOPTIMIZERS(option, lr):
+    list_optimizer_avail = ['SGD', 'SGDmom', 'Adagrad', 'RMSprop', 'Adadelta', 'Adam']
+
     if (option=='SGD'):
         return SGD(lr=lr)
     elif (option=='SGDmom'):
@@ -26,6 +29,8 @@ def DICTAVAILOPTIMIZERS(option, lr):
     elif (option=='Adam'):
         return Adam(lr=lr)
     else:
+        message = 'Optimizer chosen not found. Optimizers available: (%s)' % (', '.join(list_optimizer_avail))
+        CatchErrorException(message)
         return NotImplemented
 
 

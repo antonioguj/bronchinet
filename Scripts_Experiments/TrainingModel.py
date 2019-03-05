@@ -35,10 +35,7 @@ def main(args):
                                    type_GPU_installed=args.typeGPUinstalled)
 
     # ---------- SETTINGS ----------
-    if args.use_restartModel:
-        nameModelsRelPath = 'Models_Restart'
-    else:
-        nameModelsRelPath = 'Models'
+    nameModelsRelPath = args.modelsdir
 
     # Get the file list:
     nameImagesFiles = 'images*' + getFileExtension(FORMATTRAINDATA)
@@ -48,7 +45,6 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
     TrainingDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameTrainingDataPath())
-    ValidationDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameValidationDataPath())
     if args.use_restartModel:
         ModelsPath = workDirsManager.getNameExistPath(args.basedir, nameModelsRelPath)
     else:
@@ -56,15 +52,21 @@ def main(args):
 
     listTrainImagesFiles = findFilesDir(TrainingDataPath, nameImagesFiles)
     listTrainGroundTruthFiles = findFilesDir(TrainingDataPath, nameGroundTruthFiles)
-    listValidImagesFiles = findFilesDir(ValidationDataPath, nameImagesFiles)
-    listValidGroundTruthFiles = findFilesDir(ValidationDataPath, nameGroundTruthFiles)
 
-    if not listValidImagesFiles or not listValidGroundTruthFiles:
-        use_validation_data = False
-        message = "No Validation Data used for training network..."
-        CatchWarningException(message)
+    if args.useValidationData:
+        ValidationDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameValidationDataPath())
+
+        listValidImagesFiles = findFilesDir(ValidationDataPath, nameImagesFiles)
+        listValidGroundTruthFiles = findFilesDir(ValidationDataPath, nameGroundTruthFiles)
+
+        if not listValidImagesFiles or not listValidGroundTruthFiles:
+            use_validation_data = False
+            message = "No validation data used for training the model..."
+            CatchWarningException(message)
+        else:
+            use_validation_data = True
     else:
-        use_validation_data = True
+        use_validation_data = False
 
 
     
@@ -131,8 +133,7 @@ def main(args):
 
     elif TYPE_DNNLIBRARY_USED == 'Pytorch':
         if (not args.use_restartModel) or (args.use_restartModel and args.restart_only_weights):
-            model_net = DICTAVAILMODELS3D(IMAGES_DIMS_Z_X_Y,
-                                          tailored_build_model=args.tailored_build_model)
+            model_net = DICTAVAILMODELS(args.imodel, IMAGES_DIMS_Z_X_Y, nfeat=args.num_featmaps_base)
             optimizer = DICTAVAILOPTIMIZERS(args.optimizer, model_net.parameters(), lr=args.learn_rate)
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
             trainer = Trainer(model_net, optimizer, loss_fun)
@@ -149,9 +150,11 @@ def main(args):
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
             trainer = Trainer.load_model_full(modelSavedPath)
 
-        trainer.setup_losshistory_filepath(ModelsPath)
-        trainer.setup_savemodel_filepath(ModelsPath, type_num_models_saved='only_last_epoch')
-
+    trainer.setup_losshistory_filepath(ModelsPath,
+                                       isexists_lossfile=args.use_restartModel)
+    trainer.setup_savemodel_filepath(ModelsPath,
+                                     type_save_models='full_model',
+                                     type_num_models_saved='only_last_epoch')
         # output model summary
         trainer.get_summary_model()
     # ----------------------------------------------
@@ -260,6 +263,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--modelsdir', default='Models')
     parser.add_argument('--tailored_build_model', type=str2bool, default=TAILORED_BUILD_MODEL)
     parser.add_argument('--type_network', type=str, default=TYPE_NETWORK)
     parser.add_argument('--num_layers', type=int, default=NUM_LAYERS)
@@ -270,6 +274,7 @@ if __name__ == "__main__":
     parser.add_argument('--disable_convol_pooling_lastlayer', type=str2bool, default=DISABLE_CONVOL_POOLING_LASTLAYER)
     parser.add_argument('--isUse_dropout', type=str2bool, default=ISUSE_DROPOUT)
     parser.add_argument('--isUse_batchnormalize', type=str2bool, default=ISUSE_BATCHNORMALIZE)
+    parser.add_argument('--imodel', default=IMODEL)
     parser.add_argument('--optimizer', default=IOPTIMIZER)
     parser.add_argument('--num_epochs', type=int, default=NUM_EPOCHS)
     parser.add_argument('--max_steps_epoch', type=int, default=None)
@@ -282,6 +287,7 @@ if __name__ == "__main__":
     parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=ELASTICDEFORMATIONIMAGES)
+    parser.add_argument('--useValidationData', type=str2bool, default=USEVALIDATIONDATA)
     parser.add_argument('--useTransformOnValidationData', type=str2bool, default=USETRANSFORMONVALIDATIONDATA)
     parser.add_argument('--typeGPUinstalled', type=str, default=TYPEGPUINSTALLED)
     parser.add_argument('--useMultiThreading', type=str2bool, default=USEMULTITHREADING)

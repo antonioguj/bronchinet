@@ -161,6 +161,8 @@ class Trainer(object):
 
             # run the validation pass
             self.valid_loss = self._validation_epoch()
+        else:
+            self.valid_loss = 0.0
 
         # run callbacks
         if self.callbacks:
@@ -254,19 +256,23 @@ class Trainer(object):
 
 
     def setup_losshistory_filepath(self, filepath,
-                                   relfilename= 'lossHistory.txt'):
+                                   relfilename= 'lossHistory.txt',
+                                   isexists_lossfile= False):
         self.is_write_lossfile = True
         self.losshistory_filename = joinpathnames(filepath, relfilename)
-        strheader = '/epoch/ /loss/ /val_loss/\n'
-        self.fout = open(self.losshistory_filename, 'w')
-        self.fout.write(strheader)
+        if isexists_lossfile:
+            self.fout = open(self.losshistory_filename, 'a')
+        else:
+            self.fout = open(self.losshistory_filename, 'w')
+            strheader = '/epoch/ /loss/ /val_loss/\n'
+            self.fout.write(strheader)
         self.fout.close()
 
     def update_losshistory_file(self):
+        self.fout = open(self.losshistory_filename, 'a')
         strdataline = '%s %s %s\n' %(self.epoch_count,
                                      self.train_loss,
                                      self.valid_loss)
-        self.fout = open(self.losshistory_filename, 'a')
         self.fout.write(strdataline)
         self.fout.close()
 
