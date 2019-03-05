@@ -18,9 +18,9 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath = 'RawCentrelines'
+    nameInputImagesRelPath = 'RawReferResults'
     nameInputReferImagesRelPath = 'Images_Full'
-    nameOutputImagesRelPath = 'RawCentrelines_Orig_Full'
+    nameOutputImagesRelPath = 'RawReferResults_Orig_Full'
 
     nameInputImagesFiles = '*.nii.gz'
     nameInputReferImagesFiles = '*.nii.gz'
@@ -46,7 +46,8 @@ def main(args):
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
-        in_referimage_file = findFileWithSamePrefix(basename(in_image_file), listInputReferImagesFiles)
+        in_referimage_file = findFileWithSamePrefix(basename(in_image_file), listInputReferImagesFiles,
+                                                    prefix_pattern='vol[0-9][0-9]_')
         print("Refer image file: \'%s\'..." % (basename(in_referimage_file)))
         bounding_box = dict_bounding_boxes[filenamenoextension(in_referimage_file)]
 
