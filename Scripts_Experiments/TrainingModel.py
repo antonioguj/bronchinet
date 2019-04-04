@@ -152,11 +152,13 @@ def main(args):
 
         trainer.setup_losshistory_filepath(ModelsPath,
                                            isexists_lossfile=args.use_restartModel)
+        trainer.setup_validate_model(freq_validate_model=FREQVALIDATEMODEL)
         trainer.setup_savemodel_filepath(ModelsPath,
                                          type_save_models='full_model',
-                                         type_num_models_saved='only_last_epoch')
+                                         freq_save_intermodels=FREQSAVEINTERMODELS)
+
         # output model summary
-        trainer.get_summary_model()
+        #trainer.get_summary_model()
     # ----------------------------------------------
 
 

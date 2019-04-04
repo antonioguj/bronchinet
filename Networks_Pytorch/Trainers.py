@@ -155,14 +155,13 @@ class Trainer(object):
         # run a train pass on the current epoch
         self.train_loss = self._train_epoch()
 
-        if self.valid_data_generator:
+        if self.valid_data_generator and \
+            (self.epoch_count % self.freq_validate_model == 0):
             # switch to evaluate mode
             self.model_net = self.model_net.eval()
 
             # run the validation pass
             self.valid_loss = self._validation_epoch()
-        else:
-            self.valid_loss = 0.0
 
         # run callbacks
         if self.callbacks:
@@ -220,6 +219,9 @@ class Trainer(object):
         self.train_data_generator = train_data_generator
         self.valid_data_generator = valid_data_generator
 
+        self.train_loss = 0.0
+        self.valid_loss = 0.0
+
         # run training algorithm
         for i_epoch in range(initial_epoch, num_epochs):
             self._run_epoch()
@@ -234,9 +236,8 @@ class Trainer(object):
                 self.update_losshistory_file()
 
             # save model
-            if self.is_save_model and \
-                (self.type_save_models=='last_epoch' or (i_epoch%self.freq_save_models==0)):
-                self.save_model()
+            if self.is_save_model:
+                self.save_models()
         #endfor
 
 
@@ -277,48 +278,38 @@ class Trainer(object):
         self.fout.close()
 
 
+    def setup_validate_model(self, freq_validate_model= 1):
+        self.freq_validate_model = freq_validate_model
+
     def setup_savemodel_filepath(self, filepath,
                                  type_save_models= 'full_model',
-                                 freq_save_models= 1,
-                                 type_num_models_saved= 'every_epoch'):
+                                 freq_save_intermodels= None):
         self.is_save_model = True
+        self.filepath = filepath
         self.type_save_models = type_save_models
-        self.freq_save_models = freq_save_models
+        self.freq_save_intermodels = freq_save_intermodels
 
-        if type_num_models_saved=='every_epoch':
-            self.filename_withindexes = True
-            self.setup_savemodel_everyepoch_filepath(filepath)
-        elif type_num_models_saved=='only_last_epoch':
-            self.filename_withindexes = False
-            self.setup_savemodel_onlylastepoch_filepath(filepath)
-
-    def setup_savemodel_everyepoch_filepath(self, filepath,
-                                            relfilename= 'model_%0.2i_%0.5f_%0.5f.pt'):
-        self.modelsave_filename = joinpathnames(filepath, relfilename)
-
-    def setup_savemodel_onlylastepoch_filepath(self, filepath,
-                                               relfilename= 'model_last.pt'):
-        self.modelsave_filename = joinpathnames(filepath, relfilename)
-
-
-    def save_model(self):
+    def save_models(self):
+        relfilename = 'model_last.pt'
+        model_filename = joinpathnames(self.filepath, relfilename)
         if self.type_save_models == 'only_weights':
-            self.save_model_only_weights()
+            self.save_model_only_weights(model_filename)
         elif self.type_save_models == 'full_model':
-            self.save_model_full()
+            self.save_model_full(model_filename)
 
-    def save_model_only_weights(self):
-        if self.filename_withindexes:
-            filename = self.modelsave_filename %(self.epoch_count, self.train_loss, self.valid_loss)
-        else:
-            filename = self.modelsave_filename
+        if self.freq_save_intermodels:
+            if (self.epoch_count%self.freq_save_intermodels==0):
+                relfilename = 'model_e%0.2i.pt' %(self.epoch_count)
+                model_filename = joinpathnames(self.filepath, relfilename)
+                if self.type_save_models == 'only_weights':
+                    self.save_model_only_weights(model_filename)
+                elif self.type_save_models == 'full_model':
+                    self.save_model_full(model_filename)
+
+    def save_model_only_weights(self, filename):
         torch.save(self.model_net.state_dict(), filename)
 
-    def save_model_full(self):
-        if self.filename_withindexes:
-            filename = self.modelsave_filename %(self.epoch_count, self.train_loss, self.valid_loss)
-        else:
-            filename = self.modelsave_filename
+    def save_model_full(self, filename):
         torch.save({'model_desc': self.model_net.get_arch_desc(),
                     'model_state_dict': self.model_net.state_dict(),
                     'optimizer_desc': 'Adam',
