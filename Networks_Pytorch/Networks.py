@@ -283,6 +283,7 @@ class Unet3D_Tailored(NeuralNetwork):
         self.upsample_downlay5 = Upsample(scale_factor= (1,2,2), mode= 'nearest')
 
         num_featmaps_lay4pl5 = num_featmaps_lay4 + num_featmaps_lay5
+        #num_featmaps_lay4pl5 = num_featmaps_lay5
         self.convolution_uplay4_1 = Conv3d(num_featmaps_lay4pl5, num_featmaps_lay4, kernel_size= 3, padding= 1)
         self.activation_uplay4_1 = ReLU(inplace=True)
         # self.batchnorm_uplay4_1 = BatchNorm3d(num_featmaps_lay4)
@@ -293,6 +294,7 @@ class Unet3D_Tailored(NeuralNetwork):
         self.upsample_uplay4 = Upsample(scale_factor= 2, mode= 'nearest')
 
         num_featmaps_lay3pl4 = num_featmaps_lay3 + num_featmaps_lay4
+        #num_featmaps_lay3pl4 = num_featmaps_lay4
         self.convolution_uplay3_1 = Conv3d(num_featmaps_lay3pl4, num_featmaps_lay3, kernel_size= 3, padding= 1)
         self.activation_uplay3_1 = ReLU(inplace=True)
         # self.batchnorm_uplay3_1 = BatchNorm3d(num_featmaps_lay3)
@@ -303,6 +305,7 @@ class Unet3D_Tailored(NeuralNetwork):
         self.upsample_uplay3 = Upsample(scale_factor= 2, mode= 'nearest')
 
         num_featmaps_lay2pl3 = num_featmaps_lay2 + num_featmaps_lay3
+        #num_featmaps_lay2pl3 = num_featmaps_lay3
         self.convolution_uplay2_1 = Conv3d(num_featmaps_lay2pl3, num_featmaps_lay2, kernel_size= 3, padding= 1)
         self.activation_uplay2_1 = ReLU(inplace=True)
         # self.batchnorm_uplay2_1 = BatchNorm3d(num_featmaps_lay2)
@@ -313,6 +316,7 @@ class Unet3D_Tailored(NeuralNetwork):
         self.upsample_uplay2 = Upsample(scale_factor= 2, mode= 'nearest')
 
         num_featmaps_lay1pl2 = num_featmaps_lay1 + num_featmaps_lay2
+        #num_featmaps_lay1pl2 = num_featmaps_lay2
         self.convolution_uplay1_1 = Conv3d(num_featmaps_lay1pl2, num_featmaps_lay1, kernel_size= 3, padding= 1)
         self.activation_uplay1_1 = ReLU(inplace=True)
         # self.batchnorm_uplay1_1 = BatchNorm3d(num_featmaps_lay1)

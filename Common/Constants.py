@@ -166,7 +166,7 @@ EPOCH_RESTART = 40
 # ******************** POST-PROCESSING PARAMETERS ********************
 TYPEDATAPREDICT = 'testing'
 
-PREDICTION_MODELFILE = 'last'
+PREDICTION_MODELFILE = 'e455'
 
 LISTPOSTPROCESSMETRICS = ['DiceCoefficient',
                           'TruePositiveRate',
