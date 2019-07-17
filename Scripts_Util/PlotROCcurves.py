@@ -46,11 +46,11 @@ def find_index_optimal_threshold_dice_coeff(dice_data):
 
 def main(args):
 
-    list_input_data_files = ['SavedPredictions_FromCluster/Predictions_size352x240x120_LossWBEC_SlideWindow/mean_ROCsensTPspecFP.txt',
-                             'SavedPredictions_FromCluster/Predictions_size352x240x104_LossDice_SlideWindow/mean_ROCsensTPspecFP.txt',
-                             'SavedPredictions_FromCluster/Predictions_size352x240x120_LossWBEC_SlideWindow_TransformImages/mean_ROCsensTPspecFP.txt',
-                             'SavedPredictions_FromCluster/Predictions_size352x240x104_LossDice_SlideWindow_TransformImages/mean_ROCsensTPspecFP.txt',
-                             'SavedPredictions_FromCluster/Predictions_size352x240x104_LossDice_SlideWindow_ElasticDeformImages/mean_ROCsensTPspecFP.txt']
+    list_input_data_files = ['Results_MICCAI2019_FROCdata/dataFROC_UNet-Lev3_mean.txt',
+                             'Results_MICCAI2019_FROCdata/dataFROC_UNet-Lev5_mean.txt',
+                             'Results_MICCAI2019_FROCdata/dataFROC_UNetGNN-RegAdj_mean.txt',
+                             'Results_MICCAI2019_FROCdata/dataFROC_UNetGNN-DynAdj_mean.txt']
+    labels = ['UNet-Lev3', 'UNet-Lev5', 'UGnn-RegAdj', 'UGnn-DynAdj']
 
     num_input_data_files = len(list_input_data_files)
 
@@ -58,72 +58,22 @@ def main(args):
     print(', '.join(map(lambda item: '\''+basename(item)+'\'', list_input_data_files)))
 
     threshold_list = []
-    sensitivity_list = []
-    FPaverage_list = []
+    dicecoeff_list = []
     completeness_list = []
     volumeleakage_list = []
-    dice_coeff_list = []
     for (i, in_file) in enumerate(list_input_data_files):
         data_this = np.loadtxt(in_file, skiprows=1)
-        data_this[-1,1:] = [0.0, 0.0, 0.0, 0.0, 0.0]
+        data_this[-1,1:] = [0.0, 0.0, 0.0]
 
         threshold_list.append(data_this[:, 0])
-        sensitivity_list.append(data_this[:, 1])
-        FPaverage_list.append(data_this[:, 2])
-        completeness_list.append(data_this[:, 3] * 100)
-        volumeleakage_list.append(data_this[:, 4] * 100)
-        dice_coeff_list.append(data_this[:, 5])
+        dicecoeff_list.append(data_this[:, 1])
+        completeness_list.append(data_this[:, 2] * 100)
+        volumeleakage_list.append(data_this[:, 3] * 100)
     #endfor
 
-
-    list_reference1_files = ['SavedPredictions_FromCluster/Predictions_size352x240x120_LossWBEC_SlideWindow/mean_results_leakage_test.txt',
-                             'SavedPredictions_FromCluster/Predictions_size352x240x120_LossWBEC_SlideWindow_TransformImages/mean_results_leakage_test.txt',
-                             'SavedPredictions_FromCluster/Predictions_size352x240x104_LossDice_SlideWindow/mean_results_leakage_test.txt',
-                             'SavedPredictions_FromCluster/Predictions_size352x240x104_LossDice_SlideWindow_TransformImages/mean_results_leakage_test.txt',
-                             'SavedPredictions_FromCluster/Predictions_size352x240x104_LossDice_SlideWindow_ElasticDeformImages/mean_results_leakage_test.txt']
-
-    list_reference2_files = ['/home/antonio/Results/AirwaySegmen_LUVAR/Predictions_Adria/best_results_opfronted/mean_leakagetest_outerwall_predictmasks_outerwall_grndtruth.txt']
-
-    completeness_reference1_list = []
-    volumeleakage_reference1_list= []
-
-    for (i, in_file) in enumerate(list_reference1_files):
-        data_this = np.loadtxt(in_file, skiprows=1, usecols=[1,2])
-
-        completeness_reference1_list.append(data_this[0] * 100)
-        volumeleakage_reference1_list.append(data_this[1] * 100)
-    #endfor
-
-    completeness_reference2_list = []
-    volumeleakage_reference2_list= []
-
-    for (i, in_file) in enumerate(list_reference2_files):
-        data_this = np.loadtxt(in_file, skiprows=1, usecols=[1,2])
-
-        completeness_reference2_list.append(data_this[0] * 100)
-        volumeleakage_reference2_list.append(data_this[1] * 100)
-    #endfor
-
-
-    labels = ['wBEC_None',
-              'dice_None',
-              'wBEC_Rigid',
-              'dice_Rigid',
-              'dice_Elastic']
 
     if num_input_data_files == 1:
-        # plot ROC: sensitivity - specificity
-        plt.plot(FPaverage_list[0], sensitivity_list[0], 'o-', color='b')
-        # annotate thresholds
-        if threshold_list[0] is not None:
-            plot_annotations_thresholds(FPaverage_list[0], sensitivity_list[0], threshold_list[0])
-        plt.xlabel('FalsePositives Average')
-        plt.ylabel('True Positive Rate')
-        plt.title('FROC curve')
-        plt.show()
 
-
-        # plot ROC: completeness - volume leakage
         plt.plot(volumeleakage_list[0], completeness_list[0], 'o-', color='b')
         # annotate thresholds
         if threshold_list[0] is not None:
@@ -132,35 +82,9 @@ def main(args):
         plt.ylabel('Completeness (%)')
         plt.show()
 
-
-        # plot Dice coefficient - threshold
-        plt.plot(threshold_list[0], dice_coeff_list[0], 'o-', color='b')
-        plt.xlabel('Threshold')
-        plt.ylabel('Dice coefficient')
-        plt.show()
-
     else: #num_input_data_files != 1:
         cmap = plt.get_cmap('rainbow')
         colors = [ cmap(float(i)/(num_input_data_files-1)) for i in range(num_input_data_files) ]
-
-        # plot ROC: sensitivity - specificity
-        print("plot ROC: sensitivity - specificity...")
-        for i in range(num_input_data_files):
-            plt.plot(FPaverage_list[i], sensitivity_list[i], color=colors[i], label=labels[i])
-            # find optimal threshold
-            index_mark_value = find_index_optimal_threshold_sensitTPspecifFP(FPaverage_list[i], sensitivity_list[i])
-            # annotation threshold
-            plt.scatter(FPaverage_list[i][index_mark_value], sensitivity_list[i][index_mark_value], marker='o', color=colors[i])
-
-            print("file \'%s\', optimal threshold: \'%s\'..." %(i, threshold_list[i][index_mark_value]))
-        # endfor
-        plt.xlabel('False Positive Average')
-        plt.ylabel('True Positive Rate')
-        plt.xlim([0, 400000])
-        plt.title('FROC curve')
-        plt.legend(loc='right')
-        plt.show()
-
 
         # plot ROC: completeness - volume leakage
         print("plot ROC: completeness - volume leakage...")
@@ -170,31 +94,19 @@ def main(args):
             #index_mark_value = find_index_optimal_threshold_sensitTPspecifFP(volumeleakage_list[i], completeness_list[i])
             # annotation threshold
             #plt.scatter(volumeleakage_list[i][index_mark_value], completeness_list[i][index_mark_value], marker='o', color=colors[i])
-            print("file \'%s\', optimal threshold: \'%s\'..." % (i, threshold_list[i][index_mark_value]))
+            #print("file \'%s\', optimal threshold: \'%s\'..." % (i, threshold_list[i][index_mark_value]))
         # endfor
         # # Include annotations of other results
         # if completeness_reference1_list:
         #     plt.scatter(volumeleakage_reference1_list, completeness_reference1_list, marker='^', color='b')
-        if completeness_reference2_list:
-            plt.scatter(volumeleakage_reference2_list, completeness_reference2_list, s=100, marker='x', color='black', label='reference')
-        plt.xlabel('Volume Leakage (%)')
-        plt.ylabel('Completeness (%)')
+	plt.xticks(plt.xticks()[0], size=15)
+	plt.yticks(plt.yticks()[0], size=15)
+        plt.xlabel('Volume Leakage (%)', size=20)
+        plt.ylabel('Completeness (%)', size=20)
         plt.xlim([0,100])
         plt.ylim([0,100])
         plt.legend(loc='right')
-        plt.show()
-
-
-        # plot Dice coefficient - threshold
-        print("plot Dice...")
-        for i in range(num_input_data_files):
-            plt.plot(threshold_list[i], dice_coeff_list[i], color=colors[i], label=labels[i])
-            # find optimal threshold
-            index_mark_value = find_index_optimal_threshold_dice_coeff(dice_coeff_list[i])
-            print("file \'%s\', optimal threshold: \'%s\'..." % (i, threshold_list[i][index_mark_value]))
-        #endfor
-        plt.xlabel('Threshold')
-        plt.ylabel('Dice coefficient')
+	plt.title('ROC curve', size=20)
         plt.show()
 
 

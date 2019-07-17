@@ -273,10 +273,10 @@ class Unet3D_Tailored(NeuralNetwork):
         self.pooling_downlay4 = MaxPool3d(kernel_size= (1,2,2), padding= 0)
 
         num_featmaps_lay5 = 2 * num_featmaps_lay4
-        self.convolution_downlay5_1 = Conv3d(num_featmaps_lay4, num_featmaps_lay5, kernel_size= 3, padding= 1)
+        self.convolution_downlay5_1 = Conv3d(num_featmaps_lay4, num_featmaps_lay5, kernel_size= (1,3,3), padding= (0,1,1))
         self.activation_downlay5_1 = ReLU(inplace=True)
         # self.batchnorm_downlay5_1 = BatchNorm3d(num_featmaps_lay5)
-        self.convolution_downlay5_2 = Conv3d(num_featmaps_lay5, num_featmaps_lay5, kernel_size= 3, padding= 1)
+        self.convolution_downlay5_2 = Conv3d(num_featmaps_lay5, num_featmaps_lay5, kernel_size= (1,3,3), padding= (0,1,1))
         self.activation_downlay5_2 = ReLU(inplace=True)
         # self.batchnorm_downlay5_2 = BatchNorm3d(num_featmaps_lay5)
         # self.dropout_downlay5 = Dropout3d(p=self.dropout_rate)

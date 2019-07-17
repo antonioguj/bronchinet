@@ -8,8 +8,13 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-import matplotlib
+from Common.Constants import *
+if TYPE_DNNLIBRARY_USED == 'Keras':
+    from Networks_Keras.Metrics import *
+elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+    from Networks_Pytorch.Metrics import *
 
+import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,7 +22,7 @@ from scipy import ndimage
 from scipy.spatial.distance import euclidean
 from scipy.optimize import linear_sum_assignment
 import pandas as pd
-from Networks_Keras.Metrics import *
+
 
 
 def computeAssignment(list_detections, list_gt, allowedDistance):

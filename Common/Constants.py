@@ -13,7 +13,7 @@ np.random.seed(2017)
 
 
 DATADIR = '/home/antonio/Data/DLCST_Raw/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_Unet+GNN_DLCST/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
 
@@ -85,7 +85,7 @@ EXTENDSIZEIMAGES = False
 
 CREATEIMAGESBATCHES = False
 
-PROP_OVERLAP_Z_X_Y = (0.35, 0.0, 0.0)
+PROP_OVERLAP_Z_X_Y = (0.75, 0.0, 0.0)
 
 SAVEVISUALIZEPROCDATA = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
@@ -93,7 +93,7 @@ SAVEVISUALIZEPROCDATA = False
 
 # ******************** TRAINING PARAMETERS ********************
 NUM_LAYERS           = 5
-NUM_FEATMAPS_BASE    = 8
+NUM_FEATMAPS_BASE    = 16
 TYPE_NETWORK         = 'classification'
 TYPE_ACTIVATE_HIDDEN = 'relu'
 TYPE_ACTIVATE_OUTPUT = 'sigmoid'
@@ -111,7 +111,7 @@ BATCH_SIZE = 1
 IMODEL     = 'Unet'
 SOURCEDIR_ADJS = 'storedAdjacencyMatrix/'
 IOPTIMIZER = 'Adam'
-LEARN_RATE = 5.0e-05
+LEARN_RATE = 1.0e-05
 ILOSSFUN   = 'DiceCoefficient'
 LISTMETRICS = []
 # LISTMETRICS = ['BinaryCrossEntropy',
@@ -142,8 +142,8 @@ ELASTICDEFORMATIONIMAGES = False
 TYPEELASTICDEFORMATION = 'gridwise'
 
 USEVALIDATIONDATA = True
-FREQVALIDATEMODEL = 1
-FREQSAVEINTERMODELS = 1
+FREQVALIDATEMODEL = 3
+FREQSAVEINTERMODELS = 5
 USETRANSFORMONVALIDATIONDATA = True
 
 TYPEGPUINSTALLED = 'larger_GPU'
@@ -166,7 +166,7 @@ EPOCH_RESTART = 40
 # ******************** POST-PROCESSING PARAMETERS ********************
 TYPEDATAPREDICT = 'testing'
 
-PREDICTION_MODELFILE = 'e455'
+PREDICTION_MODELFILE = 'last'
 
 LISTPOSTPROCESSMETRICS = ['DiceCoefficient',
                           'TruePositiveRate',
@@ -190,7 +190,7 @@ CALCMASKSTHRESHOLDING = True
 
 THRESHOLDVALUE = 0.5
 
-ATTACHTRAQUEATOCALCMASKS = False
+ATTACHTRAQUEATOCALCMASKS = True
 
 SAVETHRESHOLDIMAGES = True
 # ******************** POST-PROCESSING PARAMETERS ********************

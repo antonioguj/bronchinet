@@ -131,9 +131,9 @@ def main(args):
             plt.legend(loc='best')
             plt.show()
         else:
-            # cmap = plt.get_cmap('rainbow')
-            # colors = [cmap(float(i)/(num_files_plot_data-1)) for i in range(num_files_plot_data)]
-            colors = ['blue', 'red', 'green', 'yellow', 'orange']
+            cmap = plt.get_cmap('rainbow')
+            colors = [cmap(float(i)/(num_files_plot_data-1)) for i in range(num_files_plot_data)]
+            #colors = ['blue', 'red', 'green', 'yellow', 'orange']
 
             fig, axs = plt.subplots(1, 2, figsize=(15, 5))
             for i in range(num_files_plot_data):

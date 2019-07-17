@@ -18,9 +18,11 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath = 'RawAirways'
-    nameInputReferImagesRelPath = 'RawImages'
-    nameOutputImagesRelPath = 'RawAirways_Orig_Cropped'
+    #nameInputImagesRelPath = 'Predictions_AllCVs'
+    nameInputImagesRelPath = args.inputdir
+    nameInputReferImagesRelPath = 'Images_Full'
+    #nameOutputImagesRelPath = 'Predictions_AllCVs_Cropped'
+    nameOutputImagesRelPath = args.outputdir
 
     nameInputImagesFiles = '*.nii.gz'
     nameInputReferImagesFiles = '*.nii.gz'

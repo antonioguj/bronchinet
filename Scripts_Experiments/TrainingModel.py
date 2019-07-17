@@ -44,7 +44,8 @@ def main(args):
 
 
     workDirsManager = WorkDirsManager(args.basedir)
-    TrainingDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameTrainingDataPath())
+    #TrainingDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameTrainingDataPath())
+    TrainingDataPath = joinpathnames(args.basedir, args.traindatadir)
     if args.use_restartModel:
         ModelsPath = workDirsManager.getNameExistPath(args.basedir, nameModelsRelPath)
     else:
@@ -54,7 +55,8 @@ def main(args):
     listTrainGroundTruthFiles = findFilesDir(TrainingDataPath, nameGroundTruthFiles)
 
     if args.useValidationData:
-        ValidationDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameValidationDataPath())
+        #ValidationDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameValidationDataPath())
+        ValidationDataPath = joinpathnames(args.basedir, args.validdatadir)
 
         listValidImagesFiles = findFilesDir(ValidationDataPath, nameImagesFiles)
         listValidGroundTruthFiles = findFilesDir(ValidationDataPath, nameGroundTruthFiles)
@@ -265,6 +267,8 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--traindatadir', default='TrainingData')
+    parser.add_argument('--validdatadir', default='ValidationData')
     parser.add_argument('--modelsdir', default='Models')
     parser.add_argument('--tailored_build_model', type=str2bool, default=TAILORED_BUILD_MODEL)
     parser.add_argument('--type_network', type=str, default=TYPE_NETWORK)

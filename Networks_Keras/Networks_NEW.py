@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from keras.layers import Input, merge, concatenate, Dropout, BatchNormalization
+from keras.layers import Input, concatenate, Dropout, BatchNormalization
 from keras.layers import Convolution2D, MaxPooling2D, UpSampling2D, Cropping2D, Conv2DTranspose
 from keras.layers import Convolution3D, MaxPooling3D, UpSampling3D, Cropping3D, Conv3DTranspose
 from keras.models import Model, load_model
@@ -388,9 +388,7 @@ class Unet3D_General(NeuralNetwork):
             elif self.type_padding=='same':
                 last_layer_downpath = list_last_convlayer_downpath[ilayer]
 
-            last_layer = merge(inputs=[last_layer, last_layer_downpath],
-                               mode='concat',
-                               concat_axis=-1)
+            last_layer = concatenate(inputs=[last_layer, last_layer_downpath], axis=-1)
 
             # convolutional layers
             for j in range(self.num_convlayers_downpath[ilayer]):

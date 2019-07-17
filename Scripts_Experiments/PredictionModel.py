@@ -59,7 +59,8 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.basedir)
     BaseDataPath = workDirsManager.getNameBaseDataPath()
-    TestingDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameDataPath(args.typedata))
+    #TestingDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameDataPath(args.typedata))
+    TestingDataPath = joinpathnames(args.basedir, args.testdatadir)
     ReferenceImgPath = workDirsManager.getNameExistPath(BaseDataPath, nameReferenceImgRelPath)
     ModelsPath = workDirsManager.getNameExistPath(args.basedir, args.modelsdir)
     OutputPredictionPath = workDirsManager.getNameNewPath(args.basedir, args.predictionsdir)
@@ -268,6 +269,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--testdatadir', default='TestingData')
     parser.add_argument('--typedata', default=TYPEDATAPREDICT)
     parser.add_argument('--modelsdir', default='Models_Restart')
     parser.add_argument('--predictionsdir', default='Predictions_NEW')

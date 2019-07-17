@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from keras.layers import Input, merge, concatenate, Dropout, BatchNormalization
+from keras.layers import Input, concatenate, Dropout, BatchNormalization
 from keras.layers import Convolution3D, MaxPooling3D, UpSampling3D, Cropping3D, Conv3DTranspose
 from keras.models import Model, load_model
 
@@ -65,22 +65,22 @@ class Unet3D_Original(NeuralNetwork):
         hiddenlayer_down5_3 = Convolution3D(num_featmaps_lay5, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down5_2)
 
         hiddenlayer_up4_1 = UpSampling3D(size=(2, 2, 2))(hiddenlayer_down5_3)
-        hiddenlayer_up4_1 = merge([hiddenlayer_up4_1, hiddenlayer_down4_3], mode='concat', concat_axis=-1)
+        hiddenlayer_up4_1 = concatenate([hiddenlayer_up4_1, hiddenlayer_down4_3], axis=-1)
         hiddenlayer_up4_2 = Convolution3D(num_featmaps_lay4, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up4_1)
         hiddenlayer_up4_3 = Convolution3D(num_featmaps_lay4, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up4_2)
 
         hiddenlayer_up3_1 = UpSampling3D(size=(2, 2, 2))(hiddenlayer_up4_3)
-        hiddenlayer_up3_1 = merge([hiddenlayer_up3_1, hiddenlayer_down3_3], mode='concat', concat_axis=-1)
+        hiddenlayer_up3_1 = concatenate([hiddenlayer_up3_1, hiddenlayer_down3_3], axis=-1)
         hiddenlayer_up3_2 = Convolution3D(num_featmaps_lay3, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up3_1)
         hiddenlayer_up3_3 = Convolution3D(num_featmaps_lay3, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up3_2)
 
         hiddenlayer_up2_1 = UpSampling3D(size=(2, 2, 2))(hiddenlayer_up3_3)
-        hiddenlayer_up2_1 = merge([hiddenlayer_up2_1, hiddenlayer_down2_3], mode='concat', concat_axis=-1)
+        hiddenlayer_up2_1 = concatenate([hiddenlayer_up2_1, hiddenlayer_down2_3], axis=-1)
         hiddenlayer_up2_2 = Convolution3D(num_featmaps_lay2, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up2_1)
         hiddenlayer_up2_3 = Convolution3D(num_featmaps_lay2, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up2_2)
 
         hiddenlayer_up1_1 = UpSampling3D(size=(2, 2, 2))(hiddenlayer_up2_3)
-        hiddenlayer_up1_1 = merge([hiddenlayer_up1_1, hiddenlayer_down1_3], mode='concat', concat_axis=-1)
+        hiddenlayer_up1_1 = concatenate([hiddenlayer_up1_1, hiddenlayer_down1_3], axis=-1)
         hiddenlayer_up1_2 = Convolution3D(num_featmaps_lay1, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up1_1)
         hiddenlayer_up1_3 = Convolution3D(num_featmaps_lay1, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up1_2)
 
@@ -206,7 +206,7 @@ class Unet3D_General(NeuralNetwork):
         # DECODING LAYERS
         for i in range(self.num_layers-2,-1,-1):
             hiddenlayer_next = UpSampling3D(size=self.size_upsample_uplayers[i])(hiddenlayer_next)
-            hiddenlayer_next = merge([hiddenlayer_next, list_hiddenlayer_skipconn[i]], mode='concat', concat_axis=-1)
+            hiddenlayer_next = concatenate([hiddenlayer_next, list_hiddenlayer_skipconn[i]], axis=-1)
 
             for j in range(self.num_convols_downlayers):
                 hiddenlayer_next = Convolution3D(self.num_featmaps_layers[i],
@@ -277,28 +277,28 @@ class Unet3D_Tailored(NeuralNetwork):
         hiddenlayer_down5_3 = BatchNormalization()(hiddenlayer_down5_3)
 
         hiddenlayer_up4_1 = UpSampling3D(size=(1, 2, 2))(hiddenlayer_down5_3)
-        hiddenlayer_up4_1 = merge([hiddenlayer_up4_1, hiddenlayer_down4_3], mode='concat', concat_axis=-1)
+        hiddenlayer_up4_1 = concatenate([hiddenlayer_up4_1, hiddenlayer_down4_3], axis=-1)
         hiddenlayer_up4_2 = Convolution3D(num_featmaps_lay4, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up4_1)
         hiddenlayer_up4_2 = BatchNormalization()(hiddenlayer_up4_2)
         hiddenlayer_up4_3 = Convolution3D(num_featmaps_lay4, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up4_2)
         hiddenlayer_up4_3 = BatchNormalization()(hiddenlayer_up4_3)
 
         hiddenlayer_up3_1 = UpSampling3D(size=(2, 2, 2))(hiddenlayer_up4_3)
-        hiddenlayer_up3_1 = merge([hiddenlayer_up3_1, hiddenlayer_down3_3], mode='concat', concat_axis=-1)
+        hiddenlayer_up3_1 = concatenate([hiddenlayer_up3_1, hiddenlayer_down3_3], axis=-1)
         hiddenlayer_up3_2 = Convolution3D(num_featmaps_lay3, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up3_1)
         hiddenlayer_up3_2 = BatchNormalization()(hiddenlayer_up3_2)
         hiddenlayer_up3_3 = Convolution3D(num_featmaps_lay3, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up3_2)
         hiddenlayer_up3_3 = BatchNormalization()(hiddenlayer_up3_3)
 
         hiddenlayer_up2_1 = UpSampling3D(size=(2, 2, 2))(hiddenlayer_up3_3)
-        hiddenlayer_up2_1 = merge([hiddenlayer_up2_1, hiddenlayer_down2_3], mode='concat', concat_axis=-1)
+        hiddenlayer_up2_1 = concatenate([hiddenlayer_up2_1, hiddenlayer_down2_3], axis=-1)
         hiddenlayer_up2_2 = Convolution3D(num_featmaps_lay2, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up2_1)
         hiddenlayer_up2_2 = BatchNormalization()(hiddenlayer_up2_2)
         hiddenlayer_up2_3 = Convolution3D(num_featmaps_lay2, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up2_2)
         hiddenlayer_up2_3 = BatchNormalization()(hiddenlayer_up2_3)
 
         hiddenlayer_up1_1 = UpSampling3D(size=(2, 2, 2))(hiddenlayer_up2_3)
-        hiddenlayer_up1_1 = merge([hiddenlayer_up1_1, hiddenlayer_down1_3], mode='concat', concat_axis=-1)
+        hiddenlayer_up1_1 = concatenate([hiddenlayer_up1_1, hiddenlayer_down1_3], axis=-1)
         hiddenlayer_up1_2 = Convolution3D(num_featmaps_lay1, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up1_1)
         hiddenlayer_up1_2 = BatchNormalization()(hiddenlayer_up1_2)
         hiddenlayer_up1_3 = Convolution3D(num_featmaps_lay1, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up1_2)
