@@ -24,7 +24,7 @@ def main(args):
     nameReferFilesRelPath     = 'RawImages'
     nameOutputImagesRelPath   = 'Airways_Full'
     nameOutputRoiMasksRelPath = 'Lungs_Full'
-    nameInputImagesFiles      = '*surface0.dcm'
+    nameInputImagesFiles      = '*.dcm'
     nameInputRoiMasksFiles    = '*.dcm'
     nameInputReferFiles       = '*.dcm'
     # prefixPatternInputFiles = 'av[0-9][0-9]*'

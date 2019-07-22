@@ -47,36 +47,24 @@ class WorkDirsManager(object):
     def getNameModelsPath(self):
         return joinpathnames(self.basePath, self.modelsRelPath)
 
-    @staticmethod
-    def getNameExistPath(basePath, existRelPath=None):
-        if existRelPath:
-            existPath = joinpathnames(basePath, existRelPath)
-        else:
-            existPath = basePath
-        if not isExistdir(existPath):
-            message = "WorkDirsManager: path \'%s\', does not exist..."%(existPath)
+    def getNameExistPath(self, relPath):
+        newPath = joinpathnames(self.basePath, relPath)
+        if not isExistdir(newPath):
+            message = "WorkDirsManager: path \'%s\', does not exist..."%(newPath)
             CatchErrorException(message)
-        return existPath
+        return newPath
 
-    @staticmethod
-    def getNameNewPath(basePath, newRelPath=None):
-        if newRelPath:
-            newPath = joinpathnames(basePath, newRelPath)
-        else:
-            newPath = basePath
+    def getNameNewPath(self, relPath):
+        newPath = joinpathnames(self.basePath, relPath)
         if not isExistdir(newPath):
             makedir(newPath)
         return newPath
 
-    @staticmethod
-    def getNameUpdatePath(basePath, updateRelPath=None):
+    def getNameUpdatePath(self, relPath):
         #datetoday_str= '%i-%i-%i'%(getdatetoday())
         #timenow_str  = '%0.2i-%0.2i-%0.2i'%(gettimenow())
         suffix_update = '_NEW%0.2i'
-        if updateRelPath:
-            updatePath = joinpathnames(basePath, updateRelPath)
-        else:
-            updatePath = basePath
+        updatePath = joinpathnames(self.basePath, relPath)
         if isExistdir(updatePath):
             count = 1
             while True:

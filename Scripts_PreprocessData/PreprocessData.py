@@ -60,10 +60,10 @@ def main(args):
         VisualOutputPath = workDirsManager.getNameNewPath(nameVisualOutputRelPath)
 
     if (args.rescaleImages):
-        dict_rescaleFactors = readDictionary(joinpathnames(nameRescaleFactors))
+        dict_rescaleFactors = readDictionary(joinpathnames(args.datadir, nameRescaleFactors))
 
     if (args.cropImages):
-        dict_cropBoundingBoxes = readDictionary(joinpathnames(nameCropBoundingBoxes))
+        dict_cropBoundingBoxes = readDictionary(joinpathnames(args.datadir, nameCropBoundingBoxes))
 
 
 
