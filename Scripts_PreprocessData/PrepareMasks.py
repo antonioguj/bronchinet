@@ -19,18 +19,16 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath = 'RawAirways'
-    nameInputRoiMasksRelPath = 'RawLungs'
-    nameReferenceImgRelPath = 'RawImages'
-    nameOutputImagesRelPath = 'Airways_Rescaled_0.6x0.6x0.6_Full'
-    nameOutputRoiMasksRelPath = 'Lungs_Rescaled_0.6x0.6x0.6_Full'
-
-    nameInputImagesFiles = '*surface0.dcm'
-    nameInputRoiMasksFiles = '*.dcm'
-    nameReferenceImgFiles = '*.dcm'
+    nameInputImagesRelPath    = 'RawAirways'
+    nameInputRoiMasksRelPath  = 'RawLungs'
+    nameReferFilesRelPath     = 'RawImages'
+    nameOutputImagesRelPath   = 'Airways_Full'
+    nameOutputRoiMasksRelPath = 'Lungs_Full'
+    nameInputImagesFiles      = '*surface0.dcm'
+    nameInputRoiMasksFiles    = '*.dcm'
+    nameInputReferFiles       = '*.dcm'
     # prefixPatternInputFiles = 'av[0-9][0-9]*'
-
-    nameRescaleFactors = 'rescaleFactors_images_0.6x0.6x0.6.npy'
+    nameRescaleFactors        = 'rescaleFactors_images.npy'
 
     def nameOutputImagesFiles(in_name):
         in_name = in_name.replace('surface0','lumen')
@@ -44,23 +42,22 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath = workDirsManager.getNameBaseDataPath()
-    InputImagesPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputImagesRelPath)
-    ReferenceImgPath = workDirsManager.getNameExistPath(BaseDataPath, nameReferenceImgRelPath)
-    OutputImagesPath = workDirsManager.getNameNewPath(BaseDataPath, nameOutputImagesRelPath)
+    workDirsManager     = WorkDirsManager(args.datadir)
+    InputImagesPath     = workDirsManager.getNameExistPath(nameInputImagesRelPath)
+    InputReferFilesPath = workDirsManager.getNameExistPath(nameReferFilesRelPath)
+    OutputImagesPath    = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
 
-    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath, nameInputImagesFiles)
-    listReferenceImgFiles = findFilesDirAndCheck(ReferenceImgPath, nameReferenceImgFiles)
+    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath,     nameInputImagesFiles)
+    listInputReferFiles  = findFilesDirAndCheck(InputReferFilesPath, nameInputReferFiles)
 
     if (args.masksToRegionInterest):
-        InputRoiMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputRoiMasksRelPath)
-        OutputRoiMasksPath = workDirsManager.getNameNewPath(BaseDataPath, nameOutputRoiMasksRelPath)
+        InputRoiMasksPath  = workDirsManager.getNameExistPath(nameInputRoiMasksRelPath)
+        OutputRoiMasksPath = workDirsManager.getNameNewPath  (nameOutputRoiMasksRelPath)
 
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
 
     if (args.rescaleImages):
-        dict_rescaleFactors = readDictionary(joinpathnames(BaseDataPath, nameRescaleFactors))
+        dict_rescaleFactors = readDictionary(joinpathnames(args.datadir, nameRescaleFactors))
 
 
 
@@ -90,8 +87,8 @@ def main(args):
 
 
         if (args.rescaleImages):
-            in_referimg_file = findFileWithSamePrefix(basename(in_image_file), listReferenceImgFiles)
-            rescale_factor = dict_rescaleFactors[filenamenoextension(in_referimg_file)]
+            in_refer_file = findFileWithSamePrefix(basename(in_image_file), listInputReferFiles)
+            rescale_factor = dict_rescaleFactors[filenamenoextension(in_refer_file)]
             print("Rescale image with a factor: \'%s\'..." %(str(rescale_factor)))
 
             image_array = RescaleImages.compute3D(image_array, rescale_factor, is_binary_mask=True)
@@ -119,7 +116,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--datadir', default=DATADIR)
     parser.add_argument('--isClassificationData', type=str, default=ISCLASSIFICATIONDATA)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)

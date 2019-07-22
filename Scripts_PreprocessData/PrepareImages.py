@@ -19,20 +19,17 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath = 'RawImages'
-    nameOutputImagesRelPath = 'Images_Rescaled_0.6x0.6x0.6_Full'
-
-    nameInputImagesFiles = '*.dcm'
-    nameOutputImagesFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
-
-    nameRescaleFactors = 'rescaleFactors_images_0.6x0.6x0.6.npy'
+    nameInputImagesRelPath  = 'RawImages'
+    nameOutputImagesRelPath = 'Images_Full'
+    nameInputImagesFiles    = '*.dcm'
+    nameOutputImagesFiles   = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    nameRescaleFactors      = 'rescaleFactors.npy'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath = workDirsManager.getNameBaseDataPath()
-    InputImagesPath = WorkDirsManager.getNameExistPath(BaseDataPath, nameInputImagesRelPath)
-    OutputImagesPath = WorkDirsManager.getNameNewPath(BaseDataPath, nameOutputImagesRelPath)
+    workDirsManager  = WorkDirsManager(args.datadir)
+    InputImagesPath  = workDirsManager.getNameExistPath(nameInputImagesRelPath)
+    OutputImagesPath = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
 
     listInputImagesFiles = findFilesDirAndCheck(InputImagesPath, nameInputImagesFiles)
 
@@ -45,7 +42,6 @@ def main(args):
         print("\nInput: \'%s\'..." %(basename(in_image_file)))
 
         image_array = FileReader.getImageArray(in_image_file)
-
 
         if (args.rescaleImages):
             rescale_factor = dict_rescaleFactors[filenamenoextension(in_image_file)]
@@ -65,7 +61,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--datadir', default=DATADIR)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
     args = parser.parse_args()
 

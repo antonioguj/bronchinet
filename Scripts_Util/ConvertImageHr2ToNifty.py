@@ -8,27 +8,35 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from DataLoaders.FileReaders import *
+#from DataLoaders.FileReaders import *
+from Common.FunctionsUtil import *
 import argparse
+import sys
 
 
 
 def main(args):
-    namesInputFiles = '*.dcm'
-    namesOutputFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    # ---------- SETTINGS ----------
+    InputPath = args.inputdir
+    OutputPath = args.outputdir
 
-    listInputFiles = findFilesDirAndCheck(args.inputdir, namesInputFiles)
+    bin_convertHR2 = '/home/antonio/Codes/Silas_repository/image-feature-extraction/build/tools/ConvertHR2'
+
+    namesInputFiles = '*.hr2'
+    namesOutputFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    # ---------- SETTINGS ----------
+
+    listInputFiles = findFilesDirAndCheck(InputPath, namesInputFiles)
 
 
     for in_file in listInputFiles:
         print("\nInput: \'%s\'..." % (basename(in_file)))
 
-        in_array = DICOMreader.getImageArray(in_file)
+        out_file = joinpathnames(OutputPath, namesOutputFiles(in_file))
+        print("\Output: \'%s\'..." % (basename(out_file)))
 
-        out_file = joinpathnames(args.outputdir, namesOutputFiles(in_file))
-        print("Output: \'%s\', of dims \'%s\'..." % (basename(out_file), str(in_array.shape)))
-
-        FileReader.writeImageArray(out_file, in_array)
+        command_string = bin_convertHR2 + ' ' + in_file + ' ' + out_file
+        #os.system(command_string)
     #endfor
 
 

@@ -18,61 +18,57 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    #nameInputImagesRelPath = 'Predictions_AllCVs'
-    nameInputImagesRelPath = args.inputdir
-    nameInputReferImagesRelPath = 'Images_Full'
-    #nameOutputImagesRelPath = 'Predictions_AllCVs_Cropped'
-    nameOutputImagesRelPath = args.outputdir
-
-    nameInputImagesFiles = '*.nii.gz'
-    nameInputReferImagesFiles = '*.nii.gz'
-    # prefixPatternInputFiles = 'vol[0-9][0-9]_*'
-    nameBoundingBoxes = 'found_boundingBoxes_original.npy'
-    nameOutputImagesFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    nameInputImagesRelPath     = args.inputdir
+    nameInputReferFilesRelPath = 'Images_Full'
+    nameOutputImagesRelPath    = args.outputdir
+    nameInputImagesFiles       = '*.nii.gz'
+    nameInputReferFiles        = '*.nii.gz'
+    nameBoundingBoxes          = 'found_boundBoxes_original.npy'
+    nameOutputImagesFiles      = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath = workDirsManager.getNameBaseDataPath()
-    InputImagesPath = workDirsManager.getNameExistPath(args.basedir, nameInputImagesRelPath)
-    InputReferImagesPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputReferImagesRelPath)
-    OutputImagesPath = workDirsManager.getNameNewPath  (args.basedir, nameOutputImagesRelPath)
+    workDirsManager     = WorkDirsManager(args.datadir)
+    InputImagesPath     = workDirsManager.getNameExistPath(nameInputImagesRelPath)
+    InputReferFilesPath = workDirsManager.getNameExistPath(nameInputReferFilesRelPath)
+    OutputImagesPath    = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
 
-    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath, nameInputImagesFiles)
-    listInputReferImagesFiles = findFilesDirAndCheck(InputReferImagesPath, nameInputReferImagesFiles)
+    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath,     nameInputImagesFiles)
+    listInputReferFiles  = findFilesDirAndCheck(InputReferFilesPath, nameInputReferFiles)
 
-    dict_bounding_boxes = readDictionary(joinpathnames(BaseDataPath, nameBoundingBoxes))
+    dict_bounding_boxes = readDictionary(joinpathnames(args.datadir, nameBoundingBoxes))
 
 
 
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
-        in_referimage_file = findFileWithSamePrefix(basename(in_image_file), listInputReferImagesFiles,
-                                                    prefix_pattern='vol[0-9][0-9]_')
-        print("Refer image file: \'%s\'..." % (basename(in_referimage_file)))
-        bounding_box = dict_bounding_boxes[filenamenoextension(in_referimage_file)]
+        in_refer_file = findFileWithSamePrefix(basename(in_image_file), listInputReferFiles,
+                                               prefix_pattern='vol[0-9][0-9]_')
+        print("Reference file: \'%s\'..." % (basename(in_refer_file)))
+        bounding_box = dict_bounding_boxes[filenamenoextension(in_refer_file)]
+
 
         full_image_array = FileReader.getImageArray(in_image_file)
         print("Output full image size: \'%s\'..." % (str(full_image_array.shape)))
 
         # 1 step: crop image
-        cropped_image_array = CropImages.compute3D(full_image_array, bounding_box)
+        crop_image_array = CropImages.compute3D(full_image_array, bounding_box)
         # 2 step: invert image
-        cropped_image_array = FlippingImages.compute(cropped_image_array, axis=0)
-        print("Input cropped image size: \'%s\'..." % (str(cropped_image_array.shape)))
+        crop_image_array = FlippingImages.compute(crop_image_array, axis=0)
+        print("Input cropped image size: \'%s\'..." % (str(crop_image_array.shape)))
 
         out_image_file = joinpathnames(OutputImagesPath, nameOutputImagesFiles(in_image_file))
-        print("Output: \'%s\', of dims \'%s\'..." %(basename(out_image_file), str(cropped_image_array.shape)))
+        print("Output: \'%s\', of dims \'%s\'..." %(basename(out_image_file), str(crop_image_array.shape)))
 
-        FileReader.writeImageArray(out_image_file, cropped_image_array)
+        FileReader.writeImageArray(out_image_file, crop_image_array)
     #endfor
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--datadir', default=DATADIR)
     parser.add_argument('--inputdir')
     parser.add_argument('--outputdir')
     args = parser.parse_args()

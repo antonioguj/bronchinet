@@ -16,19 +16,25 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    namesInputFiles1 = '*.nii.gz'
-    namesInputFiles2 = '*.nii.gz'
+    InputPath1 = args.indir1
+    InputPath2 = args.indir2
+    namesInputFiles1 = '*.dcm'
+    namesInputFiles2 = '*.dcm'
     max_rel_error = 1.0e-06
 
     nameOutFilesName = 'out_histo_image%s.png'
     # ---------- SETTINGS ----------
 
-    listInputFiles1 = findFilesDirAndCheck(args.inputdirs[0], namesInputFiles1)
-    listInputFiles2 = findFilesDirAndCheck(args.inputdirs[1], namesInputFiles2)
 
-    # if (len(listInputFiles1) != len(listInputFiles2)):
-    #     message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(listInputFiles1), len(listInputFiles2))
-    #     CatchErrorException(message)
+    listInputFiles1 = findFilesDirAndCheck(InputPath1, namesInputFiles1)
+    listInputFiles2 = findFilesDirAndCheck(InputPath2, namesInputFiles2)
+
+    if (len(listInputFiles1)) == 0:
+        message = 'no files found in dir 1...'
+        CatchErrorException(message)
+    if (len(listInputFiles1) != len(listInputFiles2)):
+        message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(listInputFiles1), len(listInputFiles2))
+        CatchErrorException(message)
 
     if not isExistdir(args.tempdir):
         makedir(args.tempdir)
@@ -44,6 +50,9 @@ def main(args):
 
         in_img1_array = FileReader.getImageArray(in_file_1)
         in_img2_array = FileReader.getImageArray(in_file_2)
+
+        #print("Values in input array 1: %s..." % (np.unique(in_img1_array)))
+        #print("Values in input array 2: %s..." % (np.unique(in_img2_array)))
 
 
         if (in_img1_array.shape == in_img2_array.shape):
@@ -108,20 +117,21 @@ def main(args):
 
 
     if (len(names_files_different) == 0):
-        print("Good: All images files are equal...")
+        print("\nGOOD: ALL IMAGE FILES ARE EQUAL...")
     else:
-        print("Found \'%s\' files that are different. Names of files: \'%s\'..." %(len(names_files_different),
-                                                                                   names_files_different))
+        print("\nWARNING: Found \'%s\' files that are different. Names of files: \'%s\'..." %(len(names_files_different),
+                                                                                              names_files_different))
     if (len(names_files_perhapsdiff_showhistogram) != 0):
-        print("Found \'%s\' files that perhaps are different. Names of files: \'%s\'..." %(len(names_files_perhapsdiff_showhistogram),
-                                                                                           names_files_perhapsdiff_showhistogram))
+        print("\nFound \'%s\' files that perhaps are different. Names of files: \'%s\'..." %(len(names_files_perhapsdiff_showhistogram),
+                                                                                             names_files_perhapsdiff_showhistogram))
         print("Check histograms stored in: \'%s\'..." % (args.tempdir))
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('inputdirs', type=str, nargs=2)
+    parser.add_argument('indir1', type=str)
+    parser.add_argument('indir2', type=str)
     parser.add_argument('--tempdir', type=str, default='.')
     args = parser.parse_args()
 

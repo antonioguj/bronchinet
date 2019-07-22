@@ -18,40 +18,37 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputRelPath = 'RawImages'
-
-    nameInputFiles = '*.dcm'
-
-    nameOrigVoxelSize_FileNpy = 'original_vozelSize.npy'
-    nameOrigVoxelSize_FileCsv = 'original_vozelSize.csv'
-    nameRescaleFactors_FileNpy = 'rescaleFactors_images_0.6x0.6x0.6.npy'
-    nameRescaleFactors_FileCsv = 'rescaleFactors_images_0.6x0.6x0.6.csv'
+    nameInputImagesRelPath     = 'RawImages'
+    nameInputImagesFiles       = '*.dcm'
+    nameOrigVoxelSize_FileNpy  = 'original_vozelSize.npy'
+    nameOrigVoxelSize_FileCsv  = 'original_vozelSize.csv'
+    nameRescaleFactors_FileNpy = 'rescaleFactors_images.npy'
+    nameRescaleFactors_FileCsv = 'rescaleFactors_images.csv'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager = WorkDirsManager(BASEDIR)
-    BaseDataPath = workDirsManager.getNameBaseDataPath()
-    InputPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputRelPath)
+    workDirsManager = WorkDirsManager(args.datadir)
+    InputImagesPath = workDirsManager.getNameExistPath(nameInputImagesRelPath)
 
-    listInputFiles = findFilesDirAndCheck(InputPath, nameInputFiles)
+    listInputImageFiles = findFilesDirAndCheck(InputPath, nameInputImagesFiles)
 
 
     dict_voxelSizes = OrderedDict()
 
-    for i, in_file in enumerate(listInputFiles):
-        print("\nInput: \'%s\'..." %(basename(in_file)))
+    for i, in_image_file in enumerate(listInputImageFiles):
+        print("\nInput: \'%s\'..." %(basename(in_image_file)))
 
-        voxel_size = DICOMreader.getVoxelSize(in_file)
+        voxel_size = DICOMreader.getVoxelSize(in_image_file)
         print("Voxel Size: \'%s\'..." %(str(voxel_size)))
 
-        dict_voxelSizes[filenamenoextension(in_file)] = voxel_size
+        dict_voxelSizes[filenamenoextension(in_image_file)] = voxel_size
     #endfor
 
 
     # Save dictionary in file
-    nameoutfile = joinpathnames(BaseDataPath, nameOrigVoxelSize_FileNpy)
+    nameoutfile = joinpathnames(args.datadir, nameOrigVoxelSize_FileNpy)
     saveDictionary(nameoutfile, dict_voxelSizes)
-    nameoutfile = joinpathnames(BaseDataPath, nameOrigVoxelSize_FileCsv)
+    nameoutfile = joinpathnames(args.datadir, nameOrigVoxelSize_FileCsv)
     saveDictionary_csv(nameoutfile, dict_voxelSizes)
 
 
@@ -82,16 +79,16 @@ def main(args):
 
 
     # Save dictionary in file
-    nameoutfile = joinpathnames(BaseDataPath, nameRescaleFactors_FileNpy)
+    nameoutfile = joinpathnames(args.datadir, nameRescaleFactors_FileNpy)
     saveDictionary(nameoutfile, dict_rescaleFactors)
-    nameoutfile = joinpathnames(BaseDataPath, nameRescaleFactors_FileCsv)
+    nameoutfile = joinpathnames(args.datadir, nameRescaleFactors_FileCsv)
     saveDictionary_csv(nameoutfile, dict_rescaleFactors)
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--datadir', default=DATADIR)
     parser.add_argument('--fixedRescaleRes', type=str2tuplefloat, default=FIXEDRESCALERES)
     args = parser.parse_args()
 

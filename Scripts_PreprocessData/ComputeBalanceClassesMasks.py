@@ -35,13 +35,11 @@ def compute_balance_classes_with_exclusion(mask_array):
 def main(args):
     # ---------- SETTINGS ----------
     nameInputRelPath = 'LumenMasks_WorkData'
-
-    nameInputFiles = 'grndtru*.npz'
+    nameInputFiles   = 'labels*.npz'
     # ---------- SETTINGS ----------
 
-    workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath = workDirsManager.getNameBaseDataPath()
-    InputMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputRelPath)
+    workDirsManager = WorkDirsManager(args.datadir)
+    InputMasksPath  = workDirsManager.getNameExistPath(nameInputRelPath)
 
     listInputMasksFiles = findFilesDirAndCheck(InputMasksPath, nameInputFiles)
 
@@ -54,7 +52,6 @@ def main(args):
         mask_array  = FileReader.getImageArray(in_mask_file)
 
         if (args.masksToRegionInterest):
-
             (num_foregrnd_class, num_backgrnd_class) = compute_balance_classes_with_exclusion(mask_array)
         else:
             (num_foregrnd_class, num_backgrnd_class) = compute_balance_classes(mask_array)
@@ -77,7 +74,7 @@ def main(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--datadir', default=DATADIR)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     args = parser.parse_args()
 

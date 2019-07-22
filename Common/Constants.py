@@ -12,7 +12,7 @@ import numpy as np
 np.random.seed(2017)
 
 
-DATADIR = '/home/antonio/Data/DLCST_Raw/'
+DATADIR = '/home/antonio/Data/LUVAR_Processed/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'

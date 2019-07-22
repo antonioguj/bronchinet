@@ -46,10 +46,10 @@ def find_index_optimal_threshold_dice_coeff(dice_data):
 
 def main(args):
 
-    list_input_data_files = ['Results_MICCAI2019_FROCdata/dataFROC_UNet-Lev3_mean.txt',
-                             'Results_MICCAI2019_FROCdata/dataFROC_UNet-Lev5_mean.txt',
-                             'Results_MICCAI2019_FROCdata/dataFROC_UNetGNN-RegAdj_mean.txt',
-                             'Results_MICCAI2019_FROCdata/dataFROC_UNetGNN-DynAdj_mean.txt']
+    list_input_data_files = ['Results_MICCAI-MLMI2019/Data_ROCcurves/dataFROC_UNet-Lev3_mean.txt',
+                             'Results_MICCAI-MLMI2019/Data_ROCcurves/dataFROC_UNet-Lev5_mean.txt',
+                             'Results_MICCAI-MLMI2019/Data_ROCcurves/dataFROC_UNetGNN-RegAdj_mean.txt',
+                             'Results_MICCAI-MLMI2019/Data_ROCcurves/dataFROC_UNetGNN-DynAdj_mean.txt']
     labels = ['UNet-Lev3', 'UNet-Lev5', 'UGnn-RegAdj', 'UGnn-DynAdj']
 
     num_input_data_files = len(list_input_data_files)

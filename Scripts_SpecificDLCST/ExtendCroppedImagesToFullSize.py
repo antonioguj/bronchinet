@@ -18,26 +18,23 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath = 'RawReferResults'
-    nameInputReferImagesRelPath = 'Images_Full'
-    nameOutputImagesRelPath = 'RawReferResults_Orig_Full'
-
-    nameInputImagesFiles = '*.nii.gz'
-    nameInputReferImagesFiles = '*.nii.gz'
-    # prefixPatternInputFiles = 'vol[0-9][0-9]_*'
-    nameBoundingBoxes = 'found_boundingBoxes_original.npy'
-    nameOutputImagesFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    nameInputImagesRelPath     = args.inputdir
+    nameInputReferFilesRelPath = 'Images_Full'
+    nameOutputImagesRelPath    = args.outputdir
+    nameInputImagesFiles       = '*.nii.gz'
+    nameInputReferFiles        = '*.nii.gz'
+    nameBoundingBoxes          = 'found_boundBoxes_original.npy'
+    nameOutputImagesFiles      = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath = workDirsManager.getNameBaseDataPath()
-    InputImagesPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputImagesRelPath)
-    InputReferImagesPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputReferImagesRelPath)
-    OutputImagesPath = workDirsManager.getNameNewPath(BaseDataPath, nameOutputImagesRelPath)
+    workDirsManager     = WorkDirsManager(args.datadir)
+    InputImagesPath     = workDirsManager.getNameExistPath(nameInputImagesRelPath)
+    InputReferFilesPath = workDirsManager.getNameExistPath(nameInputReferFilesRelPath)
+    OutputImagesPath    = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
 
-    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath, nameInputImagesFiles)
-    listInputReferImagesFiles = findFilesDirAndCheck(InputReferImagesPath, nameInputReferImagesFiles)
+    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath,     nameInputImagesFiles)
+    listInputReferFiles  = findFilesDirAndCheck(InputReferFilesPath, nameInputReferFiles)
 
     dict_bounding_boxes = readDictionary(joinpathnames(BaseDataPath, nameBoundingBoxes))
 
@@ -46,19 +43,20 @@ def main(args):
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
-        in_referimage_file = findFileWithSamePrefix(basename(in_image_file), listInputReferImagesFiles,
-                                                    prefix_pattern='vol[0-9][0-9]_')
-        print("Refer image file: \'%s\'..." % (basename(in_referimage_file)))
-        bounding_box = dict_bounding_boxes[filenamenoextension(in_referimage_file)]
+        in_refer_file = findFileWithSamePrefix(basename(in_image_file), listInputReferFiles,
+                                               prefix_pattern='vol[0-9][0-9]_')
+        print("Reference file: \'%s\'..." % (basename(in_refer_file)))
+        bounding_box = dict_bounding_boxes[filenamenoextension(in_refer_file)]
 
-        cropped_image_array = FileReader.getImageArray(in_image_file)
-        print("Input cropped image size: \'%s\'..." %(str(cropped_image_array.shape)))
+
+        crop_image_array = FileReader.getImageArray(in_image_file)
+        print("Input cropped image size: \'%s\'..." %(str(crop_image_array.shape)))
 
         # 1 step: invert image
-        cropped_image_array = FlippingImages.compute(cropped_image_array, axis=0)
+        crop_image_array = FlippingImages.compute(crop_image_array, axis=0)
         # 2 step: extend image
-        full_image_shape = FileReader.getImageSize(in_referimage_file)
-        full_image_array = ExtendImages.compute3D(cropped_image_array, bounding_box, full_image_shape)
+        full_image_shape = FileReader.getImageSize(in_refer_file)
+        full_image_array = ExtendImages.compute3D(crop_image_array, bounding_box, full_image_shape)
         print("Output full image size: \'%s\'..." % (str(full_image_array.shape)))
 
         out_image_file = joinpathnames(OutputImagesPath, nameOutputImagesFiles(in_image_file))
@@ -71,9 +69,18 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--datadir', default=DATADIR)
+    parser.add_argument('--inputdir')
+    parser.add_argument('--outputdir')
     args = parser.parse_args()
 
+    if not args.inputdir:
+        message = 'Please input a valid input directory'
+        CatchErrorException(message)
+    if not args.outputdir:
+        message = 'Output directory not indicated. Assume same as input directory'
+        args.outputdir = args.inputdir
+        CatchWarningException(message)
     print("Print input arguments...")
     for key, value in vars(args).iteritems():
         print("\'%s\' = %s" %(key, value))
