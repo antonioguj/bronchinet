@@ -18,9 +18,9 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputCropImagesRelPath = args.cropimgsdir
-    nameInputFullImagesRelPath = args.fullimgsdir
-    nameInputReferFilesRelPath = 'CTs_Cropped/'
+    nameInputCropImagesRelPath = args.cropimagesdir
+    nameInputFullImagesRelPath = args.fullimagesdir
+    nameInputReferFilesRelPath = 'CTs_Cropped'
     nameInputCropImagesFiles   = '*.dcm'
     nameInputFullImagesFiles   = '*.dcm'
     nameInputReferFiles        = '*.dcm'
@@ -52,16 +52,16 @@ def main(args):
         bounding_box = dict_bounding_boxes[filenamenoextension(in_refer_file)]
 
 
-        crop_image_array = FileReader.getImageArray(in_cropimage_file)
-        full_image_array = FileReader.getImageArray(in_fullimage_file)
+        in_cropimage_array = FileReader.getImageArray(in_cropimage_file)
+        in_fullimage_array = FileReader.getImageArray(in_fullimage_file)
 
         # 1 step: crop image
-        newcropped_image_array = CropImages.compute3D(full_image_array, bounding_box)
+        new_cropimage_array = CropImages.compute3D(in_fullimage_array, bounding_box)
         # 2 step: invert image
-        newcropped_image_array = FlippingImages.compute(newcropped_image_array, axis=0)
+        new_cropimage_array = FlippingImages.compute(new_cropimage_array, axis=0)
 
-        if (crop_image_array.shape == newcropped_image_array.shape):
-            res_voxels_equal = np.array_equal(crop_image_array, newcropped_image_array)
+        if (in_cropimage_array.shape == new_cropimage_array.shape):
+            res_voxels_equal = np.array_equal(in_cropimage_array, new_cropimage_array)
 
             if res_voxels_equal:
                 print("GOOD: Images are equal voxelwise...")
@@ -85,8 +85,8 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', default=DATADIR)
-    parser.add_argument('cropimgsdir', type=str)
-    parser.add_argument('fullimgsdir', type=str)
+    parser.add_argument('cropimagesdir', type=str)
+    parser.add_argument('fullimagesdir', type=str)
     args = parser.parse_args()
 
     print("Print input arguments...")

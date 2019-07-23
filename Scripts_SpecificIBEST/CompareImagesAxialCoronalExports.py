@@ -39,12 +39,12 @@ for i, (in_axial_file, in_coronal_file) in enumerate(zip(listInputAxialFiles, li
     print("\nInput: \'%s\'..." % (basename(in_axial_file)))
     print("And: \'%s\'..." % (basename(in_coronal_file)))
 
-    axialCL_array = FileReader.getImageArray(in_axial_file)
-    coronalCL_array = FileReader.getImageArray(in_coronal_file)
+    in_axialCL_array = FileReader.getImageArray(in_axial_file)
+    in_coronalCL_array = FileReader.getImageArray(in_coronal_file)
 
-    coronalCL_reshaped_array = FlippingImages.compute(coronalCL_array.swapaxes(1,0), axis=0)
+    coronalCL_reshaped_array = FlippingImages.compute(in_coronalCL_array.swapaxes(1,0), axis=0)
 
-    diff_two_arrays = np.abs(axialCL_array - coronalCL_reshaped_array)
+    diff_two_arrays = np.abs(in_axialCL_array - coronalCL_reshaped_array)
 
     unique_values = np.unique(diff_two_arrays)
     if unique_values != [0]:
@@ -57,7 +57,7 @@ for i, (in_axial_file, in_coronal_file) in enumerate(zip(listInputAxialFiles, li
     out_coronal_filename = joinpathnames(OutputPath, nameOutputFiles(in_coronal_file))
     out_coronal_reshaped_filename = joinpathnames(OutputPath, nameOutput2Files(in_coronal_file))
 
-    FileReader.writeImageArray(out_axial_filename, axialCL_array)
-    FileReader.writeImageArray(out_coronal_filename, coronalCL_array)
+    FileReader.writeImageArray(out_axial_filename, in_axialCL_array)
+    FileReader.writeImageArray(out_coronal_filename, in_coronalCL_array)
     FileReader.writeImageArray(out_coronal_reshaped_filename, coronalCL_reshaped_array)
 #endfor

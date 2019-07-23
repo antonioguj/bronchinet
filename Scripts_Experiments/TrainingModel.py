@@ -120,11 +120,11 @@ def main(args):
             model = NeuralNetwork.get_load_saved_model(modelSavedPath, custom_objects=custom_objects)
 
         # Callbacks:
-        callbacks_list = []
-        callbacks_list.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]))
+        list_callbacks = []
+        list_callbacks.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]))
         filename = joinpathnames(ModelsPath, 'model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5')
-        callbacks_list.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
-        # callbacks_list.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
+        list_callbacks.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
+        # list_callbacks.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
 
         # output model summary
         model.summary()
@@ -170,25 +170,26 @@ def main(args):
     print("Load Training data...")
     if (args.slidingWindowImages or args.transformationImages or args.elasticDeformationImages):
         print("Generate Training images with Batch Generator of Training data...")
-        (train_xData, train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles,
-                                                                        listTrainLabelsFiles)
+        
+        (list_train_xData, list_train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles,
+                                                                                  listTrainLabelsFiles)
         train_images_generator = getImagesDataGenerator3D(args.slidingWindowImages,
                                                           args.prop_overlap_Z_X_Y,
                                                           args.transformationImages,
                                                           args.elasticDeformationImages)
         train_batch_data_generator = TrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
-                                                                train_xData,
-                                                                train_yData,
+                                                                list_train_xData,
+                                                                list_train_yData,
                                                                 train_images_generator,
                                                                 batch_size=args.batch_size,
                                                                 shuffle=SHUFFLETRAINDATA)
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(train_batch_data_generator)))
     else:
-        (train_xData, train_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listTrainImagesFiles,
-                                                                                                    listTrainLabelsFiles)
+        (list_train_xData, list_train_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listTrainImagesFiles,
+                                                                                                              listTrainLabelsFiles)
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
-                                                                          len(train_xData)))
+                                                                          len(list_train_xData)))
 
     if use_validation_data:
         print("Load Validation data...")
@@ -196,15 +197,16 @@ def main(args):
             print("Generate Validation images with Batch Generator of Validation data...")
             args.transformationImages = args.transformationImages and args.useTransformOnValidationData
             args.elasticDeformationImages = args.elasticDeformationImages and args.useTransformOnValidationData
-            (valid_xData, valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles,
-                                                                            listValidLabelsFiles)
+            
+            (list_valid_xData, list_valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles,
+                                                                                      listValidLabelsFiles)
             valid_images_generator = getImagesDataGenerator3D(args.slidingWindowImages,
                                                               args.prop_overlap_Z_X_Y,
                                                               args.transformationImages,
                                                               args.elasticDeformationImages)
             valid_batch_data_generator = TrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
-                                                                    valid_xData,
-                                                                    valid_yData,
+                                                                    list_valid_xData,
+                                                                    list_valid_yData,
                                                                     valid_images_generator,
                                                                     batch_size=args.batch_size,
                                                                     shuffle=SHUFFLETRAINDATA)
@@ -212,11 +214,11 @@ def main(args):
             print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles),
                                                                               len(valid_batch_data_generator)))
         else:
-            (valid_xData, valid_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listValidImagesFiles,
-                                                                                                        listValidLabelsFiles)
-            validation_data = (valid_xData, valid_yData)
+            (list_valid_xData, list_valid_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listValidImagesFiles,
+                                                                                                                  listValidLabelsFiles)
+            validation_data = (list_valid_xData, list_valid_yData)
             print("Number volumes: %s. Total Data batches generated: %s..." % (len(listTrainImagesFiles),
-                                                                               len(valid_xData)))
+                                                                               len(list_valid_xData)))
     else:
         validation_data = None
 
@@ -235,17 +237,18 @@ def main(args):
                                 nb_epoch=args.num_epochs,
                                 steps_per_epoch=args.max_steps_epoch,
                                 verbose=1,
-                                callbacks=callbacks_list,
+                                callbacks=list_callbacks,
                                 validation_data=validation_data,
                                 shuffle=SHUFFLETRAINDATA,
                                 initial_epoch=initial_epoch)
         else:
-            model.fit(train_xData, train_yData,
+            model.fit(list_train_xData,
+                      list_train_yData,
                       batch_size=args.batch_size,
                       epochs=args.num_epochs,
                       steps_per_epoch=args.max_steps_epoch,
                       verbose=1,
-                      callbacks=callbacks_list,
+                      callbacks=list_callbacks,
                       validation_data=validation_data,
                       shuffle=SHUFFLETRAINDATA,
                       initial_epoch=initial_epoch)

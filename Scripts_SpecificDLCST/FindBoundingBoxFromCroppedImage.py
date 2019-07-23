@@ -70,7 +70,7 @@ def main(args):
 
     workDirsManager     = WorkDirsManager(args.datadir)
     InputFullImagesPath = workDirsManager.getNameExistPath(nameInputFullImagesRelPath)
-    InputCropImagesPath = workDirsManager.getNameExistPath(nameInputCropImagesRelPath)
+    InputCropImagesPath = workDirsManager.getNameExistPath(nameInputImagesRelPath)
 
     listInputFullImagesFiles = findFilesDirAndCheck(InputFullImagesPath, nameInputFullImagesFiles)
     listInputCropImagesFiles = findFilesDirAndCheck(InputCropImagesPath, nameInputCropImagesFiles)
@@ -86,12 +86,12 @@ def main(args):
         print("\nInput: \'%s\'..." %(basename(in_full_image_file)))
         print("And: \'%s\'..." %(basename(in_crop_image_file)))
 
-        full_image_array = FileReader.getImageArray(in_full_image_file)
-        crop_image_array = FileReader.getImageArray(in_crop_image_file)
-        crop_image_array = FlippingImages.compute(crop_image_array, axis=0)
+        in_fullimage_array = FileReader.getImageArray(in_full_image_file)
+        in_cropimage_array = FileReader.getImageArray(in_crop_image_file)
+        in_cropimage_array = FlippingImages.compute(in_cropimage_array, axis=0)
 
-        full_image_shape = np.array(full_image_array.shape)
-        crop_image_shape = np.array(crop_image_array.shape)
+        full_image_shape = np.array(in_fullimage_array.shape)
+        crop_image_shape = np.array(in_cropimage_array.shape)
         test_range_boundbox = compute_test_range_boundbox(full_image_shape,
                                                           crop_image_shape,
                                                           alpha_relax=_alpha_relax,
@@ -99,15 +99,15 @@ def main(args):
                                                           z_numtest=_z_numtest)
 
         test_range_boundbox_shape = BoundingBoxes.compute_size_bounding_box(test_range_boundbox)
-        if (test_range_boundbox_shape < crop_image_array.shape):
+        if (test_range_boundbox_shape < in_cropimage_array.shape):
             message = 'size test range of Bounding Boxes than cropped Image: \'%s\' < \'%s\'...' %(test_range_boundbox_shape,
-                                                                                                   crop_image_array.shape)
+                                                                                                   in_cropimage_array.shape)
             CatchErrorException(message)
         else:
             test_range_boundbox_shape = np.array(test_range_boundbox_shape)
 
         (num_test_boundbox, num_tests_total) = compute_num_tests_boundbox(test_range_boundbox_shape,
-                                                                          crop_image_array)
+                                                                          in_cropimage_array)
         print("size full image: \'%s\'..." %(full_image_shape))
         print("size cropped image: \'%s\'..." %(crop_image_shape))
         print("test range bounding boxes: \'%s\'..." %(test_range_boundbox))
@@ -130,9 +130,9 @@ def main(args):
                     #counter = counter + 1
                     test_bounding_box = ((z0,zm),(y0,ym),(x0,xm))
                     #print("test bounding box: %s..." %(test_bounding_box))
-                    test_res_matrix = full_image_array[test_bounding_box[0][0]:test_bounding_box[0][1],
+                    test_res_matrix = in_fullimage_array[test_bounding_box[0][0]:test_bounding_box[0][1],
                                                        test_bounding_box[1][0]:test_bounding_box[1][1],
-                                                       test_bounding_box[2][0]:test_bounding_box[2][1]] - crop_image_array
+                                                       test_bounding_box[2][0]:test_bounding_box[2][1]] - in_cropimage_array
                     sum_test_res = np.abs(np.sum(test_res_matrix))
                     if (sum_test_res <_eps):
                         flag_found_boundbox = True

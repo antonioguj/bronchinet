@@ -41,20 +41,21 @@ def main(args):
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." %(basename(in_image_file)))
 
-        image_array = FileReader.getImageArray(in_image_file)
+        in_image_array = FileReader.getImageArray(in_image_file)
 
         if (args.rescaleImages):
             rescale_factor = dict_rescaleFactors[filenamenoextension(in_image_file)]
             print("Rescale image with a factor: \'%s\'..." %(str(rescale_factor)))
 
-            image_array = RescaleImages.compute3D(image_array, rescale_factor)
-            print("Final dims: %s..." %(str(image_array.shape)))
-
+            out_image_array = RescaleImages.compute3D(in_image_array, rescale_factor)
+            print("Final dims: %s..." %(str(out_image_array.shape)))
+        else:
+            out_image_array = in_image_array
 
         out_file = joinpathnames(OutputImagesPath, nameOutputImagesFiles(in_image_file))
-        print("Output: \'%s\', of dims \'%s\'..." %(basename(out_file), str(image_array.shape)))
+        print("Output: \'%s\', of dims \'%s\'..." %(basename(out_file), str(out_image_array.shape)))
 
-        FileReader.writeImageArray(out_file, image_array)
+        FileReader.writeImageArray(out_file, out_image_array)
     #endfor
 
 

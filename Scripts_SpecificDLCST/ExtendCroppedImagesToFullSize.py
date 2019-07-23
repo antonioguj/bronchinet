@@ -49,20 +49,20 @@ def main(args):
         bounding_box = dict_bounding_boxes[filenamenoextension(in_refer_file)]
 
 
-        crop_image_array = FileReader.getImageArray(in_image_file)
-        print("Input cropped image size: \'%s\'..." %(str(crop_image_array.shape)))
+        in_cropimage_array = FileReader.getImageArray(in_image_file)
+        print("Input cropped image size: \'%s\'..." %(str(in_cropimage_array.shape)))
 
         # 1 step: invert image
-        crop_image_array = FlippingImages.compute(crop_image_array, axis=0)
+        in_cropimage_array = FlippingImages.compute(in_cropimage_array, axis=0)
         # 2 step: extend image
-        full_image_shape = FileReader.getImageSize(in_refer_file)
-        full_image_array = ExtendImages.compute3D(crop_image_array, bounding_box, full_image_shape)
-        print("Output full image size: \'%s\'..." % (str(full_image_array.shape)))
+        out_fullimage_shape = FileReader.getImageSize(in_refer_file)
+        out_fullimage_array = ExtendImages.compute3D(in_cropimage_array, bounding_box, out_fullimage_shape)
+        print("Output full image size: \'%s\'..." % (str(out_fullimage_array.shape)))
 
         out_image_file = joinpathnames(OutputImagesPath, nameOutputImagesFiles(in_image_file))
-        print("Output: \'%s\', of dims \'%s\'..." %(basename(out_image_file), str(full_image_array.shape)))
+        print("Output: \'%s\', of dims \'%s\'..." %(basename(out_image_file), str(out_fullimage_array.shape)))
 
-        FileReader.writeImageArray(out_image_file, full_image_array)
+        FileReader.writeImageArray(out_image_file, out_fullimage_array)
     #endfor
 
 

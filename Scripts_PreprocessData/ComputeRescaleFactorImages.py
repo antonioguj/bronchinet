@@ -38,10 +38,10 @@ def main(args):
     for i, in_image_file in enumerate(listInputImageFiles):
         print("\nInput: \'%s\'..." %(basename(in_image_file)))
 
-        voxel_size = DICOMreader.getVoxelSize(in_image_file)
-        print("Voxel Size: \'%s\'..." %(str(voxel_size)))
+        in_voxel_size = DICOMreader.getVoxelSize(in_image_file)
+        print("Voxel Size: \'%s\'..." %(str(in_voxel_size)))
 
-        dict_voxelSizes[filenamenoextension(in_image_file)] = voxel_size
+        dict_voxelSizes[filenamenoextension(in_image_file)] = in_voxel_size
     #endfor
 
 

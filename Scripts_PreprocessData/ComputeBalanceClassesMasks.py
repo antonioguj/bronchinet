@@ -49,12 +49,12 @@ def main(args):
     for i, in_mask_file in enumerate(listInputMasksFiles):
         print("\nInput: \'%s\'..." % (basename(in_mask_file)))
 
-        mask_array  = FileReader.getImageArray(in_mask_file)
+        in_mask_array  = FileReader.getImageArray(in_mask_file)
 
         if (args.masksToRegionInterest):
-            (num_foregrnd_class, num_backgrnd_class) = compute_balance_classes_with_exclusion(mask_array)
+            (num_foregrnd_class, num_backgrnd_class) = compute_balance_classes_with_exclusion(in_mask_array)
         else:
-            (num_foregrnd_class, num_backgrnd_class) = compute_balance_classes(mask_array)
+            (num_foregrnd_class, num_backgrnd_class) = compute_balance_classes(in_mask_array)
 
         ratio_back_foregrnd_class = num_backgrnd_class / num_foregrnd_class
 

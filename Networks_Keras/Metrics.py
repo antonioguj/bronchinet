@@ -22,7 +22,7 @@ class Metrics(object):
     max_size_memory_safe = 5e+08
     val_exclude = -1
     count = 0
-    _is_cenline_grndtru = True
+    _use_refer_centreline = False
 
     def __init__(self, is_masks_exclude=False):
         self.is_masks_exclude = is_masks_exclude
@@ -583,7 +583,7 @@ class FalseNegativeRate(Metrics):
 
 # airways completeness (percentage ground-truth centrelines found inside the predicted airways)
 class AirwayCompleteness(Metrics):
-    _is_cenline_grndtru = True
+    _use_refer_centreline = True
 
     def __init__(self, is_masks_exclude=False):
         super(AirwayCompleteness, self).__init__(is_masks_exclude)

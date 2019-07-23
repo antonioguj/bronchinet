@@ -166,15 +166,15 @@ EPOCH_RESTART = 40
 # ******************** POST-PROCESSING PARAMETERS ********************
 TYPEDATAPREDICT = 'testing'
 
-PREDICTION_MODELFILE = 'last'
+PREDICTION_MODELFILE = 'e400'
 
-LISTPOSTPROCESSMETRICS = ['DiceCoefficient',
-                          'TruePositiveRate',
-                          'TrueNegativeRate',
-                          'FalsePositiveRate',
-                          'FalseNegativeRate',
-                          'AirwayCompleteness',
-                          'AirwayVolumeLeakage']
+LISTRESULTMETRICS = ['DiceCoefficient',
+                     'TruePositiveRate',
+                     'TrueNegativeRate',
+                     'FalsePositiveRate',
+                     'FalseNegativeRate',
+                     'AirwayCompleteness',
+                     'AirwayVolumeLeakage']
 
 FILTERPREDICTPROBMAPS = True
 
@@ -190,7 +190,5 @@ CALCMASKSTHRESHOLDING = True
 
 THRESHOLDVALUE = 0.5
 
-ATTACHTRAQUEATOCALCMASKS = True
-
-SAVETHRESHOLDIMAGES = True
+REMOVETRACHEARESMETRICS = True
 # ******************** POST-PROCESSING PARAMETERS ********************

@@ -57,7 +57,7 @@ class WorkDirsManager(object):
 
     def getNameExistBaseDataPath(self, relPath):
         relPath = joinpathnames(self.baseDataRelPath, relPath)
-        self.getNameExistPath(relPath)
+        return self.getNameExistPath(relPath)
 
     def getNameNewPath(self, relPath):
         newPath = joinpathnames(self.basePath, relPath)
@@ -67,7 +67,7 @@ class WorkDirsManager(object):
 
     def getNameNewBaseDataPath(self, relPath):
         relPath = joinpathnames(self.baseDataRelPath, relPath)
-        self.getNameNewPath(relPath)
+        return self.getNameNewPath(relPath)
 
     def getNameUpdatePath(self, relPath):
         #datetoday_str= '%i-%i-%i'%(getdatetoday())

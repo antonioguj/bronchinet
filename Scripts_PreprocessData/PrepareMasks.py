@@ -24,8 +24,8 @@ def main(args):
     nameReferFilesRelPath     = 'RawImages/'
     nameOutputImagesRelPath   = 'Airways_Proc/'
     nameOutputRoiMasksRelPath = 'Lungs_Proc/'
-    nameInputImagesFiles      = '*.nii.gz'
-    nameInputRoiMasksFiles    = '*.nii.gz'
+    nameInputImagesFiles      = '*.dcm'
+    nameInputRoiMasksFiles    = '*.dcm'
     nameInputReferFiles       = '*.dcm'
     nameRescaleFactors        = 'rescaleFactors_images.npy'
 
@@ -70,11 +70,13 @@ def main(args):
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
-        image_array = FileReader.getImageArray(in_image_file)
+        in_image_array = FileReader.getImageArray(in_image_file)
 
         if (args.isClassificationData):
             print("Convert to binary masks (0, 1)...")
-            image_array = OperationBinaryMasks.process_masks(image_array)
+            out_image_array = OperationBinaryMasks.process_masks(in_image_array)
+        else:
+            out_image_array = in_image_array
 
 
         if (args.masksToRegionInterest):
@@ -82,14 +84,16 @@ def main(args):
             in_roimask_file = listInputRoiMasksFiles[i]
             print("RoI mask (lungs) file: \'%s\'..." %(basename(in_roimask_file)))
 
-            roimask_array = FileReader.getImageArray(in_roimask_file)
+            in_roimask_array = FileReader.getImageArray(in_roimask_file)
 
             if (args.isClassificationData):
                 print("Convert to binary masks (0, 1)...")
-                roimask_array = OperationBinaryMasks.process_masks(roimask_array)
+                out_roimask_array = OperationBinaryMasks.process_masks(in_roimask_array)
+            else:
+                out_roimask_array = in_roimask_array
 
             # Image masked to RoI: exclude voxels not contained in lungs
-            image_maskedToRoi_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(image_array, roimask_array)
+            out_imagemaskedRoi_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(out_image_array, out_roimask_array)
 
 
         if (args.rescaleImages):
@@ -97,25 +101,25 @@ def main(args):
             rescale_factor = dict_rescaleFactors[filenamenoextension(in_refer_file)]
             print("Rescale image with a factor: \'%s\'..." %(str(rescale_factor)))
 
-            image_array = RescaleImages.compute3D(image_array, rescale_factor, is_binary_mask=True)
-            print("Final dims: %s..." %(str(image_array.shape)))
+            out_image_array = RescaleImages.compute3D(out_image_array, rescale_factor, is_binary_mask=True)
+            print("Final dims: %s..." %(str(out_image_array.shape)))
 
             if (args.masksToRegionInterest):
-                roimask_array = RescaleImages.compute3D(roimask_array, rescale_factor, is_binary_mask=True)
-                image_maskedToRoi_array = RescaleImages.compute3D(image_maskedToRoi_array, rescale_factor, is_binary_mask=True)
+                out_roimask_array = RescaleImages.compute3D(out_roimask_array, rescale_factor, is_binary_mask=True)
+                out_imagemaskedRoi_array = RescaleImages.compute3D(out_imagemaskedRoi_array, rescale_factor, is_binary_mask=True)
 
 
         out_file = joinpathnames(OutputImagesPath, nameOutputImagesFiles(basename(in_image_file)))
-        print("Output: \'%s\', of dims \'%s\'..." % (basename(out_file), str(image_array.shape)))
+        print("Output: \'%s\', of dims \'%s\'..." % (basename(out_file), str(out_image_array.shape)))
 
-        FileReader.writeImageArray(out_file, image_array)
+        FileReader.writeImageArray(out_file, out_image_array)
 
         if (args.masksToRegionInterest):
             out_roimask_file = joinpathnames(OutputRoiMasksPath, nameOutputRoiMasksFiles(basename(in_roimask_file)))
             out_maskedToRoi_file = joinpathnames(OutputImagesPath, nameOutputImagesMaskedToRoiFiles(basename(in_image_file)))
 
-            FileReader.writeImageArray(out_roimask_file, roimask_array)
-            FileReader.writeImageArray(out_maskedToRoi_file, image_maskedToRoi_array)
+            FileReader.writeImageArray(out_roimask_file, out_roimask_array)
+            FileReader.writeImageArray(out_maskedToRoi_file, out_imagemaskedRoi_array)
     #endfor
 
 
