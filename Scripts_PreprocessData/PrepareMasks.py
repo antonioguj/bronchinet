@@ -19,36 +19,39 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath    = 'RawAirways'
-    nameInputRoiMasksRelPath  = 'RawLungs'
-    nameReferFilesRelPath     = 'RawImages'
-    nameOutputImagesRelPath   = 'Airways_Full'
-    nameOutputRoiMasksRelPath = 'Lungs_Full'
-    nameInputImagesFiles      = '*.dcm'
-    nameInputRoiMasksFiles    = '*.dcm'
+    nameInputImagesRelPath    = 'RawAirways/'
+    nameInputRoiMasksRelPath  = 'RawLungs/'
+    nameReferFilesRelPath     = 'RawImages/'
+    nameOutputImagesRelPath   = 'Airways_Proc/'
+    nameOutputRoiMasksRelPath = 'Lungs_Proc/'
+    nameInputImagesFiles      = '*.nii.gz'
+    nameInputRoiMasksFiles    = '*.nii.gz'
     nameInputReferFiles       = '*.dcm'
-    # prefixPatternInputFiles = 'av[0-9][0-9]*'
     nameRescaleFactors        = 'rescaleFactors_images.npy'
 
     def nameOutputImagesFiles(in_name):
         in_name = in_name.replace('surface0','lumen')
         in_name = in_name.replace('surface1','outwall')
-        #in_name = in_name.replace('-result','_noopfront')
-        #in_name = in_name.replace('-centrelines','_centrelines')
         return filenamenoextension(in_name) + '.nii.gz'
+
+    if args.isInputCentrelines:
+        nameInputImagesRelPath  = 'RawCentrelines/'
+        nameOutputImagesRelPath = 'Centrelines_Proc/'
+
+        def nameOutputImagesFiles(in_name):
+            in_name = in_name.replace('-centrelines','_centrelines')
+            return filenamenoextension(in_name) + '.nii.gz'
 
     nameOutputRoiMasksFiles = lambda in_name: filenamenoextension(in_name).replace('-lungs','_lungs') + '.nii.gz'
     nameOutputImagesMaskedToRoiFiles = lambda in_name: filenamenoextension(nameOutputImagesFiles(in_name)) + '_maskedToLungs.nii.gz'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager     = WorkDirsManager(args.datadir)
-    InputImagesPath     = workDirsManager.getNameExistPath(nameInputImagesRelPath)
-    InputReferFilesPath = workDirsManager.getNameExistPath(nameReferFilesRelPath)
-    OutputImagesPath    = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
+    workDirsManager  = WorkDirsManager(args.datadir)
+    InputImagesPath  = workDirsManager.getNameExistPath(nameInputImagesRelPath)
+    OutputImagesPath = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
 
     listInputImagesFiles = findFilesDirAndCheck(InputImagesPath,     nameInputImagesFiles)
-    listInputReferFiles  = findFilesDirAndCheck(InputReferFilesPath, nameInputReferFiles)
 
     if (args.masksToRegionInterest):
         InputRoiMasksPath  = workDirsManager.getNameExistPath(nameInputRoiMasksRelPath)
@@ -57,6 +60,9 @@ def main(args):
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
 
     if (args.rescaleImages):
+        InputReferFilesPath = workDirsManager.getNameExistPath(nameReferFilesRelPath)
+        listInputReferFiles = findFilesDirAndCheck(InputReferFilesPath, nameInputReferFiles)
+
         dict_rescaleFactors = readDictionary(joinpathnames(args.datadir, nameRescaleFactors))
 
 
@@ -73,7 +79,7 @@ def main(args):
 
         if (args.masksToRegionInterest):
             print("Mask input to RoI: lungs...")
-            in_roimask_file = findFileWithSamePrefix(basename(in_image_file), listInputRoiMasksFiles)
+            in_roimask_file = listInputRoiMasksFiles[i]
             print("RoI mask (lungs) file: \'%s\'..." %(basename(in_roimask_file)))
 
             roimask_array = FileReader.getImageArray(in_roimask_file)
@@ -87,7 +93,7 @@ def main(args):
 
 
         if (args.rescaleImages):
-            in_refer_file = findFileWithSamePrefix(basename(in_image_file), listInputReferFiles)
+            in_refer_file = listInputReferFiles[i]
             rescale_factor = dict_rescaleFactors[filenamenoextension(in_refer_file)]
             print("Rescale image with a factor: \'%s\'..." %(str(rescale_factor)))
 
@@ -117,6 +123,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', default=DATADIR)
+    parser.add_argument('--isInputCentrelines', type=str2bool, default=False)
     parser.add_argument('--isClassificationData', type=str, default=ISCLASSIFICATIONDATA)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)

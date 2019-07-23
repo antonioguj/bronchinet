@@ -43,30 +43,28 @@ def find_element_repeated_two_indexes_names(names_images_type_data_1, names_imag
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameOrigImagesDataRelPath = 'Images_WorkData'
-    nameOrigMasksDataRelPath = 'LumenDistTrans_WorkData'
-
-    nameOriginImagesFiles = 'images*'+ getFileExtension(FORMATTRAINDATA)
-    nameOriginMasksFiles = 'grndtru*'+ getFileExtension(FORMATTRAINDATA)
+    nameOriginImagesDataRelPath = 'Images_WorkData/'
+    nameOriginLabelsDataRelPath = 'Labels_WorkData/'
+    nameOriginImagesFiles       = 'images*' + getFileExtension(FORMATTRAINDATA)
+    nameOriginLabelsFiles       = 'labels*' + getFileExtension(FORMATTRAINDATA)
     # ---------- SETTINGS ----------
 
 
-    workDirsManager = WorkDirsManager(args.basedir)
+    workDirsManager      = WorkDirsManager(args.basedir)
+    OriginImagesDataPath = workDirsManager.getNameExistBasePath(nameOriginImagesDataRelPath)
+    OriginLabelsDataPath = workDirsManager.getNameExistBasePath(nameOriginLabelsDataRelPath)
+    TrainingDataPath     = workDirsManager.getNameNewPath      ('TrainingData/')
+    ValidationDataPath   = workDirsManager.getNameNewPath      ('ValidationData/')
+    TestingDataPath      = workDirsManager.getNameNewPath      ('TestingData/')
 
-    OrigImagesDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameBaseDataPath(), nameOrigImagesDataRelPath)
-    OrigGroundTruthDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameBaseDataPath(), nameOrigMasksDataRelPath)
-    TrainingDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameTrainingDataPath())
-    ValidationDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameValidationDataPath())
-    TestingDataPath = workDirsManager.getNameNewPath(workDirsManager.getNameTestingDataPath())
-
-    listImagesFiles = findFilesDir(OrigImagesDataPath, nameOriginImagesFiles)
-    listGroundTruthFiles = findFilesDir(OrigGroundTruthDataPath, nameOriginMasksFiles)
+    listImagesFiles = findFilesDir(OriginImagesDataPath, nameOriginImagesFiles)
+    listLabelsFiles = findFilesDir(OriginLabelsDataPath, nameOriginLabelsFiles)
 
     numImagesFiles = len(listImagesFiles)
-    numGroundTruthFiles = len(listGroundTruthFiles)
+    numLabelsFiles = len(listLabelsFiles)
 
-    if (numImagesFiles != numGroundTruthFiles):
-        message = "num image files \'%s\' not equal to num ground-truth files \'%s\'..." %(numImagesFiles, numGroundTruthFiles)
+    if (numImagesFiles != numLabelsFiles):
+        message = "num image files \'%s\' not equal to num ground-truth files \'%s\'..." %(numImagesFiles, numLabelsFiles)
         CatchErrorException(message)
 
 
@@ -112,21 +110,21 @@ def main(args):
     # ******************** TRAINING DATA ********************
     for index in indexesTraining:
         makelink(listImagesFiles[index], joinpathnames(TrainingDataPath, basename(listImagesFiles[index])))
-        makelink(listGroundTruthFiles[index], joinpathnames(TrainingDataPath, basename(listGroundTruthFiles[index])))
+        makelink(listLabelsFiles[index], joinpathnames(TrainingDataPath, basename(listLabelsFiles[index])))
     #endfor
     # ******************** TRAINING DATA ********************
 
     # ******************** VALIDATION DATA ********************
     for index in indexesValidation:
         makelink(listImagesFiles[index], joinpathnames(ValidationDataPath, basename(listImagesFiles[index])))
-        makelink(listGroundTruthFiles[index], joinpathnames(ValidationDataPath, basename(listGroundTruthFiles[index])))
+        makelink(listLabelsFiles[index], joinpathnames(ValidationDataPath, basename(listLabelsFiles[index])))
     #endfor
     # ******************** VALIDATION DATA ********************
 
     # ******************** TESTING DATA ********************
     for index in indexesTesting:
         makelink(listImagesFiles[index], joinpathnames(TestingDataPath, basename(listImagesFiles[index])))
-        makelink(listGroundTruthFiles[index], joinpathnames(TestingDataPath, basename(listGroundTruthFiles[index])))
+        makelink(listLabelsFiles[index], joinpathnames(TestingDataPath, basename(listLabelsFiles[index])))
     #endfor
     # ******************** TESTING DATA ********************
 

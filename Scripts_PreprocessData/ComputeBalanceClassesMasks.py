@@ -34,7 +34,7 @@ def compute_balance_classes_with_exclusion(mask_array):
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputRelPath = 'LumenMasks_WorkData'
+    nameInputRelPath = 'LumenMasks_WorkData/'
     nameInputFiles   = 'labels*.npz'
     # ---------- SETTINGS ----------
 

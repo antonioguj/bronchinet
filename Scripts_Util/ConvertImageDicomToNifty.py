@@ -23,6 +23,7 @@ def main(args):
     # ---------- SETTINGS ----------
 
     listInputFiles = findFilesDirAndCheck(InputPath, namesInputFiles)
+    makedir(OutputPath)
 
 
     for in_file in listInputFiles:
@@ -40,8 +41,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('inputdir', type=str, nargs=1)
-    parser.add_argument('outputdir', type=str, nargs=1)
+    parser.add_argument('inputdir', type=str)
+    parser.add_argument('outputdir', type=str)
     args = parser.parse_args()
 
     print("Print input arguments...")

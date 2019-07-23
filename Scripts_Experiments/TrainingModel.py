@@ -36,32 +36,28 @@ def main(args):
 
     # ---------- SETTINGS ----------
     nameModelsRelPath = args.modelsdir
-
-    # Get the file list:
-    nameImagesFiles = 'images*' + getFileExtension(FORMATTRAINDATA)
-    nameGroundTruthFiles = 'grndtru*'+ getFileExtension(FORMATTRAINDATA)
+    nameImagesFiles   = 'images*' + getFileExtension(FORMATTRAINDATA)
+    nameLabelsFiles   = 'labels*' + getFileExtension(FORMATTRAINDATA)
     # ---------- SETTINGS ----------
 
 
-    workDirsManager = WorkDirsManager(args.basedir)
-    #TrainingDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameTrainingDataPath())
-    TrainingDataPath = joinpathnames(args.basedir, args.traindatadir)
+    workDirsManager  = WorkDirsManager(args.basedir)
+    TrainingDataPath = workDirsManager.getNameExistPath(args.traindatadir)
     if args.use_restartModel:
-        ModelsPath = workDirsManager.getNameExistPath(args.basedir, nameModelsRelPath)
+        ModelsPath = workDirsManager.getNameExistPath(nameModelsRelPath)
     else:
-        ModelsPath = workDirsManager.getNameUpdatePath(args.basedir, nameModelsRelPath)
+        ModelsPath = workDirsManager.getNameUpdatePath(nameModelsRelPath)
 
-    listTrainImagesFiles = findFilesDir(TrainingDataPath, nameImagesFiles)
-    listTrainGroundTruthFiles = findFilesDir(TrainingDataPath, nameGroundTruthFiles)
+    listTrainImagesFiles = findFilesDirAndCheck(TrainingDataPath, nameImagesFiles)
+    listTrainLabelsFiles = findFilesDirAndCheck(TrainingDataPath, nameLabelsFiles)
 
     if args.useValidationData:
-        #ValidationDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameValidationDataPath())
-        ValidationDataPath = joinpathnames(args.basedir, args.validdatadir)
+        ValidationDataPath = workDirsManager.getNameExistPath(args.validdatadir)
 
         listValidImagesFiles = findFilesDir(ValidationDataPath, nameImagesFiles)
-        listValidGroundTruthFiles = findFilesDir(ValidationDataPath, nameGroundTruthFiles)
+        listValidLabelsFiles = findFilesDir(ValidationDataPath, nameLabelsFiles)
 
-        if not listValidImagesFiles or not listValidGroundTruthFiles:
+        if not listValidImagesFiles or not listValidLabelsFiles:
             use_validation_data = False
             message = "No validation data used for training the model..."
             CatchWarningException(message)
@@ -175,7 +171,7 @@ def main(args):
     if (args.slidingWindowImages or args.transformationImages or args.elasticDeformationImages):
         print("Generate Training images with Batch Generator of Training data...")
         (train_xData, train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles,
-                                                                        listTrainGroundTruthFiles)
+                                                                        listTrainLabelsFiles)
         train_images_generator = getImagesDataGenerator3D(args.slidingWindowImages,
                                                           args.prop_overlap_Z_X_Y,
                                                           args.transformationImages,
@@ -190,7 +186,7 @@ def main(args):
                                                                           len(train_batch_data_generator)))
     else:
         (train_xData, train_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listTrainImagesFiles,
-                                                                                                    listTrainGroundTruthFiles)
+                                                                                                    listTrainLabelsFiles)
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(train_xData)))
 
@@ -201,7 +197,7 @@ def main(args):
             args.transformationImages = args.transformationImages and args.useTransformOnValidationData
             args.elasticDeformationImages = args.elasticDeformationImages and args.useTransformOnValidationData
             (valid_xData, valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles,
-                                                                            listValidGroundTruthFiles)
+                                                                            listValidLabelsFiles)
             valid_images_generator = getImagesDataGenerator3D(args.slidingWindowImages,
                                                               args.prop_overlap_Z_X_Y,
                                                               args.transformationImages,
@@ -217,7 +213,7 @@ def main(args):
                                                                               len(valid_batch_data_generator)))
         else:
             (valid_xData, valid_yData) = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_ListFiles(listValidImagesFiles,
-                                                                                                        listValidGroundTruthFiles)
+                                                                                                        listValidLabelsFiles)
             validation_data = (valid_xData, valid_yData)
             print("Number volumes: %s. Total Data batches generated: %s..." % (len(listTrainImagesFiles),
                                                                                len(valid_xData)))

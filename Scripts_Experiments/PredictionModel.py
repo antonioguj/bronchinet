@@ -35,20 +35,15 @@ def main(args):
                                    type_GPU_installed=args.typeGPUinstalled)
 
     # ---------- SETTINGS ----------
-    nameInputRoiMasksRelPath = 'Lungs_Full'
-    nameReferenceImgRelPath = 'Images_Full'
-
-    # Get the file list:
-    nameImagesFiles = 'images*' + getFileExtension(FORMATTRAINDATA)
-    nameGroundTruthFiles = 'grndtru*'+ getFileExtension(FORMATTRAINDATA)
-
-    nameInputRoiMasksFiles = '*_lungs.nii.gz'
-    nameReferenceImgFiles = '*.nii.gz'
-
-    nameRescaleFactors = 'rescaleFactors_images.npy'
-    nameCropBoundingBoxes = 'cropBoundingBoxes_images.npy'
-
-    nameOutputPredictionFiles = 'predict-probmaps_%s.nii.gz'
+    nameInputRoiMasksRelPath   = 'Lungs_Proc/'
+    nameInputReferFilesRelPath = 'Images_Proc/'
+    nameImagesFiles            = 'images*' + getFileExtension(FORMATTRAINDATA)
+    nameLabelsFiles            = 'labels*' + getFileExtension(FORMATTRAINDATA)
+    nameInputRoiMasksFiles     = '*_lungs.nii.gz'
+    nameInputReferFiles        = '*.nii.gz'
+    nameRescaleFactors         = 'rescaleFactors_images.npy'
+    nameCropBoundingBoxes      = 'cropBoundingBoxes_images.npy'
+    nameOutputPredictionFiles  = 'predict-probmaps_%s.nii.gz'
 
     if (args.saveFeatMapsLayers):
         nameOutputFeatureMapsDirs = 'featureMaps-%s_lay_%s'
@@ -56,28 +51,25 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
+    workDirsManager     = WorkDirsManager(args.basedir)
+    TestingDataPath     = workDirsManager.getNameExistPath(args.testdatadir)
+    InputReferFilesPath = workDirsManager.getNameExistBaseDataPath(nameInputReferFilesRelPath)
+    ModelsPath          = workDirsManager.getNameExistPath(args.modelsdir)
+    OutputPredictionPath= workDirsManager.getNameNewPath  (args.predictionsdir)
 
-    workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath = workDirsManager.getNameBaseDataPath()
-    #TestingDataPath = workDirsManager.getNameExistPath(workDirsManager.getNameDataPath(args.typedata))
-    TestingDataPath = joinpathnames(args.basedir, args.testdatadir)
-    ReferenceImgPath = workDirsManager.getNameExistPath(BaseDataPath, nameReferenceImgRelPath)
-    ModelsPath = workDirsManager.getNameExistPath(args.basedir, args.modelsdir)
-    OutputPredictionPath = workDirsManager.getNameNewPath(args.basedir, args.predictionsdir)
-
-    listTestImagesFiles = findFilesDir(TestingDataPath, nameImagesFiles)
-    listTestGroundTruthFiles = findFilesDir(TestingDataPath, nameGroundTruthFiles)
-    listReferenceImgsFiles = findFilesDirAndCheck(ReferenceImgPath, nameReferenceImgFiles)
+    listTestImagesFiles = findFilesDirAndCheck(TestingDataPath,     nameImagesFiles)
+    listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath,     nameLabelsFiles)
+    listInputReferFiles = findFilesDirAndCheck(InputReferFilesPath, nameInputReferFiles)
 
     if (args.masksToRegionInterest):
-        InputRoiMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputRoiMasksRelPath)
+        InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
 
     if (args.rescaleImages):
-        dict_rescaleFactors = readDictionary(joinpathnames(BaseDataPath, nameRescaleFactors))
+        dict_rescaleFactors = readDictionary(joinpathnames(workDirsManager.getNameBaseDataPath(), nameRescaleFactors))
 
     if (args.cropImages):
-        dict_cropBoundingBoxes = readDictionary(joinpathnames(BaseDataPath, nameCropBoundingBoxes))
+        dict_cropBoundingBoxes = readDictionary(joinpathnames(workDirsManager.getNameBaseDataPath(), nameCropBoundingBoxes))
 
 
     test_images_generator = getImagesDataGenerator3D(args.slidingWindowImages,
@@ -197,9 +189,9 @@ def main(args):
         # ------------------------------------------
         print("Reconstruct prediction to full size...")
         # Assign original images and masks files
-        index_refer_img = getIndexOriginImagesFile(basename(test_xData_file), beginString='images', firstIndex='01')
-        reference_img_file = listReferenceImgsFiles[index_refer_img]
-        print("Reference image file: \'%s\'..." %(basename(reference_img_file)))
+        index_referimg_file = getIndexOriginImagesFile(basename(test_xData_file), beginString='images', firstIndex='01')
+        in_referimage_file = listInputReferFiles[index_referimg_file]
+        print("Reference image file: \'%s\'..." %(basename(in_referimage_file)))
 
         # init reconstructor with size of "ifile"
         predict_fullsize_shape = FileReader.getImageSize(test_xData_file)
@@ -212,19 +204,19 @@ def main(args):
 
 
         # reconstruct from cropped / rescaled images
-        reference_img_shape = FileReader.getImageSize(reference_img_file)
+        referimage_shape = FileReader.getImageSize(in_referimage_file)
 
         if (args.cropImages):
-            crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(reference_img_file)]
+            crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_referimage_file)]
             print("Predicted data are cropped. Extend array size to original. Bounding-box: \'%s\'..." %(str(crop_bounding_box)))
 
-            prediction_array = ExtendImages.compute3D(prediction_array, crop_bounding_box, reference_img_shape)
+            prediction_array = ExtendImages.compute3D(prediction_array, crop_bounding_box, referimage_shape)
             print("Final dims: %s..." %(str(prediction_array.shape)))
 
 
         if (args.masksToRegionInterest):
             print("Mask predictions to RoI: lungs...")
-            in_roimask_file = listInputRoiMasksFiles[index_refer_img]
+            in_roimask_file = listInputRoiMasksFiles[index_referimg_file]
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
             roimask_array = FileReader.getImageArray(in_roimask_file)
@@ -235,7 +227,7 @@ def main(args):
             print("Reconstruct predicted feature maps to full size...")
             if (args.cropImages):
                 num_featmaps = featuremaps_array.shape[-1]
-                featuremaps_shape = list(reference_img_shape) + [num_featmaps]
+                featuremaps_shape = list(referimage_shape) + [num_featmaps]
                 featuremaps_array = ExtendImages.compute3D(featuremaps_array, crop_bounding_box, featuremaps_shape)
 
             if (args.masksToRegionInterest):
@@ -244,18 +236,18 @@ def main(args):
 
 
 
-        out_prediction_file = joinpathnames(OutputPredictionPath, nameOutputPredictionFiles %(filenamenoextension(reference_img_file)))
+        out_prediction_file = joinpathnames(OutputPredictionPath, nameOutputPredictionFiles %(filenamenoextension(in_referimage_file)))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_prediction_file), prediction_array.shape))
 
         FileReader.writeImageArray(out_prediction_file, prediction_array)
 
         if (args.saveFeatMapsLayers):
-            nameOutputFeatureMapsRelPath = nameOutputFeatureMapsDirs %(filenamenoextension(reference_img_file), args.nameSaveModelLayer)
+            nameOutputFeatureMapsRelPath = nameOutputFeatureMapsDirs %(filenamenoextension(in_referimage_file), args.nameSaveModelLayer)
             OutputFeatureMapsPath = workDirsManager.getNameNewPath(OutputPredictionPath, nameOutputFeatureMapsRelPath)
 
             num_featmaps = featuremaps_array.shape[-1]
             for ifeatmap in range(num_featmaps):
-                out_featuremaps_file = joinpathnames(OutputFeatureMapsPath, nameOutputFeatureMapsFiles %(filenamenoextension(reference_img_file),
+                out_featuremaps_file = joinpathnames(OutputFeatureMapsPath, nameOutputFeatureMapsFiles %(filenamenoextension(in_referimage_file),
                                                                                                          args.nameSaveModelLayer,
                                                                                                          get_index_featmap(ifeatmap)+1))
                 print("Output: \'%s\', of dims \'%s\'..." %(basename(out_featuremaps_file), featuremaps_array[...,ifeatmap].shape))

@@ -27,6 +27,7 @@ def main(args):
     # ---------- SETTINGS ----------
 
     listInputFiles = findFilesDirAndCheck(InputPath, namesInputFiles)
+    makedir(OutputPath)
 
 
     for in_file in listInputFiles:
@@ -36,15 +37,16 @@ def main(args):
         print("\Output: \'%s\'..." % (basename(out_file)))
 
         command_string = bin_convertHR2 + ' ' + in_file + ' ' + out_file
-        #os.system(command_string)
+        print("%s" %(command_string))
+        os.system(command_string)
     #endfor
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('inputdir', type=str, nargs=1)
-    parser.add_argument('outputdir', type=str, nargs=1)
+    parser.add_argument('inputdir', type=str)
+    parser.add_argument('outputdir', type=str)
     args = parser.parse_args()
 
     print("Print input arguments...")

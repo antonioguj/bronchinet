@@ -19,10 +19,10 @@ import argparse
 def main(args):
     # ---------- SETTINGS ----------
     nameInputImagesRelPath     = args.inputdir
-    nameInputReferFilesRelPath = 'Images_Full'
+    nameInputReferFilesRelPath = 'RawImages/'
     nameOutputImagesRelPath    = args.outputdir
-    nameInputImagesFiles       = '*.nii.gz'
-    nameInputReferFiles        = '*.nii.gz'
+    nameInputImagesFiles       = '*.dcm'
+    nameInputReferFiles        = '*.dcm'
     nameBoundingBoxes          = 'found_boundBoxes_original.npy'
     nameOutputImagesFiles      = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
@@ -69,8 +69,8 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', default=DATADIR)
-    parser.add_argument('--inputdir')
-    parser.add_argument('--outputdir')
+    parser.add_argument('inputdir')
+    parser.add_argument('outputdir')
     args = parser.parse_args()
 
     if not args.inputdir:

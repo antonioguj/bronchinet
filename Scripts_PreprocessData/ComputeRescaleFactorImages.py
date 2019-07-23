@@ -18,8 +18,8 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath     = 'RawImages'
-    nameInputImagesFiles       = '*.dcm'
+    nameInputImagesRelPath     = 'Images_Proc/'
+    nameInputImagesFiles       = '*.nii.gz'
     nameOrigVoxelSize_FileNpy  = 'original_vozelSize.npy'
     nameOrigVoxelSize_FileCsv  = 'original_vozelSize.csv'
     nameRescaleFactors_FileNpy = 'rescaleFactors_images.npy'
@@ -30,7 +30,7 @@ def main(args):
     workDirsManager = WorkDirsManager(args.datadir)
     InputImagesPath = workDirsManager.getNameExistPath(nameInputImagesRelPath)
 
-    listInputImageFiles = findFilesDirAndCheck(InputPath, nameInputImagesFiles)
+    listInputImageFiles = findFilesDirAndCheck(InputImagesPath, nameInputImagesFiles)
 
 
     dict_voxelSizes = OrderedDict()

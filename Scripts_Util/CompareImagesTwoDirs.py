@@ -16,12 +16,11 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    InputPath1 = args.indir1
-    InputPath2 = args.indir2
-    namesInputFiles1 = '*.dcm'
-    namesInputFiles2 = '*.dcm'
-    max_rel_error = 1.0e-06
-
+    InputPath1       = args.inputdir1
+    InputPath2       = args.inputdir2
+    namesInputFiles1 = '*.npz'
+    namesInputFiles2 = '*.npz'
+    max_rel_error    = 1.0e-06
     nameOutFilesName = 'out_histo_image%s.png'
     # ---------- SETTINGS ----------
 
@@ -29,9 +28,6 @@ def main(args):
     listInputFiles1 = findFilesDirAndCheck(InputPath1, namesInputFiles1)
     listInputFiles2 = findFilesDirAndCheck(InputPath2, namesInputFiles2)
 
-    if (len(listInputFiles1)) == 0:
-        message = 'no files found in dir 1...'
-        CatchErrorException(message)
     if (len(listInputFiles1) != len(listInputFiles2)):
         message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(listInputFiles1), len(listInputFiles2))
         CatchErrorException(message)
@@ -130,8 +126,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('indir1', type=str)
-    parser.add_argument('indir2', type=str)
+    parser.add_argument('inputdir1', type=str)
+    parser.add_argument('inputdir2', type=str)
     parser.add_argument('--tempdir', type=str, default='.')
     args = parser.parse_args()
 

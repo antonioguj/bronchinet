@@ -19,8 +19,8 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath  = 'RawImages'
-    nameOutputImagesRelPath = 'Images_Full'
+    nameInputImagesRelPath  = 'RawImages/'
+    nameOutputImagesRelPath = 'Images_Proc/'
     nameInputImagesFiles    = '*.dcm'
     nameOutputImagesFiles   = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     nameRescaleFactors      = 'rescaleFactors.npy'
@@ -34,7 +34,7 @@ def main(args):
     listInputImagesFiles = findFilesDirAndCheck(InputImagesPath, nameInputImagesFiles)
 
     if (args.rescaleImages):
-        dict_rescaleFactors = readDictionary(joinpathnames(BaseDataPath, nameRescaleFactors))
+        dict_rescaleFactors = readDictionary(joinpathnames(args.datadir, nameRescaleFactors))
 
 
 

@@ -53,8 +53,8 @@ def get_limits_test_boundbox(test_range_boundbox, size_crop_image, index, option
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputFullImagesRelPath = 'RawImages_Full'
-    nameInputCropImagesRelPath = 'RawImages_Cropped'
+    nameInputFullImagesRelPath = 'RawImages_Full/'
+    nameInputCropImagesRelPath = 'RawImages_Cropped/'
     nameInputFullImagesFiles   = '*.dcm'
     nameInputCropImagesFiles   = '*.dcm'
     #test_range_boundbox = ((16, 352), (109, 433), (45, 460))
@@ -63,14 +63,14 @@ def main(args):
     _z_min_top = 15
     _z_numtest = 10
     nameTempOutResFile   = 'temp_found_boundBoxes_vol16.csv'
-    nameOutResultFileNPY = 'found_boundBoxes_Original.npy'
-    nameOutResultFileCSV = 'found_boundBoxes_Original.csv'
+    nameOutResultFileNPY = 'found_boundBoxes_original.npy'
+    nameOutResultFileCSV = 'found_boundBoxes_original.csv'
     # ---------- SETTINGS ----------
 
 
     workDirsManager     = WorkDirsManager(args.datadir)
-    InputFullImagesPath = workDirsManager.getNameExistPath(nameInputImagesFullRelPath)
-    InputCropImagesPath = workDirsManager.getNameExistPath(nameInputImagesCropRelPath)
+    InputFullImagesPath = workDirsManager.getNameExistPath(nameInputFullImagesRelPath)
+    InputCropImagesPath = workDirsManager.getNameExistPath(nameInputCropImagesRelPath)
 
     listInputFullImagesFiles = findFilesDirAndCheck(InputFullImagesPath, nameInputFullImagesFiles)
     listInputCropImagesFiles = findFilesDirAndCheck(InputCropImagesPath, nameInputCropImagesFiles)

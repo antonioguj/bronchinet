@@ -20,7 +20,7 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputCropImagesRelPath = args.cropimgsdir
     nameInputFullImagesRelPath = args.fullimgsdir
-    nameInputReferFilesRelPath = 'CTs_Cropped'
+    nameInputReferFilesRelPath = 'CTs_Cropped/'
     nameInputCropImagesFiles   = '*.dcm'
     nameInputFullImagesFiles   = '*.dcm'
     nameInputReferFiles        = '*.dcm'

@@ -19,11 +19,11 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath   = 'Images_Full'
-    nameInputLabelsRelPath   = 'Airways_Full'
-    nameInputRoiMasksRelPath = 'Lungs_Full'
-    nameOutputImagesRelPath  = 'Images_WorkData'
-    nameOutputLabelsRelPath  = 'Labels_AirwayLumen_WorkData'
+    nameInputImagesRelPath   = 'Images_Proc/'
+    nameInputLabelsRelPath   = 'Airways_Proc/'
+    nameInputRoiMasksRelPath = 'Lungs_Proc/'
+    nameOutputImagesRelPath  = 'Images_WorkData/'
+    nameOutputLabelsRelPath  = 'Labels_WorkData/'
     nameInputImagesFiles     = '*.nii.gz'
     nameInputLabelsFiles     = '*.nii.gz'
     nameInputRoiMasksFiles   = '*.nii.gz'

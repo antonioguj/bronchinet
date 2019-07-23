@@ -32,9 +32,6 @@ class WorkDirsManager(object):
     def getNameRelDataPath(self, typedata):
         return self.mapTypeData_RelDataPath[typedata]
 
-    def getNameBaseDataPath(self):
-        return joinpathnames(self.basePath, self.baseDataRelPath)
-
     def getNameTrainingDataPath(self):
         return joinpathnames(self.basePath, self.mapTypeData_RelDataPath['training'])
 
@@ -44,8 +41,12 @@ class WorkDirsManager(object):
     def getNameTestingDataPath(self):
         return joinpathnames(self.basePath, self.mapTypeData_RelDataPath['testing'])
 
+    def getNameBaseDataPath(self):
+        return joinpathnames(self.basePath, self.baseDataRelPath)
+
     def getNameModelsPath(self):
         return joinpathnames(self.basePath, self.modelsRelPath)
+
 
     def getNameExistPath(self, relPath):
         newPath = joinpathnames(self.basePath, relPath)
@@ -54,11 +55,19 @@ class WorkDirsManager(object):
             CatchErrorException(message)
         return newPath
 
+    def getNameExistBaseDataPath(self, relPath):
+        relPath = joinpathnames(self.baseDataRelPath, relPath)
+        self.getNameExistPath(relPath)
+
     def getNameNewPath(self, relPath):
         newPath = joinpathnames(self.basePath, relPath)
         if not isExistdir(newPath):
             makedir(newPath)
         return newPath
+
+    def getNameNewBaseDataPath(self, relPath):
+        relPath = joinpathnames(self.baseDataRelPath, relPath)
+        self.getNameNewPath(relPath)
 
     def getNameUpdatePath(self, relPath):
         #datetoday_str= '%i-%i-%i'%(getdatetoday())

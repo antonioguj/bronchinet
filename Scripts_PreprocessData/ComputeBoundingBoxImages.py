@@ -24,8 +24,8 @@ def main(args):
     min_size_bounding_box = (1.0e+03, 1.0e+03, 1.0e+03)
     voxels_buffer_border = (0, 0, 0, 0)
 
-    nameInputImagesRelPath  = 'Images_Full'
-    nameInputRoiMaskRelPath = 'Lungs_Full'
+    nameInputImagesRelPath  = 'Images_Proc/'
+    nameInputRoiMaskRelPath = 'Lungs_Proc/'
     nameInputImagesFiles    = '*.nii.gz'
     nameInputRoiMasksFiles  = '*.nii.gz'
 
