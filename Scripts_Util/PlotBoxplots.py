@@ -61,9 +61,9 @@ def main(args):
             if fields_names_this != fields_names:
                 message = 'fields found in file \'%s\' do not match those found previously: \'%s\'' %(data_file, fields_names)
                 CatchErrorException(message)
-            if cases_names_this != cases_names:
-                message = 'fields found in file \'%s\' do not match those found previously: \'%s\'' %(data_file, cases_names)
-                CatchErrorException(message)
+            #if cases_names_this != cases_names:
+                #message = 'fields found in file \'%s\' do not match those found previously: \'%s\'' %(data_file, cases_names)
+                #CatchErrorException(message)
 
         # store data for fields in dictionary
         for (i,key) in enumerate(fields_names):

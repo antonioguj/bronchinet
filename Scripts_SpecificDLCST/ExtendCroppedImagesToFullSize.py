@@ -25,6 +25,7 @@ def main(args):
     nameInputReferFiles        = '*.dcm'
     nameBoundingBoxes          = 'found_boundBoxes_original.npy'
     nameOutputImagesFiles      = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    prefixPatternInputFiles    = 'vol[0-9][0-9]_*'
     # ---------- SETTINGS ----------
 
 
@@ -44,7 +45,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
         in_refer_file = findFileWithSamePrefix(basename(in_image_file), listInputReferFiles,
-                                               prefix_pattern='vol[0-9][0-9]_')
+                                               prefix_pattern=prefixPatternInputFiles)
         print("Reference file: \'%s\'..." % (basename(in_refer_file)))
         bounding_box = dict_bounding_boxes[filenamenoextension(in_refer_file)]
 

@@ -35,9 +35,9 @@ def main(args):
     prefixPatternInputFiles      = 'vol[0-9][0-9]_*'
 
     if (args.removeTracheaResMetrics):
-        nameResultMetricsFile = 'result_metrics_notraquea.txt'
+        nameOutResultMetricsFile = 'result_metrics_notraea.txt'
     else:
-        nameResultMetricsFile = 'result_metrics_withtraquea.txt'
+        nameOutResultMetricsFile = 'result_metrics_withtraquea.txt'
     # ---------- SETTINGS ----------
 
 
@@ -58,15 +58,16 @@ def main(args):
     listResultMetrics = OrderedDict()
     list_isUse_centrelines = []
     for imetrics in args.listResultMetrics:
-        listResultMetrics[imetrics] = DICTAVAILMETRICFUNS(imetrics).compute_np_safememory
-        list_isUse_centrelines.append(DICTAVAILMETRICFUNS(imetrics)._use_refer_centreline)
+        newgenMetrics = DICTAVAILMETRICFUNS(imetrics)
+        listResultMetrics[imetrics] = newgenMetrics.compute_np_safememory
+        list_isUse_centrelines.append(newgenMetrics._use_refer_centreline)
     #endfor
     isUseCentrelineFiles = any(list_isUse_centrelines)
 
-    out_resultmetrics_filename = joinpathnames(nameInputPredictMasksRelPath, nameResultMetricsFile)
-    fout = open(out_resultmetrics_filename, 'w')
-    strheader = '/case/ ' + ' '.join(['/%s/' % (key) for (key, _) in listResultMetrics.iteritems()]) + '\n'
-    fout.write(strheader)
+    nbInputFiles  = len(listInputPredictMasksFiles)
+    nbCompMetrics = len(listResultMetrics)
+    list_casenames = []
+    list_computed_metrics = np.zeros((nbInputFiles, nbCompMetrics))
 
 
 
@@ -81,16 +82,15 @@ def main(args):
         in_refermask_array   = FileReader.getImageArray(in_refermask_file)
         print("Predictions of size: %s..." % (str(in_predictmask_array.shape)))
 
-
         if (isUseCentrelineFiles):
             in_centreline_file = findFileWithSamePrefix(basename(in_predictmask_file).replace('probmap',''), listInputCentrelinesFiles,
                                                         prefix_pattern=prefixPatternInputFiles)
             print("Centrelines file: \'%s\'..." % (basename(in_centreline_file)))
-            in_centrelines_array = FileReader.getImageArray(in_centreline_file)
+            in_centreline_array = FileReader.getImageArray(in_centreline_file)
 
 
         if (args.removeTracheaResMetrics):
-            print("Remove trachea mask in result measurements...")
+            print("Remove trachea and main bronchi masks in computed metrics...")
 
             in_roimask_file = findFileWithSamePrefix(basename(in_predictmask_file).replace('probmap',''), listInputRoiMasksFiles,
                                                      prefix_pattern=prefixPatternInputFiles)
@@ -102,31 +102,35 @@ def main(args):
             in_refermask_array   = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_refermask_array,   in_roimask_array)
 
             if (isUseCentrelineFiles):
-                in_centrelines_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_centrelines_array, in_roimask_array)
+                in_centreline_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_centreline_array, in_roimask_array)
 
 
-        # Compute Result Metrics
-        list_result_metrics = OrderedDict()
-        for i, (key, value) in enumerate(listResultMetrics.iteritems()):
-            if list_isUse_centrelines[i]:
-                metric_value = value(in_centrelines_array, in_predictmask_array)
+        # Compute and store Metrics
+        for j, (key, value) in enumerate(listResultMetrics.iteritems()):
+            if list_isUse_centrelines[j]:
+                metric_value = value(in_centreline_array, in_predictmask_array)
             else:
                 metric_value = value(in_refermask_array, in_predictmask_array)
-            list_result_metrics[key] = metric_value
+
+            print("Metric \'%s\': %s..." % (key, metric_value))
+            list_computed_metrics[i,j] = metric_value
         # endfor
 
-        # print list metircs on screen and in file
         prefix_casename = getSubstringPatternFilename(basename(in_predictmask_file), substr_pattern=prefixPatternInputFiles)[:-1]
-        strdata = '\'%s\'' % (prefix_casename)
-        for (key, value) in list_result_metrics.iteritems():
-            print("Metric \'%s\': %s..." %(key, value))
-            strdata += ' %s'%(str(value))
-        #endfor
-        strdata += '\n'
-        fout.write(strdata)
+        list_casenames.append(prefix_casename)
     #endfor
 
-    #close list accuracies file
+    # write out computed metrics in file
+    out_resultmetrics_filename = joinpathnames(nameInputPredictMasksRelPath, nameOutResultMetricsFile)
+    fout = open(out_resultmetrics_filename, 'w')
+    strheader = '/case/ ' + ' '.join(['/%s/' % (key) for (key, _) in listResultMetrics.iteritems()]) + '\n'
+    fout.write(strheader)
+
+    for i in range(nbInputFiles):
+        strdata = '\'%s\' %s\n' % (list_casenames[i],
+                                   ' '.join([str(elem) for elem in list_computed_metrics[i]]))
+        fout.write(strdata)
+    #endfor
     fout.close()
 
 
@@ -134,7 +138,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
-    parser.add_argument('inputpredictmasksdir')
+    parser.add_argument('inputpredictmasksdir', type=str)
     parser.add_argument('--listResultMetrics', type=parseListarg, default=LISTRESULTMETRICS)
     parser.add_argument('--removeTracheaResMetrics', type=str2bool, default=REMOVETRACHEARESMETRICS)
     args = parser.parse_args()

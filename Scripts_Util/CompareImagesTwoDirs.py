@@ -18,8 +18,8 @@ def main(args):
     # ---------- SETTINGS ----------
     InputPath1       = args.inputdir1
     InputPath2       = args.inputdir2
-    namesInputFiles1 = '*.npz'
-    namesInputFiles2 = '*.npz'
+    namesInputFiles1 = '*.nii.gz'
+    namesInputFiles2 = '*.nii.gz'
     max_rel_error    = 1.0e-06
     nameOutFilesName = 'out_histo_image%s.png'
     # ---------- SETTINGS ----------

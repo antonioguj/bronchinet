@@ -154,20 +154,22 @@ USEMULTITHREADING = False
 
 # ******************** RESTART PARAMETERS ********************
 USE_RESTARTMODEL = False
-
 RESTART_MODELFILE = 'last'
-
 RESTART_ONLY_WEIGHTS = False
-
 EPOCH_RESTART = 40
 # ******************** RESTART PARAMETERS ********************
 
 
+# ******************** PREDICTION PARAMETERS ********************
+PREDICTION_MODELFILE = 'e150'
+FILTERPREDICTPROBMAPS = True
+PROP_VALID_OUTUNET = 0.75
+SAVEFEATMAPSLAYERS = False
+NAMESAVEMODELLAYER = 'conv3d_18'
+# ******************** PREDICTION PARAMETERS ********************
+
+
 # ******************** POST-PROCESSING PARAMETERS ********************
-TYPEDATAPREDICT = 'testing'
-
-PREDICTION_MODELFILE = 'e400'
-
 LISTRESULTMETRICS = ['DiceCoefficient',
                      'TruePositiveRate',
                      'TrueNegativeRate',
@@ -176,19 +178,10 @@ LISTRESULTMETRICS = ['DiceCoefficient',
                      'AirwayCompleteness',
                      'AirwayVolumeLeakage']
 
-FILTERPREDICTPROBMAPS = True
-
-PROP_VALID_OUTUNET = 0.75
-
-SAVEFEATMAPSLAYERS = False
-
-NAMESAVEMODELLAYER = 'conv3d_18'
-
-SAVEPREDICTMASKSLICES = False
-
-CALCMASKSTHRESHOLDING = True
-
-THRESHOLDVALUE = 0.5
-
+THRESHOLDPOST = 0.5
 REMOVETRACHEARESMETRICS = True
+
+LISTMETRICSROCCURVE = ['DiceCoefficient',
+                       'AirwayCompleteness',
+                       'AirwayVolumeLeakage']
 # ******************** POST-PROCESSING PARAMETERS ********************

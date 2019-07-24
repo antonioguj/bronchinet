@@ -61,11 +61,8 @@ def main(args):
         print("Predictions of size: %s..." % (str(in_prediction_array.shape)))
 
 
-        if (args.calcMasksThresholding):
-            print("Compute prediction masks by Thresholding probability maps with value %s..." % (args.thresholdValue))
-            out_predictmask_array = ThresholdImages.compute(in_prediction_array, args.thresholdValue)
-        else:
-            out_predictmask_array = in_prediction_array
+        print("Compute prediction masks by Thresholding probability maps with value %s..." % (args.threshold))
+        out_predictmask_array = ThresholdImages.compute(in_prediction_array, args.threshold)
 
         if (args.masksToRegionInterest):
             print("Attach trachea mask to prediction masks...")
@@ -92,8 +89,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('inputpredictiondir', type=str)
-    parser.add_argument('--calcMasksThresholding', type=str2bool, default=True)
-    parser.add_argument('--thresholdValue', type=float, default=THRESHOLDVALUE)
+    parser.add_argument('--threshold', type=float, default=THRESHOLDPOST)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     args = parser.parse_args()
 

@@ -70,7 +70,7 @@ def main(args):
 
     workDirsManager     = WorkDirsManager(args.datadir)
     InputFullImagesPath = workDirsManager.getNameExistPath(nameInputFullImagesRelPath)
-    InputCropImagesPath = workDirsManager.getNameExistPath(nameInputImagesRelPath)
+    InputCropImagesPath = workDirsManager.getNameExistPath(nameInputCropImagesRelPath)
 
     listInputFullImagesFiles = findFilesDirAndCheck(InputFullImagesPath, nameInputFullImagesFiles)
     listInputCropImagesFiles = findFilesDirAndCheck(InputCropImagesPath, nameInputCropImagesFiles)
