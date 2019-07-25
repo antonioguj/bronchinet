@@ -9,7 +9,6 @@
 ########################################################################################
 
 from DataLoaders.FileReaders import *
-from Common.WorkDirsManager import *
 
 # ---------- SETTINGS ----------
 inputdir  = '/home/antonio/Data/DLCST_Proc/AirwaysDistTrans_Full/AirwaysDistTrans_Normalize'
@@ -26,10 +25,7 @@ def fun_math_oper(images_array):
 # ---------- SETTINGS ----------
 
 
-InputPath  = WorkDirsManager.getNameExistPath(inputdir )
-OutputPath = WorkDirsManager.getNameNewPath  (outputdir)
-
-listInputFiles = findFilesDir(InputPath, nameInputFiles)
+listInputFiles = findFilesDir(inputdir, nameInputFiles)
 
 nbInputFiles = len(listInputFiles)
 
@@ -47,7 +43,7 @@ for i, input_file in enumerate(listInputFiles):
 
     out_images_array = fun_math_oper(images_array)
 
-    out_images_filename = joinpathnames(OutputPath, nameOutputFiles(input_file))
+    out_images_filename = joinpathnames(outputdir, nameOutputFiles(input_file))
 
     FileReader.writeImageArray(out_images_filename, out_images_array)
 #endfor

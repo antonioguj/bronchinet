@@ -32,8 +32,8 @@ def main(args):
     nameOutputImagesFiles    = 'images-%0.2i_dim%s' + getFileExtension(FORMATTRAINDATA)
     nameOutputLabelsFiles    = 'labels-%0.2i_dim%s' + getFileExtension(FORMATTRAINDATA)
 
-    if (args.saveVisualizeProcData):
-        nameVisualOutputRelPath = 'VisualizeWorkData'
+    if (args.saveVisualizeWorkData):
+        nameOutputVisualRelPath = 'VisualWorkData/'
         nameOutputVisualFiles   = lambda filename: basename(filename).replace('.npz','.nii.gz')
     # ---------- SETTINGS ----------
 
@@ -56,8 +56,8 @@ def main(args):
         InputRoiMasksPath     = workDirsManager.getNameExistPath(nameInputRoiMasksRelPath)
         listInputRoiMaskFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
 
-    if (args.saveVisualizeProcData):
-        VisualOutputPath = workDirsManager.getNameNewPath(nameVisualOutputRelPath)
+    if (args.saveVisualizeWorkData):
+        VisualOutputPath = workDirsManager.getNameNewPath(nameOutputVisualRelPath)
 
     if (args.rescaleImages):
         dict_rescaleFactors = readDictionary(joinpathnames(args.datadir, nameRescaleFactors))
@@ -78,7 +78,7 @@ def main(args):
         print("And: \'%s\'..." % (basename(in_label_file)))
 
         (in_image_array, in_label_array) = FileReader.get2ImageArraysAndCheck(in_image_file, in_label_file)
-        print("Original dims : \'%s\'..." %(str(image_array.shape)))
+        print("Original dims : \'%s\'..." %(str(in_image_array.shape)))
 
         out_image_array = in_image_array
 
@@ -136,7 +136,7 @@ def main(args):
         FileReader.writeImageArray(out_image_file, out_image_array)
         FileReader.writeImageArray(out_label_file, out_label_array)
 
-        if (args.saveVisualizeProcData):
+        if (args.saveVisualizeWorkData):
             print("Saving working data to visualize...")
             out_image_file = joinpathnames(VisualOutputPath, nameOutputVisualFiles(out_image_file))
             out_label_file = joinpathnames(VisualOutputPath, nameOutputVisualFiles(out_label_file))
@@ -155,7 +155,7 @@ if __name__ == "__main__":
     parser.add_argument('--rescaleImages', type=str2bool, default=False)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--extendSizeImages', type=str2bool, default=EXTENDSIZEIMAGES)
-    parser.add_argument('--saveVisualizeProcData', type=str2bool, default=SAVEVISUALIZEPROCDATA)
+    parser.add_argument('--saveVisualizeWorkData', type=str2bool, default=SAVEVISUALIZEWORKDATA)
     args = parser.parse_args()
 
     print("Print input arguments...")
