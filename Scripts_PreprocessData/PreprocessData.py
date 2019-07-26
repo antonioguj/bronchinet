@@ -48,8 +48,8 @@ def main(args):
     listInputLabelsFiles = findFilesDirAndCheck(InputLabelsPath, nameInputLabelsFiles)
 
     if (len(listInputImagesFiles) != len(listInputLabelsFiles)):
-        message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(listInputImagesFiles),
-                                                                                           len(listInputLabelsFiles))
+        message = 'num images in dir \'%s\', not equal to num labels in dir \'%i\'...' %(len(listInputImagesFiles),
+                                                                                         len(listInputLabelsFiles))
         CatchErrorException(message)
 
     if (args.masksToRegionInterest):

@@ -54,15 +54,15 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workDirsManager       = WorkDirsManager(args.basedir)
-    InputPredictionsPath = workDirsManager.getNameExistPath        (args.inputpredictiondir)
-    InputReferMasksPath   = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
-    InputCentrelinesPath  = workDirsManager.getNameExistBaseDataPath(nameInputCentrelinesRelPath)
-    OutputFilesPath       = workDirsManager.getNameNewPath          (args.outputdir)
+    workDirsManager      = WorkDirsManager(args.basedir)
+    InputPredictionsPath = workDirsManager.getNameExistPath        (nameInputPredictionsRelPath)
+    InputReferMasksPath  = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
+    InputCentrelinesPath = workDirsManager.getNameExistBaseDataPath(nameInputCentrelinesRelPath)
+    OutputFilesPath      = workDirsManager.getNameNewPath          (nameOutputFilesRelPath)
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath, nameInputPredictionsFiles)
-    listInputReferMasksFiles   = findFilesDirAndCheck(InputReferMasksPath,   nameInputReferMasksFiles)
-    listInputCentrelinesFiles  = findFilesDirAndCheck(InputCentrelinesPath,  nameInputCentrelinesFiles)
+    listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath,  nameInputReferMasksFiles)
+    listInputCentrelinesFiles = findFilesDirAndCheck(InputCentrelinesPath, nameInputCentrelinesFiles)
 
     if (args.removeTracheaResMetrics):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
@@ -73,7 +73,7 @@ def main(args):
     list_isUse_centrelines = []
     for imetrics in args.listMetricsROCcurve:
         newgenMetrics = DICTAVAILMETRICFUNS(imetrics)
-        listMetricsROCcurve[imetrics] = newgenMetrics.compute_np_safememory
+        listMetricsROCcurve[imetrics] = newgenMetrics.compute_np
         list_isUse_centrelines.append(newgenMetrics._use_refer_centreline)
     #endfor
     isUseCentrelineFiles = any(list_isUse_centrelines)
@@ -140,7 +140,7 @@ def main(args):
 
 
         # write out computed metrics in file
-        out_filename = joinpathnames(OutputDataPath, nameOutROCmetricsFile%(basename_file))
+        out_filename = joinpathnames(OutputFilesPath, nameOutROCmetricsFile%(basename_file))
         if isExistfile(out_filename):
             fout = open(out_filename, 'a')
         else:
@@ -159,7 +159,7 @@ def main(args):
     # Compute global metrics as mean over all files
     list_mean_computed_metrics = np.mean(list_computed_metrics, axis=0)
 
-    out_filename = joinpathnames(OutputDataPath, nameOutMeanROCmetricsFile)
+    out_filename = joinpathnames(OutputFilesPath, nameOutMeanROCmetricsFile)
     if isExistfile(out_filename):
         fout = open(out_filename, 'a')
     else:

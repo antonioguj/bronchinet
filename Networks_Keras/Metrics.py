@@ -642,8 +642,7 @@ class CombineLossTwoMetrics(Metrics):
 
 
 # all available metrics
-def DICTAVAILMETRICLASS(option,
-                        is_masks_exclude=False):
+def DICTAVAILMETRICLASS(option, is_masks_exclude=False):
     list_metric_avail = ['MeanSquared', 'MeanSquared_Tailored',
                          'BinaryCrossEntropy', 'BinaryCrossEntropyFocalLoss', 'BinaryCrossEntropyUncertaintyLoss',
                          'WeightedBinaryCrossEntropyFixedWeights', 'WeightedBinaryCrossEntropy', 'WeightedBinaryCrossEntropyFocalLoss'

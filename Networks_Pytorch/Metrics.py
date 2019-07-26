@@ -338,6 +338,7 @@ class AirwayVolumeLeakage(Metrics):
                                 self.get_masked_array(y_true_segmen, y_pred_segmen))
 
     def compute_vec_np(self, y_true_segmen, y_pred_segmen):
+        print
         return np.sum((1.0 - y_true_segmen) * y_pred_segmen) / (np.sum(y_pred_segmen) +_smooth)
 
     def compute_vec_masked_np(self, y_true_segmen, y_pred_segmen):

@@ -23,7 +23,7 @@ class WorkDirsManager(object):
     def __init__(self, basePath):
         self.basePath = basePath
         if not isExistdir(basePath):
-            message = "WorkDirsManager: base path '%s' does not exist..." %(basePath)
+            message = "WorkDirsManager: base path \'%s\' does not exist..." %(basePath)
             CatchErrorException(message)
 
     def getNameDataPath(self, typedata):
@@ -87,6 +87,21 @@ class WorkDirsManager(object):
         else:
             makedir(updatePath)
             return updatePath
+
+
+    @staticmethod
+    def getNameExistFullPath(fullPath):
+        if not isExistdir(fullPath):
+            message = "WorkDirsManager: path \'%s\', does not exist..."%(fullPath)
+            CatchErrorException(message)
+        return fullPath
+
+    @staticmethod
+    def getNameNewFullPath(fullPath):
+        if not isExistdir(fullPath):
+            makedir(fullPath)
+        return fullPath
+
 
     #@staticmethod
     #def getNewNamePath(namepath):

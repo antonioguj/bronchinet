@@ -13,7 +13,8 @@ np.random.seed(2017)
 
 
 DATADIR = '/home/antonio/Data/DLCST_Processed/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_UnetGNNs_DLCST/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
 
@@ -123,7 +124,7 @@ BATCH_SIZE = 1
 IMODEL     = 'Unet'
 SOURCEDIR_ADJS = 'storedAdjacencyMatrix/'
 IOPTIMIZER = 'Adam'
-LEARN_RATE = 1.0e-05
+LEARN_RATE = 1.0e-04
 ILOSSFUN   = 'DiceCoefficient'
 LISTMETRICS = []
 # LISTMETRICS = ['BinaryCrossEntropy',
@@ -153,7 +154,7 @@ EPOCH_RESTART = 40
 
 
 # ******************** PREDICTION PARAMETERS ********************
-PREDICTION_MODELFILE = 'e150'
+PREDICTION_MODELFILE = 'last'
 FILTERPREDICTPROBMAPS = True
 PROP_VALID_OUTUNET = 0.75
 SAVEFEATMAPSLAYERS = False

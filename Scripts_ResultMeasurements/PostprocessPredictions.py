@@ -27,7 +27,11 @@ def main(args):
     nameInputRoiMasksFiles      = '*_lungs.nii.gz'
     prefixPatternInputFiles     = 'vol[0-9][0-9]_*'
 
-    nameOutputPredictMasksRelPath = nameInputPredictionsRelPath[:-1] + '_Thres%s'%(str(args.thresholdValue))
+    if (args.outpredictmasksdir):
+        nameOutputPredictMasksRelPath = args.outpredictmasksdir
+    else:
+        nameOutputPredictMasksRelPath = nameInputPredictionsRelPath[:-1] + '_Thres%s' % (str(args.thresholdPost))
+
     nameOutputPredictMasksFiles = lambda in_name: filenamenoextension(in_name).replace('probmap','binmask') + '.nii.gz'
     # ---------- SETTINGS ----------
 
@@ -61,8 +65,8 @@ def main(args):
         print("Predictions of size: %s..." % (str(in_prediction_array.shape)))
 
 
-        print("Compute prediction masks by Thresholding probability maps with value %s..." % (args.threshold))
-        out_predictmask_array = ThresholdImages.compute(in_prediction_array, args.threshold)
+        print("Compute prediction masks by Thresholding probability maps with value \'%s\'..." % (args.thresholdPost))
+        out_predictmask_array = ThresholdImages.compute(in_prediction_array, args.thresholdPost)
 
         if (args.masksToRegionInterest):
             print("Attach trachea mask to prediction masks...")
@@ -89,7 +93,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', default=BASEDIR)
     parser.add_argument('inputpredictiondir', type=str)
-    parser.add_argument('--threshold', type=float, default=THRESHOLDPOST)
+    parser.add_argument('outpredictmasksdir', type=str)
+    parser.add_argument('--thresholdPost', type=float, default=THRESHOLDPOST)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     args = parser.parse_args()
 

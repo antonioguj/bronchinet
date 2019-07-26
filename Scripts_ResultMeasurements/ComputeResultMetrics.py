@@ -35,9 +35,9 @@ def main(args):
     prefixPatternInputFiles      = 'vol[0-9][0-9]_*'
 
     if (args.removeTracheaResMetrics):
-        nameOutResultMetricsFile = 'result_metrics_notraea.txt'
+        nameOutResultMetricsFile = 'result_metrics_notrachea.txt'
     else:
-        nameOutResultMetricsFile = 'result_metrics_withtraquea.txt'
+        nameOutResultMetricsFile = 'result_metrics_withtrachea.txt'
     # ---------- SETTINGS ----------
 
 
@@ -59,7 +59,7 @@ def main(args):
     list_isUse_centrelines = []
     for imetrics in args.listResultMetrics:
         newgenMetrics = DICTAVAILMETRICFUNS(imetrics)
-        listResultMetrics[imetrics] = newgenMetrics.compute_np_safememory
+        listResultMetrics[imetrics] = newgenMetrics.compute_np
         list_isUse_centrelines.append(newgenMetrics._use_refer_centreline)
     #endfor
     isUseCentrelineFiles = any(list_isUse_centrelines)
