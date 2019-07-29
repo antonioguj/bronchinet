@@ -126,8 +126,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', default=DATADIR)
-    parser.add_argument('inputpredictiondir', default='Predictions_NEW')
+    parser.add_argument('--datadir', type=str, default=DATADIR)
+    parser.add_argument('inputpredictiondir', type=str, default='Predictions_NEW')
     args = parser.parse_args()
 
     print("Print input arguments...")

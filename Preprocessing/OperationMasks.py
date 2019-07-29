@@ -13,16 +13,19 @@ from Common.FunctionsUtil import *
 import numpy as np
 
 
+
 class OperationMasks(object):
     val_mask_background = 0
     val_mask_exclude_voxels = -1
 
     @staticmethod
-    def is_images_array_without_channels(images_array_shape, masks_exclude_voxels_array_shape):
+    def is_images_array_without_channels(images_array_shape,
+                                         masks_exclude_voxels_array_shape):
         return len(images_array_shape) == len(masks_exclude_voxels_array_shape)
 
     @classmethod
-    def check_correct_shape_input_array(cls, images_array_shape, masks_exclude_voxels_array_shape):
+    def check_correct_shape_input_array(cls, images_array_shape,
+                                        masks_exclude_voxels_array_shape):
         if cls.is_images_array_without_channels(images_array_shape, masks_exclude_voxels_array_shape):
             if (images_array_shape == masks_exclude_voxels_array_shape):
                 return True
@@ -35,7 +38,8 @@ class OperationMasks(object):
 
     @classmethod
     def template_apply_mask_to_image_with_channels_2args(cls, function_apply_mask_without_channels,
-                                                         images_array, masks_exclude_voxels_array):
+                                                         images_array,
+                                                         masks_exclude_voxels_array):
         num_channels = images_array.shape[-1]
         for ichan in range(num_channels):
             images_array[..., ichan] = function_apply_mask_without_channels(images_array[..., ichan], masks_exclude_voxels_array)
@@ -44,7 +48,9 @@ class OperationMasks(object):
 
     @classmethod
     def template_apply_mask_to_image_with_channels_3args(cls, function_apply_mask_without_channels,
-                                                         images_array, original_images_array, masks_exclude_voxels_array):
+                                                         images_array,
+                                                         original_images_array,
+                                                         masks_exclude_voxels_array):
         num_channels = images_array.shape[-1]
         for ichan in range(num_channels):
             images_array[..., ichan] = function_apply_mask_without_channels(images_array[..., ichan], original_images_array, masks_exclude_voxels_array)
@@ -53,65 +59,88 @@ class OperationMasks(object):
 
 
     @classmethod
-    def function_apply_mask_exclude_voxels(cls, images_array, masks_exclude_voxels_array):
+    def function_apply_mask_exclude_voxels(cls, images_array,
+                                           masks_exclude_voxels_array):
         return np.where(masks_exclude_voxels_array == cls.val_mask_background, cls.val_mask_exclude_voxels, images_array)
 
     @classmethod
-    def function_apply_mask_exclude_voxels_fillzero(cls, images_array, masks_exclude_voxels_array):
+    def function_apply_mask_exclude_voxels_fillzero(cls, images_array,
+                                                    masks_exclude_voxels_array):
         return np.where(masks_exclude_voxels_array == cls.val_mask_background, cls.val_mask_background, images_array)
 
     @classmethod
-    def function_reverse_mask_exclude_voxels(cls, images_array, original_images_array, masks_exclude_voxels_array):
+    def function_reverse_mask_exclude_voxels(cls, images_array,
+                                             original_images_array,
+                                             masks_exclude_voxels_array):
         return np.where(masks_exclude_voxels_array == cls.val_mask_background, original_images_array, images_array)
 
     @classmethod
-    def function_reverse_mask_exclude_voxels_fillzero(cls, images_array, masks_exclude_voxels_array):
+    def function_reverse_mask_exclude_voxels_fillzero(cls, images_array,
+                                                      masks_exclude_voxels_array):
         return np.where(masks_exclude_voxels_array == cls.val_mask_background, cls.val_mask_background, images_array)
 
 
     @classmethod
-    def apply_mask_exclude_voxels(cls, images_array, masks_exclude_voxels_array):
-
-        if cls.check_correct_shape_input_array(images_array.shape, masks_exclude_voxels_array.shape):
-            if cls.is_images_array_without_channels(images_array.shape, masks_exclude_voxels_array.shape):
-                return cls.function_apply_mask_exclude_voxels(images_array, masks_exclude_voxels_array)
+    def apply_mask_exclude_voxels(cls, images_array,
+                                  masks_exclude_voxels_array):
+        if cls.check_correct_shape_input_array(images_array.shape,
+                                               masks_exclude_voxels_array.shape):
+            if cls.is_images_array_without_channels(images_array.shape,
+                                                    masks_exclude_voxels_array.shape):
+                return cls.function_apply_mask_exclude_voxels(images_array,
+                                                              masks_exclude_voxels_array)
             else:
                 cls.template_apply_mask_to_image_with_channels_2args(cls.function_apply_mask_exclude_voxels,
-                                                                     images_array, masks_exclude_voxels_array)
+                                                                     images_array,
+                                                                     masks_exclude_voxels_array)
 
     @classmethod
-    def apply_mask_exclude_voxels_fillzero(cls, images_array, masks_exclude_voxels_array):
-
-        if cls.check_correct_shape_input_array(images_array.shape, masks_exclude_voxels_array.shape):
-            if cls.is_images_array_without_channels(images_array.shape, masks_exclude_voxels_array.shape):
-                return cls.function_apply_mask_exclude_voxels_fillzero(images_array, masks_exclude_voxels_array)
+    def apply_mask_exclude_voxels_fillzero(cls, images_array,
+                                           masks_exclude_voxels_array):
+        if cls.check_correct_shape_input_array(images_array.shape,
+                                               masks_exclude_voxels_array.shape):
+            if cls.is_images_array_without_channels(images_array.shape,
+                                                    masks_exclude_voxels_array.shape):
+                return cls.function_apply_mask_exclude_voxels_fillzero(images_array,
+                                                                       masks_exclude_voxels_array)
             else:
                 cls.template_apply_mask_to_image_with_channels_2args(cls.function_apply_mask_exclude_voxels_fillzero,
-                                                                     images_array, masks_exclude_voxels_array)
+                                                                     images_array,
+                                                                     masks_exclude_voxels_array)
 
     @classmethod
-    def reverse_mask_exclude_voxels(cls, images_array, masks_exclude_voxels_array, original_images_array):
-
-        if cls.check_correct_shape_input_array(images_array.shape, masks_exclude_voxels_array.shape):
-            if cls.is_images_array_without_channels(images_array.shape, masks_exclude_voxels_array.shape):
-                return cls.function_reverse_mask_exclude_voxels(images_array, masks_exclude_voxels_array, original_images_array)
+    def reverse_mask_exclude_voxels(cls, images_array,
+                                    masks_exclude_voxels_array,
+                                    original_images_array):
+        if cls.check_correct_shape_input_array(images_array.shape,
+                                               masks_exclude_voxels_array.shape):
+            if cls.is_images_array_without_channels(images_array.shape,
+                                                    masks_exclude_voxels_array.shape):
+                return cls.function_reverse_mask_exclude_voxels(images_array,
+                                                                masks_exclude_voxels_array,
+                                                                original_images_array)
             else:
                 cls.template_apply_mask_to_image_with_channels_3args(cls.function_reverse_mask_exclude_voxels,
-                                                                     images_array, masks_exclude_voxels_array. original_images_array)
+                                                                     images_array,
+                                                                     masks_exclude_voxels_array,
+                                                                     original_images_array)
 
     @classmethod
-    def reverse_mask_exclude_voxels_fillzero(cls, images_array, masks_exclude_voxels_array):
-
-        if cls.check_correct_shape_input_array(images_array.shape, masks_exclude_voxels_array.shape):
-            if cls.is_images_array_without_channels(images_array.shape, masks_exclude_voxels_array.shape):
-                return cls.function_reverse_mask_exclude_voxels_fillzero(images_array, masks_exclude_voxels_array)
+    def reverse_mask_exclude_voxels_fillzero(cls, images_array,
+                                             masks_exclude_voxels_array):
+        if cls.check_correct_shape_input_array(images_array.shape,
+                                               masks_exclude_voxels_array.shape):
+            if cls.is_images_array_without_channels(images_array.shape,
+                                                    masks_exclude_voxels_array.shape):
+                return cls.function_reverse_mask_exclude_voxels_fillzero(images_array,
+                                                                         masks_exclude_voxels_array)
             else:
                 cls.template_apply_mask_to_image_with_channels_2args(cls.function_reverse_mask_exclude_voxels_fillzero,
-                                                                     images_array, masks_exclude_voxels_array)
+                                                                     images_array,
+                                                                     masks_exclude_voxels_array)
 
 
 class OperationBinaryMasks(OperationMasks):
-
     val_mask_positive = 1
 
     @classmethod
@@ -150,7 +179,8 @@ class OperationBinaryMasks(OperationMasks):
             return False
 
     @classmethod
-    def join_two_binmasks_one_image(cls, masks_array_1, masks_array_2):
+    def join_two_binmasks_one_image(cls, masks_array_1,
+                                    masks_array_2):
         # check there is no overlap between the two masks
         #index_binmasks_1 = np.argwhere(masks_array_1 == cls.val_mask_positive)
         #index_binmasks_2 = np.argwhere(masks_array_2 == cls.val_mask_positive)

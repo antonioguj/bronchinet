@@ -11,7 +11,10 @@
 from Common.Constants import *
 from Common.FunctionsUtil import *
 from Networks_Pytorch.Metrics import *
-from Networks_Pytorch.Networks import *
+if ISTESTMODELSWITHGNN:
+    from Networks_Pytorch.NetworksGNNs import *
+else:
+    from Networks_Pytorch.Networks import *
 from Networks_Pytorch.Optimizers import *
 import torch.nn as nn
 import torch
@@ -26,14 +29,18 @@ class Trainer(object):
     def __init__(self, model_net,
                  optimizer,
                  loss_fun,
-                 metrics= None,
+                 metrics_fun= None,
                  callbacks= None):
         self.model_net = model_net
         self.optimizer = optimizer
         self.loss_fun = loss_fun
-        self.metrics = metrics
+        self.metrics_fun = metrics_fun
+        if self.metrics_fun:
+            self.num_metrics = len(self.metrics_fun)
+        else:
+            self.num_metrics = 0
         self.callbacks = callbacks
-        
+
         #self.device = self.get_device()
         #self.model_net = self.model_net.to(self.device)
         self.model_net.cuda()
@@ -46,6 +53,9 @@ class Trainer(object):
 
     def _criterion(self, prediction, ground_truth):
         return self.loss_fun.forward(ground_truth, prediction)
+
+    def _calc_metrics(self, index, prediction, ground_truth):
+        return self.metrics_fun[index].compute(ground_truth, prediction)
 
 
     def _train_epoch(self):
@@ -61,6 +71,7 @@ class Trainer(object):
         time_compute = 0.0
         time_total_ini = dt.now()
         sumrun_loss = 0.0
+        sumrun_metricvals = [0.0]*self.num_metrics
 
         # run a train pass on the current epoch
         i_batch = 0
@@ -71,6 +82,7 @@ class Trainer(object):
             y_batch.cuda()
 
             time_ini = dt.now()
+            # ---- compute ----
             self.optimizer.zero_grad()
             pred_batch = self.model_net(x_batch)
             loss = self._criterion(pred_batch, y_batch)
@@ -78,6 +90,11 @@ class Trainer(object):
             self.optimizer.step()
             # loss.detach()
             sumrun_loss += loss.item()
+            for i in range(self.num_metrics):
+                metricvals = self._calc_metrics(i, pred_batch, y_batch)
+                sumrun_metricvals[i] += metricvals.item()
+            #endfor
+            # ---- compute ----
             time_now = dt.now()
             time_compute += (time_now - time_ini).seconds
 
@@ -98,7 +115,13 @@ class Trainer(object):
         print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
         total_loss = sumrun_loss/num_batches
-        return total_loss
+
+        if self.metrics_fun:
+            total_metricvals = [val/num_batches for val in sumrun_metricvals]
+            return total_loss, total_metricvals
+        else:
+            return total_loss
+
 
 
     def _validation_epoch(self):
@@ -112,6 +135,7 @@ class Trainer(object):
         time_compute = 0.0
         time_total_ini = dt.now()
         sumrun_loss = 0.0
+        sumrun_metricvals = [0.0]*self.num_metrics
 
         # run a validation pass on the current epoch
         i_batch = 0
@@ -122,11 +146,16 @@ class Trainer(object):
             y_batch.cuda()
 
             time_ini = dt.now()
+            # ---- compute ----
             pred_batch = self.model_net(x_batch)
             loss = self._criterion(pred_batch, y_batch)
-            loss.backward()
             # loss.detach()
             sumrun_loss += loss.item()
+            for i in range(self.num_metrics):
+                metricvals = self._calc_metrics(i, pred_batch, y_batch)
+                sumrun_metricvals[i] += metricvals.item()
+            #endfor
+            # ---- compute ----
             time_now = dt.now()
             time_compute += (time_now - time_ini).seconds
 
@@ -145,28 +174,43 @@ class Trainer(object):
         print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
         total_loss = sumrun_loss/num_batches
-        return total_loss
+
+        if self.metrics_fun:
+            total_metricvals = [val/num_batches for val in sumrun_metricvals]
+            return total_loss, total_metricvals
+        else:
+            return total_loss
+
 
 
     def _run_epoch(self):
         # switch to train mode
         self.model_net = self.model_net.train()
+        if ISTESTMODELSWITHGNN:  # CHECK THIS OUT. Only for Unet-GNNs
+            self.model_net.preprocess(self.epoch_count)
 
         # run a train pass on the current epoch
-        self.train_loss = self._train_epoch()
+        if self.metrics_fun:
+            self.train_loss, self.train_metricvals = self._train_epoch()
+        else:
+            self.train_loss = self._train_epoch()
 
         if self.valid_data_generator and \
-            (self.epoch_count % self.freq_validate_model == 0):
+            (self.epoch_count%self.freq_validate_model==0 or self.epochstart_count==0):
             # switch to evaluate mode
             self.model_net = self.model_net.eval()
 
             # run the validation pass
-            self.valid_loss = self._validation_epoch()
+            if self.metrics_fun:
+                self.valid_loss, self.valid_metricvals = self._validation_epoch()
+            else:
+                self.valid_loss = self._validation_epoch()
 
         # run callbacks
         if self.callbacks:
            self._run_callbacks()
         #endfor
+
 
 
     def _run_prediction(self):
@@ -208,6 +252,7 @@ class Trainer(object):
         return np.rollaxis(out_prediction, 1, ndim_out)
 
 
+
     def train(self, train_data_generator,
               num_epochs= 1,
               max_steps_epoch= None,
@@ -216,6 +261,8 @@ class Trainer(object):
         self.num_epochs = num_epochs
         self.max_steps_epoch = max_steps_epoch
         self.epoch_count = initial_epoch
+        self.epochstart_count = 0
+
         self.train_data_generator = train_data_generator
         self.valid_data_generator = valid_data_generator
 
@@ -226,6 +273,7 @@ class Trainer(object):
         for i_epoch in range(initial_epoch, num_epochs):
             self._run_epoch()
             self.epoch_count += 1
+            self.epochstart_count += 1
 
             # write loss history
             print("\ntrain loss = {0:.3f}".format(self.train_loss))
@@ -246,6 +294,7 @@ class Trainer(object):
 
         # switch to evaluate mode
         self.model_net = self.model_net.eval()
+        self.model_net.preprocess(-1)
 
         return self._run_prediction()
 
@@ -265,15 +314,22 @@ class Trainer(object):
             self.fout = open(self.losshistory_filename, 'a')
         else:
             self.fout = open(self.losshistory_filename, 'w')
-            strheader = '/epoch/ /loss/ /val_loss/\n'
+            strheader = '/epoch/ /loss/ /val_loss/'
+            for i in range(self.num_metrics):
+                name_metrics_fun = self.metrics_fun[i].name_fun_out
+                strheader += ' /%s/ /val_%s/' %(name_metrics_fun, name_metrics_fun)
+            #endfor
+            strheader += '\n'
             self.fout.write(strheader)
         self.fout.close()
 
     def update_losshistory_file(self):
         self.fout = open(self.losshistory_filename, 'a')
-        strdataline = '%s %s %s\n' %(self.epoch_count,
-                                     self.train_loss,
-                                     self.valid_loss)
+        strdataline = '%s %s %s' %(self.epoch_count, self.train_loss, self.valid_loss)
+        for i in range(self.num_metrics):
+            strdataline += ' %s %s' %(self.train_metricvals[i], self.valid_metricvals[i])
+        #endfor
+        strdataline += '\n'
         self.fout.write(strdataline)
         self.fout.close()
 
@@ -322,12 +378,24 @@ class Trainer(object):
         self.model_net.load_state_dict(torch.load(filename, map_location= 'cuda:0'))#map_location= self.device))
 
     @staticmethod
-    def load_model_full(filename):
+    def load_model_full(filename,
+                        dict_added_model_input_args=None,
+                        dict_added_other_input_args=None,
+                        is_restart_homemade=False):
+        if is_restart_homemade:
+            from Networks_Pytorch.modules_Restart import ModelRestartPlugin
+
         trainer_desc = torch.load(filename, map_location= 'cuda:0')#map_location= Trainer.get_device())
+
         # create new model
         model_type = trainer_desc['model_desc'][0]
         model_input_args = trainer_desc['model_desc'][1]
-        model_net = NeuralNetwork.get_create_model(model_type, model_input_args)
+        if dict_added_model_input_args:
+            model_input_args.update(dict_added_model_input_args)
+        if is_restart_homemade:
+            model_net = ModelRestartPlugin.get_create_model(model_type, model_input_args)
+        else:
+            model_net = NeuralNetwork.get_create_model(model_type, model_input_args)
         model_net.load_state_dict(trainer_desc['model_state_dict'])
         # CHECK THIS OUT !!!
         model_net.cuda()
@@ -342,10 +410,60 @@ class Trainer(object):
         loss_fun_input_args = trainer_desc['loss_fun_desc'][1]
         loss_fun = DICTAVAILLOSSFUNS(loss_fun_type, is_masks_exclude= loss_fun_input_args['is_masks_exclude'])
 
+        if dict_added_other_input_args:
+            metrics_fun = dict_added_other_input_args['metrics_fun']
+        else:
+            metrics_fun = None
+
         # create and return new Trainer
-        return Trainer(model_net, optimizer, loss_fun)
+        return Trainer(model_net, optimizer, loss_fun, metrics_fun)
+
+    @staticmethod
+    def load_model_from_diffmodel(filename,
+                                  model_torestart,
+                                  dict_added_model_input_args=None,
+                                  dict_added_other_input_args=None,
+                                  is_restart_homemade=False):
+        if is_restart_homemade:
+            from Networks_Pytorch.NetworksGNNs_Restart import ModelRestartPlugin
+        change_input_modelname = {'Unet': 'Unet3D',
+                                  'UnetGNN': 'Unet3DGNN',
+                                  'UnetGNN_OTF': 'Unet3DGNN_OTF',
+                                  'GNN-Otf': 'gnnOTF',
+                                  'GNN-AlterOtf': 'gnnAlterOTF'}
+
+        trainer_desc = torch.load(filename, map_location= 'cuda:0')#map_location= Trainer.get_device())
+
+        # create new model
+        model_type = change_input_modelname[model_torestart]
+        model_input_args = trainer_desc['model_desc'][1]
+        if dict_added_model_input_args:
+            model_input_args.update(dict_added_model_input_args)
+        if is_restart_homemade:
+            model_net = ModelRestartPlugin.get_create_model(model_type, model_input_args)
+        else:
+            model_net = NeuralNetwork.get_create_model(model_type, model_input_args)
+        model_net.modify_state_dict_restartGNN_fromUnet(trainer_desc['model_state_dict'])
+        model_net.load_state_dict(trainer_desc['model_state_dict'])
+        # CHECK THIS OUT !!!
+        model_net.cuda()
+
+        # create new optimizer
+        optimizer_type = trainer_desc['optimizer_desc']
+        optimizer = DICTAVAILOPTIMIZERS(optimizer_type, model_params= model_net.parameters(), lr=0.0)
+
+        # create nwe loss function
+        loss_fun_type = trainer_desc['loss_fun_desc'][0]
+        loss_fun_input_args = trainer_desc['loss_fun_desc'][1]
+        loss_fun = DICTAVAILLOSSFUNS(loss_fun_type, is_masks_exclude= loss_fun_input_args['is_masks_exclude'])
+
+        if dict_added_other_input_args:
+            metrics_fun = dict_added_other_input_args['metrics_fun']
+        else:
+            metrics_fun = None
+
+        # create and return new Trainer
+        return Trainer(model_net, optimizer, loss_fun, metrics_fun)
 
     def get_summary_model(self):
         summary(self.model_net, tuple(self.model_net.get_size_input()))
-
-

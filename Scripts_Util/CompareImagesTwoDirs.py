@@ -46,7 +46,6 @@ def main(args):
 
         in_img1_array = FileReader.getImageArray(in_file_1)
         in_img2_array = FileReader.getImageArray(in_file_2)
-
         #print("Values in input array 1: %s..." % (np.unique(in_img1_array)))
         #print("Values in input array 2: %s..." % (np.unique(in_img2_array)))
 
@@ -67,9 +66,9 @@ def main(args):
                 num_voxels_diff = np.count_nonzero(abs_error_array)
                 num_voxels_1_nonzero = np.count_nonzero(in_img1_array)
                 rel_num_voxels_diff = (num_voxels_diff / float(num_voxels_1_nonzero)) * 100
-                print("Num voxels different \'%s\' out of total \'%s\'. Rel percentage \'%s\'..." %(num_voxels_diff,
-                                                                                                    abs_error_array.size,
-                                                                                                    rel_num_voxels_diff))
+                print("Num voxels different \'%s\' out of total \'%s\' non zero. Rel percentage \'%s\'..." %(num_voxels_diff,
+                                                                                                             num_voxels_1_nonzero,
+                                                                                                             rel_num_voxels_diff))
                 mean_abs_error = abs(np.mean(abs_error_array))
                 mean_in_img1 = abs(np.mean(in_img1_array))
                 mean_rel_error = (mean_abs_error / float(mean_in_img1)) * 100

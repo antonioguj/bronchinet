@@ -14,6 +14,7 @@ from Common.FunctionsUtil import *
 import numpy as np
 
 
+
 class OperationImages(object):
     @staticmethod
     def check_in_array_2D_without_channels(in_array_shape):
@@ -68,12 +69,18 @@ class CropImages(OperationImages):
 
 class IncludeImages(OperationImages):
     @staticmethod
-    def compute2D(in_array, bound_box, out_array):
+    def compute2D(in_array, out_array, bound_box):
         out_array[bound_box[0][0]:bound_box[0][1], bound_box[1][0]:bound_box[1][1], ...] = in_array
+    @staticmethod
+    def compute2D_byadding(in_array, out_array, bound_box):
+        out_array[bound_box[0][0]:bound_box[0][1], bound_box[1][0]:bound_box[1][1], ...] += in_array
 
     @staticmethod
-    def compute3D(in_array, bound_box, out_array):
+    def compute3D(in_array, out_array, bound_box):
         out_array[bound_box[0][0]:bound_box[0][1], bound_box[1][0]:bound_box[1][1], bound_box[2][0]:bound_box[2][1], ...] = in_array
+    @staticmethod
+    def compute3D_byadding(in_array, out_array, bound_box):
+        out_array[bound_box[0][0]:bound_box[0][1], bound_box[1][0]:bound_box[1][1], bound_box[2][0]:bound_box[2][1], ...] += in_array
 
 
 class ExtendImages(OperationImages):
@@ -83,7 +90,7 @@ class ExtendImages(OperationImages):
             out_array = np.zeros(out_array_shape, dtype=in_array.dtype)
         else:
             out_array = np.full(out_array_shape, background_value, dtype=in_array.dtype)
-        IncludeImages.compute2D(in_array, bound_box, out_array)
+        IncludeImages.compute2D(in_array, out_array, bound_box)
         return out_array
 
     @staticmethod
@@ -92,7 +99,7 @@ class ExtendImages(OperationImages):
             out_array = np.zeros(out_array_shape, dtype=in_array.dtype)
         else:
             out_array = np.full(out_array_shape, background_value, dtype=in_array.dtype)
-        IncludeImages.compute3D(in_array, bound_box, out_array)
+        IncludeImages.compute3D(in_array, out_array, bound_box)
         return out_array
 
 

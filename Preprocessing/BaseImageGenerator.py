@@ -8,6 +8,9 @@
 # Last update: 09/02/2018
 ########################################################################################
 
+from Common.ErrorMessages import *
+
+
 
 class BaseImageGenerator(object):
 

@@ -111,9 +111,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', default=DATADIR)
+    parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
-    parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
+    parser.add_argument('--slidewin_propOverlap', type=str2tuplefloat, default=SLIDEWIN_PROPOVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=ELASTICDEFORMATIONIMAGES)
     parser.add_argument('--createImagesBatches', type=str2bool, default=CREATEIMAGESBATCHES)

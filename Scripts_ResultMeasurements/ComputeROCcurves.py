@@ -17,6 +17,7 @@ elif TYPE_DNNLIBRARY_USED == 'Pytorch':
     from Networks_Pytorch.Metrics import *
 from PlotsManager.FrocUtil import computeFROC, computeROC_Completeness_VolumeLeakage
 from Preprocessing.OperationImages import *
+from Preprocessing.OperationMasks import *
 from collections import OrderedDict
 import argparse
 np.random.seed(2017)
@@ -177,7 +178,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('inputpredictions', type=str)
     parser.add_argument('--outputdir', type=str)
     parser.add_argument('--listMetricsROCcurve', type=parseListarg, default=LISTMETRICSROCCURVE)

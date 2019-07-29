@@ -10,8 +10,6 @@
 
 from Common.CPUGPUdevicesManager import *
 from Common.WorkDirsManager import *
-from Preprocessing.ImageGeneratorManager import *
-from Postprocessing.ImageReconstructorManager import *
 from DataLoaders.LoadDataManager import *
 if TYPE_DNNLIBRARY_USED == 'Keras':
     from DataLoaders.BatchDataGenerator_Keras import *
@@ -20,9 +18,14 @@ if TYPE_DNNLIBRARY_USED == 'Keras':
     from Networks_Keras.VisualModelParams import *
 elif TYPE_DNNLIBRARY_USED == 'Pytorch':
     from DataLoaders.BatchDataGenerator_Pytorch import *
-    from Networks_Pytorch.Trainers import *
     from Networks_Pytorch.Metrics import *
-    from Networks_Pytorch.Networks import *
+    if ISTESTMODELSWITHGNN:
+        from Networks_Pytorch.NetworksGNNs import *
+    else:
+        from Networks_Pytorch.Networks import *
+    from Networks_Pytorch.Trainers import *
+from Postprocessing.ImageReconstructorManager import *
+from Preprocessing.ImageGeneratorManager import *
 from Preprocessing.OperationImages import *
 from Preprocessing.OperationMasks import *
 import argparse
@@ -32,7 +35,7 @@ import argparse
 def main(args):
     # First thing, set session in the selected(s) devices: CPU or GPU
     set_session_in_selected_device(use_GPU_device=True,
-                                   type_GPU_installed=args.typeGPUinstalled)
+                                   type_GPU_installed=TYPEGPUINSTALLED)
 
     # ---------- SETTINGS ----------
     nameInputRoiMasksRelPath   = 'Lungs_Proc/'
@@ -52,10 +55,9 @@ def main(args):
 
 
     workDirsManager     = WorkDirsManager(args.basedir)
-    TestingDataPath     = workDirsManager.getNameExistPath(args.testdatadir)
+    TestingDataPath     = workDirsManager.getNameExistPath        (args.testdatadir)
     InputReferFilesPath = workDirsManager.getNameExistBaseDataPath(nameInputReferFilesRelPath)
-    ModelsPath          = workDirsManager.getNameExistPath(args.modelsdir)
-    OutputPredictionPath= workDirsManager.getNameNewPath  (args.predictionsdir)
+    OutputPredictionPath= workDirsManager.getNameNewPath          (args.predictionsdir)
 
     listTestImagesFiles = findFilesDirAndCheck(TestingDataPath,     nameImagesFiles)
     listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath,     nameLabelsFiles)
@@ -72,18 +74,6 @@ def main(args):
         dict_cropBoundingBoxes = readDictionary(joinpathnames(workDirsManager.getNameBaseDataPath(), nameCropBoundingBoxes))
 
 
-    test_images_generator = getImagesDataGenerator3D(args.slidingWindowImages,
-                                                     args.prop_overlap_Z_X_Y,
-                                                     args.transformationImages,
-                                                     args.elasticDeformationImages)
-
-    images_reconstructor = getImagesReconstructor3D(args.slidingWindowImages,
-                                                    args.prop_overlap_Z_X_Y,
-                                                    use_TransformationImages=False,
-                                                    isfilterImages=args.filterPredictProbMaps,
-                                                    prop_valid_outUnet=args.prop_valid_outUnet)
-
-
 
     # LOADING MODEL
     # ----------------------------------------------
@@ -91,11 +81,11 @@ def main(args):
     print("Loading saved model...")
     print("-" * 30)
 
-    if TYPE_DNNLIBRARY_USED == 'Keras':
-        print("Loading full model: weights, optimizer, loss, metrics ... and restarting...")
-        modelSavedPath = joinpathnames(ModelsPath, 'model_' + args.prediction_modelFile + '.hdf5')
-        print("Restarting from file: \'%s\'..." % (modelSavedPath))
+    print("Loading full model: weights, optimizer, loss, metrics ... and restarting...")
+    modelSavedPath = args.predsmodelfile
+    print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
+    if TYPE_DNNLIBRARY_USED == 'Keras':
         loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).loss
         metrics = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]
         custom_objects = dict(map(lambda fun: (fun.__name__, fun), [loss_fun] + metrics))
@@ -106,19 +96,29 @@ def main(args):
         model.summary()
 
     elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-        print("Loading full model: weights, optimizer, loss, metrics ... and restarting...")
-        modelSavedPath = joinpathnames(ModelsPath, 'model_' + args.prediction_modelFile + '.pt')
-        print("Restarting from file: \'%s\'..." % (modelSavedPath))
         # load and compile model
-        trainer = Trainer.load_model_full(modelSavedPath)
+        if args.isModelsWithGNN:
+            dict_added_model_input_args = {'nlevel': NUM_LAYERS,
+                                           'isUse_valid_convs': args.isValidConvolutions,
+                                           'isGNN_with_attention_lays': args.isGNNwithAttentionLays,
+                                           'source_dir_adjs': SOURCEDIR_ADJS}
+        else:
+            dict_added_model_input_args = {}
 
+        trainer = Trainer.load_model_full(modelSavedPath,
+                                          dict_added_model_input_args=dict_added_model_input_args)
+
+        size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
+        if args.isValidConvolutions:
+            print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." %(str(args.size_in_images),
+                                                                                                  str(size_output_modelnet)))
         # output model summary
         trainer.get_summary_model()
 
 
     if (args.saveFeatMapsLayers):
         if TYPE_DNNLIBRARY_USED == 'Keras':
-            visual_model_params = VisualModelParams(model, IMAGES_DIMS_Z_X_Y)
+            visual_model_params = VisualModelParams(model, args.size_in_images)
             if args.firstSaveFeatMapsLayers:
                 get_index_featmap = lambda i: args.firstSaveFeatMapsLayers + i
             else:
@@ -127,6 +127,20 @@ def main(args):
         elif TYPE_DNNLIBRARY_USED == 'Pytorch':
             message = 'Visualize a model feature maps still not implemented...'
             CatchErrorException(message)
+
+    test_images_generator = getImagesDataGenerator3D(args.size_in_images,
+                                                     args.slidingWindowImages,
+                                                     args.slidewin_propOverlap,
+                                                     args.transformationImages,
+                                                     args.elasticDeformationImages)
+    images_reconstructor = getImagesReconstructor3D(args.size_in_images,
+                                                    args.slidingWindowImages,
+                                                    args.slidewin_propOverlap,
+                                                    use_TransformationImages=False,
+                                                    isUse_valid_convs=args.isValidConvolutions,
+                                                    size_output_model=size_output_modelnet,
+                                                    isfilter_valid_outUnet=FILTERPREDICTPROBMAPS,
+                                                    prop_valid_outUnet=PROP_VALID_OUTUNET)
     # ----------------------------------------------
 
 
@@ -145,23 +159,25 @@ def main(args):
         print("Loading data...")
         if (args.slidingWindowImages or args.transformationImages):
             if TYPE_DNNLIBRARY_USED == 'Keras':
-                in_test_xData = LoadDataManagerInBatches_DataGenerator(IMAGES_DIMS_Z_X_Y,
+                in_test_xData = LoadDataManagerInBatches_DataGenerator(args.size_in_images,
                                                                        test_images_generator).loadData_1File(in_testXData_file,
                                                                                                              shuffle_images=False)
             elif TYPE_DNNLIBRARY_USED == 'Pytorch':
                 in_test_xData = LoadDataManager.loadData_1File(in_testXData_file)
-                test_batch_data_generator = TrainingBatchDataGenerator(IMAGES_DIMS_Z_X_Y,
+                test_batch_data_generator = TrainingBatchDataGenerator(args.size_in_images,
                                                                        [in_test_xData],
                                                                        [in_test_xData],
                                                                        test_images_generator,
                                                                        batch_size=1,
+                                                                       isUse_valid_convs=args.isValidConvolutions,
+                                                                       size_output_model=size_output_modelnet,
                                                                        shuffle=False)
-                (test_yData, in_test_xData) = DataSampleGenerator(IMAGES_DIMS_Z_X_Y,
+                (test_yData, in_test_xData) = DataSampleGenerator(args.size_in_images,
                                                                   [in_test_xData],
                                                                   [in_test_xData],
                                                                   test_images_generator).get_full_data()
         else:
-            in_test_xData = LoadDataManagerInBatches(IMAGES_DIMS_Z_X_Y).loadData_1File(in_testXData_file)
+            in_test_xData = LoadDataManagerInBatches(args.size_in_images).loadData_1File(in_testXData_file)
             in_test_xData = np.expand_dims(in_test_xData, axis=0)
 
         print("Total Data batches generated: %s..." % (len(in_test_xData)))
@@ -256,32 +272,47 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
-    parser.add_argument('predictionsdir', default='Predictions_NEW')
-    parser.add_argument('--testdatadir', default='TestingData')
-    parser.add_argument('--modelsdir', default='Models_Restart')
-    parser.add_argument('--lossfun', default=ILOSSFUN)
-    parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
-    parser.add_argument('--prediction_modelFile', default=PREDICTION_MODELFILE)
-    parser.add_argument('--filterPredictProbMaps', type=str2bool, default=FILTERPREDICTPROBMAPS)
-    parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
-    parser.add_argument('--rescaleImages', type=str2bool, default=False)
-    parser.add_argument('--prop_valid_outUnet', type=float, default=PROP_VALID_OUTUNET)
+    parser.add_argument('--basedir', type=str, default=BASEDIR)
+    parser.add_argument('predictionsdir', type=str, default='Predictions_NEW')
+    parser.add_argument('predsmodelfile', type=str)
+    parser.add_argument('--testdatadir', type=str, default='TestingData')
+    parser.add_argument('--size_in_images', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
+    parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--extendSizeImages', type=str2bool, default=EXTENDSIZEIMAGES)
+    parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
+    parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
-    parser.add_argument('--prop_overlap_Z_X_Y', type=str2tuplefloat, default=PROP_OVERLAP_Z_X_Y)
+    parser.add_argument('--slidewin_propOverlap', type=str2tuplefloat, default=SLIDEWIN_PROPOVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=False)
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=False)
-    parser.add_argument('--typeGPUinstalled', type=str, default=TYPEGPUINSTALLED)
     parser.add_argument('--saveFeatMapsLayers', type=str2bool, default=SAVEFEATMAPSLAYERS)
-    parser.add_argument('--nameSaveModelLayer', default=NAMESAVEMODELLAYER)
+    parser.add_argument('--nameSaveModelLayer', type=str, default=NAMESAVEMODELLAYER)
     parser.add_argument('--maxNumSaveFeatMapsLayers', type=int, default=None)
     parser.add_argument('--firstSaveFeatMapsLayers', type=int, default=None)
+    parser.add_argument('--lossfun', type=str, default=ILOSSFUN)
+    parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
+    parser.add_argument('--isModelsWithGNN', type=str2bool, default=ISTESTMODELSWITHGNN)
+    parser.add_argument('--isGNNwithAttentionLays', type=str2bool, default=ISGNNWITHATTENTIONLAYS)
     args = parser.parse_args()
 
+    if args.cfgfromfile:
+        if not isExistfile(args.cfgfromfile):
+            print("Error. Config params file not found: \'%s\'..." %(args.cfgfromfile))
+        else:
+            input_args_file = readDictionary_configParams(args.cfgfromfile)
+        print("Set up experiments with parameters from file: \'%s\'" %(args.cfgfromfile))
+        args.size_in_images         = str2tupleint(input_args_file['size_in_images'])
+        args.masksToRegionInterest  = str2bool(input_args_file['masksToRegionInterest'])
+        args.isValidConvolutions    = str2bool((input_args_file['isValidConvolutions']))
+        args.slidingWindowImages    = str2bool((input_args_file['slidingWindowImages']))
+        args.slidewin_propOverlap   = str2tuplefloat((input_args_file['slidewin_propOverlap']))
+        args.transformationImages   = False   #str2bool((input_args_file['transformationImages']))
+        args.elasticDeformationImages= str2bool((input_args_file['elasticDeformationImages']))
+        args.isGNNwithAttentionLays = str2bool((input_args_file['isGNNwithAttentionLays']))
+
     print("Print input arguments...")
-    for key, value in vars(args).iteritems():
+    for key, value in sorted(vars(args).iteritems()):
         print("\'%s\' = %s" %(key, value))
 
     main(args)

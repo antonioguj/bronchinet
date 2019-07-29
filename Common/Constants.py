@@ -13,10 +13,11 @@ np.random.seed(2017)
 
 
 DATADIR = '/home/antonio/Data/DLCST_Processed/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_UnetGNNs_DLCST/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_UnetGNNs_DLCST/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
+TYPEGPUINSTALLED     = 'smaller_GPU'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
@@ -82,8 +83,7 @@ FIXEDRESCALERES = (0.6, 0.6, 0.6)
 EXTENDSIZEIMAGES = False
 
 SLIDINGWINDOWIMAGES = True
-PROP_OVERLAP_Z_X_Y = (0.75, 0.0, 0.0)
-CREATEIMAGESBATCHES = False
+SLIDEWIN_PROPOVERLAP_Z_X_Y = (0.75, 0.0, 0.0)
 
 TRANSFORMATIONIMAGES = True
 ROTATION_XY_RANGE = 10
@@ -100,13 +100,19 @@ ZOOM_RANGE = 0.0
 ELASTICDEFORMATIONIMAGES = False
 TYPEELASTICDEFORMATION = 'gridwise'
 
+CREATEIMAGESBATCHES = False
 SAVEVISUALIZEWORKDATA = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 
 
 # ******************** TRAINING PARAMETERS ********************
-NUM_LAYERS           = 5
-NUM_FEATMAPS_BASE    = 16
+#IMODEL    	  = 'UnetGNN_OTF'
+#IMODEL    	  = 'UnetGNN'
+IMODEL            = 'Unet'
+NUM_LAYERS        = 5
+NUM_FEATMAPS_BASE = 16
+SOURCEDIR_ADJS 	  = 'storedAdjacencyMatrix/'
+
 TYPE_NETWORK         = 'classification'
 TYPE_ACTIVATE_HIDDEN = 'relu'
 TYPE_ACTIVATE_OUTPUT = 'sigmoid'
@@ -118,11 +124,6 @@ TAILORED_BUILD_MODEL = True
 
 NUM_EPOCHS = 1000
 BATCH_SIZE = 1
-#IMODEL     = 'GNN-AlterOtf'
-#IMODEL     = 'GNN-Skip1-GNN23'
-#IMODEL     = 'GNNSkip2'
-IMODEL     = 'Unet'
-SOURCEDIR_ADJS = 'storedAdjacencyMatrix/'
 IOPTIMIZER = 'Adam'
 LEARN_RATE = 1.0e-04
 ILOSSFUN   = 'DiceCoefficient'
@@ -135,26 +136,34 @@ LISTMETRICS = []
 #                'TrueNegativeRate',
 #                'FalseNegativeRate']
 
+NUMMAXTRAINIMAGES = 16
+NUMMAXVALIDIMAGES = 4
+
+ISVALIDCONVOLUTIONS = False
 USEVALIDATIONDATA = True
 FREQVALIDATEMODEL = 3
 FREQSAVEINTERMODELS = 5
 USETRANSFORMONVALIDATIONDATA = True
 
-TYPEGPUINSTALLED = 'larger_GPU'
 USEMULTITHREADING = False
+WRITEOUTDESCMODELTEXT = False
+
+# GNN-module parameters
+ISTESTMODELSWITHGNN = False
+ISGNNWITHATTENTIONLAYS = False
 # ******************** TRAINING PARAMETERS ********************
 
 
 # ******************** RESTART PARAMETERS ********************
-USE_RESTARTMODEL = False
-RESTART_MODELFILE = 'last'
+RESTART_MODEL = False
+RESTART_EPOCH = 0
 RESTART_ONLY_WEIGHTS = False
-EPOCH_RESTART = 40
+RESTART_FROMFILE = True
+RESTART_FROMDIFFMODEL = False
 # ******************** RESTART PARAMETERS ********************
 
 
 # ******************** PREDICTION PARAMETERS ********************
-PREDICTION_MODELFILE = 'last'
 FILTERPREDICTPROBMAPS = True
 PROP_VALID_OUTUNET = 0.75
 SAVEFEATMAPSLAYERS = False

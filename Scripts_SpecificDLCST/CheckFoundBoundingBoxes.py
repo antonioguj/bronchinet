@@ -85,7 +85,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', default=DATADIR)
+    parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('cropimagesdir', type=str)
     parser.add_argument('fullimagesdir', type=str)
     args = parser.parse_args()

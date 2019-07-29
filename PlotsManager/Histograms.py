@@ -45,8 +45,8 @@ class Histograms(object):
         # colors = [cmap(float(i)/(num_images-1)) for i in range(num_images)]
         colors = ['blue', 'red', 'green', 'yellow', 'orange']
 
-        max_val_img =-1.0e0+6
-        min_val_img = 1.0e0+6
+        max_val_img =-1.0e+06
+        min_val_img = 1.0e+06
         for image_array in list_images_array:
             max_val_img = max(np.max(image_array), max_val_img)
             min_val_img = min(np.min(image_array), min_val_img)
@@ -54,7 +54,8 @@ class Histograms(object):
         bins = np.linspace(min_val_img, max_val_img, num_bins)
 
         for i, image_array in enumerate(list_images_array):
-            plt.hist(image_array.flatten(), bins=bins, alpha=0.5, color=colors[i], label='image%s'%(i), density=show_percen_yaxis)
+            plt.hist(image_array.flatten(), bins=bins, alpha=0.5, color=colors[i],
+                     label='image%s'%(i), log=True, density=show_percen_yaxis)
         #endfor
         plt.legend(loc='upper right')
 

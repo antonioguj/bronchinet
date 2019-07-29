@@ -30,8 +30,13 @@ def main(args):
 
     print("Files to plot (\'%s\')..." %(num_plot_files))
     for i, ifile in enumerate(list_in_files):
-        print("%s: \'%s\'" %(i, ifile))
+        print("%s: \'%s\'" %(i+1, ifile))
     #endfor
+
+    labels_train = ['train_%i'%(i+1) for i in range(num_plot_files)]
+    labels_valid = ['valid_%i'%(i+1) for i in range(num_plot_files)]
+    #labels_train = ['Unet-lev3', 'Unet-lev5', 'UnetGNN-RegAdj', 'UnetGNN-DynAdj']
+    #labels_valid = labels_train
 
 
     data_fields_lossHistory_files = OrderedDict()
@@ -139,14 +144,16 @@ def main(args):
             for i in range(num_files_plot_data):
                 # skip files that do not contain this data
                 if data[i]:
-                    axs[0].plot(epochs[i], data[i][0], color=colors[i], label='train_%i'%(i))
-                    axs[1].plot(epochs[i], data[i][1], color=colors[i], label='valid_%i'%(i))
+                    axs[0].plot(epochs[i], data[i][0], color=colors[i], label=labels_train[i])
+                    axs[1].plot(epochs[i], data[i][1], color=colors[i], label=labels_valid[i])
             #endfor
             axs[0].set_xlabel('epoch')
             axs[0].set_ylabel(str(key))
+            axs[0].set_title('Training')
             axs[0].legend(loc='best')
             axs[1].set_xlabel('epoch')
             axs[1].set_ylabel(str(key))
+            axs[1].set_title('Validation')
             axs[1].legend(loc='best')
             plt.show()
     #endfor

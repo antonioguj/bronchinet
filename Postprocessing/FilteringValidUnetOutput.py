@@ -13,14 +13,14 @@ from Common.ErrorMessages import *
 from Preprocessing.BaseImageGenerator import *
 
 
+
 class FilteringValidUnetOutput(BaseImageGenerator):
 
     type_progression_outside_output_Unet = 'quadratic'
     avail_type_progression_outside_output_Unet = ['linear', 'quadratic', 'cubic', 'exponential', 'all_outputs_Unet']
 
-
     def __init__(self, size_image, size_valid_outUnet):
-        self.size_image         = size_image
+        self.size_image = size_image
         self.size_valid_outUnet = size_valid_outUnet
         try:
             # if len(self.size_valid_outUnet) == 1:
@@ -33,9 +33,7 @@ class FilteringValidUnetOutput(BaseImageGenerator):
             self.size_boundbox_outUnet = [self.size_valid_outUnet] + [self.size_image]
 
         self.compute_filter_func_outUnet()
-
         super(FilteringValidUnetOutput, self).__init__(size_image)
-
 
     @staticmethod
     def multiply_matrixes_with_channels(matrix_1_withchannels, matrix_2):
@@ -126,48 +124,37 @@ class FilteringValidUnetOutput(BaseImageGenerator):
         else:
             return False
 
-
     def get_filter_func_outUnet_array(self):
         return self.filter_func_outUnet_array
 
     def compute_filter_func_outUnet(self):
-
         self.filter_func_outUnet_array = np.zeros(self.size_image, dtype=FORMATPROBABILITYDATA)
 
         if self.type_progression == 'all_outputs_Unet':
             # set flat probability equal to 'one' inside inner output of Unet
             # set piecewise probability distribution in between bounding boxes corresponding to outputs of Unet up to 'max_depth'
             # in between bounding boxes, assume quadratic distribution in between two values with diff: 1/num_output_Unet
-
             num_output_Unet = len(self.size_valid_outUnet)
-
             boundbox_inner_outUnet = self.get_limits_cropImage(self.size_image, self.size_boundbox_outUnet[0])
-
             self.fill_flat_interior_boundbox(boundbox_inner_outUnet)
 
             for i in range(num_output_Unet):
                 prop_val_in  = 1.0 - i / float(num_output_Unet)
                 prop_val_out = 1.0 - (i + 1) / float(num_output_Unet)
-
                 boundbox_inner_outUnet = self.get_limits_cropImage(self.size_image, self.size_boundbox_outUnet[i])
                 boundbox_outer_outUnet = self.get_limits_cropImage(self.size_image, self.size_boundbox_outUnet[i+1])
-
                 self.fill_progression_between_two_boundboxes(boundbox_inner_outUnet, boundbox_outer_outUnet, prop_val_in, prop_val_out)
             # endfor
         else:
             # set flat probability equal to 'one' inside output of Unet
             # set probability distribution (linear, quadratic, ...) in between output of Unet and borders of image
-
             boundbox_inner_outUnet = self.get_limits_cropImage(self.size_image, self.size_boundbox_outUnet[0])
             boundbox_size_image    = self.get_limits_cropImage(self.size_image, self.size_boundbox_outUnet[1])
-
             self.fill_flat_interior_boundbox(boundbox_inner_outUnet)
-
             self.fill_progression_between_two_boundboxes(boundbox_inner_outUnet, boundbox_size_image)
 
 
     def get_filtered_images_array(self, images_array):
-
         if self.check_correct_dims_image_to_filter(images_array.shape):
             if self.is_images_array_without_channels(images_array.shape):
                 return np.multiply(self.filter_func_outUnet_array, images_array)
@@ -177,19 +164,21 @@ class FilteringValidUnetOutput(BaseImageGenerator):
             return None
 
 
-    def get_images_array(self, images_array, index=None, masks_array=None, seed=None):
-
+    def get_images_array(self, images_array,
+                         index= None,
+                         masks_array= None,
+                         seed= None):
         out_images_array = self.get_filtered_images_array(images_array)
 
         if masks_array is None:
             return out_images_array
         else:
             out_masks_array = self.get_filtered_images_array(masks_array)
-
             return (out_images_array, out_masks_array)
 
-    def compute_images_array_all(self, images_array, masks_array=None, seed_0=None):
-
+    def compute_images_array_all(self, images_array,
+                                 masks_array= None,
+                                 seed_0= None):
         out_array_shape  = self.get_shape_out_array(images_array.shape)
         out_images_array = np.ndarray(out_array_shape, dtype=images_array.dtype)
 
@@ -198,19 +187,17 @@ class FilteringValidUnetOutput(BaseImageGenerator):
             for index in range(num_images):
                 out_images_array[index] = self.get_filtered_images_array(images_array[index])
             #endfor
-
             return out_images_array
         else:
             out_array_shape = self.get_shape_out_array(masks_array.shape)
             out_masks_array = np.ndarray(out_array_shape, dtype=masks_array.dtype)
-
             num_images = images_array.shape[0]
             for index in range(num_images):
                 out_images_array[index] = self.get_filtered_images_array(images_array[index])
                 out_masks_array [index] = self.get_filtered_images_array(masks_array [index])
             #endfor
-
             return (out_images_array, out_masks_array)
+
 
 
 class FilteringValidUnetOutput2D(FilteringValidUnetOutput):

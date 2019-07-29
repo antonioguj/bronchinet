@@ -69,9 +69,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', default=DATADIR)
-    parser.add_argument('inputdir')
-    parser.add_argument('outputdir')
+    parser.add_argument('--datadir', type=str, default=DATADIR)
+    parser.add_argument('inputdir', type=str)
+    parser.add_argument('outputdir', type=str)
     args = parser.parse_args()
 
     if not args.inputdir:

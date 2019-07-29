@@ -157,7 +157,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('inputpredictiondir', type=str)
     parser.add_argument('--metricsEvalThreshold', type=str, default='AirwayVolumeLeakage')
     parser.add_argument('--ValueMetricsSought', type=float, default=0.12)

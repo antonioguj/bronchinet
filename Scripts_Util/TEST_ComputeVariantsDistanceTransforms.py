@@ -31,7 +31,7 @@ nbInputFiles = len(listInputFiles)
 
 # Run checkers
 if (nbInputFiles == 0):
-    message = "0 Images found in dir \'%s\'" %(InputPath)
+    message = "0 Images found in dir \'%s\'" %(inputdir)
     CatchErrorException(message)
 
 

@@ -91,7 +91,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('inputpredictiondir', type=str)
     parser.add_argument('outpredictmasksdir', type=str)
     parser.add_argument('--thresholdPost', type=float, default=THRESHOLDPOST)

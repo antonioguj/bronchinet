@@ -77,7 +77,7 @@ def main(args):
 
     dict_found_boundingBoxes = {}
 
-    nameTempOutResFile = joinpathnames(BaseDataPath, nameTempOutResFile)
+    nameTempOutResFile = joinpathnames(args.datadir, nameTempOutResFile)
 
     fout = open(nameTempOutResFile, 'w')
 
@@ -166,9 +166,9 @@ def main(args):
 
 
     # Save dictionary in csv file
-    nameoutfile = joinpathnames(BaseDataPath, nameOutResultFileNPY)
+    nameoutfile = joinpathnames(args.datadir, nameOutResultFileNPY)
     saveDictionary(nameoutfile, dict_found_boundingBoxes)
-    nameoutfile = joinpathnames(BaseDataPath, nameOutResultFileCSV)
+    nameoutfile = joinpathnames(args.datadir, nameOutResultFileCSV)
     saveDictionary_csv(nameoutfile, dict_found_boundingBoxes)
 
     fout.close()
@@ -177,7 +177,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', default=DATADIR)
+    parser.add_argument('--datadir', type=str, default=DATADIR)
     args = parser.parse_args()
 
     print("Print input arguments...")

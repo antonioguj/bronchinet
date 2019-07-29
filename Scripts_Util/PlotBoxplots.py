@@ -30,8 +30,11 @@ def main(args):
 
     print("Files to plot (\'%s\')..." %(num_data_files))
     for i, ifile in enumerate(list_in_files):
-        print("%s: \'%s\'" %(i, ifile))
+        print("%s: \'%s\'" %(i+1, ifile))
     #endfor
+
+    labels = ['model_%i'%(i+1) for i in range(num_data_files)]
+    #labels = ['Unet-lev3', 'Unet-lev5', 'UnetGNN-RegAdj', 'UnetGNN-DynAdj']
 
 
     data_fields_files = OrderedDict()
@@ -66,10 +69,10 @@ def main(args):
                 #CatchErrorException(message)
 
         # store data for fields in dictionary
-        for (i,key) in enumerate(fields_names):
+        for (i, key) in enumerate(fields_names):
             data_fields_files[key].append(data_this[:,i])
         # store data for cases in dictionary
-        for (i,key) in enumerate(cases_names):
+        for (i, key) in enumerate(cases_names):
             data_cases_files[key].append(data_this[i,:])
     #endfor
 
@@ -77,9 +80,8 @@ def main(args):
     print("Found cases to plot: \'%s\'..." %(', '.join(map(lambda item: '/'+item+'/', cases_names))))
 
 
-    for (key, data) in data_fields_files.iteritems():
-        labels = ['model_%s'%(i+1) for i in range(len(data))]
-        plt.boxplot(data, labels=labels)
+    for i, (key, data) in enumerate(data_fields_files.iteritems()):
+        plt.boxplot(data, labels=labels[i])
         plt.title(str(key))
         plt.show()
     #endfor

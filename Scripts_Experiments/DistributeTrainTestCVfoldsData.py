@@ -98,7 +98,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--basedir', type=str, default=BASEDIR)
     args = parser.parse_args()
 
     print("Print input arguments...")

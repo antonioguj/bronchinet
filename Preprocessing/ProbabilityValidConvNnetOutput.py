@@ -13,11 +13,11 @@ from Common.ErrorMessages import *
 from Preprocessing.BaseImageGenerator import *
 
 
+
 class ProbabilityValidConvNnetOutput(BaseImageGenerator):
 
     type_progression_outside_output_nnet = 'linear'
     avail_type_progression_outside_output_nnet = ['linear', 'quadratic', 'cubic', 'exponential', 'all_outputs_Unet']
-
 
     def __init__(self, size_image, size_outnnet):
         self.size_image   = size_image
@@ -33,9 +33,7 @@ class ProbabilityValidConvNnetOutput(BaseImageGenerator):
             self.size_boundbox_outnnet = [self.size_outnnet] + [self.size_image]
 
         self.compute_probability_nnet_output()
-
         super(ProbabilityValidConvNnetOutput, self).__init__(size_image)
-
 
     @staticmethod
     def compute_tensor_product_2D(a, b):
@@ -97,7 +95,6 @@ class ProbabilityValidConvNnetOutput(BaseImageGenerator):
     def fill_flat_exterior_boundbox(self, boundbox_outer):
         pass
 
-
     def complete_init_data(self, in_array_shape):
         self.num_images = in_array_shape[0]
 
@@ -122,48 +119,38 @@ class ProbabilityValidConvNnetOutput(BaseImageGenerator):
         else:
             return False
 
-
     def get_prob_outnnet_array(self):
         return self.prob_outnnet_array
 
-    def compute_probability_nnet_output(self):
 
-        self.prob_outnnet_array = np.zeros(self.size_image, dtype=FORMATPROPDATA)
+    def compute_probability_nnet_output(self):
+        self.prob_outnnet_array = np.zeros(self.size_image, dtype=FORMATPROBABILITYDATA)
 
         if self.type_progression == 'all_outputs_Unet':
             # set flat probability equal to 'one' inside inner output of nnet
             # set piecewise probability distribution in between bounding boxes corresponding to outputs of Unet up to 'max_depth'
             # in between bounding boxes, assume quadratic distribution in between two values with diff: 1/num_output_nnet
-
             num_output_nnet = len(self.size_outnnet)
-
             boundbox_inner_outnnet = self.get_limits_cropImage(self.size_image, self.size_boundbox_outnnet[0])
-
             self.fill_flat_interior_boundbox(boundbox_inner_outnnet)
 
             for i in range(num_output_nnet):
                 prop_val_in  = 1.0 - i / float(num_output_nnet)
                 prop_val_out = 1.0 - (i + 1) / float(num_output_nnet)
-
                 boundbox_inner_outnnet = self.get_limits_cropImage(self.size_image, self.size_boundbox_outnnet[i])
                 boundbox_outer_outnnet = self.get_limits_cropImage(self.size_image, self.size_boundbox_outnnet[i+1])
-
                 self.fill_progression_between_two_boundboxes(boundbox_inner_outnnet, boundbox_outer_outnnet, prop_val_in, prop_val_out)
             # endfor
         else:
             # set flat probability equal to 'one' inside output of nnet
             # set probability distribution (linear, quadratic, ...) in between output of nnet and borders of image
-
             boundbox_inner_outnnet = self.get_limits_cropImage(self.size_image, self.size_boundbox_outnnet[0])
-            boundbox_size_image    = self.get_limits_cropImage(self.size_image, self.size_boundbox_outnnet[1])
-
+            boundbox_size_image = self.get_limits_cropImage(self.size_image, self.size_boundbox_outnnet[1])
             self.fill_flat_interior_boundbox(boundbox_inner_outnnet)
-
             self.fill_progression_between_two_boundboxes(boundbox_inner_outnnet, boundbox_size_image)
 
 
     def get_filtered_proboutnnet_image_array(self, images_array):
-
         if self.check_correct_dims_image_to_filter(images_array.shape):
             if self.is_images_array_without_channels(images_array.shape):
                 return np.multiply(self.prob_outnnet_array, images_array)
@@ -173,18 +160,15 @@ class ProbabilityValidConvNnetOutput(BaseImageGenerator):
             return None
 
     def get_images_array(self, images_array, index=None, masks_array=None, seed=None):
-
         out_images_array = self.get_filtered_proboutnnet_image_array(images_array)
 
         if masks_array is None:
             return out_images_array
         else:
             out_masks_array = self.get_filtered_proboutnnet_image_array(masks_array)
-
             return (out_images_array, out_masks_array)
 
     def compute_images_array_all(self, images_array, masks_array=None, seed_0=None):
-
         out_array_shape  = self.get_shape_out_array(images_array.shape)
         out_images_array = np.ndarray(out_array_shape, dtype=images_array.dtype)
 
@@ -193,7 +177,6 @@ class ProbabilityValidConvNnetOutput(BaseImageGenerator):
             for index in range(num_images):
                 out_images_array[index] = self.get_filtered_proboutnnet_image_array(images_array[index])
             #endfor
-
             return out_images_array
         else:
             out_array_shape = self.get_shape_out_array(masks_array.shape)
@@ -204,7 +187,6 @@ class ProbabilityValidConvNnetOutput(BaseImageGenerator):
                 out_images_array[index] = self.get_filtered_proboutnnet_image_array(images_array[index])
                 out_masks_array [index] = self.get_filtered_proboutnnet_image_array(masks_array [index])
             #endfor
-
             return (out_images_array, out_masks_array)
 
     # def compute(self):
@@ -225,22 +207,20 @@ class ProbabilityValidConvNnetOutput(BaseImageGenerator):
     #     return np.divide(global_prob_outnnet_array, factor_normalization)
 
 
+
 class ProbabilityValidConvNnetOutput2D(ProbabilityValidConvNnetOutput):
 
     def __init__(self, size_image, size_outnnet):
         super(ProbabilityValidConvNnetOutput2D, self).__init__(size_image, size_outnnet)
 
-
     def fill_flat_interior_boundbox(self, boundbox_inner):
         # assign probability 'one' inside box
         (x_left, x_right, y_down, y_up) = boundbox_inner
-
         self.prob_outnnet_array[x_left:x_right, y_down:y_up] = 1.0
 
     def fill_progression_between_two_boundboxes(self, boundbox_in, boundbox_out, prop_val_in=1.0, prop_val_out=0.0):
         # assign probability distribution between 'inner' and 'outer' boundboxes, between values 'prop_output_val_in' and 'prop_output_val_out'
-
-        (x_left_in,  x_right_in,  y_down_in,  y_up_in ) = boundbox_in
+        (x_left_in, x_right_in, y_down_in, y_up_in ) = boundbox_in
         (x_left_out, x_right_out, y_down_out, y_up_out) = boundbox_out
 
         progression_x_left  = self.compute_progression_increasing(x_left_out, x_left_in  ) * (prop_val_in - prop_val_out) + prop_val_out
@@ -265,10 +245,11 @@ class ProbabilityValidConvNnetOutput2D(ProbabilityValidConvNnetOutput):
         # assign probability 'zero' outside box
         (x_left, x_right, y_down, y_up) = boundbox_outer
 
-        self.prob_outnnet_array[0:x_left, :       ] = 0.0
-        self.prob_outnnet_array[x_right:, :       ] = 0.0
-        self.prob_outnnet_array[:,        0:y_down] = 0.0
-        self.prob_outnnet_array[:,        y_up:   ] = 0.0
+        self.prob_outnnet_array[0:x_left, :] = 0.0
+        self.prob_outnnet_array[x_right:, :] = 0.0
+        self.prob_outnnet_array[:, 0:y_down] = 0.0
+        self.prob_outnnet_array[:, y_up:   ] = 0.0
+
 
 
 class ProbabilityValidConvNnetOutput3D(ProbabilityValidConvNnetOutput):
@@ -276,17 +257,14 @@ class ProbabilityValidConvNnetOutput3D(ProbabilityValidConvNnetOutput):
     def __init__(self, size_image, size_outnnet):
         super(ProbabilityValidConvNnetOutput3D, self).__init__(size_image, size_outnnet)
 
-
     def fill_flat_interior_boundbox(self, boundbox_inner):
         # assign probability 'one' inside box
         (z_back, z_front, x_left, x_right, y_down, y_up) = boundbox_inner
-
         self.prob_outnnet_array[z_back:z_front, x_left:x_right, y_down:y_up] = 1.0
 
     def fill_progression_between_two_boundboxes(self, boundbox_in, boundbox_out, prop_val_in=1.0, prop_val_out=0.0):
         # assign probability distribution between 'inner' and 'outer' boundboxes, between values 'prop_output_val_in' and 'prop_output_val_out'
-
-        (z_back_in,  z_front_in,  x_left_in,  x_right_in,  y_down_in,  y_up_in ) = boundbox_in
+        (z_back_in, z_front_in, x_left_in, x_right_in, y_down_in, y_up_in ) = boundbox_in
         (z_back_out, z_front_out, x_left_out, x_right_out, y_down_out, y_up_out) = boundbox_out
 
         progression_z_back  = self.compute_progression_increasing(z_back_out, z_back_in  ) * (prop_val_in - prop_val_out) + prop_val_out
@@ -333,9 +311,9 @@ class ProbabilityValidConvNnetOutput3D(ProbabilityValidConvNnetOutput):
         # assign probability 'zero' outside box
         (z_back, z_front, x_left, x_right, y_down, y_up) = boundbox_outer
 
-        self.prob_outnnet_array[0:z_back, :,        :       ] = 0.0
-        self.prob_outnnet_array[z_front:, :,        :       ] = 0.0
-        self.prob_outnnet_array[:,        0:x_left, :       ] = 0.0
-        self.prob_outnnet_array[:,        x_right:, :       ] = 0.0
-        self.prob_outnnet_array[:,        :,        0:y_down] = 0.0
-        self.prob_outnnet_array[:,        :,        y_up:   ] = 0.0
+        self.prob_outnnet_array[0:z_back, :, :] = 0.0
+        self.prob_outnnet_array[z_front:, :, :] = 0.0
+        self.prob_outnnet_array[:, 0:x_left, :] = 0.0
+        self.prob_outnnet_array[:, x_right:, :] = 0.0
+        self.prob_outnnet_array[:, :, 0:y_down] = 0.0
+        self.prob_outnnet_array[:, :, y_up:   ] = 0.0

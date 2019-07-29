@@ -154,6 +154,28 @@ def saveDictionary_csv(filename, dictionary):
             writer = csv.writer(fout)
             for key, value in dictionary.items():
                 writer.writerow([key, value])
+
+def readDictionary_configParams(filename):
+    if filenameextension(filename, use_recurse_splitext=False) != '.txt':
+        message = 'need \'.txt\' to read dictionary'
+        CatchErrorException(message)
+    else:
+        outdictionary = {}
+        with open(filename, 'r') as fout:
+            for line in fout:
+                (key, value) = line.replace('\n','').split(' = ')
+                outdictionary[key] = value
+        return outdictionary
+
+def saveDictionary_configParams(filename, dictionary):
+    if filenameextension(filename, use_recurse_splitext=False) != '.txt':
+        message = 'need \'.txt\' to save dictionary'
+        CatchErrorException(message)
+    else:
+        with open(filename, 'w') as fout:
+            for key, value in dictionary.items():
+                strline = '%s = %s\n' %(key, value)
+                fout.write(strline)
 # ------------------------------------
 
 
@@ -182,9 +204,11 @@ def str2bool(strin):
     return strin.lower() in ('yes', 'true', 't', '1')
 
 def str2tupleint(strin):
+    strin = strin.replace('(','').replace(')','')
     return tuple([int(i) for i in strin.rsplit(',')])
 
 def str2tuplefloat(strin):
+    strin = strin.replace('(', '').replace(')', '')
     return tuple([float(i) for i in strin.rsplit(',')])
 
 def list2str(list):

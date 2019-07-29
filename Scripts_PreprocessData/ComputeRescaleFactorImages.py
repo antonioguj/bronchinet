@@ -88,7 +88,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', default=DATADIR)
+    parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('--fixedRescaleRes', type=str2tuplefloat, default=FIXEDRESCALERES)
     args = parser.parse_args()
 

@@ -137,7 +137,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('inputpredictmasksdir', type=str)
     parser.add_argument('--listResultMetrics', type=parseListarg, default=LISTRESULTMETRICS)
     parser.add_argument('--removeTracheaResMetrics', type=str2bool, default=REMOVETRACHEARESMETRICS)

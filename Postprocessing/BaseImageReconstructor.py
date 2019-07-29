@@ -14,27 +14,34 @@ from Postprocessing.FilteringValidUnetOutput import *
 import numpy as np
 
 
+
 class BaseImageReconstructor(object):
 
     def __init__(self, size_image,
                  size_total_image,
-                 isfilterImages=False,
-                 prop_valid_outUnet=None,
-                 is_onehotmulticlass=False):
-        self.size_image         = size_image
-        self.size_total_image   = size_total_image
-        self.isfilterImages     = isfilterImages
-        self.is_onehotmulticlass= is_onehotmulticlass
+                 isUse_valid_convs= False,
+                 size_output_model= None,
+                 isfilter_valid_outUnet= False,
+                 prop_valid_outUnet= None,
+                 is_onehotmulticlass= False):
+        self.size_image = size_image
+        self.size_total_image = size_total_image
 
-        if isfilterImages:
+        self.isUse_valid_convs = isUse_valid_convs
+        if isUse_valid_convs and size_output_model:
+            self.size_output_model = size_output_model
+        else:
+            self.size_output_model = size_image
+
+        self.isfilter_valid_outUnet = isfilter_valid_outUnet
+        if isfilter_valid_outUnet:
             size_valid_outUnet = tuple([int(prop_valid_outUnet * elem) for elem in size_image])
-
             print("Filter output probability maps, ith size of valid convs Unet: %s..." % (str(size_valid_outUnet)))
-
-            self.filterImages_calculator = FilteringValidUnetOutput3D(IMAGES_DIMS_Z_X_Y, size_valid_outUnet)
+            self.filterImages_calculator = FilteringValidUnetOutput3D(size_image, size_valid_outUnet)
         else:
             self.filterImages_calculator = None
 
+        self.is_onehotmulticlass = is_onehotmulticlass
 
     def complete_init_data(self, in_array_shape):
         pass
@@ -69,14 +76,11 @@ class BaseImageReconstructor(object):
         else:
             return out_array
 
-
     def get_processed_images_array(self, images_array):
         if self.is_onehotmulticlass:
             images_array = self.get_processed_image_onehotmulticlass_array(images_array)
-
-        if self.isfilterImages:
+        if self.isfilter_valid_outUnet:
             images_array = self.filterImages_calculator.get_images_array(images_array)
-
         return images_array
 
         # .get_num_channels_array(images_array.shape)
@@ -89,9 +93,7 @@ class BaseImageReconstructor(object):
         #     return images_array
 
     def get_processed_image_onehotmulticlass_array(self, images_array):
-
         new_images_array = np.ndarray(self.size_image, dtype=images_array.dtype)
-
         if len(self.size_image) == 2:
             for i in range(self.size_image[0]):
                 for j in range(self.size_image[1]):
@@ -99,7 +101,6 @@ class BaseImageReconstructor(object):
                     new_images_array[i, j] = index_argmax
                 # endfor
             # endfor
-
         elif len(self.size_image) == 3:
             for i in range(self.size_image[0]):
                 for j in range(self.size_image[1]):
@@ -114,7 +115,6 @@ class BaseImageReconstructor(object):
             CatchErrorException(message)
 
         return new_images_array
-
 
     def compute(self, predict_data):
         pass

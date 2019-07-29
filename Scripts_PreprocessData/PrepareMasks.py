@@ -126,7 +126,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', default=DATADIR)
+    parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('--isInputCentrelines', type=str2bool, default=False)
     parser.add_argument('--isClassificationData', type=str, default=ISCLASSIFICATIONDATA)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)

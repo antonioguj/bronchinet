@@ -149,7 +149,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', default=DATADIR)
+    parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('--isClassificationData', type=str, default=ISCLASSIFICATIONDATA)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--rescaleImages', type=str2bool, default=False)
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("Print input arguments...")
-    for key, value in vars(args).iteritems():
+    for key, value in sorted(vars(args).iteritems()):
         print("\'%s\' = %s" %(key, value))
 
     main(args)

@@ -132,7 +132,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', default=BASEDIR)
+    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--prop_data_training', type=float, default=PROP_DATA_TRAINING)
     parser.add_argument('--prop_data_validation', type=float, default=PROP_DATA_VALIDATION)
     parser.add_argument('--prop_data_testing', type=float, default=PROP_DATA_TESTING)

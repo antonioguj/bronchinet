@@ -16,6 +16,7 @@ import numpy as np
 np.random.seed(2017)
 
 
+
 class ElasticDeformationImages(TransformationImages):
 
     def __init__(self, size_images):
@@ -29,17 +30,14 @@ class ElasticDeformationImages(TransformationImages):
         return 0
 
     def get_images_array(self, images_array, index=None, masks_array=None, seed=None):
-
         seed = self.get_mod_seed(seed)
-
         if masks_array is None:
             out_images_array = self.get_transformed_image(images_array, seed=seed)
-
             return out_images_array
         else:
             (out_images_array, out_masks_array) = self.get_transformed_image(images_array, Y=masks_array, seed=seed)
-
             return (out_images_array, out_masks_array)
+
 
 
 class ElasticDeformationPixelwiseImages2D(ElasticDeformationImages):
@@ -47,11 +45,12 @@ class ElasticDeformationPixelwiseImages2D(ElasticDeformationImages):
     alpha_default = 15
     sigma_default = 3
 
-    def __init__(self, size_images, alpha=alpha_default, sigma=sigma_default):
+    def __init__(self, size_images,
+                 alpha=alpha_default,
+                 sigma=sigma_default):
         self.alpha = alpha
         self.sigma = sigma
         super(ElasticDeformationPixelwiseImages2D, self).__init__(size_images)
-
 
     def get_transformed_image(self, X, Y=None, seed=None):
         if seed is not None:
@@ -66,13 +65,12 @@ class ElasticDeformationPixelwiseImages2D(ElasticDeformationImages):
         indices = (x + dx, y + dy)
 
         out_X = map_coordinates(X, indices, order=3).reshape(shape)
-
         if Y is None:
             return out_X
         else:
             out_Y = map_coordinates(Y, indices, order=0).reshape(shape)
-
             return (out_X, out_Y)
+
 
 
 class ElasticDeformationGridwiseImages2D(ElasticDeformationImages):
@@ -80,11 +78,12 @@ class ElasticDeformationGridwiseImages2D(ElasticDeformationImages):
     sigma_default = 25
     points_default = 3
 
-    def __init__(self, size_images, sigma=sigma_default, points=points_default):
-        self.sigma  = sigma
+    def __init__(self, size_images,
+                 sigma=sigma_default,
+                 points=points_default):
+        self.sigma = sigma
         self.points = points
         super(ElasticDeformationGridwiseImages2D, self).__init__(size_images)
-
 
     def get_transformed_image(self, X, Y=None, seed=None):
         if seed is not None:
@@ -107,13 +106,12 @@ class ElasticDeformationGridwiseImages2D(ElasticDeformationImages):
             coordinates[i] = np.add(coordinates[i], y)
 
         out_X = map_coordinates(X, coordinates, order=3).reshape(shape)
-
         if Y is None:
             return out_X
         else:
             out_Y = map_coordinates(Y, coordinates, order=0).reshape(shape)
-
             return (out_X, out_Y)
+
 
 
 class ElasticDeformationPixelwiseImages3D(ElasticDeformationImages):
@@ -121,11 +119,12 @@ class ElasticDeformationPixelwiseImages3D(ElasticDeformationImages):
     alpha_default = 15
     sigma_default = 3
 
-    def __init__(self, size_images, alpha=alpha_default, sigma=sigma_default):
+    def __init__(self, size_images,
+                 alpha=alpha_default,
+                 sigma=sigma_default):
         self.alpha = alpha
         self.sigma = sigma
         super(ElasticDeformationPixelwiseImages3D, self).__init__(size_images)
-
 
     def get_transformed_image(self, X, Y=None, seed=None):
         if seed is not None:
@@ -141,13 +140,12 @@ class ElasticDeformationPixelwiseImages3D(ElasticDeformationImages):
         indices = (x + dx, y + dy, z + dz)
 
         out_X = map_coordinates(X, indices, order=3).reshape(shape)
-
         if Y is None:
             return out_X
         else:
             out_Y = map_coordinates(Y, indices, order=0).reshape(shape)
-
             return (out_X, out_Y)
+
 
 
 class ElasticDeformationGridwiseImages3D(ElasticDeformationImages):
@@ -155,11 +153,12 @@ class ElasticDeformationGridwiseImages3D(ElasticDeformationImages):
     sigma_default = 25
     points_default = 3
 
-    def __init__(self, size_images, sigma=sigma_default, points=points_default):
-        self.sigma  = sigma
+    def __init__(self, size_images,
+                 sigma=sigma_default,
+                 points=points_default):
+        self.sigma = sigma
         self.points = points
         super(ElasticDeformationGridwiseImages3D, self).__init__(size_images)
-
 
     def get_transformed_image(self, X, Y=None, seed=None):
         if seed is not None:
@@ -182,10 +181,8 @@ class ElasticDeformationGridwiseImages3D(ElasticDeformationImages):
             coordinates[i] = np.add(coordinates[i], y)
 
         out_X = map_coordinates(X, coordinates, order=3).reshape(shape)
-
         if Y is None:
             return out_X
         else:
             out_Y = map_coordinates(Y, coordinates, order=0).reshape(shape)
-
             return (out_X, out_Y)
