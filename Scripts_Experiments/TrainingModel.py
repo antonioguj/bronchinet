@@ -165,7 +165,7 @@ def main(args):
 
             trainer = Trainer(model_net, optimizer, loss_fun, metrics_fun)
 
-            if args.use_restartModel:
+            if args.restart_model:
                 print("Loading saved weights and restarting...")
                 modelSavedPath = joinpathnames(ModelsPath, 'model_last.pt')
                 print("Restarting from file: \'%s\'..." %(modelSavedPath))

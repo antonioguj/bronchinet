@@ -186,8 +186,7 @@ class Trainer(object):
     def _run_epoch(self):
         # switch to train mode
         self.model_net = self.model_net.train()
-        if ISTESTMODELSWITHGNN:  # CHECK THIS OUT. Only for Unet-GNNs
-            self.model_net.preprocess(self.epoch_count)
+        self.model_net.preprocess(self.epoch_count)
 
         # run a train pass on the current epoch
         if self.metrics_fun:

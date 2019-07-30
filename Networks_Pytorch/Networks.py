@@ -46,6 +46,9 @@ class NeuralNetwork(nn.Module):
     def build_model(self):
         return NotImplemented
 
+    def preprocess(self, *args, **kwargs):
+        pass
+
 
 class Unet3D_Original(NeuralNetwork):
 

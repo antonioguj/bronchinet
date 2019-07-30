@@ -44,8 +44,8 @@ def main(args):
     nameLabelsFiles            = 'labels*' + getFileExtension(FORMATTRAINDATA)
     nameInputRoiMasksFiles     = '*_lungs.nii.gz'
     nameInputReferFiles        = '*.nii.gz'
-    nameRescaleFactors         = 'rescaleFactors_images.npy'
     nameCropBoundingBoxes      = 'cropBoundingBoxes_images.npy'
+    #nameRescaleFactors         = 'rescaleFactors_images.npy'
     nameOutputPredictionFiles  = 'probmap_%s.nii.gz'
 
     if (args.saveFeatMapsLayers):
@@ -67,11 +67,11 @@ def main(args):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
 
-    if (args.rescaleImages):
-        dict_rescaleFactors = readDictionary(joinpathnames(workDirsManager.getNameBaseDataPath(), nameRescaleFactors))
-
     if (args.cropImages):
         dict_cropBoundingBoxes = readDictionary(joinpathnames(workDirsManager.getNameBaseDataPath(), nameCropBoundingBoxes))
+
+    #if (args.rescaleImages):
+    #    dict_rescaleFactors = readDictionary(joinpathnames(workDirsManager.getNameBaseDataPath(), nameRescaleFactors))
 
 
 
@@ -273,14 +273,14 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
+    parser.add_argument('predsmodelfile', type=str, default='Models_Restart')
     parser.add_argument('predictionsdir', type=str, default='Predictions_NEW')
-    parser.add_argument('predsmodelfile', type=str)
     parser.add_argument('--testdatadir', type=str, default='TestingData')
+    parser.add_argument('--cfgfromfile', type=str, default=None)
     parser.add_argument('--size_in_images', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--extendSizeImages', type=str2bool, default=EXTENDSIZEIMAGES)
-    parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     parser.add_argument('--slidewin_propOverlap', type=str2tuplefloat, default=SLIDEWIN_PROPOVERLAP_Z_X_Y)
