@@ -17,7 +17,7 @@ DATADIR = '/home/antonio/Data/DLCST_Processed/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
-TYPEGPUINSTALLED     = 'smaller_GPU'
+TYPEGPUINSTALLED     = 'larger_GPU'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
