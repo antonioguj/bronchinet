@@ -1,11 +1,14 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Feb  8 22:22:38 2019
+#
+# created by
+# Raghavendran Selvan
+# PhD student
+# DIKU, Copenhagen
+# (Derived from TK's initial repository)
+#
+# created on 09/02/2018
+# Last update: 09/02/2018
+########################################################################################
 
-@author: raghav
-Derived from TK's initial repository
-"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

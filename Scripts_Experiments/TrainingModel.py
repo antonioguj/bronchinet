@@ -375,7 +375,8 @@ if __name__ == "__main__":
 
     if args.cfgfromfile:
         if not isExistfile(args.cfgfromfile):
-            print("Error. Config params file not found: \'%s\'..." %(args.cfgfromfile))
+            message = "Config params file not found: \'%s\'..." %(args.cfgfromfile)
+            CatchErrorException(message)
         else:
             input_args_file = readDictionary_configParams(args.cfgfromfile)
         print("Set up experiments with parameters from file: \'%s\'" %(args.cfgfromfile))

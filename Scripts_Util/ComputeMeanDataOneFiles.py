@@ -17,7 +17,7 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    input_cases_names = ['av24', 'av25', 'av26', 'av28', 'av41']
+    input_cases_names = ['all']
     # ---------- SETTINGS ----------
 
 
@@ -25,7 +25,7 @@ def main(args):
 
     num_input_cases = len(input_cases_names)
 
-    out_fullfilename = joinpathnames(dirnamepathfile(args.inputfile), 'mean_' + basename(args.inputfile))
+    out_filename = joinpathnames(dirnamepathfile(args.inputfile), 'mean_' + basename(args.inputfile))
 
 
     raw_data_string = np.genfromtxt(args.inputfile, dtype=str)
@@ -60,8 +60,8 @@ def main(args):
     mean_data_fields_files = np.mean(data[indexes_input_cases,:], axis=0)
 
 
-    print("Save in file: \'%s\'..." %(out_fullfilename))
-    fout = open(out_fullfilename, 'w')
+    print("Save in file: \'%s\'..." %(out_filename))
+    fout = open(out_filename, 'w')
 
     strheader = '/case/ ' + ' '.join(['/%s/'%(elem) for elem in fields_names]) +'\n'
     fout.write(strheader)
@@ -74,7 +74,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('inputfile', type=str, nargs=1)
+    parser.add_argument('inputfile', type=str)
     args = parser.parse_args()
 
     print("Print input arguments...")

@@ -63,6 +63,7 @@ def main(args):
     listInputImagesFiles = findFilesDirAndCheck(InputImagesDataPath, nameInputImagesFiles)
     listInputLabelsFiles = findFilesDirAndCheck(InputLabelsDataPath, nameInputLabelsFiles)
 
+    numImagesFiles = len(listInputImagesFiles)
     if (len(listInputImagesFiles) != len(listInputLabelsFiles)):
         message = 'num images in dir \'%s\', not equal to num labels in dir \'%i\'...' %(len(listInputImagesFiles),
                                                                                          len(listInputLabelsFiles))
@@ -115,7 +116,7 @@ def main(args):
     # VALIDATION DATA
     print("Files assigned to Validation Data:")
     for index in indexes_validation_files:
-        print("%s" % (listInputImagesFiles[index]))
+        print("%s" %(listInputImagesFiles[index]))
         makelink(listInputImagesFiles[index], joinpathnames(ValidationDataPath, basename(listInputImagesFiles[index])))
         makelink(listInputLabelsFiles[index], joinpathnames(ValidationDataPath, basename(listInputLabelsFiles[index])))
     #endfor
@@ -123,7 +124,7 @@ def main(args):
     # TESTING DATA
     print("Files assigned to Testing Data:")
     for index in indexes_testing_files:
-        print("%s" % (listInputImagesFiles[index]))
+        print("%s" %(listInputImagesFiles[index]))
         makelink(listInputImagesFiles[index], joinpathnames(TestingDataPath, basename(listInputImagesFiles[index])))
         makelink(listInputLabelsFiles[index], joinpathnames(TestingDataPath, basename(listInputLabelsFiles[index])))
     #endfor
@@ -139,6 +140,9 @@ if __name__ == "__main__":
     parser.add_argument('--distribute_random', type=str2bool, default=DISTRIBUTE_RANDOM)
     parser.add_argument('--distribute_fixed_names', type=str2bool, default=DISTRIBUTE_FIXED_NAMES)
     args = parser.parse_args()
+
+    # correct proportion for testing data
+    args.prop_data_testing = 1.0 - args.prop_data_training - args.prop_data_validation
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

@@ -19,17 +19,18 @@ import argparse
 def main(args):
 
     if args.fromfile:
-        if not isExistfile(args.listinfiles):
-            message = "File \'%s\' not found..." %(args.listinfiles)
+        if not isExistfile(args.listinputfiles):
+            message = "File \'%s\' not found..." %(args.listinputfiles)
             CatchErrorException(message)
-        fout = open(args.listinfiles, 'r')
-        list_in_files = [infile.replace('\n','') for infile in fout.readlines()]
+        fout = open(args.listinputfiles, 'r')
+        list_input_files = [infile.replace('\n','') for infile in fout.readlines()]
+        print("\'inputfiles\' = %s" % (list_input_files))
     else:
-        list_in_files = [infile.replace('\n','') for infile in args.infiles]
-    num_data_files = len(list_in_files)
+        list_input_files = [infile.replace('\n','') for infile in args.inputfiles]
+    num_data_files = len(list_input_files)
 
     print("Files to plot (\'%s\')..." %(num_data_files))
-    for i, ifile in enumerate(list_in_files):
+    for i, ifile in enumerate(list_input_files):
         print("%s: \'%s\'" %(i+1, ifile))
     #endfor
 
@@ -43,9 +44,9 @@ def main(args):
     cases_names = []
 
     for i in range(num_data_files):
-        data_file = list_in_files[i]
-        raw_data_this_string = np.genfromtxt(data_file, dtype=str)
-        raw_data_this_float = np.genfromtxt(data_file, dtype=float)
+        data_file_this = list_input_files[i]
+        raw_data_this_string = np.genfromtxt(data_file_this, dtype=str)
+        raw_data_this_float = np.genfromtxt(data_file_this, dtype=float)
 
         fields_names_this = [item.replace('/','') for item in raw_data_this_string[0,1:]]
         cases_names_this = [item.replace('\'','') for item in raw_data_this_string[1:,0]]
@@ -81,7 +82,7 @@ def main(args):
 
 
     for i, (key, data) in enumerate(data_fields_files.iteritems()):
-        plt.boxplot(data, labels=labels[i])
+        plt.boxplot(data, labels=labels)
         plt.title(str(key))
         plt.show()
     #endfor
@@ -90,16 +91,16 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('infiles', type=str, nargs='*')
+    parser.add_argument('inputfiles', type=str, nargs='*')
     parser.add_argument('--fromfile', type=bool, default=False)
-    parser.add_argument('--listinfiles', type=str, default='listfiles_plotPostprocessMeasuresBoxPlot.txt')
+    parser.add_argument('--listinputfiles', type=str, default='listinputfiles.txt')
     args = parser.parse_args()
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():
         print("\'%s\' = %s" %(key, value))
 
-    if args.fromfile and not args.listinfiles:
+    if args.fromfile and not args.listinputfiles:
         print("ERROR. Input input file name with files to plot...")
 
     main(args)

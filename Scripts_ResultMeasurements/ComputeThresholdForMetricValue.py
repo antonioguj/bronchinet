@@ -162,7 +162,7 @@ if __name__ == "__main__":
     parser.add_argument('--metricsEvalThreshold', type=str, default='AirwayVolumeLeakage')
     parser.add_argument('--ValueMetricsSought', type=float, default=0.12)
     parser.add_argument('--numIterEvaluateMax', type=int, default=20)
-    parser.add_argument('--relErrorEvalMax', type=float, default=1.0e-02)
+    parser.add_argument('--relErrorEvalMax', type=float, default=1.0e-03)
     parser.add_argument('--initThreshold', type=float, default=0.5)
     parser.add_argument('--removeTracheaResMetrics', type=str2bool, default=REMOVETRACHEARESMETRICS)
     args = parser.parse_args()

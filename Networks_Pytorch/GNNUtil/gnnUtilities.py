@@ -1,13 +1,17 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Feb  8 21:57:21 2019
+#
+# created by
+# Raghavendran Selvan
+# PhD student
+# DIKU, Copenhagen
+#
+# created on 09/02/2018
+# Last update: 09/02/2018
+########################################################################################
 
-@author: raghav
-"""
 import numpy as np
 import scipy.sparse as sp
 import torch
+
 
 def row_normalize(mx):
     """Row-normalize sparse matrix"""

@@ -1,13 +1,16 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Feb  8 22:01:06 2019
+#
+# created by
+# Raghavendran Selvan
+# PhD student
+# DIKU, Copenhagen
+#
+# created on 09/02/2018
+# Last update: 09/02/2018
+########################################################################################
 
-@author: raghav
-"""
+#from Networks_Pytorch.GNNUtil.gnnUtilities import row_normalize, sparse_mx_to_torch_sparse_tensor
 import numpy as np
 import scipy.sparse as sp
-from GNN.gnnUtilities import row_normalize, sparse_mx_to_torch_sparse_tensor
 import torch
 import torch.nn.functional as F
 from sklearn.metrics.pairwise import pairwise_distances

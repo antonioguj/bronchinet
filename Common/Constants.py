@@ -111,7 +111,7 @@ SAVEVISUALIZEWORKDATA = False
 IMODEL            = 'Unet'
 NUM_LAYERS        = 5
 NUM_FEATMAPS_BASE = 16
-SOURCEDIR_ADJS 	  = 'storedAdjacencyMatrix/'
+SOURCEDIR_ADJS 	  = 'StoredAdjacencyMatrix/'
 
 TYPE_NETWORK         = 'classification'
 TYPE_ACTIVATE_HIDDEN = 'relu'
@@ -125,7 +125,7 @@ TAILORED_BUILD_MODEL = True
 NUM_EPOCHS = 1000
 BATCH_SIZE = 1
 IOPTIMIZER = 'Adam'
-LEARN_RATE = 1.0e-04
+LEARN_RATE = 9.0e-05
 ILOSSFUN   = 'DiceCoefficient'
 LISTMETRICS = []
 # LISTMETRICS = ['BinaryCrossEntropy',

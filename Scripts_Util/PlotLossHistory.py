@@ -19,17 +19,18 @@ import argparse
 def main(args):
 
     if args.fromfile:
-        if not isExistfile(args.listinfiles):
-            message = "File \'%s\' not found..." %(args.listinfiles)
+        if not isExistfile(args.listinputfiles):
+            message = "File \'%s\' not found..." %(args.listinputfiles)
             CatchErrorException(message)
-        fout = open(args.listinfiles, 'r')
-        list_in_files = [infile.replace('\n','') for infile in fout.readlines()]
+        fout = open(args.listinputfiles, 'r')
+        list_input_files = [infile.replace('\n','') for infile in fout.readlines()]
+        print("\'inputfiles\' = %s" % (list_input_files))
     else:
-        list_in_files = [infile.replace('\n','') for infile in args.infiles]
-    num_plot_files = len(list_in_files)
+        list_input_files = [infile.replace('\n','') for infile in args.inputfiles]
+    num_plot_files = len(list_input_files)
 
     print("Files to plot (\'%s\')..." %(num_plot_files))
-    for i, ifile in enumerate(list_in_files):
+    for i, ifile in enumerate(list_input_files):
         print("%s: \'%s\'" %(i+1, ifile))
     #endfor
 
@@ -44,7 +45,7 @@ def main(args):
     data_fields_lossHistory_files['loss'] = []
 
     for i in range(num_plot_files):
-        lossHistory_file = list_in_files[i]
+        lossHistory_file = list_input_files[i]
 
         with open(lossHistory_file, 'r') as infile:
             header_line = infile.readline()
@@ -162,9 +163,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('infiles', type=str, nargs='*')
+    parser.add_argument('inputfiles', type=str, nargs='*')
     parser.add_argument('--fromfile', type=bool, default=False)
-    parser.add_argument('--listinfiles', type=str, default='listfiles_plotLossHistory.txt')
+    parser.add_argument('--listinputfiles', type=str, default='listinputfiles.txt')
     args = parser.parse_args()
 
     print("Print input arguments...")
