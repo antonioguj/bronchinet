@@ -19,6 +19,7 @@ from PlotsManager.FrocUtil import computeFROC, computeROC_Completeness_VolumeLea
 from Preprocessing.OperationImages import *
 from Preprocessing.OperationMasks import *
 from collections import OrderedDict
+from tqdm import tqdm
 import argparse
 np.random.seed(2017)
 
@@ -26,17 +27,17 @@ np.random.seed(2017)
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputPredictionsRelPath = args.inputpredictiondir
-    nameInputReferMasksRelPath  = 'Airways_Proc/'
-    nameInputRoiMasksRelPath    = 'Lungs_Proc/'
-    nameInputCentrelinesRelPath = 'Centrelines_Full'
-    nameInputPredictionsFiles   = 'probmap_*.nii.gz'
-    nameInputReferMasksFiles    = '*_lumen.nii.gz'
-    nameInputRoiMasksFiles      = '*_lungs.nii.gz'
-    nameInputCentrelinesFiles   = '*_centrelines.nii.gz'
-    prefixPatternInputFiles     = 'vol[0-9][0-9]_*'
-    nameOutROCmetricsFile       = 'dataROC_metrics_%s.txt'
-    nameOutMeanROCmetricsFile   = 'dataROC_metrics_mean.txt'
+    nameInputPredictionsRelPath     = args.inputpredictionsdir
+    nameInputReferMasksRelPath      = 'Airways_Proc/'
+    nameInputRoiMasksRelPath        = 'Lungs_Proc/'
+    nameInputReferCentrelinesRelPath= 'Centrelines_Proc/'
+    nameInputPredictionsFiles       = '*_probmap.nii.gz'
+    nameInputReferMasksFiles        = '*_lumen.nii.gz'
+    nameInputRoiMasksFiles          = '*_lungs.nii.gz'
+    nameInputReferCentrelinesFiles  = '*_centrelines.nii.gz'
+    prefixPatternInputFiles         = 'vol[0-9][0-9]_*'
+    nameOutROCmetricsFile           = 'dataROC_metrics_%s.txt'
+    nameOutMeanROCmetricsFile       = 'dataROC_metrics_mean.txt'
 
     if args.outputdir:
         nameOutputFilesRelPath = args.outputdir
@@ -44,26 +45,29 @@ def main(args):
         nameOutputFilesRelPath = nameInputPredictionsRelPath
 
     # parameters to draw ROC curve
-    #um_thresholds = 9
-    #range_threshold = [0.1, 0.9]
-    #list_thresholds = (np.linspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()
-    num_thresholds = 5
-    range_threshold = [-10, -6]
-    list_thresholds = (np.logspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()
-    #list_thresholds = [1.0 - elem for elem in reversed(list_thresholds)]
+    list_thresholds = [0.0]
+    num_thresholds = 9
+    range_threshold = [-10, -2]
+    list_thresholds += (np.logspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()
+    num_thresholds = 9
+    range_threshold = [0.1, 0.9]
+    list_thresholds += (np.linspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()
+    num_thresholds = 9
+    range_threshold = [-2, -10]
+    list_thresholds += [1.0 - elem for elem in (np.logspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()]
     #allowedDistance = 0
+    list_thresholds += [1.0]
     # ---------- SETTINGS ----------
+    print("List of Threshold values: %s" % (list_thresholds))
 
 
     workDirsManager      = WorkDirsManager(args.basedir)
     InputPredictionsPath = workDirsManager.getNameExistPath        (nameInputPredictionsRelPath)
     InputReferMasksPath  = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
-    InputCentrelinesPath = workDirsManager.getNameExistBaseDataPath(nameInputCentrelinesRelPath)
     OutputFilesPath      = workDirsManager.getNameNewPath          (nameOutputFilesRelPath)
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath, nameInputPredictionsFiles)
     listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath,  nameInputReferMasksFiles)
-    listInputCentrelinesFiles = findFilesDirAndCheck(InputCentrelinesPath, nameInputCentrelinesFiles)
 
     if (args.removeTracheaResMetrics):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
@@ -71,18 +75,27 @@ def main(args):
 
 
     listMetricsROCcurve = OrderedDict()
-    list_isUse_centrelines = []
+    list_isUse_reference_centrelines = []
+    list_isUse_predicted_centrelines = []
     for imetrics in args.listMetricsROCcurve:
         newgenMetrics = DICTAVAILMETRICFUNS(imetrics)
-        listMetricsROCcurve[imetrics] = newgenMetrics.compute_np
-        list_isUse_centrelines.append(newgenMetrics._use_refer_centreline)
-    #endfor
-    isUseCentrelineFiles = any(list_isUse_centrelines)
+        listMetricsROCcurve[newgenMetrics.name_fun_out] = newgenMetrics.compute_np
 
-    print("List of Threshold values: %s" % (list_thresholds))
+        list_isUse_reference_centrelines.append(newgenMetrics._isUse_reference_clines)
+        list_isUse_predicted_centrelines.append(newgenMetrics._isUse_predicted_clines)
+    #endfor
+    isLoadReferenceCentrelineFiles = any(list_isUse_reference_centrelines)
+    isLoadPredictedCentrelineFiles = any(list_isUse_predicted_centrelines)
+
+    if (isLoadReferenceCentrelineFiles):
+        print("Loading Reference Centrelines...")
+        InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(nameInputReferCentrelinesRelPath)
+        listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath, nameInputReferCentrelinesFiles)
+
 
     nbInputFiles = len(listInputPredictionsFiles)
     nbCompMetrics = len(listMetricsROCcurve)
+    num_thresholds = len(list_thresholds)
     list_computed_metrics = np.zeros((nbInputFiles, num_thresholds, nbCompMetrics))
 
 
@@ -90,7 +103,7 @@ def main(args):
     for i, in_prediction_file in enumerate(listInputPredictionsFiles):
         print("\nInput: \'%s\'..." % (basename(in_prediction_file)))
 
-        in_refermask_file = findFileWithSamePrefix(basename(in_predictmask_file).replace('probmap',''), listInputReferMasksFiles,
+        in_refermask_file = findFileWithSamePrefix(basename(in_prediction_file), listInputReferMasksFiles,
                                                    prefix_pattern=prefixPatternInputFiles)
         print("Reference mask file: \'%s\'..." % (basename(in_refermask_file)))
 
@@ -98,17 +111,17 @@ def main(args):
         in_refermask_array  = FileReader.getImageArray(in_refermask_file)
         print("Predictions of size: %s..." % (str(in_prediction_array.shape)))
 
-        if (isUseCentrelineFiles):
-            in_centreline_file = findFileWithSamePrefix(basename(in_prediction_file).replace('probmap',''), listInputCentrelinesFiles,
+        if (isLoadReferenceCentrelineFiles):
+            in_refercenline_file = findFileWithSamePrefix(basename(in_prediction_file), listInputReferCentrelinesFiles,
                                                         prefix_pattern=prefixPatternInputFiles)
-            print("Centrelines file: \'%s\'..." % (basename(in_centreline_file)))
-            in_centreline_array = FileReader.getImageArray(in_centreline_file)
+            print("Reference centrelines file: \'%s\'..." % (basename(in_refercenline_file)))
+            in_refercenline_array = FileReader.getImageArray(in_refercenline_file)
 
 
         if (args.removeTracheaResMetrics):
             print("Remove trachea and main bronchi masks in computed metrics...")
 
-            in_roimask_file = findFileWithSamePrefix(basename(in_predictmask_file).replace('probmap',''), listInputRoiMasksFiles,
+            in_roimask_file = findFileWithSamePrefix(basename(in_prediction_file), listInputRoiMasksFiles,
                                                      prefix_pattern=prefixPatternInputFiles)
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
@@ -117,40 +130,61 @@ def main(args):
             in_prediction_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_prediction_array, in_roimask_array)
             in_refermask_array  = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_refermask_array,  in_roimask_array)
 
-            if (isUseCentrelineFiles):
-                in_centreline_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_centreline_array, in_roimask_array)
+            if (isLoadReferenceCentrelineFiles):
+                in_refercenline_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_refercenline_array, in_roimask_array)
 
 
-        print("Compute and store metrics at all thresholds...",)
-        for j, threshold_value in enumerate(list_thresholds):
-            print("Compute metrics at threshold %s..." %(threshold_value))
+        print("Compute Metrics at all thresholds \'%s\'..." %(list_thresholds))
+        with tqdm(total=num_thresholds) as progressbar:
+            for j, threshold_value in enumerate(list_thresholds):
 
-            in_predictmask_array = ThresholdImages.compute(in_prediction_array, threshold_value)
+                # Compute the masks by thresholding
+                in_predictmask_array = ThresholdImages.compute(in_prediction_array, threshold_value)
 
-            for k, (key, value) in enumerate(listMetricsROCcurve.iteritems()):
-                if list_isUse_centrelines[k]:
-                    metric_value = value(in_centreline_array, in_predictmask_array)
-                else:
-                    metric_value = value(in_refermask_array, in_predictmask_array)
+                if (isLoadPredictedCentrelineFiles):
+                    # Compute centrelines by thinning the masks
+                    try:
+                        # 'try' statement to 'catch' issues when predictions are 'weird' (for extreme threshold values)
+                        in_predictcenline_array = ThinningMasks.compute(in_predictmask_array)
+                    except:
+                        in_predictcenline_array = np.zeros_like(in_predictmask_array)
 
-                print("Metric \'%s\': %s..." % (key, metric_value))
-                list_computed_metrics[i,j,k] = metric_value
-            # endfor
-        #endfor
-        print("...Done")
+
+                for k, (key, value) in enumerate(listMetricsROCcurve.iteritems()):
+                    if list_isUse_reference_centrelines[k]:
+                        in_referYdata_array = in_refercenline_array
+                    else:
+                        in_referYdata_array = in_refermask_array
+                    if list_isUse_predicted_centrelines[k]:
+                        in_predictYdata_array = in_predictcenline_array
+                    else:
+                        in_predictYdata_array = in_predictmask_array
+
+                    try:
+                        # 'try' statement to 'catch' issues when predictions are 'null' (for extreme threshold values)
+                        metric_value = value(in_referYdata_array, in_predictYdata_array)
+                    except:
+                        # set dummy value for cases with issues
+                        metric_value = -1.0
+                    list_computed_metrics[i,j,k] = metric_value
+                # endfor
+
+                progressbar.update(1)
+            #endfor
 
 
         # write out computed metrics in file
-        out_filename = joinpathnames(OutputFilesPath, nameOutROCmetricsFile%(basename_file))
+        prefix_casename = getSubstringPatternFilename(basename(in_predictmask_file), substr_pattern=prefixPatternInputFiles)[:-1]
+        out_filename = joinpathnames(OutputFilesPath, nameOutROCmetricsFile%(filenamenoextension(in_prediction_file)))
         if isExistfile(out_filename):
             fout = open(out_filename, 'a')
         else:
             fout = open(out_filename, 'w')
-            strheader = '/threshold/ ' + ' '.join(['/%s/' % (key) for (key, _) in listMetricsROCcurve.iteritems()]) + '\n'
+            strheader = '/threshold/, ' + ', '.join(['/%s/' % (key) for (key, _) in listMetricsROCcurve.iteritems()]) + '\n'
             fout.write(strheader)
 
         for j in range(num_thresholds):
-            strdata = '%s %s\n' % (list_thresholds[j], ' '.join([str(elem) for elem in list_computed_metrics[i,j]]))
+            strdata = '%s, %s\n' % (list_thresholds[j], ', '.join([str(elem) for elem in list_computed_metrics[i,j]]))
             fout.write(strdata)
         # endfor
         fout.close()
@@ -165,11 +199,11 @@ def main(args):
         fout = open(out_filename, 'a')
     else:
         fout = open(out_filename, 'w')
-        strheader = '/threshold/ ' + ' '.join(['/%s/' % (key) for (key, _) in listMetricsROCcurve.iteritems()]) + '\n'
+        strheader = '/threshold/, ' + ', '.join(['/%s/' % (key) for (key, _) in listMetricsROCcurve.iteritems()]) + '\n'
         fout.write(strheader)
 
     for i in range(num_thresholds):
-        strdata = '%s %s\n' % (list_thresholds[i], ' '.join([str(elem) for elem in list_mean_computed_metrics[i]]))
+        strdata = '%s, %s\n' % (list_thresholds[i], ', '.join([str(elem) for elem in list_mean_computed_metrics[i]]))
         fout.write(strdata)
     # endfor
     fout.close()
@@ -179,9 +213,10 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('inputpredictions', type=str)
+    parser.add_argument('inputpredictionsdir', type=str)
     parser.add_argument('--outputdir', type=str)
     parser.add_argument('--listMetricsROCcurve', type=parseListarg, default=LISTMETRICSROCCURVE)
+    parser.add_argument('--removeTracheaResMetrics', type=str2bool, default=REMOVETRACHEARESMETRICS)
     args = parser.parse_args()
 
     print("Print input arguments...")

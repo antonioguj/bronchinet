@@ -13,6 +13,7 @@ np.random.seed(2017)
 
 
 DATADIR = '/home/antonio/Data/DLCST_Processed/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_UnetGNNs_DLCST/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 
@@ -125,7 +126,7 @@ TAILORED_BUILD_MODEL = True
 NUM_EPOCHS = 1000
 BATCH_SIZE = 1
 IOPTIMIZER = 'Adam'
-LEARN_RATE = 9.0e-05
+LEARN_RATE = 1.0e-04
 ILOSSFUN   = 'DiceCoefficient'
 LISTMETRICS = []
 # LISTMETRICS = ['BinaryCrossEntropy',
@@ -173,17 +174,17 @@ PROP_VALID_OUTUNET = 0.75
 
 # ******************** POST-PROCESSING PARAMETERS ********************
 LISTRESULTMETRICS = ['DiceCoefficient',
-                     'TruePositiveRate',
-                     'TrueNegativeRate',
-                     'FalsePositiveRate',
-                     'FalseNegativeRate',
                      'AirwayCompleteness',
-                     'AirwayVolumeLeakage']
+                     'AirwayVolumeLeakage',
+                     'AirwayCentrelineFalsePositiveDistanceError',
+                     'AirwayCentrelineFalseNegativeDistanceError']
 
 THRESHOLDPOST = 0.5
 REMOVETRACHEARESMETRICS = True
 
 LISTMETRICSROCCURVE = ['DiceCoefficient',
                        'AirwayCompleteness',
-                       'AirwayVolumeLeakage']
+                       'AirwayVolumeLeakage',
+                       'AirwayCentrelineFalsePositiveDistanceError',
+                       'AirwayCentrelineFalseNegativeDistanceError']
 # ******************** POST-PROCESSING PARAMETERS ********************

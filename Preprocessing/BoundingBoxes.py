@@ -132,7 +132,8 @@ class BoundingBoxes(object):
                   int(np.float(in_bounding_box[2][0] + in_bounding_box[2][1]) / 2))
         begin_boundbox = (center[0] - size_out_boundbox[0] / 2,
                           center[1] - size_out_boundbox[1] / 2)
-        bounding_box = ((begin_boundbox[0], begin_boundbox[0] + size_out_boundbox[0]),
+        bounding_box = ((in_bounding_box[0][0], in_bounding_box[0][1]),
+                        (begin_boundbox[0], begin_boundbox[0] + size_out_boundbox[0]),
                         (begin_boundbox[1], begin_boundbox[1] + size_out_boundbox[1]))
         if size_image:
             bounding_box = cls.translate_bounding_box_to_image_size(bounding_box, size_image)

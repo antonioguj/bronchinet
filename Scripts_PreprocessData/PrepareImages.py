@@ -34,7 +34,8 @@ def main(args):
     listInputImagesFiles = findFilesDirAndCheck(InputImagesPath, nameInputImagesFiles)
 
     if (args.rescaleImages):
-        dict_rescaleFactors = readDictionary(joinpathnames(args.datadir, nameRescaleFactors))
+        rescaleFactorsFileName = joinpathnames(args.datadir, nameRescaleFactors)
+        dict_rescaleFactors = readDictionary(rescaleFactorsFileName)
 
 
 

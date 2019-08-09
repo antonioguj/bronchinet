@@ -55,7 +55,8 @@ def main(args):
     listReferenceImgsFiles = findFilesDirAndCheck(ReferenceImgPath, nameReferenceImgFiles)
 
     if (args.cropImages):
-        dict_cropBoundingBoxes = readDictionary(joinpathnames(BaseDataPath, nameCropBoundingBoxes))
+        cropBoundingBoxesFileName = joinpathnames(args.datadir, nameCropBoundingBoxes)
+        dict_cropBoundingBoxes = readDictionary(cropBoundingBoxesFileName)
 
 
     model_net = DICTAVAILMODELS('Unet', args.size_in_images,

@@ -11,6 +11,7 @@
 from torch.nn import CrossEntropyLoss
 import torch.nn as nn
 import torch
+from scipy.spatial import distance
 from Common.ErrorMessages import *
 import numpy as np
 
@@ -23,37 +24,42 @@ class Metrics(nn.Module):
     max_size_memory_safe = 5e+08
     val_exclude = -1
     count = 0
-    _use_refer_centreline = False
+    _isUse_reference_clines = False
+    _isUse_predicted_clines = False
 
     def __init__(self, is_masks_exclude= False):
         self.is_masks_exclude = is_masks_exclude
         self.name_fun_out = None
-
         super(Metrics, self).__init__()
-
-    def compute(self, y_true, y_pred):
-        if self.is_masks_exclude:
-            return self.compute_vec_masked(y_true, y_pred)
-        else:
-            return self.compute_vec(y_true, y_pred)
 
     def forward(self, y_true, y_pred):
         return NotImplemented
 
-    def loss(self, y_true, y_pred):
-        return self.forward(y_true, y_pred)
-
-    def compute_vec(self, y_true, y_pred):
+    def compute_fun(self, y_true, y_pred):
         return NotImplemented
 
-    def compute_vec_masked(self, y_true, y_pred):
+    def compute_fun_np(self, y_true, y_pred):
         return NotImplemented
+
+    def compute_masked(self, y_true, y_pred):
+        return self.compute_fun(self.get_masked_array(y_true, y_true),
+                                self.get_masked_array(y_true, y_pred))
+
+    def compute_masked_np(self, y_true, y_pred):
+        return self.compute_fun_np(self.get_masked_array_np(y_true, y_true),
+                                   self.get_masked_array_np(y_true, y_pred))
+
+    def compute(self, y_true, y_pred):
+        if self.is_masks_exclude:
+            return self.compute_masked(y_true, y_pred)
+        else:
+            return self.compute_fun(y_true, y_pred)
 
     def compute_np(self, y_true, y_pred):
         if self.is_masks_exclude:
-            return self.compute_vec_masked_np(y_true.flatten(), y_pred.flatten())
+            return self.compute_masked_np(y_true, y_pred)
         else:
-            return self.compute_vec_np(y_true.flatten(), y_pred.flatten())
+            return self.compute_fun_np(y_true, y_pred)
 
     def compute_np_safememory(self, y_true, y_pred):
         if(y_true.size > self.max_size_memory_safe):
@@ -67,12 +73,6 @@ class Metrics(nn.Module):
         else:
             return self.compute_np(y_true, y_pred)
 
-    def compute_vec_np(self, y_true, y_pred):
-        return NotImplemented
-
-    def compute_vec_masked_np(self, y_true, y_pred):
-        return NotImplemented
-
     def get_mask(self, y_true):
         return torch.where(y_true == self.val_exclude, torch.zeros_like(y_true), torch.ones_like(y_true))
 
@@ -85,6 +85,9 @@ class Metrics(nn.Module):
     def get_masked_array_np(self, y_true, y_array):
         return np.where(y_true == self.val_exclude, 0, y_array)
 
+    def loss(self, y_true, y_pred):
+        return self.forward(y_true, y_pred)
+
 
 # mean squared error
 class MeanSquared(Metrics):
@@ -93,10 +96,14 @@ class MeanSquared(Metrics):
         super(MeanSquared, self).__init__(is_masks_exclude)
         self.name_fun_out  = 'mean_squared'
 
-    def compute_vec(self, y_true, y_pred):
+    def compute_fun(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
         return torch.mean(torch.square(y_pred - y_true))
 
-    def compute_vec_masked(self, y_true, y_pred):
+    def compute_masked(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
         mask = self.get_mask(y_true)
         return torch.mean(torch.square(y_pred - y_true) * mask)
 
@@ -114,11 +121,15 @@ class BinaryCrossEntropy(Metrics):
         super(BinaryCrossEntropy, self).__init__(is_masks_exclude)
         self.name_fun_out = 'bin_cross'
 
-    def compute_vec(self, y_true, y_pred):
+    def compute_fun(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
         return torch.mean(- y_true * torch.log(y_pred +_eps) -
                           (1.0 - y_true) * torch.log(1.0 - y_pred +_eps))
 
-    def compute_vec_masked(self, y_true, y_pred):
+    def compute_masked(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
         mask = self.get_mask(y_true)
         return torch.mean((- y_true * torch.log(y_pred +_eps) -
                            (1.0 - y_true) * torch.log(1.0 - y_pred +_eps)) * mask)
@@ -144,11 +155,15 @@ class WeightedBinaryCrossEntropyFixedWeights(Metrics):
         super(WeightedBinaryCrossEntropyFixedWeights, self).__init__(is_masks_exclude)
         self.name_fun_out = 'wei_bin_cross_fixed'
 
-    def compute_vec(self, y_true, y_pred):
+    def compute_fun(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
         return torch.mean(- self.weights[1] * y_true * torch.log(y_pred +_eps) -
                           self.weights[0] * (1.0 - y_true) * torch.log(1.0 - y_pred +_eps))
 
-    def compute_vec_masked(self, y_true, y_pred):
+    def compute_masked(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
         mask = self.get_mask(y_true)
         return torch.mean((- self.weights[1] * y_true * torch.log(y_pred +_eps) -
                            self.weights[0] * (1.0 - y_true) * torch.log(1.0 - y_pred +_eps)) * mask)
@@ -167,19 +182,15 @@ class DiceCoefficient(Metrics):
         super(DiceCoefficient, self).__init__(is_masks_exclude)
         self.name_fun_out = 'dice'
 
-    def compute_vec(self, y_true, y_pred):
+    def compute_fun(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
         return (2.0 * torch.sum(y_true * y_pred)) / (torch.sum(y_true) + torch.sum(y_pred) +_smooth)
 
-    def compute_vec_masked(self, y_true, y_pred):
-        return self.compute_vec(self.get_masked_array(y_true, y_true),
-                                self.get_masked_array(y_true, y_pred))
-
-    def compute_vec_np(self, y_true, y_pred):
+    def compute_fun_np(self, y_true, y_pred):
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
         return (2.0*np.sum(y_true * y_pred)) / (np.sum(y_true) + np.sum(y_pred) +_smooth)
-
-    def compute_vec_masked_np(self, y_true, y_pred):
-        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
-                                   self.get_masked_array_np(y_true, y_pred))
 
     def forward(self, y_true, y_pred):
         return 1.0 - self.compute(y_true, y_pred)
@@ -195,19 +206,15 @@ class TruePositiveRate(Metrics):
         super(TruePositiveRate, self).__init__(is_masks_exclude)
         self.name_fun_out = 'tpr'
 
-    def compute_vec(self, y_true, y_pred):
+    def compute_fun(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
         return torch.sum(y_true * y_pred) / (torch.sum(y_true) +_smooth)
 
-    def compute_vec_masked(self, y_true, y_pred):
-        return self.compute_vec(self.get_masked_array(y_true, y_true),
-                                self.get_masked_array(y_true, y_pred))
-
-    def compute_vec_np(self, y_true, y_pred):
+    def compute_fun_np(self, y_true, y_pred):
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
         return np.sum(y_true * y_pred) / (np.sum(y_true) +_smooth)
-
-    def compute_vec_masked_np(self, y_true, y_pred):
-        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
-                                   self.get_masked_array_np(y_true, y_pred))
 
     def loss(self, y_true, y_pred):
         return 1.0 - self.compute(y_true, y_pred)
@@ -223,19 +230,15 @@ class TrueNegativeRate(Metrics):
         super(TrueNegativeRate, self).__init__(is_masks_exclude)
         self.name_fun_out = 'tnr'
 
-    def compute_vec(self, y_true, y_pred):
+    def compute_fun(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
         return torch.sum((1.0 - y_true) * (1.0 - y_pred)) / (torch.sum((1.0 - y_true)) +_smooth)
 
-    def compute_vec_masked(self, y_true, y_pred):
-        return self.compute_vec(self.get_masked_array(y_true, y_true),
-                                self.get_masked_array(y_true, y_pred))
-
-    def compute_vec_np(self, y_true, y_pred):
+    def compute_fun_np(self, y_true, y_pred):
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
         return np.sum((1.0 - y_true) * (1.0 - y_pred)) / (np.sum((1.0 - y_true)) +_smooth)
-
-    def compute_vec_masked_np(self, y_true, y_pred):
-        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
-                                   self.get_masked_array_np(y_true, y_pred))
 
     def loss(self, y_true, y_pred):
         return 1.0 - self.compute(y_true, y_pred)
@@ -251,19 +254,15 @@ class FalsePositiveRate(Metrics):
         super(FalsePositiveRate, self).__init__(is_masks_exclude)
         self.name_fun_out = 'fpr'
 
-    def compute_vec(self, y_true, y_pred):
+    def compute_fun(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
         return torch.sum((1.0 - y_true) * y_pred) / (torch.sum((1.0 - y_true)) +_smooth)
 
-    def compute_vec_masked(self, y_true, y_pred):
-        return self.compute_vec(self.get_masked_array(y_true, y_true),
-                                self.get_masked_array(y_true, y_pred))
-
-    def compute_vec_np(self, y_true, y_pred):
+    def compute_fun_np(self, y_true, y_pred):
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
         return np.sum((1.0 - y_true) * y_pred) / (np.sum((1.0 - y_true)) +_smooth)
-
-    def compute_vec_masked_np(self, y_true, y_pred):
-        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
-                                   self.get_masked_array_np(y_true, y_pred))
 
     def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -279,19 +278,15 @@ class FalseNegativeRate(Metrics):
         super(FalseNegativeRate, self).__init__(is_masks_exclude)
         self.name_fun_out = 'fnr'
 
-    def compute_vec(self, y_true, y_pred):
+    def compute_fun(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
         return torch.sum(y_true * (1.0 - y_pred)) / (torch.sum(y_true) +_smooth)
 
-    def compute_vec_masked(self, y_true, y_pred):
-        return self.compute_vec(self.get_masked_array(y_true, y_true),
-                                self.get_masked_array(y_true, y_pred))
-
-    def compute_vec_np(self, y_true, y_pred):
+    def compute_fun_np(self, y_true, y_pred):
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
         return np.sum(y_true * (1.0 - y_pred)) / (np.sum(y_true) +_smooth)
-
-    def compute_vec_masked_np(self, y_true, y_pred):
-        return self.compute_vec_np(self.get_masked_array_np(y_true, y_true),
-                                   self.get_masked_array_np(y_true, y_pred))
 
     def loss(self, y_true, y_pred):
         return self.compute(y_true, y_pred)
@@ -302,25 +297,22 @@ class FalseNegativeRate(Metrics):
 
 # airways completeness (percentage ground-truth centrelines found inside the predicted airways)
 class AirwayCompleteness(Metrics):
-    _use_refer_centreline = True
+    _isUse_reference_clines = True
+    _isUse_predicted_clines = False
 
     def __init__(self, is_masks_exclude=False):
         super(AirwayCompleteness, self).__init__(is_masks_exclude)
         self.name_fun_out = 'completeness'
 
-    def compute_vec(self, y_true_cenline, y_pred_segmen):
-        return torch.sum(y_true_cenline * y_pred_segmen) / (torch.sum(y_true_cenline) +_smooth)
+    def compute_fun(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
+        return torch.sum(y_true * y_pred) / (torch.sum(y_true) +_smooth)
 
-    def compute_vec_masked(self, y_true_cenline, y_pred_segmen):
-        return self.compute_vec(self.get_masked_array(y_true_cenline, y_true_cenline),
-                                self.get_masked_array(y_true_cenline, y_pred_segmen))
-
-    def compute_vec_np(self, y_true_cenline, y_pred_segmen):
-        return np.sum(y_true_cenline * y_pred_segmen) / (np.sum(y_true_cenline) +_smooth)
-
-    def compute_vec_masked_np(self, y_true_cenline, y_pred_segmen):
-        return self.compute_vec(self.get_masked_array_np(y_true_cenline, y_true_cenline),
-                                self.get_masked_array_np(y_true_cenline, y_pred_segmen))
+    def compute_fun_np(self, y_true, y_pred):
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
+        return np.sum(y_true * y_pred) / (np.sum(y_true) +_smooth)
 
 
 # airways volume leakage (percentage of voxels from predicted airways found outside the ground-truth airways)
@@ -330,19 +322,78 @@ class AirwayVolumeLeakage(Metrics):
         super(AirwayVolumeLeakage, self).__init__(is_masks_exclude)
         self.name_fun_out = 'volume_leakage'
 
-    def compute_vec(self, y_true_segmen, y_pred_segmen):
-        return torch.sum((1.0 - y_true_segmen) * y_pred_segmen) / (torch.sum(y_pred_segmen) +_smooth)
+    def compute_fun(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
+        return torch.sum((1.0 - y_true) * y_pred) / (torch.sum(y_pred) +_smooth)
 
-    def compute_vec_masked(self, y_true_segmen, y_pred_segmen):
-        return self.compute_vec(self.get_masked_array(y_true_segmen, y_true_segmen),
-                                self.get_masked_array(y_true_segmen, y_pred_segmen))
+    def compute_fun_np(self, y_true, y_pred):
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
+        return np.sum((1.0 - y_true) * y_pred) / (np.sum(y_pred) +_smooth)
 
-    def compute_vec_np(self, y_true_segmen, y_pred_segmen):
-        return np.sum((1.0 - y_true_segmen) * y_pred_segmen) / (np.sum(y_pred_segmen) +_smooth)
 
-    def compute_vec_masked_np(self, y_true_segmen, y_pred_segmen):
-        return self.compute_vec(self.get_masked_array_np(y_true_segmen, y_true_segmen),
-                                self.get_masked_array_np(y_true_segmen, y_pred_segmen))
+# airways centreline False Positive distance error
+class AirwayCentrelineFalsePositiveDistanceError(Metrics):
+    _isUse_reference_clines = True
+    _isUse_predicted_clines = True
+
+    def __init__(self, is_masks_exclude=False):
+        super(AirwayCentrelineFalsePositiveDistanceError, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'cenline_DFP_error'
+
+    @staticmethod
+    def get_voxel_scaling(y_array):
+        #return np.diag(y_array.affine)[:3]
+        return np.asarray([1.0, 1.0, 1.0])
+
+    @classmethod
+    def get_centreline_coords(cls, y_array):
+        return np.asarray(np.argwhere(y_array > 0)) * cls.get_voxel_scaling(y_array)
+
+    # def compute_fun(self, y_true, y_pred):
+    #     y_true = self.get_centreline_coords(y_true)
+    #     y_pred = self.get_centreline_coords(y_pred)
+    #     dist_y = distance.cdist(y_pred, y_true)
+    #     return torch.mean(torch.min(dist_y, axis=1))
+
+    def compute_fun_np(self, y_true, y_pred):
+        y_true = self.get_centreline_coords(y_true)
+        y_pred = self.get_centreline_coords(y_pred)
+        dist_y = distance.cdist(y_pred, y_true)
+        return np.mean(np.min(dist_y, axis=1))
+
+
+# airways centreline False Negative distance error
+class AirwayCentrelineFalseNegativeDistanceError(Metrics):
+    _isUse_reference_clines = True
+    _isUse_predicted_clines = True
+
+    def __init__(self, is_masks_exclude=False):
+        super(AirwayCentrelineFalseNegativeDistanceError, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'cenline_DFN_error'
+
+    @staticmethod
+    def get_voxel_scaling(y_array):
+        #return np.diag(y_array.affine)[:3]
+        return np.asarray([1.0, 1.0, 1.0])
+
+    @classmethod
+    def get_centreline_coords(cls, y_array):
+        return np.asarray(np.argwhere(y_array > 0)) * cls.get_voxel_scaling(y_array)
+
+    # def compute_fun(self, y_true, y_pred):
+    #     y_true = self.get_centreline_coords(y_true)
+    #     y_pred = self.get_centreline_coords(y_pred)
+    #     dist_y = distance.cdist(y_pred, y_true)
+    #     return torch.mean(torch.min(dist_y, axis=0))
+
+    def compute_fun_np(self, y_true, y_pred):
+        y_true = self.get_centreline_coords(y_true)
+        y_pred = self.get_centreline_coords(y_pred)
+        dist_y = distance.cdist(y_pred, y_true)
+        return np.mean(np.min(dist_y, axis=0))
+
 
 
 # combination of two metrics
@@ -367,7 +418,8 @@ def DICTAVAILMETRICLASS(option,
                          'BinaryCrossEntropy', 'WeightedBinaryCrossEntropy',
                          'DiceCoefficient',
                          'TruePositiveRate', 'TrueNegativeRate', 'FalsePositiveRate', 'FalseNegativeRate',
-                         'AirwayCompleteness', 'AirwayVolumeLeakage']
+                         'AirwayCompleteness', 'AirwayVolumeLeakage',
+                         'AirwayCentrelineFalsePositiveDistanceError', 'AirwayCentrelineFalseNegativeDistanceError']
 
     if   (option == 'MeanSquared'):
         return MeanSquared(is_masks_exclude= is_masks_exclude)
@@ -389,6 +441,10 @@ def DICTAVAILMETRICLASS(option,
         return AirwayCompleteness(is_masks_exclude=is_masks_exclude)
     elif (option == 'AirwayVolumeLeakage'):
         return AirwayVolumeLeakage(is_masks_exclude=is_masks_exclude)
+    elif (option == 'AirwayCentrelineFalsePositiveDistanceError'):
+        return AirwayCentrelineFalsePositiveDistanceError(is_masks_exclude=is_masks_exclude)
+    elif (option == 'AirwayCentrelineFalseNegativeDistanceError'):
+        return AirwayCentrelineFalseNegativeDistanceError(is_masks_exclude=is_masks_exclude)
     else:
         message = 'Metric chosen not found. Metrics available: (%s)' %(', '.join(list_metric_avail))
         CatchErrorException(message)

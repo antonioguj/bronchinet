@@ -24,15 +24,15 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputPredictionsRelPath = args.inputpredictiondir
-    nameInputReferMasksRelPath  = 'Airways_Proc/'
-    nameInputRoiMasksRelPath    = 'Lungs_Proc/'
-    nameInputCentrelinesRelPath = 'Centrelines_Proc/'
-    nameInputPredictionsFiles   = '*.nii.gz'
-    nameInputReferMasksFiles    = '*_lumen.nii.gz'
-    nameInputRoiMasksFiles      = '*_lungs.nii.gz'
-    nameInputCentrelinesFiles   = '*_centrelines.nii.gz'
-    prefixPatternInputFiles     = 'vol[0-9][0-9]_*'
+    nameInputPredictionsRelPath     = args.inputpredictionsdir
+    nameInputReferMasksRelPath      = 'Airways_Proc/'
+    nameInputRoiMasksRelPath        = 'Lungs_Proc/'
+    nameInputReferCentrelinesRelPath= 'Centrelines_Proc/'
+    nameInputPredictionsFiles       = '*.nii.gz'
+    nameInputReferMasksFiles        = '*_lumen.nii.gz'
+    nameInputRoiMasksFiles          = '*_lungs.nii.gz'
+    nameInputReferCentrelinesFiles  = '*_centrelines.nii.gz'
+    prefixPatternInputFiles         = 'vol[0-9][0-9]_*'
 
     metricsEvalThreshold = args.metricsEvalThreshold
     value_metrics_sought = args.ValueMetricsSought
@@ -57,11 +57,9 @@ def main(args):
     workDirsManager      = WorkDirsManager(args.basedir)
     InputPredictionsPath = workDirsManager.getNameExistPath(nameInputPredictionsRelPath)
     InputReferMasksPath  = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
-    InputCentrelinesPath = workDirsManager.getNameExistBaseDataPath(nameInputCentrelinesRelPath)
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath, nameInputPredictionsFiles)
     listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath,  nameInputReferMasksFiles)
-    listInputCentrelinesFiles = findFilesDirAndCheck(InputCentrelinesPath, nameInputCentrelinesFiles)
 
     if (args.removeTracheaResMetrics):
         InputRoiMasksPath = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
@@ -69,8 +67,13 @@ def main(args):
 
     newgenMetrics = DICTAVAILMETRICFUNS(metricsEvalThreshold)
     fun_EvalThreshold = newgenMetrics.compute_np
-    isUseCentrelineRefer = newgenMetrics._use_refer_centreline
+    isLoadReferenceCentrelineFiles = newgenMetrics._isUse_reference_clines
+    isLoadPredictedCentrelineFiles = newgenMetrics._isUse_predicted_clines
 
+    if (isLoadReferenceCentrelineFiles):
+        print("Loading Reference Centrelines...")
+        InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(nameInputReferCentrelinesRelPath)
+        listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath, nameInputReferCentrelinesFiles)
 
 
     num_validpred_files = len(listInputPredictionsFiles)
@@ -82,31 +85,34 @@ def main(args):
 
     print("Load all predictions where to evaluate the metrics, total of \'%s\' files..." %(num_validpred_files))
     listin_prediction_array = []
-    listin_refermask_array  = []
+    listin_reference_array  = []
     with tqdm(total=num_validpred_files) as progressbar:
         for i, in_prediction_file in enumerate(listInputPredictionsFiles):
 
             in_prediction_array = FileReader.getImageArray(in_prediction_file)
 
-            if (isUseCentrelineRefer):
-                in_centreline_file = findFileWithSamePrefix(basename(in_prediction_file).replace('probmap',''), listInputCentrelinesFiles,
-                                                            prefix_pattern=prefixPatternInputFiles)
-                in_refermask_array = FileReader.getImageArray(in_centreline_file)
+            if (isLoadReferenceCentrelineFiles):
+                in_refercenline_file = findFileWithSamePrefix(basename(in_prediction_file), listInputReferCentrelinesFiles,
+                                                              prefix_pattern=prefixPatternInputFiles)
+                in_refercenline_array = FileReader.getImageArray(in_refercenline_file)
+                in_reference_array = in_refercenline_array
             else:
-                in_refermask_file = findFileWithSamePrefix(basename(in_prediction_file).replace('probmap',''), listInputReferMasksFiles,
+                in_refermask_file = findFileWithSamePrefix(basename(in_prediction_file), listInputReferMasksFiles,
                                                            prefix_pattern=prefixPatternInputFiles)
                 in_refermask_array = FileReader.getImageArray(in_refermask_file)
+                in_reference_array = in_refermask_array
+
 
             if (args.removeTracheaResMetrics):
-                in_roimask_file = findFileWithSamePrefix(basename(in_prediction_file).replace('probmap',''), listInputRoiMasksFiles,
+                in_roimask_file = findFileWithSamePrefix(basename(in_prediction_file), listInputRoiMasksFiles,
                                                          prefix_pattern=prefixPatternInputFiles)
                 in_roimask_array = FileReader.getImageArray(in_roimask_file)
 
                 in_prediction_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_prediction_array, in_roimask_array)
-                in_refermask_array  = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_refermask_array,  in_roimask_array)
+                in_reference_array  = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_reference_array,  in_roimask_array)
 
             listin_prediction_array.append(in_prediction_array)
-            listin_refermask_array.append(in_refermask_array)
+            listin_reference_array.append(in_reference_array)
 
             progressbar.update(1)
         #endfor
@@ -118,12 +124,24 @@ def main(args):
         # Loop over all prediction files and compute the mean metrics over the dataset
         with tqdm(total=num_validpred_files) as progressbar:
             sumrun_metric_value = 0.0
-            for i, (in_prediction_array, in_refermask_array) in enumerate(zip(listin_prediction_array, listin_refermask_array)):
+            for i, (in_prediction_array, in_referYdata_array) in enumerate(zip(listin_prediction_array, listin_reference_array)):
 
                 # Threshold probability maps to "curr_threshold"
                 in_predictmask_array = ThresholdImages.compute(in_prediction_array, curr_threshold)
 
-                metric_value = fun_EvalThreshold(in_refermask_array, in_predictmask_array)
+                if (isLoadPredictedCentrelineFiles):
+                    # Compute centrelines by thinning the masks
+                    try:
+                        # 'try' statement to 'catch' issues when predictions are 'weird' (for extreme threshold values)
+                        in_predictcenline_array = ThinningMasks.compute(in_predictmask_array)
+                    except:
+                        in_predictcenline_array = np.zeros_like(in_predictmask_array)
+                    in_predictYdata_array = in_predictcenline_array
+                else:
+                    in_predictYdata_array = in_predictmask_array
+
+
+                metric_value = fun_EvalThreshold(in_referYdata_array, in_predictmask_array)
                 sumrun_metric_value += metric_value
 
                 progressbar.update(1)
@@ -158,7 +176,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('inputpredictiondir', type=str)
+    parser.add_argument('inputpredictionsdir', type=str)
     parser.add_argument('--metricsEvalThreshold', type=str, default='AirwayVolumeLeakage')
     parser.add_argument('--ValueMetricsSought', type=float, default=0.12)
     parser.add_argument('--numIterEvaluateMax', type=int, default=20)

@@ -45,74 +45,127 @@ def find_index_optimal_threshold_dice_coeff(dice_data):
 
 
 def main(args):
+    # ---------- SETTINGS ----------
+    index_field_Xaxis = 3
+    index_field_Yaxis = 2
+    name_metrics_Xaxis = 'Volume Leakage'
+    name_metrics_Yaxis = 'Completeness'
+    # ---------- SETTINGS ----------
 
-    list_input_data_files = ['Results_MICCAI-MLMI2019/Data_ROCcurves/dataFROC_UNet-Lev3_mean.txt',
-                             'Results_MICCAI-MLMI2019/Data_ROCcurves/dataFROC_UNet-Lev5_mean.txt',
-                             'Results_MICCAI-MLMI2019/Data_ROCcurves/dataFROC_UNetGNN-RegAdj_mean.txt',
-                             'Results_MICCAI-MLMI2019/Data_ROCcurves/dataFROC_UNetGNN-DynAdj_mean.txt']
-    labels = ['UNet-Lev3', 'UNet-Lev5', 'UGnn-RegAdj', 'UGnn-DynAdj']
 
-    num_input_data_files = len(list_input_data_files)
+    if args.fromfile:
+        if not isExistfile(args.listinputfiles):
+            message = "File \'%s\' not found..." %(args.listinputfiles)
+            CatchErrorException(message)
+        fout = open(args.listinputfiles, 'r')
+        list_input_files = [infile.replace('\n','') for infile in fout.readlines()]
+        print("\'inputfiles\' = %s" % (list_input_files))
+    else:
+        list_input_files = [infile.replace('\n','') for infile in args.inputfiles]
+    num_data_files = len(list_input_files)
 
-    print("Plot FROC values from %s test files:..." %(num_input_data_files))
-    print(', '.join(map(lambda item: '\''+basename(item)+'\'', list_input_data_files)))
-
-    threshold_list = []
-    dicecoeff_list = []
-    completeness_list = []
-    volumeleakage_list = []
-    for (i, in_file) in enumerate(list_input_data_files):
-        data_this = np.loadtxt(in_file, skiprows=1)
-        data_this[-1,1:] = [0.0, 0.0, 0.0]
-
-        threshold_list.append(data_this[:, 0])
-        dicecoeff_list.append(data_this[:, 1])
-        completeness_list.append(data_this[:, 2] * 100)
-        volumeleakage_list.append(data_this[:, 3] * 100)
+    print("Files to plot (\'%s\')..." %(num_data_files))
+    for i, ifile in enumerate(list_input_files):
+        print("%s: \'%s\'" %(i+1, ifile))
     #endfor
 
+    if args.isannotations:
+        # if not isExistfile(args.inputannotatefiles):
+        #     message = "Input \inputannotatefiles\' not specified..."
+        #     CatchErrorException(message)
+        # list_input_annotate_files = [infile.replace('\n', '') for infile in args.inputannotatefiles]
+        list_input_annotate_files = ['Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.1365/Predictions_UNet-Lev3_Thres0.04/result_metrics_notrachea.txt',
+                                     'Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.1365/Predictions_UNet-Lev5_Thres0.017/result_metrics_notrachea.txt',
+                                     'Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.1365/Predictions_UNetGNN-RegAdj_Thres0.5/result_metrics_notrachea.txt',
+                                     'Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.1365/Predictions_UNetGNN-DynAdj_Thres0.17/result_metrics_notrachea.txt']
+        num_annotate_files = len(list_input_annotate_files)
+        if num_annotate_files != num_data_files:
+            message = "Num annotation files \'%s\' not equal to num data files \'%s\'..." %(num_annotate_files, num_data_files)
+            CatchErrorException(message)
 
-    if num_input_data_files == 1:
+        print("Files for annotations (\'%s\')..." % (num_annotate_files))
+        for i, ifile in enumerate(list_input_annotate_files):
+            print("%s: \'%s\'" % (i+1, ifile))
+        #endfor
 
-        plt.plot(volumeleakage_list[0], completeness_list[0], 'o-', color='b')
-        # annotate thresholds
-        if threshold_list[0] is not None:
-            plot_annotations_thresholds(volumeleakage_list[0], completeness_list[0], threshold_list[0])
-        plt.xlabel('Volume Leakage (%)')
-        plt.ylabel('Completeness (%)')
+    #labels = ['model_%i'%(i+1) for i in range(num_data_files)]
+    labels = ['Unet-lev3', 'Unet-lev5', 'UnetGNN-RegAdj', 'UnetGNN-DynAdj']
+
+
+    threshold_list = []
+    data_Xaxis_list = []
+    data_Yaxis_list = []
+    for (i, in_file) in enumerate(list_input_files):
+        data_this = np.loadtxt(in_file, dtype=float, skiprows=1, delimiter=',')
+        thresholds = data_this[:, 0]
+        data_Xaxis = data_this[:, index_field_Xaxis]
+        data_Yaxis = data_this[:, index_field_Yaxis]
+
+        # eliminate NaNs and dummy values
+        data_Xaxis = np.where(data_Xaxis==-1, 0, data_Xaxis)
+        data_Xaxis = np.where(np.isnan(data_Xaxis), 0, data_Xaxis)
+        data_Yaxis = np.where(data_Yaxis==-1, 0, data_Yaxis)
+        data_Yaxis = np.where(np.isnan(data_Yaxis), 0, data_Yaxis)
+
+        threshold_list.append (thresholds)
+        data_Xaxis_list.append(data_Xaxis)
+        data_Yaxis_list.append(data_Yaxis)
+    #endfor
+
+    if args.isannotations:
+        annotation_Xaxis_list = []
+        annotation_Yaxis_list = []
+        for (i, in_file) in enumerate(list_input_annotate_files):
+            data_this = np.genfromtxt(in_file, dtype=float, delimiter=',')
+            data_Xaxis = data_this[1:, index_field_Xaxis]
+            data_Yaxis = data_this[1:, index_field_Yaxis]
+
+            annotation_Xaxis_list.append(np.mean(data_Xaxis))
+            annotation_Yaxis_list.append(np.mean(data_Yaxis))
+        #endfor
+
+
+    if num_data_files == 1:
+        plt.plot(data_Xaxis_list[0], data_Yaxis_list[0], 'o-', color='b')
+
+        if args.isannotations:
+            plt.scatter(annotation_Xaxis_list[0], annotation_Yaxis_list[0],  marker='o', color='b')
+        plt.xlabel(name_metrics_Xaxis)
+        plt.ylabel(name_metrics_Yaxis)
         plt.show()
 
-    else: #num_input_data_files != 1:
+    else: #num_data_files != 1:
         cmap = plt.get_cmap('rainbow')
-        colors = [ cmap(float(i)/(num_input_data_files-1)) for i in range(num_input_data_files) ]
+        colors = [cmap(float(i)/(num_data_files-1)) for i in range(num_data_files)]
 
-        # plot ROC: completeness - volume leakage
-        print("plot ROC: completeness - volume leakage...")
-        for i in range(num_input_data_files):
-            plt.plot(volumeleakage_list[i], completeness_list[i], color=colors[i], label=labels[i])
-            # find optimal threshold
-            #index_mark_value = find_index_optimal_threshold_sensitTPspecifFP(volumeleakage_list[i], completeness_list[i])
-            # annotation threshold
-            #plt.scatter(volumeleakage_list[i][index_mark_value], completeness_list[i][index_mark_value], marker='o', color=colors[i])
-            #print("file \'%s\', optimal threshold: \'%s\'..." % (i, threshold_list[i][index_mark_value]))
-        # endfor
-        # # Include annotations of other results
-        # if completeness_reference1_list:
-        #     plt.scatter(volumeleakage_reference1_list, completeness_reference1_list, marker='^', color='b')
-	plt.xticks(plt.xticks()[0], size=15)
-	plt.yticks(plt.yticks()[0], size=15)
-        plt.xlabel('Volume Leakage (%)', size=20)
-        plt.ylabel('Completeness (%)', size=20)
-        plt.xlim([0,100])
-        plt.ylim([0,100])
-        plt.legend(loc='right')
-	plt.title('ROC curve', size=20)
+        for i in range(num_data_files):
+            plt.plot(data_Xaxis_list[i], data_Yaxis_list[i], color=colors[i], label=labels[i])
+        #endfor
+
+        if args.isannotations:
+            for i in range(num_annotate_files):
+                plt.scatter(annotation_Xaxis_list[i], annotation_Yaxis_list[i], marker='o', color=colors[i])
+            #endfor
+
+        plt.xticks(plt.xticks()[0])
+        plt.yticks(plt.yticks()[0])
+        plt.xlabel(name_metrics_Xaxis)
+        plt.ylabel(name_metrics_Yaxis)
+        #plt.xlim([0,1])
+        #plt.ylim([0,1])
+        plt.legend(loc='best')
+        plt.title('ROC curve')
         plt.show()
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('inputfiles', type=str, nargs='*')
+    parser.add_argument('--fromfile', type=bool, default=False)
+    parser.add_argument('--listinputfiles', type=str, default='listinputfiles.txt')
+    parser.add_argument('--isannotations', type=bool, default=False)
+    parser.add_argument('--inputannotatefiles', type=str, nargs='*')
     args = parser.parse_args()
 
     print("Print input arguments...")

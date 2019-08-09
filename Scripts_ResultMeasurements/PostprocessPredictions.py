@@ -22,7 +22,7 @@ def main(args):
     nameInputPredictionsRelPath = args.inputpredictiondir
     nameInputReferMasksRelPath  = 'Airways_Proc/'
     nameInputRoiMasksRelPath    = 'Lungs_Proc/'
-    nameInputPredictionsFiles   = 'probmap_*.nii.gz'
+    nameInputPredictionsFiles   = '*_probmap.nii.gz'
     nameInputReferMasksFiles    = '*_lumen.nii.gz'
     nameInputRoiMasksFiles      = '*_lungs.nii.gz'
     prefixPatternInputFiles     = 'vol[0-9][0-9]_*'
@@ -56,7 +56,7 @@ def main(args):
     for i, in_prediction_file in enumerate(listInputPredictionsFiles):
         print("\nInput: \'%s\'..." % (basename(in_prediction_file)))
 
-        in_refermask_file = findFileWithSamePrefix(basename(in_prediction_file).replace('probmap',''), listInputReferMasksFiles,
+        in_refermask_file = findFileWithSamePrefix(basename(in_prediction_file), listInputReferMasksFiles,
                                                    prefix_pattern=prefixPatternInputFiles)
         print("Reference mask file: \'%s\'..." % (basename(in_refermask_file)))
 
@@ -71,7 +71,7 @@ def main(args):
         if (args.masksToRegionInterest):
             print("Attach trachea mask to prediction masks...")
 
-            in_roimask_file = findFileWithSamePrefix(basename(in_prediction_file).replace('probmap',''), listInputRoiMasksFiles,
+            in_roimask_file = findFileWithSamePrefix(basename(in_prediction_file), listInputRoiMasksFiles,
                                                      prefix_pattern=prefixPatternInputFiles)
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 

@@ -46,7 +46,7 @@ def main(args):
     nameInputReferFiles        = '*.nii.gz'
     nameCropBoundingBoxes      = 'cropBoundingBoxes_images.npy'
     #nameRescaleFactors         = 'rescaleFactors_images.npy'
-    nameOutputPredictionFiles  = 'probmap_%s.nii.gz'
+    nameOutputPredictionFiles  = '%s_probmap.nii.gz'
 
     if (args.saveFeatMapsLayers):
         nameOutputFeatureMapsDirs = 'featureMaps-%s_lay_%s'
@@ -68,10 +68,13 @@ def main(args):
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
 
     if (args.cropImages):
-        dict_cropBoundingBoxes = readDictionary(joinpathnames(workDirsManager.getNameBaseDataPath(), nameCropBoundingBoxes))
+        cropBoundingBoxesFileName = joinpathnames(workDirsManager.getNameBaseDataPath(), nameCropBoundingBoxes)
+        print cropBoundingBoxesFileName
+        dict_cropBoundingBoxes = readDictionary(cropBoundingBoxesFileName)
 
     #if (args.rescaleImages):
-    #    dict_rescaleFactors = readDictionary(joinpathnames(workDirsManager.getNameBaseDataPath(), nameRescaleFactors))
+    #    rescaleFactorsFileName = joinpathnames(workDirsManager.getNameBaseDataPath(), nameRescaleFactors)
+    #    dict_rescaleFactors = readDictionary(rescaleFactorsFileName)
 
 
 

@@ -63,7 +63,8 @@ def main(args):
         InputReferFilesPath = workDirsManager.getNameExistPath(nameReferFilesRelPath)
         listInputReferFiles = findFilesDirAndCheck(InputReferFilesPath, nameInputReferFiles)
 
-        dict_rescaleFactors = readDictionary(joinpathnames(args.datadir, nameRescaleFactors))
+        rescaleFactorsFileName = joinpathnames(args.datadir, nameRescaleFactors)
+        dict_rescaleFactors = readDictionary(rescaleFactorsFileName)
 
 
 

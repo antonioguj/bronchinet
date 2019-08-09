@@ -10,11 +10,13 @@
 
 from Common.ErrorMessages import *
 from Common.FunctionsUtil import *
+from skimage.morphology import skeletonize_3d
 import numpy as np
 
 
 
 class OperationMasks(object):
+    val_mask_positive = 1
     val_mask_background = 0
     val_mask_exclude_voxels = -1
 
@@ -141,7 +143,6 @@ class OperationMasks(object):
 
 
 class OperationBinaryMasks(OperationMasks):
-    val_mask_positive = 1
 
     @classmethod
     def process_masks(cls, masks_array):
@@ -231,3 +232,15 @@ class OperationMultiClassMasks(OperationMasks):
             return True
         else:
             return False
+
+
+class ThinningMasks(OperationMasks):
+
+    @classmethod
+    def compute(cls, masks_array):
+        # thinning masks to obtain centreline...
+        return skeletonize_3d(masks_array.astype(np.uint8))
+        #centrelines_array = skeletonize_3d(masks_array)
+        ## convert to binary masks (0, 1)
+        #return np.where(centrelines_array, cls.val_mask_positive, cls.val_mask_background)
+
