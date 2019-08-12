@@ -112,7 +112,6 @@ SAVEVISUALIZEWORKDATA = False
 IMODEL            = 'Unet'
 NUM_LAYERS        = 5
 NUM_FEATMAPS_BASE = 16
-SOURCEDIR_ADJS 	  = 'StoredAdjacencyMatrix/'
 
 TYPE_NETWORK         = 'classification'
 TYPE_ACTIVATE_HIDDEN = 'relu'
@@ -151,6 +150,7 @@ WRITEOUTDESCMODELTEXT = False
 
 # GNN-module parameters
 ISTESTMODELSWITHGNN = False
+SOURCEDIR_ADJS 	  = 'StoredAdjacencyMatrix/'
 ISGNNWITHATTENTIONLAYS = False
 # ******************** TRAINING PARAMETERS ********************
 

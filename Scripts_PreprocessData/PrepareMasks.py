@@ -19,15 +19,16 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath    = 'RawAirways/'
-    nameInputRoiMasksRelPath  = 'RawLungs/'
-    nameReferFilesRelPath     = 'RawImages/'
-    nameOutputImagesRelPath   = 'Airways_Proc/'
-    nameOutputRoiMasksRelPath = 'Lungs_Proc/'
-    nameInputImagesFiles      = '*.dcm'
-    nameInputRoiMasksFiles    = '*.dcm'
-    nameInputReferFiles       = '*.dcm'
-    nameRescaleFactors        = 'rescaleFactors_images.npy'
+    nameInputImagesRelPath       = 'RawAirways/'
+    nameInputRoiMasksRelPath     = 'RawLungs/'
+    nameReferFilesRelPath        = 'RawImages/'
+    nameOutputImagesRelPath      = 'Airways_Proc/'
+    nameOutputMaskedImagesRelPath= 'Airways_Masked_Proc/'
+    nameOutputRoiMasksRelPath    = 'Lungs_Proc/'
+    nameInputImagesFiles         = '*'+ args.extfiles
+    nameInputRoiMasksFiles       = '*'+ args.extfiles
+    nameInputReferFiles          = '*.dcm'
+    nameRescaleFactors           = 'rescaleFactors_images.npy'
 
     def nameOutputImagesFiles(in_name):
         in_name = in_name.replace('surface0','lumen')
@@ -37,13 +38,14 @@ def main(args):
     if args.isInputCentrelines:
         nameInputImagesRelPath  = 'RawCentrelines/'
         nameOutputImagesRelPath = 'Centrelines_Proc/'
+        nameOutputMaskedImagesRelPath = 'Centrelines_Masked_Proc/'
 
         def nameOutputImagesFiles(in_name):
             in_name = in_name.replace('-centrelines','_centrelines')
             return filenamenoextension(in_name) + '.nii.gz'
 
     nameOutputRoiMasksFiles = lambda in_name: filenamenoextension(in_name).replace('-lungs','_lungs') + '.nii.gz'
-    nameOutputImagesMaskedToRoiFiles = lambda in_name: filenamenoextension(nameOutputImagesFiles(in_name)) + '_maskedToLungs.nii.gz'
+    nameOutputMaskedImagesFiles = lambda in_name: filenamenoextension(nameOutputImagesFiles(in_name)) + '_maskedLungs.nii.gz'
     # ---------- SETTINGS ----------
 
 
@@ -51,11 +53,12 @@ def main(args):
     InputImagesPath  = workDirsManager.getNameExistPath(nameInputImagesRelPath)
     OutputImagesPath = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
 
-    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath,     nameInputImagesFiles)
+    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath, nameInputImagesFiles)
 
     if (args.masksToRegionInterest):
-        InputRoiMasksPath  = workDirsManager.getNameExistPath(nameInputRoiMasksRelPath)
-        OutputRoiMasksPath = workDirsManager.getNameNewPath  (nameOutputRoiMasksRelPath)
+        InputRoiMasksPath      = workDirsManager.getNameExistPath(nameInputRoiMasksRelPath)
+        OutputRoiMasksPath     = workDirsManager.getNameNewPath  (nameOutputRoiMasksRelPath)
+        OutputMaskedImagesPath = workDirsManager.getNameNewPath  (nameOutputMaskedImagesRelPath)
 
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
 
@@ -94,7 +97,7 @@ def main(args):
                 out_roimask_array = in_roimask_array
 
             # Image masked to RoI: exclude voxels not contained in lungs
-            out_imagemaskedRoi_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(out_image_array, out_roimask_array)
+            out_maskedimage_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(out_image_array, out_roimask_array)
 
 
         if (args.rescaleImages):
@@ -107,7 +110,7 @@ def main(args):
 
             if (args.masksToRegionInterest):
                 out_roimask_array = RescaleImages.compute3D(out_roimask_array, rescale_factor, is_binary_mask=True)
-                out_imagemaskedRoi_array = RescaleImages.compute3D(out_imagemaskedRoi_array, rescale_factor, is_binary_mask=True)
+                out_maskedimage_array = RescaleImages.compute3D(out_maskedimage_array, rescale_factor, is_binary_mask=True)
 
 
         out_file = joinpathnames(OutputImagesPath, nameOutputImagesFiles(basename(in_image_file)))
@@ -117,10 +120,10 @@ def main(args):
 
         if (args.masksToRegionInterest):
             out_roimask_file = joinpathnames(OutputRoiMasksPath, nameOutputRoiMasksFiles(basename(in_roimask_file)))
-            out_maskedToRoi_file = joinpathnames(OutputImagesPath, nameOutputImagesMaskedToRoiFiles(basename(in_image_file)))
+            out_maskedimage_file = joinpathnames(OutputMaskedImagesPath, nameOutputMaskedImagesFiles(basename(in_image_file)))
 
             FileReader.writeImageArray(out_roimask_file, out_roimask_array)
-            FileReader.writeImageArray(out_maskedToRoi_file, out_imagemaskedRoi_array)
+            FileReader.writeImageArray(out_maskedimage_file, out_maskedimage_array)
     #endfor
 
 
@@ -128,6 +131,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
+    parser.add_argument('--extfiles', type=str, default='.dcm')
     parser.add_argument('--isInputCentrelines', type=str2bool, default=False)
     parser.add_argument('--isClassificationData', type=str, default=ISCLASSIFICATIONDATA)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)

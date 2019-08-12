@@ -26,8 +26,8 @@ def main(args):
 
     nameInputImagesRelPath  = 'Images_Proc/'
     nameInputRoiMaskRelPath = 'Lungs_Proc/'
-    nameInputImagesFiles    = '*.nii.gz'
-    nameInputRoiMasksFiles  = '*.nii.gz'
+    nameInputImagesFiles    = '*'+ args.extfiles
+    nameInputRoiMasksFiles  = '*'+ args.extfiles
 
     nameCropBoundingBoxes_FileNpy = 'cropBoundingBoxes_images.npy'
     nameCropBoundingBoxes_FileCsv = 'cropBoundingBoxes_images.csv'
@@ -84,6 +84,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
+    parser.add_argument('--extfiles', type=str, default='.nii.gz')
     parser.add_argument('--cropSizeBoundingBox', type=str2tuplefloat, default=CROPSIZEBOUNDINGBOX)
     args = parser.parse_args()
 

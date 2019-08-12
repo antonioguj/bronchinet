@@ -147,7 +147,8 @@ class OperationBinaryMasks(OperationMasks):
     @classmethod
     def process_masks(cls, masks_array):
         # convert to binary masks (0, 1)
-        return np.where(masks_array != cls.val_mask_background, cls.val_mask_positive, cls.val_mask_background)
+        #return np.where(masks_array != cls.val_mask_background, cls.val_mask_positive, cls.val_mask_background)
+        return np.clip(masks_array, cls.val_mask_background, cls.val_mask_positive)
 
     @classmethod
     def check_masks(cls, masks_array):

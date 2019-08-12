@@ -18,8 +18,8 @@ def main(args):
     # ---------- SETTINGS ----------
     InputPath1       = args.inputdir1
     InputPath2       = args.inputdir2
-    namesInputFiles1 = '*.nii.gz'
-    namesInputFiles2 = '*.nii.gz'
+    namesInputFiles1 = '*'+ args.extfiles1
+    namesInputFiles2 = '*'+ args.extfiles2
     max_rel_error    = 1.0e-06
     nameOutFilesName = 'out_histo_image%s.png'
     # ---------- SETTINGS ----------
@@ -127,6 +127,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('inputdir1', type=str)
     parser.add_argument('inputdir2', type=str)
+    parser.add_argument('--extfiles1', type=str, default='.nii.gz')
+    parser.add_argument('--extfiles2', type=str, default='.nii.gz')
     parser.add_argument('--tempdir', type=str, default='.')
     args = parser.parse_args()
 

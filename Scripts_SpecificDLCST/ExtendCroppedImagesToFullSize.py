@@ -21,7 +21,7 @@ def main(args):
     nameInputImagesRelPath     = args.inputdir
     nameInputReferFilesRelPath = 'RawImages/'
     nameOutputImagesRelPath    = args.outputdir
-    nameInputImagesFiles       = '*.dcm'
+    nameInputImagesFiles       = '*'+ args.extfiles
     nameInputReferFiles        = '*.dcm'
     nameBoundingBoxes          = 'found_boundBoxes_original.npy'
     nameOutputImagesFiles      = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
@@ -73,6 +73,7 @@ if __name__ == "__main__":
     parser.add_argument('--datadir', default=DATADIR)
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
+    parser.add_argument('--extfiles', type=str, default='.dcm')
     args = parser.parse_args()
 
     if not args.inputdir:

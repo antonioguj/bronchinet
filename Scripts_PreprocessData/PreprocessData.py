@@ -24,9 +24,9 @@ def main(args):
     nameInputRoiMasksRelPath = 'Lungs_Proc/'
     nameOutputImagesRelPath  = 'Images_WorkData/'
     nameOutputLabelsRelPath  = 'Labels_WorkData/'
-    nameInputImagesFiles     = '*.nii.gz'
-    nameInputLabelsFiles     = '*lumen.nii.gz'
-    nameInputRoiMasksFiles   = '*.nii.gz'
+    nameInputImagesFiles     = '*'+ args.extfiles
+    nameInputLabelsFiles     = '*'+ args.extfiles
+    nameInputRoiMasksFiles   = '*'+ args.extfiles
     nameCropBoundingBoxes    = 'cropBoundingBoxes_images.npy'
     nameRescaleFactors       = 'rescaleFactors_images.npy'
     nameOutputImagesFiles    = 'images-%0.2i_dim%s' + getFileExtension(FORMATTRAINDATA)
@@ -152,6 +152,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
+    parser.add_argument('--extfiles', type=str, default='.nii.gz')
     parser.add_argument('--isClassificationData', type=str, default=ISCLASSIFICATIONDATA)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--rescaleImages', type=str2bool, default=False)

@@ -19,10 +19,10 @@ def main(args):
     # ---------- SETTINGS ----------
     InputPath = args.inputdir
     OutputPath = args.outputdir
+    namesInputFiles = '*.hr2'
 
     bin_convertHR2 = '/home/antonio/Codes/Silas_repository/image-feature-extraction/build/tools/ConvertHR2'
 
-    namesInputFiles = '*.hr2'
     namesOutputFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
@@ -34,7 +34,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_file)))
 
         out_file = joinpathnames(OutputPath, namesOutputFiles(in_file))
-        print("\Output: \'%s\'..." % (basename(out_file)))
+        print("Output: \'%s\'..." % (basename(out_file)))
 
         command_string = bin_convertHR2 + ' ' + in_file + ' ' + out_file
         print("%s" %(command_string))

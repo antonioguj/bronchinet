@@ -21,7 +21,7 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputImagesRelPath  = 'RawImages/'
     nameOutputImagesRelPath = 'Images_Proc/'
-    nameInputImagesFiles    = '*.dcm'
+    nameInputImagesFiles    = '*'+ args.extfiles
     nameOutputImagesFiles   = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     nameRescaleFactors      = 'rescaleFactors.npy'
     # ---------- SETTINGS ----------
@@ -64,6 +64,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
+    parser.add_argument('--extfiles', type=str, default='.dcm')
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
     args = parser.parse_args()
 
