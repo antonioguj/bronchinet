@@ -117,11 +117,11 @@ def main(args):
         annotation_Yaxis_list = []
         for (i, in_file) in enumerate(list_input_annotate_files):
             data_this = np.genfromtxt(in_file, dtype=float, delimiter=',')
-            data_Xaxis = data_this[1:, index_field_Xaxis]
-            data_Yaxis = data_this[1:, index_field_Yaxis]
+            data_Xaxis = np.mean(data_this[1:, index_field_Xaxis])
+            data_Yaxis = np.mean(data_this[1:, index_field_Yaxis])
 
-            annotation_Xaxis_list.append(np.mean(data_Xaxis))
-            annotation_Yaxis_list.append(np.mean(data_Yaxis))
+            annotation_Xaxis_list.append(data_Xaxis)
+            annotation_Yaxis_list.append(data_Yaxis)
         #endfor
 
 
