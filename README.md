@@ -4,16 +4,13 @@ Implemented in Pytorch, using deep learning libraries i) Keras or ii) Pytorch.
 
 # Dependencies
 Need to intall the following python packages (recommended to use virtualenv):
-(general)
 - numpy (> 1.16.4)
 - matplotlib (> 2.2.4)
 - h5py (> 2.9.0)
-(image processing)
 - pydicom (> 1.0.2)
 - nibabel (> 2.2.1)
 - pillow (> 6.1.0)
 - scikit-image (> 0.14.3)
-(deep learning)
 - tensorflow (> 1.12.0)
 - tensorflow-gpu (> 1.12.0)
 - scikit-learn (> 0.19.1)
