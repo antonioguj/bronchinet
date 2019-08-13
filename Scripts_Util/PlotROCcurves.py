@@ -46,10 +46,10 @@ def find_index_optimal_threshold_dice_coeff(dice_data):
 
 def main(args):
     # ---------- SETTINGS ----------
-    index_field_Xaxis = 3
-    index_field_Yaxis = 2
-    name_metrics_Xaxis = 'Volume Leakage'
-    name_metrics_Yaxis = 'Completeness'
+    index_field_Xaxis = 4
+    index_field_Yaxis = 5
+    name_metrics_Xaxis = 'dFP error'
+    name_metrics_Yaxis = 'dFN error'
     # ---------- SETTINGS ----------
 
 
@@ -129,7 +129,7 @@ def main(args):
         plt.plot(data_Xaxis_list[0], data_Yaxis_list[0], 'o-', color='b')
 
         if args.isannotations:
-            plt.scatter(annotation_Xaxis_list[0], annotation_Yaxis_list[0],  marker='o', color='b')
+            plt.scatter(annotation_Xaxis_list[0], annotation_Yaxis_list[0],  marker='o', color='b', s=50)
         plt.xlabel(name_metrics_Xaxis)
         plt.ylabel(name_metrics_Yaxis)
         plt.show()
@@ -144,17 +144,17 @@ def main(args):
 
         if args.isannotations:
             for i in range(num_annotate_files):
-                plt.scatter(annotation_Xaxis_list[i], annotation_Yaxis_list[i], marker='o', color=colors[i])
+                plt.scatter(annotation_Xaxis_list[i], annotation_Yaxis_list[i], marker='o', color=colors[i], s=50)
             #endfor
 
         plt.xticks(plt.xticks()[0])
         plt.yticks(plt.yticks()[0])
-        plt.xlabel(name_metrics_Xaxis)
-        plt.ylabel(name_metrics_Yaxis)
+        plt.xlabel(name_metrics_Xaxis, size=20)
+        plt.ylabel(name_metrics_Yaxis, size=20)
         #plt.xlim([0,1])
         #plt.ylim([0,1])
         plt.legend(loc='best')
-        plt.title('ROC curve')
+        plt.title('ROC curve', size=20)
         plt.show()
 
 
