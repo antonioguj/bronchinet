@@ -5,20 +5,20 @@ Implemented in Pytorch, using deep learning libraries i) Keras or ii) Pytorch.
 # Dependencies
 Need to intall the following python packages (recommended to use virtualenv):
 (general)
-- numpy 
-- matplotlib
-- h5py
+- numpy (> 1.16.4)
+- matplotlib (> 2.2.4)
+- h5py (> 2.9.0)
 (image processing)
-- pydicom
-- nibabel
-- pillow
-- scikit-image
+- pydicom (> 1.0.2)
+- nibabel (> 2.2.1)
+- pillow (> 6.1.0)
+- scikit-image (> 0.14.3)
 (deep learning)
-- tensorflow
-- tensorflow-gpu
-- scikit-learn
-- keras
-- torch
+- tensorflow (> 1.12.0)
+- tensorflow-gpu (> 1.12.0)
+- scikit-learn (> 0.19.1)
+- keras (> 2.2.4)
+- torch (> 1.0.1)
 And the following libraries to run deep learning on GPUs:
 - cuda: version 9.0. https://developer.nvidia.com/cuda-zone
 - cuDNN: https://developer.nvidia.com/rdp/cudnn-download
@@ -28,15 +28,20 @@ Starting from the working directory, create "BaseData" dir where to store data, 
 All user input parameters can be set in the file ./Code/CommonUtil/Constants.py, or input arguments to the given pytho script
 The paths to input / output files can be set at the beginning of the python script, in the part within "SETTINGS"
 
-1) Create processed input data (output dirs "./BaseData/ProcImagesExperData" and "./BaseData/ProcImagesExperData"):
-python ./Code/PreprocessInputData.py
+1) Create working directory and set-up framework:
+- mkdir <working_dir> && cd <working dir>
+- ln -s <directory where your data is> BaseData
+- ln -s <directory where you store this framework> Code
+- cd Code && ln -s Scripts_Experiments/* && Scripts_Preprocess/PreprocessData.py && cd -
 
+2) Process input data, images and labels, to format used for training algorithms (output dirs "./BaseData/Images_WorkData" and "./BaseData/Labels_WorkData"):
+python ./Code/PreprocessData.py
 
-2) Distribute input data to training / validation / testing (output dirs in "./TrainingData", "./ValidationData" and "./TestingData"):
+3) Distribute input data to training / validation / testing (output dirs in "./TrainingData", "./ValidationData" and "./TestingData"):
 python ./Code/DistributeProcessData.py
 
-3) Train model (output dir "./Models"):
-python ./Code/TrainingModel.py
+4) Train model (output dir "./Models"):
+python ./Code/TrainingModel.py <--optional args>
 
-4) Compute predictions from model (default output dir "./Predictions_NEW"):
-python ./Code/PredictionModel.py
+5) Compute predictions from model:
+python ./Code/PredictionModel.py <input model file '.pt'> <output dir> <--optional args>
