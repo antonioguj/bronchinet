@@ -16,6 +16,7 @@ Need to intall the following python packages (recommended to use virtualenv):
 - scikit-learn (> 0.19.1)
 - keras (> 2.2.4)
 - torch (> 1.0.1)
+
 And the following libraries to run deep learning on GPUs:
 - cuda: version 9.0. https://developer.nvidia.com/cuda-zone
 - cuDNN: https://developer.nvidia.com/rdp/cudnn-download
