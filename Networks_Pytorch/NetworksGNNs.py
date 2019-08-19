@@ -299,6 +299,13 @@ class Unet3D(NeuralNetwork):
                                      (self.nlevel_default-1) * ['upsam', 'convol', 'convol'] + \
                                                                ['conv_last']
 
+    def get_size_output_deeplevel(self):
+        ind_last_conv_deep_level = self.list_module_opers.index('upsam')-1
+        size_output = self.list_sizes_output[ind_last_conv_deep_level]
+        num_feats = 2**(self.nlevel-1) * self.nfeat
+        return [num_feats] + list(size_output)
+
+
     def build_model(self):
         if self.isUse_valid_convs:
            padding_convs = 0
@@ -456,6 +463,13 @@ class Unet3DGNN(NeuralNetwork):
                                      ['gnn'] + \
                                      (self.nlevel - 1) * ['upsam', 'convol', 'convol'] + \
                                      ['conv_last']
+
+    def get_size_output_deeplevel(self):
+        ind_last_conv_deep_level = self.list_module_opers.index('upsam')-1
+        size_output = self.list_sizes_output[ind_last_conv_deep_level]
+        num_feats = 2**(self.nlevel-2) * self.nfeat
+        return [num_feats] + list(size_output)
+
 
     def build_comp_data(self):
         if self.isUse_valid_convs:
@@ -626,6 +640,13 @@ class Unet3DGNN_OTF(NeuralNetwork):
                                      ['gnn'] + \
                                      (self.nlevel-1) * ['upsam', 'convol', 'convol'] + \
                                      ['conv_last']
+
+    def get_size_output_deeplevel(self):
+        ind_last_conv_deep_level = self.list_module_opers.index('upsam')-1
+        size_output = self.list_sizes_output[ind_last_conv_deep_level]
+        num_feats = 2**(self.nlevel-2) * self.nfeat
+        return [num_feats] + list(size_output)
+
 
     def build_comp_data(self):
         if self.isUse_valid_convs:

@@ -141,7 +141,7 @@ def main(args):
                     in_predictYdata_array = in_predictmask_array
 
 
-                metric_value = fun_EvalThreshold(in_referYdata_array, in_predictmask_array)
+                metric_value = fun_EvalThreshold(in_referYdata_array, in_predictYdata_array)
                 sumrun_metric_value += metric_value
 
                 progressbar.update(1)
@@ -178,9 +178,9 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('inputpredictionsdir', type=str)
     parser.add_argument('--metricsEvalThreshold', type=str, default='AirwayVolumeLeakage')
-    parser.add_argument('--ValueMetricsSought', type=float, default=0.12)
+    parser.add_argument('--ValueMetricsSought', type=float, default=0.13)
     parser.add_argument('--numIterEvaluateMax', type=int, default=20)
-    parser.add_argument('--relErrorEvalMax', type=float, default=1.0e-03)
+    parser.add_argument('--relErrorEvalMax', type=float, default=1.0e-04)
     parser.add_argument('--initThreshold', type=float, default=0.5)
     parser.add_argument('--removeTracheaResMetrics', type=str2bool, default=REMOVETRACHEARESMETRICS)
     args = parser.parse_args()

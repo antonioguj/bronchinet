@@ -39,10 +39,12 @@ def main(args):
 
     for i in range(num_data_files):
         data_file_this = list_input_files[i]
-        raw_data_this_string = np.genfromtxt(data_file_this, dtype=str)
-        raw_data_this_float = np.genfromtxt(data_file_this, dtype=float)
+        raw_data_this_string = np.genfromtxt(data_file_this, dtype=str, delimiter=', ')
+        raw_data_this_float = np.genfromtxt(data_file_this, dtype=float, delimiter=', ')
 
-        fields_names_this = [item.replace('/', '') for item in raw_data_this_string[0, 1:]]
+        fields_names_this = [item.replace('/','') for item in raw_data_this_string[0, 1:]]
+
+        print fields_names_this
 
         if args.infield not in fields_names_this:
             message = 'field \'%s\' not found in file \'%s\'...' % (args.infield, data_file_this)
@@ -91,7 +93,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('inputfiles', type=str, nargs='*')
-    parser.add_argument('--infield', type=str, default='DiceCoefficient')
+    parser.add_argument('--infield', type=str, default='dice')
     parser.add_argument('--fromfile', type=bool, default=False)
     parser.add_argument('--listinputfiles', type=str, default='listinputfiles.txt')
     args = parser.parse_args()

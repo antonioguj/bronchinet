@@ -216,7 +216,8 @@ class Trainer(object):
         num_batches = len(self.test_data_generator)
         size_output_batch = self.model_net.get_size_output()
 
-        out_prediction = np.ndarray([num_batches] + size_output_batch, dtype=FORMATPROBABILITYDATA)
+        out_prediction_shape = [num_batches] + size_output_batch
+        out_prediction = np.ndarray(out_prediction_shape, dtype=FORMATPROBABILITYDATA)
 
         progressbar = tqdm(total= num_batches, desc='Prediction')
 

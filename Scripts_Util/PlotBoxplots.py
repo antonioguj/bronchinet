@@ -10,6 +10,7 @@
 
 from Common.FunctionsUtil import *
 import matplotlib.pyplot as plt
+import seaborn as sns
 from collections import *
 import numpy as np
 import argparse
@@ -34,8 +35,10 @@ def main(args):
         print("%s: \'%s\'" %(i+1, ifile))
     #endfor
 
-    labels = ['model_%i'%(i+1) for i in range(num_data_files)]
-    #labels = ['Unet-lev3', 'Unet-lev5', 'UnetGNN-RegAdj', 'UnetGNN-DynAdj']
+    #labels = ['model_%i'%(i+1) for i in range(num_data_files)]
+    labels = ['UnetLev3', 'UnetLev5', 'UGnnReg', 'UGnnDyn']
+    titles = ['Distance False Positives', 'Distance False Negatives']
+    names_outfiles = ['figure_resDFP_NEW.eps', 'figure_resDFN_NEW.eps']
 
 
     data_fields_files = OrderedDict()
@@ -71,6 +74,8 @@ def main(args):
 
         # store data for fields in dictionary
         for (i, key) in enumerate(fields_names):
+            if i==1 or i==2:
+                data_this[:, i] = 100*data_this[:,i]
             data_fields_files[key].append(data_this[:,i])
         # store data for cases in dictionary
         for (i, key) in enumerate(cases_names):
@@ -82,9 +87,15 @@ def main(args):
 
 
     for i, (key, data) in enumerate(data_fields_files.iteritems()):
-        plt.boxplot(data, labels=labels)
-        plt.title(str(key))
+        #plt.boxplot(data, labels=labels)
+        sns.boxplot(data=data, palette='Set2', width=0.8)
+        sns.swarmplot(data=data, color=".25")
+        plt.xticks(plt.xticks()[0], labels, size=15)
+        plt.yticks(plt.yticks()[0], size=15)
+        plt.title(str(key), size=25)
         plt.show()
+        #plt.savefig(names_outfiles[i], format='eps', dpi=1000)
+        #plt.close()
     #endfor
 
 

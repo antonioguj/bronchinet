@@ -24,6 +24,7 @@ elif TYPE_DNNLIBRARY_USED == 'Pytorch':
     else:
         from Networks_Pytorch.Networks import *
     from Networks_Pytorch.Trainers import *
+    from Networks_Pytorch.VisualModelParams import *
 from Postprocessing.ImageReconstructorManager import *
 from Preprocessing.ImageGeneratorManager import *
 from Preprocessing.OperationImages import *
@@ -46,18 +47,19 @@ def main(args):
     nameInputReferFiles        = '*.nii.gz'
     nameCropBoundingBoxes      = 'cropBoundingBoxes_images.npy'
     #nameRescaleFactors         = 'rescaleFactors_images.npy'
-    nameOutputPredictionFiles  = '%s_probmap.nii.gz'
+    nameOutputPredictionsRelPath = args.predictionsdir
 
     if (args.saveFeatMapsLayers):
-        nameOutputFeatureMapsDirs = 'featureMaps-%s_lay_%s'
-        nameOutputFeatureMapsFiles = 'featmaps-%s_lay_%s_map%0.2i.nii.gz'
+        nameOutputPredictionFiles = '%s_featmap_lay-%s_feat%0.2i.nii.gz'
+    else:
+        nameOutputPredictionFiles  = '%s_probmap.nii.gz'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager     = WorkDirsManager(args.basedir)
-    TestingDataPath     = workDirsManager.getNameExistPath        (args.testdatadir)
-    InputReferFilesPath = workDirsManager.getNameExistBaseDataPath(nameInputReferFilesRelPath)
-    OutputPredictionPath= workDirsManager.getNameNewPath          (args.predictionsdir)
+    workDirsManager      = WorkDirsManager(args.basedir)
+    TestingDataPath      = workDirsManager.getNameExistPath        (args.testdatadir)
+    InputReferFilesPath  = workDirsManager.getNameExistBaseDataPath(nameInputReferFilesRelPath)
+    OutputPredictionsPath= workDirsManager.getNameNewPath          (nameOutputPredictionsRelPath)
 
     listTestImagesFiles = findFilesDirAndCheck(TestingDataPath,     nameImagesFiles)
     listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath,     nameLabelsFiles)
@@ -69,7 +71,6 @@ def main(args):
 
     if (args.cropImages):
         cropBoundingBoxesFileName = joinpathnames(workDirsManager.getNameBaseDataPath(), nameCropBoundingBoxes)
-        print cropBoundingBoxesFileName
         dict_cropBoundingBoxes = readDictionary(cropBoundingBoxesFileName)
 
     #if (args.rescaleImages):
@@ -117,18 +118,13 @@ def main(args):
         # output model summary
         #trainer.get_summary_model()
 
-
     if (args.saveFeatMapsLayers):
+        print("Compute and store model feature maps, from model layer \'%s\'..." %(args.nameSaveModelLayer))
         if TYPE_DNNLIBRARY_USED == 'Keras':
             visual_model_params = VisualModelParams(model, args.size_in_images)
-            if args.firstSaveFeatMapsLayers:
-                get_index_featmap = lambda i: args.firstSaveFeatMapsLayers + i
-            else:
-                get_index_featmap = lambda i: i
-
         elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-            message = 'Visualize a model feature maps still not implemented...'
-            CatchErrorException(message)
+            visual_model_params = VisualModelParams(trainer.model_net, args.size_in_images)
+
 
     test_images_generator = getImagesDataGenerator3D(args.size_in_images,
                                                      args.slidingWindowImages,
@@ -161,40 +157,34 @@ def main(args):
         print("Loading data...")
         if (args.slidingWindowImages or args.transformationImages):
             if TYPE_DNNLIBRARY_USED == 'Keras':
-                in_test_xData = LoadDataManagerInBatches_DataGenerator(args.size_in_images,
-                                                                       test_images_generator).loadData_1File(in_testXData_file,
-                                                                                                             shuffle_images=False)
+                in_testXData_batches = LoadDataManagerInBatches_DataGenerator(args.size_in_images,
+                                                                              test_images_generator).loadData_1File(in_testXData_file,
+                                                                                                                    shuffle_images=False)
             elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-                in_test_xData = LoadDataManager.loadData_1File(in_testXData_file)
-                test_batch_data_generator = TrainingBatchDataGenerator(args.size_in_images,
-                                                                       [in_test_xData],
-                                                                       [in_test_xData],
-                                                                       test_images_generator,
-                                                                       batch_size=1,
-                                                                       isUse_valid_convs=args.isValidConvolutions,
-                                                                       size_output_model=size_output_modelnet,
-                                                                       shuffle=False)
-                (test_yData, in_test_xData) = DataSampleGenerator(args.size_in_images,
-                                                                  [in_test_xData],
-                                                                  [in_test_xData],
-                                                                  test_images_generator).get_full_data()
+                in_testXData = LoadDataManager.loadData_1File(in_testXData_file)
+                in_testXData_batches = TrainingBatchDataGenerator(args.size_in_images,
+                                                                  [in_testXData],
+                                                                  [in_testXData],
+                                                                  test_images_generator,
+                                                                  batch_size=1,
+                                                                  isUse_valid_convs=args.isValidConvolutions,
+                                                                  size_output_model=size_output_modelnet,
+                                                                  shuffle=False)
         else:
-            in_test_xData = LoadDataManagerInBatches(args.size_in_images).loadData_1File(in_testXData_file)
-            in_test_xData = np.expand_dims(in_test_xData, axis=0)
+            in_testXData_batches = LoadDataManagerInBatches(args.size_in_images).loadData_1File(in_testXData_file)
+            in_testXData_batches = np.expand_dims(in_testXData_batches, axis=0)
 
-        print("Total Data batches generated: %s..." % (len(in_test_xData)))
-
-        print("Evaluate model...")
-        if TYPE_DNNLIBRARY_USED == 'Keras':
-            out_predict_yData = model.predict(in_test_xData, batch_size=1)
-        elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-            out_predict_yData = trainer.predict(test_batch_data_generator)
+        print("Total Data batches generated: %s..." % (len(in_testXData_batches)))
 
         if (args.saveFeatMapsLayers):
-            print("Compute feature maps of evaluated model...")
-            out_featuremaps_data = visual_model_params.get_feature_maps(in_test_xData, args.nameSaveModelLayer,
-                                                                        max_num_feat_maps=args.maxNumSaveFeatMapsLayers,
-                                                                        first_feat_maps=args.firstSaveFeatMapsLayers)
+            print("Evaluate model feature maps...")
+            out_predict_yData = visual_model_params.get_feature_maps(in_testXData_batches, args.nameSaveModelLayer)
+        else:
+            print("Evaluate model...")
+            if TYPE_DNNLIBRARY_USED == 'Keras':
+                out_predict_yData = model.predict(in_testXData_batches, batch_size=1)
+            elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+                out_predict_yData = trainer.predict(in_testXData_batches)
         # ------------------------------------------
 
 
@@ -213,12 +203,13 @@ def main(args):
 
         out_prediction_array = images_reconstructor.compute(out_predict_yData)
 
-        if (args.saveFeatMapsLayers):
-            out_featuremaps_array = images_reconstructor.compute(out_featuremaps_data)
-
 
         # reconstruct from cropped / rescaled images
         out_fullimage_shape = FileReader.getImageSize(in_referimage_file)
+        if (args.saveFeatMapsLayers):
+            num_featmaps = out_prediction_array.shape[-1]
+            out_fullimage_shape = list(out_fullimage_shape) + [num_featmaps]
+
 
         if (args.cropImages):
             crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_referimage_file)]
@@ -235,39 +226,25 @@ def main(args):
 
             in_roimask_array = FileReader.getImageArray(in_roimask_file)
             out_prediction_array = OperationBinaryMasks.reverse_mask_exclude_voxels_fillzero(out_prediction_array, in_roimask_array)
-
-
-        if (args.saveFeatMapsLayers):
-            print("Reconstruct predicted feature maps to full size...")
-            if (args.cropImages):
-                num_featmaps = out_featuremaps_array.shape[-1]
-                out_featuremaps_shape = list(out_fullimage_shape) + [num_featmaps]
-                out_featuremaps_array = ExtendImages.compute3D(out_featuremaps_array, crop_bounding_box, out_featuremaps_shape)
-
-            if (args.masksToRegionInterest):
-                out_featuremaps_array = OperationBinaryMasks.reverse_mask_exclude_voxels_fillzero(out_featuremaps_array, in_roimask_array)
         # ------------------------------------------
 
 
 
-        out_prediction_file = joinpathnames(OutputPredictionPath, nameOutputPredictionFiles %(filenamenoextension(in_referimage_file)))
-        print("Output: \'%s\', of dims \'%s\'..." % (basename(out_prediction_file), out_prediction_array.shape))
-
-        FileReader.writeImageArray(out_prediction_file, out_prediction_array)
-
         if (args.saveFeatMapsLayers):
-            nameOutputFeatureMapsRelPath = nameOutputFeatureMapsDirs %(filenamenoextension(in_referimage_file), args.nameSaveModelLayer)
-            OutputFeatureMapsPath = workDirsManager.getNameNewPath(OutputPredictionPath, nameOutputFeatureMapsRelPath)
-
-            num_featmaps = out_featuremaps_array.shape[-1]
+            num_featmaps = out_prediction_array.shape[-1]
+            print("Output model feature maps (\'%s\' in total)..." %(num_featmaps))
             for ifeatmap in range(num_featmaps):
-                out_featuremaps_file = joinpathnames(OutputFeatureMapsPath, nameOutputFeatureMapsFiles %(filenamenoextension(in_referimage_file),
-                                                                                                         args.nameSaveModelLayer,
-                                                                                                         get_index_featmap(ifeatmap)+1))
-                print("Output: \'%s\', of dims \'%s\'..." %(basename(out_featuremaps_file), out_featuremaps_array[...,ifeatmap].shape))
+                out_prediction_file = nameOutputPredictionFiles %(filenamenoextension(in_referimage_file), args.nameSaveModelLayer, ifeatmap+1)
+                out_prediction_file = joinpathnames(OutputPredictionsPath, out_prediction_file)
+                print("Output: \'%s\', of dims \'%s\'..." %(basename(out_prediction_file), out_prediction_array[...,ifeatmap].shape))
 
-                FileReader.writeImageArray(out_featuremaps_file, out_featuremaps_array[...,ifeatmap])
+                FileReader.writeImageArray(out_prediction_file, out_prediction_array[...,ifeatmap])
             #endfor
+        else:
+            out_prediction_file = joinpathnames(OutputPredictionsPath, nameOutputPredictionFiles %(filenamenoextension(in_referimage_file)))
+            print("Output: \'%s\', of dims \'%s\'..." % (basename(out_prediction_file), out_prediction_array.shape))
+
+            FileReader.writeImageArray(out_prediction_file, out_prediction_array)
     #endfor
 
 
@@ -290,8 +267,6 @@ if __name__ == "__main__":
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=False)
     parser.add_argument('--saveFeatMapsLayers', type=str2bool, default=SAVEFEATMAPSLAYERS)
     parser.add_argument('--nameSaveModelLayer', type=str, default=NAMESAVEMODELLAYER)
-    parser.add_argument('--maxNumSaveFeatMapsLayers', type=int, default=None)
-    parser.add_argument('--firstSaveFeatMapsLayers', type=int, default=None)
     parser.add_argument('--lossfun', type=str, default=ILOSSFUN)
     parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
     parser.add_argument('--isModelsWithGNN', type=str2bool, default=ISTESTMODELSWITHGNN)

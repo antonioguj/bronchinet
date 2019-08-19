@@ -125,7 +125,7 @@ def findFilesDirAndCheck(filespath, filenames):
 
 # input / output data in disk
 def readDictionary_numpy(filename):
-    return np.load(filename).item()
+    return np.load(filename, allow_pickle=True).item()
 
 def readDictionary_csv(filename):
     if filenameextension(filename, use_recurse_splitext=False) != '.csv':

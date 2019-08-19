@@ -28,9 +28,11 @@ The paths to input / output files can be set at the beginning of the python scri
 
 1) Create working directory and set-up framework:
 - mkdir <working_dir> && cd <working dir>
-- ln -s <directory where your data is> BaseData
-- ln -s <directory where you store this framework> Code
+- ln -s <directory_where_your_data_is> BaseData
+- ln -s <directory_where_you_store_this_framework> Code
 - cd Code && ln -s Scripts_Experiments/* && Scripts_Preprocess/PreprocessData.py && cd -
+
+(IF NEEDED, if Python cannot find homemade modules: export PYTHONPATH=./Code)
 
 2) Process input data, images and labels, to format used for training algorithms (output dirs "./BaseData/Images_WorkData" and "./BaseData/Labels_WorkData"):
 python ./Code/PreprocessData.py
@@ -42,4 +44,4 @@ python ./Code/DistributeProcessData.py
 python ./Code/TrainingModel.py <--optional args>
 
 5) Compute predictions from model:
-python ./Code/PredictionModel.py <input model file '.pt'> <output dir> <--optional args>
+python ./Code/PredictionModel.py <input_model_file '.pt'> <output_dir> <--optional args>

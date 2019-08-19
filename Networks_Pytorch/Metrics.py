@@ -333,6 +333,44 @@ class AirwayVolumeLeakage(Metrics):
         return np.sum((1.0 - y_true) * y_pred) / (np.sum(y_pred) +_smooth)
 
 
+class AirwayCompletenessModified(Metrics):
+    _isUse_reference_clines = False
+    _isUse_predicted_clines = True
+
+    def __init__(self, is_masks_exclude=False):
+        super(AirwayCompletenessModified, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'completeness_mod'
+
+    def compute_fun(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
+        return torch.sum(y_true * y_pred) / (torch.sum(y_true) +_smooth)
+
+    def compute_fun_np(self, y_true, y_pred):
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
+        return np.sum(y_true * y_pred) / (np.sum(y_true) +_smooth)
+
+
+class AirwayCentrelineLeakage(Metrics):
+    _isUse_reference_clines = False
+    _isUse_predicted_clines = True
+
+    def __init__(self, is_masks_exclude=False):
+        super(AirwayCentrelineLeakage, self).__init__(is_masks_exclude)
+        self.name_fun_out = 'centreline_leakage'
+
+    def compute_fun(self, y_true, y_pred):
+        y_true = torch.flatten(y_true)
+        y_pred = torch.flatten(y_pred)
+        return torch.sum((1.0 - y_true) * y_pred) / (torch.sum(y_pred) +_smooth)
+
+    def compute_fun_np(self, y_true, y_pred):
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
+        return np.sum((1.0 - y_true) * y_pred) / (np.sum(y_pred) +_smooth)
+
+
 # airways centreline False Positive distance error
 class AirwayCentrelineFalsePositiveDistanceError(Metrics):
     _isUse_reference_clines = True
@@ -419,6 +457,7 @@ def DICTAVAILMETRICLASS(option,
                          'DiceCoefficient',
                          'TruePositiveRate', 'TrueNegativeRate', 'FalsePositiveRate', 'FalseNegativeRate',
                          'AirwayCompleteness', 'AirwayVolumeLeakage',
+                         'AirwayCompletenessModified', 'AirwayCentrelineLeakage',
                          'AirwayCentrelineFalsePositiveDistanceError', 'AirwayCentrelineFalseNegativeDistanceError']
 
     if   (option == 'MeanSquared'):
@@ -441,6 +480,10 @@ def DICTAVAILMETRICLASS(option,
         return AirwayCompleteness(is_masks_exclude=is_masks_exclude)
     elif (option == 'AirwayVolumeLeakage'):
         return AirwayVolumeLeakage(is_masks_exclude=is_masks_exclude)
+    elif (option == 'AirwayCompletenessModified'):
+        return AirwayCompletenessModified(is_masks_exclude=is_masks_exclude)
+    elif (option == 'AirwayCentrelineLeakage'):
+        return AirwayCentrelineLeakage(is_masks_exclude=is_masks_exclude)
     elif (option == 'AirwayCentrelineFalsePositiveDistanceError'):
         return AirwayCentrelineFalsePositiveDistanceError(is_masks_exclude=is_masks_exclude)
     elif (option == 'AirwayCentrelineFalseNegativeDistanceError'):

@@ -95,6 +95,7 @@ class OperationMasks(object):
                 cls.template_apply_mask_to_image_with_channels_2args(cls.function_apply_mask_exclude_voxels,
                                                                      images_array,
                                                                      masks_exclude_voxels_array)
+                return images_array
 
     @classmethod
     def apply_mask_exclude_voxels_fillzero(cls, images_array,
@@ -109,6 +110,7 @@ class OperationMasks(object):
                 cls.template_apply_mask_to_image_with_channels_2args(cls.function_apply_mask_exclude_voxels_fillzero,
                                                                      images_array,
                                                                      masks_exclude_voxels_array)
+                return images_array
 
     @classmethod
     def reverse_mask_exclude_voxels(cls, images_array,
@@ -126,6 +128,7 @@ class OperationMasks(object):
                                                                      images_array,
                                                                      masks_exclude_voxels_array,
                                                                      original_images_array)
+                return images_array
 
     @classmethod
     def reverse_mask_exclude_voxels_fillzero(cls, images_array,
@@ -140,6 +143,7 @@ class OperationMasks(object):
                 cls.template_apply_mask_to_image_with_channels_2args(cls.function_reverse_mask_exclude_voxels_fillzero,
                                                                      images_array,
                                                                      masks_exclude_voxels_array)
+                return images_array
 
 
 class OperationBinaryMasks(OperationMasks):

@@ -14,8 +14,8 @@ np.random.seed(2017)
 
 DATADIR = '/home/antonio/Data/DLCST_Processed/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_UnetGNNs_DLCST/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_UnetGNNs_DLCST/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
 TYPEGPUINSTALLED     = 'larger_GPU'
@@ -149,7 +149,7 @@ USEMULTITHREADING = False
 WRITEOUTDESCMODELTEXT = False
 
 # GNN-module parameters
-ISTESTMODELSWITHGNN = False
+ISTESTMODELSWITHGNN = True
 SOURCEDIR_ADJS 	  = 'StoredAdjacencyMatrix/'
 ISGNNWITHATTENTIONLAYS = False
 # ******************** TRAINING PARAMETERS ********************
@@ -166,7 +166,7 @@ RESTART_FROMDIFFMODEL = False
 
 # ******************** PREDICTION PARAMETERS ********************
 SAVEFEATMAPSLAYERS = False
-NAMESAVEMODELLAYER = 'conv3d_18'
+NAMESAVEMODELLAYER = 'convU12'
 FILTERPREDICTPROBMAPS = False
 PROP_VALID_OUTUNET = 0.75
 # ******************** PREDICTION PARAMETERS ********************
@@ -176,15 +176,18 @@ PROP_VALID_OUTUNET = 0.75
 LISTRESULTMETRICS = ['DiceCoefficient',
                      'AirwayCompleteness',
                      'AirwayVolumeLeakage',
+                     'AirwayCompletenessModified',
+                     'AirwayCentrelineLeakage',
                      'AirwayCentrelineFalsePositiveDistanceError',
                      'AirwayCentrelineFalseNegativeDistanceError']
 
 THRESHOLDPOST = 0.5
 REMOVETRACHEARESMETRICS = True
 
-LISTMETRICSROCCURVE = ['DiceCoefficient',
-                       'AirwayCompleteness',
+LISTMETRICSROCCURVE = ['AirwayCompleteness',
                        'AirwayVolumeLeakage',
+                       'AirwayCompletenessModified',
+                       'AirwayCentrelineLeakage',
                        'AirwayCentrelineFalsePositiveDistanceError',
                        'AirwayCentrelineFalseNegativeDistanceError']
 # ******************** POST-PROCESSING PARAMETERS ********************

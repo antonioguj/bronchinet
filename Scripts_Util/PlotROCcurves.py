@@ -46,10 +46,14 @@ def find_index_optimal_threshold_dice_coeff(dice_data):
 
 def main(args):
     # ---------- SETTINGS ----------
-    index_field_Xaxis = 4
-    index_field_Yaxis = 5
-    name_metrics_Xaxis = 'dFP error'
-    name_metrics_Yaxis = 'dFN error'
+    index_field_Xaxis = 2
+    index_field_Yaxis = 1
+    name_metrics_Xaxis = 'Volume Leakage (%)'
+    name_metrics_Yaxis = 'Completeness (%)'
+    names_outfiles = 'figure_ROCcurve_detail.eps'
+
+    labels = ['UnetLev3', 'UnetLev5', 'UGnnReg', 'UGnnDyn']
+    colors = ['green', 'orange', 'blue', 'red']
     # ---------- SETTINGS ----------
 
 
@@ -74,10 +78,10 @@ def main(args):
         #     message = "Input \inputannotatefiles\' not specified..."
         #     CatchErrorException(message)
         # list_input_annotate_files = [infile.replace('\n', '') for infile in args.inputannotatefiles]
-        list_input_annotate_files = ['Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.1365/Predictions_UNet-Lev3_Thres0.04/result_metrics_notrachea.txt',
-                                     'Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.1365/Predictions_UNet-Lev5_Thres0.017/result_metrics_notrachea.txt',
-                                     'Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.1365/Predictions_UNetGNN-RegAdj_Thres0.5/result_metrics_notrachea.txt',
-                                     'Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.1365/Predictions_UNetGNN-DynAdj_Thres0.17/result_metrics_notrachea.txt']
+        list_input_annotate_files = ['Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.13/Predictions_UNet-Lev3_Thres0.1/result_metrics_notrachea.txt',
+                                     'Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.13/Predictions_UNet-Lev5_Thres0.04/result_metrics_notrachea.txt',
+                                     'Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.13/Predictions_UNetGNN-RegAdj_Thres0.66/result_metrics_notrachea.txt',
+                                     'Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.13/Predictions_UNetGNN-DynAdj_Thres0.33/result_metrics_notrachea.txt']
         num_annotate_files = len(list_input_annotate_files)
         if num_annotate_files != num_data_files:
             message = "Num annotation files \'%s\' not equal to num data files \'%s\'..." %(num_annotate_files, num_data_files)
@@ -89,7 +93,6 @@ def main(args):
         #endfor
 
     #labels = ['model_%i'%(i+1) for i in range(num_data_files)]
-    labels = ['Unet-lev3', 'Unet-lev5', 'UnetGNN-RegAdj', 'UnetGNN-DynAdj']
 
 
     threshold_list = []
@@ -98,8 +101,8 @@ def main(args):
     for (i, in_file) in enumerate(list_input_files):
         data_this = np.loadtxt(in_file, dtype=float, skiprows=1, delimiter=',')
         thresholds = data_this[:, 0]
-        data_Xaxis = data_this[:, index_field_Xaxis]
-        data_Yaxis = data_this[:, index_field_Yaxis]
+        data_Xaxis = data_this[:, index_field_Xaxis] * 100
+        data_Yaxis = data_this[:, index_field_Yaxis] * 100
 
         # eliminate NaNs and dummy values
         data_Xaxis = np.where(data_Xaxis==-1, 0, data_Xaxis)
@@ -117,8 +120,8 @@ def main(args):
         annotation_Yaxis_list = []
         for (i, in_file) in enumerate(list_input_annotate_files):
             data_this = np.genfromtxt(in_file, dtype=float, delimiter=',')
-            data_Xaxis = np.mean(data_this[1:, index_field_Xaxis])
-            data_Yaxis = np.mean(data_this[1:, index_field_Yaxis])
+            data_Xaxis = np.mean(data_this[1:, 1+index_field_Xaxis] * 100)
+            data_Yaxis = np.mean(data_this[1:, 1+index_field_Yaxis] * 100)
 
             annotation_Xaxis_list.append(data_Xaxis)
             annotation_Yaxis_list.append(data_Yaxis)
@@ -135,8 +138,8 @@ def main(args):
         plt.show()
 
     else: #num_data_files != 1:
-        cmap = plt.get_cmap('rainbow')
-        colors = [cmap(float(i)/(num_data_files-1)) for i in range(num_data_files)]
+        #cmap = plt.get_cmap('rainbow')
+        #colors = [cmap(float(i)/(num_data_files-1)) for i in range(num_data_files)]
 
         for i in range(num_data_files):
             plt.plot(data_Xaxis_list[i], data_Yaxis_list[i], color=colors[i], label=labels[i])
@@ -149,13 +152,20 @@ def main(args):
 
         plt.xticks(plt.xticks()[0])
         plt.yticks(plt.yticks()[0])
-        plt.xlabel(name_metrics_Xaxis, size=20)
-        plt.ylabel(name_metrics_Yaxis, size=20)
-        #plt.xlim([0,1])
-        #plt.ylim([0,1])
-        plt.legend(loc='best')
-        plt.title('ROC curve', size=20)
+        plt.xlabel(name_metrics_Xaxis, size=15)
+        plt.ylabel(name_metrics_Yaxis, size=15)
+        plt.xticks(plt.xticks()[0], size=15)
+        plt.yticks(plt.yticks()[0], size=15)
+        #plt.xlim([0,100])
+        #plt.ylim([0,100])
+        #plt.xlim([7,17])
+        #plt.ylim([65,80])
+        plt.legend(loc='best', fontsize=15)
+        plt.title('ROC curve', size=25)
         plt.show()
+        #plt.savefig(names_outfiles, format='eps', dpi=1000)
+        #plt.close()
+
 
 
 

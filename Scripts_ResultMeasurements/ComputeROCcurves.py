@@ -113,7 +113,7 @@ def main(args):
 
         if (isLoadReferenceCentrelineFiles):
             in_refercenline_file = findFileWithSamePrefix(basename(in_prediction_file), listInputReferCentrelinesFiles,
-                                                        prefix_pattern=prefixPatternInputFiles)
+                                                          prefix_pattern=prefixPatternInputFiles)
             print("Reference centrelines file: \'%s\'..." % (basename(in_refercenline_file)))
             in_refercenline_array = FileReader.getImageArray(in_refercenline_file)
 
@@ -174,8 +174,8 @@ def main(args):
 
 
         # write out computed metrics in file
-        prefix_casename = getSubstringPatternFilename(basename(in_predictmask_file), substr_pattern=prefixPatternInputFiles)[:-1]
-        out_filename = joinpathnames(OutputFilesPath, nameOutROCmetricsFile%(filenamenoextension(in_prediction_file)))
+        prefix_casename = getSubstringPatternFilename(basename(in_prediction_file), substr_pattern=prefixPatternInputFiles)[:-1]
+        out_filename = joinpathnames(OutputFilesPath, nameOutROCmetricsFile%(prefix_casename))
         if isExistfile(out_filename):
             fout = open(out_filename, 'a')
         else:
