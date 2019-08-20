@@ -79,7 +79,11 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
         print("And: \'%s\'..." % (basename(in_label_file)))
 
-        (in_image_array, in_label_array) = FileReader.get2ImageArraysAndCheck(in_image_file, in_label_file)
+        (in_image_array, in_label_array, statusOK) = FileReader.get2ImageArraysAndCheck(in_image_file, in_label_file)
+        if not statusOK:
+            # skip the conversion of the image and labels size is not the same
+            continue
+
         print("Original dims : \'%s\'..." %(str(in_image_array.shape)))
 
         out_image_array = in_image_array

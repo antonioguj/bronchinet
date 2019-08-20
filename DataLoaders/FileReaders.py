@@ -134,7 +134,8 @@ class FileReader(object):
         if (image1_array.shape != image2_array.shape):
             message = 'size of image 1 \'%s\' ans image 2 \'%s\' do not match' %(image1_array.shape, image2_array.shape)
             CatchWarningException(message)
-        return (image1_array, image2_array)
+            return (False, False, False)
+        return (image1_array, image2_array, True)
 
 
 class HDF5reader(FileReader):
