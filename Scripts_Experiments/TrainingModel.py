@@ -116,13 +116,13 @@ def main(args):
             # output model summary
             model.summary()
 
-            if args.use_restartModel:
+            if args.restart_model:
                 print("Loading saved weights and restarting...")
                 modelSavedPath = joinpathnames(ModelsPath, 'model_last.hdf5')
                 print("Restarting from file: \'%s\'..." %(modelSavedPath))
                 model.load_weights(modelSavedPath)
 
-        else: #args.use_restartModel and RESTART_ONLY_WEIGHTS:
+        else: #args.restart_model and RESTART_ONLY_WEIGHTS:
             print("Loading full model: weights, optimizer, loss, metrics ... and restarting...")
             modelSavedPath = joinpathnames(ModelsPath, 'model_last.hdf5')
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
@@ -171,7 +171,7 @@ def main(args):
                 print("Restarting from file: \'%s\'..." %(modelSavedPath))
                 trainer.load_model_only_weights(modelSavedPath)
 
-        else: #args.use_restartModel and RESTART_ONLY_WEIGHTS:
+        else: #args.restart_model and RESTART_ONLY_WEIGHTS:
             print("Loading full model: weights, optimizer, loss, metrics ... and restarting...")
             modelSavedPath = joinpathnames(ModelsPath, 'model_last.pt')
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
