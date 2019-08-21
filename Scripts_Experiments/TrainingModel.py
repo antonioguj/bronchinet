@@ -113,8 +113,6 @@ def main(args):
             model = model_constructor.get_model()
             # compile model
             model.compile(optimizer=optimizer, loss=loss_fun, metrics=metrics)
-            # output model summary
-            model.summary()
 
             if args.restart_model:
                 print("Loading saved weights and restarting...")
@@ -136,7 +134,9 @@ def main(args):
         # Callbacks:
         list_callbacks = []
         list_callbacks.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]))
-        filename = joinpathnames(ModelsPath, 'model_{epoch:02d}_{loss:.5f}_{val_loss:.5f}.hdf5')
+        filename = joinpathnames(ModelsPath, 'model_e{epoch:02d}.hdf5')
+        list_callbacks.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
+        filename = joinpathnames(ModelsPath, 'model_last.hdf5')
         list_callbacks.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
         # list_callbacks.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
 
@@ -205,9 +205,9 @@ def main(args):
                                          type_save_models='full_model',
                                          freq_save_intermodels=FREQSAVEINTERMODELS)
 
-    	size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
-    	if args.isValidConvolutions:
-        	print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
+        size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
+        if args.isValidConvolutions:
+            print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
                                                                                                    str(size_output_modelnet)))
         # output model summary
         #trainer.get_summary_model()

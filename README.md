@@ -27,7 +27,7 @@ All user input parameters can be set in the file ./Code/CommonUtil/Constants.py,
 The paths to input / output files can be set at the beginning of the python script, in the part within "SETTINGS"
 
 1) Create working directory and set-up framework:
-- mkdir <working_dir> && cd <working dir>
+- mkdir <working_dir> && cd <working_dir>
 - ln -s <directory_where_your_data_is> BaseData
 - ln -s <directory_where_you_store_this_framework> Code
 - cd Code && ln -s Scripts_Experiments/* && Scripts_Preprocess/PreprocessData.py && cd -
