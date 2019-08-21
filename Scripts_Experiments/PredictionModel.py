@@ -96,6 +96,12 @@ def main(args):
         # load and compile model
         model = NeuralNetwork.get_load_saved_model(modelSavedPath, custom_objects=custom_objects)
 
+        # size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
+        size_output_modelnet = args.size_in_images  # IMPLEMENT HERE HOW TO COMPUTE SIZE OF OUTPUT MODEL
+        if args.isValidConvolutions:
+            message = "CODE WITH KERAS NOT IMPLEMENTED FOR VALID CONVOLUTIONS..."
+            CatchErrorException(message)
+
         # output model summary
         model.summary()
 

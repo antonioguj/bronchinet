@@ -28,6 +28,7 @@ elif TYPE_DNNLIBRARY_USED == 'Pytorch':
     from Networks_Pytorch.Optimizers import *
     from Networks_Pytorch.Trainers import *
 from Preprocessing.ImageGeneratorManager import *
+from collections import OrderedDict
 import argparse
 
 
@@ -139,6 +140,12 @@ def main(args):
         filename = joinpathnames(ModelsPath, 'model_last.hdf5')
         list_callbacks.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
         # list_callbacks.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
+
+        # size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
+        size_output_modelnet = args.size_in_images  # IMPLEMENT HERE HOW TO COMPUTE SIZE OF OUTPUT MODEL
+        if args.isValidConvolutions:
+            message = "CODE WITH KERAS NOT IMPLEMENTED FOR VALID CONVOLUTIONS..."
+            CatchErrorException(message)
 
         # output model summary
         model.summary()

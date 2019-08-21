@@ -14,7 +14,8 @@ np.random.seed(2017)
 
 DATADIR = '/home/antonio/Data/DLCST_Processed/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_UnetGNNs_DLCST/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_UnetGNNs_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
@@ -58,8 +59,8 @@ else:
 
 # ******************** DATA DISTRIBUTION ********************
 PROP_DATA_TRAINING   = 0.50
-PROP_DATA_VALIDATION = 0.25
-PROP_DATA_TESTING    = 0.25
+PROP_DATA_VALIDATION = 0.125
+PROP_DATA_TESTING    = 0.375
 
 DISTRIBUTE_RANDOM = False
 DISTRIBUTE_FIXED_NAMES = False
@@ -84,7 +85,7 @@ FIXEDRESCALERES = (0.6, 0.6, 0.6)
 EXTENDSIZEIMAGES = False
 
 SLIDINGWINDOWIMAGES = True
-SLIDEWIN_PROPOVERLAP_Z_X_Y = (0.75, 0.0, 0.0)
+SLIDEWIN_PROPOVERLAP_Z_X_Y = (0.50, 0.0, 0.0)
 
 TRANSFORMATIONIMAGES = True
 ROTATION_XY_RANGE = 10
@@ -117,7 +118,7 @@ TYPE_NETWORK         = 'classification'
 TYPE_ACTIVATE_HIDDEN = 'relu'
 TYPE_ACTIVATE_OUTPUT = 'sigmoid'
 TYPE_PADDING_CONVOL  = 'same'
-DISABLE_CONVOL_POOLING_LASTLAYER = True
+DISABLE_CONVOL_POOLING_LASTLAYER = False
 ISUSE_DROPOUT        = False
 ISUSE_BATCHNORMALIZE = False
 TAILORED_BUILD_MODEL = True
@@ -136,20 +137,20 @@ LISTMETRICS = []
 #                'TrueNegativeRate',
 #                'FalseNegativeRate']
 
-NUMMAXTRAINIMAGES = 16
+NUMMAXTRAINIMAGES = 20
 NUMMAXVALIDIMAGES = 4
 
 ISVALIDCONVOLUTIONS = False
 USEVALIDATIONDATA = True
-FREQVALIDATEMODEL = 3
-FREQSAVEINTERMODELS = 5
+FREQVALIDATEMODEL = 1
+FREQSAVEINTERMODELS = 1
 USETRANSFORMONVALIDATIONDATA = True
 
 USEMULTITHREADING = False
 WRITEOUTDESCMODELTEXT = False
 
 # GNN-module parameters
-ISTESTMODELSWITHGNN = True
+ISTESTMODELSWITHGNN = False
 SOURCEDIR_ADJS 	  = 'StoredAdjacencyMatrix/'
 ISGNNWITHATTENTIONLAYS = False
 # ******************** TRAINING PARAMETERS ********************

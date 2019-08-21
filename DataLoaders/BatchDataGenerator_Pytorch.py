@@ -75,12 +75,6 @@ class DataSampleGenerator(data.Dataset):
 
         self.num_samples = self.compute_pairIndexes_samples()
 
-    def __getitem__(self, index):
-        return self.getitem_ingpu(index)
-
-    def __len__(self):
-        return self.num_samples
-
     def compute_pairIndexes_samples(self):
         self.list_pairIndexes_samples = []
 
@@ -108,44 +102,41 @@ class DataSampleGenerator(data.Dataset):
         num_samples = len(self.list_pairIndexes_samples)
         return num_samples
 
-    @staticmethod
-    def convert_image_torchtensor_cpu(in_array):
-        return torch.from_numpy(np.expand_dims(in_array, axis=0).copy()).type(torch.FloatTensor)
 
-    @staticmethod
-    def convert_image_torchtensor_gpu(in_array):
-        return torch.from_numpy(np.expand_dims(in_array, axis=0).copy()).type(torch.cuda.FloatTensor)
+    def __getitem__(self, index):
+        return self.get_item(index)
+
+    def __len__(self):
+        return self.num_samples
 
     def get_crop_output(self, in_array, size_crop):
         crop_bounding_box = BoundingBoxes.compute_bounding_box_centered_image_3D(size_crop, self.size_image)
         return CropImages.compute3D(in_array, crop_bounding_box)
 
+    @staticmethod
+    def get_image_torchtensor_cpu(in_array):
+        return torch.from_numpy(in_array.copy()).type(torch.FloatTensor)
 
-    def getitem_incpu(self, index):
+    @staticmethod
+    def get_image_torchtensor_gpu(in_array):
+        return torch.from_numpy(in_array.copy()).type(torch.cuda.FloatTensor)
+
+    @classmethod
+    def get_reshaped_output_array(cls, in_array):
+        return cls.get_image_torchtensor_gpu(np.expand_dims(in_array, axis=0))
+
+
+    def get_item(self, index):
         (index_file, index_sample_file) = self.list_pairIndexes_samples[index]
         self.images_generator.complete_init_data(self.list_xData_array[index_file].shape)
         (xData_elem, yData_elem) = self.images_generator.get_images_array(self.list_xData_array[index_file],
                                                                           index= index_sample_file,
                                                                           masks_array= self.list_yData_array[index_file])
-        out_xData_array = self.convert_image_torchtensor_cpu(xData_elem)
+        out_xData_array = self.get_reshaped_output_array(xData_elem)
         if self.isUse_valid_convs:
-            out_yData_array = self.convert_image_torchtensor_cpu(self.get_crop_output(yData_elem, self.size_output_model))
+            out_yData_array = self.get_reshaped_output_array(self.get_crop_output(yData_elem, self.size_output_model))
         else:
-            out_yData_array = self.convert_image_torchtensor_cpu(yData_elem)
-        return (out_xData_array, out_yData_array)
-
-
-    def getitem_ingpu(self, index):
-        (index_file, index_sample_file) = self.list_pairIndexes_samples[index]
-        self.images_generator.complete_init_data(self.list_xData_array[index_file].shape)
-        (xData_elem, yData_elem) = self.images_generator.get_images_array(self.list_xData_array[index_file],
-                                                                          index= index_sample_file,
-                                                                          masks_array= self.list_yData_array[index_file])
-        out_xData_array = self.convert_image_torchtensor_gpu(xData_elem)
-        if self.isUse_valid_convs:
-            out_yData_array = self.convert_image_torchtensor_gpu(self.get_crop_output(yData_elem, self.size_output_model))
-        else:
-            out_yData_array = self.convert_image_torchtensor_gpu(yData_elem)
+            out_yData_array = self.get_reshaped_output_array(yData_elem)
         return (out_xData_array, out_yData_array)
 
 

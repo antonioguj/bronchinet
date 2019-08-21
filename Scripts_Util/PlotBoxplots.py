@@ -35,8 +35,8 @@ def main(args):
         print("%s: \'%s\'" %(i+1, ifile))
     #endfor
 
-    #labels = ['model_%i'%(i+1) for i in range(num_data_files)]
-    labels = ['UnetLev3', 'UnetLev5', 'UGnnReg', 'UGnnDyn']
+    labels = ['model_%i'%(i+1) for i in range(num_data_files)]
+    #labels = ['UnetLev3', 'UnetLev5', 'UGnnReg', 'UGnnDyn']
     titles = ['Distance False Positives', 'Distance False Negatives']
     names_outfiles = ['figure_resDFP_NEW.eps', 'figure_resDFN_NEW.eps']
 
@@ -65,21 +65,20 @@ def main(args):
             for (i, key) in enumerate(cases_names):
                 data_cases_files[key] = []
         else:
-            if fields_names_this != fields_names:
-                message = 'fields found in file \'%s\' do not match those found previously: \'%s\'' %(data_file, fields_names)
-                CatchErrorException(message)
+            pass
+            # if fields_names_this != fields_names:
+            #     message = 'fields found in file \'%s\' do not match those found previously: \'%s\'' %(data_file, fields_names)
+            #     CatchErrorException(message)
             #if cases_names_this != cases_names:
                 #message = 'fields found in file \'%s\' do not match those found previously: \'%s\'' %(data_file, cases_names)
                 #CatchErrorException(message)
 
         # store data for fields in dictionary
-        for (i, key) in enumerate(fields_names):
-            if i==1 or i==2:
-                data_this[:, i] = 100*data_this[:,i]
+        for (i, key) in enumerate(fields_names_this):
             data_fields_files[key].append(data_this[:,i])
         # store data for cases in dictionary
-        for (i, key) in enumerate(cases_names):
-            data_cases_files[key].append(data_this[i,:])
+        # for (i, key) in enumerate(cases_names_this):
+        #     data_cases_files[key].append(data_this[i,:])
     #endfor
 
     print("Found fields to plot: \'%s\'..." %(', '.join(map(lambda item: '/'+item+'/', fields_names))))

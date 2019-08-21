@@ -93,6 +93,10 @@ class TrainingBatchDataGenerator(image.Iterator):
         crop_bounding_box = BoundingBoxes.compute_bounding_box_centered_image_3D(size_crop, self.size_image)
         return CropImages.compute3D(in_array, crop_bounding_box)
 
+    @classmethod
+    def get_reshaped_output_array(cls, in_array):
+        return np.expand_dims(in_array, axis=-1)
+
 
     def _get_batches_of_transformed_samples(self, indexes_batch):
         num_samples_batch = len(indexes_batch)
@@ -107,10 +111,10 @@ class TrainingBatchDataGenerator(image.Iterator):
             (xData_elem, yData_elem) = self.images_generator.get_images_array(self.list_xData_array[index_file],
                                                                               index=index_sample_file,
                                                                               masks_array=self.list_yData_array[index_file])
-            out_xData_array[i] = xData_elem
+            out_xData_array[i] = self.get_reshaped_output_array(xData_elem)
             if self.isUse_valid_convs:
-                out_yData_array[i] = self.get_crop_output(yData_elem, self.size_output_model)
+                out_yData_array[i] = self.get_reshaped_output_array(self.get_crop_output(yData_elem, self.size_output_model))
             else:
-                out_yData_array[i] = yData_elem
+                out_yData_array[i] = self.get_reshaped_output_array(yData_elem)
         #endfor
         return (out_xData_array, out_yData_array)

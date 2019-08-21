@@ -52,7 +52,7 @@ def main(args):
     name_metrics_Yaxis = 'Completeness (%)'
     names_outfiles = 'figure_ROCcurve_detail.eps'
 
-    labels = ['UnetLev3', 'UnetLev5', 'UGnnReg', 'UGnnDyn']
+    #labels = ['UnetLev3', 'UnetLev5', 'UGnnReg', 'UGnnDyn']
     colors = ['green', 'orange', 'blue', 'red']
     # ---------- SETTINGS ----------
 
@@ -92,7 +92,7 @@ def main(args):
             print("%s: \'%s\'" % (i+1, ifile))
         #endfor
 
-    #labels = ['model_%i'%(i+1) for i in range(num_data_files)]
+    labels = ['model_%i'%(i+1) for i in range(num_data_files)]
 
 
     threshold_list = []
