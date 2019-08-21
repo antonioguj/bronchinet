@@ -129,8 +129,7 @@ class DataSampleGenerator(data.Dataset):
                                                                           masks_array= self.list_yData_array[index_file])
         out_xData_array = self.convert_image_torchtensor_cpu(xData_elem)
         if self.isUse_valid_convs:
-            out_yData_array = self.convert_image_torchtensor_cpu(self.get_crop_output(yData_elem,
-                                                                                      self.size_output_model))
+            out_yData_array = self.convert_image_torchtensor_cpu(self.get_crop_output(yData_elem, self.size_output_model))
         else:
             out_yData_array = self.convert_image_torchtensor_cpu(yData_elem)
         return (out_xData_array, out_yData_array)
@@ -144,8 +143,7 @@ class DataSampleGenerator(data.Dataset):
                                                                           masks_array= self.list_yData_array[index_file])
         out_xData_array = self.convert_image_torchtensor_gpu(xData_elem)
         if self.isUse_valid_convs:
-            out_yData_array = self.convert_image_torchtensor_gpu(self.get_crop_output(yData_elem,
-                                                                                      self.size_output_model))
+            out_yData_array = self.convert_image_torchtensor_gpu(self.get_crop_output(yData_elem, self.size_output_model))
         else:
             out_yData_array = self.convert_image_torchtensor_gpu(yData_elem)
         return (out_xData_array, out_yData_array)
