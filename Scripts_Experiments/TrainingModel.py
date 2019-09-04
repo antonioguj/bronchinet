@@ -98,9 +98,9 @@ def main(args):
         if (not args.restart_model) or\
         (args.restart_model and RESTART_ONLY_WEIGHTS):
             model_constructor = DICTAVAILMODELS3D(args.size_in_images,
-                                                  tailored_build_model=args.tailored_build_model,
                                                   num_layers=args.num_layers,
-                                                  num_featmaps_base=args.num_featmaps_base,
+                                                  num_featmaps_in=args.num_featmaps_in,
+                                                  tailored_build_model=args.tailored_build_model,
                                                   type_network=args.type_network,
                                                   type_activate_hidden=args.type_activate_hidden,
                                                   type_activate_output=args.type_activate_output,
@@ -158,13 +158,23 @@ def main(args):
             if ISTESTMODELSWITHGNN:
                 model_net = DICTAVAILMODELSGNNS(args.imodel,
                                                 args.size_in_images,
+                                                nfeat=args.num_featmaps_in,
                                                 nlevel=args.num_layers,
-                                                nfeat=args.num_featmaps_base,
                                                 isUse_valid_convs=args.isValidConvolutions,
                                                 isGNN_with_attention_lays=args.isGNNwithAttentionLays,
                                                 source_dir_adjs=SOURCEDIR_ADJS)
             else:
-                model_net = DICTAVAILMODELS3D(args.size_in_images)
+                model_net = DICTAVAILMODELS3D(args.size_in_images,
+                                              num_layers=args.num_layers,
+                                              num_featmaps_in=args.num_featmaps_in,
+                                              tailored_build_model=args.tailored_build_model,
+                                              type_network=args.type_network,
+                                              type_activate_hidden=args.type_activate_hidden,
+                                              type_activate_output=args.type_activate_output,
+                                              type_padding_convol=args.type_padding_convol,
+                                              is_disable_convol_pooling_lastlayer=args.disable_convol_pooling_lastlayer,
+                                              isuse_dropout=args.isUse_dropout,
+                                              isuse_batchnormalize=args.isUse_batchnormalize)
 
             optimizer = DICTAVAILOPTIMIZERS(args.optimizer, model_net.parameters(), lr=args.learn_rate)
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
@@ -184,12 +194,13 @@ def main(args):
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
             if ISTESTMODELSWITHGNN:
-                dict_added_model_input_args = {'nlevel': args.num_layers,
+                dict_added_model_input_args = {'num_featmaps_in': args.num_featmaps_in,
+                                               'nlevel': args.num_layers,
                                                'isUse_valid_convs': args.isValidConvolutions,
                                                'isGNN_with_attention_lays': args.isGNNwithAttentionLays,
                                                'source_dir_adjs': SOURCEDIR_ADJS}
             else:
-                dict_added_model_input_args = {}
+                dict_added_model_input_args = {'num_featmaps_in': args.num_featmaps_in}
 
             metrics_fun = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest) for imetrics in LISTMETRICS]
             dict_added_other_input_args = {'metrics_fun': metrics_fun}
@@ -355,7 +366,7 @@ if __name__ == "__main__":
     parser.add_argument('--tailored_build_model', type=str2bool, default=TAILORED_BUILD_MODEL)
     parser.add_argument('--type_network', type=str, default=TYPE_NETWORK)
     parser.add_argument('--num_layers', type=int, default=NUM_LAYERS)
-    parser.add_argument('--num_featmaps_base', type=int, default=NUM_FEATMAPS_BASE)
+    parser.add_argument('--num_featmaps_in', type=int, default=NUM_FEATMAPS)
     parser.add_argument('--type_activate_hidden', type=str, default=TYPE_ACTIVATE_HIDDEN)
     parser.add_argument('--type_activate_output', type=str, default=TYPE_ACTIVATE_OUTPUT)
     parser.add_argument('--type_padding_convol', type=str, default=TYPE_PADDING_CONVOL)
@@ -390,7 +401,7 @@ if __name__ == "__main__":
         args.size_in_images         = str2tupleint(input_args_file['size_in_images'])
         args.imodel                 = str(input_args_file['imodel'])
         args.num_layers             = int(input_args_file['num_layers'])
-        args.num_featmaps_base      = int(input_args_file['num_featmaps_base'])
+        args.num_featmaps_in        = int(input_args_file['num_featmaps_in'])
         args.isUse_dropout          = str2bool(input_args_file['isUse_dropout'])
         args.isUse_batchnormalize   = str2bool(input_args_file['isUse_batchnormalize'])
         args.optimizer              = str(input_args_file['optimizer'])

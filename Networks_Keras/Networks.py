@@ -30,17 +30,18 @@ class NeuralNetwork(object):
 class Unet3D_Original(NeuralNetwork):
 
     def __init__(self, size_image,
-                 num_channels_in=1,
-                 num_classes_out=1):
+                 num_channels_in= 1,
+                 num_classes_out= 1,
+                 num_featmaps_in= 16):
         self.size_image      = size_image
         self.num_channels_in = num_channels_in
         self.num_classes_out = num_classes_out
-        self.num_featmaps_base = 16
+        self.num_featmaps_in = num_featmaps_in
 
     def get_model(self):
         inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
 
-        num_featmaps_lay1   = self.num_featmaps_base
+        num_featmaps_lay1   = self.num_featmaps_in
         hiddenlayer_down1_2 = Convolution3D(num_featmaps_lay1, kernel_size=(3, 3, 3), activation='relu', padding='same')(inputlayer)
         hiddenlayer_down1_3 = Convolution3D(num_featmaps_lay1, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down1_2)
         hiddenlayer_down2_1 = MaxPooling3D(pool_size=(2, 2, 2))(hiddenlayer_down1_3)
@@ -94,7 +95,7 @@ class Unet3D_Original(NeuralNetwork):
 class Unet3D_General(NeuralNetwork):
 
     num_layers_default = 5
-    num_featmaps_base_default = 16
+    num_featmaps_in_default = 16
 
     num_convols_downlayers_default = 2
     num_convols_uplayers_default   = 2
@@ -116,27 +117,27 @@ class Unet3D_General(NeuralNetwork):
 
 
     def __init__(self, size_image,
-                 num_channels_in=1,
-                 num_classes_out=1,
-                 num_layers=num_layers_default,
-                 num_featmaps_base=num_featmaps_base_default,
-                 num_featmaps_layers=None,
-                 num_convols_downlayers=num_convols_downlayers_default,
-                 num_convols_uplayers=num_convols_uplayers_default,
-                 size_convolfilter_downlayers=size_convolfilter_downlayers_default,
-                 size_convolfilter_uplayers=size_convolfilter_uplayers_default,
-                 size_pooling_downlayers=size_pooling_layers_default,
-                 type_activate_hidden=type_activate_hidden_default,
-                 type_activate_output=type_activate_output_default,
-                 type_padding_convol=type_padding_convol_default,
-                 is_disable_convol_pooling_zdim_lastlayer=False,
-                 isuse_dropout=False,
-                 dropout_rate=dropout_rate_default,
-                 where_dropout_downlayers=where_dropout_downlayers_default,
-                 where_dropout_uplayers=where_dropout_uplayers_default,
-                 isuse_batchnormalize=False,
-                 where_batchnormalize_downlayers=where_batchnormalize_downlayers_default,
-                 where_batchnormalize_uplayers=where_batchnormalize_uplayers_default):
+                 num_channels_in= 1,
+                 num_classes_out= 1,
+                 num_layers= num_layers_default,
+                 num_featmaps_in= num_featmaps_in_default,
+                 num_featmaps_layers= None,
+                 num_convols_downlayers= num_convols_downlayers_default,
+                 num_convols_uplayers= num_convols_uplayers_default,
+                 size_convolfilter_downlayers= size_convolfilter_downlayers_default,
+                 size_convolfilter_uplayers= size_convolfilter_uplayers_default,
+                 size_pooling_downlayers= size_pooling_layers_default,
+                 type_activate_hidden= type_activate_hidden_default,
+                 type_activate_output= type_activate_output_default,
+                 type_padding_convol= type_padding_convol_default,
+                 is_disable_convol_pooling_zdim_lastlayer= False,
+                 isuse_dropout= False,
+                 dropout_rate= dropout_rate_default,
+                 where_dropout_downlayers= where_dropout_downlayers_default,
+                 where_dropout_uplayers= where_dropout_uplayers_default,
+                 isuse_batchnormalize= False,
+                 where_batchnormalize_downlayers= where_batchnormalize_downlayers_default,
+                 where_batchnormalize_uplayers= where_batchnormalize_uplayers_default):
 
         self.size_image      = size_image
         self.num_channels_in = num_channels_in
@@ -147,7 +148,7 @@ class Unet3D_General(NeuralNetwork):
             self.num_featmaps_layers = num_featmaps_layers
         else:
             # Default: double featmaps after every pooling
-            self.num_featmaps_layers = [num_featmaps_base] + [0]*(self.num_layers-1)
+            self.num_featmaps_layers = [num_featmaps_in] + [0]*(self.num_layers-1)
             for i in range(1, self.num_layers):
                 self.num_featmaps_layers[i] = 2 * self.num_featmaps_layers[i-1]
 
@@ -231,18 +232,19 @@ class Unet3D_General(NeuralNetwork):
 class Unet3D_Tailored(NeuralNetwork):
 
     def __init__(self, size_image,
-                 num_channels_in=1,
-                 num_classes_out=1):
+                 num_channels_in= 1,
+                 num_classes_out= 1,
+                 num_featmaps_in= 16):
         self.size_image      = size_image
         self.num_channels_in = num_channels_in
         self.num_classes_out = num_classes_out
-        self.num_featmaps_base = 16
+        self.num_featmaps_in = num_featmaps_in
         #self.dropout_rate      = 0.5
 
     def get_model(self):
         inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
 
-        num_featmaps_lay1   = self.num_featmaps_base
+        num_featmaps_lay1   = self.num_featmaps_in
         hiddenlayer_down1_2 = Convolution3D(num_featmaps_lay1, kernel_size=(3, 3, 3), activation='relu', padding='same')(inputlayer)
         #hiddenlayer_down1_2 = BatchNormalization()(hiddenlayer_down1_2)
         hiddenlayer_down1_3 = Convolution3D(num_featmaps_lay1, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down1_2)
@@ -315,21 +317,23 @@ class Unet3D_Tailored(NeuralNetwork):
 
 # all available networks
 def DICTAVAILMODELS3D(size_image,
-                      num_channels_in=1,
-                      num_classes_out=1,
-                      tailored_build_model=False,
-                      num_layers=5,
-                      num_featmaps_base=16,
-                      type_network='classification',
-                      type_activate_hidden='relu',
-                      type_activate_output='sigmoid',
-                      type_padding_convol='same',
-                      is_disable_convol_pooling_lastlayer=False,
-                      isuse_dropout=False,
-                      isuse_batchnormalize=False):
+                      num_channels_in= 1,
+                      num_classes_out= 1,
+                      num_featmaps_in= 16,
+                      num_layers= 5,
+                      tailored_build_model= False,
+                      type_network= 'classification',
+                      type_activate_hidden= 'relu',
+                      type_activate_output= 'sigmoid',
+                      type_padding_convol= 'same',
+                      is_disable_convol_pooling_lastlayer= False,
+                      isuse_dropout= False,
+                      isuse_batchnormalize= False):
     if tailored_build_model:
         return Unet3D_Tailored(size_image,
-                               num_channels_in=num_channels_in)
+                               num_channels_in=num_channels_in,
+                               num_classes_out=num_classes_out,
+                               num_featmaps_in=num_featmaps_in)
     else:
         if type_network == 'regression':
             type_activate_output = 'linear'
@@ -338,7 +342,7 @@ def DICTAVAILMODELS3D(size_image,
                               num_channels_in=num_channels_in,
                               num_classes_out=num_classes_out,
                               num_layers=num_layers,
-                              num_featmaps_base=num_featmaps_base,
+                              num_featmaps_in=num_featmaps_in,
                               type_activate_hidden=type_activate_hidden,
                               type_activate_output=type_activate_output,
                               type_padding_convol=type_padding_convol,

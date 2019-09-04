@@ -11,10 +11,11 @@
 from Common.Constants import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
-if TYPE_DNNLIBRARY_USED == 'Keras':
-    from Networks_Keras.Metrics import *
-elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-    from Networks_Pytorch.Metrics import *
+#if TYPE_DNNLIBRARY_USED == 'Keras':
+#    from Networks_Keras.Metrics import *
+#elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+#    from Networks_Pytorch.Metrics import *
+from Networks_Pytorch.Metrics import *
 from Preprocessing.OperationImages import *
 from Preprocessing.OperationMasks import *
 from collections import OrderedDict
@@ -29,11 +30,11 @@ def main(args):
     nameInputRoiMasksRelPath        = 'Lungs_Proc/'
     nameInputPredictCentrelinesRelPath= args.inputcentrelinesdir
     nameInputReferCentrelinesRelPath  = 'Centrelines_Proc/'
-    nameInputPredictMasksFiles      = '*.nii.gz'
+    nameInputPredictMasksFiles      = '*_binmask.nii.gz'
     nameInputReferMasksFiles        = '*_lumen.nii.gz'
     nameInputRoiMasksFiles          = '*_lungs.nii.gz'
     nameInputPredictCentrelinesFiles= '*_cenlines.nii.gz'
-    nameInputReferCentrelinesFiles  = '*_centrelines.nii.gz'
+    nameInputReferCentrelinesFiles  = '*_cenlines.nii.gz'
     prefixPatternInputFiles         = 'vol[0-9][0-9]_*'
 
     if (args.removeTracheaResMetrics):
@@ -179,6 +180,9 @@ if __name__ == "__main__":
     parser.add_argument('--listResultMetrics', type=parseListarg, default=LISTRESULTMETRICS)
     parser.add_argument('--removeTracheaResMetrics', type=str2bool, default=REMOVETRACHEARESMETRICS)
     args = parser.parse_args()
+
+    if not args.inputcentrelinesdir:
+        args.inputcentrelinesdir = args.inputpredictmasksdir
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

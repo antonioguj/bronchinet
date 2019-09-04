@@ -36,7 +36,7 @@ def main(args):
     #endfor
 
     labels = ['model_%i'%(i+1) for i in range(num_data_files)]
-    #labels = ['UnetLev3', 'UnetLev5', 'UGnnReg', 'UGnnDyn']
+    #labels = ['Pechin', 'Unet_Raghav', 'Unet_Antonio']
     titles = ['Distance False Positives', 'Distance False Negatives']
     names_outfiles = ['figure_resDFP_NEW.eps', 'figure_resDFN_NEW.eps']
 

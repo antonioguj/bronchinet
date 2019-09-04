@@ -489,7 +489,7 @@ def DICTAVAILMETRICLASS(option,
     elif (option == 'AirwayCentrelineFalseNegativeDistanceError'):
         return AirwayCentrelineFalseNegativeDistanceError(is_masks_exclude=is_masks_exclude)
     else:
-        message = 'Metric chosen not found. Metrics available: (%s)' %(', '.join(list_metric_avail))
+        message = 'Metric \'%s\' chosen not found. Metrics available: \'%s\'...' %(option, ', '.join(list_metric_avail))
         CatchErrorException(message)
         return NotImplemented
 

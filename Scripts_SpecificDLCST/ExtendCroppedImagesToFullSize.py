@@ -22,7 +22,7 @@ def main(args):
     nameInputReferFilesRelPath = 'RawImages/'
     nameOutputImagesRelPath    = args.outputdir
     nameInputImagesFiles       = '*'+ args.extfiles
-    nameInputReferFiles        = '*.dcm'
+    nameInputReferFiles        = '*.nii.gz'
     nameBoundingBoxes          = 'found_boundBoxes_original.npy'
     nameOutputImagesFiles      = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     prefixPatternInputFiles    = 'vol[0-9][0-9]_*'

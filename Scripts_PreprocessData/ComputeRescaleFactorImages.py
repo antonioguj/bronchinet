@@ -66,6 +66,7 @@ def main(args):
         final_rescale_res = median
     print("Final aimed resolution: \'%s\'..." %(str(final_rescale_res)))
 
+
     dict_rescaleFactors = OrderedDict()
 
     for key, value in dict_voxelSizes.iteritems():

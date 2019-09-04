@@ -68,8 +68,8 @@ class Trainer(object):
                            desc= 'Epochs {}/{}'.format(self.epoch_count, self.num_epochs),
                            bar_format= '{l_bar}{bar}| {n_fmt}/{total_fmt} [{remaining}{postfix}]')
 
-        time_compute = 0.0
-        time_total_ini = dt.now()
+        #time_compute = 0.0
+        #time_total_ini = dt.now()
         sumrun_loss = 0.0
         sumrun_metricvals = [0.0]*self.num_metrics
 
@@ -81,22 +81,23 @@ class Trainer(object):
             x_batch.cuda()
             y_batch.cuda()
 
-            time_ini = dt.now()
+            #time_ini = dt.now()
             # ---- compute ----
             self.optimizer.zero_grad()
             pred_batch = self.model_net(x_batch)
             loss = self._criterion(pred_batch, y_batch)
             loss.backward()
             self.optimizer.step()
-            # loss.detach()
+            loss.detach()
+
             sumrun_loss += loss.item()
             for i in range(self.num_metrics):
                 metricvals = self._calc_metrics(i, pred_batch, y_batch)
                 sumrun_metricvals[i] += metricvals.item()
             #endfor
             # ---- compute ----
-            time_now = dt.now()
-            time_compute += (time_now - time_ini).seconds
+            #time_now = dt.now()
+            #time_compute += (time_now - time_ini).seconds
 
             loss_partial = sumrun_loss/(i_batch+1)
             progressbar.set_postfix(loss='{0:1.5f}'.format(loss_partial))
@@ -107,12 +108,12 @@ class Trainer(object):
                 break
         # endfor
 
-        time_now = dt.now()
-        time_total = (time_now - time_total_ini).seconds
-        time_loaddata = time_total - time_compute
+        #time_now = dt.now()
+        #time_total = (time_now - time_total_ini).seconds
+        #time_loaddata = time_total - time_compute
 
-        print("\ntime total = {0:.3f}".format(time_total))
-        print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
+        #print("\ntime total = {0:.3f}".format(time_total))
+        #print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
         total_loss = sumrun_loss/num_batches
 
@@ -132,8 +133,8 @@ class Trainer(object):
 
         progressbar = tqdm(total= num_batches, desc= 'Validation', leave= False)
 
-        time_compute = 0.0
-        time_total_ini = dt.now()
+        #time_compute = 0.0
+        #time_total_ini = dt.now()
         sumrun_loss = 0.0
         sumrun_metricvals = [0.0]*self.num_metrics
 
@@ -145,19 +146,21 @@ class Trainer(object):
             x_batch.cuda()
             y_batch.cuda()
 
-            time_ini = dt.now()
+            #time_ini = dt.now()
             # ---- compute ----
-            pred_batch = self.model_net(x_batch)
-            loss = self._criterion(pred_batch, y_batch)
-            # loss.detach()
+            with torch.no_grad():
+                pred_batch = self.model_net(x_batch)
+                loss = self._criterion(pred_batch, y_batch)
+                loss.detach()
+
             sumrun_loss += loss.item()
             for i in range(self.num_metrics):
                 metricvals = self._calc_metrics(i, pred_batch, y_batch)
                 sumrun_metricvals[i] += metricvals.item()
             #endfor
             # ---- compute ----
-            time_now = dt.now()
-            time_compute += (time_now - time_ini).seconds
+            #time_now = dt.now()
+            #time_compute += (time_now - time_ini).seconds
 
             progressbar.update(1)
 
@@ -166,12 +169,12 @@ class Trainer(object):
                 break
         # endfor
 
-        time_now = dt.now()
-        time_total = (time_now - time_total_ini).seconds
-        time_loaddata = time_total - time_compute
+        #time_now = dt.now()
+        #time_total = (time_now - time_total_ini).seconds
+        #time_loaddata = time_total - time_compute
 
-        print("\ntime total = {0:.3f}".format(time_total))
-        print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
+        #print("\ntime total = {0:.3f}".format(time_total))
+        #print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
         total_loss = sumrun_loss/num_batches
 
@@ -221,31 +224,35 @@ class Trainer(object):
 
         progressbar = tqdm(total= num_batches, desc='Prediction')
 
-        time_compute = 0.0
-        time_total_ini = dt.now()
+        torch.no_grad()  # in evaluation mode
+
+        #time_compute = 0.0
+        #time_total_ini = dt.now()
 
         # run prediction pass
         for i_batch, (x_batch, y_batch) in enumerate(self.test_data_generator):
             #x_batch = x_batch.to(self.device)
             x_batch.cuda()
 
-            time_ini = dt.now()
-            pred_batch = self.model_net(x_batch)
-            #out_prediction[i_batch] = pred_batch.detach().to('cpu')
-            out_prediction[i_batch] = pred_batch.detach().cpu()
-            time_now = dt.now()
-            time_compute_i = (time_now - time_ini).seconds
-            time_compute += time_compute_i
+            #time_ini = dt.now()
+            with torch.no_grad():
+                pred_batch = self.model_net(x_batch)
+                pred_batch.detach()
+            #out_prediction[i_batch] = pred_batch.to('cpu')
+            out_prediction[i_batch] = pred_batch.cpu()
+            #time_now = dt.now()
+            #time_compute_i = (time_now - time_ini).seconds
+            #time_compute += time_compute_i
 
             progressbar.update(1)
         #endfor
 
-        time_now = dt.now()
-        time_total = (time_now - time_total_ini).seconds
-        time_loaddata = time_total - time_compute
+        #time_now = dt.now()
+        #time_total = (time_now - time_total_ini).seconds
+        #time_loaddata = time_total - time_compute
 
-        print("\ntime total = {0:.3f}".format(time_total))
-        print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
+        #print("\ntime total = {0:.3f}".format(time_total))
+        #print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
         # rollaxis to output in "channels_last"
         ndim_out = len(out_prediction.shape)
@@ -276,9 +283,9 @@ class Trainer(object):
             self.epochstart_count += 1
 
             # write loss history
-            print("\ntrain loss = {0:.3f}".format(self.train_loss))
-            if self.valid_data_generator:
-                print("valid loss = {0:.3f}".format(self.valid_loss))
+            #print("\ntrain loss = {0:.3f}".format(self.train_loss))
+            #if self.valid_data_generator:
+                #print("valid loss = {0:.3f}".format(self.valid_loss))
 
             if self.is_write_lossfile:
                 self.update_losshistory_file()

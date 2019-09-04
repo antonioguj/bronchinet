@@ -46,8 +46,8 @@ def find_index_optimal_threshold_dice_coeff(dice_data):
 
 def main(args):
     # ---------- SETTINGS ----------
-    index_field_Xaxis = 2
-    index_field_Yaxis = 1
+    index_field_Xaxis = 3
+    index_field_Yaxis = 2
     name_metrics_Xaxis = 'Volume Leakage (%)'
     name_metrics_Yaxis = 'Completeness (%)'
     names_outfiles = 'figure_ROCcurve_detail.eps'

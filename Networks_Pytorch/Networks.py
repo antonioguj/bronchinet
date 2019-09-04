@@ -18,11 +18,13 @@ class NeuralNetwork(nn.Module):
 
     def __init__(self, size_image,
                  num_channels_in= 1,
-                 num_classes_out= 1):
+                 num_classes_out= 1,
+                 num_featmaps_in= 16):
         super(NeuralNetwork, self).__init__()
         self.size_image = size_image
         self.num_channels_in = num_channels_in
         self.num_classes_out = num_classes_out
+        self.num_featmaps_in = num_featmaps_in
 
     @staticmethod
     def get_create_model(type_model, dict_input_args):
@@ -54,20 +56,23 @@ class Unet3D_Original(NeuralNetwork):
 
     def __init__(self, size_image,
                  num_channels_in= 1,
-                 num_classes_out= 1):
-        super(Unet3D_Original, self).__init__(size_image, num_channels_in, num_classes_out)
-        self.num_featmaps_base = 16
-
+                 num_classes_out= 1,
+                 num_featmaps_in= 16):
+        super(Unet3D_Original, self).__init__(size_image,
+                                              num_channels_in,
+                                              num_classes_out,
+                                              num_featmaps_in)
         self.build_model()
 
     def get_arch_desc(self):
         return ['Unet3D_Original', {'size_image': self.size_image,
                                     'num_channels_in': self.num_channels_in,
-                                    'num_classes_out': self.num_classes_out}]
+                                    'num_classes_out': self.num_classes_out,
+                                    'num_featmaps_in': self.num_featmaps_in}]
 
     def build_model(self):
 
-        num_featmaps_lay1 = self.num_featmaps_base
+        num_featmaps_lay1 = self.num_featmaps_in
         self.convolution_downlay1_1 = Conv3d(self.num_channels_in, num_featmaps_lay1, kernel_size= 3, padding= 1)
         self.convolution_downlay1_2 = Conv3d(num_featmaps_lay1, num_featmaps_lay1, kernel_size= 3, padding= 1)
         self.pooling_downlay1 = MaxPool3d(kernel_size= 2, padding= 0)
@@ -164,7 +169,8 @@ class Unet3D_Original(NeuralNetwork):
 class Unet3D_General(NeuralNetwork):
 
     num_layers_default = 5
-    num_featmaps_base_default = 16
+    num_featmaps_in_default = 16
+
     num_convolutions_downlays_default = 2
     num_convolution_uplays_default = 2
     size_convolutionkernel_downlays_default = [(3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3)]
@@ -176,7 +182,7 @@ class Unet3D_General(NeuralNetwork):
                  num_channels_in= 1,
                  num_classes_out= 1,
                  num_layers= num_layers_default,
-                 num_featmaps_base= num_featmaps_base_default,
+                 num_featmaps_in= num_featmaps_in_default,
                  num_featmaps_layers= None,
                  num_convolution_downlays= num_convolutions_downlays_default,
                  num_convolution_uplays= num_convolution_uplays_default,
@@ -191,7 +197,7 @@ class Unet3D_General(NeuralNetwork):
             self.num_featmaps_layers = num_featmaps_layers
         else:
             # Default: double featmaps after every pooling
-            self.num_featmaps_layers = [num_featmaps_base] + [0]*(self.num_layers-1)
+            self.num_featmaps_layers = [num_featmaps_in] + [0]*(self.num_layers-1)
             for i in range(1, self.num_layers):
                 self.num_featmaps_layers[i] = 2 * self.num_featmaps_layers[i-1]
 
@@ -221,9 +227,12 @@ class Unet3D_Tailored(NeuralNetwork):
 
     def __init__(self, size_image,
                  num_channels_in= 1,
-                 num_classes_out= 1):
-        super(Unet3D_Tailored, self).__init__(size_image, num_channels_in, num_classes_out)
-        self.num_featmaps_base = 8
+                 num_classes_out= 1,
+                 num_featmaps_in= 16):
+        super(Unet3D_Tailored, self).__init__(size_image,
+                                              num_channels_in,
+                                              num_classes_out,
+                                              num_featmaps_in)
         self.dropout_rate = 0.2
 
         self.build_model()
@@ -231,11 +240,12 @@ class Unet3D_Tailored(NeuralNetwork):
     def get_arch_desc(self):
         return ['Unet3D_Tailored', {'size_image': self.size_image,
                                     'num_channels_in': self.num_channels_in,
-                                    'num_classes_out': self.num_classes_out}]
+                                    'num_classes_out': self.num_classes_out,
+                                    'num_featmaps_in': self.num_featmaps_in}]
 
     def build_model(self):
 
-        num_featmaps_lay1 = self.num_featmaps_base
+        num_featmaps_lay1 = self.num_featmaps_in
         self.convolution_downlay1_1 = Conv3d(self.num_channels_in, num_featmaps_lay1, kernel_size= 3, padding= 1)
         self.activation_downlay1_1 = ReLU(inplace=True)
         # self.batchnorm_downlay1_1 = BatchNorm3d(num_featmaps_lay1)
@@ -435,9 +445,9 @@ class Unet3D_Tailored(NeuralNetwork):
 def DICTAVAILMODELS3D(size_image,
                       num_channels_in= 1,
                       num_classes_out= 1,
-                      tailored_build_model= False,
+                      num_featmaps_in= 16,
                       num_layers= 5,
-                      num_featmaps_base= 16,
+                      tailored_build_model= False,
                       type_network= 'classification',
                       type_activate_hidden= 'relu',
                       type_activate_output= 'sigmoid',
@@ -445,6 +455,14 @@ def DICTAVAILMODELS3D(size_image,
                       is_disable_convol_pooling_lastlayer= False,
                       isuse_dropout= False,
                       isuse_batchnormalize= False):
-    return Unet3D_Tailored(size_image,
-                           num_channels_in= num_channels_in,
-                           num_classes_out= num_classes_out)
+    if tailored_build_model:
+        return Unet3D_Tailored(size_image,
+                               num_channels_in= num_channels_in,
+                               num_classes_out= num_classes_out,
+                               num_featmaps_in=num_featmaps_in)
+    else:
+        return Unet3D_General(size_image,
+                              num_channels_in=num_channels_in,
+                              num_classes_out=num_classes_out,
+                              num_layers=num_layers,
+                              num_featmaps_in=num_featmaps_in)

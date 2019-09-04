@@ -12,11 +12,15 @@ import numpy as np
 np.random.seed(2017)
 
 
+#DATADIR = '/home/antonio/Data/LUVAR_Processed/'
 DATADIR = '/home/antonio/Data/DLCST_Processed/'
+#DATADIR = '/home/antonio/Data/DLCST_Processed_ReferPechin/'
+
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_UnetGNNs_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper_ReferPechin/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
 TYPEGPUINSTALLED     = 'larger_GPU'
@@ -85,7 +89,7 @@ FIXEDRESCALERES = (0.6, 0.6, 0.6)
 EXTENDSIZEIMAGES = False
 
 SLIDINGWINDOWIMAGES = True
-SLIDEWIN_PROPOVERLAP_Z_X_Y = (0.50, 0.0, 0.0)
+SLIDEWIN_PROPOVERLAP_Z_X_Y = (0.25, 0.0, 0.0)
 
 TRANSFORMATIONIMAGES = True
 ROTATION_XY_RANGE = 10
@@ -110,9 +114,9 @@ SAVEVISUALIZEWORKDATA = False
 # ******************** TRAINING PARAMETERS ********************
 #IMODEL    	  = 'UnetGNN_OTF'
 #IMODEL    	  = 'UnetGNN'
-IMODEL            = 'Unet'
-NUM_LAYERS        = 5
-NUM_FEATMAPS_BASE = 16
+IMODEL       = 'Unet'
+NUM_LAYERS   = 5
+NUM_FEATMAPS = 16
 
 TYPE_NETWORK         = 'classification'
 TYPE_ACTIVATE_HIDDEN = 'relu'
@@ -123,7 +127,7 @@ ISUSE_DROPOUT        = False
 ISUSE_BATCHNORMALIZE = False
 TAILORED_BUILD_MODEL = True
 
-NUM_EPOCHS = 1000
+NUM_EPOCHS = 400
 BATCH_SIZE = 1
 IOPTIMIZER = 'Adam'
 LEARN_RATE = 1.0e-04
@@ -137,13 +141,13 @@ LISTMETRICS = []
 #                'TrueNegativeRate',
 #                'FalseNegativeRate']
 
-NUMMAXTRAINIMAGES = 20
+NUMMAXTRAINIMAGES = 16
 NUMMAXVALIDIMAGES = 4
 
 ISVALIDCONVOLUTIONS = False
 USEVALIDATIONDATA = True
-FREQVALIDATEMODEL = 1
-FREQSAVEINTERMODELS = 1
+FREQVALIDATEMODEL = 3
+FREQSAVEINTERMODELS = 5
 USETRANSFORMONVALIDATIONDATA = True
 
 USEMULTITHREADING = False
@@ -185,10 +189,9 @@ LISTRESULTMETRICS = ['DiceCoefficient',
 THRESHOLDPOST = 0.5
 REMOVETRACHEARESMETRICS = True
 
-LISTMETRICSROCCURVE = ['AirwayCompleteness',
+LISTMETRICSROCCURVE = ['DiceCoefficient',
+                       'AirwayCompleteness',
                        'AirwayVolumeLeakage',
-                       'AirwayCompletenessModified',
-                       'AirwayCentrelineLeakage',
                        'AirwayCentrelineFalsePositiveDistanceError',
                        'AirwayCentrelineFalseNegativeDistanceError']
 # ******************** POST-PROCESSING PARAMETERS ********************

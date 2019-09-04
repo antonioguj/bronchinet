@@ -34,7 +34,7 @@ def main(args):
     nameInputPredictionsFiles       = '*_probmap.nii.gz'
     nameInputReferMasksFiles        = '*_lumen.nii.gz'
     nameInputRoiMasksFiles          = '*_lungs.nii.gz'
-    nameInputReferCentrelinesFiles  = '*_centrelines.nii.gz'
+    nameInputReferCentrelinesFiles  = '*_cenlines.nii.gz'
     prefixPatternInputFiles         = 'vol[0-9][0-9]_*'
     nameOutROCmetricsFile           = 'dataROC_metrics_%s.txt'
     nameOutMeanROCmetricsFile       = 'dataROC_metrics_mean.txt'

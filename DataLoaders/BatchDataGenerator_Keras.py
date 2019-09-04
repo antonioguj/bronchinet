@@ -89,6 +89,7 @@ class TrainingBatchDataGenerator(image.Iterator):
 
         return num_samples
 
+
     def get_crop_output(self, in_array, size_crop):
         crop_bounding_box = BoundingBoxes.compute_bounding_box_centered_image_3D(size_crop, self.size_image)
         return CropImages.compute3D(in_array, crop_bounding_box)

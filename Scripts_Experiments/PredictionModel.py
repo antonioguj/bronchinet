@@ -122,7 +122,7 @@ def main(args):
             print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." %(str(args.size_in_images),
                                                                                                   str(size_output_modelnet)))
         # output model summary
-        #trainer.get_summary_model()
+        trainer.get_summary_model()
 
     if (args.saveFeatMapsLayers):
         print("Compute and store model feature maps, from model layer \'%s\'..." %(args.nameSaveModelLayer))
