@@ -41,7 +41,7 @@ def main(args):
     for i, in_data_file in enumerate(list_input_files):
         if i==0:
             data_this_string = np.genfromtxt(in_data_file, dtype=str, delimiter=',')
-            strheader = '/epoch/, ' + ', '.join(data_this_string[0,1:]) + '\n'
+            strheader = '/epoch/,' + ','.join(data_this_string[0,1:]) + '\n'
             fout.write(strheader)
 
         data_this_float = np.genfromtxt(in_data_file, dtype=float, delimiter=',')

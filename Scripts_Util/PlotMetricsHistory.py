@@ -34,11 +34,12 @@ def main(args):
         print("%s: \'%s\'" %(i+1, ifile))
     #endfor
 
-    labels = ['model_%i'%(i+1) for i in range(num_plot_files)]
+    #labels = ['model_%i'%(i+1) for i in range(num_plot_files)]
+    labels = ['loss', 'loss_avrg20ep', 'loss_avrg50ep']
 
     cmap = plt.get_cmap('rainbow')
-    colors = [cmap(float(i)/num_plot_files) for i in range(num_plot_files)]
-    # colors = ['blue', 'red', 'green', 'yellow', 'orange']
+    #colors = [cmap(float(i)/(num_plot_files-1)) for i in range(num_plot_files)]
+    colors = ['blue', 'red', 'green', 'yellow', 'orange']
 
 
     list_epochs = []
@@ -76,11 +77,12 @@ def main(args):
         num_data_plot = len(data)
         for i in range(num_data_plot):
             plt.plot(list_epochs[i], data[i], color=colors[i], label=labels[i])
-            plt.xlabel('epoch')
-            plt.ylabel(str(key))
-            plt.legend(loc='best')
-            plt.show()
-        #endfor
+        # endfor
+        plt.xlabel('epoch')
+        plt.ylabel(str(key))
+        plt.legend(loc='best')
+        plt.title('Train History '+ str(key), size=25)
+        plt.show()
     #endfor
 
 

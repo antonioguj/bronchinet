@@ -36,12 +36,12 @@ def main(args):
 
     labels_train = ['train_%i'%(i+1) for i in range(num_plot_files)]
     labels_valid = ['valid_%i'%(i+1) for i in range(num_plot_files)]
-    #labels_train = ['Unet-lev3', 'Unet-lev5', 'UnetGNN-RegAdj', 'UnetGNN-DynAdj']
+    #labels_train = ['loss', 'loss_avrg20ep', 'loss_avrg50ep']
     #labels_valid = labels_train
 
     cmap = plt.get_cmap('rainbow')
-    colors = [cmap(float(i)/num_plot_files) for i in range(num_plot_files)]
-    # colors = ['blue', 'red', 'green', 'yellow', 'orange']
+    #colors = [cmap(float(i)/(num_plot_files-1)) for i in range(num_plot_files)]
+    colors = ['blue', 'red', 'green', 'yellow', 'orange']
 
 
 

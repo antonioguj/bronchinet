@@ -20,8 +20,8 @@ def main(args):
     # ---------- SETTINGS ----------
     names_subdirs = 'Predictions_e*'
     names_inputfiles = 'result_metrics_notrachea.txt'
-    index_field_plot = 1
-    name_field_plot = 'Leakage'
+    index_field_plot = 2
+    name_field_plot = 'Completeness'
     # ---------- SETTINGS ----------
 
 
