@@ -17,9 +17,9 @@ DATADIR = '/home/antonio/Data/DLCST_Processed/'
 #DATADIR = '/home/antonio/Data/DLCST_Processed_ReferPechin/'
 
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_UnetGNNs_DLCST/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
 TYPEGPUINSTALLED     = 'smaller_GPU'
@@ -131,7 +131,7 @@ NUM_EPOCHS = 1000
 BATCH_SIZE = 1
 IOPTIMIZER = 'Adam'
 LEARN_RATE = 1.0e-04
-ILOSSFUN   = 'DiceCoefficient'
+ILOSSFUN   = 'WeightedBinaryCrossEntropy'
 LISTMETRICS = []
 # LISTMETRICS = ['BinaryCrossEntropy',
 #                'WeightedBinaryCrossEntropy',
