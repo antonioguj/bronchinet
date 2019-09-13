@@ -36,7 +36,7 @@ def main(args):
         header_line = infile.readline()
         header_items = map(lambda item: item.replace('/', '').replace('\n', ''), header_line.split(' '))
 
-    data_file = np.loadtxt(args.inlossHistory, skiprows=1)
+    data_file = np.loadtxt(args.inlossHistory, skiprows=1, delimiter=',')
     epochs = data_file[:, 0]
     data_fields = data_file[:,1:]
     num_fields = data_fields.shape[1]
