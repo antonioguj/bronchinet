@@ -10,7 +10,6 @@
 
 from Common.FunctionsUtil import *
 import matplotlib.pyplot as plt
-import seaborn as sns
 from collections import OrderedDict
 import numpy as np
 import argparse
@@ -28,74 +27,60 @@ def main(args):
         print("\'inputfiles\' = %s" % (list_input_files))
     else:
         list_input_files = [infile.replace('\n','') for infile in args.inputfiles]
-    num_data_files = len(list_input_files)
+    num_plot_files = len(list_input_files)
 
-    print("Files to plot (\'%s\')..." %(num_data_files))
+    print("Files to plot (\'%s\')..." %(num_plot_files))
     for i, ifile in enumerate(list_input_files):
         print("%s: \'%s\'" %(i+1, ifile))
     #endfor
 
-    labels = ['model_%i'%(i+1) for i in range(num_data_files)]
-    #labels = ['Pechin', 'Unet_Raghav', 'Unet_Antonio']
-    titles = ['Distance False Positives', 'Distance False Negatives']
-    names_outfiles = ['figure_resDFP_NEW.eps', 'figure_resDFN_NEW.eps']
+    labels = ['model_%i'%(i+1) for i in range(num_plot_files)]
+
+    cmap = plt.get_cmap('rainbow')
+    colors = [cmap(float(i)/num_plot_files) for i in range(num_plot_files)]
+    # colors = ['blue', 'red', 'green', 'yellow', 'orange']
 
 
+    list_epochs = []
     data_fields_files = OrderedDict()
-    data_cases_files = OrderedDict()
     fields_names = []
-    cases_names = []
 
-    for i, in_data_file in enumerate(list_input_files):
+    for (i, in_data_file) in enumerate(list_input_files):
         data_this_string = np.genfromtxt(in_data_file, dtype=str, delimiter=',')
         fields_names_this = [item.replace('/','') for item in data_this_string[0,1:]]
-        cases_names_this = [item.replace('\'','') for item in data_this_string[1:,0]]
         num_fields_this = len(fields_names_this)
-        num_cases_this = len(cases_names_this)
 
-        data_this_float = np.genfromtxt(in_data_file, dtype=float, delimiter=',')
-        data_this = data_this_float[1:,1:]
+        data_this = np.loadtxt(in_data_file, dtype=float, skiprows=1, delimiter=',')
+        list_epochs.append(data_this[:, 0])
 
         if i==0:
             fields_names = fields_names_this
-            cases_names = cases_names_this
             for (i, key) in enumerate(fields_names):
                 data_fields_files[key] = []
-            for (i, key) in enumerate(cases_names):
-                data_cases_files[key] = []
         else:
             pass
             # if fields_names_this != fields_names:
             #     message = 'fields found in file \'%s\' do not match those found previously: \'%s\'' %(in_data_file, fields_names)
             #     CatchErrorException(message)
-            # if cases_names_this != cases_names:
-            #     message = 'fields found in file \'%s\' do not match those found previously: \'%s\'' %(in_data_file, cases_names)
-            #     CatchErrorException(message)
 
         # store data for fields in dictionary
         for (i, key) in enumerate(fields_names_this):
-            data_fields_files[key].append(data_this[:,i])
-        # endfor
-        # store data for cases in dictionary
-        # for (i, key) in enumerate(cases_names_this):
-        #     data_cases_files[key].append(data_this[i,:])
-        # # endfor
+            data_fields_files[key].append(data_this[:, i+1])
+        #endfor
     #endfor
 
-    print("Found fields to plot: \'%s\'..." %(', '.join(map(lambda item: '/'+item+'/', fields_names))))
-    print("Found cases to plot: \'%s\'..." %(', '.join(map(lambda item: '/'+item+'/', cases_names))))
+    print("Found fields to plot: \'%s\'..." % (', '.join(map(lambda item: '/' + item + '/', fields_names))))
 
 
-    for i, (key, data) in enumerate(data_fields_files.iteritems()):
-        #plt.boxplot(data, labels=labels)
-        sns.boxplot(data=data, palette='Set2', width=0.8)
-        sns.swarmplot(data=data, color=".25")
-        plt.xticks(plt.xticks()[0], labels, size=15)
-        plt.yticks(plt.yticks()[0], size=15)
-        plt.title(str(key), size=25)
-        plt.show()
-        #plt.savefig(names_outfiles[i], format='eps', dpi=1000)
-        #plt.close()
+    for (key, data) in data_fields_files.iteritems():
+        num_data_plot = len(data)
+        for i in range(num_data_plot):
+            plt.plot(list_epochs[i], data[i], color=colors[i], label=labels[i])
+            plt.xlabel('epoch')
+            plt.ylabel(str(key))
+            plt.legend(loc='best')
+            plt.show()
+        #endfor
     #endfor
 
 
@@ -110,8 +95,5 @@ if __name__ == "__main__":
     print("Print input arguments...")
     for key, value in vars(args).iteritems():
         print("\'%s\' = %s" %(key, value))
-
-    if args.fromfile and not args.listinputfiles:
-        print("ERROR. Input input file name with files to plot...")
 
     main(args)

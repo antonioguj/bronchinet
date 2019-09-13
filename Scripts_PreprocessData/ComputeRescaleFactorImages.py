@@ -18,8 +18,9 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath     = 'Images_Proc/'
-    nameInputImagesFiles       = '*.nii.gz'
+    nameInputImagesRelPath     = 'RawImages/'
+    nameOutputDataRelPath      = 'RescalingData/'
+    nameInputImagesFiles       = '*.dcm'
     nameOrigVoxelSize_FileNpy  = 'original_vozelSize.npy'
     nameOrigVoxelSize_FileCsv  = 'original_vozelSize.csv'
     nameRescaleFactors_FileNpy = 'rescaleFactors_images.npy'
@@ -29,6 +30,7 @@ def main(args):
 
     workDirsManager = WorkDirsManager(args.datadir)
     InputImagesPath = workDirsManager.getNameExistPath(nameInputImagesRelPath)
+    OutputDataPath  = workDirsManager.getNameNewPath  (nameOutputDataRelPath)
 
     listInputImageFiles = findFilesDirAndCheck(InputImagesPath, nameInputImagesFiles)
 
@@ -46,15 +48,15 @@ def main(args):
 
 
     # Save dictionary in file
-    nameoutfile = joinpathnames(args.datadir, nameOrigVoxelSize_FileNpy)
+    nameoutfile = joinpathnames(OutputDataPath, nameOrigVoxelSize_FileNpy)
     saveDictionary(nameoutfile, dict_voxelSizes)
-    nameoutfile = joinpathnames(args.datadir, nameOrigVoxelSize_FileCsv)
+    nameoutfile = joinpathnames(OutputDataPath, nameOrigVoxelSize_FileCsv)
     saveDictionary_csv(nameoutfile, dict_voxelSizes)
 
 
     data = np.array(dict_voxelSizes.values())
     mean = np.mean(data, axis=0)
-    print("Mean value: \'%s\'..." %(mean))
+    print("\nMean value: \'%s\'..." %(mean))
     median = np.median(data, axis=0)
     print("Median value: \'%s\'..." %(median))
 
@@ -80,9 +82,9 @@ def main(args):
 
 
     # Save dictionary in file
-    nameoutfile = joinpathnames(args.datadir, nameRescaleFactors_FileNpy)
+    nameoutfile = joinpathnames(OutputDataPath, nameRescaleFactors_FileNpy)
     saveDictionary(nameoutfile, dict_rescaleFactors)
-    nameoutfile = joinpathnames(args.datadir, nameRescaleFactors_FileCsv)
+    nameoutfile = joinpathnames(OutputDataPath, nameRescaleFactors_FileCsv)
     saveDictionary_csv(nameoutfile, dict_rescaleFactors)
 
 

@@ -22,9 +22,9 @@ def main(args):
     nameInputImagesRelPath       = 'RawAirways/'
     nameInputRoiMasksRelPath     = 'RawLungs/'
     nameReferFilesRelPath        = 'RawImages/'
-    nameOutputImagesRelPath      = 'Airways_Proc/'
-    nameOutputMaskedImagesRelPath= 'Airways_Masked_Proc/'
-    nameOutputRoiMasksRelPath    = 'Lungs_Proc/'
+    nameOutputImagesRelPath      = 'Airways_Rescaled_Order3_Proc/'
+    nameOutputMaskedImagesRelPath= 'Airways_Rescaled_Order3_Masked_Proc/'
+    nameOutputRoiMasksRelPath    = 'Lungs_Rescaled_Order3_Proc/'
     nameInputImagesFiles         = '*'+ args.extfiles
     nameInputRoiMasksFiles       = '*'+ args.extfiles
     nameInputReferFiles          = '*.dcm'
@@ -105,12 +105,24 @@ def main(args):
             rescale_factor = dict_rescaleFactors[filenamenoextension(in_refer_file)]
             print("Rescale image with a factor: \'%s\'..." %(str(rescale_factor)))
 
-            out_image_array = RescaleImages.compute3D(out_image_array, rescale_factor, is_binary_mask=True)
-            print("Final dims: %s..." %(str(out_image_array.shape)))
+            try:
+                out_image_array = RescaleImages.compute3D(out_image_array, rescale_factor, is_binary_mask=True)
+                print("Final dims: %s..." %(str(out_image_array.shape)))
+            except:
+                message = 'Issue found when rescaling image'
+                CatchWarningException(message)
+                continue
 
             if (args.masksToRegionInterest):
-                out_roimask_array = RescaleImages.compute3D(out_roimask_array, rescale_factor, is_binary_mask=True)
-                out_maskedimage_array = RescaleImages.compute3D(out_maskedimage_array, rescale_factor, is_binary_mask=True)
+                try:
+                    out_roimask_array = RescaleImages.compute3D(out_roimask_array, rescale_factor, is_binary_mask=True)
+                except:
+                    message = 'Issue found when rescaling image'
+                    CatchWarningException(message)
+                    continue
+
+                # recompute Image masked to RoI
+                out_maskedimage_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(out_image_array, out_roimask_array)
 
 
         out_file = joinpathnames(OutputImagesPath, nameOutputImagesFiles(basename(in_image_file)))

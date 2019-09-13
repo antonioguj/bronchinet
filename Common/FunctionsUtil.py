@@ -340,4 +340,7 @@ def getIndexOriginImagesFile(images_file, beginString='images', firstIndex='0'):
         return index_origin - int(firstIndex)
     else:
         return False
+
+def getIntegerInString(in_name):
+    return int(re.findall('\d+', in_name)[0])
 # ------------------------------------

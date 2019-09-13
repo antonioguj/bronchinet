@@ -10,7 +10,7 @@
 
 from Common.FunctionsUtil import *
 import matplotlib.pyplot as plt
-from collections import *
+from collections import OrderedDict
 import numpy as np
 import argparse
 
@@ -39,19 +39,22 @@ def main(args):
     #labels_train = ['Unet-lev3', 'Unet-lev5', 'UnetGNN-RegAdj', 'UnetGNN-DynAdj']
     #labels_valid = labels_train
 
+    cmap = plt.get_cmap('rainbow')
+    colors = [cmap(float(i)/num_plot_files) for i in range(num_plot_files)]
+    # colors = ['blue', 'red', 'green', 'yellow', 'orange']
+
+
 
     data_fields_lossHistory_files = OrderedDict()
     data_fields_lossHistory_files['epoch'] = []
     data_fields_lossHistory_files['loss'] = []
 
-    for i in range(num_plot_files):
-        lossHistory_file = list_input_files[i]
-
-        with open(lossHistory_file, 'r') as infile:
+    for i, in_plotloss_file in enumerate(list_input_files):
+        with open(in_plotloss_file, 'r') as infile:
             header_line = infile.readline()
             header_lossHistory = map(lambda item: item.replace('/','').replace('\n',''), header_line.split(' '))
 
-        data_lossHistory = np.loadtxt(lossHistory_file, skiprows=1)
+        data_lossHistory = np.loadtxt(in_plotloss_file, skiprows=1)
 
         # if the file contains only one line, add extra dimension
         if len(data_lossHistory.shape) == 1:
@@ -67,7 +70,7 @@ def main(args):
             message = 'format input file not correct'
             CatchErrorException(message)
         if ('epoch' not in header_lossHistory) or ('loss' not in header_lossHistory):
-            message = 'mandatory fields \'epoch\' or \'loss\' not found in file \'%s\'' %(lossHistory_file)
+            message = 'mandatory fields \'epoch\' or \'loss\' not found in file \'%s\'' %(in_plotloss_file)
             CatchErrorException(message)
         # check that every field has in 'val_%' associated
         headers_stdalone_fields = list(filter(lambda item: (item!='epoch') and (item[0:4]!='val_'), header_lossHistory))
@@ -127,9 +130,10 @@ def main(args):
     #endfor
 
 
+
     for (key, data) in data_fields_lossHistory_files.iteritems():
-        num_files_plot_data = len(data)
-        if num_files_plot_data == 1:
+        num_data_plot = len(data)
+        if num_data_plot == 1:
             plt.plot(epochs[0], data[0][0], color='b', label='train')
             plt.plot(epochs[0], data[0][1], color='r', label='valid')
             plt.xlabel('epoch')
@@ -137,12 +141,8 @@ def main(args):
             plt.legend(loc='best')
             plt.show()
         else:
-            cmap = plt.get_cmap('rainbow')
-            colors = [cmap(float(i)/(num_files_plot_data-1)) for i in range(num_files_plot_data)]
-            #colors = ['blue', 'red', 'green', 'yellow', 'orange']
-
             fig, axs = plt.subplots(1, 2, figsize=(15, 5))
-            for i in range(num_files_plot_data):
+            for i in range(num_data_plot):
                 # skip files that do not contain this data
                 if data[i]:
                     axs[0].plot(epochs[i], data[i][0], color=colors[i], label=labels_train[i])

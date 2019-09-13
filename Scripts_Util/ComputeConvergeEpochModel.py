@@ -21,13 +21,14 @@ def main(args):
     type_converged_epoch = 'last'
     tolerance_converge = 0.001
     tolerance_diverge = 0.05
-    num_epochs_average = 20
-    num_epochs_patience = 1
+    num_epochs_average = 50
+    num_epochs_patience = 20
     num_epochs_jumpeval = 1
     writeout_meanlosshistory = False
     filename_meanlosshistory = args.inlossHistory.replace('.txt','') + '_%s_aver%s_jump%s.txt' %(type_eval_loss,
                                                                                                  num_epochs_average,
                                                                                                  num_epochs_jumpeval)
+    index_valid_loss = 2
     # ---------- SETTINGS ----------
 
 
@@ -36,9 +37,9 @@ def main(args):
         header_items = map(lambda item: item.replace('/', '').replace('\n', ''), header_line.split(' '))
 
     data_file = np.loadtxt(args.inlossHistory, skiprows=1)
-    epochs = data_file[:,0]
-    train_loss = data_file[:,1]
-    valid_loss = data_file[:,2]
+    epochs = data_file[:, 0]
+    data_fields = data_file[:,1:]
+    num_fields = data_fields.shape[1]
 
 
     first_epoch_eval = num_epochs_average
@@ -51,13 +52,12 @@ def main(args):
         last_epoch_eval = last_epoch_compare - num_epochs_patience
 
 
-    num_evals_loss = int((last_epoch_compare - first_epoch_eval) / num_epochs_jumpeval) #+ 1
+    num_eval_epochs = int((last_epoch_compare - first_epoch_eval) / num_epochs_jumpeval) #+ 1
     if num_epochs_jumpeval>1:
-        num_evals_loss += 1
+        num_eval_epochs += 1
         
-    evalarr_epochs = np.zeros(num_evals_loss, dtype=int)
-    evalarr_train_loss = np.zeros(num_evals_loss, dtype=float)
-    evalarr_valid_loss = np.zeros(num_evals_loss, dtype=float)
+    evalarr_epochs = np.zeros(num_eval_epochs, dtype=int)
+    evalarr_data_fields = np.zeros((num_eval_epochs, num_fields), dtype=float)
 
     for count, ind_epoch in enumerate(range(first_epoch_eval, last_epoch_compare, num_epochs_jumpeval)):
         beg_epoch_average = ind_epoch - num_epochs_average
@@ -65,27 +65,30 @@ def main(args):
 
         evalarr_epochs[count] = ind_epoch
         if type_eval_loss == 'mean':
-            evalarr_train_loss[count] = np.mean(train_loss[beg_epoch_average:end_epoch_average])
-            evalarr_valid_loss[count] = np.mean(valid_loss[beg_epoch_average:end_epoch_average])
+            evalarr_data_fields[count] = np.mean(data_fields[beg_epoch_average:end_epoch_average], axis=0)
         elif type_eval_loss == 'min':
-            evalarr_train_loss[count] = np.min(train_loss[beg_epoch_average:end_epoch_average])
-            evalarr_valid_loss[count] = np.min(valid_loss[beg_epoch_average:end_epoch_average])
+            evalarr_data_fields[count] = np.min(data_fields[beg_epoch_average:end_epoch_average], axis=0)
         elif type_eval_loss == 'std':
-            evalarr_train_loss[count] = np.std(train_loss[beg_epoch_average:end_epoch_average])
-            evalarr_valid_loss[count] = np.std(valid_loss[beg_epoch_average:end_epoch_average])
+            evalarr_data_fields[count] = np.std(data_fields[beg_epoch_average:end_epoch_average], axis=0)
     #endfor
 
 
     if writeout_meanlosshistory:
         print("Write out computed mean loss History in file: %s..." %(filename_meanlosshistory))
         fout = open(filename_meanlosshistory, 'w')
-        fout.write('/epoch/ /loss/ /val_loss/\n')
-        for i in range(num_evals_loss):
-            strline = '%s %s %s\n' %(evalarr_epochs[i], evalarr_train_loss[i], evalarr_valid_loss[i])
-            fout.write(strline)
+        strheader = ', '.join(['/%s/'%(elem) for elem in header_items]) +'\n'
+        fout.write(strheader)
+
+        for i in range(num_eval_epochs):
+            strdata = ', '.join([str(elem) for elem in [evalarr_epochs[i]] + list(evalarr_data_fields[i])]) + '\n'
+            fout.write(strdata)
         #endfor
         fout.close()
 
+
+
+    valid_loss = data_fields[:, index_valid_loss-1]
+    evalarr_valid_loss = evalarr_data_fields[:, index_valid_loss-1]
 
     jump_elems_patiente = num_epochs_patience / num_epochs_jumpeval
 
@@ -94,22 +97,14 @@ def main(args):
     epoch_diverged = None
     for count, ind_epoch in enumerate(range(first_epoch_eval, last_epoch_eval, num_epochs_jumpeval)):
         count_compare = count + jump_elems_patiente
-
-        eval_train_loss = evalarr_train_loss[count]
         eval_valid_loss = evalarr_valid_loss[count]
-        compare_train_loss = evalarr_train_loss[count_compare]
         compare_valid_loss = evalarr_valid_loss[count_compare]
 
-        #absdiff_train_loss = (eval_train_loss - compare_train_loss)
-        #absdiff_valid_loss = (eval_valid_loss - compare_valid_loss)
-        #reldiff_train_loss = (eval_train_loss - compare_train_loss) / (eval_train_loss + 1.0e-12)
-        reldiff_valid_loss = (eval_valid_loss - compare_valid_loss) / (eval_valid_loss + 1.0e-12)
+        reldiff_valid_loss = abs((eval_valid_loss - compare_valid_loss) / (eval_valid_loss + 1.0e-12))
 
         print compare_valid_loss
         print eval_valid_loss
 
-        #print ind_epoch, reldiff_valid_loss
-        #print
         if reldiff_valid_loss > 0.0:
             if reldiff_valid_loss < tolerance_converge:
                 is_converge_found = True
@@ -132,7 +127,6 @@ def main(args):
                       %(epoch_diverged, validloss_diverged, reldiff_valid_loss, epoch_minvalidloss, validloss_min)
                 #break
     #endfor
-
 
 
 

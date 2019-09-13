@@ -10,7 +10,7 @@
 
 from Common.FunctionsUtil import *
 import matplotlib.pyplot as plt
-from collections import *
+from collections import OrderedDict
 import numpy as np
 import argparse
 
@@ -62,8 +62,8 @@ def main(args):
         # Load data from files for single cases
         data_Xaxis_list_this = []
         data_Yaxis_list_this = []
-        for (j, in_file) in enumerate(list_input_files_cases):
-            data_this = np.loadtxt(in_file, dtype=float, skiprows=1, delimiter=',')
+        for (j, in_data_file) in enumerate(list_input_files_cases):
+            data_this = np.loadtxt(in_data_file, dtype=float, skiprows=1, delimiter=',')
             data_Xaxis = data_this[:, index_field_Xaxis] * 100
             data_Yaxis = data_this[:, index_field_Yaxis] * 100
 

@@ -194,13 +194,11 @@ def main(args):
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
             if ISTESTMODELSWITHGNN:
-                dict_added_model_input_args = {'num_featmaps_in': args.num_featmaps_in,
-                                               'nlevel': args.num_layers,
-                                               'isUse_valid_convs': args.isValidConvolutions,
+                dict_added_model_input_args = {'isUse_valid_convs': args.isValidConvolutions,
                                                'isGNN_with_attention_lays': args.isGNNwithAttentionLays,
                                                'source_dir_adjs': SOURCEDIR_ADJS}
             else:
-                dict_added_model_input_args = {'num_featmaps_in': args.num_featmaps_in}
+                dict_added_model_input_args = {}
 
             metrics_fun = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest) for imetrics in LISTMETRICS]
             dict_added_other_input_args = {'metrics_fun': metrics_fun}
@@ -223,10 +221,15 @@ def main(args):
                                          type_save_models='full_model',
                                          freq_save_intermodels=FREQSAVEINTERMODELS)
 
-        size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
+        # size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
+        # if args.isValidConvolutions:
+        #     print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
+        #                                                                                            str(size_output_modelnet)))
+        size_output_modelnet = args.size_in_images  # IMPLEMENT HERE HOW TO COMPUTE SIZE OF OUTPUT MODEL
         if args.isValidConvolutions:
-            print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
-                                                                                                   str(size_output_modelnet)))
+            message = "CODE WITH KERAS NOT IMPLEMENTED FOR VALID CONVOLUTIONS..."
+            CatchErrorException(message)
+
         # output model summary
         #trainer.get_summary_model()
         # ----------------------------------------------

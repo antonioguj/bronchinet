@@ -17,13 +17,12 @@ DATADIR = '/home/antonio/Data/DLCST_Processed/'
 #DATADIR = '/home/antonio/Data/DLCST_Processed_ReferPechin/'
 
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_UnetGNNs_DLCST/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper_ReferPechin/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
-TYPEGPUINSTALLED     = 'larger_GPU'
+TYPEGPUINSTALLED     = 'smaller_GPU'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
@@ -85,7 +84,8 @@ CROPIMAGES = True
 CROPSIZEBOUNDINGBOX = (352, 480)
 
 RESCALEIMAGES = False
-FIXEDRESCALERES = (0.6, 0.6, 0.6)
+#FIXEDRESCALERES = (0.6, 0.6, 0.6)
+FIXEDRESCALERES = (0.6, 0.55078125, 0.55078125)
 EXTENDSIZEIMAGES = False
 
 SLIDINGWINDOWIMAGES = True
@@ -127,7 +127,7 @@ ISUSE_DROPOUT        = False
 ISUSE_BATCHNORMALIZE = False
 TAILORED_BUILD_MODEL = True
 
-NUM_EPOCHS = 400
+NUM_EPOCHS = 1000
 BATCH_SIZE = 1
 IOPTIMIZER = 'Adam'
 LEARN_RATE = 1.0e-04

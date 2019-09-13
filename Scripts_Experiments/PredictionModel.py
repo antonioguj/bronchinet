@@ -117,10 +117,15 @@ def main(args):
         trainer = Trainer.load_model_full(modelSavedPath,
                                           dict_added_model_input_args=dict_added_model_input_args)
 
-        size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
+        # size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
+        # if args.isValidConvolutions:
+        #     print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." %(str(args.size_in_images),
+        #                                                                                           str(size_output_modelnet)))
+        size_output_modelnet = args.size_in_images  # IMPLEMENT HERE HOW TO COMPUTE SIZE OF OUTPUT MODEL
         if args.isValidConvolutions:
-            print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." %(str(args.size_in_images),
-                                                                                                  str(size_output_modelnet)))
+            message = "CODE WITH KERAS NOT IMPLEMENTED FOR VALID CONVOLUTIONS..."
+            CatchErrorException(message)
+
         # output model summary
         trainer.get_summary_model()
 
@@ -268,7 +273,7 @@ if __name__ == "__main__":
     parser.add_argument('--extendSizeImages', type=str2bool, default=EXTENDSIZEIMAGES)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
-    parser.add_argument('--slidewin_propOverlap', type=str2tuplefloat, default=SLIDEWIN_PROPOVERLAP_Z_X_Y)
+    #parser.add_argument('--slidewin_propOverlap', type=str2tuplefloat, default=SLIDEWIN_PROPOVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=False)
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=False)
     parser.add_argument('--saveFeatMapsLayers', type=str2bool, default=SAVEFEATMAPSLAYERS)
@@ -286,14 +291,18 @@ if __name__ == "__main__":
         else:
             input_args_file = readDictionary_configParams(args.cfgfromfile)
         print("Set up experiments with parameters from file: \'%s\'" %(args.cfgfromfile))
+
+        args.basedir                = str(input_args_file['basedir'])
         args.size_in_images         = str2tupleint(input_args_file['size_in_images'])
         args.masksToRegionInterest  = str2bool(input_args_file['masksToRegionInterest'])
         args.isValidConvolutions    = str2bool((input_args_file['isValidConvolutions']))
         args.slidingWindowImages    = str2bool((input_args_file['slidingWindowImages']))
-        args.slidewin_propOverlap   = str2tuplefloat((input_args_file['slidewin_propOverlap']))
+        #args.slidewin_propOverlap   = str2tuplefloat((input_args_file['slidewin_propOverlap']))
         args.transformationImages   = False   #str2bool((input_args_file['transformationImages']))
         args.elasticDeformationImages= str2bool((input_args_file['elasticDeformationImages']))
         args.isGNNwithAttentionLays = str2bool((input_args_file['isGNNwithAttentionLays']))
+
+    args.slidewin_propOverlap = (0.5, 0.0, 0.0)
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).iteritems()):
