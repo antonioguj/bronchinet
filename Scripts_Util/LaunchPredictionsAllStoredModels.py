@@ -29,7 +29,7 @@ def main(args):
     workDirsManager     = WorkDirsManager(args.basedir)
     InputModelsPath     = workDirsManager.getNameExistPath(args.inputmodeldir)
     listInputModelFiles = findFilesDirAndCheck(InputModelsPath, nameInputModelFiles)
-    listInputModelFiles = sorted(listInputModelFiles, key=getIntegerInString)[260:]
+    listInputModelFiles = sorted(listInputModelFiles, key=getIntegerInString)[264:]
 
 
 

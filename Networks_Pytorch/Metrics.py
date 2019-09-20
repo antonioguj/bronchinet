@@ -344,12 +344,24 @@ class AirwayCompletenessModified(Metrics):
     def compute_fun(self, y_true, y_pred):
         y_true = torch.flatten(y_true)
         y_pred = torch.flatten(y_pred)
-        return torch.sum(y_true * y_pred) / (torch.sum(y_true) +_smooth)
+        return torch.sum(y_true * y_pred) / (torch.sum(y_pred) +_smooth)
 
-    def compute_fun_np(self, y_true, y_pred):
+    def compute_fun_np_correct(self, y_true, y_pred):
         y_true = y_true.flatten()
         y_pred = y_pred.flatten()
-        return np.sum(y_true * y_pred) / (np.sum(y_true) +_smooth)
+        return np.sum(y_true * y_pred) / (np.sum(y_pred) +_smooth)
+
+    def compute_fun_np_correct(self, y_true, y_pred, y_true_cl):
+        if self.is_masks_exclude:
+            y_true = self.get_masked_array_np(y_true, y_true).flatten()
+            y_pred = self.get_masked_array_np(y_true, y_pred).flatten()
+            y_true_cl = self.get_masked_array_np(y_true, y_true_cl).flatten()
+            return np.sum(y_true * y_pred) / (np.sum(y_true_cl) + _smooth)
+        else:
+            y_true = y_true.flatten()
+            y_pred = y_pred.flatten()
+            y_true_cl = y_true_cl.flatten()
+            return np.sum(y_true * y_pred) / (np.sum(y_true_cl) +_smooth)
 
 
 class AirwayCentrelineLeakage(Metrics):
@@ -465,6 +477,8 @@ def DICTAVAILMETRICLASS(option,
     elif (option == 'BinaryCrossEntropy'):
         return BinaryCrossEntropy(is_masks_exclude= is_masks_exclude)
     elif (option == 'WeightedBinaryCrossEntropy'):
+        return WeightedBinaryCrossEntropyFixedWeights(is_masks_exclude=is_masks_exclude)
+    elif (option == 'WeightedBinaryCrossEntropyFixedWeights'):
         return WeightedBinaryCrossEntropyFixedWeights(is_masks_exclude=is_masks_exclude)
     elif (option == 'DiceCoefficient'):
         return DiceCoefficient(is_masks_exclude= is_masks_exclude)

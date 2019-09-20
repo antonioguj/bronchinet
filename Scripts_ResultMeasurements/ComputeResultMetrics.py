@@ -61,7 +61,10 @@ def main(args):
     list_isUse_predicted_centrelines = []
     for imetrics in args.listResultMetrics:
         newgenMetrics = DICTAVAILMETRICFUNS(imetrics)
-        listResultMetrics[newgenMetrics.name_fun_out] = newgenMetrics.compute_np
+        if newgenMetrics.name_fun_out=='completeness_mod':
+            listResultMetrics[newgenMetrics.name_fun_out] = newgenMetrics.compute_fun_np_correct
+        else:
+            listResultMetrics[newgenMetrics.name_fun_out] = newgenMetrics.compute_np
 
         list_isUse_reference_centrelines.append(newgenMetrics._isUse_reference_clines)
         list_isUse_predicted_centrelines.append(newgenMetrics._isUse_predicted_clines)
@@ -147,7 +150,10 @@ def main(args):
 
             try:
             # 'try' statement to 'catch' issues when predictions are 'null' (for extreme threshold values)
-                metric_value = value(in_referYdata_array, in_predictYdata_array)
+                if key=='completeness_mod':
+                    metric_value = value(in_referYdata_array, in_predictYdata_array, in_refercenline_array)
+                else:
+                    metric_value = value(in_referYdata_array, in_predictYdata_array)
             except:  # set dummy value for cases with issues
                 metric_value = -1.0
             print("Metric \'%s\': %s..." % (key, metric_value))

@@ -22,7 +22,7 @@ def main(args):
     nameInputReferFilesRelPath = 'RawImages/'
     nameOutputImagesRelPath    = args.outputdir
     nameInputImagesFiles       = '*'+ args.extfiles
-    nameInputReferFiles        = '*.nii.gz'
+    nameInputReferFiles        = '*.dcm'
     nameBoundingBoxes          = 'found_boundBoxes_original.npy'
     nameOutputImagesFiles      = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     prefixPatternInputFiles    = 'vol[0-9][0-9]_*'
@@ -58,6 +58,8 @@ def main(args):
         # 2 step: extend image
         out_fullimage_shape = FileReader.getImageSize(in_refer_file)
         out_fullimage_array = ExtendImages.compute3D(in_cropimage_array, bounding_box, out_fullimage_shape)
+
+        print np.unique(out_fullimage_array)
         print("Output full image size: \'%s\'..." % (str(out_fullimage_array.shape)))
 
         out_image_file = joinpathnames(OutputImagesPath, nameOutputImagesFiles(in_image_file))

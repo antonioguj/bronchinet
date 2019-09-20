@@ -20,7 +20,7 @@ def main(args):
     # ---------- SETTINGS ----------
     names_subdirs = 'Predictions_e*'
     names_inputfiles = 'result_metrics_notrachea.txt'
-    index_field_plot = 2
+    index_field_plot = 3
     name_field_plot = 'Completeness'
     # ---------- SETTINGS ----------
 
