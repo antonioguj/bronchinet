@@ -35,8 +35,8 @@ def main(args):
         print("%s: \'%s\'" %(i+1, ifile))
     #endfor
 
-    labels = ['model_%i'%(i+1) for i in range(num_data_files)]
-    #labels = ['Pechin', 'Unet_Raghav', 'Unet_Antonio']
+    #labels = ['model_%i'%(i+1) for i in range(num_data_files)]
+    labels = ['Unet__Upsample', 'Unet__ConvTransposed']
     titles = ['Distance False Positives', 'Distance False Negatives']
     names_outfiles = ['figure_resDFP_NEW.eps', 'figure_resDFN_NEW.eps']
 

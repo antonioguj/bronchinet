@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from torch.nn import Conv3d, MaxPool3d, Upsample, BatchNorm3d, Dropout3d, ReLU, Sigmoid, Softmax
+from torch.nn import Conv3d, ConvTranspose3d, MaxPool3d, Upsample, BatchNorm3d, Dropout3d, ReLU, Sigmoid, Softmax
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
@@ -298,6 +298,8 @@ class Unet3D_Tailored(NeuralNetwork):
         # self.dropout_downlay5 = Dropout3d(p=self.dropout_rate)
         self.upsample_downlay5 = Upsample(scale_factor= (1,2,2), mode= 'nearest')
         #self.upsample_downlay5 = Upsample(scale_factor= 2, mode='nearest')
+        #self.upsample_downlay5 = ConvTranspose3d(num_featmaps_lay5, num_featmaps_lay5, kernel_size= (1,2,2), stride= (1,2,2), padding=0)
+        #self.upsample_downlay5 = ConvTranspose3d(num_featmaps_lay5, num_featmaps_lay5, kernel_size= 2, stride= 2, padding=0)
 
         num_featmaps_lay4pl5 = num_featmaps_lay4 + num_featmaps_lay5
         #num_featmaps_lay4pl5 = num_featmaps_lay5
@@ -309,6 +311,7 @@ class Unet3D_Tailored(NeuralNetwork):
         # self.batchnorm_uplay4_2 = BatchNorm3d(num_featmaps_lay4)
         # self.dropout_uplay4 = Dropout3d(p=self.dropout_rate)
         self.upsample_uplay4 = Upsample(scale_factor= 2, mode= 'nearest')
+        #self.upsample_uplay4 = ConvTranspose3d(num_featmaps_lay4, num_featmaps_lay4, kernel_size=2, stride=2, padding=0)
 
         num_featmaps_lay3pl4 = num_featmaps_lay3 + num_featmaps_lay4
         #num_featmaps_lay3pl4 = num_featmaps_lay4
@@ -320,6 +323,7 @@ class Unet3D_Tailored(NeuralNetwork):
         # self.batchnorm_uplay3_2 = BatchNorm3d(num_featmaps_lay3)
         # self.dropout_uplay3 = Dropout3d(p=self.dropout_rate)
         self.upsample_uplay3 = Upsample(scale_factor= 2, mode= 'nearest')
+        #self.upsample_uplay3 = ConvTranspose3d(num_featmaps_lay3, num_featmaps_lay3, kernel_size=2, stride=2, padding=0)
 
         num_featmaps_lay2pl3 = num_featmaps_lay2 + num_featmaps_lay3
         #num_featmaps_lay2pl3 = num_featmaps_lay3
@@ -331,6 +335,7 @@ class Unet3D_Tailored(NeuralNetwork):
         # self.batchnorm_uplay2_2 = BatchNorm3d(num_featmaps_lay2)
         # self.dropout_uplay2 = Dropout3d(p=self.dropout_rate)
         self.upsample_uplay2 = Upsample(scale_factor= 2, mode= 'nearest')
+        #self.upsample_uplay2 = ConvTranspose3d(num_featmaps_lay2, num_featmaps_lay2, kernel_size=2, stride=2, padding=0)
 
         num_featmaps_lay1pl2 = num_featmaps_lay1 + num_featmaps_lay2
         #num_featmaps_lay1pl2 = num_featmaps_lay2
