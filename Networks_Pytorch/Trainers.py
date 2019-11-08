@@ -224,8 +224,6 @@ class Trainer(object):
 
         progressbar = tqdm(total= num_batches, desc='Prediction')
 
-        torch.no_grad()  # in evaluation mode
-
         #time_compute = 0.0
         #time_total_ini = dt.now()
 

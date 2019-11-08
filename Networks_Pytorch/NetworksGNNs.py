@@ -443,7 +443,7 @@ class Unet3DGNN(NeuralNetwork):
                  nlevel=nlevel_default,
                  nfeat=nfeat_default,
                  isUse_valid_convs= True,
-                 isGNN_with_attention_lays=False,
+                 isGNN_with_attention_lays= False,
                  source_dir_adjs= source_dir_adjs_default):
         self.isGNN_with_attention_lays = isGNN_with_attention_lays
         self.source_dir_adjs = source_dir_adjs
@@ -809,7 +809,7 @@ def DICTAVAILMODELSGNNS(option, size_image,
                         nlevel=Unet3D.nlevel_default,
                         nfeat=Unet3D.nfeat_default,
                         isUse_valid_convs= True,
-                        isGNN_with_attention_lays=False,
+                        isGNN_with_attention_lays= False,
                         source_dir_adjs=source_dir_adjs_default):
     list_models_avail = ['UnetGNN_OTF', 'UnetGNN', 'Unet']
 

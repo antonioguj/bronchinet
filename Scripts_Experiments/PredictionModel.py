@@ -299,8 +299,8 @@ if __name__ == "__main__":
         #args.cropImages             = str2bool(input_args_file['cropImages'])
         #args.extendSizeImages       = str2bool(input_args_file['extendSizeImages'])
         args.slidingWindowImages    = str2bool(input_args_file['slidingWindowImages'])
-        #args.slidewin_propOverlap   = str2tuplefloat((input_args_file['slidewin_propOverlap']))
-        args.transformationImages   = False   #str2bool((input_args_file['transformationImages']))
+        #args.slidewin_propOverlap   = str2tuplefloat(input_args_file['slidewin_propOverlap'])
+        args.transformationImages   = False   #str2bool(input_args_file['transformationImages'])
         args.elasticDeformationImages= str2bool(input_args_file['elasticDeformationImages'])
         args.isGNNwithAttentionLays = str2bool(input_args_file['isGNNwithAttentionLays'])
 

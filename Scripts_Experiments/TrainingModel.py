@@ -420,12 +420,12 @@ if __name__ == "__main__":
         args.lossfun                = str(input_args_file['lossfun'])
         args.listmetrics            = str(input_args_file['listmetrics'])
         args.masksToRegionInterest  = str2bool(input_args_file['masksToRegionInterest'])
-        args.isValidConvolutions    = str2bool((input_args_file['isValidConvolutions']))
-        args.slidingWindowImages    = str2bool((input_args_file['slidingWindowImages']))
-        args.slidewin_propOverlap   = str2tuplefloat((input_args_file['slidewin_propOverlap']))
-        args.transformationImages   = str2bool((input_args_file['transformationImages']))
-        args.elasticDeformationImages= str2bool((input_args_file['elasticDeformationImages']))
-        args.isGNNwithAttentionLays = str2bool((input_args_file['isGNNwithAttentionLays']))
+        args.isValidConvolutions    = str2bool(input_args_file['isValidConvolutions'])
+        args.slidingWindowImages    = str2bool(input_args_file['slidingWindowImages'])
+        args.slidewin_propOverlap   = str2tuplefloat(input_args_file['slidewin_propOverlap'])
+        args.transformationImages   = str2bool(input_args_file['transformationImages'])
+        args.elasticDeformationImages= str2bool(input_args_file['elasticDeformationImages'])
+        args.isGNNwithAttentionLays = str2bool(input_args_file['isGNNwithAttentionLays'])
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).iteritems()):
