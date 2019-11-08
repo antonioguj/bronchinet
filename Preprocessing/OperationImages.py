@@ -9,7 +9,7 @@
 ########################################################################################
 
 from Common.FunctionsUtil import *
-#from skimage.transform import rescale
+from skimage.transform import rescale
 #from scipy.misc import imresize
 import numpy as np
 

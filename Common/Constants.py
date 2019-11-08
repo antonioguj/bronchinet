@@ -18,7 +18,6 @@ DATADIR = '/home/antonio/Data/DLCST_Processed/'
 
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_UnetGNNs_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
@@ -84,6 +83,7 @@ CROPIMAGES = True
 CROPSIZEBOUNDINGBOX = (352, 480)
 
 RESCALEIMAGES = False
+ORDERINTERPRESCALE = 3
 #FIXEDRESCALERES = (0.6, 0.6, 0.6)
 FIXEDRESCALERES = (0.6, 0.55078125, 0.55078125)
 EXTENDSIZEIMAGES = False

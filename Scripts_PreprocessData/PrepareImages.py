@@ -19,12 +19,12 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath  = 'RawImages/'
-    nameOutputImagesRelPath = 'Images_Proc_Rescaled/'
+    nameInputImagesRelPath  = 'RawAirways/'
+    nameOutputImagesRelPath = 'Airways_Processed_Rescaled_Order3/'
     nameReferFilesRelPath   = 'RawImages/'
     nameInputImagesFiles    = '*'+ args.extfiles
     nameInputReferFiles     = '*.dcm'
-    nameOutputImagesFiles   = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    nameOutputImagesFiles   = lambda in_name: filenamenoextension(in_name) + '_rescaled_order%s.nii.gz' %(args.orderInterpRescale)
     nameRescaleFactors      = 'rescaleFactors_images.npy'
     # ---------- SETTINGS ----------
 
@@ -56,7 +56,7 @@ def main(args):
             print("Original dims: %s..." % (str(in_image_array.shape)))
 
             try:
-                out_image_array = RescaleImages.compute3D(in_image_array, rescale_factor)
+                out_image_array = RescaleImages.compute3D(in_image_array, rescale_factor, order=args.orderInterpRescale)
                 print("Final dims: %s..." %(str(out_image_array.shape)))
             except:
                 message = 'Issue found when rescaling image'
@@ -78,6 +78,7 @@ if __name__ == "__main__":
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('--extfiles', type=str, default='.dcm')
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
+    parser.add_argument('--orderInterpRescale', type=int, default=ORDERINTERPRESCALE)
     args = parser.parse_args()
 
     print("Print input arguments...")
