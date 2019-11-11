@@ -17,7 +17,7 @@ import argparse
 CODEDIR                            = joinpathnames(BASEDIR, 'Code')
 SCRIPT_PREDICTIONMODEL             = joinpathnames(CODEDIR, 'Scripts_Experiments/PredictionModel.py')
 SCRIPT_POSTPROCESSPREDICTIONS      = joinpathnames(CODEDIR, 'Scripts_ResultMeasurements/PostprocessPredictions.py')
-SCRIPT_EXTRACTCENTRELINESFROMMASKS = joinpathnames(CODEDIR, 'Scripts_PreprocessData/ExtractCentrelinesFromMasks.py')
+SCRIPT_EXTRACTCENTRELINESFROMMASKS = joinpathnames(CODEDIR, 'Scripts_ImageOperations/ExtractCentrelinesFromMasks.py')
 SCRIPT_COMPUTERESULTMETRICS        = joinpathnames(CODEDIR, 'Scripts_ResultMeasurements/ComputeResultMetrics.py')
 
 

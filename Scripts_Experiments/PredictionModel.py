@@ -39,13 +39,13 @@ def main(args):
                                    type_GPU_installed=TYPEGPUINSTALLED)
 
     # ---------- SETTINGS ----------
-    nameInputRoiMasksRelPath   = 'Lungs_Proc/'
-    nameInputReferFilesRelPath = 'Images_Proc/'
-    nameImagesFiles            = 'images*' + getFileExtension(FORMATTRAINDATA)
-    nameLabelsFiles            = 'labels*' + getFileExtension(FORMATTRAINDATA)
-    nameInputRoiMasksFiles     = '*_lungs.nii.gz'
-    nameInputReferFiles        = '*.nii.gz'
-    nameCropBoundingBoxes      = 'cropBoundingBoxes_images.npy'
+    nameInputRoiMasksRelPath  = 'Lungs_Proc/'
+    nameReferenceFilesRelPath = 'Images_Proc/'
+    nameImagesFiles           = 'images_proc-*.nii.gz'
+    nameLabelsFiles           = 'labels_proc-*.nii.gz'
+    nameInputRoiMasksFiles    = '*_lungs.nii.gz'
+    nameReferenceFiles        = '*.nii.gz'
+    nameCropBoundingBoxes     = 'cropBoundingBoxes_images.npy'
     #nameRescaleFactors         = 'rescaleFactors_images.npy'
     nameOutputPredictionsRelPath = args.predictionsdir
 
@@ -58,12 +58,12 @@ def main(args):
 
     workDirsManager      = WorkDirsManager(args.basedir)
     TestingDataPath      = workDirsManager.getNameExistPath        (args.testdatadir)
-    InputReferFilesPath  = workDirsManager.getNameExistBaseDataPath(nameInputReferFilesRelPath)
+    ReferenceFilesPath   = workDirsManager.getNameExistBaseDataPath(nameReferenceFilesRelPath)
     OutputPredictionsPath= workDirsManager.getNameNewPath          (nameOutputPredictionsRelPath)
 
-    listTestImagesFiles = findFilesDirAndCheck(TestingDataPath,     nameImagesFiles)
-    listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath,     nameLabelsFiles)
-    listInputReferFiles = findFilesDirAndCheck(InputReferFilesPath, nameInputReferFiles)
+    listTestImagesFiles = findFilesDirAndCheck(TestingDataPath,    nameImagesFiles)
+    listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath,    nameLabelsFiles)
+    listReferenceFiles  = findFilesDirAndCheck(ReferenceFilesPath, nameReferenceFiles)
 
     if (args.masksToRegionInterest):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
@@ -204,9 +204,9 @@ def main(args):
         # ------------------------------------------
         print("Reconstruct prediction to full size...")
         # Assign original images and masks files
-        index_referimg_file = getIndexOriginImagesFile(basename(in_testXData_file), beginString='images', firstIndex='01')
-        in_referimage_file = listInputReferFiles[index_referimg_file]
-        print("Reference image file: \'%s\'..." %(basename(in_referimage_file)))
+        index_reference_file = getIndexOriginImagesFile(basename(in_testXData_file), beginString='images', firstIndex='01')
+        in_reference_file = listReferenceFiles[index_reference_file]
+        print("Reference image file: \'%s\'..." %(basename(in_reference_file)))
 
         # init reconstructor with size of "ifile"
         out_reconstructImage_shape = FileReader.getImageSize(in_testXData_file)
@@ -216,14 +216,14 @@ def main(args):
 
 
         # reconstruct from cropped / rescaled images
-        out_fullimage_shape = FileReader.getImageSize(in_referimage_file)
+        out_fullimage_shape = FileReader.getImageSize(in_reference_file)
         if (args.saveFeatMapsLayers):
             num_featmaps = out_prediction_array.shape[-1]
             out_fullimage_shape = list(out_fullimage_shape) + [num_featmaps]
 
 
         if (args.cropImages):
-            crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_referimage_file)]
+            crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_reference_file)]
             print("Predicted data are cropped. Extend array size to original. Bounding-box: \'%s\'..." %(str(crop_bounding_box)))
 
             out_prediction_array = ExtendImages.compute3D(out_prediction_array, crop_bounding_box, out_fullimage_shape)
@@ -232,7 +232,7 @@ def main(args):
 
         if (args.masksToRegionInterest):
             print("Mask predictions to RoI: lungs...")
-            in_roimask_file = listInputRoiMasksFiles[index_referimg_file]
+            in_roimask_file = listInputRoiMasksFiles[index_reference_file]
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask_array = FileReader.getImageArray(in_roimask_file)
@@ -245,14 +245,14 @@ def main(args):
             num_featmaps = out_prediction_array.shape[-1]
             print("Output model feature maps (\'%s\' in total)..." %(num_featmaps))
             for ifeatmap in range(num_featmaps):
-                out_prediction_file = nameOutputPredictionFiles %(filenamenoextension(in_referimage_file), args.nameSaveModelLayer, ifeatmap+1)
+                out_prediction_file = nameOutputPredictionFiles %(filenamenoextension(in_reference_file), args.nameSaveModelLayer, ifeatmap+1)
                 out_prediction_file = joinpathnames(OutputPredictionsPath, out_prediction_file)
                 print("Output: \'%s\', of dims \'%s\'..." %(basename(out_prediction_file), out_prediction_array[...,ifeatmap].shape))
 
                 FileReader.writeImageArray(out_prediction_file, out_prediction_array[...,ifeatmap])
             #endfor
         else:
-            out_prediction_file = joinpathnames(OutputPredictionsPath, nameOutputPredictionFiles %(filenamenoextension(in_referimage_file)))
+            out_prediction_file = joinpathnames(OutputPredictionsPath, nameOutputPredictionFiles %(filenamenoextension(in_reference_file)))
             print("Output: \'%s\', of dims \'%s\'..." % (basename(out_prediction_file), out_prediction_array.shape))
 
             FileReader.writeImageArray(out_prediction_file, out_prediction_array)

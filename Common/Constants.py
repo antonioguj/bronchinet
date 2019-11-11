@@ -12,16 +12,16 @@ import numpy as np
 np.random.seed(2017)
 
 
-#DATADIR = '/home/antonio/Data/LUVAR_Processed/'
-DATADIR = '/home/antonio/Data/DLCST_Processed/'
+DATADIR = '/home/antonio/Data/LUVAR_Processed/'
+#DATADIR = '/home/antonio/Data/DLCST_Processed/'
 #DATADIR = '/home/antonio/Data/DLCST_Processed_ReferPechin/'
 
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
-TYPEGPUINSTALLED     = 'larger_GPU'
+TYPEGPUINSTALLED     = 'smaller_GPU'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
@@ -48,9 +48,9 @@ SHUFFLETRAINDATA = True
 NORMALIZEDATA    = False
 FORMATTRAINDATA  = 'numpy_gzbi'
 
-ISCLASSIFICATIONDATA = True
+ISBINARYTRAINMASKS = True
 
-if ISCLASSIFICATIONDATA:
+if ISBINARYTRAINMASKS:
     FORMATXDATA = FORMATIMAGESDATA
     FORMATYDATA = FORMATMASKSDATA
 else:
@@ -78,15 +78,14 @@ DISTRIBUTE_FIXED_NAMES = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 MASKTOREGIONINTEREST = True
 
-CROPIMAGES = True
+CROPIMAGES = False
 #CROPSIZEBOUNDINGBOX = (240, 352, 480)
 CROPSIZEBOUNDINGBOX = (352, 480)
 
-RESCALEIMAGES = False
+RESCALEIMAGES = True
 ORDERINTERPRESCALE = 3
 #FIXEDRESCALERES = (0.6, 0.6, 0.6)
 FIXEDRESCALERES = (0.6, 0.55078125, 0.55078125)
-EXTENDSIZEIMAGES = False
 
 SLIDINGWINDOWIMAGES = True
 SLIDEWIN_PROPOVERLAP_Z_X_Y = (0.25, 0.0, 0.0)

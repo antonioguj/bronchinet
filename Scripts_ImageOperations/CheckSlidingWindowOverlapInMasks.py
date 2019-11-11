@@ -43,16 +43,16 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workDirsManager = WorkDirsManager(args.basedir)
-    BaseDataPath = workDirsManager.getNameBaseDataPath()
-    InputProcDataPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputProcDataRelPath)
+    workDirsManager     = WorkDirsManager(args.basedir)
+    BaseDataPath        = workDirsManager.getNameBaseDataPath()
+    InputProcDataPath   = workDirsManager.getNameExistPath(BaseDataPath, nameInputProcDataRelPath)
     InputReferMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputReferMasksRelPath)
-    ReferenceImgPath = workDirsManager.getNameExistPath(BaseDataPath, nameReferenceImgRelPath)
-    OutputFilesPath = workDirsManager.getNameNewPath(args.basedir, nameOutputFilesRelPath)
+    ReferenceImgPath    = workDirsManager.getNameExistPath(BaseDataPath, nameReferenceImgRelPath)
+    OutputFilesPath     = workDirsManager.getNameNewPath  (args.basedir, nameOutputFilesRelPath)
 
-    listInputProcDataFiles = findFilesDirAndCheck(InputProcDataPath, nameInputProcDataFiles)
-    listInputReferMasksFiles = findFilesDirAndCheck(InputReferMasksPath, nameInputReferMasksFiles)
-    listReferenceImgsFiles = findFilesDirAndCheck(ReferenceImgPath, nameReferenceImgFiles)
+    listInputProcDataFiles  = findFilesDirAndCheck(InputProcDataPath,   nameInputProcDataFiles)
+    listInputReferMasksFiles= findFilesDirAndCheck(InputReferMasksPath, nameInputReferMasksFiles)
+    listReferenceImgsFiles  = findFilesDirAndCheck(ReferenceImgPath,    nameReferenceImgFiles)
 
     if (args.cropImages):
         cropBoundingBoxesFileName = joinpathnames(args.datadir, nameCropBoundingBoxes)

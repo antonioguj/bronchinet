@@ -41,7 +41,6 @@ def main(args):
         print("Compute centrelines by thinning the masks...")
         out_centreline_array = ThinningMasks.compute(in_mask_array)
 
-
         out_file = joinpathnames(OutputImagesPath, nameOutputImagesFiles(basename(in_mask_file)))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_file), str(out_centreline_array.shape)))
 

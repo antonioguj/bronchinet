@@ -21,16 +21,17 @@ def main(args):
     namesInputFiles1 = '*'+ args.extfiles1
     namesInputFiles2 = '*'+ args.extfiles2
     max_rel_error    = 1.0e-06
-    nameOutFilesName = 'out_histo_image%s.png'
+    nameOutDiffImageFilesName = 'out_absdiffimgs_image%s.nii.gz'
+    nameOutHistoFilesName = 'out_histogram_image%s.png'
     # ---------- SETTINGS ----------
 
 
     listInputFiles1 = findFilesDirAndCheck(InputPath1, namesInputFiles1)
     listInputFiles2 = findFilesDirAndCheck(InputPath2, namesInputFiles2)
 
-    if (len(listInputFiles1) != len(listInputFiles2)):
-        message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(listInputFiles1), len(listInputFiles2))
-        CatchErrorException(message)
+    #if (len(listInputFiles1) != len(listInputFiles2)):
+    #    message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(listInputFiles1), len(listInputFiles2))
+    #    CatchErrorException(message)
 
     if not isExistdir(args.tempdir):
         makedir(args.tempdir)
@@ -61,15 +62,15 @@ def main(args):
                 message = "Images 1 and 2 are not equal voxelwise. Analyse global magns..."
                 CatchWarningException(message)
 
-                abs_error_array = abs(in_img1_array - in_img2_array)
+                out_absdiffimgs_array = abs(in_img1_array - in_img2_array)
 
-                num_voxels_diff = np.count_nonzero(abs_error_array)
+                num_voxels_diff = np.count_nonzero(out_absdiffimgs_array)
                 num_voxels_1_nonzero = np.count_nonzero(in_img1_array)
                 rel_num_voxels_diff = (num_voxels_diff / float(num_voxels_1_nonzero)) * 100
                 print("Num voxels different \'%s\' out of total \'%s\' non zero. Rel percentage \'%s\'..." %(num_voxels_diff,
                                                                                                              num_voxels_1_nonzero,
                                                                                                              rel_num_voxels_diff))
-                mean_abs_error = abs(np.mean(abs_error_array))
+                mean_abs_error = abs(np.mean(out_absdiffimgs_array))
                 mean_in_img1 = abs(np.mean(in_img1_array))
                 mean_rel_error = (mean_abs_error / float(mean_in_img1)) * 100
                 print("Absolute / relative error between images: \'%s\' / \'%s\'..." %(mean_abs_error, mean_rel_error))
@@ -82,31 +83,37 @@ def main(args):
                     CatchWarningException(message)
 
 
+                out_absdiffimgs_filename = joinpathnames(args.tempdir, nameOutDiffImageFilesName%(i+1))
+                print("Output array with difference between images: \'%s\'..." % (basename(out_absdiffimgs_filename)))
+
+                FileReader.writeImageArray(out_absdiffimgs_filename, out_absdiffimgs_array)
+
+
                 print("Compute the histograms of both images...")
-                hist_outfilename = joinpathnames(args.tempdir, nameOutFilesName % (i+1))
+                out_histo_filename = joinpathnames(args.tempdir, nameOutHistoFilesName%(i+1))
 
                 Histograms.plot_compare_histograms([in_img1_array, in_img2_array],
                                                    isave_outfiles=True,
-                                                   outfilename=hist_outfilename,
+                                                   outfilename=out_histo_filename,
                                                    show_percen_yaxis=True)
 
                 names_files_perhapsdiff_showhistogram.append(basename(in_file_1))
-                message = "Do not know whether images are different. Check saved histogram in: \'%s\'..." %(hist_outfilename)
+                message = "Do not know whether images are different. Check saved histogram in: \'%s\'..." %(out_histo_filename)
                 CatchWarningException(message)
 
         else:
             print("Images of different size: \'%s\' != \'%s\'" %(in_img1_array.shape, in_img2_array.shape))
             print("Compute the histograms of both images...")
 
-            hist_outfilename = joinpathnames(args.tempdir, nameOutFilesName%(i+1))
+            out_histo_filename = joinpathnames(args.tempdir, nameOutHistoFilesName%(i+1))
 
             Histograms.plot_compare_histograms([in_img1_array, in_img2_array],
                                                isave_outfiles= True,
-                                               outfilename= hist_outfilename,
+                                               outfilename= out_histo_filename,
                                                show_percen_yaxis= True)
 
             names_files_perhapsdiff_showhistogram.append(basename(in_file_1))
-            message = "Do not know whether images are different. Check saved histogram in: \'%s\'..." % (hist_outfilename)
+            message = "Do not know whether images are different. Check saved histogram in: \'%s\'..." %(out_histo_filename)
             CatchWarningException(message)
     #endfor
 

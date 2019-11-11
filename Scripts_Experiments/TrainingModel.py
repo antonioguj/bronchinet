@@ -40,8 +40,8 @@ def main(args):
 
     # ---------- SETTINGS ----------
     nameModelsRelPath  = args.modelsdir
-    nameImagesFiles    = 'images*' + getFileExtension(FORMATTRAINDATA)
-    nameLabelsFiles    = 'labels*' + getFileExtension(FORMATTRAINDATA)
+    nameImagesFiles    = 'images_proc-*.nii.gz'
+    nameLabelsFiles    = 'labels_proc-*.nii.gz'
     cfgparams_filename = 'cfgparams.txt'
     descmodel_filename = 'descmodel.txt'
     # ---------- SETTINGS ----------
