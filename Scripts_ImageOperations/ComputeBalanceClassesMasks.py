@@ -34,14 +34,13 @@ def compute_balance_classes_with_exclusion(mask_array):
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputRelPath = 'LumenMasks_WorkData/'
-    nameInputFiles   = 'labels*.npz'
+    nameInputRelPath = 'Labels_WorkData/'
     # ---------- SETTINGS ----------
 
     workDirsManager = WorkDirsManager(args.datadir)
     InputMasksPath  = workDirsManager.getNameExistPath(nameInputRelPath)
 
-    listInputMasksFiles = findFilesDirAndCheck(InputMasksPath, nameInputFiles)
+    listInputMasksFiles = findFilesDirAndCheck(InputMasksPath)
 
 
     list_ratio_back_foregrnd_class = []

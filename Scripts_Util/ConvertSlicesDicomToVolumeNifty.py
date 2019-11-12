@@ -18,24 +18,21 @@ def main(args):
     # ---------- SETTINGS ----------
     InputPath = args.inputdir
     OutputPath = args.outputdir
-
-    namesInputFiles = '*.dcm'
-    namesOutputFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
-
     patternInputFilename = '[0-9]*.dcm'
+    namesOutputFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
     func_indexSliceFilename  = lambda name: int(re.search(patternInputFilename, name).group(0).replace('.dcm',''))
     func_sortedListByIndexes = lambda list: sorted(list, key=lambda elem: func_indexSliceFilename(elem))
 
-    listInputSubDirs = findFilesDirAndCheck(InputPath,'*')
+    listInputSubDirs = findFilesDirAndCheck(InputPath)
     makedir(OutputPath)
 
 
     for in_subdir in listInputSubDirs:
         print("\nInput: \'%s\'..." % (basename(in_subdir)))
 
-        list_input_slices_files = findFilesDirAndCheck(in_subdir, namesInputFiles)
+        list_input_slices_files = findFilesDirAndCheck(in_subdir)
         list_input_slices_files = func_sortedListByIndexes(list_input_slices_files)
 
         num_slices = len(list_input_slices_files)

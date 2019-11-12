@@ -19,14 +19,11 @@ def main(args):
     # ---------- SETTINGS ----------
     InputPath = args.inputdir
     OutputPath = args.outputdir
-    namesInputFiles = '*.hr2'
-
     bin_convertHR2 = '/home/antonio/Codes/Silas_repository/image-feature-extraction/build/tools/ConvertHR2'
-
     namesOutputFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
-    listInputFiles = findFilesDirAndCheck(InputPath, namesInputFiles)
+    listInputFiles = findFilesDirAndCheck(InputPath)
     makedir(OutputPath)
 
 

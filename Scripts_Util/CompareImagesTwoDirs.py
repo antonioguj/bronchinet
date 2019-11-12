@@ -16,18 +16,16 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    InputPath1       = args.inputdir1
-    InputPath2       = args.inputdir2
-    namesInputFiles1 = '*'+ args.extfiles1
-    namesInputFiles2 = '*'+ args.extfiles2
-    max_rel_error    = 1.0e-06
+    InputPath1    = args.inputdir1
+    InputPath2    = args.inputdir2
+    max_rel_error = 1.0e-06
     nameOutDiffImageFilesName = 'out_absdiffimgs_image%s.nii.gz'
     nameOutHistoFilesName = 'out_histogram_image%s.png'
     # ---------- SETTINGS ----------
 
 
-    listInputFiles1 = findFilesDirAndCheck(InputPath1, namesInputFiles1)
-    listInputFiles2 = findFilesDirAndCheck(InputPath2, namesInputFiles2)
+    listInputFiles1 = findFilesDirAndCheck(InputPath1)
+    listInputFiles2 = findFilesDirAndCheck(InputPath2)
 
     #if (len(listInputFiles1) != len(listInputFiles2)):
     #    message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(listInputFiles1), len(listInputFiles2))
@@ -134,8 +132,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('inputdir1', type=str)
     parser.add_argument('inputdir2', type=str)
-    parser.add_argument('--extfiles1', type=str, default='.nii.gz')
-    parser.add_argument('--extfiles2', type=str, default='.nii.gz')
     parser.add_argument('--tempdir', type=str, default='.')
     args = parser.parse_args()
 

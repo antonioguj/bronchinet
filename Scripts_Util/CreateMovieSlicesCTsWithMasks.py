@@ -36,9 +36,6 @@ def main(args):
     nameInputPredictMasksRelPath= args.inputpredictiondir
     nameInputImagesRelPath      = 'Images_Proc/'
     nameInputReferMasksRelPath  = 'Airways_Proc/'
-    nameInputPredictMasksFiles  = 'predict_binmasks*thres0-5_withtraquea.nii.gz'
-    nameInputImagesFiles        = '*.nii.gz'
-    nameInputReferMasksFiles    = '*outerwall*traquea.nii.gz'
     nameOutputRelPath           = 'Movies_Results/'
     temp_outfilename            = '%s_video.gif'
     prefixPatternInputFiles     = 'vol[0-9][0-9]_*'
@@ -51,9 +48,9 @@ def main(args):
     InputReferMasksPath   = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
     OutputPath            = workDirsManager.getNameNewPath          (nameOutputRelPath)
 
-    listInputPredictMasksFiles = findFilesDirAndCheck(InputPredictMasksPath,nameInputPredictMasksFiles)
-    listInputImagesFiles       = findFilesDirAndCheck(InputImagesPath,      nameInputImagesFiles)
-    listInputReferMasksFiles   = findFilesDirAndCheck(InputReferMasksPath,  nameInputReferMasksFiles)
+    listInputPredictMasksFiles = findFilesDirAndCheck(InputPredictMasksPath)
+    listInputImagesFiles       = findFilesDirAndCheck(InputImagesPath)
+    listInputReferMasksFiles   = findFilesDirAndCheck(InputReferMasksPath)
 
 
 

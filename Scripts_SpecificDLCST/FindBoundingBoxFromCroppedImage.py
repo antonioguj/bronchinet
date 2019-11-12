@@ -55,8 +55,6 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputFullImagesRelPath = 'RawImages_Full/'
     nameInputCropImagesRelPath = 'RawImages_Cropped/'
-    nameInputFullImagesFiles   = '*.dcm'
-    nameInputCropImagesFiles   = '*.dcm'
     #test_range_boundbox = ((16, 352), (109, 433), (45, 460))
     _eps = 1.0e-06
     _alpha_relax = 0.6
@@ -72,8 +70,8 @@ def main(args):
     InputFullImagesPath = workDirsManager.getNameExistPath(nameInputFullImagesRelPath)
     InputCropImagesPath = workDirsManager.getNameExistPath(nameInputCropImagesRelPath)
 
-    listInputFullImagesFiles = findFilesDirAndCheck(InputFullImagesPath, nameInputFullImagesFiles)
-    listInputCropImagesFiles = findFilesDirAndCheck(InputCropImagesPath, nameInputCropImagesFiles)
+    listInputFullImagesFiles = findFilesDirAndCheck(InputFullImagesPath)
+    listInputCropImagesFiles = findFilesDirAndCheck(InputCropImagesPath)
 
     dict_found_boundingBoxes = {}
 
@@ -98,7 +96,7 @@ def main(args):
                                                           z_min_top=_z_min_top,
                                                           z_numtest=_z_numtest)
 
-        test_range_boundbox_shape = BoundingBoxes.compute_size_bounding_box(test_range_boundbox)
+        test_range_boundbox_shape = BoundingBoxes.get_size_bounding_box(test_range_boundbox)
         if (test_range_boundbox_shape < in_cropimage_array.shape):
             message = 'size test range of Bounding Boxes than cropped Image: \'%s\' < \'%s\'...' %(test_range_boundbox_shape,
                                                                                                    in_cropimage_array.shape)

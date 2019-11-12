@@ -48,8 +48,6 @@ def main(args):
     nameTrainingDataRelPath    = 'TrainingData/'
     nameValidationDataRelPath  = 'ValidationData/'
     nameTestingDataRelPath     = 'TestingData/'
-    nameInputImagesFiles       = 'images*' + getFileExtension(FORMATTRAINDATA)
-    nameInputLabelsFiles       = 'labels*' + getFileExtension(FORMATTRAINDATA)
     # ---------- SETTINGS ----------
 
 
@@ -60,8 +58,8 @@ def main(args):
     ValidationDataPath  = workDirsManager.getNameNewPath          (nameValidationDataRelPath)
     TestingDataPath     = workDirsManager.getNameNewPath          (nameTestingDataRelPath)
 
-    listInputImagesFiles = findFilesDirAndCheck(InputImagesDataPath, nameInputImagesFiles)
-    listInputLabelsFiles = findFilesDirAndCheck(InputLabelsDataPath, nameInputLabelsFiles)
+    listInputImagesFiles = findFilesDirAndCheck(InputImagesDataPath)
+    listInputLabelsFiles = findFilesDirAndCheck(InputLabelsDataPath)
 
     numImagesFiles = len(listInputImagesFiles)
     if (len(listInputImagesFiles) != len(listInputLabelsFiles)):

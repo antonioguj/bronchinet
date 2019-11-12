@@ -21,9 +21,6 @@ def main(args):
     nameInputCropImagesRelPath = args.cropimagesdir
     nameInputFullImagesRelPath = args.fullimagesdir
     nameInputReferFilesRelPath = 'CTs_Cropped'
-    nameInputCropImagesFiles   = '*.dcm'
-    nameInputFullImagesFiles   = '*.dcm'
-    nameInputReferFiles        = '*.dcm'
     nameBoundingBoxes          = 'found_boundBoxes_original.npy'
     prefixPatternInputFiles    = 'vol[0-9][0-9]_*'
     # ---------- SETTINGS ----------
@@ -34,9 +31,9 @@ def main(args):
     InputFullImagesPath = workDirsManager.getNameExistPath(nameInputFullImagesRelPath)
     InputReferFilesPath = workDirsManager.getNameExistPath(nameInputReferFilesRelPath)
 
-    listInputCropImagesFiles = findFilesDirAndCheck(InputCropImagesPath, nameInputCropImagesFiles)
-    listInputFullImagesFiles = findFilesDirAndCheck(InputFullImagesPath, nameInputFullImagesFiles)
-    listInputReferFiles      = findFilesDirAndCheck(InputReferFilesPath, nameInputReferFiles)
+    listInputCropImagesFiles = findFilesDirAndCheck(InputCropImagesPath)
+    listInputFullImagesFiles = findFilesDirAndCheck(InputFullImagesPath)
+    listInputReferFiles      = findFilesDirAndCheck(InputReferFilesPath)
 
     dict_bounding_boxes = readDictionary(joinpathnames(args.datadir, nameBoundingBoxes))
 

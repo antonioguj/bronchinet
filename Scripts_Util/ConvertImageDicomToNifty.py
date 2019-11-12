@@ -18,11 +18,10 @@ def main(args):
     # ---------- SETTINGS ----------
     InputPath = args.inputdir
     OutputPath = args.outputdir
-    namesInputFiles = '*.dcm'
     namesOutputFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
-    listInputFiles = findFilesDirAndCheck(InputPath, namesInputFiles)
+    listInputFiles = findFilesDirAndCheck(InputPath)
     makedir(OutputPath)
 
 

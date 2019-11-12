@@ -28,11 +28,6 @@ def main(args):
     nameInputReferMasksRelPath = 'Airways_Full'
     nameReferenceImgRelPath = 'Images_Full'
     nameOutputFilesRelPath = 'Test_slidingWindowOverlap_Full'
-
-    nameInputProcDataFiles = 'images*.npz'
-    nameInputReferMasksFiles = '*_lumen_maskedToLungs.nii.gz'
-    nameReferenceImgFiles = '*.nii.gz'
-
     nameCropBoundingBoxes = 'cropBoundingBoxes_images.npy'
 
     def nameOutputFiles(namecase, size_image, slidewin_propOverlap):
@@ -50,9 +45,9 @@ def main(args):
     ReferenceImgPath    = workDirsManager.getNameExistPath(BaseDataPath, nameReferenceImgRelPath)
     OutputFilesPath     = workDirsManager.getNameNewPath  (args.basedir, nameOutputFilesRelPath)
 
-    listInputProcDataFiles  = findFilesDirAndCheck(InputProcDataPath,   nameInputProcDataFiles)
-    listInputReferMasksFiles= findFilesDirAndCheck(InputReferMasksPath, nameInputReferMasksFiles)
-    listReferenceImgsFiles  = findFilesDirAndCheck(ReferenceImgPath,    nameReferenceImgFiles)
+    listInputProcDataFiles  = findFilesDirAndCheck(InputProcDataPath)
+    listInputReferMasksFiles= findFilesDirAndCheck(InputReferMasksPath)
+    listReferenceImgsFiles  = findFilesDirAndCheck(ReferenceImgPath)
 
     if (args.cropImages):
         cropBoundingBoxesFileName = joinpathnames(args.datadir, nameCropBoundingBoxes)

@@ -41,10 +41,6 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputRoiMasksRelPath  = 'Lungs_Proc/'
     nameReferenceFilesRelPath = 'Images_Proc/'
-    nameImagesFiles           = 'images_proc-*.nii.gz'
-    nameLabelsFiles           = 'labels_proc-*.nii.gz'
-    nameInputRoiMasksFiles    = '*_lungs.nii.gz'
-    nameReferenceFiles        = '*.nii.gz'
     nameCropBoundingBoxes     = 'cropBoundingBoxes_images.npy'
     #nameRescaleFactors         = 'rescaleFactors_images.npy'
     nameOutputPredictionsRelPath = args.predictionsdir
@@ -61,13 +57,13 @@ def main(args):
     ReferenceFilesPath   = workDirsManager.getNameExistBaseDataPath(nameReferenceFilesRelPath)
     OutputPredictionsPath= workDirsManager.getNameNewPath          (nameOutputPredictionsRelPath)
 
-    listTestImagesFiles = findFilesDirAndCheck(TestingDataPath,    nameImagesFiles)
-    listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath,    nameLabelsFiles)
-    listReferenceFiles  = findFilesDirAndCheck(ReferenceFilesPath, nameReferenceFiles)
+    listTestImagesFiles = findFilesDirAndCheck(TestingDataPath)
+    listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath)
+    listReferenceFiles  = findFilesDirAndCheck(ReferenceFilesPath)
 
     if (args.masksToRegionInterest):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
-        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
+        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
     if (args.cropImages):
         cropBoundingBoxesFileName = joinpathnames(workDirsManager.getNameBaseDataPath(), nameCropBoundingBoxes)

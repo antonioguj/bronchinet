@@ -25,10 +25,6 @@ def main(args):
     nameReferenceFilesRelPath= 'RawImages/'
     nameOutputImagesRelPath  = 'Images_WorkData_Rescaled/'
     nameOutputLabelsRelPath  = 'Labels_WorkData_Rescaled/'
-    nameInputImagesFiles     = '*.dcm'
-    nameInputLabelsFiles     = '*.dcm'
-    nameInputRoiMasksFiles   = '*.dcm'
-    nameReferenceFiles       = '*.dcm'
     nameOutputImagesFiles    = 'images_proc-%0.2i.nii.gz'
     nameOutputLabelsFiles    = 'labels_proc-%0.2i.nii.gz'
 
@@ -38,7 +34,6 @@ def main(args):
     if args.isInputExtraLabels:
         nameInputExtraLabelsRelPath  = 'RawCentrelines/'
         nameOutputExtraLabelsRelPath = 'ExtraLabels_WorkData/'
-        nameInputExtraLabelsFiles    = '*.dcm'
         nameOutputExtraLabelsFiles   = 'cenlines_proc-%0.2i.nii.gz'
     # ---------- SETTINGS ----------
 
@@ -50,17 +45,17 @@ def main(args):
     OutputImagesPath   = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
     OutputLabelsPath   = workDirsManager.getNameNewPath  (nameOutputLabelsRelPath)
 
-    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath,    nameInputImagesFiles)
-    listInputLabelsFiles = findFilesDirAndCheck(InputLabelsPath,    nameInputLabelsFiles)
-    listReferenceFiles   = findFilesDirAndCheck(ReferenceFilesPath, nameReferenceFiles)
+    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath)
+    listInputLabelsFiles = findFilesDirAndCheck(InputLabelsPath)
+    listReferenceFiles   = findFilesDirAndCheck(ReferenceFilesPath)
 
     if (args.masksToRegionInterest):
         InputRoiMasksPath      = workDirsManager.getNameExistPath(nameInputRoiMasksRelPath)
-        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
+        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
     if (args.isInputExtraLabels):
         InputExtraLabelsPath      = workDirsManager.getNameExistPath(nameInputExtraLabelsRelPath)
-        listInputExtraLabelsFiles = findFilesDirAndCheck(InputExtraLabelsPath, nameInputExtraLabelsFiles)
+        listInputExtraLabelsFiles = findFilesDirAndCheck(InputExtraLabelsPath)
         OutputExtraLabelsPath     = workDirsManager.getNameNewPath  (nameOutputExtraLabelsRelPath)
 
     if (args.rescaleImages):
@@ -115,17 +110,13 @@ def main(args):
 
         if (args.masksToRegionInterest):
             in_roimask_file = listInputRoiMasksFiles[i]
-            print("Mask train masks to RoI: lungs:  \'%s\'..." %(basename(in_roimask_file)))
+            print("Mask train labels to RoI: lungs:  \'%s\'..." %(basename(in_roimask_file)))
 
             in_roimask_array = FileReader.getImageArray(in_roimask_file)
             in_roimask_array = OperationBinaryMasks.process_masks(in_roimask_array)
 
-            inout_label_array  = OperationBinaryMasks.apply_mask_exclude_voxels(inout_label_array, in_roimask_array)
 
-            if (args.isInputExtraLabels):
-                inout_extralabel_array = OperationBinaryMasks.apply_mask_exclude_voxels(inout_extralabel_array, in_roimask_array)
-
-
+        #*******************************************************************************
         if (args.rescaleImages):
             in_reference_file = listReferenceFiles[i]
             rescale_factor = dict_rescaleFactors[filenamenoextension(in_reference_file)]
@@ -134,17 +125,31 @@ def main(args):
             inout_image_array = RescaleImages.compute3D(inout_image_array, rescale_factor, order=args.orderInterpRescale)
             inout_label_array = RescaleImages.compute3D(inout_label_array, rescale_factor, order=args.orderInterpRescale,
                                                         is_binary_mask=True)
-            # remove noise due to interpolation
-            # inout_label_array = np.where(inout_label_array < 0.001, 0.0, inout_label_array)
 
             if (args.isInputExtraLabels):
                 inout_extralabel_array = RescaleImages.compute3D(inout_extralabel_array, rescale_factor, order=args.orderInterpRescale,
                                                                  is_binary_mask=True)
-            # remove noise due to interpolation
-            # inout_label_array = np.where(inout_label_array < 0.001, 0.0, inout_label_array)
+            if (args.masksToRegionInterest):
+                in_roimask_array = RescaleImages.compute3D(in_roimask_array, rescale_factor, order=args.orderInterpRescale,
+                                                           is_binary_mask=True)
+                # remove noise in masks due to interpolation
+                in_roimask_array = ThresholdImages.compute(in_roimask_array, thres_val=0.5)
+
             print("Final dims: %s..." %(str(inout_image_array.shape)))
+        # *******************************************************************************
 
 
+        # *******************************************************************************
+        if (args.masksToRegionInterest):
+            print("Apply now the masking of labels...:")
+            inout_label_array = OperationBinaryMasks.apply_mask_exclude_voxels(inout_label_array, in_roimask_array)
+
+            if (args.isInputExtraLabels):
+                inout_extralabel_array = OperationBinaryMasks.apply_mask_exclude_voxels(inout_extralabel_array, in_roimask_array)
+        # *******************************************************************************
+
+
+        # *******************************************************************************
         if (args.cropImages):
             in_reference_file = listReferenceFiles[i]
             crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_reference_file)]
@@ -155,7 +160,9 @@ def main(args):
 
             if (args.isInputExtraLabels):
                 inout_extralabel_array = CropImages.compute3D(inout_extralabel_array, crop_bounding_box)
+
             print("Final dims: %s..." %(str(inout_image_array.shape)))
+        # *******************************************************************************
 
 
         out_image_file = joinpathnames(OutputImagesPath, nameOutputImagesFiles %(i+1))

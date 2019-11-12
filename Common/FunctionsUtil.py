@@ -107,17 +107,13 @@ def listLinksDir(pathname):
     listfiles = listFilesDir(pathname)
     return [file for file in listfiles if os.path.islink(file)]
 
-def findFilesDir(filenames):
-    return sorted(glob.glob(filenames))
+def findFilesDir(filespath, filename_pattern='*'):
+    return sorted(glob.glob(joinpathnames(filespath, filename_pattern)))
 
-def findFilesDir(filespath, filenames):
-    return sorted(glob.glob(joinpathnames(filespath, filenames)))
-
-def findFilesDirAndCheck(filespath, filenames):
-    listFiles = findFilesDir(filespath, filenames)
-    num_files = len(listFiles)
-    if (num_files == 0):
-        message = 'no files \'%s\' found in dir \'%s\'' %(filenames, filespath)
+def findFilesDirAndCheck(filespath, filename_pattern='*'):
+    listFiles = findFilesDir(filespath, filename_pattern)
+    if (len(listFiles) == 0):
+        message = 'no files found in dir \'%s\' with pattern \'%s\'...' %(filespath, filename_pattern)
         CatchErrorException(message)
     return listFiles
 # ------------------------------------

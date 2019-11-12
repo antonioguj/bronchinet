@@ -21,8 +21,6 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputLumenMasksRelPath    = 'RawAirwaysLumen/'
     nameInputOutWallMasksRelPath  = 'RawAirwaysOutWall/'
-    nameInputLumenMasksFiles      = '*surface0.dcm'
-    nameInputOutWallMasksFiles    = '*surface1.dcm'
     nameOutputAirWallMasksRelPath = 'AirwayWall_Proc/'
 
     def nameOutputMasksFiles(in_name):
@@ -37,8 +35,8 @@ def main(args):
     InputOutWallMasksPath  = workDirsManager.getNameExistPath(nameInputOutWallMasksRelPath)
     OutputAirWallMasksPath = workDirsManager.getNameNewPath  (nameOutputAirWallMasksRelPath)
 
-    listInputLumenMasksFiles   = findFilesDirAndCheck(InputLumenMasksPath,   nameInputLumenMasksFiles)
-    listInputOutWallMasksFiles = findFilesDirAndCheck(InputOutWallMasksPath, nameInputOutWallMasksFiles)
+    listInputLumenMasksFiles   = findFilesDirAndCheck(InputLumenMasksPath)
+    listInputOutWallMasksFiles = findFilesDirAndCheck(InputOutWallMasksPath)
 
 
 

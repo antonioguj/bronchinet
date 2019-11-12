@@ -21,8 +21,6 @@ def main(args):
     nameInputImagesRelPath     = args.inputdir
     nameInputReferFilesRelPath = 'RawImages/'
     nameOutputImagesRelPath    = args.outputdir
-    nameInputImagesFiles       = '*'+ args.extfiles
-    nameInputReferFiles        = '*.dcm'
     nameBoundingBoxes          = 'found_boundBoxes_original.npy'
     nameOutputImagesFiles      = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     prefixPatternInputFiles    = 'vol[0-9][0-9]_*'
@@ -34,8 +32,8 @@ def main(args):
     InputReferFilesPath = workDirsManager.getNameExistPath(nameInputReferFilesRelPath)
     OutputImagesPath    = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
 
-    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath,     nameInputImagesFiles)
-    listInputReferFiles  = findFilesDirAndCheck(InputReferFilesPath, nameInputReferFiles)
+    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath)
+    listInputReferFiles  = findFilesDirAndCheck(InputReferFilesPath)
 
     dict_bounding_boxes = readDictionary(joinpathnames(args.datadir, nameBoundingBoxes))
 
@@ -75,7 +73,6 @@ if __name__ == "__main__":
     parser.add_argument('--datadir', default=DATADIR)
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
-    parser.add_argument('--extfiles', type=str, default='.dcm')
     args = parser.parse_args()
 
     if not args.inputdir:

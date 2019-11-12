@@ -28,10 +28,6 @@ def main(args):
     nameInputReferMasksRelPath      = 'Airways_Proc/'
     nameInputRoiMasksRelPath        = 'Lungs_Proc/'
     nameInputReferCentrelinesRelPath= 'Centrelines_Proc/'
-    nameInputPredictionsFiles       = '*.nii.gz'
-    nameInputReferMasksFiles        = '*_lumen.nii.gz'
-    nameInputRoiMasksFiles          = '*_lungs.nii.gz'
-    nameInputReferCentrelinesFiles  = '*_centrelines.nii.gz'
     prefixPatternInputFiles         = 'vol[0-9][0-9]_*'
 
     metricsEvalThreshold = args.metricsEvalThreshold
@@ -58,12 +54,12 @@ def main(args):
     InputPredictionsPath = workDirsManager.getNameExistPath(nameInputPredictionsRelPath)
     InputReferMasksPath  = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
 
-    listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath, nameInputPredictionsFiles)
-    listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath,  nameInputReferMasksFiles)
+    listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath)
+    listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath)
 
     if (args.removeTracheaResMetrics):
         InputRoiMasksPath = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
-        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
+        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
     newgenMetrics = DICTAVAILMETRICFUNS(metricsEvalThreshold)
     fun_EvalThreshold = newgenMetrics.compute_np
@@ -73,7 +69,7 @@ def main(args):
     if (isLoadReferenceCentrelineFiles):
         print("Loading Reference Centrelines...")
         InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(nameInputReferCentrelinesRelPath)
-        listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath, nameInputReferCentrelinesFiles)
+        listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath)
 
 
     num_validpred_files = len(listInputPredictionsFiles)

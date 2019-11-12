@@ -40,7 +40,6 @@ for arg1 in listModels:
             Popen_obj.wait()
 
             print('<-Training performed in %s sec...->' % (measureTime.compute()))
-
         #endfor
     #endfor
 #endfor

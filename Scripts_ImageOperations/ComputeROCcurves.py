@@ -31,10 +31,6 @@ def main(args):
     nameInputReferMasksRelPath      = 'Airways_Proc/'
     nameInputRoiMasksRelPath        = 'Lungs_Proc/'
     nameInputReferCentrelinesRelPath= 'Centrelines_Proc/'
-    nameInputPredictionsFiles       = '*_probmap.nii.gz'
-    nameInputReferMasksFiles        = '*_lumen.nii.gz'
-    nameInputRoiMasksFiles          = '*_lungs.nii.gz'
-    nameInputReferCentrelinesFiles  = '*_cenlines.nii.gz'
     prefixPatternInputFiles         = 'vol[0-9][0-9]_*'
     nameOutROCmetricsFile           = 'dataROC_metrics_%s.txt'
     nameOutMeanROCmetricsFile       = 'dataROC_metrics_mean.txt'
@@ -66,12 +62,12 @@ def main(args):
     InputReferMasksPath  = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
     OutputFilesPath      = workDirsManager.getNameNewPath          (nameOutputFilesRelPath)
 
-    listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath, nameInputPredictionsFiles)
-    listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath,  nameInputReferMasksFiles)
+    listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath)
+    listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath)
 
     if (args.removeTracheaResMetrics):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
-        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
+        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
 
     listMetricsROCcurve = OrderedDict()
@@ -90,7 +86,7 @@ def main(args):
     if (isLoadReferenceCentrelineFiles):
         print("Loading Reference Centrelines...")
         InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(nameInputReferCentrelinesRelPath)
-        listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath, nameInputReferCentrelinesFiles)
+        listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath)
 
 
     nbInputFiles = len(listInputPredictionsFiles)

@@ -22,8 +22,6 @@ def main(args):
     nameInputImagesRelPath  = 'Images_WorkData/'
     nameInputLabelsRelPath  = 'Labels_WorkData/'
     nameVisualImagesRelPath = 'VisualWorkData/'
-    nameImagesFiles         = '*.npz'
-    nameLabelsFiles         = '*.npz'
 
     if (args.createImagesBatches):
         nameOutputVisualImagesFiles = 'visualImages-%0.2i_dim%s-batch%0.2i.nii.gz'
@@ -39,8 +37,8 @@ def main(args):
     InputLabelsPath  = workDirsManager.getNameExistPath(nameInputLabelsRelPath)
     VisualImagesPath = workDirsManager.getNameNewPath  (nameVisualImagesRelPath)
 
-    listInputImagesFiles = findFilesDir(InputImagesPath, nameImagesFiles)
-    listInputLabelsFiles = findFilesDir(InputLabelsPath, nameLabelsFiles)
+    listInputImagesFiles = findFilesDir(InputImagesPath)
+    listInputLabelsFiles = findFilesDir(InputLabelsPath)
 
     if (len(listInputImagesFiles) != len(listInputLabelsFiles)):
         message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(listInputImagesFiles),

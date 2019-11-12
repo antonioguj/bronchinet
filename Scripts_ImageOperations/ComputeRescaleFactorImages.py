@@ -20,7 +20,6 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputImagesRelPath     = 'RawImages/'
     nameOutputDataRelPath      = 'RescalingData/'
-    nameInputImagesFiles       = '*.dcm'
     nameOrigVoxelSize_FileNpy  = 'original_vozelSize.npy'
     nameOrigVoxelSize_FileCsv  = 'original_vozelSize.csv'
     nameRescaleFactors_FileNpy = 'rescaleFactors_images.npy'
@@ -32,7 +31,7 @@ def main(args):
     InputImagesPath = workDirsManager.getNameExistPath(nameInputImagesRelPath)
     OutputDataPath  = workDirsManager.getNameNewPath  (nameOutputDataRelPath)
 
-    listInputImageFiles = findFilesDirAndCheck(InputImagesPath, nameInputImagesFiles)
+    listInputImageFiles = findFilesDirAndCheck(InputImagesPath)
 
 
     dict_voxelSizes = OrderedDict()
@@ -66,7 +65,7 @@ def main(args):
     else:
         #if not fixed scale specified, take median over dataset
         final_rescale_res = median
-    print("Final aimed resolution: \'%s\'..." %(str(final_rescale_res)))
+    print("Final rescaling resolution: \'%s\'..." %(str(final_rescale_res)))
 
 
     dict_rescaleFactors = OrderedDict()

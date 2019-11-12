@@ -40,8 +40,6 @@ def main(args):
 
     # ---------- SETTINGS ----------
     nameModelsRelPath  = args.modelsdir
-    nameImagesFiles    = 'images_proc-*.nii.gz'
-    nameLabelsFiles    = 'labels_proc-*.nii.gz'
     cfgparams_filename = 'cfgparams.txt'
     descmodel_filename = 'descmodel.txt'
     # ---------- SETTINGS ----------
@@ -54,14 +52,14 @@ def main(args):
     else:
         ModelsPath = workDirsManager.getNameUpdatePath(nameModelsRelPath)
 
-    listTrainImagesFiles = findFilesDirAndCheck(TrainingDataPath, nameImagesFiles)[0:args.numMaxTrainImages]
-    listTrainLabelsFiles = findFilesDirAndCheck(TrainingDataPath, nameLabelsFiles)[0:args.numMaxTrainImages]
+    listTrainImagesFiles = findFilesDirAndCheck(TrainingDataPath)[0:args.numMaxTrainImages]
+    listTrainLabelsFiles = findFilesDirAndCheck(TrainingDataPath)[0:args.numMaxTrainImages]
 
     if USEVALIDATIONDATA:
         ValidationDataPath = workDirsManager.getNameExistPath(args.validdatadir)
 
-        listValidImagesFiles = findFilesDir(ValidationDataPath, nameImagesFiles)[0:args.numMaxValidImages]
-        listValidLabelsFiles = findFilesDir(ValidationDataPath, nameLabelsFiles)[0:args.numMaxValidImages]
+        listValidImagesFiles = findFilesDir(ValidationDataPath)[0:args.numMaxValidImages]
+        listValidLabelsFiles = findFilesDir(ValidationDataPath)[0:args.numMaxValidImages]
 
         if not listValidImagesFiles or not listValidLabelsFiles:
             use_validation_data = False

@@ -25,9 +25,6 @@ def main(args):
     nameTrainDataSubRelPath    = 'Train-CV%0.2i/'
     nameTestDataSubRelPath     = 'Test-CV%0.2i/'
     nameCVfoldsRelPath         = 'CV-folds/'
-    nameInputImagesFiles       = 'images*' + getFileExtension(FORMATTRAINDATA)
-    nameInputLabelsFiles       = 'labels*' + getFileExtension(FORMATTRAINDATA)
-    nameInputReferFiles        = '*.nii.gz'
     nameCVfoldsFiles           = 'test[0-9].txt'
     # ---------- SETTINGS ----------
 
@@ -40,9 +37,9 @@ def main(args):
     TrainingAllDataPath = workDirsManager.getNameNewPath          (nameTrainingAllDataRelPath)
     TestingAllDataPath  = workDirsManager.getNameNewPath          (nameTestingAllDataRelPath)
 
-    listInputImagesFiles = findFilesDirAndCheck(InputImagesDataPath, nameInputImagesFiles)
-    listInputLabelsFiles = findFilesDirAndCheck(InputLabelsDataPath, nameInputLabelsFiles)
-    listInputReferFiles  = findFilesDirAndCheck(InputReferFilesPath, nameInputReferFiles)
+    listInputImagesFiles = findFilesDirAndCheck(InputImagesDataPath)
+    listInputLabelsFiles = findFilesDirAndCheck(InputLabelsDataPath)
+    listInputReferFiles  = findFilesDirAndCheck(InputReferFilesPath)
     listCVfoldsFiles     = findFilesDirAndCheck(CVfoldsPath, nameCVfoldsFiles)
     # create list with only basenames
     listInputReferFiles  = [basename(elem) for elem in listInputReferFiles]

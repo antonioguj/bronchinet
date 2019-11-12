@@ -25,17 +25,17 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputPredictMasksRelPath    = args.inputpredictmasksdir
-    nameInputReferMasksRelPath      = 'Airways_Proc/'
-    nameInputRoiMasksRelPath        = 'Lungs_Proc/'
+    nameInputPredictMasksRelPath      = args.inputpredictmasksdir
+    nameInputReferMasksRelPath        = 'Airways_Proc/'
+    nameInputRoiMasksRelPath          = 'Lungs_Proc/'
     nameInputPredictCentrelinesRelPath= args.inputcentrelinesdir
     nameInputReferCentrelinesRelPath  = 'Centrelines_Proc/'
-    nameInputPredictMasksFiles      = '*_binmask.nii.gz'
-    nameInputReferMasksFiles        = '*_lumen.nii.gz'
-    nameInputRoiMasksFiles          = '*_lungs.nii.gz'
-    nameInputPredictCentrelinesFiles= '*_cenlines.nii.gz'
-    nameInputReferCentrelinesFiles  = '*_cenlines.nii.gz'
-    prefixPatternInputFiles         = 'vol[0-9][0-9]_*'
+    nameInputPredictMasksFiles        = '*_binmask.nii.gz'
+    nameInputReferMasksFiles          = '*_lumen.nii.gz'
+    nameInputRoiMasksFiles            = '*_lungs.nii.gz'
+    nameInputPredictCentrelinesFiles  = '*_cenlines.nii.gz'
+    nameInputReferCentrelinesFiles    = '*_cenlines.nii.gz'
+    prefixPatternInputFiles           = 'vol[0-9][0-9]_*'
 
     if (args.removeTracheaResMetrics):
         nameOutResultMetricsFile = 'result_metrics_notrachea.txt'
@@ -48,12 +48,12 @@ def main(args):
     InputPredictMasksPath = workDirsManager.getNameExistPath        (nameInputPredictMasksRelPath)
     InputReferMasksPath   = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
 
-    listInputPredictMasksFiles = findFilesDirAndCheck(InputPredictMasksPath, nameInputPredictMasksFiles)
-    listInputReferMasksFiles   = findFilesDirAndCheck(InputReferMasksPath,   nameInputReferMasksFiles)
+    listInputPredictMasksFiles = findFilesDirAndCheck(InputPredictMasksPath)
+    listInputReferMasksFiles   = findFilesDirAndCheck(InputReferMasksPath)
 
     if (args.removeTracheaResMetrics):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
-        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
+        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
 
     listResultMetrics = OrderedDict()
@@ -84,7 +84,7 @@ def main(args):
 
         print("Loading Predicted Centrelines...")
         InputPredictCentrelinesPath      = workDirsManager.getNameExistPath(nameInputPredictCentrelinesRelPath)
-        listInputPredictCentrelinesFiles = findFilesDirAndCheck(InputPredictCentrelinesPath, nameInputPredictCentrelinesFiles)
+        listInputPredictCentrelinesFiles = findFilesDirAndCheck(InputPredictCentrelinesPath)
 
 
     nbInputFiles  = len(listInputPredictMasksFiles)

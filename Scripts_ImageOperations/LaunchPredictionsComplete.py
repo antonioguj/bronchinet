@@ -16,9 +16,9 @@ import argparse
 
 CODEDIR                            = joinpathnames(BASEDIR, 'Code')
 SCRIPT_PREDICTIONMODEL             = joinpathnames(CODEDIR, 'Scripts_Experiments/PredictionModel.py')
-SCRIPT_POSTPROCESSPREDICTIONS      = joinpathnames(CODEDIR, 'Scripts_ResultMeasurements/PostprocessPredictions.py')
-SCRIPT_EXTRACTCENTRELINESFROMMASKS = joinpathnames(CODEDIR, 'Scripts_ImageOperations/ExtractCentrelinesFromMasks.py')
-SCRIPT_COMPUTERESULTMETRICS        = joinpathnames(CODEDIR, 'Scripts_ResultMeasurements/ComputeResultMetrics.py')
+SCRIPT_POSTPROCESSPREDICTIONS      = joinpathnames(CODEDIR, 'Scripts_ImageOperations/PostprocessPredictions.py')
+SCRIPT_EXTRACTCENTRELINESFROMMASKS = joinpathnames(CODEDIR, 'Scripts_ImageOperations/ApplyOperationImages.py')
+SCRIPT_COMPUTERESULTMETRICS        = joinpathnames(CODEDIR, 'Scripts_ImageOperations/ComputeResultMetrics.py')
 
 
 
@@ -51,8 +51,9 @@ def main(args):
                                       '--threshold', str(ithres)])
         Popen_obj.wait()
 
-        # 3rd script: 'ExtractCentrelinesFromMasks.py'
-        Popen_obj = subprocess.Popen(['python', SCRIPT_EXTRACTCENTRELINESFROMMASKS, OutputPredictionsPath, OutputPredictCentrelinesPath])
+        # 3rd script: 'ApplyOperationImages.py'
+        Popen_obj = subprocess.Popen(['python', SCRIPT_EXTRACTCENTRELINESFROMMASKS, OutputPredictionsPath, OutputPredictCentrelinesPath,
+                                      '--thinning'])
         Popen_obj.wait()
 
         # 4th script: 'ComputeResultMetrics.py'
