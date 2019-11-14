@@ -41,6 +41,8 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputRoiMasksRelPath  = 'Lungs_Proc/'
     nameReferenceFilesRelPath = 'Images_Proc/'
+    namesImagesFiles          = 'images*.npz'
+    namesLabelsFiles          = 'labels*.npz'
     nameCropBoundingBoxes     = 'cropBoundingBoxes_images.npy'
     #nameRescaleFactors         = 'rescaleFactors_images.npy'
     nameOutputPredictionsRelPath = args.predictionsdir
@@ -57,8 +59,8 @@ def main(args):
     ReferenceFilesPath   = workDirsManager.getNameExistBaseDataPath(nameReferenceFilesRelPath)
     OutputPredictionsPath= workDirsManager.getNameNewPath          (nameOutputPredictionsRelPath)
 
-    listTestImagesFiles = findFilesDirAndCheck(TestingDataPath)
-    listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath)
+    listTestImagesFiles = findFilesDirAndCheck(TestingDataPath, namesImagesFiles)
+    listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath, namesLabelsFiles)
     listReferenceFiles  = findFilesDirAndCheck(ReferenceFilesPath)
 
     if (args.masksToRegionInterest):

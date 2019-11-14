@@ -25,7 +25,7 @@ def main(args):
     nameReferenceFilesRelPath     = 'RawImages/'
     nameCropBoundingBoxes_FileNpy = 'cropBoundingBoxes_images_TEST.npy'
     nameCropBoundingBoxes_FileCsv = 'cropBoundingBoxes_images_TEST.csv'
-    size_borders_buffer = (0, 0, 0)
+    size_borders_buffer = (20, 20, 20)
     # ---------- SETTINGS ----------
 
 
@@ -59,6 +59,7 @@ def main(args):
         print("Bounding box: \'%s\', of size: \'%s\'" %(bounding_box, size_bounding_box))
 
         max_size_bounding_box = BoundingBoxes.get_max_size_bounding_box(size_bounding_box, max_size_bounding_box)
+        min_size_bounding_box = BoundingBoxes.get_min_size_bounding_box(size_bounding_box, min_size_bounding_box)
 
 
         # store computed bounding-box
@@ -67,6 +68,7 @@ def main(args):
     #endfor
 
     print("Max size bounding box found: \'%s\'..." %(str(max_size_bounding_box)))
+    print("Min size bounding box found: \'%s\'..." %(str(min_size_bounding_box)))
 
 
 

@@ -19,9 +19,9 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    InputPath     = args.inputdir
-    OutputPath    = args.outputdir
-    ExtraInputPath= args.extrainputdir
+    InputPath   = args.inputdir
+    OutputPath  = args.outputdir
+    ExtraInPath = args.extraindir
     # ---------- SETTINGS ----------
 
 
@@ -29,13 +29,13 @@ def main(args):
     makedir(OutputPath)
 
 
-    if args.typeOperation == 'mask':
+    if args.type == 'mask':
         # *********************************************
         print("Operation: Mask images...")
-        if not isExistdir(args.extrainputdir):
-            raise Exception("ERROR. input dir \'%s\' not found... EXIT" %(ExtraInputPath))
+        if not isExistdir(args.extraindir):
+            raise Exception("ERROR. input dir \'%s\' not found... EXIT" %(ExtraInPath))
 
-        listInputRoiMasksFiles = findFilesDirAndCheck(ExtraInputPath)
+        listInputRoiMasksFiles = findFilesDirAndCheck(ExtraInPath)
         nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_masked.nii.gz'
 
         def wrapfun_mask_image(in_array, i):
@@ -48,13 +48,13 @@ def main(args):
         fun_operation = wrapfun_mask_image
         # *********************************************
 
-    elif args.typeOperation == 'crop':
+    elif args.type == 'crop':
         # *********************************************
         print("Operation: Crop images...")
-        if not isExistdir(args.extrainputdir):
-            raise Exception("ERROR. input dir \'%s\' not found... EXIT" %(ExtraInputPath))
+        if not isExistdir(args.extraindir):
+            raise Exception("ERROR. input dir \'%s\' not found... EXIT" %(ExtraInPath))
 
-        listReferenceFiles = findFilesDirAndCheck(ExtraInputPath)
+        listReferenceFiles = findFilesDirAndCheck(ExtraInPath)
         nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_cropped.nii.gz'
 
         nameCropBoundingBoxes = 'cropBoundingBoxes_images.npy'
@@ -71,13 +71,13 @@ def main(args):
         fun_operation = wrapfun_crop_image
         # *********************************************
 
-    elif args.typeOperation == 'rescale' or args.typeOperation == 'rescale_mask':
+    elif args.type == 'rescale' or args.type == 'rescale_mask':
         # *********************************************
         print("Operation: Rescale images...")
-        if not isExistdir(args.extrainputdir):
-            raise Exception("ERROR. input dir \'%s\' not found... EXIT" %(ExtraInputPath))
+        if not isExistdir(args.extraindir):
+            raise Exception("ERROR. input dir \'%s\' not found... EXIT" %(ExtraInPath))
 
-        listReferenceFiles = findFilesDirAndCheck(ExtraInputPath)
+        listReferenceFiles = findFilesDirAndCheck(ExtraInPath)
         nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_rescaled.nii.gz'
 
         nameRescaleFactors = 'rescaleFactors_images.npy'
@@ -89,17 +89,18 @@ def main(args):
             rescale_factor = dict_rescaleFactors[filenamenoextension(in_reference_file)]
             print("Rescale with a factor: \'%s\'..." % (str(rescale_factor)))
 
-            if args.typeOperation == 'rescale_mask':
+            thres_remove_noise = 0.1
+            if args.type == 'rescale_mask':
                 out_array = RescaleImages.compute3D(in_array, rescale_factor, order=3, is_binary_mask=True)
                 # remove noise due to interpolation
-                return ThresholdImages.compute(out_array, thres_val=0.5)
+                return ThresholdImages.compute(out_array, thres_val=thres_remove_noise)
             else:
                 return RescaleImages.compute3D(in_array, rescale_factor, order=3)
 
         fun_operation = wrapfun_rescale_image
         # *********************************************
 
-    elif args.typeOperation == 'fill_holes':
+    elif args.type == 'fillholes':
         # *********************************************
         print("Operation: Fill holes in images...")
         nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_fillholes.nii.gz'
@@ -107,12 +108,64 @@ def main(args):
         def wrapfun_fillholes_image(in_array, i):
             print("Filling holes from masks...")
 
-            return FillInHolesImages.compute(in_array)
+            return MorphoFillHolesImages.compute(in_array)
 
         fun_operation = wrapfun_fillholes_image
         # *********************************************
 
-    elif args.typeOperation == 'thinning':
+    elif args.type == 'erode':
+        # *********************************************
+        print("Operation: Erode images...")
+        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_eroded.nii.gz'
+
+        def wrapfun_erode_image(in_array, i):
+            print("Eroding masks one layer...")
+
+            return MorphoErodeImages.compute(in_array)
+
+        fun_operation = wrapfun_erode_image
+        # *********************************************
+
+    elif args.type == 'dilate':
+        # *********************************************
+        print("Operation: Dilate images...")
+        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_dilated.nii.gz'
+
+        def wrapfun_dilate_image(in_array, i):
+            print("Dilating masks one layer...")
+
+            return MorphoDilateImages.compute(in_array)
+
+        fun_operation = wrapfun_dilate_image
+        # *********************************************
+
+    elif args.type == 'moropen':
+        # *********************************************
+        print("Operation: Morphologically open images...")
+        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_moropen.nii.gz'
+
+        def wrapfun_moropen_image(in_array, i):
+            print("Morphologically open masks...")
+
+            return MorphoOpenImages.compute(in_array)
+
+        fun_operation = wrapfun_moropen_image
+        # *********************************************
+
+    elif args.type == 'morclose':
+        # *********************************************
+        print("Operation: Morphologically close images...")
+        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_morclose.nii.gz'
+
+        def wrapfun_morclose_image(in_array, i):
+            print("Morphologically close masks...")
+
+            return MorphoCloseImages.compute(in_array)
+
+        fun_operation = wrapfun_morclose_image
+        # *********************************************
+
+    elif args.type == 'thinning':
         # *********************************************
         print("Operation: Thinning images to centrelines...")
         nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_cenlines.nii.gz'
@@ -125,7 +178,7 @@ def main(args):
         fun_operation = wrapfun_thinning_image
         # *********************************************
 
-    elif args.typeOperation == 'threshold':
+    elif args.type == 'threshold':
         # *********************************************
         print("Operation: Threshold images...")
         nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_binmak.nii.gz'
@@ -139,7 +192,7 @@ def main(args):
         fun_operation = wrapfun_threshold_image
         # *********************************************
 
-    elif args.typeOperation == 'normalize':
+    elif args.type == 'normalize':
         # *********************************************
         print("Operation: Normalize images...")
         nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_normal.nii.gz'
@@ -152,7 +205,7 @@ def main(args):
         fun_operation = wrapfun_normalize_image
         # *********************************************
 
-    elif args.typeOperation == 'power_image':
+    elif args.type == 'power':
         # *********************************************
         print("Operation: Power of images...")
         nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_power2.nii.gz'
@@ -166,7 +219,7 @@ def main(args):
         fun_operation = wrapfun_power_image
         # *********************************************
 
-    elif args.typeOperation == 'exponential_image':
+    elif args.type == 'exponential':
         # *********************************************
         print("Operation: Exponential of images...")
         nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_expon.nii.gz'
@@ -180,7 +233,7 @@ def main(args):
         # *********************************************
 
     else:
-        raise Exception("ERROR. type operation \'%s\' not found... EXIT" %(args.typeOperation))
+        raise Exception("ERROR. type operation \'%s\' not found... EXIT" %(args.type))
 
 
 
@@ -204,8 +257,8 @@ if __name__ == "__main__":
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
-    parser.add_argument('--typeOperation', type=str, default='None')
-    parser.add_argument('--extrainputdir', type=str, default='None')
+    parser.add_argument('--type', type=str, default='None')
+    parser.add_argument('--extraindir', type=str, default='None')
     args = parser.parse_args()
 
     print("Print input arguments...")

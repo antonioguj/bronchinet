@@ -12,6 +12,7 @@ from Common.FunctionsUtil import *
 from skimage.transform import rescale
 #from scipy.misc import imresize
 from scipy.ndimage.morphology import binary_fill_holes
+from skimage.morphology import binary_erosion, binary_dilation, binary_opening, binary_closing
 import numpy as np
 
 
@@ -112,8 +113,6 @@ class RescaleImages(OperationImages):
         if is_binary_mask:
             out_array = rescale(in_array, scale=scale_factor, order=order,
                                 preserve_range=True, multichannel=False, anti_aliasing=True)
-            # clip to bound output to limits of binary masks
-            #return np.clip(out_array, 0.0, 1.0)
             return out_array
         else:
             return rescale(in_array, scale=scale_factor, order=order,
@@ -143,7 +142,31 @@ class FlippingImages(OperationImages):
             return False
 
 
-class FillInHolesImages(OperationImages):
+class MorphoFillHolesImages(OperationImages):
     @staticmethod
     def compute(in_array):
         return binary_fill_holes(in_array).astype(in_array.dtype)
+
+
+class MorphoErodeImages(OperationImages):
+    @staticmethod
+    def compute(in_array):
+        return binary_erosion(in_array).astype(in_array.dtype)
+
+
+class MorphoDilateImages(OperationImages):
+    @staticmethod
+    def compute(in_array):
+        return binary_dilation(in_array).astype(in_array.dtype)
+
+
+class MorphoOpenImages(OperationImages):
+    @staticmethod
+    def compute(in_array):
+        return binary_opening(in_array).astype(in_array.dtype)
+
+
+class MorphoCloseImages(OperationImages):
+    @staticmethod
+    def compute(in_array):
+        return binary_closing(in_array).astype(in_array.dtype)

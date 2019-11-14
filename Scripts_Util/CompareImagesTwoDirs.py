@@ -10,15 +10,16 @@
 
 from DataLoaders.FileReaders import *
 from PlotsManager.Histograms import *
+from Preprocessing.OperationImages import MorphoOpenImages
 import argparse
 
 
 
 def main(args):
     # ---------- SETTINGS ----------
-    InputPath1    = args.inputdir1
-    InputPath2    = args.inputdir2
-    max_rel_error = 1.0e-06
+    InputPath1   = args.inputdir1
+    InputPath2   = args.inputdir2
+    max_relerror = 1.0e-03
     nameOutDiffImageFilesName = 'out_absdiffimgs_image%s.nii.gz'
     nameOutHistoFilesName = 'out_histogram_image%s.png'
     # ---------- SETTINGS ----------
@@ -37,82 +38,86 @@ def main(args):
 
 
     names_files_different = []
-    names_files_perhapsdiff_showhistogram = []
 
     for i, (in_file_1, in_file_2) in enumerate(zip(listInputFiles1, listInputFiles2)):
-        print("\nInput 1: \'%s\'..." % (in_file_1))
-        print("Input 2: \'%s\'..." % (in_file_2))
+        print("\nInput: \'%s\'..." % (in_file_1))
+        print("And: \'%s\'..." % (in_file_2))
 
-        in_img1_array = FileReader.getImageArray(in_file_1)
-        in_img2_array = FileReader.getImageArray(in_file_2)
-        #print("Values in input array 1: %s..." % (np.unique(in_img1_array)))
-        #print("Values in input array 2: %s..." % (np.unique(in_img2_array)))
+        in_image1_array = FileReader.getImageArray(in_file_1)
+        in_image2_array = FileReader.getImageArray(in_file_2)
+        #print("Values in input array 1: %s..." % (np.unique(in_image1_array)))
+        #print("Values in input array 2: %s..." % (np.unique(in_image2_array)))
 
 
-        if (in_img1_array.shape == in_img2_array.shape):
-            print("Images of same size: \'%s\'..." %(str(in_img1_array.shape)))
+        if (in_image1_array.shape == in_image2_array.shape):
+            is_arrays_equal_voxelwise = np.array_equal(in_image1_array, in_image2_array)
 
-            res_voxels_equal = np.array_equal(in_img1_array, in_img2_array)
-
-            if res_voxels_equal:
+            if is_arrays_equal_voxelwise:
                 print("GOOD: Images are equal voxelwise...")
             else:
-                message = "Images 1 and 2 are not equal voxelwise. Analyse global magns..."
-                CatchWarningException(message)
+                print("WARNING: Images 1 and 2 are not equal...")
+                print("Do morphological opening of difference between images to remove strayed voxels due to noise...")
 
-                out_absdiffimgs_array = abs(in_img1_array - in_img2_array)
+                out_diffimages_array = abs(in_image1_array - in_image2_array)
 
-                num_voxels_diff = np.count_nonzero(out_absdiffimgs_array)
-                num_voxels_1_nonzero = np.count_nonzero(in_img1_array)
-                rel_num_voxels_diff = (num_voxels_diff / float(num_voxels_1_nonzero)) * 100
-                print("Num voxels different \'%s\' out of total \'%s\' non zero. Rel percentage \'%s\'..." %(num_voxels_diff,
-                                                                                                             num_voxels_1_nonzero,
-                                                                                                             rel_num_voxels_diff))
-                mean_abs_error = abs(np.mean(out_absdiffimgs_array))
-                mean_in_img1 = abs(np.mean(in_img1_array))
-                mean_rel_error = (mean_abs_error / float(mean_in_img1)) * 100
-                print("Absolute / relative error between images: \'%s\' / \'%s\'..." %(mean_abs_error, mean_rel_error))
+                out_diffimages_array = MorphoOpenImages.compute(out_diffimages_array)
 
-                if mean_rel_error < max_rel_error:
-                    print("GOOD. Error lower than tolerance \'%s\'. Images can be considered equal..." %(max_rel_error))
+                num_voxels_diffimages = np.count_nonzero(out_diffimages_array)
+
+                if num_voxels_diffimages==0:
+                    print("GOOD: After a morphological opening, Images are equal...")
                 else:
-                    names_files_different.append(basename(in_file_1))
-                    message = "Error larger than tolerance \'%s\'. Images are different..." %(max_rel_error)
-                    CatchWarningException(message)
+                    print("WARNING: After a morphological opening, Images 1 and 2 are still not equal...")
+                    print("Analyse global error magnitudes of the difference between images...")
+
+                    num_voxels_nonzero_image1 = np.count_nonzero(in_image1_array)
+                    relerror_voxels_diffimages = (num_voxels_diffimages / float(num_voxels_nonzero_image1)) * 100
+
+                    print("Num voxels of difference between images \'%s\' out of total non-zero voxels in image 1 \'%s\'. Relative error \'%s\'..."
+                          %(num_voxels_diffimages, num_voxels_nonzero_image1, relerror_voxels_diffimages))
+
+                    absmean_intens_diffimages  = abs(np.mean(out_diffimages_array))
+                    absmean_intens_image1      = abs(np.mean(in_image1_array))
+                    relerror_intens_diffimages = (absmean_intens_diffimages / absmean_intens_image1) * 100
+                    print("Mean value of Intensity of difference between images \'%s\'. Relative error \'%s\'..."
+                          %(absmean_intens_diffimages, relerror_intens_diffimages))
 
 
-                out_absdiffimgs_filename = joinpathnames(args.tempdir, nameOutDiffImageFilesName%(i+1))
-                print("Output array with difference between images: \'%s\'..." % (basename(out_absdiffimgs_filename)))
+                    if relerror_intens_diffimages < max_relerror:
+                        print("GOOD. Relative error \'%s\' lower than tolerance \'%s\'. Images can be considered equal..."
+                              %(relerror_intens_diffimages, max_relerror))
+                    else:
+                        print("WARNING. Relative error \'%s\' larger than tolerance \'%s\'. Images are different..."
+                              %(relerror_intens_diffimages, max_relerror))
 
-                FileReader.writeImageArray(out_absdiffimgs_filename, out_absdiffimgs_array)
+                        names_files_different.append(basename(in_file_1))
 
 
-                print("Compute the histograms of both images...")
-                out_histo_filename = joinpathnames(args.tempdir, nameOutHistoFilesName%(i+1))
+                        out_diffimages_filename = joinpathnames(args.tempdir, nameOutDiffImageFilesName %(i+1))
+                        print("Output difference between images maps: \'%s\'..." %(basename(out_diffimages_filename)))
 
-                Histograms.plot_compare_histograms([in_img1_array, in_img2_array],
-                                                   isave_outfiles=True,
-                                                   outfilename=out_histo_filename,
-                                                   show_percen_yaxis=True)
+                        FileReader.writeImageArray(out_diffimages_filename, out_diffimages_array)
 
-                names_files_perhapsdiff_showhistogram.append(basename(in_file_1))
-                message = "Do not know whether images are different. Check saved histogram in: \'%s\'..." %(out_histo_filename)
-                CatchWarningException(message)
 
+                        out_histo_filename = joinpathnames(args.tempdir, nameOutHistoFilesName%(i+1))
+                        print("Compute and output the histograms of both images: \'%s\'..." %(basename(out_histo_filename)))
+
+                        Histograms.plot_compare_histograms([in_image1_array, in_image2_array],
+                                                           isave_outfiles=True,
+                                                           outfilename=out_histo_filename,
+                                                           show_percen_yaxis=True)
+                        
         else:
-            print("Images of different size: \'%s\' != \'%s\'" %(in_img1_array.shape, in_img2_array.shape))
-            print("Compute the histograms of both images...")
+            print("Images of different size: \'%s\' != \'%s\'" %(in_image1_array.shape, in_image2_array.shape))
 
             out_histo_filename = joinpathnames(args.tempdir, nameOutHistoFilesName%(i+1))
+            print("Compute and output the histograms of both images: \'%s\'..." %(basename(out_histo_filename)))
+            print("CHECK MANUALLY THE HISTOGRAMS WHETHER THE IMAGES ARE DIFFERENT")
 
-            Histograms.plot_compare_histograms([in_img1_array, in_img2_array],
+            Histograms.plot_compare_histograms([in_image1_array, in_image2_array],
                                                isave_outfiles= True,
                                                outfilename= out_histo_filename,
                                                show_percen_yaxis= True)
-
-            names_files_perhapsdiff_showhistogram.append(basename(in_file_1))
-            message = "Do not know whether images are different. Check saved histogram in: \'%s\'..." %(out_histo_filename)
-            CatchWarningException(message)
     #endfor
 
 
@@ -121,10 +126,6 @@ def main(args):
     else:
         print("\nWARNING: Found \'%s\' files that are different. Names of files: \'%s\'..." %(len(names_files_different),
                                                                                               names_files_different))
-    if (len(names_files_perhapsdiff_showhistogram) != 0):
-        print("\nFound \'%s\' files that perhaps are different. Names of files: \'%s\'..." %(len(names_files_perhapsdiff_showhistogram),
-                                                                                             names_files_perhapsdiff_showhistogram))
-        print("Check histograms stored in: \'%s\'..." % (args.tempdir))
 
 
 

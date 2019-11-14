@@ -28,7 +28,7 @@ def main(args):
     nameOutputImagesFiles    = 'images_proc-%0.2i.nii.gz'
     nameOutputLabelsFiles    = 'labels_proc-%0.2i.nii.gz'
 
-    nameCropBoundingBoxes = 'cropBoundingBoxes_images.npy'
+    nameCropBoundingBoxes = 'cropBoundingBoxes_images_rescaled.npy'
     nameRescaleFactors    = 'rescaleFactors_images.npy'
 
     if args.isInputExtraLabels:

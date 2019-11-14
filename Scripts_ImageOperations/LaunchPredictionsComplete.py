@@ -38,28 +38,49 @@ def main(args):
 
 
     # 1st script: 'PredictionModel.py'
+    message = 'python' + SCRIPT_PREDICTIONMODEL + args.inputmodel + OutputPosteriorsPath + \
+              '--cfgfromfile' + in_cfgparams_file + '--testdatadir' + args.testdatadir
+    print("\nLaunch: %s\n" %(message))
+
     Popen_obj = subprocess.Popen(['python', SCRIPT_PREDICTIONMODEL, args.inputmodel, OutputPosteriorsPath,
                                   '--cfgfromfile', in_cfgparams_file, '--testdatadir', args.testdatadir])
     Popen_obj.wait()
+
 
     for i, ithres in enumerate(args.thresholds):
         OutputPredictionsPath = workDirsManager.getNameNewPath( nameOutputPredictionsRelPath %(ithres))
         OutputPredictCentrelinesPath = workDirsManager.getNameNewPath( nameOutputPredictCentrelinesRelPath %(ithres))
 
+
         # 2nd script: 'PostprocessPredictions.py'
+        message = 'python' + SCRIPT_POSTPROCESSPREDICTIONS + OutputPosteriorsPath + OutputPredictionsPath + \
+                  '--threshold' + str(ithres)
+        print("\nLaunch: %s\n" %(message))
+
         Popen_obj = subprocess.Popen(['python', SCRIPT_POSTPROCESSPREDICTIONS, OutputPosteriorsPath, OutputPredictionsPath,
                                       '--threshold', str(ithres)])
         Popen_obj.wait()
 
+
         # 3rd script: 'ApplyOperationImages.py'
+        message = 'python' + SCRIPT_EXTRACTCENTRELINESFROMMASKS + OutputPredictionsPath + OutputPredictCentrelinesPath + \
+                  '--typeOperation' + 'thinning'
+        print("\nLaunch: %s\n" %(message))
+
         Popen_obj = subprocess.Popen(['python', SCRIPT_EXTRACTCENTRELINESFROMMASKS, OutputPredictionsPath, OutputPredictCentrelinesPath,
-                                      '--thinning'])
+                                      '--typeOperation', 'thinning'])
         Popen_obj.wait()
 
+
         # 4th script: 'ComputeResultMetrics.py'
+        message = 'python' + SCRIPT_COMPUTERESULTMETRICS + OutputPredictionsPath + \
+                  '--inputcentrelinesdir' + OutputPredictCentrelinesPath
+        print("\nLaunch: %s\n" %(message))
+
         Popen_obj = subprocess.Popen(['python', SCRIPT_COMPUTERESULTMETRICS, OutputPredictionsPath,
                                       '--inputcentrelinesdir', OutputPredictCentrelinesPath])
         Popen_obj.wait()
+
 
         # move final res file
         in_resfile  = joinpathnames(OutputPredictionsPath, 'result_metrics_notrachea.txt')
