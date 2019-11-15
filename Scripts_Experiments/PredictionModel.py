@@ -41,8 +41,8 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputRoiMasksRelPath  = 'Lungs_Proc/'
     nameReferenceFilesRelPath = 'Images_Proc/'
-    namesImagesFiles          = 'images*.npz'
-    namesLabelsFiles          = 'labels*.npz'
+    namesImagesFiles          = 'images*.nii.gz'
+    namesLabelsFiles          = 'labels*.nii.gz'
     nameCropBoundingBoxes     = 'cropBoundingBoxes_images.npy'
     #nameRescaleFactors         = 'rescaleFactors_images.npy'
     nameOutputPredictionsRelPath = args.predictionsdir

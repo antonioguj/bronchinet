@@ -23,8 +23,8 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputRoiMaskRelPath       = 'Lungs_Rescaled_Proc/'
     nameReferenceFilesRelPath     = 'RawImages/'
-    nameCropBoundingBoxes_FileNpy = 'cropBoundingBoxes_images_TEST.npy'
-    nameCropBoundingBoxes_FileCsv = 'cropBoundingBoxes_images_TEST.csv'
+    nameCropBoundingBoxes_FileNpy = 'cropBoundingBoxes_images_rescaled_samesize_TEST.npy'
+    nameCropBoundingBoxes_FileCsv = 'cropBoundingBoxes_images_rescaled_samesize_TEST.csv'
     size_borders_buffer = (20, 20, 20)
     # ---------- SETTINGS ----------
 
@@ -67,7 +67,7 @@ def main(args):
         dict_cropBoundingBoxes[filenamenoextension(in_reference_file)] = bounding_box
     #endfor
 
-    print("Max size bounding box found: \'%s\'..." %(str(max_size_bounding_box)))
+    print("\nMax size bounding box found: \'%s\'..." %(str(max_size_bounding_box)))
     print("Min size bounding box found: \'%s\'..." %(str(min_size_bounding_box)))
 
 
@@ -97,9 +97,10 @@ def main(args):
 
 
             # Compute new bounding-box, of fixed size 'args.cropSizeBoundingBox', and with same center as original 'bounding_box'
-            out_bounding_box = BoundingBoxes.compute_bounding_box_centered_bounding_box_2D(in_bounding_box,
-                                                                                           final_size_bounding_box,
-                                                                                           in_roimask_array_shape)
+            out_bounding_box = BoundingBoxes.compute_bounding_box_centered_bounding_box_fit_image(in_bounding_box,
+                                                                                                  final_size_bounding_box,
+                                                                                                  in_roimask_array_shape,
+                                                                                                  is_bounding_box_slices=args.isCalcBoundingBoxInSlices)
             size_bounding_box = BoundingBoxes.get_size_bounding_box(out_bounding_box)
             print("Processed bounding box: \'%s\', of size: \'%s\'" % (out_bounding_box, size_bounding_box))
 

@@ -18,24 +18,16 @@ import argparse
 
 
 def main(args):
-    # ---------- SETTINGS ----------
-    InputPath   = args.inputdir
-    OutputPath  = args.outputdir
-    ExtraInPath = args.extraindir
-    # ---------- SETTINGS ----------
 
-
-    listInputFiles  = findFilesDirAndCheck(InputPath)
-    makedir(OutputPath)
+    listInputFiles  = findFilesDirAndCheck(args.inputdir)
+    makedir(args.outputdir)
 
 
     if args.type == 'mask':
         # *********************************************
         print("Operation: Mask images...")
-        if not isExistdir(args.extraindir):
-            raise Exception("ERROR. input dir \'%s\' not found... EXIT" %(ExtraInPath))
 
-        listInputRoiMasksFiles = findFilesDirAndCheck(ExtraInPath)
+        listInputRoiMasksFiles = findFilesDirAndCheck(args.inputRoidir)
         nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_masked.nii.gz'
 
         def wrapfun_mask_image(in_array, i):
@@ -51,15 +43,10 @@ def main(args):
     elif args.type == 'crop':
         # *********************************************
         print("Operation: Crop images...")
-        if not isExistdir(args.extraindir):
-            raise Exception("ERROR. input dir \'%s\' not found... EXIT" %(ExtraInPath))
 
-        listReferenceFiles = findFilesDirAndCheck(ExtraInPath)
+        listReferenceFiles = findFilesDirAndCheck(args.referencedir)
+        dict_cropBoundingBoxes = readDictionary(args.boundboxfile)
         nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_cropped.nii.gz'
-
-        nameCropBoundingBoxes = 'cropBoundingBoxes_images.npy'
-        cropBoundingBoxesFileName = joinpathnames(args.datadir, nameCropBoundingBoxes)
-        dict_cropBoundingBoxes = readDictionary(cropBoundingBoxesFileName)
 
         def wrapfun_crop_image(in_array, i):
             in_reference_file = listReferenceFiles[i]
@@ -74,15 +61,10 @@ def main(args):
     elif args.type == 'rescale' or args.type == 'rescale_mask':
         # *********************************************
         print("Operation: Rescale images...")
-        if not isExistdir(args.extraindir):
-            raise Exception("ERROR. input dir \'%s\' not found... EXIT" %(ExtraInPath))
 
-        listReferenceFiles = findFilesDirAndCheck(ExtraInPath)
+        listReferenceFiles = findFilesDirAndCheck(args.referencedir)
+        dict_rescaleFactors = readDictionary(args.rescalefile)
         nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_rescaled.nii.gz'
-
-        nameRescaleFactors = 'rescaleFactors_images.npy'
-        rescaleFactorsFileName = joinpathnames(args.datadir, nameRescaleFactors)
-        dict_rescaleFactors = readDictionary(rescaleFactorsFileName)
 
         def wrapfun_rescale_image(in_array, i):
             in_reference_file = listReferenceFiles[i]
@@ -233,7 +215,8 @@ def main(args):
         # *********************************************
 
     else:
-        raise Exception("ERROR. type operation \'%s\' not found... EXIT" %(args.type))
+        message = 'type operation \'%s\' not found' %(args.type)
+        CatchErrorException(message)
 
 
 
@@ -244,7 +227,7 @@ def main(args):
 
         out_array = fun_operation(in_array, i)  #perform whatever operation
 
-        out_file = joinpathnames(OutputPath, nameOutputFiles(basename(in_file)))
+        out_file = joinpathnames(args.outputdir, nameOutputFiles(basename(in_file)))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_file), str(out_array.shape)))
 
         FileReader.writeImageArray(out_file, out_array)
@@ -258,8 +241,24 @@ if __name__ == "__main__":
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
     parser.add_argument('--type', type=str, default='None')
-    parser.add_argument('--extraindir', type=str, default='None')
+    parser.add_argument('--inputRoidir', type=str, default=None)
+    parser.add_argument('--referencedir', type=str, default=None)
+    parser.add_argument('--boundboxfile', type=str, default=None)
+    parser.add_argument('--rescalefile', type=str, default=None)
     args = parser.parse_args()
+
+    if args.type == 'mask':
+        if not args.inputRoidir:
+            message = 'need to set argument \'inputRoidir\''
+            CatchErrorException(message)
+    elif args.type == 'crop':
+        if not args.referencedir or not args.boundboxfile:
+            message = 'need to set arguments \'referencedir\' and \'boundboxfile\''
+            CatchErrorException(message)
+    elif args.type == 'rescale':
+        if not args.referencedir or not args.rescalefile:
+            message = 'need to set arguments \'referencedir\' and \'rescalefile\''
+            CatchErrorException(message)
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

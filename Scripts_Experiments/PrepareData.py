@@ -11,6 +11,7 @@
 from Common.Constants import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
+from Preprocessing.BoundingBoxes import *
 from Preprocessing.OperationImages import *
 from Preprocessing.OperationMasks import *
 import argparse
@@ -122,18 +123,18 @@ def main(args):
             rescale_factor = dict_rescaleFactors[filenamenoextension(in_reference_file)]
             print("Rescale image with a factor: \'%s\'..." %(str(rescale_factor)))
 
-            inout_image_array = RescaleImages.compute3D(inout_image_array, rescale_factor, order=args.orderInterpRescale)
-            inout_label_array = RescaleImages.compute3D(inout_label_array, rescale_factor, order=args.orderInterpRescale,
-                                                        is_binary_mask=True)
-
-            if (args.isInputExtraLabels):
-                inout_extralabel_array = RescaleImages.compute3D(inout_extralabel_array, rescale_factor, order=args.orderInterpRescale,
-                                                                 is_binary_mask=True)
-            if (args.masksToRegionInterest):
-                in_roimask_array = RescaleImages.compute3D(in_roimask_array, rescale_factor, order=args.orderInterpRescale,
-                                                           is_binary_mask=True)
-                # remove noise in masks due to interpolation
-                in_roimask_array = ThresholdImages.compute(in_roimask_array, thres_val=0.5)
+            if rescale_factor!=(1.0,1.0,1.0):
+                inout_image_array = RescaleImages.compute3D(inout_image_array, rescale_factor, order=args.orderInterpRescale)
+                inout_label_array = RescaleImages.compute3D(inout_label_array, rescale_factor, order=args.orderInterpRescale,
+                                                            is_binary_mask=True)
+                if (args.isInputExtraLabels):
+                    inout_extralabel_array = RescaleImages.compute3D(inout_extralabel_array, rescale_factor, order=args.orderInterpRescale,
+                                                                     is_binary_mask=True)
+                if (args.masksToRegionInterest):
+                    in_roimask_array = RescaleImages.compute3D(in_roimask_array, rescale_factor, order=args.orderInterpRescale,
+                                                               is_binary_mask=True)
+                    # remove noise in masks due to interpolation
+                    in_roimask_array = ThresholdImages.compute(in_roimask_array, thres_val=0.5)
 
             print("Final dims: %s..." %(str(inout_image_array.shape)))
         # *******************************************************************************
@@ -155,11 +156,29 @@ def main(args):
             crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_reference_file)]
             print("Crop image to bounding-box: \'%s\'..." % (str(crop_bounding_box)))
 
-            inout_image_array = CropImages.compute3D(inout_image_array, crop_bounding_box)
-            inout_label_array = CropImages.compute3D(inout_label_array, crop_bounding_box)
+            if not BoundingBoxes.is_bounding_box_contained_in_image_size(crop_bounding_box, inout_image_array.shape):
+                print("Cropping bounding-box: \'%s\' is larger than image size: \'%s\'. Combine cropping with extending images..."
+                      %(str(crop_bounding_box), str(inout_image_array.shape)))
 
-            if (args.isInputExtraLabels):
-                inout_extralabel_array = CropImages.compute3D(inout_extralabel_array, crop_bounding_box)
+                new_inout_image_shape = BoundingBoxes.get_size_bounding_box(crop_bounding_box)
+                (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image(crop_bounding_box,
+                                                                                                                            inout_image_array.shape)
+
+                inout_image_array = CropAndExtendImages.compute3D(inout_image_array, croppartial_bounding_box, extendimg_bounding_box, new_inout_image_shape,
+                                                                  background_value=inout_image_array[0][0][0])
+                inout_label_array = CropAndExtendImages.compute3D(inout_label_array, croppartial_bounding_box, extendimg_bounding_box, new_inout_image_shape,
+                                                                  background_value=inout_label_array[0][0][0])
+
+                if (args.isInputExtraLabels):
+                    inout_extralabel_array = CropAndExtendImages.compute3D(inout_extralabel_array, croppartial_bounding_box, extendimg_bounding_box, new_inout_image_shape,
+                                                                           background_value=inout_extralabel_array[0][0][0])
+
+            else:
+                inout_image_array = CropImages.compute3D(inout_image_array, crop_bounding_box)
+                inout_label_array = CropImages.compute3D(inout_label_array, crop_bounding_box)
+
+                if (args.isInputExtraLabels):
+                    inout_extralabel_array = CropImages.compute3D(inout_extralabel_array, crop_bounding_box)
 
             print("Final dims: %s..." %(str(inout_image_array.shape)))
         # *******************************************************************************
@@ -188,9 +207,10 @@ if __name__ == "__main__":
     parser.add_argument('--isInputExtraLabels', type=str2bool, default=False)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--isBinaryTrainMasks', type=str, default=ISBINARYTRAINMASKS)
-    parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
     parser.add_argument('--orderInterpRescale', type=int, default=ORDERINTERPRESCALE)
+    parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
+
     args = parser.parse_args()
 
     print("Print input arguments...")

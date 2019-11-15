@@ -105,6 +105,18 @@ class ExtendImages(OperationImages):
         return out_array
 
 
+class CropAndExtendImages(OperationImages):
+    @staticmethod
+    def compute2D(in_array, crop_bound_box, extend_bound_box, out_array_shape, background_value=0):
+        return ExtendImages.compute2D(CropImages.compute2D(in_array, crop_bound_box),
+                                      extend_bound_box, out_array_shape, background_value=background_value)
+
+    @staticmethod
+    def compute3D(in_array, crop_bound_box, extend_bound_box, out_array_shape, background_value=0):
+        return ExtendImages.compute3D(CropImages.compute3D(in_array, crop_bound_box),
+                                      extend_bound_box, out_array_shape, background_value=background_value)
+
+
 class RescaleImages(OperationImages):
     order_default = 3
 
