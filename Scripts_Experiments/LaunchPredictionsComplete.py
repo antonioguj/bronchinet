@@ -38,8 +38,10 @@ def main(args):
 
 
     # 1st script: 'PredictionModel.py'
-    message = 'python' + SCRIPT_PREDICTIONMODEL + args.inputmodel + OutputPosteriorsPath + \
-              '--cfgfromfile' + in_cfgparams_file + '--testdatadir' + args.testdatadir
+    message = ' '.join(['python', SCRIPT_PREDICTIONMODEL,
+                        args.inputmodel, OutputPosteriorsPath,
+                        '--cfgfromfile', in_cfgparams_file,
+                        '--testdatadir', args.testdatadir])
     print("\nLaunch: %s\n" %(message))
 
     Popen_obj = subprocess.Popen(['python', SCRIPT_PREDICTIONMODEL, args.inputmodel, OutputPosteriorsPath,
@@ -53,31 +55,37 @@ def main(args):
 
 
         # 2nd script: 'PostprocessPredictions.py'
-        message = 'python' + SCRIPT_POSTPROCESSPREDICTIONS + OutputPosteriorsPath + OutputPredictionsPath + \
-                  '--threshold' + str(ithres)
+        message = ' '.join(['python', SCRIPT_POSTPROCESSPREDICTIONS,
+                            OutputPosteriorsPath, OutputPredictionsPath,
+                            '--threshold', str(ithres)])
         print("\nLaunch: %s\n" %(message))
 
-        Popen_obj = subprocess.Popen(['python', SCRIPT_POSTPROCESSPREDICTIONS, OutputPosteriorsPath, OutputPredictionsPath,
+        Popen_obj = subprocess.Popen(['python', SCRIPT_POSTPROCESSPREDICTIONS,
+                                      OutputPosteriorsPath, OutputPredictionsPath,
                                       '--threshold', str(ithres)])
         Popen_obj.wait()
 
 
         # 3rd script: 'ApplyOperationImages.py'
-        message = 'python' + SCRIPT_EXTRACTCENTRELINESFROMMASKS + OutputPredictionsPath + OutputPredictCentrelinesPath + \
-                  '--typeOperation' + 'thinning'
+        message = ' '.join(['python', SCRIPT_EXTRACTCENTRELINESFROMMASKS,
+                            OutputPredictionsPath, OutputPredictCentrelinesPath,
+                            '--type', 'thinning'])
         print("\nLaunch: %s\n" %(message))
 
-        Popen_obj = subprocess.Popen(['python', SCRIPT_EXTRACTCENTRELINESFROMMASKS, OutputPredictionsPath, OutputPredictCentrelinesPath,
-                                      '--typeOperation', 'thinning'])
+        Popen_obj = subprocess.Popen(['python', SCRIPT_EXTRACTCENTRELINESFROMMASKS,
+                                      OutputPredictionsPath, OutputPredictCentrelinesPath,
+                                      '--type', 'thinning'])
         Popen_obj.wait()
 
 
         # 4th script: 'ComputeResultMetrics.py'
-        message = 'python' + SCRIPT_COMPUTERESULTMETRICS + OutputPredictionsPath + \
-                  '--inputcentrelinesdir' + OutputPredictCentrelinesPath
+        message = ' '.join(['python', SCRIPT_COMPUTERESULTMETRICS,
+                            OutputPredictionsPath,
+                            '--inputcentrelinesdir', OutputPredictCentrelinesPath])
         print("\nLaunch: %s\n" %(message))
 
-        Popen_obj = subprocess.Popen(['python', SCRIPT_COMPUTERESULTMETRICS, OutputPredictionsPath,
+        Popen_obj = subprocess.Popen(['python', SCRIPT_COMPUTERESULTMETRICS,
+                                      OutputPredictionsPath,
                                       '--inputcentrelinesdir', OutputPredictCentrelinesPath])
         Popen_obj.wait()
 

@@ -255,7 +255,7 @@ if __name__ == "__main__":
         if not args.referencedir or not args.boundboxfile:
             message = 'need to set arguments \'referencedir\' and \'boundboxfile\''
             CatchErrorException(message)
-    elif args.type == 'rescale':
+    elif args.type == 'rescale' or args.type == 'rescale_mask':
         if not args.referencedir or not args.rescalefile:
             message = 'need to set arguments \'referencedir\' and \'rescalefile\''
             CatchErrorException(message)

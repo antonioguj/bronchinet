@@ -24,8 +24,8 @@ def main(args):
     nameInputLabelsRelPath   = 'RawAirways/'
     nameInputRoiMasksRelPath = 'RawLungs/'
     nameReferenceFilesRelPath= 'RawImages/'
-    nameOutputImagesRelPath  = 'Images_WorkData_Rescaled/'
-    nameOutputLabelsRelPath  = 'Labels_WorkData_Rescaled/'
+    nameOutputImagesRelPath  = 'ImagesWorkData/'
+    nameOutputLabelsRelPath  = 'REsWorkData/'
     nameOutputImagesFiles    = 'images_proc-%0.2i.nii.gz'
     nameOutputLabelsFiles    = 'labels_proc-%0.2i.nii.gz'
 
@@ -172,7 +172,6 @@ def main(args):
                 if (args.isInputExtraLabels):
                     inout_extralabel_array = CropAndExtendImages.compute3D(inout_extralabel_array, croppartial_bounding_box, extendimg_bounding_box, new_inout_image_shape,
                                                                            background_value=inout_extralabel_array[0][0][0])
-
             else:
                 inout_image_array = CropImages.compute3D(inout_image_array, crop_bounding_box)
                 inout_label_array = CropImages.compute3D(inout_label_array, crop_bounding_box)

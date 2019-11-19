@@ -69,7 +69,7 @@ class CropImages(OperationImages):
         return in_array[bound_box[0][0]:bound_box[0][1], bound_box[1][0]:bound_box[1][1], bound_box[2][0]:bound_box[2][1], ...]
 
 
-class IncludeImages(OperationImages):
+class SetPatchInImages(OperationImages):
     @staticmethod
     def compute2D(in_array, out_array, bound_box):
         out_array[bound_box[0][0]:bound_box[0][1], bound_box[1][0]:bound_box[1][1], ...] = in_array
@@ -92,7 +92,7 @@ class ExtendImages(OperationImages):
             out_array = np.zeros(out_array_shape, dtype=in_array.dtype)
         else:
             out_array = np.full(out_array_shape, background_value, dtype=in_array.dtype)
-        IncludeImages.compute2D(in_array, out_array, bound_box)
+        SetPatchInImages.compute2D(in_array, out_array, bound_box)
         return out_array
 
     @staticmethod
@@ -101,7 +101,7 @@ class ExtendImages(OperationImages):
             out_array = np.zeros(out_array_shape, dtype=in_array.dtype)
         else:
             out_array = np.full(out_array_shape, background_value, dtype=in_array.dtype)
-        IncludeImages.compute3D(in_array, out_array, bound_box)
+        SetPatchInImages.compute3D(in_array, out_array, bound_box)
         return out_array
 
 

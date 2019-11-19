@@ -24,10 +24,10 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputProcDataRelPath = 'Images_WorkData'
-    nameInputReferMasksRelPath = 'Airways_Full'
-    nameReferenceImgRelPath = 'Images_Full'
-    nameOutputFilesRelPath = 'Test_slidingWindowOverlap_Full'
+    nameInputProcDataRelPath = 'ImagesWorkData/'
+    nameInputReferMasksRelPath = 'Airways/'
+    nameReferenceImgRelPath = 'Images/'
+    nameOutputFilesRelPath = 'Test_slidingWindowOverlap_Full/'
     nameCropBoundingBoxes = 'cropBoundingBoxes_images.npy'
 
     def nameOutputFiles(namecase, size_image, slidewin_propOverlap):
@@ -94,7 +94,7 @@ def main(args):
         num_samples_3dirs = images_reconstructor.slidingWindow_generator.get_num_images_dirs()
         print("sliding-window gen. from image \'%s\' of size: \'%s\': num samples \'%s\', in local dirs: \'%s\'"
               %(ifile, str(args.size_in_images), num_samples_total, str(num_samples_3dirs)))
-        limits_images_dirs = images_reconstructor.slidingWindow_generator.get_limits_images_dirs()
+        limits_images_dirs = images_reconstructor.slidingWindow_generator.get_limits_sliding_window_image()
         for i in range(len(num_samples_3dirs)):
             print("coords of images in dir \'%s\': \'%s\'..." % (i, limits_images_dirs[i]))
         # endfor

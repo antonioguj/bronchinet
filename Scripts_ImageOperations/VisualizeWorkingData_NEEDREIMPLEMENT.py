@@ -63,7 +63,7 @@ def main(args):
                                                               args.transformationImages,
                                                               args.elasticDeformationImages)
 
-            (out_visualimage_array, out_visuallabel_array) = images_generator.get_images_array(in_image_array, masks_array=in_label_array)
+            (out_visualimage_array, out_visuallabel_array) = images_generator.get_image(in_image_array, in2nd_array=in_label_array)
 
             for j, (in_batchimage_array, in_batchlabel_array) in enumerate(zip(out_visualimage_array, out_visuallabel_array)):
 

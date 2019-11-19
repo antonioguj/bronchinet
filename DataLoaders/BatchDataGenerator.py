@@ -85,7 +85,7 @@ class BatchDataGenerator_1Array(BatchDataGenerator):
         out_xData_array = np.ndarray(out_array_shape, dtype=self.type_xData)
 
         for i, index in enumerate(indexes_batch):
-            out_xData_array[i] = self.images_generator.get_images_array(self.xData_array, index=index)
+            out_xData_array[i] = self.images_generator.get_image(self.xData_array, index=index)
         #endfor
 
         return out_xData_array
@@ -118,9 +118,9 @@ class BatchDataGenerator_2Arrays(BatchDataGenerator_1Array):
         out_yData_array = np.ndarray(out_yData_array_shape, dtype=self.type_yData)
 
         for i, index in enumerate(indexes_batch):
-            (out_xData_array[i], out_yData_array[i]) = self.images_generator.get_images_array(self.xData_array,
-                                                                                              index=index,
-                                                                                              masks_array=self.yData_array)
+            (out_xData_array[i], out_yData_array[i]) = self.images_generator.get_image(self.xData_array,
+                                                                                       index=index,
+                                                                                       in2nd_array=self.yData_array)
         #endfor
 
         return (out_xData_array, out_yData_array)
@@ -200,8 +200,8 @@ class BatchDataGenerator_List1Array(BatchDataGenerator):
 
             self.images_generator.complete_init_data(self.list_xData_array[index_file].shape)
 
-            out_xData_array[i] = self.images_generator.get_images_array(self.list_xData_array[index_file],
-                                                                        index=index_sample_file)
+            out_xData_array[i] = self.images_generator.get_image(self.list_xData_array[index_file],
+                                                                 index=index_sample_file)
         #endfor
 
         return out_xData_array
@@ -234,9 +234,9 @@ class BatchDataGenerator_List2Arrays(BatchDataGenerator_List1Array):
 
             self.images_generator.complete_init_data(self.list_xData_array[index_file].shape)
 
-            (out_xData_array[i], out_yData_array[i]) = self.images_generator.get_images_array(self.list_xData_array[index_file],
-                                                                                              index=index_sample_file,
-                                                                                              masks_array=self.list_yData_array[index_file])
+            (out_xData_array[i], out_yData_array[i]) = self.images_generator.get_image(self.list_xData_array[index_file],
+                                                                                       index=index_sample_file,
+                                                                                       in2nd_array=self.list_yData_array[index_file])
         #endfor
 
         return (out_xData_array, out_yData_array)

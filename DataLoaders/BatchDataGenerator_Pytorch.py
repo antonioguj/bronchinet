@@ -75,6 +75,7 @@ class DataSampleGenerator(data.Dataset):
 
         self.num_samples = self.compute_pairIndexes_samples()
 
+
     def compute_pairIndexes_samples(self):
         self.list_pairIndexes_samples = []
 
@@ -92,7 +93,7 @@ class DataSampleGenerator(data.Dataset):
                 print("sliding-window gen. from image \'%s\' of size: " "\'%s\': num samples \'%s\', in local dirs: \'%s\'"
                       %(ifile, str(size_total_image), num_samples_file, str(num_samples_3dirs)))
 
-                limits_images_dirs = self.images_generator.get_limits_images_dirs()
+                limits_images_dirs = self.images_generator.get_limits_sliding_window_image()
                 ndirs = len(num_samples_3dirs)
                 for i in range(ndirs):
                     print("coords of images in dir \'%s\': \'%s\'..." %(i, limits_images_dirs[i]))
@@ -129,9 +130,9 @@ class DataSampleGenerator(data.Dataset):
     def get_item(self, index):
         (index_file, index_sample_file) = self.list_pairIndexes_samples[index]
         self.images_generator.complete_init_data(self.list_xData_array[index_file].shape)
-        (xData_elem, yData_elem) = self.images_generator.get_images_array(self.list_xData_array[index_file],
-                                                                          index= index_sample_file,
-                                                                          masks_array= self.list_yData_array[index_file])
+        (xData_elem, yData_elem) = self.images_generator.get_image(self.list_xData_array[index_file],
+                                                                   index= index_sample_file,
+                                                                   in2nd_array= self.list_yData_array[index_file])
         out_xData_array = self.get_reshaped_output_array(xData_elem)
         if self.isUse_valid_convs:
             out_yData_array = self.get_reshaped_output_array(self.get_crop_output(yData_elem, self.size_output_model))

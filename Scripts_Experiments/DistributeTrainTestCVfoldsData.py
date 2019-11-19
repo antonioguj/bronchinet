@@ -17,9 +17,9 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesDataRelPath = 'Images_WorkData/'
-    nameInputLabelsDataRelPath = 'Labels_WorkData/'
-    nameInputReferFilesRelPath = 'Images_Proc/'
+    nameInputImagesDataRelPath = 'ImagesWorkData/'
+    nameInputLabelsDataRelPath = 'LabelsWorkData/'
+    nameReferenceFilesRelPath  = 'Images/'
     nameTrainingAllDataRelPath = 'TrainingAllData/'
     nameTestingAllDataRelPath  = 'TestingAllData/'
     nameTrainDataSubRelPath    = 'Train-CV%0.2i/'
@@ -32,17 +32,16 @@ def main(args):
     workDirsManager     = WorkDirsManager(args.basedir)
     InputImagesDataPath = workDirsManager.getNameExistBaseDataPath(nameInputImagesDataRelPath)
     InputLabelsDataPath = workDirsManager.getNameExistBaseDataPath(nameInputLabelsDataRelPath)
-    InputReferFilesPath = workDirsManager.getNameExistBaseDataPath(nameInputReferFilesRelPath)
+    ReferenceFilesPath  = workDirsManager.getNameExistBaseDataPath(nameReferenceFilesRelPath)
     CVfoldsPath         = workDirsManager.getNameExistPath        (nameCVfoldsRelPath)
     TrainingAllDataPath = workDirsManager.getNameNewPath          (nameTrainingAllDataRelPath)
     TestingAllDataPath  = workDirsManager.getNameNewPath          (nameTestingAllDataRelPath)
 
     listInputImagesFiles = findFilesDirAndCheck(InputImagesDataPath)
     listInputLabelsFiles = findFilesDirAndCheck(InputLabelsDataPath)
-    listInputReferFiles  = findFilesDirAndCheck(InputReferFilesPath)
+    listReferenceFiles   = findFilesDirAndCheck(ReferenceFilesPath)
+    listReferenceFiles   = [basename(elem) for elem in listReferenceFiles]  # create list with only basenames
     listCVfoldsFiles     = findFilesDirAndCheck(CVfoldsPath, nameCVfoldsFiles)
-    # create list with only basenames
-    listInputReferFiles  = [basename(elem) for elem in listInputReferFiles]
 
     if (len(listInputImagesFiles) != len(listInputLabelsFiles)):
         message = 'num images in dir \'%s\', not equal to num labels in dir \'%i\'...' %(len(listInputImagesFiles),
@@ -68,7 +67,7 @@ def main(args):
 
         indexes_testing_files = []
         for icvfold_testfile in in_cvfold_testfile_names:
-            index_tesfile = listInputReferFiles.index(icvfold_testfile)
+            index_tesfile = listReferenceFiles.index(icvfold_testfile)
             indexes_testing_files.append(index_tesfile)
         #endfor
         indexes_training_files = [ind for ind in range(num_imagedata_files) if ind not in indexes_testing_files]

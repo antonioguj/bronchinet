@@ -19,6 +19,7 @@ import argparse
 def main(args):
     # ---------- SETTINGS ----------
     nameInputImagesRelPath     = 'RawImages/'
+    nameReferenceFilesRelPath  = 'RawImages/'
     nameOutputDataRelPath      = 'RescalingData/'
     nameOrigVoxelSize_FileNpy  = 'original_vozelSize.npy'
     nameOrigVoxelSize_FileCsv  = 'original_vozelSize.csv'
@@ -27,11 +28,13 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workDirsManager = WorkDirsManager(args.datadir)
-    InputImagesPath = workDirsManager.getNameExistPath(nameInputImagesRelPath)
-    OutputDataPath  = workDirsManager.getNameNewPath  (nameOutputDataRelPath)
+    workDirsManager    = WorkDirsManager(args.datadir)
+    InputImagesPath    = workDirsManager.getNameExistPath(nameInputImagesRelPath)
+    ReferenceFilesPath = workDirsManager.getNameExistPath(nameReferenceFilesRelPath)
+    OutputDataPath     = workDirsManager.getNameNewPath  (nameOutputDataRelPath)
 
     listInputImageFiles = findFilesDirAndCheck(InputImagesPath)
+    listReferenceFiles  = findFilesDirAndCheck(ReferenceFilesPath)
 
 
     dict_voxelSizes = OrderedDict()
@@ -42,7 +45,9 @@ def main(args):
         in_voxel_size = DICOMreader.getVoxelSize(in_image_file)
         print("Voxel Size: \'%s\'..." %(str(in_voxel_size)))
 
-        dict_voxelSizes[filenamenoextension(in_image_file)] = in_voxel_size
+
+        in_reference_file = listReferenceFiles[i]
+        dict_voxelSizes[filenamenoextension(in_reference_file)] = in_voxel_size
     #endfor
 
 
@@ -75,6 +80,7 @@ def main(args):
 
         rescale_factor = tuple(np.array(value) / np.array(final_rescale_res))
         print("Computed rescale factor: \'%s\'..." %(str(rescale_factor)))
+
 
         dict_rescaleFactors[key] = rescale_factor
     #endfor

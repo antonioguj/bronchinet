@@ -43,8 +43,8 @@ def find_element_repeated_two_indexes_names(names_images_type_data_1, names_imag
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesDataRelPath = 'Images_WorkData_Rescaled/'
-    nameInputLabelsDataRelPath = 'Labels_WorkData_Rescaled/'
+    nameInputImagesDataRelPath = 'ImagesWorkData/'
+    nameInputLabelsDataRelPath = 'LabelsWorkData/'
     nameTrainingDataRelPath    = 'TrainingData/'
     nameValidationDataRelPath  = 'ValidationData/'
     nameTestingDataRelPath     = 'TestingData/'

@@ -21,7 +21,7 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputLumenMasksRelPath    = 'RawAirwaysLumen/'
     nameInputOutWallMasksRelPath  = 'RawAirwaysOutWall/'
-    nameOutputAirWallMasksRelPath = 'AirwayWall_Proc/'
+    nameOutputAirWallMasksRelPath = 'AirwayWall/'
 
     def nameOutputMasksFiles(in_name):
         in_name = in_name.replace('surface0','airwall')

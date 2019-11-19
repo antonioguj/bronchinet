@@ -299,9 +299,7 @@ def getSubstringPatternFilename(filename, substr_pattern):
 
 def findFileWithSamePrefix(source_file, list_infiles, prefix_pattern=None):
     if not prefix_pattern:
-        #find the pattern prefix in 'source_file'
-        prefix = source_file.split('_')[0]
-        prefix_pattern = ''.join(['[0-9]' if s.isdigit() else s for s in prefix])
+        prefix_pattern = getFilePrefixPattern(list_infiles[0])
 
     prefix_casename = getSubstringPatternFilename(source_file, prefix_pattern)
     for iterfile in list_infiles:
@@ -313,9 +311,7 @@ def findFileWithSamePrefix(source_file, list_infiles, prefix_pattern=None):
 
 def findListFilesWithSamePrefix(source_file, list_infiles, prefix_pattern=None):
     if not prefix_pattern:
-        #find the pattern prefix in 'source_file'
-        prefix = source_file.split('_')[0]
-        prefix_pattern = ''.join(['[0-9]' if s.isdigit() else s for s in prefix] + ['_'])
+        prefix_pattern = getFilePrefixPattern(list_infiles[0])
 
     prefix_casename = getSubstringPatternFilename(source_file, prefix_pattern)
     list_out_files = []
@@ -336,6 +332,12 @@ def getIndexOriginImagesFile(images_file, beginString='images', firstIndex='0'):
         return index_origin - int(firstIndex)
     else:
         return False
+
+def getFilePrefixPattern(in_file):
+    base_infile = basename(in_file)
+    infile_prefix = base_infile.split('_')[0]
+    infile_prefix_pattern = ''.join(['[0-9]' if s.isdigit() else s for s in infile_prefix]) #+'_'
+    return infile_prefix_pattern
 
 def getIntegerInString(in_name):
     return int(re.findall('\d+', in_name)[0])

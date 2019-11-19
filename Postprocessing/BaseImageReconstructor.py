@@ -80,7 +80,7 @@ class BaseImageReconstructor(object):
         if self.is_onehotmulticlass:
             images_array = self.get_processed_image_onehotmulticlass_array(images_array)
         if self.isfilter_valid_outUnet:
-            images_array = self.filterImages_calculator.get_images_array(images_array)
+            images_array = self.filterImages_calculator.get_image(images_array)
         return images_array
 
         # .get_num_channels_array(images_array.shape)

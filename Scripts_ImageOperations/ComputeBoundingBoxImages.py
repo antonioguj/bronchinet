@@ -21,10 +21,11 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputRoiMaskRelPath       = 'Lungs_Rescaled_Proc/'
+    nameInputRoiMaskRelPath       = 'Lungs/'
     nameReferenceFilesRelPath     = 'RawImages/'
-    nameCropBoundingBoxes_FileNpy = 'cropBoundingBoxes_images_rescaled_samesize_TEST.npy'
-    nameCropBoundingBoxes_FileCsv = 'cropBoundingBoxes_images_rescaled_samesize_TEST.csv'
+    nameOutputDataRelPath         = 'CroppingData/'
+    nameCropBoundingBoxes_FileNpy = 'cropBoundingBoxes_images.npy'
+    nameCropBoundingBoxes_FileCsv = 'cropBoundingBoxes_images.csv'
     size_borders_buffer = (20, 20, 20)
     # ---------- SETTINGS ----------
 
@@ -32,6 +33,7 @@ def main(args):
     workDirsManager    = WorkDirsManager(args.datadir)
     InputRoiMasksPath  = workDirsManager.getNameExistPath(nameInputRoiMaskRelPath)
     ReferenceFilesPath = workDirsManager.getNameExistPath(nameReferenceFilesRelPath)
+    OutputDataPath     = workDirsManager.getNameNewPath(nameOutputDataRelPath)
 
     listInputRoiMaskFiles = findFilesDirAndCheck(InputRoiMasksPath)
     listReferenceFiles    = findFilesDirAndCheck(ReferenceFilesPath)
@@ -113,9 +115,9 @@ def main(args):
 
 
     # Save dictionary in file
-    nameoutfile = joinpathnames(args.datadir, nameCropBoundingBoxes_FileNpy)
+    nameoutfile = joinpathnames(OutputDataPath, nameCropBoundingBoxes_FileNpy)
     saveDictionary(nameoutfile, dict_cropBoundingBoxes)
-    nameoutfile = joinpathnames(args.datadir, nameCropBoundingBoxes_FileCsv)
+    nameoutfile = joinpathnames(OutputDataPath, nameCropBoundingBoxes_FileCsv)
     saveDictionary_csv(nameoutfile, dict_cropBoundingBoxes)
 
 

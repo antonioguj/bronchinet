@@ -115,7 +115,7 @@ class FilteringValidUnetOutput(BaseImageGenerator):
             return [num_images] + list(self.size_image)
 
     def check_correct_dims_image_to_filter(self, in_array_shape):
-        if self.is_images_array_without_channels(in_array_shape):
+        if self.is_image_array_without_channels(in_array_shape):
             in_array_size_image = in_array_shape
         else:
             in_array_size_image = in_array_shape[:-1]
@@ -156,7 +156,7 @@ class FilteringValidUnetOutput(BaseImageGenerator):
 
     def get_filtered_images_array(self, images_array):
         if self.check_correct_dims_image_to_filter(images_array.shape):
-            if self.is_images_array_without_channels(images_array.shape):
+            if self.is_image_array_without_channels(images_array.shape):
                 return np.multiply(self.filter_func_outUnet_array, images_array)
             else:
                 return self.multiply_matrixes_with_channels(images_array, self.filter_func_outUnet_array)
@@ -164,37 +164,37 @@ class FilteringValidUnetOutput(BaseImageGenerator):
             return None
 
 
-    def get_images_array(self, images_array,
-                         index= None,
-                         masks_array= None,
-                         seed= None):
-        out_images_array = self.get_filtered_images_array(images_array)
+    def get_image(self, in_array,
+                  index= None,
+                  in2nd_array= None,
+                  seed= None):
+        out_images_array = self.get_filtered_images_array(in_array)
 
-        if masks_array is None:
+        if in2nd_array is None:
             return out_images_array
         else:
-            out_masks_array = self.get_filtered_images_array(masks_array)
+            out_masks_array = self.get_filtered_images_array(in2nd_array)
             return (out_images_array, out_masks_array)
 
-    def compute_images_array_all(self, images_array,
-                                 masks_array= None,
-                                 seed_0= None):
-        out_array_shape  = self.get_shape_out_array(images_array.shape)
-        out_images_array = np.ndarray(out_array_shape, dtype=images_array.dtype)
+    def compute_images_all(self, in_array,
+                           in2nd_array= None,
+                           seed_0= None):
+        out_array_shape  = self.get_shape_out_array(in_array.shape)
+        out_images_array = np.ndarray(out_array_shape, dtype=in_array.dtype)
 
-        if masks_array is None:
-            num_images = images_array.shape[0]
+        if in2nd_array is None:
+            num_images = in_array.shape[0]
             for index in range(num_images):
-                out_images_array[index] = self.get_filtered_images_array(images_array[index])
+                out_images_array[index] = self.get_filtered_images_array(in_array[index])
             #endfor
             return out_images_array
         else:
-            out_array_shape = self.get_shape_out_array(masks_array.shape)
-            out_masks_array = np.ndarray(out_array_shape, dtype=masks_array.dtype)
-            num_images = images_array.shape[0]
+            out_array_shape = self.get_shape_out_array(in2nd_array.shape)
+            out_masks_array = np.ndarray(out_array_shape, dtype=in2nd_array.dtype)
+            num_images = in_array.shape[0]
             for index in range(num_images):
-                out_images_array[index] = self.get_filtered_images_array(images_array[index])
-                out_masks_array [index] = self.get_filtered_images_array(masks_array [index])
+                out_images_array[index] = self.get_filtered_images_array(in_array[index])
+                out_masks_array [index] = self.get_filtered_images_array(in2nd_array [index])
             #endfor
             return (out_images_array, out_masks_array)
 

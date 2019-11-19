@@ -26,16 +26,10 @@ import argparse
 def main(args):
     # ---------- SETTINGS ----------
     nameInputPredictMasksRelPath      = args.inputpredictmasksdir
-    nameInputReferMasksRelPath        = 'Airways_Proc/'
-    nameInputRoiMasksRelPath          = 'Lungs_Proc/'
+    nameInputReferMasksRelPath        = 'Airways/'
+    nameInputRoiMasksRelPath          = 'Lungs/'
     nameInputPredictCentrelinesRelPath= args.inputcentrelinesdir
-    nameInputReferCentrelinesRelPath  = 'Centrelines_Proc/'
-    nameInputPredictMasksFiles        = '*_binmask.nii.gz'
-    nameInputReferMasksFiles          = '*_lumen.nii.gz'
-    nameInputRoiMasksFiles            = '*_lungs.nii.gz'
-    nameInputPredictCentrelinesFiles  = '*_cenlines.nii.gz'
-    nameInputReferCentrelinesFiles    = '*_cenlines.nii.gz'
-    prefixPatternInputFiles           = 'vol[0-9][0-9]_*'
+    nameInputReferCentrelinesRelPath  = 'Centrelines/'
 
     if (args.removeTracheaResMetrics):
         nameOutResultMetricsFile = 'result_metrics_notrachea.txt'
@@ -50,6 +44,7 @@ def main(args):
 
     listInputPredictMasksFiles = findFilesDirAndCheck(InputPredictMasksPath)
     listInputReferMasksFiles   = findFilesDirAndCheck(InputReferMasksPath)
+    prefixPatternInputFiles    = getFilePrefixPattern(listInputReferMasksFiles[0])
 
     if (args.removeTracheaResMetrics):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
@@ -75,7 +70,7 @@ def main(args):
     if (isLoadReferenceCentrelineFiles):
         print("Loading Reference Centrelines...")
         InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(nameInputReferCentrelinesRelPath)
-        listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath, nameInputReferCentrelinesFiles)
+        listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath)
 
     if (isLoadPredictedCentrelineFiles):
         if not nameInputPredictCentrelinesRelPath:

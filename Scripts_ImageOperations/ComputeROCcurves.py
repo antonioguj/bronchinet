@@ -28,10 +28,9 @@ np.random.seed(2017)
 def main(args):
     # ---------- SETTINGS ----------
     nameInputPredictionsRelPath     = args.inputpredictionsdir
-    nameInputReferMasksRelPath      = 'Airways_Proc/'
-    nameInputRoiMasksRelPath        = 'Lungs_Proc/'
-    nameInputReferCentrelinesRelPath= 'Centrelines_Proc/'
-    prefixPatternInputFiles         = 'vol[0-9][0-9]_*'
+    nameInputReferMasksRelPath      = 'Airways/'
+    nameInputRoiMasksRelPath        = 'Lungs/'
+    nameInputReferCentrelinesRelPath= 'Centrelines/'
     nameOutROCmetricsFile           = 'dataROC_metrics_%s.txt'
     nameOutMeanROCmetricsFile       = 'dataROC_metrics_mean.txt'
 
@@ -64,6 +63,7 @@ def main(args):
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath)
     listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath)
+    prefixPatternInputFiles   = getFilePrefixPattern(listInputReferMasksFiles[0])
 
     if (args.removeTracheaResMetrics):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)

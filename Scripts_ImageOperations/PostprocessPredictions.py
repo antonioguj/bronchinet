@@ -20,12 +20,8 @@ import argparse
 def main(args):
     # ---------- SETTINGS ----------
     nameInputPredictionsRelPath = args.inputpredictiondir
-    nameInputReferMasksRelPath  = 'Airways_Proc/'
-    nameInputRoiMasksRelPath    = 'Lungs_Proc/'
-    nameInputPredictionsFiles   = '*_probmap.nii.gz'
-    nameInputReferMasksFiles    = '*_lumen.nii.gz'
-    nameInputRoiMasksFiles      = '*_lungs.nii.gz'
-    prefixPatternInputFiles     = 'vol[0-9][0-9]_*'
+    nameInputReferMasksRelPath  = 'Airways/'
+    nameInputRoiMasksRelPath    = 'Lungs/'
 
     if (args.outputpredictmasksdir):
         nameOutputPredictMasksRelPath = args.outputpredictmasksdir
@@ -41,12 +37,13 @@ def main(args):
     InputReferMasksPath    = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
     OutputPredictMasksPath = workDirsManager.getNameNewPath          (nameOutputPredictMasksRelPath)
 
-    listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath, nameInputPredictionsFiles)
-    listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath,  nameInputReferMasksFiles)
+    listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath)
+    listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath)
+    prefixPatternInputFiles   = getFilePrefixPattern(listInputReferMasksFiles[0])
 
     if (args.masksToRegionInterest):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
-        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath, nameInputRoiMasksFiles)
+        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
         def compute_trachea_masks(in_refermask_array, in_roimask_array):
             return np.where(in_roimask_array == 1, 0, in_refermask_array)

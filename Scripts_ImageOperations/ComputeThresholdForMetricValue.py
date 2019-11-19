@@ -25,10 +25,9 @@ import argparse
 def main(args):
     # ---------- SETTINGS ----------
     nameInputPredictionsRelPath     = args.inputpredictionsdir
-    nameInputReferMasksRelPath      = 'Airways_Proc/'
-    nameInputRoiMasksRelPath        = 'Lungs_Proc/'
-    nameInputReferCentrelinesRelPath= 'Centrelines_Proc/'
-    prefixPatternInputFiles         = 'vol[0-9][0-9]_*'
+    nameInputReferMasksRelPath      = 'Airways/'
+    nameInputRoiMasksRelPath        = 'Lungs/'
+    nameInputReferCentrelinesRelPath= 'Centrelines/'
 
     metricsEvalThreshold = args.metricsEvalThreshold
     value_metrics_sought = args.ValueMetricsSought
@@ -56,6 +55,7 @@ def main(args):
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath)
     listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath)
+    prefixPatternInputFiles   = getFilePrefixPattern(listInputReferMasksFiles[0])
 
     if (args.removeTracheaResMetrics):
         InputRoiMasksPath = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)

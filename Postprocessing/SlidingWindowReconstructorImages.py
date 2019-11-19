@@ -76,7 +76,7 @@ class SlidingWindowReconstructorImages(BaseImageReconstructor):
 
     def get_includedadded_image_sample(self, sample_array, images_array, index):
         limits_image_sample = self.get_limits_image_sample(index)
-        IncludeImages.compute3D_byadding(sample_array, images_array, limits_image_sample)
+        SetPatchInImages.compute3D_byadding(sample_array, images_array, limits_image_sample)
 
     def get_limits_border_effects(self, size_image_total):
         voxels_border_effects = tuple([(s_i - s_o) / 2 for (s_i, s_o) in zip(self.size_image, self.size_output_model)])
@@ -170,7 +170,7 @@ class SlidingWindowReconstructorImages2D(SlidingWindowReconstructorImages):
                                                                  is_onehotmulticlass= is_onehotmulticlass)
         self.slidingWindow_generator = SlidingWindowImages2D(size_image_sample,
                                                              prop_overlap,
-                                                             size_total= size_total_image)
+                                                             size_full_image= size_total_image)
         self.complete_init_data(size_total_image)
 
 
@@ -193,7 +193,7 @@ class SlidingWindowReconstructorImages3D(SlidingWindowReconstructorImages):
                                                                  is_onehotmulticlass= is_onehotmulticlass)
         self.slidingWindow_generator = SlidingWindowImages3D(size_image_sample,
                                                              prop_overlap,
-                                                             size_total= size_total_image)
+                                                             size_full_image= size_total_image)
         self.complete_init_data(size_total_image)
 
 

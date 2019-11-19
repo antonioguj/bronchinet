@@ -20,7 +20,7 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputCropImagesRelPath = args.cropimagesdir
     nameInputFullImagesRelPath = args.fullimagesdir
-    nameInputReferFilesRelPath = 'CTs_Cropped'
+    nameInputReferFilesRelPath = 'CTs_Cropped/'
     nameBoundingBoxes          = 'found_boundBoxes_original.npy'
     prefixPatternInputFiles    = 'vol[0-9][0-9]_*'
     # ---------- SETTINGS ----------

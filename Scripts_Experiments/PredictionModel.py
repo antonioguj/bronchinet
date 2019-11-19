@@ -39,12 +39,11 @@ def main(args):
                                    type_GPU_installed=TYPEGPUINSTALLED)
 
     # ---------- SETTINGS ----------
-    nameInputRoiMasksRelPath  = 'Lungs_Proc/'
-    nameReferenceFilesRelPath = 'Images_Proc/'
-    namesImagesFiles          = 'images*.nii.gz'
-    namesLabelsFiles          = 'labels*.nii.gz'
+    nameInputRoiMasksRelPath  = 'Lungs/'
+    nameReferenceFilesRelPath = 'RawImages/'
+    namesImagesFiles          = 'images_proc*.nii.gz'
+    namesLabelsFiles          = 'labels_proc*.nii.gz'
     nameCropBoundingBoxes     = 'cropBoundingBoxes_images.npy'
-    #nameRescaleFactors         = 'rescaleFactors_images.npy'
     nameOutputPredictionsRelPath = args.predictionsdir
 
     if (args.saveFeatMapsLayers):
@@ -70,10 +69,6 @@ def main(args):
     if (args.cropImages):
         cropBoundingBoxesFileName = joinpathnames(workDirsManager.getNameBaseDataPath(), nameCropBoundingBoxes)
         dict_cropBoundingBoxes = readDictionary(cropBoundingBoxesFileName)
-
-    #if (args.rescaleImages):
-    #    rescaleFactorsFileName = joinpathnames(workDirsManager.getNameBaseDataPath(), nameRescaleFactors)
-    #    dict_rescaleFactors = readDictionary(rescaleFactorsFileName)
 
 
 
@@ -152,8 +147,6 @@ def main(args):
 
 
 
-    # START ANALYSIS
-    # ----------------------------------------------
     print("-" * 30)
     print("Predicting model...")
     print("-" * 30)
@@ -162,7 +155,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_testXData_file)))
 
         # COMPUTE PREDICTION
-        # ------------------------------------------
+        # *******************************************************************************
         print("Loading data...")
         if (args.slidingWindowImages or args.transformationImages):
             if TYPE_DNNLIBRARY_USED == 'Keras':
@@ -194,15 +187,15 @@ def main(args):
                 out_predict_yData = model.predict(in_testXData_batches, batch_size=1)
             elif TYPE_DNNLIBRARY_USED == 'Pytorch':
                 out_predict_yData = trainer.predict(in_testXData_batches)
-        # ------------------------------------------
-
+        # *******************************************************************************
 
 
         # RECONSTRUCT FULL-SIZE PREDICTION
-        # ------------------------------------------
+        # *******************************************************************************
         print("Reconstruct prediction to full size...")
         # Assign original images and masks files
-        index_reference_file = getIndexOriginImagesFile(basename(in_testXData_file), beginString='images', firstIndex='01')
+        index_reference_file = getIndexOriginImagesFile(basename(in_testXData_file),
+                                                        beginString='images_proc', firstIndex='01')
         in_reference_file = listReferenceFiles[index_reference_file]
         print("Reference image file: \'%s\'..." %(basename(in_reference_file)))
 
@@ -214,20 +207,38 @@ def main(args):
 
 
         # reconstruct from cropped / rescaled images
-        out_fullimage_shape = FileReader.getImageSize(in_reference_file)
+        in_roimask_file = listInputRoiMasksFiles[index_reference_file]
+        out_fullimage_shape = FileReader.getImageSize(in_roimask_file)
         if (args.saveFeatMapsLayers):
             num_featmaps = out_prediction_array.shape[-1]
             out_fullimage_shape = list(out_fullimage_shape) + [num_featmaps]
 
 
+        # *******************************************************************************
         if (args.cropImages):
+            print("Prediction data are cropped. Extend prediction array to full image size...")
             crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_reference_file)]
-            print("Predicted data are cropped. Extend array size to original. Bounding-box: \'%s\'..." %(str(crop_bounding_box)))
+            print("Initial array size \'%s\'. Full image size: \'%s\'. Bounding-box: \'%s\'..." %(out_prediction_array.shape,
+                                                                                                  out_fullimage_shape,
+                                                                                                  str(crop_bounding_box)))
 
-            out_prediction_array = ExtendImages.compute3D(out_prediction_array, crop_bounding_box, out_fullimage_shape)
+            if not BoundingBoxes.is_bounding_box_contained_in_image_size(crop_bounding_box, out_fullimage_shape):
+                print("Cropping bounding-box: \'%s\' is larger than image size: \'%s\'. Combine cropping with extending images..."
+                      %(str(crop_bounding_box), str(out_fullimage_shape)))
+
+                (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image_reverse(crop_bounding_box,
+                                                                                                                                    out_fullimage_shape)
+
+                out_prediction_array = CropAndExtendImages.compute3D(out_prediction_array, croppartial_bounding_box, extendimg_bounding_box, out_fullimage_shape,
+                                                                     background_value=out_prediction_array[0][0][0])
+            else:
+                out_prediction_array = ExtendImages.compute3D(out_prediction_array, crop_bounding_box, out_fullimage_shape)
+
             print("Final dims: %s..." %(str(out_prediction_array.shape)))
+        # *******************************************************************************
 
 
+        # *******************************************************************************
         if (args.masksToRegionInterest):
             print("Mask predictions to RoI: lungs...")
             in_roimask_file = listInputRoiMasksFiles[index_reference_file]
@@ -235,8 +246,7 @@ def main(args):
 
             in_roimask_array = FileReader.getImageArray(in_roimask_file)
             out_prediction_array = OperationBinaryMasks.reverse_mask_exclude_voxels_fillzero(out_prediction_array, in_roimask_array)
-        # ------------------------------------------
-
+        # *******************************************************************************
 
 
         if (args.saveFeatMapsLayers):
@@ -269,7 +279,6 @@ if __name__ == "__main__":
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
-    parser.add_argument('--extendSizeImages', type=str2bool, default=EXTENDSIZEIMAGES)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
     #parser.add_argument('--slidewin_propOverlap', type=str2tuplefloat, default=SLIDEWIN_PROPOVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=False)
