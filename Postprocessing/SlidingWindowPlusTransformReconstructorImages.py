@@ -9,7 +9,7 @@
 ########################################################################################
 
 from Preprocessing.SlidingWindowImages import *
-from Preprocessing.TransformationImages import *
+from Preprocessing.TransformationRigidImages import *
 from Postprocessing.SlidingWindowReconstructorImages import *
 
 
@@ -84,9 +84,9 @@ class SlidingWindowPlusTransformReconstructorImages2D(SlidingWindowPlusTransform
                  isfilter_valid_outUnet= False,
                  prop_valid_outUnet= None,
                  is_onehotmulticlass= False):
-        self.slidingWindow_generator = SlidingWindowImages2D(size_image_sample,
-                                                             prop_overlap,
-                                                             size_full_image= size_total_image)
+        self.slidingWindow_generator = SlidingWindowImages(size_image_sample,
+                                                           prop_overlap,
+                                                           size_full_image= size_total_image)
         super(SlidingWindowPlusTransformReconstructorImages2D, self).__init__(size_image_sample,
                                                                               transformImages_generator,
                                                                               num_trans_per_sample,
@@ -110,9 +110,9 @@ class SlidingWindowPlusTransformReconstructorImages3D(SlidingWindowPlusTransform
                  isfilter_valid_outUnet= False,
                  prop_valid_outUnet= None,
                  is_onehotmulticlass= False):
-        self.slidingWindow_generator = SlidingWindowImages3D(size_image_sample,
-                                                             prop_overlap,
-                                                             size_full_image= size_total_image)
+        self.slidingWindow_generator = SlidingWindowImages(size_image_sample,
+                                                           prop_overlap,
+                                                           size_full_image= size_total_image)
         super(SlidingWindowPlusTransformReconstructorImages3D, self).__init__(size_image_sample,
                                                                               transformImages_generator,
                                                                               num_trans_per_sample,

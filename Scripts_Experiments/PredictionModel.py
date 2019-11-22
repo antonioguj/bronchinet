@@ -41,8 +41,8 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputRoiMasksRelPath  = 'Lungs/'
     nameReferenceFilesRelPath = 'RawImages/'
-    namesImagesFiles          = 'images_proc*.nii.gz'
-    namesLabelsFiles          = 'labels_proc*.nii.gz'
+    namesImagesFiles          = 'images*.npz'
+    namesLabelsFiles          = 'labels*.npz'
     nameCropBoundingBoxes     = 'cropBoundingBoxes_images.npy'
     nameOutputPredictionsRelPath = args.predictionsdir
 
@@ -130,15 +130,17 @@ def main(args):
             visual_model_params = VisualModelParams(trainer.model_net, args.size_in_images)
 
 
-    test_images_generator = getImagesDataGenerator3D(args.size_in_images,
-                                                     args.slidingWindowImages,
-                                                     args.slidewin_propOverlap,
-                                                     args.transformationImages,
-                                                     args.elasticDeformationImages)
+    test_images_generator = getImagesDataGenerator(args.size_in_images,
+                                                   args.slidingWindowImages,
+                                                   args.propOverlapSlidingWindow,
+                                                   args.randomCropWindowImages,
+                                                   args.numRandomImagesPerVolumeEpoch,
+                                                   args.transformationRigidImages,
+                                                   args.transformElasticDeformImages)
     images_reconstructor = getImagesReconstructor3D(args.size_in_images,
                                                     args.slidingWindowImages,
-                                                    args.slidewin_propOverlap,
-                                                    use_TransformationImages=False,
+                                                    args.propOverlapSlidingWindow,
+                                                    use_transformationImages=False,
                                                     isUse_valid_convs=args.isValidConvolutions,
                                                     size_output_model=size_output_modelnet,
                                                     isfilter_valid_outUnet=FILTERPREDICTPROBMAPS,
@@ -157,7 +159,7 @@ def main(args):
         # COMPUTE PREDICTION
         # *******************************************************************************
         print("Loading data...")
-        if (args.slidingWindowImages or args.transformationImages):
+        if (args.slidingWindowImages or args.transformationRigidImages):
             if TYPE_DNNLIBRARY_USED == 'Keras':
                 in_testXData_batches = LoadDataManagerInBatches_DataGenerator(args.size_in_images,
                                                                               test_images_generator).loadData_1File(in_testXData_file,
@@ -195,13 +197,13 @@ def main(args):
         print("Reconstruct prediction to full size...")
         # Assign original images and masks files
         index_reference_file = getIndexOriginImagesFile(basename(in_testXData_file),
-                                                        beginString='images_proc', firstIndex='01')
+                                                        beginString='images', firstIndex='01')
         in_reference_file = listReferenceFiles[index_reference_file]
         print("Reference image file: \'%s\'..." %(basename(in_reference_file)))
 
         # init reconstructor with size of "ifile"
         out_reconstructImage_shape = FileReader.getImageSize(in_testXData_file)
-        images_reconstructor.complete_init_data(out_reconstructImage_shape)
+        images_reconstructor.update_image_data(out_reconstructImage_shape)
 
         out_prediction_array = images_reconstructor.compute(out_predict_yData)
 
@@ -279,10 +281,12 @@ if __name__ == "__main__":
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
-    parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
-    #parser.add_argument('--slidewin_propOverlap', type=str2tuplefloat, default=SLIDEWIN_PROPOVERLAP_Z_X_Y)
-    parser.add_argument('--transformationImages', type=str2bool, default=False)
-    parser.add_argument('--elasticDeformationImages', type=str2bool, default=False)
+    parser.add_argument('--slidingWindowImages', type=str2bool, default=True)
+    #parser.add_argument('--propOverlapSlidingWindow', type=str2tuplefloat, default=PROPOVERLAPSLIDINGWINDOW_Z_X_Y)
+    parser.add_argument('--randomCropWindowImages', type=str2tuplefloat, default=False)
+    parser.add_argument('--numRandomImagesPerVolumeEpoch', type=str2tuplefloat, default=0)
+    parser.add_argument('--transformationRigidImages', type=str2bool, default=False)
+    parser.add_argument('--transformElasticDeformImages', type=str2bool, default=False)
     parser.add_argument('--saveFeatMapsLayers', type=str2bool, default=SAVEFEATMAPSLAYERS)
     parser.add_argument('--nameSaveModelLayer', type=str, default=NAMESAVEMODELLAYER)
     parser.add_argument('--lossfun', type=str, default=ILOSSFUN)
@@ -305,13 +309,15 @@ if __name__ == "__main__":
         args.isValidConvolutions    = str2bool(input_args_file['isValidConvolutions'])
         #args.cropImages             = str2bool(input_args_file['cropImages'])
         #args.extendSizeImages       = str2bool(input_args_file['extendSizeImages'])
-        args.slidingWindowImages    = str2bool(input_args_file['slidingWindowImages'])
-        #args.slidewin_propOverlap   = str2tuplefloat(input_args_file['slidewin_propOverlap'])
-        args.transformationImages   = False   #str2bool(input_args_file['transformationImages'])
-        args.elasticDeformationImages= str2bool(input_args_file['elasticDeformationImages'])
+        args.slidingWindowImages    = True      #str2bool(input_args_file['slidingWindowImages'])
+        #args.propOverlapSlidingWindow= str2tuplefloat(input_args_file['propOverlapSlidingWindow'])
+        args.randomCropWindowImages = False     #str2bool(input_args_file['randomCropWindowImages'])
+        args.numRandomImagesPerVolumeEpoch = 0  #str2bool(input_args_file['numRandomImagesPerVolumeEpoch'])
+        args.transformationRigidImages   = False   #str2bool(input_args_file['transformationRigidImages'])
+        args.transformElasticDeformImages= False   #str2bool(input_args_file['transformElasticDeformImages'])
         args.isGNNwithAttentionLays = str2bool(input_args_file['isGNNwithAttentionLays'])
 
-    args.slidewin_propOverlap = (0.5, 0.0, 0.0)
+    args.propOverlapSlidingWindow = (0.5, 0.0, 0.0)
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).iteritems()):

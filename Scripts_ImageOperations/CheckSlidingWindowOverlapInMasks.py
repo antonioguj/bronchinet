@@ -88,7 +88,7 @@ def main(args):
         refermask_array = FileReader.getImageArray(in_refermask_file)
         size_fullimage = refermask_array.shape
 
-        images_reconstructor.complete_init_data(size_procimage, is_compute_normfact=False)
+        images_reconstructor.update_image_data(size_procimage, is_compute_normfact=False)
 
         num_samples_total = images_reconstructor.slidingWindow_generator.get_num_images()
         num_samples_3dirs = images_reconstructor.slidingWindow_generator.get_num_images_dirs()
@@ -141,7 +141,7 @@ if __name__ == "__main__":
     parser.add_argument('--filterPredictProbMaps', type=str2bool, default=FILTERPREDICTPROBMAPS)
     parser.add_argument('--prop_valid_outUnet', type=float, default=PROP_VALID_OUTUNET)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
-    parser.add_argument('--slidewin_propOverlap', type=str2tuplefloat, default=SLIDEWIN_PROPOVERLAP_Z_X_Y)
+    parser.add_argument('--slidewin_propOverlap', type=str2tuplefloat, default=SLIDEWINDOW_PROPOVERLAP_Z_X_Y)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     args = parser.parse_args()
 

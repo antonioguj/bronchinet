@@ -9,146 +9,178 @@
 ########################################################################################
 
 from Common.Constants import *
+from Preprocessing.BaseImageGenerator import *
+from Preprocessing.RandomCropWindowImages import *
 from Preprocessing.SlidingWindowImages import *
-from Preprocessing.SlidingWindowPlusTransformImages import *
-from Preprocessing.TransformationImages import *
+from Preprocessing.TransformationRigidImages import *
+from Preprocessing.TransformElasticDeformImages import *
 
 
 
-def getImagesDataGenerator2D(size_in_images,
-                             use_slidingWindowImages,
-                             slidewin_propOverlap,
-                             use_TransformationImages,
-                             use_ElasticDeformationImages):
+class CombinedImagesGenerator(BaseImageGenerator):
+
+    def __init__(self, list_images_generators):
+        self.list_images_generators = list_images_generators
+
+        size_image = list_images_generators[-1].get_size_image()
+        num_images = self.get_compute_num_images()
+
+        super(CombinedImagesGenerator, self).__init__(size_image, num_images)
+
+
+    #def complete_init_data(self, *args):
+    def update_image_data(self, in_array_shape):
+        for images_generator in self.list_images_generators:
+            #images_generator.complete_init_data(args)
+            images_generator.update_image_data(in_array_shape)
+        #endfor
+        self.num_images = self.get_compute_num_images()
+
+
+    def compute_gendata(self, **kwargs):
+        for images_generator in self.list_images_generators:
+            images_generator.compute_gendata(**kwargs)
+        #endfor
+
+    def initialize_gendata(self):
+        for images_generator in self.list_images_generators:
+            images_generator.initialize_gendata(**kwargs)
+        # endfor
+
+
+    def get_text_description(self):
+        message = ''
+        for images_generator in self.list_images_generators:
+            message += images_generator.get_text_description()
+        #endfor
+        return message
+
+
+    def get_compute_num_images(self):
+        num_images_prodrun = 1
+        for images_generator in self.list_images_generators:
+            num_images_prodrun *= images_generator.get_num_images()
+        #endfor
+        return num_images_prodrun
+
+
+    def get_image(self, in_array, **kwargs):
+        out_array = in_array
+        for images_generator in self.list_images_generators:
+            out_array = images_generator.get_image(out_array, **kwargs)
+        #endfor
+        return out_array
+
+
+    def get_images(self, in_array, in2nd_array, **kwargs):
+        out_array = in_array
+        out2nd_array = in2nd_array
+        for images_generator in self.list_images_generators:
+            (out_array, out2nd_array) = images_generator.get_images(out_array, out2nd_array, **kwargs)
+        #endfor
+        return (out_array, out2nd_array)
+
+
+
+class NullGenerator(BaseImageGenerator):
+
+    def __init__(self):
+        super(NullGenerator, self).__init__(0, 0)
+
+    #def complete_init_data(self, *args):
+    def update_image_data(self, in_array_shape):
+        pass
+
+    def compute_gendata(self, **kwargs):
+        return NotImplemented
+
+    def initialize_gendata(self):
+        return NotImplemented
+
+    def get_text_description(self):
+        return ''
+
+    def get_image(self, in_array, **kwargs):
+        return inout_array
+
+
+
+def getImagesDataGenerator(size_in_images,
+                           use_slidingWindowImages,
+                           slidewindow_propOverlap,
+                           use_randomCropWindowImages,
+                           numRandomPatchesEpoch,
+                           use_TransformationRigidImages,
+                           use_TransformElasticDeformImages,
+                           size_full_image= 0):
+
+    list_images_generators = []
 
     if (use_slidingWindowImages):
-        # images data generator by sliding-window...
-        if (use_ElasticDeformationImages):
-            # data augmentation by elastic deformation of input images...
-            return SlidingWindowPlusElasticDeformationImages2D(size_in_images,
-                                                               slidewin_propOverlap)
-        elif (use_TransformationImages):
-            # data augmentation by random transformation of input images...
-            return SlidingWindowPlusTransformImages2D(size_in_images,
-                                                      slidewin_propOverlap,
-                                                      rotation_range=ROTATION_XY_RANGE,
-                                                      height_shift_range=HEIGHT_SHIFT_RANGE,
-                                                      width_shift_range=WIDTH_SHIFT_RANGE,
-                                                      horizontal_flip=HORIZONTAL_FLIP,
-                                                      vertical_flip=VERTICAL_FLIP,
-                                                      zoom_range=ZOOM_RANGE)
+        # generator of image patches by sliding-window...
+        new_images_generator = SlidingWindowImages(size_in_images,
+                                                   slidewindow_propOverlap,
+                                                   size_full_image)
+        list_images_generators.append(new_images_generator)
+
+    elif (use_randomCropWindowImages):
+        # generator of image patches by random cropping window...
+        new_images_generator = RandomCropWindowImages(size_in_images,
+                                                      numRandomPatchesEpoch,
+                                                      size_full_image)
+        list_images_generators.append(new_images_generator)
+
+
+    if use_TransformationRigidImages:
+        # generator of images by random rigid transformations of input images...
+        ndims = len(size_in_images)
+        if ndims==2:
+            new_images_generator = TransformationRigidImages2D(size_in_images,
+                                                               rotation_range=ROTATION_XY_RANGE,
+                                                               height_shift_range=HEIGHT_SHIFT_RANGE,
+                                                               width_shift_range=WIDTH_SHIFT_RANGE,
+                                                               horizontal_flip=HORIZONTAL_FLIP,
+                                                               vertical_flip=VERTICAL_FLIP,
+                                                               zoom_range=ZOOM_RANGE)
+            list_images_generators.append(new_images_generator)
+
+        elif ndims==3:
+            new_images_generator = TransformationRigidImages3D(size_in_images,
+                                                               rotation_XY_range=ROTATION_XY_RANGE,
+                                                               rotation_XZ_range=ROTATION_XZ_RANGE,
+                                                               rotation_YZ_range=ROTATION_YZ_RANGE,
+                                                               height_shift_range=HEIGHT_SHIFT_RANGE,
+                                                               width_shift_range=WIDTH_SHIFT_RANGE,
+                                                               depth_shift_range=DEPTH_SHIFT_RANGE,
+                                                               horizontal_flip=HORIZONTAL_FLIP,
+                                                               vertical_flip=VERTICAL_FLIP,
+                                                               depthZ_flip=DEPTHZ_FLIP,
+                                                               zoom_range=ZOOM_RANGE)
+            list_images_generators.append(new_images_generator)
+
         else:
-            return SlidingWindowImages2D(size_in_images,
-                                         slidewin_propOverlap)
-    else:
-        if (use_ElasticDeformationImages):
-            return SlicingPlusElasticDeformationImages2D(size_in_images)
-        if (use_TransformationImages):
-            return SlicingPlusTransformImages2D(size_in_images,
-                                                rotation_range=ROTATION_XY_RANGE,
-                                                height_shift_range=HEIGHT_SHIFT_RANGE,
-                                                width_shift_range=WIDTH_SHIFT_RANGE,
-                                                horizontal_flip=HORIZONTAL_FLIP,
-                                                vertical_flip=VERTICAL_FLIP,
-                                                zoom_range=ZOOM_RANGE)
-        else:
-            return SlicingImages2D(size_in_images)
+            message = 'wrong value of \'ndims\' (%s)' %(ndims)
+            CatchErrorException(message)
 
 
+        if use_TransformElasticDeformImages:
+            if TYPETRANSFORMELASTICDEFORMATION == 'pixelwise':
+                new_images_generator = TransformElasticDeformPixelwiseImages(size_image)
+                list_images_generators.append(new_images_generator)
 
-def getImagesDataGenerator3D(size_in_images,
-                             use_slidingWindowImages,
-                             slidewin_propOverlap,
-                             use_TransformationImages,
-                             use_ElasticDeformationImages):
-
-    if (use_slidingWindowImages):
-        # images data generator by sliding-window...
-        if (use_ElasticDeformationImages):
-            # data augmentation by elastic deformation of input images...
-            return SlidingWindowPlusElasticDeformationImages3D(size_in_images,
-                                                               slidewin_propOverlap)
-        elif (use_TransformationImages):
-            # data augmentation by random transformation of input images...
-            return SlidingWindowPlusTransformImages3D(size_in_images,
-                                                      slidewin_propOverlap,
-                                                      rotation_XY_range=ROTATION_XY_RANGE,
-                                                      rotation_XZ_range=ROTATION_XZ_RANGE,
-                                                      rotation_YZ_range=ROTATION_YZ_RANGE,
-                                                      height_shift_range=HEIGHT_SHIFT_RANGE,
-                                                      width_shift_range=WIDTH_SHIFT_RANGE,
-                                                      depth_shift_range=DEPTH_SHIFT_RANGE,
-                                                      horizontal_flip=HORIZONTAL_FLIP,
-                                                      vertical_flip=VERTICAL_FLIP,
-                                                      depthZ_flip=DEPTHZ_FLIP,
-                                                      zoom_range=ZOOM_RANGE)
-        else:
-            return SlidingWindowImages3D(size_in_images,
-                                         slidewin_propOverlap)
-    else:
-        if (use_ElasticDeformationImages):
-            return SlicingPlusElasticDeformationImages3D(size_in_images)
-        elif (use_TransformationImages):
-            return SlicingPlusTransformImages3D(size_in_images,
-                                                rotation_XY_range=ROTATION_XY_RANGE,
-                                                rotation_XZ_range=ROTATION_XZ_RANGE,
-                                                rotation_YZ_range=ROTATION_YZ_RANGE,
-                                                height_shift_range=HEIGHT_SHIFT_RANGE,
-                                                width_shift_range=WIDTH_SHIFT_RANGE,
-                                                depth_shift_range=DEPTH_SHIFT_RANGE,
-                                                horizontal_flip=HORIZONTAL_FLIP,
-                                                vertical_flip=VERTICAL_FLIP,
-                                                depthZ_flip=DEPTHZ_FLIP,
-                                                zoom_range=ZOOM_RANGE)
-        else:
-            return SlicingImages3D(size_in_images)
+            else: #TYPETRANSFORMELASTICDEFORMATION == 'gridwise'
+                new_images_generator = TransformElasticDeformGridwiseImages(size_image)
+                list_images_generators.append(new_images_generator)
 
 
+    num_created_images_generators = len(list_images_generators)
 
-def getImagesVolumeTransformator2D(size_in_images,
-                                   use_TransformationImages,
-                                   use_ElasticDeformationImages,
-                                   type_elastic_deformation='gridwise'):
+    if num_created_images_generators==0:
+        return NullGenerator()
 
-    if (use_ElasticDeformationImages):
-        if type_elastic_deformation == 'pixelwise':
-            return ElasticDeformationPixelwiseImages2D(size_in_images)
-        else:
-            return ElasticDeformationGridwiseImages2D(size_in_images)
-    elif (use_TransformationImages):
-        return TransformationImages2D(size_in_images,
-                                      rotation_range=ROTATION_XY_RANGE,
-                                      width_shift_range=WIDTH_SHIFT_RANGE,
-                                      height_shift_range=HEIGHT_SHIFT_RANGE,
-                                      horizontal_flip=HORIZONTAL_FLIP,
-                                      vertical_flip=VERTICAL_FLIP,
-                                      zoom_range=ZOOM_RANGE)
-    else:
-        return False
+    elif num_created_images_generators==1:
+        return list_images_generators[0]
 
-
-
-def getImagesVolumeTransformator3D(size_in_images,
-                                   use_TransformationImages,
-                                   use_ElasticDeformationImages,
-                                   type_elastic_deformation='gridwise'):
-
-    if (use_ElasticDeformationImages):
-        if type_elastic_deformation == 'pixelwise':
-            return ElasticDeformationPixelwiseImages3D(size_in_images)
-        else:
-            return ElasticDeformationGridwiseImages3D(size_in_images)
-    elif (use_TransformationImages):
-        return TransformationImages3D(size_in_images,
-                                      rotation_XY_range=ROTATION_XY_RANGE,
-                                      rotation_XZ_range=ROTATION_XZ_RANGE,
-                                      rotation_YZ_range=ROTATION_YZ_RANGE,
-                                      width_shift_range=WIDTH_SHIFT_RANGE,
-                                      height_shift_range=HEIGHT_SHIFT_RANGE,
-                                      depth_shift_range=DEPTH_SHIFT_RANGE,
-                                      horizontal_flip=HORIZONTAL_FLIP,
-                                      vertical_flip=VERTICAL_FLIP,
-                                      depthZ_flip=DEPTHZ_FLIP,
-                                      zoom_range=ZOOM_RANGE)
-    else:
-        return False
+    else: #num_created_images_generators>1:
+        # generator of images as combination of single image generators
+        return CombinedImagesGenerator(list_images_generators)

@@ -69,7 +69,7 @@ class BatchDataGenerator_1Array(BatchDataGenerator):
         self.num_channels_x = self.array_shape_manager.get_num_channels_array(xData_array.shape)
 
         self.images_generator = images_generator
-        self.images_generator.complete_init_data(xData_array.shape)
+        self.images_generator.update_image_data(xData_array.shape)
 
         if not numtot_samples:
             numtot_samples = images_generator.get_num_images()
@@ -162,7 +162,7 @@ class BatchDataGenerator_List1Array(BatchDataGenerator):
         else:
             for ifile, xData_array in enumerate(self.list_xData_array):
 
-                self.images_generator.complete_init_data(xData_array.shape)
+                self.images_generator.update_image_data(xData_array.shape)
 
                 num_samples_file = self.images_generator.get_num_images()
 
@@ -198,7 +198,7 @@ class BatchDataGenerator_List1Array(BatchDataGenerator):
         for i, index in enumerate(indexes_batch):
             (index_file, index_sample_file) = self.list_pairIndexes_samples[index]
 
-            self.images_generator.complete_init_data(self.list_xData_array[index_file].shape)
+            self.images_generator.update_image_data(self.list_xData_array[index_file].shape)
 
             out_xData_array[i] = self.images_generator.get_image(self.list_xData_array[index_file],
                                                                  index=index_sample_file)
@@ -232,7 +232,7 @@ class BatchDataGenerator_List2Arrays(BatchDataGenerator_List1Array):
         for i, index in enumerate(indexes_batch):
             (index_file, index_sample_file) = self.list_pairIndexes_samples[index]
 
-            self.images_generator.complete_init_data(self.list_xData_array[index_file].shape)
+            self.images_generator.update_image_data(self.list_xData_array[index_file].shape)
 
             (out_xData_array[i], out_yData_array[i]) = self.images_generator.get_image(self.list_xData_array[index_file],
                                                                                        index=index_sample_file,

@@ -100,7 +100,7 @@ class FilteringValidUnetOutput(BaseImageGenerator):
         pass
 
 
-    def complete_init_data(self, in_array_shape):
+    def update_image_data(self, in_array_shape):
         self.num_images = in_array_shape[0]
 
     def get_num_images(self):

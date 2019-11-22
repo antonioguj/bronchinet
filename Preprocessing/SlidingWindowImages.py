@@ -30,8 +30,8 @@ def get_indexes_local_3dim(index, num_images_dirs):
 
 class SlidingWindowImages(BaseImageGenerator):
 
-    def __init__(self, size_image, prop_overlap, size_full_image):
-        super(SlidingWindowImages, self).__init__(size_image)
+    def __init__(self, size_image, prop_overlap, size_full_image=0):
+        super(SlidingWindowImages, self).__init__(size_image, num_images=1)
 
         self.ndims = len(size_image)
         if np.isscalar(prop_overlap):
@@ -59,6 +59,8 @@ class SlidingWindowImages(BaseImageGenerator):
         else:
             raise Exception('Error: self.ndims')
 
+        self.initialize_gendata()
+
 
     @staticmethod
     def get_num_images_1d(size_segment, prop_overlap, size_total):
@@ -74,10 +76,34 @@ class SlidingWindowImages(BaseImageGenerator):
         return (coord_n, coord_npl1)
 
 
-    def complete_init_data(self, in_array_shape):
+    def update_image_data(self, in_array_shape):
         self.size_full_image = in_array_shape[0:self.ndims]
         self.num_images_dirs = self.get_num_images_dirs()
         self.num_images = np.prod(self.num_images_dirs)
+
+
+    def compute_gendata(self, **kwargs):
+        index = kwargs['index']
+        self.crop_window_bounding_box = self.get_crop_window_image(index)
+        self.is_compute_gendata = False
+
+    def initialize_gendata(self):
+        self.is_compute_gendata = True
+        self.crop_window_bounding_box = None
+
+
+    def get_text_description(self):
+        message  = 'Sliding-window generation of images:\n'
+        message += 'image size: \'%s\', proportion overlap: \'%s\', volume image size: \'%s\'...\n' %(str(self.size_image),
+                                                                                                      str(self.prop_overlap),
+                                                                                                      str(self.size_full_image))
+        message += 'num images total: \'%s\', and num images in each direction: \'%s\'...\n' %(self.num_images,
+                                                                                               str(self.num_images_dirs))
+        limits_window_image = self.get_limits_sliding_window_image()
+        for i in range(self.ndims):
+            message += 'limits images in dir \'%s\': \'%s\'...\n' %(i, str(limits_window_image[i]))
+        #endfor
+        return message
 
 
     def get_num_images_dirs(self):
@@ -126,18 +152,8 @@ class SlidingWindowImages(BaseImageGenerator):
         self.fun_setpatch_images_byadding(in_array, in_full_array, crop_bounding_box)
 
 
-    def get_image(self, in_array, in2nd_array= None, index= None, seed= None):
-        if index is None:
-            message = "\'index\' is missing in sliding-window image generator"
-            CatchErrorException(message)
-
-        out_array = self.get_cropped_image(in_array, index)
-
-        if in2nd_array is None:
-            return out_array
-        else:
-            out2nd_array = self.get_cropped_image(in2nd_array, index)
-            return (out_array, out2nd_array)
+    def get_image(self, in_array, **kwargs):
+        return self.fun_crop_images(in_array, self.crop_window_bounding_box)
 
 
 

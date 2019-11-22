@@ -73,42 +73,37 @@ class DataSampleGenerator(data.Dataset):
             self.size_output_model = size_image
         self.iswrite_datagen_info = iswrite_datagen_info
 
-        self.num_samples = self.compute_pairIndexes_samples()
+        self.num_images = self.compute_pairIndexes_imagesFile()
 
 
-    def compute_pairIndexes_samples(self):
-        self.list_pairIndexes_samples = []
+    def compute_pairIndexes_imagesFile(self):
+        self.list_pairIndexes_imagesFile = []
 
         for ifile, xData_array in enumerate(self.list_xData_array):
-            self.images_generator.complete_init_data(xData_array.shape)
-            num_samples_file = self.images_generator.get_num_images()
+            self.images_generator.update_image_data(xData_array.shape)
+
+            num_images_file = self.images_generator.get_num_images()
+
             #store pair of indexes: (idx_file, idx_batch)
-            for index in range(num_samples_file):
-                self.list_pairIndexes_samples.append((ifile, index))
+            for index in range(num_images_file):
+                self.list_pairIndexes_imagesFile.append((ifile, index))
             #endfor
 
             if self.iswrite_datagen_info:
-                size_total_image = xData_array.shape
-                num_samples_3dirs = self.images_generator.get_num_images_dirs()
-                print("sliding-window gen. from image \'%s\' of size: " "\'%s\': num samples \'%s\', in local dirs: \'%s\'"
-                      %(ifile, str(size_total_image), num_samples_file, str(num_samples_3dirs)))
-
-                limits_images_dirs = self.images_generator.get_limits_sliding_window_image()
-                ndirs = len(num_samples_3dirs)
-                for i in range(ndirs):
-                    print("coords of images in dir \'%s\': \'%s\'..." %(i, limits_images_dirs[i]))
-                #endfor
+                message = self.images_generator.get_text_description()
+                print("Image file: \'%s\'..." %(ifile))
+                print(message)
         #endfor
 
-        num_samples = len(self.list_pairIndexes_samples)
-        return num_samples
+        num_images = len(self.list_pairIndexes_imagesFile)
+        return num_images
 
 
     def __getitem__(self, index):
         return self.get_item(index)
 
     def __len__(self):
-        return self.num_samples
+        return self.num_images
 
     def get_crop_output(self, in_array, size_crop):
         crop_bounding_box = BoundingBoxes.compute_bounding_box_centered_image_3D(size_crop, self.size_image)
@@ -128,26 +123,30 @@ class DataSampleGenerator(data.Dataset):
 
 
     def get_item(self, index):
-        (index_file, index_sample_file) = self.list_pairIndexes_samples[index]
-        self.images_generator.complete_init_data(self.list_xData_array[index_file].shape)
-        (xData_elem, yData_elem) = self.images_generator.get_image(self.list_xData_array[index_file],
-                                                                   index= index_sample_file,
-                                                                   in2nd_array= self.list_yData_array[index_file])
+        (index_file, index_sample_file) = self.list_pairIndexes_imagesFile[index]
+
+        self.images_generator.update_image_data(self.list_xData_array[index_file].shape)
+        (xData_elem, yData_elem) = self.images_generator.get_images(self.list_xData_array[index_file],
+                                                                    in2nd_array= self.list_yData_array[index_file],
+                                                                    index=index_sample_file,
+                                                                    seed=None)
+
         out_xData_array = self.get_reshaped_output_array(xData_elem)
         if self.isUse_valid_convs:
             out_yData_array = self.get_reshaped_output_array(self.get_crop_output(yData_elem, self.size_output_model))
         else:
             out_yData_array = self.get_reshaped_output_array(yData_elem)
+
         return (out_xData_array, out_yData_array)
 
 
     def get_full_data(self):
-        out_xData_shape = [self.num_samples] + list(self.size_image)
-        out_yData_shape = [self.num_samples] + list(self.size_output_model)
+        out_xData_shape = [self.num_images] + list(self.size_image)
+        out_yData_shape = [self.num_images] + list(self.size_output_model)
         out_xData_array = np.ndarray(out_xData_shape, dtype= self.type_xData)
         out_yData_array = np.ndarray(out_yData_shape, dtype= self.type_yData)
 
-        for i in range(self.num_samples):
+        for i in range(self.num_images):
             (out_xData_array[i], out_yData_array[i]) = self.getitem_incpu(i)
         #endfor
         return (out_xData_array, out_yData_array)

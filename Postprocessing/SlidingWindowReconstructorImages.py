@@ -44,7 +44,7 @@ class SlidingWindowReconstructorImages(BaseImageReconstructor):
 
     def complete_init_data_step1(self, in_array_shape):
         self.size_total_image = in_array_shape[0:self.ndims]
-        self.slidingWindow_generator.complete_init_data(in_array_shape)
+        self.slidingWindow_generator.update_image_data(in_array_shape)
         self.num_samples_total = self.slidingWindow_generator.get_num_images()
 
     def complete_init_data_step2(self):
@@ -65,11 +65,11 @@ class SlidingWindowReconstructorImages(BaseImageReconstructor):
             return NotImplemented
 
     def get_limits_image_sample(self, index):
-        limits_input_image = self.slidingWindow_generator.get_limits_image(index)
-        limits_input_image = [[limits_input_image[2*i], limits_input_image[2*i+1]] for i in range(self.ndims)]
+        limits_input_image = self.slidingWindow_generator.get_crop_window_image(index)
+        #limits_input_image = [[limits_input_image[2*i], limits_input_image[2*i+1]] for i in range(self.ndims)]
         if self.isUse_valid_convs:
-            limits_output_sample = BoundingBoxes.compute_bounding_box_centered_bounding_box_3D(limits_input_image,
-                                                                                               self.size_output_model)
+            limits_output_sample = BoundingBoxes.compute_bounding_box_centered_bounding_box_fit_image(limits_input_image,
+                                                                                                      self.size_output_model)
         else:
             limits_output_sample = limits_input_image
         return limits_output_sample
@@ -168,9 +168,9 @@ class SlidingWindowReconstructorImages2D(SlidingWindowReconstructorImages):
                                                                  isUse_valid_convs=isUse_valid_convs,
                                                                  size_output_model=size_output_model,
                                                                  is_onehotmulticlass= is_onehotmulticlass)
-        self.slidingWindow_generator = SlidingWindowImages2D(size_image_sample,
-                                                             prop_overlap,
-                                                             size_full_image= size_total_image)
+        self.slidingWindow_generator = SlidingWindowImages(size_image_sample,
+                                                           prop_overlap,
+                                                           size_full_image= size_total_image)
         self.complete_init_data(size_total_image)
 
 
@@ -191,9 +191,9 @@ class SlidingWindowReconstructorImages3D(SlidingWindowReconstructorImages):
                                                                  isUse_valid_convs=isUse_valid_convs,
                                                                  size_output_model=size_output_model,
                                                                  is_onehotmulticlass= is_onehotmulticlass)
-        self.slidingWindow_generator = SlidingWindowImages3D(size_image_sample,
-                                                             prop_overlap,
-                                                             size_full_image= size_total_image)
+        self.slidingWindow_generator = SlidingWindowImages(size_image_sample,
+                                                           prop_overlap,
+                                                           size_full_image= size_total_image)
         self.complete_init_data(size_total_image)
 
 

@@ -97,7 +97,7 @@ class ProbabilityValidConvNnetOutput(BaseImageGenerator):
     def fill_flat_exterior_boundbox(self, outer_boundbox):
         return NotImplemented
 
-    def complete_init_data(self, in_array_shape):
+    def update_image_data(self, in_array_shape):
         self.num_images = in_array_shape[0]
 
     def get_probmap_output_nnet_array(self):

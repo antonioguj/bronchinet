@@ -253,16 +253,18 @@ def main(args):
     print("-" * 30)
 
     print("Load Training data...")
-    if (args.slidingWindowImages or args.transformationImages or args.elasticDeformationImages):
+    if (args.slidingWindowImages or args.transformationRigidImages or args.transformElasticDeformImages):
         print("Generate Training images with Batch Generator of Training data...")
-        
+
         (list_train_xData, list_train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles,
                                                                                   listTrainLabelsFiles)
-        train_images_generator = getImagesDataGenerator3D(args.size_in_images,
-                                                          args.slidingWindowImages,
-                                                          args.slidewin_propOverlap,
-                                                          args.transformationImages,
-                                                          args.elasticDeformationImages)
+        train_images_generator = getImagesDataGenerator(args.size_in_images,
+                                                        args.slidingWindowImages,
+                                                        args.propOverlapSlidingWindow,
+                                                        args.randomCropWindowImages,
+                                                        args.numRandomImagesPerVolumeEpoch,
+                                                        args.transformationRigidImages,
+                                                        args.transformElasticDeformImages)
         train_batch_data_generator = TrainingBatchDataGenerator(args.size_in_images,
                                                                 list_train_xData,
                                                                 list_train_yData,
@@ -281,18 +283,20 @@ def main(args):
 
     if use_validation_data:
         print("Load Validation data...")
-        if (args.slidingWindowImages or args.transformationImages or args.elasticDeformationImages):
+        if (args.slidingWindowImages or args.transformationRigidImages or args.transformElasticDeformImages):
             print("Generate Validation images with Batch Generator of Validation data...")
-            args.transformationImages = args.transformationImages and USETRANSFORMONVALIDATIONDATA
-            args.elasticDeformationImages = args.elasticDeformationImages and USETRANSFORMONVALIDATIONDATA
-            
+            args.transformationRigidImages = args.transformationRigidImages and USETRANSFORMONVALIDATIONDATA
+            args.transformElasticDeformImages = args.transformElasticDeformImages and USETRANSFORMONVALIDATIONDATA
+
             (list_valid_xData, list_valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles,
                                                                                       listValidLabelsFiles)
-            valid_images_generator = getImagesDataGenerator3D(args.size_in_images,
-                                                              args.slidingWindowImages,
-                                                              args.slidewin_propOverlap,
-                                                              args.transformationImages,
-                                                              args.elasticDeformationImages)
+            valid_images_generator = getImagesDataGenerator(args.size_in_images,
+                                                            args.slidingWindowImages,
+                                                            args.propOverlapSlidingWindow,
+                                                            args.randomCropWindowImages,
+                                                            args.numRandomImagesPerVolumeEpoch,
+                                                            args.transformationRigidImages,
+                                                            args.transformElasticDeformImages)
             valid_batch_data_generator = TrainingBatchDataGenerator(args.size_in_images,
                                                                     list_valid_xData,
                                                                     list_valid_yData,
@@ -323,27 +327,14 @@ def main(args):
     print("-" * 30)
 
     if TYPE_DNNLIBRARY_USED == 'Keras':
-        if (args.slidingWindowImages or
-            args.transformationImages):
-            model.fit_generator(train_batch_data_generator,
-                                nb_epoch=args.num_epochs,
-                                steps_per_epoch=args.max_steps_epoch,
-                                verbose=1,
-                                callbacks=list_callbacks,
-                                validation_data=validation_data,
-                                shuffle=SHUFFLETRAINDATA,
-                                initial_epoch=initial_epoch)
-        else:
-            model.fit(list_train_xData,
-                      list_train_yData,
-                      batch_size=args.batch_size,
-                      epochs=args.num_epochs,
-                      steps_per_epoch=args.max_steps_epoch,
-                      verbose=1,
-                      callbacks=list_callbacks,
-                      validation_data=validation_data,
-                      shuffle=SHUFFLETRAINDATA,
-                      initial_epoch=initial_epoch)
+        model.fit_generator(train_batch_data_generator,
+                            nb_epoch=args.num_epochs,
+                            steps_per_epoch=args.max_steps_epoch,
+                            verbose=1,
+                            callbacks=list_callbacks,
+                            validation_data=validation_data,
+                            shuffle=SHUFFLETRAINDATA,
+                            initial_epoch=initial_epoch)
 
     elif TYPE_DNNLIBRARY_USED == 'Pytorch':
         trainer.train(train_batch_data_generator,
@@ -386,9 +377,11 @@ if __name__ == "__main__":
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
-    parser.add_argument('--slidewin_propOverlap', type=str2tuplefloat, default=SLIDEWIN_PROPOVERLAP_Z_X_Y)
-    parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONIMAGES)
-    parser.add_argument('--elasticDeformationImages', type=str2bool, default=ELASTICDEFORMATIONIMAGES)
+    parser.add_argument('--propOverlapSlidingWindow', type=str2tuplefloat, default=PROPOVERLAPSLIDINGWINDOW_Z_X_Y)
+    parser.add_argument('--randomCropWindowImages', type=str2tuplefloat, default=RANDOMCROPWINDOWIMAGES)
+    parser.add_argument('--numRandomImagesPerVolumeEpoch', type=str2tuplefloat, default=NUMRANDOMIMAGESPERVOLUMEEPOCH)
+    parser.add_argument('--transformationRigidImages', type=str2bool, default=TRANSFORMATIONRIGIDIMAGES)
+    parser.add_argument('--transformElasticDeformImages', type=str2bool, default=TRANSFORMELASTICDEFORMIMAGES)
     parser.add_argument('--restart_model', type=str2bool, default=RESTART_MODEL)
     parser.add_argument('--restart_epoch', type=int, default=RESTART_EPOCH)
     parser.add_argument('--isGNNwithAttentionLays', type=str2bool, default=ISGNNWITHATTENTIONLAYS)
@@ -422,9 +415,9 @@ if __name__ == "__main__":
         args.masksToRegionInterest  = str2bool(input_args_file['masksToRegionInterest'])
         args.isValidConvolutions    = str2bool(input_args_file['isValidConvolutions'])
         args.slidingWindowImages    = str2bool(input_args_file['slidingWindowImages'])
-        args.slidewin_propOverlap   = str2tuplefloat(input_args_file['slidewin_propOverlap'])
-        args.transformationImages   = str2bool(input_args_file['transformationImages'])
-        args.elasticDeformationImages= str2bool(input_args_file['elasticDeformationImages'])
+        args.propOverlapSlidingWindow   = str2tuplefloat(input_args_file['propOverlapSlidingWindow'])
+        args.transformationRigidImages   = str2bool(input_args_file['transformationRigidImages'])
+        args.transformElasticDeformImages= str2bool(input_args_file['transformElasticDeformImages'])
         args.isGNNwithAttentionLays = str2bool(input_args_file['isGNNwithAttentionLays'])
 
     print("Print input arguments...")

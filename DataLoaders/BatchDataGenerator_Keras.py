@@ -56,7 +56,7 @@ class TrainingBatchDataGenerator(image.Iterator):
     def compute_pairIndexes_samples(self, shuffle, seed=None):
         self.list_pairIndexes_samples = []
         for ifile, xData_array in enumerate(self.list_xData_array):
-            self.images_generator.complete_init_data(xData_array.shape)
+            self.images_generator.update_image_data(xData_array.shape)
             num_samples_file = self.images_generator.get_num_images()
             #store pair of indexes: (idx_file, idx_batch)
             for index in range(num_samples_file):
@@ -108,7 +108,7 @@ class TrainingBatchDataGenerator(image.Iterator):
 
         for i, index in enumerate(indexes_batch):
             (index_file, index_sample_file) = self.list_pairIndexes_samples[index]
-            self.images_generator.complete_init_data(self.list_xData_array[index_file].shape)
+            self.images_generator.update_image_data(self.list_xData_array[index_file].shape)
             (xData_elem, yData_elem) = self.images_generator.get_image(self.list_xData_array[index_file],
                                                                        index=index_sample_file,
                                                                        in2nd_array=self.list_yData_array[index_file])

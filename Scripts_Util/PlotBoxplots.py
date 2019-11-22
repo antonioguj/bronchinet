@@ -36,7 +36,7 @@ def main(args):
     #endfor
 
     #labels = ['model_%i'%(i+1) for i in range(num_data_files)]
-    labels = ['Unet__Upsample', 'Unet__ConvTransposed']
+    labels = ['Original', 'Rescaled_RandomWindow', 'Rescaled_SlidingWindow_Fit', 'Rescaled_SlidingWindow_Samesize']
     titles = ['Distance False Positives', 'Distance False Negatives']
     names_outfiles = ['figure_resDFP_NEW.eps', 'figure_resDFN_NEW.eps']
 
