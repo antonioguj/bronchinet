@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from DataLoaders.BatchDataGenerator import *
+from DataLoaders.BatchDataGenerator_OLD import *
 from DataLoaders.FileReaders import *
 from Common.FunctionsUtil import *
 

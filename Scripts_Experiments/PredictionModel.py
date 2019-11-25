@@ -12,12 +12,12 @@ from Common.CPUGPUdevicesManager import *
 from Common.WorkDirsManager import *
 from DataLoaders.LoadDataManager import *
 if TYPE_DNNLIBRARY_USED == 'Keras':
-    from DataLoaders.BatchDataGenerator_Keras import *
+    from DataLoaders.BatchDataGenerator_Keras import BatchDataGenerator_Keras as BatchDataGenerator
     from Networks_Keras.Metrics import *
     from Networks_Keras.Networks import *
     from Networks_Keras.VisualModelParams import *
 elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-    from DataLoaders.BatchDataGenerator_Pytorch import *
+    from DataLoaders.BatchDataGenerator_Pytorch import WrapperBatchGenerator_Pytorch as BatchDataGenerator
     from Networks_Pytorch.Metrics import *
     if ISTESTMODELSWITHGNN:
         from Networks_Pytorch.NetworksGNNs import *
@@ -142,7 +142,7 @@ def main(args):
                                                     args.propOverlapSlidingWindow,
                                                     use_transformationImages=False,
                                                     isUse_valid_convs=args.isValidConvolutions,
-                                                    size_output_model=size_output_modelnet,
+                                                    size_output_image=size_output_modelnet,
                                                     isfilter_valid_outUnet=FILTERPREDICTPROBMAPS,
                                                     prop_valid_outUnet=PROP_VALID_OUTUNET)
     # ----------------------------------------------
@@ -166,14 +166,14 @@ def main(args):
                                                                                                                     shuffle_images=False)
             elif TYPE_DNNLIBRARY_USED == 'Pytorch':
                 in_testXData = LoadDataManager.loadData_1File(in_testXData_file)
-                in_testXData_batches = TrainingBatchDataGenerator(args.size_in_images,
-                                                                  [in_testXData],
-                                                                  [in_testXData],
-                                                                  test_images_generator,
-                                                                  batch_size=1,
-                                                                  isUse_valid_convs=args.isValidConvolutions,
-                                                                  size_output_model=size_output_modelnet,
-                                                                  shuffle=False)
+                in_testXData_batches = BatchDataGenerator(args.size_in_images,
+                                                          [in_testXData],
+                                                          [in_testXData],
+                                                          test_images_generator,
+                                                          batch_size=1,
+                                                          isUse_valid_convs=args.isValidConvolutions,
+                                                          size_output_model=size_output_modelnet,
+                                                          shuffle=False)
         else:
             in_testXData_batches = LoadDataManagerInBatches(args.size_in_images).loadData_1File(in_testXData_file)
             in_testXData_batches = np.expand_dims(in_testXData_batches, axis=0)

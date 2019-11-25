@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from DataLoaders.BatchDataGenerator import *
+from DataLoaders.BatchDataGenerator_OLD import *
 from DataLoaders.FileReaders import *
 from Preprocessing.ImageGeneratorManager import *
 from Common.WorkDirsManager import *

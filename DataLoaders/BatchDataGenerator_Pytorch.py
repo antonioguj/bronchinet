@@ -8,15 +8,13 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Preprocessing.BoundingBoxes import *
-from Preprocessing.OperationImages import CropImages
+from DataLoaders.BatchDataGenerator import *
 from torch.utils import data
 import torch
-import numpy as np
-np.random.seed(2017)
 
 
-class TrainingBatchDataGenerator(data.DataLoader):
+
+class BatchDataGenerator_Pytorch(BatchDataGenerator):
 
     def __init__(self, size_image,
                  list_xData_array,
@@ -25,128 +23,77 @@ class TrainingBatchDataGenerator(data.DataLoader):
                  num_channels_in= 1,
                  num_classes_out= 1,
                  isUse_valid_convs= False,
-                 size_output_model= None,
+                 size_output_image= None,
+                 batch_size= 1,
+                 shuffle= True,
+                 seed= None,
+                 iswrite_datagen_info= True,
+                 is_data_generator_in_gpu= True):
+        super(BatchDataGenerator_Pytorch, self).__init__(size_image,
+                                                         list_xData_array,
+                                                         list_yData_array,
+                                                         images_generator,
+                                                         num_channels_in=num_channels_in,
+                                                         num_classes_out=num_classes_out,
+                                                         isUse_valid_convs=isUse_valid_convs,
+                                                         size_output_image=size_output_image,
+                                                         batch_size=batch_size,
+                                                         iswrite_datagen_info= iswrite_datagen_info)
+
+        self.num_images = self.compute_pairIndexes_imagesFile(False, seed=None)
+
+        if is_data_generator_in_gpu:
+            self.type_data_generated_torch = torch.cuda.FloatTensor
+        else:
+            self.type_data_generated_torch = torch.FloatTensor
+
+
+    def get_image_torchtensor(self, in_array):
+        return torch.from_numpy(in_array.copy()).type(self.type_data_generated_torch)
+
+    def get_reshaped_output_array(self, in_array):
+        return np.expand_dims(in_array, axis=0)
+
+
+    def get_formated_output_xData(self, in_array):
+        out_array = self.get_reshaped_output_array(in_array)
+        return self.get_image_torchtensor(out_array)
+
+    def get_formated_output_yData(self, in_array):
+        if self.isUse_valid_convs:
+            out_array = self.get_cropped_output(in_array)
+        else:
+            out_array = in_array
+        return self.get_formated_output_xData(out_array)
+
+
+
+class WrapperBatchGenerator_Pytorch(data.DataLoader):
+
+    def __init__(self, size_image,
+                 list_xData_array,
+                 list_yData_array,
+                 images_generator,
+                 num_channels_in= 1,
+                 num_classes_out= 1,
+                 isUse_valid_convs= False,
+                 size_output_image= None,
                  batch_size= 1,
                  shuffle= True,
                  seed= None,
                  iswrite_datagen_info= True):
-        data_sample_generator = DataSampleGenerator(size_image,
-                                                    list_xData_array,
-                                                    list_yData_array,
-                                                    images_generator,
-                                                    num_channels_in,
-                                                    num_classes_out,
-                                                    isUse_valid_convs,
-                                                    size_output_model,
-                                                    iswrite_datagen_info)
-        super(TrainingBatchDataGenerator, self).__init__(data_sample_generator,
-                                                         batch_size= batch_size,
-                                                         shuffle= shuffle)
-
-
-class DataSampleGenerator(data.Dataset):
-
-    def __init__(self, size_image,
-                 list_xData_array,
-                 list_yData_array,
-                 images_generator,
-                 num_channels_in= 1,
-                 num_classes_out= 1,
-                 isUse_valid_convs= False,
-                 size_output_model= None,
-                 iswrite_datagen_info= True):
-        self.size_image = size_image
-        self.num_channels_in = num_channels_in
-
-        self.list_xData_array = list_xData_array
-        self.type_xData = list_xData_array[0].dtype
-        self.list_yData_array = list_yData_array
-        self.type_yData = list_yData_array[0].dtype
-
-        self.images_generator = images_generator
-
-        self.num_classes_out = num_classes_out
-        self.isUse_valid_convs = isUse_valid_convs
-        if isUse_valid_convs and size_output_model:
-            self.size_output_model = size_output_model
-        else:
-            self.size_output_model = size_image
-        self.iswrite_datagen_info = iswrite_datagen_info
-
-        self.num_images = self.compute_pairIndexes_imagesFile()
-
-
-    def compute_pairIndexes_imagesFile(self):
-        self.list_pairIndexes_imagesFile = []
-
-        for ifile, xData_array in enumerate(self.list_xData_array):
-            self.images_generator.update_image_data(xData_array.shape)
-
-            num_images_file = self.images_generator.get_num_images()
-
-            #store pair of indexes: (idx_file, idx_batch)
-            for index in range(num_images_file):
-                self.list_pairIndexes_imagesFile.append((ifile, index))
-            #endfor
-
-            if self.iswrite_datagen_info:
-                message = self.images_generator.get_text_description()
-                print("Image file: \'%s\'..." %(ifile))
-                print(message)
-        #endfor
-
-        num_images = len(self.list_pairIndexes_imagesFile)
-        return num_images
-
-
-    def __getitem__(self, index):
-        return self.get_item(index)
-
-    def __len__(self):
-        return self.num_images
-
-    def get_crop_output(self, in_array, size_crop):
-        crop_bounding_box = BoundingBoxes.compute_bounding_box_centered_image_3D(size_crop, self.size_image)
-        return CropImages.compute3D(in_array, crop_bounding_box)
-
-    @staticmethod
-    def get_image_torchtensor_cpu(in_array):
-        return torch.from_numpy(in_array.copy()).type(torch.FloatTensor)
-
-    @staticmethod
-    def get_image_torchtensor_gpu(in_array):
-        return torch.from_numpy(in_array.copy()).type(torch.cuda.FloatTensor)
-
-    @classmethod
-    def get_reshaped_output_array(cls, in_array):
-        return cls.get_image_torchtensor_gpu(np.expand_dims(in_array, axis=0))
-
-
-    def get_item(self, index):
-        (index_file, index_sample_file) = self.list_pairIndexes_imagesFile[index]
-
-        self.images_generator.update_image_data(self.list_xData_array[index_file].shape)
-        (xData_elem, yData_elem) = self.images_generator.get_image_2arrays(self.list_xData_array[index_file],
-                                                                           in2nd_array= self.list_yData_array[index_file],
-                                                                           index=index_sample_file,
-                                                                           seed=None)
-
-        out_xData_array = self.get_reshaped_output_array(xData_elem)
-        if self.isUse_valid_convs:
-            out_yData_array = self.get_reshaped_output_array(self.get_crop_output(yData_elem, self.size_output_model))
-        else:
-            out_yData_array = self.get_reshaped_output_array(yData_elem)
-
-        return (out_xData_array, out_yData_array)
-
-
-    def get_full_data(self):
-        out_xData_shape = [self.num_images] + list(self.size_image)
-        out_yData_shape = [self.num_images] + list(self.size_output_model)
-        out_xData_array = np.ndarray(out_xData_shape, dtype= self.type_xData)
-        out_yData_array = np.ndarray(out_yData_shape, dtype= self.type_yData)
-
-        for i in range(self.num_images):
-            (out_xData_array[i], out_yData_array[i]) = self.getitem_incpu(i)
-        #endfor
-        return (out_xData_array, out_yData_array)
+        batch_data_generator = BatchDataGenerator_Pytorch(size_image,
+                                                          list_xData_array,
+                                                          list_yData_array,
+                                                          images_generator,
+                                                          num_channels_in=num_channels_in,
+                                                          num_classes_out=num_classes_out,
+                                                          isUse_valid_convs=isUse_valid_convs,
+                                                          size_output_image=size_output_image,
+                                                          batch_size=batch_size,
+                                                          shuffle=shuffle,
+                                                          seed=seed,
+                                                          iswrite_datagen_info=iswrite_datagen_info)
+        super(WrapperBatchGenerator_Pytorch, self).__init__(batch_data_generator,
+                                                            batch_size= batch_size,
+                                                            shuffle= shuffle)
