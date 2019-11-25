@@ -41,40 +41,37 @@ class BaseImageGenerator(object):
         return NotImplemented
 
 
-    def get_image(self, in_array, **kwargs):
+    def get_image(self, in_array):
         return NotImplemented
 
-    def get_image_withcheck(self, in_array, **kwargs):
-        if self.is_compute_gendata:
-            self.compute_gendata(**kwargs)
-        return self.get_image(in_array, **kwargs)
 
-
-    def get_images(self, in_array, in2nd_array, **kwargs):
+    def get_image_1array(self, in_array, **kwargs):
         self.compute_gendata(**kwargs)
+        out_array = self.get_image(in_array)
+        self.initialize_gendata()
+        return out_array
 
-        out_array = self.get_image(in_array, **kwargs)
-        out2nd_array = self.get_image(in2nd_array, **kwargs)
 
+    def get_image_2arrays(self, in_array, in2nd_array, **kwargs):
+        self.compute_gendata(**kwargs)
+        out_array = self.get_image(in_array)
+        out2nd_array = self.get_image(in2nd_array)
         self.initialize_gendata()
 
         return (out_array, out2nd_array)
 
 
-    def get_images_prototype(self, in_array, list_inadd_array, **kwargs):
+    def get_image_multarrays(self, list_in_arrays, **kwargs):
         self.compute_gendata(**kwargs)
 
-        out_array = self.get_image(in_array, **kwargs)
-
-        list_outadd_array = []
-        for inadd_array in list_inadd_array:
-            outadd_array = self.get_image(inadd_array, **kwargs)
-            list_outadd_array.append(outadd_array)
+        list_out_arrays = []
+        for in_array in list_in_arrays:
+            out_array = self.get_image(in_array)
+            list_out_arrays.append(out_array)
         #endfor
 
         self.initialize_gendata()
-
-        return (out_array, list_outadd_array)
+        return list_out_arrays
 
 
     def get_shape_out_array(self, in_array_shape):
@@ -85,45 +82,27 @@ class BaseImageGenerator(object):
             return [num_images] + list(self.size_image) + [num_channels]
 
 
-    def compute_images_all(self, in_array, list_inadd_array= None, **kwargs):
+    def compute_images_all(self, list_in_arrays, **kwargs):
         seed_0 = kwargs['seed_0']
 
-        out_shape = self.get_shape_out_array(in_array.shape)
-        out_array = np.ndarray(out_shape, dtype=in_array.dtype)
+        list_out_arrays = []
+        for in_array in list_in_arrays:
+            out_shape = self.get_shape_out_array(in_array.shape)
+            out_array = np.ndarray(out_shape, dtype=in_array.dtype)
+            list_out_arrays.append(out_array)
+        #endfor
 
-        if list_inadd_array is None:
-            for index in range(self.num_images):
-                seed = update_seed_with_index(seed_0, index)
-                add_kwargs = {'index': index, 'seed': seed}
+        for index in range(self.num_images):
+            seed = update_seed_with_index(seed_0, index)
+            add_kwargs = {'index': index, 'seed': seed}
 
-                self.compute_gendata(**add_kwargs)
-                out_array[index] = self.get_image(in_array, **add_kwargs)
-                self.initialize_gendata()
-            # endfor
+            self.compute_gendata(**add_kwargs)
 
-            return out_array
-
-        else:
-            num_inadd_array = len(list_inadd_array)
-
-            list_outadd_array = []
-            for i in range(num_inadd_array):
-                outadd_shape = self.get_shape_out_array(list_inadd_array[i].shape)
-                outadd_array = np.ndarray(outadd_shape, dtype=list_inadd_array[i].dtype)
-                list_outadd_array.append(outadd_array)
+            for i, in_array in list_in_arrays:
+                list_out_arrays[i][index] = self.get_image(in_array)
             #endfor
 
-            for index in range(self.num_images):
-                seed = update_seed_with_index(seed_0, index)
-                add_kwargs = {'index': index, 'seed': seed}
+            self.initialize_gendata()
+        #endfor
 
-                self.compute_gendata(**add_kwargs)
-                out_array[index] = self.get_image(in_array, **add_kwargs)
-
-                for i in range(num_inadd_array):
-                    list_outadd_array[i][index] = self.get_image(list_inadd_array[i], **add_kwargs)
-                #endfor
-                self.initialize_gendata()
-            #endfor
-
-            return (out_array, list_outadd_array)
+        return list_out_arrays

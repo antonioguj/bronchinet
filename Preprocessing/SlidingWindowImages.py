@@ -152,7 +152,7 @@ class SlidingWindowImages(BaseImageGenerator):
         self.fun_setpatch_images_byadding(in_array, in_full_array, crop_bounding_box)
 
 
-    def get_image(self, in_array, **kwargs):
+    def get_image(self, in_array):
         return self.fun_crop_images(in_array, self.crop_window_bounding_box)
 
 

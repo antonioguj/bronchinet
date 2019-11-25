@@ -126,10 +126,10 @@ class DataSampleGenerator(data.Dataset):
         (index_file, index_sample_file) = self.list_pairIndexes_imagesFile[index]
 
         self.images_generator.update_image_data(self.list_xData_array[index_file].shape)
-        (xData_elem, yData_elem) = self.images_generator.get_images(self.list_xData_array[index_file],
-                                                                    in2nd_array= self.list_yData_array[index_file],
-                                                                    index=index_sample_file,
-                                                                    seed=None)
+        (xData_elem, yData_elem) = self.images_generator.get_image_2arrays(self.list_xData_array[index_file],
+                                                                           in2nd_array= self.list_yData_array[index_file],
+                                                                           index=index_sample_file,
+                                                                           seed=None)
 
         out_xData_array = self.get_reshaped_output_array(xData_elem)
         if self.isUse_valid_convs:

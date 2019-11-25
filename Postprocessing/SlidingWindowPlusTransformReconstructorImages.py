@@ -50,7 +50,7 @@ class SlidingWindowPlusTransformReconstructorImages(SlidingWindowReconstructorIm
         return check1 and check2 and check3 and check4
 
     def get_transformed_image_array(self, image_array):
-        return self.transformImages_generator.get_inverse_transformed_image(image_array)
+        return self.transformImages_generator.get_inverse_transformed_image_array(image_array)
 
     def compute(self, in_images_array):
         if not self.check_correct_shape_input_array(in_images_array.shape):

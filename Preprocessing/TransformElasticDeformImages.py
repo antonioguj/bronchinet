@@ -33,23 +33,25 @@ class TransformElasticDeformImages(TransformationRigidImages):
         self.is_compute_gendata = True
         self.transformation_matrix = None
 
+    def get_text_description(self):
+        return 'Elastic Deformations of image patches...\n'
+
 
     def get_compute_gendata_elastic_deform(self, seed= None):
         return NotImplemented
 
 
-    def get_transformed_image(self, in_array, seed= None):
+    def get_transformed_image(self, in_array, is_image_array= False):
         out_array = map_coordinates(in_array, self.gendata_elastic_deform, order=3).reshape(self.size_image)
         return out_array
 
-    def get_inverse_transformed_image(self, in_array, seed= None):
+    def get_inverse_transformed_image(self, in_array, is_image_array= False):
         print("Error: Inverse transformation not implemented for Elastic Deformations... Exit")
         return 0
 
 
-    def get_image(self, in_array, **kargs):
-        seed = kwargs['seed']
-        return self.get_transformed_image(in_array, seed=seed)
+    def get_image(self, in_array):
+        return self.get_transformed_image(in_array)
 
 
 
@@ -127,7 +129,7 @@ class TransformElasticDeformGridwiseImages(TransformElasticDeformImages):
             raise Exception('Error: self.ndims')
 
         # creates the deformation along each dimension and then add it to the coordinates
-        for i in range(len(shape)):
+        for i in range(self.ndims):
             # creating the displacement at the control points
             yi = np.random.randn(*grid) * self.sigma
             # print(y.shape,coordinates[i].shape) #y and coordinates[i] should be of the same shape otherwise the same displacement is applied to every ?row? of points ?

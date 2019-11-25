@@ -44,7 +44,7 @@ class CombinedImagesGenerator(BaseImageGenerator):
 
     def initialize_gendata(self):
         for images_generator in self.list_images_generators:
-            images_generator.initialize_gendata(**kwargs)
+            images_generator.initialize_gendata()
         # endfor
 
 
@@ -64,21 +64,12 @@ class CombinedImagesGenerator(BaseImageGenerator):
         return num_images_prodrun
 
 
-    def get_image(self, in_array, **kwargs):
+    def get_image(self, in_array):
         out_array = in_array
         for images_generator in self.list_images_generators:
-            out_array = images_generator.get_image(out_array, **kwargs)
+            out_array = images_generator.get_image(out_array)
         #endfor
         return out_array
-
-
-    def get_images(self, in_array, in2nd_array, **kwargs):
-        out_array = in_array
-        out2nd_array = in2nd_array
-        for images_generator in self.list_images_generators:
-            (out_array, out2nd_array) = images_generator.get_images(out_array, out2nd_array, **kwargs)
-        #endfor
-        return (out_array, out2nd_array)
 
 
 
@@ -100,7 +91,7 @@ class NullGenerator(BaseImageGenerator):
     def get_text_description(self):
         return ''
 
-    def get_image(self, in_array, **kwargs):
+    def get_image(self, in_array):
         return inout_array
 
 
@@ -163,14 +154,14 @@ def getImagesDataGenerator(size_in_images,
             CatchErrorException(message)
 
 
-        if use_TransformElasticDeformImages:
-            if TYPETRANSFORMELASTICDEFORMATION == 'pixelwise':
-                new_images_generator = TransformElasticDeformPixelwiseImages(size_image)
-                list_images_generators.append(new_images_generator)
+    if use_TransformElasticDeformImages:
+        if TYPETRANSFORMELASTICDEFORMATION == 'pixelwise':
+            new_images_generator = TransformElasticDeformPixelwiseImages(size_in_images)
+            list_images_generators.append(new_images_generator)
 
-            else: #TYPETRANSFORMELASTICDEFORMATION == 'gridwise'
-                new_images_generator = TransformElasticDeformGridwiseImages(size_image)
-                list_images_generators.append(new_images_generator)
+        else: #TYPETRANSFORMELASTICDEFORMATION == 'gridwise'
+            new_images_generator = TransformElasticDeformGridwiseImages(size_in_images)
+            list_images_generators.append(new_images_generator)
 
 
     num_created_images_generators = len(list_images_generators)

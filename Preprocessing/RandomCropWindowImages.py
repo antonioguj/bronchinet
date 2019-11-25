@@ -39,8 +39,8 @@ class RandomCropWindowImages(BaseImageGenerator):
 
 
     def compute_gendata(self, **kwargs):
-        index = kwargs['index']
-        self.crop_window_bounding_box = self.get_crop_window_image(index)
+        seed = kwargs['seed']
+        self.crop_window_bounding_box = self.get_crop_window_image(seed)
         self.is_compute_gendata = False
 
     def initialize_gendata(self):
@@ -91,7 +91,5 @@ class RandomCropWindowImages(BaseImageGenerator):
         return self.fun_crop_images(in_array, crop_bounding_box)
 
 
-    def get_image(self, in_array, **kwargs):
-        if self.is_compute_gendata:
-            self.compute_gendata(**kwargs)
+    def get_image(self, in_array):
         return self.fun_crop_images(in_array, self.crop_window_bounding_box)

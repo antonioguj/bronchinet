@@ -19,8 +19,41 @@ _epsilon = 1e-7
 
 class TransformationRigidImages(BaseImageGenerator):
 
-    def __init__(self, size_image, is_inverse_transform= False):
+    def __init__(self, size_image,
+                 is_normalize_data=False,
+                 type_normalize_data='samplewise',
+                 zca_whitening=False,
+                 is_inverse_transform= False,
+                 rescale=None,
+                 preprocessing_function=None):
+        if is_normalize_data:
+            if type_normalize_data == 'featurewise':
+                self.featurewise_center = True
+                self.featurewise_std_normalization = True
+                self.samplewise_center = False
+                self.samplewise_std_normalization = False
+            else: #type_normalize_data == 'samplewise'
+                self.featurewise_center = False
+                self.featurewise_std_normalization = False
+                self.samplewise_center = True
+                self.samplewise_std_normalization = True
+        else:
+            self.featurewise_center = False
+            self.featurewise_std_normalization = False
+            self.samplewise_center = False
+            self.samplewise_std_normalization = False
+
+        self.zca_whitening = zca_whitening
+        self.zca_epsilon = 1e-6
+        self.rescale = rescale
+        self.preprocessing_function = preprocessing_function
+
+        self.mean = None
+        self.std = None
+        self.principal_components = None
+
         super(TransformationRigidImages, self).__init__(size_image, num_images=1)
+
         self.is_inverse_transform = is_inverse_transform
         self.initialize_gendata()
 
@@ -38,9 +71,10 @@ class TransformationRigidImages(BaseImageGenerator):
     def initialize_gendata(self):
         self.is_compute_gendata = True
         self.transformation_matrix = None
+        self.num_arrays_transformed = 0
 
     def get_text_description(self):
-        return ''
+        return 'Rigid Transformations of image patches...\n'
 
 
     def get_compute_random_transform_matrix(self, seed= None):
@@ -53,10 +87,10 @@ class TransformationRigidImages(BaseImageGenerator):
         return NotImplemented
 
 
-    def get_transformed_image(self, in_array, seed= None, is_image_array= False):
+    def get_transformed_image_array(self, in_array, is_image_array= False):
         return NotImplemented
 
-    def get_inverse_transformed_image(self, in_array, seed= None, is_image_array= False):
+    def get_inverse_transformed_image_array(self, in_array, is_image_array= False):
         return NotImplemented
 
 
@@ -140,7 +174,7 @@ class TransformationRigidImages(BaseImageGenerator):
         return in_array
 
 
-    def get_transformed_complete_image(self, in_array, seed= None, is_image_array= False):
+    def get_transformed_image(self, in_array, is_image_array= False):
         if is_image_array_without_channels(self.size_image, in_array.shape):
             out_array = np.expand_dims(in_array, axis=-1)
             is_reshape_array = True
@@ -148,7 +182,7 @@ class TransformationRigidImages(BaseImageGenerator):
             out_array = in_array
             is_reshape_array = False
 
-        out_array = self.get_transformed_image(out_array, seed=seed, is_image_array=is_image_array)
+        out_array = self.get_transformed_image_array(out_array, is_image_array=is_image_array)
         if is_image_array:
             out_array = self.standardize(out_array)
 
@@ -157,7 +191,7 @@ class TransformationRigidImages(BaseImageGenerator):
         return out_array
 
 
-    def get_inverse_transformed_complete_image(self, in_array, seed= None, is_image_array= False):
+    def get_inverse_transformed_image(self, in_array, is_image_array= False):
         if is_image_array_without_channels(self.size_image, in_array.shape):
             out_array = np.expand_dims(in_array, axis=-1)
             is_reshape_array = True
@@ -167,44 +201,34 @@ class TransformationRigidImages(BaseImageGenerator):
             
         if is_image_array:
             out_array = self.standardize_inverse(out_array)
-        out_array = self.get_inverse_transformed_image(out_array, seed=seed, is_image_array=is_image_array)
+        out_array = self.get_inverse_transformed_image_array(out_array, is_image_array=is_image_array)
 
         if is_reshape_array:
             out_array = np.squeeze(out_array, axis=-1)
         return out_array
 
 
-    def get_image(self, in_array, **kwargs):
-        seed = kwargs['seed']
-        return self.get_transformed_complete_image(in_array, seed=seed, is_image_array=True)
+    def get_image(self, in_array):
+        is_image_array = (self.num_arrays_transformed == 0)
+        self.num_arrays_transformed += 1
+        return self.get_transformed_image(in_array, is_image_array=is_image_array)
 
 
-    def get_images(self, in_array, in2nd_array, **kwargs):
-        seed = kwargs['seed']
-        self.compute_gendata(**kwargs)
+    @staticmethod
+    def flip_axis(x, axis):
+        x = np.asarray(x).swapaxes(axis, 0)
+        x = x[::-1, ...]
+        x = x.swapaxes(0, axis)
+        return x
 
-        out_array = self.get_transformed_complete_image(in_array,  seed=seed, is_image_array=True)
-        out2nd_array = self.get_transformed_complete_image(in2nd_array,  seed=seed, is_image_array=False)
-
-        self.initialize_gendata()
-
-        return (out_array, out2nd_array)
-
-
-    def get_images_prototype(self, in_array, list_inadd_array, **kwargs):
-        self.compute_gendata(**kwargs)
-
-        out_array = self.get_image(in_array, is_image_array=True, **kwargs)
-
-        list_outadd_array = []
-        for inadd_array in list_inadd_array:
-            outadd_array = self.get_image(inadd_array, is_image_array=False, **kwargs)
-            list_outadd_array.append(outadd_array)
-        #endfor
-
-        self.initialize_gendata()
-
-        return (out_array, list_outadd_array)
+    @staticmethod
+    def random_channel_shift(x, intensity, channel_axis=0):
+        x = np.rollaxis(x, channel_axis, 0)
+        min_x, max_x = np.min(x), np.max(x)
+        channel_images = [np.clip(x_channel + np.random.uniform(-intensity, intensity), min_x, max_x) for x_channel in x]
+        x = np.stack(channel_images, axis=0)
+        x = np.rollaxis(x, 0, channel_axis + 1)
+        return x
 
 
 
@@ -227,43 +251,16 @@ class TransformationRigidImages2D(TransformationRigidImages):
                  vertical_flip=False,
                  rescale=None,
                  preprocessing_function=None):
-
-        if is_normalize_data:
-            if type_normalize_data == 'featurewise':
-                self.featurewise_center = True
-                self.featurewise_std_normalization = True
-                self.samplewise_center = False
-                self.samplewise_std_normalization = False
-            else: #type_normalize_data == 'samplewise'
-                self.featurewise_center = False
-                self.featurewise_std_normalization = False
-                self.samplewise_center = True
-                self.samplewise_std_normalization = True
-        else:
-            self.featurewise_center = False
-            self.featurewise_std_normalization = False
-            self.samplewise_center = False
-            self.samplewise_std_normalization = False
-
-        self.zca_whitening = zca_whitening
-        self.zca_epsilon = 1e-6
         self.rotation_range = rotation_range
         self.width_shift_range = width_shift_range
         self.height_shift_range = height_shift_range
         self.brightness_range = brightness_range
         self.shear_range = shear_range
-        self.zoom_range = zoom_range
         self.channel_shift_range = channel_shift_range
         self.fill_mode = fill_mode
         self.cval = cval
         self.horizontal_flip = horizontal_flip
         self.vertical_flip = vertical_flip
-        self.rescale = rescale
-        self.preprocessing_function = preprocessing_function
-
-        self.mean = None
-        self.std = None
-        self.principal_components = None
 
         self.img_row_axis = 0
         self.img_col_axis = 1
@@ -274,12 +271,14 @@ class TransformationRigidImages2D(TransformationRigidImages):
         elif len(zoom_range) == 2:
             self.zoom_range = (zoom_range[0], zoom_range[1])
         else:
-            raise ValueError('`zoom_range` should be a float or '
-                             'a tuple or list of two floats. '
-                             'Received arg: ', zoom_range)
+            raise ValueError('`zoom_range` should be a float or a tuple or list of two floats. Received arg: ', zoom_range)
 
-        super(TransformationRigidImages2D, self).__init__(size_image)
-
+        super(TransformationRigidImages2D, self).__init__(size_image,
+                                                          is_normalize_data=is_normalize_data,
+                                                          type_normalize_data=type_normalize_data,
+                                                          zca_whitening=zca_whitening,
+                                                          rescale=rescale,
+                                                          preprocessing_function=preprocessing_function)
 
 
     def get_compute_random_transform_matrix(self, seed= None):
@@ -430,7 +429,7 @@ class TransformationRigidImages2D(TransformationRigidImages):
 
 
 
-    def get_transformed_image(self, in_array, seed= None, is_image_array= False):
+    def get_transformed_image_array(self, in_array, is_image_array= False):
         # apply rigid transformation, and then flipping
         out_array = self.apply_transform(in_array, self.transformation_matrix,
                                          channel_axis=self.img_channel_axis,
@@ -450,7 +449,7 @@ class TransformationRigidImages2D(TransformationRigidImages):
         return out_array
 
 
-    def get_inverse_transformed_image(self, in_array, seed= None, is_image_array= False):
+    def get_inverse_transformed_image_array(self, in_array, is_image_array= False):
         # apply transformations in inverse order: flipping, and then rigid trans
         out_array = in_array
 
@@ -491,25 +490,9 @@ class TransformationRigidImages2D(TransformationRigidImages):
         x = np.rollaxis(x, 0, channel_axis + 1)
         return x
 
-    @staticmethod
-    def flip_axis(x, axis):
-        x = np.asarray(x).swapaxes(axis, 0)
-        x = x[::-1, ...]
-        x = x.swapaxes(0, axis)
-        return x
-
-    @staticmethod
-    def random_channel_shift(x, intensity, channel_axis=0):
-        x = np.rollaxis(x, channel_axis, 0)
-        min_x, max_x = np.min(x), np.max(x)
-        channel_images = [np.clip(x_channel + np.random.uniform(-intensity, intensity), min_x, max_x) for x_channel in x]
-        x = np.stack(channel_images, axis=0)
-        x = np.rollaxis(x, 0, channel_axis + 1)
-        return x
 
 
-
-class TransformationRigidImages3D(TransformationRigidImages2D):
+class TransformationRigidImages3D(TransformationRigidImages):
 
     def __init__(self, size_image,
                  is_normalize_data=False,
@@ -534,16 +517,19 @@ class TransformationRigidImages3D(TransformationRigidImages2D):
                  depthZ_flip=False,
                  rescale=None,
                  preprocessing_function=None):
-
         self.rotation_XY_range = rotation_XY_range
         self.rotation_XZ_range = rotation_XZ_range
         self.rotation_YZ_range = rotation_YZ_range
         self.width_shift_range = width_shift_range
         self.height_shift_range = height_shift_range
         self.depth_shift_range = depth_shift_range
+        self.brightness_range = brightness_range
         self.shear_XY_range = shear_XY_range
         self.shear_XZ_range = shear_XZ_range
         self.shear_YZ_range = shear_YZ_range
+        self.channel_shift_range = channel_shift_range
+        self.fill_mode = fill_mode
+        self.cval = cval
         self.horizontal_flip = horizontal_flip
         self.vertical_flip = vertical_flip
         self.depthZ_flip = depthZ_flip
@@ -553,17 +539,17 @@ class TransformationRigidImages3D(TransformationRigidImages2D):
         self.img_col_axis = 2
         self.img_channel_axis = 3
 
-        # delegate to "Transformation2D" the functions to "standardize" images
-        # only provide parameters relevant for "standardize" functions
+        if np.isscalar(zoom_range):
+            self.zoom_range = (1 - zoom_range, 1 + zoom_range)
+        elif len(zoom_range) == 3:
+            self.zoom_range = (zoom_range[0], zoom_range[1], zoom_range[2])
+        else:
+            raise ValueError('`zoom_range` should be a float or a tuple or list of three floats. Received arg: ', zoom_range)
+
         super(TransformationRigidImages3D, self).__init__(size_image,
                                                           is_normalize_data=is_normalize_data,
                                                           type_normalize_data=type_normalize_data,
                                                           zca_whitening=zca_whitening,
-                                                          brightness_range=brightness_range,
-                                                          zoom_range=zoom_range,
-                                                          channel_shift_range=channel_shift_range,
-                                                          fill_mode=fill_mode,
-                                                          cval=cval,
                                                           rescale=rescale,
                                                           preprocessing_function=preprocessing_function)
 
@@ -815,11 +801,12 @@ class TransformationRigidImages3D(TransformationRigidImages2D):
             is_apply_depthZ_flip = (np.random.random() < 0.5)
         else:
             is_apply_depthZ_flip = False
+
         return (is_apply_horizontal_flip, is_apply_vertical_flip, is_apply_depthZ_flip)
 
 
 
-    def get_transformed_image(self, in_array, seed= None, is_image_array= False):
+    def get_transformed_image_array(self, in_array, is_image_array= False):
         # apply rigid transformation, and then flipping
         out_array = self.apply_transform(in_array, self.transformation_matrix,
                                          channel_axis=self.img_channel_axis,
@@ -842,7 +829,7 @@ class TransformationRigidImages3D(TransformationRigidImages2D):
         return out_array
 
 
-    def get_inverse_transformed_image(self, in_array, seed= None, is_image_array= False):
+    def get_inverse_transformed_image_array(self, in_array, is_image_array= False):
         # apply transformations in inverse order: flipping, and then rigid trans
         out_array = in_array
 
