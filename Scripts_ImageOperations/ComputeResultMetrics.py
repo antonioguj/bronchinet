@@ -8,19 +8,15 @@
 # Last update: 09/02/2018
 ########################################################################################
 
+import argparse
+from Preprocessing.OperationImages import *
+from collections import OrderedDict
+
 from Common.Constants import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
-#if TYPE_DNNLIBRARY_USED == 'Keras':
-#    from Networks_Keras.Metrics import *
-#elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-#    from Networks_Pytorch.Metrics import *
 from Networks_Pytorch.Metrics import *
-from Preprocessing.OperationImages import *
-from Preprocessing.OperationMasks import *
-from collections import OrderedDict
-import argparse
-
+from OperationImages.OperationMasks import *
 
 
 def main(args):

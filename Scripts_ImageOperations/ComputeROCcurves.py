@@ -16,8 +16,8 @@ if TYPE_DNNLIBRARY_USED == 'Keras':
 elif TYPE_DNNLIBRARY_USED == 'Pytorch':
     from Networks_Pytorch.Metrics import *
 from PlotsManager.FrocUtil import computeFROC, computeROC_Completeness_VolumeLeakage
-from Preprocessing.OperationImages import *
-from Preprocessing.OperationMasks import *
+from OperationImages.OperationImages import *
+from OperationImages.OperationMasks import *
 from collections import OrderedDict
 from tqdm import tqdm
 import argparse

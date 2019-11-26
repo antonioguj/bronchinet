@@ -9,149 +9,73 @@
 ########################################################################################
 
 from Common.Constants import *
-from Postprocessing.SlidingWindowReconstructorImages import *
-from Postprocessing.SlidingWindowPlusTransformReconstructorImages import *
-from Postprocessing.TransformationReconstructorImages import *
+from Postprocessing.ImageReconstructor import *
+from Preprocessing.FilteringUnetOutputValidConvs import *
+from Preprocessing.ImageGeneratorManager import *
 
 
 
-def getImagesReconstructor2D(size_in_images,
-                             use_slidingWindowImages,
-                             slidewin_propOverlap,
-                             size_total_image=(0, 0),
-                             use_transformationImages=False,
-                             num_trans_per_sample=1,
-                             isUse_valid_convs= False,
-                             size_output_model= None,
-                             isfilter_valid_outUnet=False,
-                             prop_valid_outUnet=None,
-                             is_onehotmulticlass=False):
+def getImagesReconstructor(size_in_images,
+                           use_slidingWindowImages,
+                           slidewindow_propOverlap,
+                           use_randomCropWindowImages,
+                           numRandomPatchesEpoch,
+                           use_transformationRigidImages,
+                           size_full_image= 0,
+                           is_outputUnet_validconvs= False,
+                           size_output_images= None,
+                           is_filter_output_unet= False,
+                           prop_filter_output_unet= None,
+                           num_trans_per_sample= 1):
 
-    if (use_slidingWindowImages):
-        # images reconstruction by sliding-window...
-        if (use_transformationImages):
-            # reconstruction from several random transformation of images...
-            return SlidingWindowPlusTransformReconstructorImages2D(size_in_images,
-                                                                   slidewin_propOverlap,
-                                                                   TransformationRigidImages2D(size_in_images,
-                                                                                               rotation_range=ROTATION_XY_RANGE,
-                                                                                               height_shift_range=HEIGHT_SHIFT_RANGE,
-                                                                                               width_shift_range=WIDTH_SHIFT_RANGE,
-                                                                                               horizontal_flip=HORIZONTAL_FLIP,
-                                                                                               vertical_flip=VERTICAL_FLIP),
-                                                                   num_trans_per_sample=num_trans_per_sample,
-                                                                   size_total_image=size_total_image,
-                                                                   isUse_valid_convs=isUse_valid_convs,
-                                                                   size_output_model=size_output_model,
-                                                                   isfilter_valid_outUnet=isfilter_valid_outUnet,
-                                                                   prop_valid_outUnet=prop_valid_outUnet,
-                                                                   is_onehotmulticlass=is_onehotmulticlass)
+    images_generator = getImagesDataGenerator(size_in_images,
+                                              use_slidingWindowImages,
+                                              slidewindow_propOverlap,
+                                              use_randomCropWindowImages,
+                                              numRandomPatchesEpoch,
+                                              use_transformationRigidImages,
+                                              use_transformElasticDeformImages=False,
+                                              size_full_image= size_full_image)
+
+    if is_filter_output_unet:
+        size_filter_output_unet = tuple([int(prop_filter_output_unet * elem) for elem in size_in_images])
+        print("Filtering output probability maps of Unet, with a final output size: \'%s\'..." % (str(size_filter_output_unet)))
+
+        ndims = len(size_in_images)
+        if ndims==2:
+            filter_images_generator = FilteringUnetOutputValidConvs2D(size_image, size_filter_output_unet)
+        elif ndims==3:
+            filter_images_generator = FilteringUnetOutputValidConvs3D(size_image, size_filter_output_unet)
         else:
-            return SlidingWindowReconstructorImages2D(size_in_images,
-                                                      slidewin_propOverlap,
-                                                      size_total_image=size_total_image,
-                                                      isUse_valid_convs=isUse_valid_convs,
-                                                      size_output_model=size_output_model,
-                                                      isfilter_valid_outUnet=isfilter_valid_outUnet,
-                                                      prop_valid_outUnet=prop_valid_outUnet,
-                                                      is_onehotmulticlass=is_onehotmulticlass)
+            raise Exception('Error: self.ndims')
     else:
-        if (use_transformationImages):
-            return SlicingPlusTransformReconstructorImages2D(size_in_images,
-                                                             TransformationRigidImages2D(size_in_images,
-                                                                                         rotation_range=ROTATION_XY_RANGE,
-                                                                                         height_shift_range=HEIGHT_SHIFT_RANGE,
-                                                                                         width_shift_range=WIDTH_SHIFT_RANGE,
-                                                                                         horizontal_flip=HORIZONTAL_FLIP,
-                                                                                         vertical_flip=VERTICAL_FLIP),
-                                                             num_trans_per_sample=num_trans_per_sample,
-                                                             size_total_image=size_total_image,
-                                                             isUse_valid_convs=isUse_valid_convs,
-                                                             size_output_model=size_output_model,
-                                                             isfilter_valid_outUnet=isfilter_valid_outUnet,
-                                                             prop_valid_outUnet=prop_valid_outUnet,
-                                                             is_onehotmulticlass=is_onehotmulticlass)
-        else:
-            return SlicingReconstructorImages2D(size_in_images,
-                                                size_total_image=size_total_image,
-                                                isUse_valid_convs=isUse_valid_convs,
-                                                size_output_model=size_output_model,
-                                                isfilter_valid_outUnet=isfilter_valid_outUnet,
-                                                prop_valid_outUnet=prop_valid_outUnet,
-                                                is_onehotmulticlass=is_onehotmulticlass)
+        filter_images_generator = None
 
 
+    if not use_slidingWindowImages and not use_randomCropWindowImages:
+        message = 'Image Reconstructor without sliding-window patches not implemented yet'
+        CatchErrorException(message)
 
-def getImagesReconstructor3D(size_in_images,
-                             use_slidingWindowImages,
-                             slidewin_propOverlap,
-                             size_total_image=(0, 0, 0),
-                             use_transformationImages=False,
-                             num_trans_per_sample=1,
-                             isUse_valid_convs=False,
-                             size_output_model=None,
-                             isfilter_valid_outUnet=False,
-                             prop_valid_outUnet=None,
-                             is_onehotmulticlass=False):
 
-    if (use_slidingWindowImages):
-        # images reconstruction by sliding-window...
-        if (use_transformationImages):
-            # reconstruction from several random transformation of images...
-            return SlidingWindowPlusTransformReconstructorImages3D(size_in_images,
-                                                                   slidewin_propOverlap,
-                                                                   TransformationRigidImages3D(size_in_images,
-                                                                                               rotation_XY_range=ROTATION_XY_RANGE,
-                                                                                               rotation_XZ_range=ROTATION_XZ_RANGE,
-                                                                                               rotation_YZ_range=ROTATION_YZ_RANGE,
-                                                                                               height_shift_range=HEIGHT_SHIFT_RANGE,
-                                                                                               width_shift_range=WIDTH_SHIFT_RANGE,
-                                                                                               depth_shift_range=DEPTH_SHIFT_RANGE,
-                                                                                               horizontal_flip=HORIZONTAL_FLIP,
-                                                                                               vertical_flip=VERTICAL_FLIP,
-                                                                                               depthZ_flip=DEPTHZ_FLIP),
-                                                                   num_trans_per_sample=num_trans_per_sample,
-                                                                   size_total_image=size_total_image,
-                                                                   isUse_valid_convs=isUse_valid_convs,
-                                                                   size_output_model=size_output_model,
-                                                                   isfilter_valid_outUnet=isfilter_valid_outUnet,
-                                                                   prop_valid_outUnet=prop_valid_outUnet,
-                                                                   is_onehotmulticlass=is_onehotmulticlass)
-        else:
-            return SlidingWindowReconstructorImages3D(size_in_images,
-                                                      slidewin_propOverlap,
-                                                      size_total_image=size_total_image,
-                                                      isUse_valid_convs=isUse_valid_convs,
-                                                      size_output_model=size_output_model,
-                                                      isfilter_valid_outUnet=isfilter_valid_outUnet,
-                                                      prop_valid_outUnet=prop_valid_outUnet,
-                                                      is_onehotmulticlass=is_onehotmulticlass)
+    if not use_transformationRigidImages:
+        # reconstructor of images following the sliding-window generator of input patches
+        images_reconstructor = ImageReconstructor(size_in_images,
+                                                  images_generator,
+                                                  size_full_image=size_full_image,
+                                                  is_outputUnet_validconvs=is_outputUnet_validconvs,
+                                                  size_output_image=size_output_images,
+                                                  is_filter_output_unet=is_filter_output_unet,
+                                                  filter_images_generator=filter_images_generator)
     else:
-        if (use_transformationImages):
-            # data augmentation by random transformation to input images...
-            return SlicingPlusTransformReconstructorImages3D(size_in_images,
-                                                             TransformationRigidImages3D(size_in_images,
-                                                                                         rotation_XY_range=ROTATION_XY_RANGE,
-                                                                                         rotation_XZ_range=ROTATION_XZ_RANGE,
-                                                                                         rotation_YZ_range=ROTATION_YZ_RANGE,
-                                                                                         height_shift_range=HEIGHT_SHIFT_RANGE,
-                                                                                         width_shift_range=WIDTH_SHIFT_RANGE,
-                                                                                         depth_shift_range=DEPTH_SHIFT_RANGE,
-                                                                                         horizontal_flip=HORIZONTAL_FLIP,
-                                                                                         vertical_flip=VERTICAL_FLIP,
-                                                                                         depthZ_flip=DEPTHZ_FLIP),
-                                                             num_trans_per_sample=num_trans_per_sample,
-                                                             size_total_image=size_total_image,
-                                                             isUse_valid_convs=isUse_valid_convs,
-                                                             size_output_model=size_output_model,
-                                                             isfilter_valid_outUnet=isfilter_valid_outUnet,
-                                                             prop_valid_outUnet=prop_valid_outUnet,
-                                                             is_onehotmulticlass=is_onehotmulticlass)
-        else:
-            return SlicingReconstructorImages3D(size_in_images,
-                                                size_total_image=size_total_image,
-                                                isUse_valid_convs=isUse_valid_convs,
-                                                size_output_model=size_output_model,
-                                                isfilter_valid_outUnet=isfilter_valid_outUnet,
-                                                prop_valid_outUnet=prop_valid_outUnet,
-                                                is_onehotmulticlass=is_onehotmulticlass)
+        # reconstructor of images accounting for transformations during testing...
+        # IMPORTANT: PROTOTYPE, NOT TESTED YET
+        images_reconstructor = ImageReconstructorWithTransformation(size_in_images,
+                                                                    images_generator,
+                                                                    num_trans_per_patch= num_trans_per_sample,
+                                                                    size_full_image= size_full_image,
+                                                                    is_outputUnet_validconvs= is_outputUnet_validconvs,
+                                                                    size_output_image= size_output_images,
+                                                                    is_filter_output_unet= is_filter_output_unet,
+                                                                    filter_images_generator= filter_images_generator)
+
+    return images_reconstructor

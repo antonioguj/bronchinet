@@ -8,8 +8,9 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Preprocessing.BoundingBoxes import *
-from Preprocessing.OperationImages import CropImages
+from Common.ErrorMessages import *
+from OperationImages.BoundingBoxes import *
+from OperationImages.OperationImages import CropImages
 import numpy as np
 np.random.seed(2017)
 
@@ -23,7 +24,7 @@ class BatchDataGenerator(object):
                  images_generator,
                  num_channels_in= 1,
                  num_classes_out= 1,
-                 isUse_valid_convs= False,
+                 is_outputUnet_validconvs= False,
                  size_output_image= None,
                  batch_size= 1,
                  iswrite_datagen_info=True):
@@ -35,12 +36,17 @@ class BatchDataGenerator(object):
         self.list_yData_array = list_yData_array
         self.type_yData = list_yData_array[0].dtype
 
+        if len(list_xData_array) != len(list_yData_array):
+            message = 'BatchGenerator: num arrays xData \'%s\' not equal to num arrays yData \'%s\'' %(len(list_xData_array),
+                                                                                                       len(list_yData_array))
+            CatchErrorException(message)
+
         self.images_generator = images_generator
 
         self.num_classes_out = num_classes_out
 
-        self.isUse_valid_convs = isUse_valid_convs
-        if isUse_valid_convs and size_output_image and \
+        self.is_outputUnet_validconvs = is_outputUnet_validconvs
+        if is_outputUnet_validconvs and size_output_image and \
             (size_image == size_output_image):
             self.size_output_image = size_output_image
             self.crop_output_bounding_box = BoundingBoxes.compute_bounding_box_centered_image_fit_image(self.size_output_image,
@@ -53,7 +59,7 @@ class BatchDataGenerator(object):
             else:
                 raise Exception('Error: self.ndims')
         else:
-            self.isUse_valid_convs = False
+            self.is_outputUnet_validconvs = False
 
         self.batch_size = batch_size
         self.num_images = None
@@ -108,14 +114,7 @@ class BatchDataGenerator(object):
         return self.fun_crop_images(in_array, self.crop_output_bounding_box)
 
 
-    def get_formated_output_xData(self, in_array):
-        return NotImplemented
-
-    def get_formated_output_yData(self, in_array):
-        return NotImplemented
-
-
-    def get_item_noformat(self, index):
+    def get_item(self, index):
         (index_file, index_image_file) = self.list_pairIndexes_imagesFile[index]
         self.images_generator.update_image_data(self.list_xData_array[index_file].shape)
 
@@ -123,13 +122,6 @@ class BatchDataGenerator(object):
                                                        in2nd_array= self.list_yData_array[index_file],
                                                        index=index_image_file,
                                                        seed=None)
-
-
-    def get_item(self, index):
-        (out_xData_elem, out_yData_elem) = self.get_item_noformat(index)
-        return (self.get_formated_output_xData(out_xData_elem),
-                self.get_formated_output_yData(out_yData_elem))
-
 
     def get_full_data(self):
         out_xData_shape = [self.num_images] + list(self.size_image)

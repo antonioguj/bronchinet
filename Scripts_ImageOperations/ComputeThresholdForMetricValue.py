@@ -15,8 +15,8 @@ if TYPE_DNNLIBRARY_USED == 'Keras':
     from Networks_Keras.Metrics import *
 elif TYPE_DNNLIBRARY_USED == 'Pytorch':
     from Networks_Pytorch.Metrics import *
-from Preprocessing.OperationImages import *
-from Preprocessing.OperationMasks import *
+from OperationImages.OperationImages import *
+from OperationImages.OperationMasks import *
 from tqdm import tqdm
 import argparse
 

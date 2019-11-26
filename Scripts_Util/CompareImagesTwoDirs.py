@@ -8,11 +8,11 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from DataLoaders.FileReaders import *
-from PlotsManager.Histograms import *
-from Preprocessing.OperationImages import MorphoOpenImages
 import argparse
 
+from DataLoaders.FileReaders import *
+from OperationImages.OperationImages import MorphoOpenImages
+from PlotsManager.Histograms import *
 
 
 def main(args):

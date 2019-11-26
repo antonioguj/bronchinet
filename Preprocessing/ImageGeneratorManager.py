@@ -101,8 +101,8 @@ def getImagesDataGenerator(size_in_images,
                            slidewindow_propOverlap,
                            use_randomCropWindowImages,
                            numRandomPatchesEpoch,
-                           use_TransformationRigidImages,
-                           use_TransformElasticDeformImages,
+                           use_transformationRigidImages,
+                           use_transformElasticDeformImages,
                            size_full_image= 0):
 
     list_images_generators = []
@@ -122,7 +122,7 @@ def getImagesDataGenerator(size_in_images,
         list_images_generators.append(new_images_generator)
 
 
-    if use_TransformationRigidImages:
+    if use_transformationRigidImages:
         # generator of images by random rigid transformations of input images...
         ndims = len(size_in_images)
         if ndims==2:
@@ -154,7 +154,7 @@ def getImagesDataGenerator(size_in_images,
             CatchErrorException(message)
 
 
-    if use_TransformElasticDeformImages:
+    if use_transformElasticDeformImages:
         if TYPETRANSFORMELASTICDEFORMATION == 'pixelwise':
             new_images_generator = TransformElasticDeformPixelwiseImages(size_in_images)
             list_images_generators.append(new_images_generator)

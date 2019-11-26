@@ -10,14 +10,13 @@
 
 from Common.CPUGPUdevicesManager import *
 from Common.WorkDirsManager import *
+from DataLoaders.BatchDataGeneratorManager import *
 from DataLoaders.LoadDataManager import *
 if TYPE_DNNLIBRARY_USED == 'Keras':
-    from DataLoaders.BatchDataGenerator_Keras import BatchDataGenerator_Keras as BatchDataGenerator
     from Networks_Keras.Metrics import *
     from Networks_Keras.Networks import *
     from Networks_Keras.VisualModelParams import *
 elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-    from DataLoaders.BatchDataGenerator_Pytorch import WrapperBatchGenerator_Pytorch as BatchDataGenerator
     from Networks_Pytorch.Metrics import *
     if ISTESTMODELSWITHGNN:
         from Networks_Pytorch.NetworksGNNs import *
@@ -27,8 +26,8 @@ elif TYPE_DNNLIBRARY_USED == 'Pytorch':
     from Networks_Pytorch.VisualModelParams import *
 from Postprocessing.ImageReconstructorManager import *
 from Preprocessing.ImageGeneratorManager import *
-from Preprocessing.OperationImages import *
-from Preprocessing.OperationMasks import *
+from OperationImages.OperationImages import *
+from OperationImages.OperationMasks import *
 import argparse
 
 
@@ -41,8 +40,8 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputRoiMasksRelPath  = 'Lungs/'
     nameReferenceFilesRelPath = 'RawImages/'
-    namesImagesFiles          = 'images*.npz'
-    namesLabelsFiles          = 'labels*.npz'
+    namesImagesFiles          = 'images_proc*.nii.gz'
+    namesLabelsFiles          = 'labels_proc*.nii.gz'
     nameCropBoundingBoxes     = 'cropBoundingBoxes_images.npy'
     nameOutputPredictionsRelPath = args.predictionsdir
 
@@ -137,14 +136,16 @@ def main(args):
                                                    args.numRandomImagesPerVolumeEpoch,
                                                    args.transformationRigidImages,
                                                    args.transformElasticDeformImages)
-    images_reconstructor = getImagesReconstructor3D(args.size_in_images,
-                                                    args.slidingWindowImages,
-                                                    args.propOverlapSlidingWindow,
-                                                    use_transformationImages=False,
-                                                    isUse_valid_convs=args.isValidConvolutions,
-                                                    size_output_image=size_output_modelnet,
-                                                    isfilter_valid_outUnet=FILTERPREDICTPROBMAPS,
-                                                    prop_valid_outUnet=PROP_VALID_OUTUNET)
+    images_reconstructor = getImagesReconstructor(args.size_in_images,
+                                                  args.slidingWindowImages,
+                                                  args.propOverlapSlidingWindow,
+                                                  args.randomCropWindowImages,
+                                                  args.numRandomImagesPerVolumeEpoch,
+                                                  use_transformationRigidImages=False,
+                                                  is_outputUnet_validconvs=args.isValidConvolutions,
+                                                  size_output_images=size_output_modelnet,
+                                                  is_filter_output_unet=FILTERPREDICTPROBMAPS,
+                                                  prop_filter_output_unet=PROP_VALID_OUTUNET)
     # ----------------------------------------------
 
 
@@ -160,20 +161,15 @@ def main(args):
         # *******************************************************************************
         print("Loading data...")
         if (args.slidingWindowImages or args.transformationRigidImages):
-            if TYPE_DNNLIBRARY_USED == 'Keras':
-                in_testXData_batches = LoadDataManagerInBatches_DataGenerator(args.size_in_images,
-                                                                              test_images_generator).loadData_1File(in_testXData_file,
-                                                                                                                    shuffle_images=False)
-            elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-                in_testXData = LoadDataManager.loadData_1File(in_testXData_file)
-                in_testXData_batches = BatchDataGenerator(args.size_in_images,
-                                                          [in_testXData],
-                                                          [in_testXData],
-                                                          test_images_generator,
-                                                          batch_size=1,
-                                                          isUse_valid_convs=args.isValidConvolutions,
-                                                          size_output_model=size_output_modelnet,
-                                                          shuffle=False)
+            in_testXData = LoadDataManager.loadData_1File(in_testXData_file)
+            in_testXData_batches = getBatchDataGeneratorWithGenerator(args.size_in_images,
+                                                                      [in_testXData],
+                                                                      [in_testXData],
+                                                                      test_images_generator,
+                                                                      batch_size=1,
+                                                                      is_outputUnet_validconvs=args.isValidConvolutions,
+                                                                      size_output_images=size_output_modelnet,
+                                                                      shuffle=False)
         else:
             in_testXData_batches = LoadDataManagerInBatches(args.size_in_images).loadData_1File(in_testXData_file)
             in_testXData_batches = np.expand_dims(in_testXData_batches, axis=0)
@@ -197,7 +193,7 @@ def main(args):
         print("Reconstruct prediction to full size...")
         # Assign original images and masks files
         index_reference_file = getIndexOriginImagesFile(basename(in_testXData_file),
-                                                        beginString='images', firstIndex='01')
+                                                        beginString='images_proc', firstIndex='01')
         in_reference_file = listReferenceFiles[index_reference_file]
         print("Reference image file: \'%s\'..." %(basename(in_reference_file)))
 

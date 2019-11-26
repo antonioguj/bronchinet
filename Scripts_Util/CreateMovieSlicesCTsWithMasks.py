@@ -11,7 +11,7 @@
 from Common.Constants import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
-from Preprocessing.OperationImages import *
+from OperationImages.OperationImages import *
 TYPE_ANIMATION = '1'
 if (TYPE_ANIMATION == '1'):
     import imageio

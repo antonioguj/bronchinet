@@ -8,10 +8,10 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from DataLoaders.FileReaders import *
-from Preprocessing.OperationMasks import *
 import argparse
 
+from DataLoaders.FileReaders import *
+from OperationImages.OperationMasks import *
 
 
 def main(args):

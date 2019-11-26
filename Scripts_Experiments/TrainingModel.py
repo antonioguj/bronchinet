@@ -10,15 +10,14 @@
 
 from Common.CPUGPUdevicesManager import *
 from Common.WorkDirsManager import *
+from DataLoaders.BatchDataGeneratorManager import *
 from DataLoaders.LoadDataManager import *
 if TYPE_DNNLIBRARY_USED == 'Keras':
-    from DataLoaders.BatchDataGenerator_Keras import BatchDataGenerator_Keras as BatchDataGenerator
     from Networks_Keras.Callbacks import *
     from Networks_Keras.Metrics import *
     from Networks_Keras.Networks import *
     from Networks_Keras.Optimizers import *
 elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-    from DataLoaders.BatchDataGenerator_Pytorch import WrapperBatchGenerator_Pytorch as BatchDataGenerator
     from Networks_Pytorch.Callbacks import *
     from Networks_Pytorch.Metrics import *
     if ISTESTMODELSWITHGNN:
@@ -256,23 +255,21 @@ def main(args):
     if (args.slidingWindowImages or args.transformationRigidImages or args.transformElasticDeformImages):
         print("Generate Training images with Batch Generator of Training data...")
 
-        (list_train_xData, list_train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles,
-                                                                                  listTrainLabelsFiles)
-        train_images_generator = getImagesDataGenerator(args.size_in_images,
-                                                        args.slidingWindowImages,
-                                                        args.propOverlapSlidingWindow,
-                                                        args.randomCropWindowImages,
-                                                        args.numRandomImagesPerVolumeEpoch,
-                                                        args.transformationRigidImages,
-                                                        args.transformElasticDeformImages)
-        train_batch_data_generator = BatchDataGenerator(args.size_in_images,
-                                                        list_train_xData,
-                                                        list_train_yData,
-                                                        train_images_generator,
-                                                        batch_size=args.batch_size,
-                                                        isUse_valid_convs=args.isValidConvolutions,
-                                                        size_output_image=size_output_modelnet,
-                                                        shuffle=SHUFFLETRAINDATA)
+        (list_train_xData, list_train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles, listTrainLabelsFiles)
+
+        train_batch_data_generator = getBatchDataGenerator(args.size_in_images,
+                                                           list_train_xData,
+                                                           list_train_yData,
+                                                           args.slidingWindowImages,
+                                                           args.propOverlapSlidingWindow,
+                                                           args.randomCropWindowImages,
+                                                           args.numRandomImagesPerVolumeEpoch,
+                                                           args.transformationRigidImages,
+                                                           args.transformElasticDeformImages,
+                                                           batch_size=args.batch_size,
+                                                           is_outputUnet_validconvs=args.isValidConvolutions,
+                                                           size_output_images=size_output_modelnet,
+                                                           shuffle=SHUFFLETRAINDATA)
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(train_batch_data_generator)))
     else:
@@ -288,23 +285,21 @@ def main(args):
             args.transformationRigidImages = args.transformationRigidImages and USETRANSFORMONVALIDATIONDATA
             args.transformElasticDeformImages = args.transformElasticDeformImages and USETRANSFORMONVALIDATIONDATA
 
-            (list_valid_xData, list_valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles,
-                                                                                      listValidLabelsFiles)
-            valid_images_generator = getImagesDataGenerator(args.size_in_images,
-                                                            args.slidingWindowImages,
-                                                            args.propOverlapSlidingWindow,
-                                                            args.randomCropWindowImages,
-                                                            args.numRandomImagesPerVolumeEpoch,
-                                                            args.transformationRigidImages,
-                                                            args.transformElasticDeformImages)
-            valid_batch_data_generator = BatchDataGenerator(args.size_in_images,
-                                                            list_valid_xData,
-                                                            list_valid_yData,
-                                                            valid_images_generator,
-                                                            batch_size=args.batch_size,
-                                                            isUse_valid_convs=args.isValidConvolutions,
-                                                            size_output_image=size_output_modelnet,
-                                                            shuffle=SHUFFLETRAINDATA)
+            (list_valid_xData, list_valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles, listValidLabelsFiles)
+
+            valid_batch_data_generator = getBatchDataGenerator(args.size_in_images,
+                                                               list_valid_xData,
+                                                               list_valid_yData,
+                                                               args.slidingWindowImages,
+                                                               args.propOverlapSlidingWindow,
+                                                               args.randomCropWindowImages,
+                                                               args.numRandomImagesPerVolumeEpoch,
+                                                               args.transformationRigidImages,
+                                                               args.transformElasticDeformImages,
+                                                               batch_size=args.batch_size,
+                                                               is_outputUnet_validconvs=args.isValidConvolutions,
+                                                               size_output_images=size_output_modelnet,
+                                                               shuffle=SHUFFLETRAINDATA)
             validation_data = valid_batch_data_generator
             print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles),
                                                                               len(valid_batch_data_generator)))

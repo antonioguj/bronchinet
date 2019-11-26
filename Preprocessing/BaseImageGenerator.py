@@ -74,12 +74,12 @@ class BaseImageGenerator(object):
         return list_out_arrays
 
 
-    def get_shape_out_array(self, in_array_shape):
+    def get_shape_output_array(self, in_array_shape):
         if is_image_array_without_channels(self.size_image, in_array_shape):
-            return [num_images] + list(self.size_image)
+            return [self.num_images] + list(self.size_image)
         else:
-            num_channels = self.get_num_channels_array(in_array_shape)
-            return [num_images] + list(self.size_image) + [num_channels]
+            num_channels = get_num_channels_array(self.size_image, in_array_shape)
+            return [self.num_images] + list(self.size_image) + [num_channels]
 
 
     def compute_images_all(self, list_in_arrays, **kwargs):
@@ -87,7 +87,7 @@ class BaseImageGenerator(object):
 
         list_out_arrays = []
         for in_array in list_in_arrays:
-            out_shape = self.get_shape_out_array(in_array.shape)
+            out_shape = self.get_shape_output_array(in_array.shape)
             out_array = np.ndarray(out_shape, dtype=in_array.dtype)
             list_out_arrays.append(out_array)
         #endfor

@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from DataLoaders.BatchDataGenerator import *
+from DataLoaders.BatchDataGenerators.BatchDataGenerator import *
 from keras.preprocessing import image
 import numpy as np
 np.random.seed(2017)
@@ -23,7 +23,7 @@ class BatchDataGenerator_Keras(BatchDataGenerator, image.Iterator):
                  images_generator,
                  num_channels_in= 1,
                  num_classes_out= 1,
-                 isUse_valid_convs= False,
+                 is_outputUnet_validconvs= False,
                  size_output_image= None,
                  batch_size= 1,
                  shuffle= True,
@@ -35,7 +35,7 @@ class BatchDataGenerator_Keras(BatchDataGenerator, image.Iterator):
                                                        images_generator,
                                                        num_channels_in=num_channels_in,
                                                        num_classes_out=num_classes_out,
-                                                       isUse_valid_convs=isUse_valid_convs,
+                                                       is_outputUnet_validconvs=is_outputUnet_validconvs,
                                                        size_output_image=size_output_image,
                                                        batch_size=batch_size,
                                                        iswrite_datagen_info=iswrite_datagen_info)
@@ -53,11 +53,17 @@ class BatchDataGenerator_Keras(BatchDataGenerator, image.Iterator):
         return self.get_reshaped_output_array(in_array)
 
     def get_formated_output_yData(self, in_array):
-        if self.isUse_valid_convs:
+        if self.is_outputUnet_validconvs:
             out_array = self.get_cropped_output(in_array)
         else:
             out_array = in_array
         return self.get_formated_output_xData(out_array)
+
+
+    def get_item(self, index):
+        (out_xData_elem, out_yData_elem) = super(BatchDataGenerator_Keras, self).get_item(index)
+        return (self.get_formated_output_xData(out_xData_elem),
+                self.get_formated_output_yData(out_yData_elem))
 
 
     def _get_batches_of_transformed_samples(self, indexes_batch):

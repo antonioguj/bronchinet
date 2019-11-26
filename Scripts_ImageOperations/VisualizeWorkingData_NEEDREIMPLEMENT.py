@@ -8,12 +8,12 @@
 # Last update: 09/02/2018
 ########################################################################################
 
+import argparse
+
+from Common.WorkDirsManager import *
 from DataLoaders.BatchDataGenerator_OLD import *
 from DataLoaders.FileReaders import *
 from Preprocessing.ImageGeneratorManager import *
-from Common.WorkDirsManager import *
-import argparse
-
 
 
 def main(args):

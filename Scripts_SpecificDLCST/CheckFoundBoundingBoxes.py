@@ -8,12 +8,12 @@
 # Last update: 09/02/2018
 ########################################################################################
 
+import argparse
+
 from Common.Constants import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
-from Preprocessing.OperationImages import *
-import argparse
-
+from OperationImages.OperationImages import *
 
 
 def main(args):
