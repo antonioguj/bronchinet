@@ -8,18 +8,18 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-import argparse
-import numpy as np
-from Networks_Pytorch.Networks_WithGNN import *
-from Preprocessing.OperationImages import *
-
 from Common.Constants import *
 from Common.ErrorMessages import *
 from Common.FunctionsUtil import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
+from Networks_Pytorch.Networks_WithGNN import *
+from OperationImages.OperationImages import *
 from OperationImages.OperationMasks import *
 from Postprocessing.ImageReconstructorManager import *
+import numpy as np
+import argparse
+
 
 
 def main(args):

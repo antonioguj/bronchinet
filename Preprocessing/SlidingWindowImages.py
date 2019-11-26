@@ -8,23 +8,22 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-import numpy as np
-
 from OperationImages.OperationImages import CropImages, SetPatchInImages
 from Preprocessing.BaseImageGenerator import *
+import numpy as np
 
 
-def get_indexes_local_2dim(index, num_images_dirs):
-    index_y = index // num_images_dirs[0]
-    index_x = index % num_images_dirs[0]
+def get_indexes_local_2dim(index, (num_images_x, num_images_y)):
+    index_y = index // num_images_x
+    index_x = index % num_images_x
     return (index_x, index_y)
 
-def get_indexes_local_3dim(index, num_images_dirs):
-    num_images_xy = num_images_dirs[0] * num_images_dirs[1]
+def get_indexes_local_3dim(index, (num_images_z, num_images_x, num_images_y)):
+    num_images_xy = num_images_x * num_images_y
     index_z = index // (num_images_xy)
     index_xy = index % (num_images_xy)
-    index_y = index_xy // num_images_dirs[0]
-    index_x = index_xy % num_images_dirs[0]
+    index_y = index_xy // num_images_x
+    index_x = index_xy % num_images_x
     return (index_z, index_x, index_y)
 
 

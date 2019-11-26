@@ -13,6 +13,7 @@ import numpy as np
 np.random.seed(2017)
 
 
+
 class BatchDataGenerator(object):
 
     def __init__(self, numtot_samples, size_batch=1, shuffle=True, seed=None):

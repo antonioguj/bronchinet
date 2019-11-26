@@ -62,15 +62,15 @@ class BoundingBoxes(object):
 
     @staticmethod
     def is_bounding_box_contained_in_bounding_box(in_bounding_box, ref_bounding_box):
-        return (in_bounding_box[0][0] > ref_bounding_box[0][0] and in_bounding_box[0][1] < ref_bounding_box[0][1] and
-                in_bounding_box[1][0] > ref_bounding_box[1][0] and in_bounding_box[1][1] < ref_bounding_box[1][1] and
-                in_bounding_box[2][0] > ref_bounding_box[2][0] and in_bounding_box[2][1] < ref_bounding_box[2][1])
+        return (in_bounding_box[0][0] >= ref_bounding_box[0][0] and in_bounding_box[0][1] <= ref_bounding_box[0][1] and
+                in_bounding_box[1][0] >= ref_bounding_box[1][0] and in_bounding_box[1][1] <= ref_bounding_box[1][1] and
+                in_bounding_box[2][0] >= ref_bounding_box[2][0] and in_bounding_box[2][1] <= ref_bounding_box[2][1])
 
     @staticmethod
     def is_bounding_box_contained_in_image_size(in_bounding_box, size_in_array):
-        return (in_bounding_box[0][0] > 0 and in_bounding_box[0][1] < size_in_array[0] and
-                in_bounding_box[1][0] > 0 and in_bounding_box[1][1] < size_in_array[1] and
-                in_bounding_box[2][0] > 0 and in_bounding_box[2][1] < size_in_array[2])
+        return (in_bounding_box[0][0] >= 0 and in_bounding_box[0][1] <= size_in_array[0] and
+                in_bounding_box[1][0] >= 0 and in_bounding_box[1][1] <= size_in_array[1] and
+                in_bounding_box[2][0] >= 0 and in_bounding_box[2][1] <= size_in_array[2])
 
     @staticmethod
     def fit_bounding_box_to_bounding_box(in_bounding_box, ref_bounding_box):

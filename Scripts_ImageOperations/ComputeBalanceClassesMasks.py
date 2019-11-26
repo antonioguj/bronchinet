@@ -8,12 +8,11 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-import argparse
-
 from Common.Constants import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
 from OperationImages.OperationImages import *
+import argparse
 
 value_exclude = -1
 value_foregrnd = 1

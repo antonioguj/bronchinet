@@ -8,13 +8,12 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-import argparse
-
 from Common.Constants import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
 from OperationImages.BoundingBoxes import *
 from OperationImages.OperationImages import *
+import argparse
 
 
 def compute_test_range_boundbox(images_full_shape, images_crop_shape, alpha_relax=0.5, z_min_top=0, z_numtest=1):

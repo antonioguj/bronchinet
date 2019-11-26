@@ -8,11 +8,9 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-import numpy as np
-
 from OperationImages.OperationImages import CropImages, SetPatchInImages
 from Preprocessing.BaseImageGenerator import *
-
+import numpy as np
 np.random.seed(2017)
 
 

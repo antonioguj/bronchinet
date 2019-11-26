@@ -19,6 +19,7 @@ import datetime, time
 import gzip
 
 
+
 class GZIPmanager(object):
 
     @staticmethod

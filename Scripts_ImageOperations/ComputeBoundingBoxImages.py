@@ -8,15 +8,15 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-import argparse
-from Preprocessing.OperationImages import *
-from collections import OrderedDict
-
 from Common.Constants import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
 from OperationImages.BoundingBoxes import *
+from OperationImages.OperationImages import *
 from OperationImages.OperationMasks import *
+from collections import OrderedDict
+import argparse
+
 
 
 def main(args):

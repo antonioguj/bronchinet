@@ -8,14 +8,14 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-import argparse
-from Preprocessing.OperationImages import *
-
 from Common.Constants import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
+from OperationImages.OperationImages import *
 from OperationImages.BoundingBoxes import *
 from OperationImages.OperationMasks import *
+import argparse
+
 
 
 def main(args):
@@ -25,11 +25,11 @@ def main(args):
     nameInputRoiMasksRelPath = 'RawLungs/'
     nameReferenceFilesRelPath= 'RawImages/'
     nameOutputImagesRelPath  = 'ImagesWorkData/'
-    nameOutputLabelsRelPath  = 'REsWorkData/'
+    nameOutputLabelsRelPath  = 'LabelsWorkData/'
     nameOutputImagesFiles    = 'images_proc-%0.2i.nii.gz'
     nameOutputLabelsFiles    = 'labels_proc-%0.2i.nii.gz'
 
-    nameCropBoundingBoxes = 'cropBoundingBoxes_images_rescaled.npy'
+    nameCropBoundingBoxes = 'cropBoundingBoxes_images.npy'
     nameRescaleFactors    = 'rescaleFactors_images.npy'
 
     if args.isInputExtraLabels:
