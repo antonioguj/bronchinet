@@ -35,8 +35,8 @@ def main(args):
         print("%s: \'%s\'" %(i+1, ifile))
     #endfor
 
-    #labels = ['model_%i'%(i+1) for i in range(num_data_files)]
-    labels = ['Original', 'Rescaled_RandomWindow', 'Rescaled_SlidingWindow_Fit', 'Rescaled_SlidingWindow_Samesize']
+    labels = ['model_%i'%(i+1) for i in range(num_data_files)]
+    #labels = ['Original', 'Rescaled_RandomWindow', 'Rescaled_SlidingWindow_Fit', 'Rescaled_SlidingWindow_Samesize']
     titles = ['Distance False Positives', 'Distance False Negatives']
     names_outfiles = ['figure_resDFP_NEW.eps', 'figure_resDFN_NEW.eps']
 

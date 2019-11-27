@@ -151,7 +151,7 @@ def main(args):
             list_computed_metrics[i,j] = metric_value
         # endfor
 
-        prefix_casename = getSubstringPatternFilename(basename(in_predictmask_file), substr_pattern=prefixPatternInputFiles)[:-1]
+        prefix_casename = getSubstringPatternFilename(basename(in_predictmask_file), substr_pattern=prefixPatternInputFiles)
         list_casenames.append(prefix_casename)
     #endfor
 

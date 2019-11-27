@@ -313,7 +313,7 @@ if __name__ == "__main__":
         args.transformElasticDeformImages= False   #str2bool(input_args_file['transformElasticDeformImages'])
         args.isGNNwithAttentionLays = str2bool(input_args_file['isGNNwithAttentionLays'])
 
-    args.propOverlapSlidingWindow = (0.5, 0.0, 0.0)
+    args.propOverlapSlidingWindow = (0.5, 0.5, 0.5)
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).iteritems()):

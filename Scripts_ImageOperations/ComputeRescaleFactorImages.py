@@ -23,8 +23,8 @@ def main(args):
     nameOutputDataRelPath      = 'RescalingData/'
     nameOrigVoxelSize_FileNpy  = 'original_vozelSize.npy'
     nameOrigVoxelSize_FileCsv  = 'original_vozelSize.csv'
-    nameRescaleFactors_FileNpy = 'rescaleFactors_images.npy'
-    nameRescaleFactors_FileCsv = 'rescaleFactors_images.csv'
+    nameRescaleFactors_FileNpy = 'rescaleFactors_images_next.npy'
+    nameRescaleFactors_FileCsv = 'rescaleFactors_images_next.csv'
     # ---------- SETTINGS ----------
 
 
