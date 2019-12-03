@@ -230,7 +230,8 @@ def main(args):
             CatchErrorException(message)
 
         # output model summary
-        trainer.get_summary_model()
+        if not ISTESTMODELSWITHGNN:
+            trainer.get_summary_model()
         # ----------------------------------------------
 
     if (WRITEOUTDESCMODELTEXT):

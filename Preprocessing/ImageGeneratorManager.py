@@ -132,7 +132,8 @@ def getImagesDataGenerator(size_in_images,
                                                                width_shift_range=WIDTH_SHIFT_RANGE,
                                                                horizontal_flip=HORIZONTAL_FLIP,
                                                                vertical_flip=VERTICAL_FLIP,
-                                                               zoom_range=ZOOM_RANGE)
+                                                               zoom_range=ZOOM_RANGE,
+                                                               fill_mode=FILL_MODE_TRANSFORM)
             list_images_generators.append(new_images_generator)
 
         elif ndims==3:
@@ -145,8 +146,9 @@ def getImagesDataGenerator(size_in_images,
                                                                depth_shift_range=DEPTH_SHIFT_RANGE,
                                                                horizontal_flip=HORIZONTAL_FLIP,
                                                                vertical_flip=VERTICAL_FLIP,
-                                                               depthZ_flip=DEPTHZ_FLIP,
-                                                               zoom_range=ZOOM_RANGE)
+                                                               axialdir_flip=AXIALDIR_FLIP,
+                                                               zoom_range=ZOOM_RANGE,
+                                                               fill_mode=FILL_MODE_TRANSFORM)
             list_images_generators.append(new_images_generator)
 
         else:

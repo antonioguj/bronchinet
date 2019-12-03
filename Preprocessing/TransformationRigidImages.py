@@ -13,7 +13,7 @@ from Preprocessing.BaseImageGenerator import *
 import scipy.ndimage as ndi
 import numpy as np
 np.random.seed(2017)
-_epsilon = 1e-7
+_epsilon = 1e-6
 
 
 
@@ -64,13 +64,13 @@ class TransformationRigidImages(BaseImageGenerator):
 
     def compute_gendata(self, **kwargs):
         seed = kwargs['seed']
-        self.transformation_matrix = self.get_compute_random_transform_matrix(seed)
-        self.is_apply_flipping_dirs = self.get_flags_random_apply_flipping(seed)
+        (self.transformation_matrix, self.transform_params) = self.get_compute_random_transform_matrix(seed)
         self.is_compute_gendata = False
 
     def initialize_gendata(self):
         self.is_compute_gendata = True
         self.transformation_matrix = None
+        self.transform_params = None
         self.num_arrays_transformed = 0
 
     def get_text_description(self):
@@ -81,9 +81,6 @@ class TransformationRigidImages(BaseImageGenerator):
         return NotImplemented
 
     def get_compute_inverse_random_transform_matrix(self, seed= None):
-        return NotImplemented
-
-    def get_flags_random_apply_flipping(self, seed= None):
         return NotImplemented
 
 
@@ -215,20 +212,27 @@ class TransformationRigidImages(BaseImageGenerator):
 
 
     @staticmethod
-    def flip_axis(x, axis):
-        x = np.asarray(x).swapaxes(axis, 0)
-        x = x[::-1, ...]
-        x = x.swapaxes(0, axis)
-        return x
+    def flip_axis(inout_array, axis):
+        inout_array = np.asarray(inout_array).swapaxes(axis, 0)
+        inout_array = inout_array[::-1, ...]
+        inout_array = inout_array.swapaxes(0, axis)
+        return inout_array
 
     @staticmethod
-    def random_channel_shift(x, intensity, channel_axis=0):
-        x = np.rollaxis(x, channel_axis, 0)
-        min_x, max_x = np.min(x), np.max(x)
-        channel_images = [np.clip(x_channel + np.random.uniform(-intensity, intensity), min_x, max_x) for x_channel in x]
-        x = np.stack(channel_images, axis=0)
-        x = np.rollaxis(x, 0, channel_axis + 1)
-        return x
+    def apply_channel_shift(inout_array, intensity, channel_axis=0):
+        inout_array = np.rollaxis(inout_array, channel_axis, 0)
+        min_x, max_x = np.min(inout_array), np.max(inout_array)
+        channel_images = [np.clip(x_channel + intensity, min_x, max_x) for x_channel in inout_array]
+        inout_array = np.stack(channel_images, axis=0)
+        inout_array = np.rollaxis(inout_array, 0, channel_axis + 1)
+        return inout_array
+
+    def apply_brightness_shift(self, inout_array, brightness):
+        CatchErrorException('Not implemented brightness shifting option...')
+        # inout_array = array_to_img(inout_array)
+        # inout_array = imgenhancer_Brightness = ImageEnhance.Brightness(inout_array)
+        # inout_array = imgenhancer_Brightness.enhance(brightness)
+        # inout_array = img_to_array(inout_array)
 
 
 
@@ -273,6 +277,10 @@ class TransformationRigidImages2D(TransformationRigidImages):
         else:
             raise ValueError('`zoom_range` should be a float or a tuple or list of two floats. Received arg: ', zoom_range)
 
+        if self.brightness_range is not None:
+            if len(self.brightness_range) != 2:
+                raise ValueError('`brightness_range should be tuple or list of two floats. Received: %s' % brightness_range)
+
         super(TransformationRigidImages2D, self).__init__(size_image,
                                                           is_normalize_data=is_normalize_data,
                                                           type_normalize_data=type_normalize_data,
@@ -286,6 +294,7 @@ class TransformationRigidImages2D(TransformationRigidImages):
         if seed is not None:
             np.random.seed(seed)
 
+        # ****************************************************
         if self.rotation_range:
             theta = np.deg2rad(np.random.uniform(-self.rotation_range, self.rotation_range))
         else:
@@ -315,6 +324,25 @@ class TransformationRigidImages2D(TransformationRigidImages):
         else:
             zx, zy = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 2)
 
+
+        flip_horizontal = (np.random.random() < 0.5) * self.horizontal_flip
+        flip_vertical   = (np.random.random() < 0.5) * self.vertical_flip
+
+        channel_shift_intensity = None
+        if self.channel_shift_range != 0:
+            channel_shift_intensity = np.random.uniform(-self.channel_shift_range, self.channel_shift_range)
+
+        brightness = None
+        if self.brightness_range is not None:
+            brightness = np.random.uniform(self.brightness_range[0], self.brightness_range[1])
+
+        transform_parameters = {'flip_horizontal': flip_horizontal,
+                                'flip_vertical': flip_vertical,
+                                'channel_shift_intensity': channel_shift_intensity,
+                                'brightness': brightness}
+        # ****************************************************
+
+        # ****************************************************
         transform_matrix = None
 
         if theta != 0:
@@ -344,8 +372,9 @@ class TransformationRigidImages2D(TransformationRigidImages):
         if transform_matrix is not None:
             h, w = self.size_image[self.img_row_axis], self.size_image[self.img_col_axis]
             transform_matrix = self.transform_matrix_offset_center(transform_matrix, h, w)
+        # ****************************************************
 
-        return transform_matrix
+        return (transform_matrix, transform_parameters)
 
 
 
@@ -354,6 +383,7 @@ class TransformationRigidImages2D(TransformationRigidImages):
         if seed is not None:
             np.random.seed(seed)
 
+        # ****************************************************
         if self.rotation_range:
             theta = np.deg2rad(np.random.uniform(-self.rotation_range, self.rotation_range))
         else:
@@ -382,6 +412,25 @@ class TransformationRigidImages2D(TransformationRigidImages):
         else:
             zx, zy = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 2)
 
+
+        flip_horizontal = (np.random.random() < 0.5) * self.horizontal_flip
+        flip_vertical   = (np.random.random() < 0.5) * self.vertical_flip
+
+        channel_shift_intensity = None
+        if self.channel_shift_range != 0:
+            channel_shift_intensity = np.random.uniform(-self.channel_shift_range, self.channel_shift_range)
+
+        brightness = None
+        if self.brightness_range is not None:
+            brightness = np.random.uniform(self.brightness_range[0], self.brightness_range[1])
+
+        transform_parameters = {'flip_horizontal': flip_horizontal,
+                                'flip_vertical': flip_vertical,
+                                'channel_shift_intensity': channel_shift_intensity,
+                                'brightness': brightness}
+        # ****************************************************
+
+        # ****************************************************
         transform_matrix = None
 
         if theta != 0:
@@ -411,22 +460,9 @@ class TransformationRigidImages2D(TransformationRigidImages):
         if transform_matrix is not None:
             h, w = self.size_image[self.img_row_axis], self.size_image[self.img_col_axis]
             transform_matrix = self.transform_matrix_offset_center(transform_matrix, h, w)
+        # ****************************************************
 
-        return transform_matrix
-
-
-
-    def get_flags_random_apply_flipping(self, seed= None):
-        if self.horizontal_flip:
-            is_apply_horizontal_flip = (np.random.random() < 0.5)
-        else:
-            is_apply_horizontal_flip = False
-        if self.vertical_flip:
-            is_apply_vertical_flip = (np.random.random() < 0.5)
-        else:
-            is_apply_vertical_flip = False
-        return (is_apply_horizontal_flip, is_apply_vertical_flip)
-
+        return (transform_matrix, transform_parameters)
 
 
     def get_transformed_image_array(self, in_array, is_image_array= False):
@@ -436,15 +472,18 @@ class TransformationRigidImages2D(TransformationRigidImages):
                                          fill_mode=self.fill_mode,
                                          cval=self.cval)
 
-        if (self.channel_shift_range != 0) and is_image_array:
-            out_array = self.random_channel_shift(out_array, self.channel_shift_range,
-                                                  channel_axis=self.img_channel_axis)
+        if (self.transform_params.get('channel_shift_intensity') is not None) and is_image_array:
+            out_array = self.apply_channel_shift(out_array, self.transform_params['channel_shift_intensity'],
+                                                 channel_axis=self.img_channel_axis)
 
-        if self.horizontal_flip and self.is_apply_flipping_dirs[0]:
+        if self.transform_params.get('flip_horizontal', False):
             out_array = self.flip_axis(out_array, axis=self.img_col_axis)
 
-        if self.vertical_flip and self.is_apply_flipping_dirs[1]:
+        if self.transform_params.get('flip_vertical', False):
             out_array = self.flip_axis(out_array, axis=self.img_row_axis)
+
+        if (self.transform_params.get('brightness') is not None) and is_image_array:
+            out_array = self.apply_brightness_shift(out_array, self.transform_params['brightness'])
 
         return out_array
 
@@ -453,15 +492,18 @@ class TransformationRigidImages2D(TransformationRigidImages):
         # apply transformations in inverse order: flipping, and then rigid trans
         out_array = in_array
 
-        if self.vertical_flip and self.is_apply_flipping_dirs[1]:
+        if (self.transform_params.get('brightness') is not None) and is_image_array:
+            out_array = self.apply_brightness_shift(out_array, self.transform_params['brightness'])
+
+        if self.transform_params.get('flip_vertical', False):
             out_array = self.flip_axis(out_array, axis=self.img_row_axis)
 
-        if self.horizontal_flip and self.is_apply_flipping_dirs[0]:
+        if self.transform_params.get('flip_horizontal', False):
             out_array = self.flip_axis(out_array, axis=self.img_col_axis)
 
-        if self.channel_shift_range != 0 and is_image_array:
-            out_array = self.random_channel_shift(out_array, self.channel_shift_range,
-                                                  channel_axis=self.img_channel_axis)
+        if (self.transform_params.get('channel_shift_intensity') is not None) and is_image_array:
+            out_array = self.apply_channel_shift(out_array, self.transform_params['channel_shift_intensity'],
+                                                 channel_axis=self.img_channel_axis)
 
         out_array = self.apply_transform(out_array, self.transformation_matrix,
                                          channel_axis=self.img_channel_axis,
@@ -480,15 +522,15 @@ class TransformationRigidImages2D(TransformationRigidImages):
         return transform_matrix
 
     @staticmethod
-    def apply_transform(x, transform_matrix, channel_axis=0, fill_mode='nearest', cval=0.):
-        x = np.rollaxis(x, channel_axis, 0)
+    def apply_transform(inout_array, transform_matrix, channel_axis=0, fill_mode='nearest', cval=0.):
+        inout_array = np.rollaxis(inout_array, channel_axis, 0)
         final_affine_matrix = transform_matrix[:2, :2]
         final_offset = transform_matrix[:2, 2]
         channel_images = [ndi.interpolation.affine_transform(x_channel, final_affine_matrix, final_offset,
-                                                             order=1, mode=fill_mode, cval=cval) for x_channel in x]
-        x = np.stack(channel_images, axis=0)
-        x = np.rollaxis(x, 0, channel_axis + 1)
-        return x
+                                                             order=1, mode=fill_mode, cval=cval) for x_channel in inout_array]
+        inout_array = np.stack(channel_images, axis=0)
+        inout_array = np.rollaxis(inout_array, 0, channel_axis + 1)
+        return inout_array
 
 
 
@@ -514,7 +556,7 @@ class TransformationRigidImages3D(TransformationRigidImages):
                  cval=0.0,
                  horizontal_flip=False,
                  vertical_flip=False,
-                 depthZ_flip=False,
+                 axialdir_flip=False,
                  rescale=None,
                  preprocessing_function=None):
         self.rotation_XY_range = rotation_XY_range
@@ -532,7 +574,7 @@ class TransformationRigidImages3D(TransformationRigidImages):
         self.cval = cval
         self.horizontal_flip = horizontal_flip
         self.vertical_flip = vertical_flip
-        self.depthZ_flip = depthZ_flip
+        self.axialdir_flip = axialdir_flip
 
         self.img_dep_axis = 0
         self.img_row_axis = 1
@@ -541,10 +583,14 @@ class TransformationRigidImages3D(TransformationRigidImages):
 
         if np.isscalar(zoom_range):
             self.zoom_range = (1 - zoom_range, 1 + zoom_range)
-        elif len(zoom_range) == 3:
-            self.zoom_range = (zoom_range[0], zoom_range[1], zoom_range[2])
+        elif len(zoom_range) == 2:
+            self.zoom_range = (zoom_range[0], zoom_range[1])
         else:
-            raise ValueError('`zoom_range` should be a float or a tuple or list of three floats. Received arg: ', zoom_range)
+            raise ValueError('`zoom_range` should be a float or a tuple or list of two floats. Received arg: ', zoom_range)
+
+        if self.brightness_range is not None:
+            if len(self.brightness_range) != 2:
+                raise ValueError('`brightness_range should be tuple or list of two floats. Received: %s' % brightness_range)
 
         super(TransformationRigidImages3D, self).__init__(size_image,
                                                           is_normalize_data=is_normalize_data,
@@ -559,6 +605,7 @@ class TransformationRigidImages3D(TransformationRigidImages):
         if seed is not None:
             np.random.seed(seed)
 
+        # ****************************************************
         if self.rotation_XY_range:
             angle_XY = np.deg2rad(np.random.uniform(-self.rotation_XY_range, self.rotation_XY_range))
         else:
@@ -609,6 +656,27 @@ class TransformationRigidImages3D(TransformationRigidImages):
         else:
             (zx, zy, zz) = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 3)
 
+
+        flip_horizontal = (np.random.random() < 0.5) * self.horizontal_flip
+        flip_vertical   = (np.random.random() < 0.5) * self.vertical_flip
+        flip_axialdir   = (np.random.random() < 0.5) * self.axialdir_flip
+
+        channel_shift_intensity = None
+        if self.channel_shift_range != 0:
+            channel_shift_intensity = np.random.uniform(-self.channel_shift_range, self.channel_shift_range)
+
+        brightness = None
+        if self.brightness_range is not None:
+            brightness = np.random.uniform(self.brightness_range[0], self.brightness_range[1])
+
+        transform_parameters = {'flip_horizontal': flip_horizontal,
+                                'flip_vertical': flip_vertical,
+                                'flip_axialdir': flip_axialdir,
+                                'channel_shift_intensity': channel_shift_intensity,
+                                'brightness': brightness}
+        # ****************************************************
+
+        # ****************************************************
         transform_matrix = None
 
         if angle_XY != 0:
@@ -666,8 +734,9 @@ class TransformationRigidImages3D(TransformationRigidImages):
         if transform_matrix is not None:
             (d, h, w) = (self.size_image[self.img_dep_axis], self.size_image[self.img_row_axis], self.size_image[self.img_col_axis])
             transform_matrix = self.transform_matrix_offset_center(transform_matrix, d, h, w)
+        # ****************************************************
 
-        return transform_matrix
+        return (transform_matrix, transform_parameters)
 
 
 
@@ -676,6 +745,7 @@ class TransformationRigidImages3D(TransformationRigidImages):
         if seed is not None:
             np.random.seed(seed)
 
+        # ****************************************************
         if self.rotation_XY_range:
             angle_XY = np.deg2rad(np.random.uniform(-self.rotation_XY_range, self.rotation_XY_range))
         else:
@@ -726,6 +796,27 @@ class TransformationRigidImages3D(TransformationRigidImages):
         else:
             (zx, zy, zz) = np.random.uniform(self.zoom_range[0], self.zoom_range[1], 3)
 
+
+        flip_horizontal = (np.random.random() < 0.5) * self.horizontal_flip
+        flip_vertical   = (np.random.random() < 0.5) * self.vertical_flip
+        flip_axialdir   = (np.random.random() < 0.5) * self.axialdir_flip
+
+        channel_shift_intensity = None
+        if self.channel_shift_range != 0:
+            channel_shift_intensity = np.random.uniform(-self.channel_shift_range, self.channel_shift_range)
+
+        brightness = None
+        if self.brightness_range is not None:
+            brightness = np.random.uniform(self.brightness_range[0], self.brightness_range[1])
+
+        transform_parameters = {'flip_horizontal': flip_horizontal,
+                                'flip_vertical': flip_vertical,
+                                'flip_axialdir': flip_axialdir,
+                                'channel_shift_intensity': channel_shift_intensity,
+                                'brightness': brightness}
+        # ****************************************************
+
+        # ****************************************************
         transform_matrix = None
 
         if angle_XY != 0:
@@ -783,27 +874,9 @@ class TransformationRigidImages3D(TransformationRigidImages):
         if transform_matrix is not None:
             (d, h, w) = (self.size_image[self.img_dep_axis], self.size_image[self.img_row_axis], self.size_image[self.img_col_axis])
             transform_matrix = self.transform_matrix_offset_center(transform_matrix, d, h, w)
+        # ****************************************************
 
-        return transform_matrix
-
-
-
-    def get_flags_random_apply_flipping(self, seed= None):
-        if self.horizontal_flip:
-            is_apply_horizontal_flip = (np.random.random() < 0.5)
-        else:
-            is_apply_horizontal_flip = False
-        if self.vertical_flip:
-            is_apply_vertical_flip = (np.random.random() < 0.5)
-        else:
-            is_apply_vertical_flip = False
-        if self.depthZ_flip:
-            is_apply_depthZ_flip = (np.random.random() < 0.5)
-        else:
-            is_apply_depthZ_flip = False
-
-        return (is_apply_horizontal_flip, is_apply_vertical_flip, is_apply_depthZ_flip)
-
+        return (transform_matrix, transform_parameters)
 
 
     def get_transformed_image_array(self, in_array, is_image_array= False):
@@ -813,18 +886,21 @@ class TransformationRigidImages3D(TransformationRigidImages):
                                          fill_mode=self.fill_mode,
                                          cval=self.cval)
 
-        if (self.channel_shift_range != 0) and is_image_array:
-            out_array = self.random_channel_shift(out_array, self.channel_shift_range,
-                                                  channel_axis=self.img_channel_axis)
+        if (self.transform_params.get('channel_shift_intensity') is not None) and is_image_array:
+            out_array = self.apply_channel_shift(out_array, self.transform_params['channel_shift_intensity'],
+                                                 channel_axis=self.img_channel_axis)
 
-        if self.horizontal_flip and self.is_apply_flipping_dirs[0]:
+        if self.transform_params.get('flip_horizontal', False):
             out_array = self.flip_axis(out_array, axis=self.img_col_axis)
 
-        if self.vertical_flip and self.is_apply_flipping_dirs[1]:
+        if self.transform_params.get('flip_vertical', False):
             out_array = self.flip_axis(out_array, axis=self.img_row_axis)
 
-        if self.depthZ_flip and self.is_apply_flipping_dirs[2]:
+        if self.transform_params.get('flip_axialdir', False):
             out_array = self.flip_axis(out_array, axis=self.img_dep_axis)
+
+        if (self.transform_params.get('brightness') is not None) and is_image_array:
+            out_array = self.apply_brightness_shift(out_array, self.transform_params['brightness'])
 
         return out_array
 
@@ -833,18 +909,21 @@ class TransformationRigidImages3D(TransformationRigidImages):
         # apply transformations in inverse order: flipping, and then rigid trans
         out_array = in_array
 
-        if self.depthZ_flip and self.is_apply_flipping_dirs[2]:
+        if (self.transform_params.get('brightness') is not None) and is_image_array:
+            out_array = self.apply_brightness_shift(out_array, self.transform_params['brightness'])
+
+        if self.transform_params.get('flip_axialdir', False):
             out_array = self.flip_axis(out_array, axis=self.img_dep_axis)
 
-        if self.vertical_flip and self.is_apply_flipping_dirs[1]:
+        if self.transform_params.get('flip_vertical', False):
             out_array = self.flip_axis(out_array, axis=self.img_row_axis)
 
-        if self.horizontal_flip and self.is_apply_flipping_dirs[0]:
+        if self.transform_params.get('flip_horizontal', False):
             out_array = self.flip_axis(out_array, axis=self.img_col_axis)
 
-        if self.channel_shift_range != 0 and is_image_array:
-            out_array = self.random_channel_shift(out_array, self.channel_shift_range,
-                                                  channel_axis=self.img_channel_axis)
+        if (self.transform_params.get('channel_shift_intensity') is not None) and is_image_array:
+            out_array = self.apply_channel_shift(out_array, self.transform_params['channel_shift_intensity'],
+                                                 channel_axis=self.img_channel_axis)
 
         out_array = self.apply_transform(out_array, self.transformation_matrix,
                                          channel_axis=self.img_channel_axis,
@@ -865,12 +944,12 @@ class TransformationRigidImages3D(TransformationRigidImages):
         return transform_matrix
 
     @staticmethod
-    def apply_transform(x, transform_matrix, channel_axis=0, fill_mode='nearest', cval=0.):
-        x = np.rollaxis(x, channel_axis, 0)
+    def apply_transform(inout_array, transform_matrix, channel_axis=0, fill_mode='nearest', cval=0.):
+        inout_array = np.rollaxis(inout_array, channel_axis, 0)
         final_affine_matrix = transform_matrix[:3, :3]
         final_offset = transform_matrix[:3, 3]
         channel_images = [ndi.interpolation.affine_transform(x_channel, final_affine_matrix, final_offset,
-                                                             order=0, mode=fill_mode, cval=cval) for x_channel in x]
-        x = np.stack(channel_images, axis=0)
-        x = np.rollaxis(x, 0, channel_axis + 1)
-        return x
+                                                             order=0, mode=fill_mode, cval=cval) for x_channel in inout_array]
+        inout_array = np.stack(channel_images, axis=0)
+        inout_array = np.rollaxis(inout_array, 0, channel_axis + 1)
+        return inout_array
