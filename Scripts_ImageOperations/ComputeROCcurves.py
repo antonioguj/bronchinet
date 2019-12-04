@@ -99,8 +99,8 @@ def main(args):
     for i, in_prediction_file in enumerate(listInputPredictionsFiles):
         print("\nInput: \'%s\'..." % (basename(in_prediction_file)))
 
-        in_refermask_file = findFileWithSamePrefix(basename(in_prediction_file), listInputReferMasksFiles,
-                                                   prefix_pattern=prefixPatternInputFiles)
+        in_refermask_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputReferMasksFiles,
+                                                          prefix_pattern=prefixPatternInputFiles)
         print("Reference mask file: \'%s\'..." % (basename(in_refermask_file)))
 
         in_prediction_array = FileReader.getImageArray(in_prediction_file)
@@ -108,8 +108,8 @@ def main(args):
         print("Predictions of size: %s..." % (str(in_prediction_array.shape)))
 
         if (isLoadReferenceCentrelineFiles):
-            in_refercenline_file = findFileWithSamePrefix(basename(in_prediction_file), listInputReferCentrelinesFiles,
-                                                          prefix_pattern=prefixPatternInputFiles)
+            in_refercenline_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputReferCentrelinesFiles,
+                                                                 prefix_pattern=prefixPatternInputFiles)
             print("Reference centrelines file: \'%s\'..." % (basename(in_refercenline_file)))
             in_refercenline_array = FileReader.getImageArray(in_refercenline_file)
 
@@ -117,8 +117,8 @@ def main(args):
         if (args.removeTracheaResMetrics):
             print("Remove trachea and main bronchi masks in computed metrics...")
 
-            in_roimask_file = findFileWithSamePrefix(basename(in_prediction_file), listInputRoiMasksFiles,
-                                                     prefix_pattern=prefixPatternInputFiles)
+            in_roimask_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputRoiMasksFiles,
+                                                            prefix_pattern=prefixPatternInputFiles)
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask_array = FileReader.getImageArray(in_roimask_file)

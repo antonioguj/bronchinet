@@ -57,10 +57,10 @@ def main(args):
     for i, in_predictmask_file in enumerate(listInputPredictMasksFiles):
         print("\nInput: \'%s\'..." % (in_predictmask_file))
 
-        in_image_file = findFileWithSamePrefix(basename(in_predictmask_file), listInputImagesFiles,
-                                               prefix_pattern=prefixPatternInputFiles)
-        in_refermask_file = findFileWithSamePrefix(basename(in_predictmask_file), listInputReferMasksFiles,
-                                                   prefix_pattern=prefixPatternInputFiles)
+        in_image_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputImagesFiles,
+                                                      prefix_pattern=prefixPatternInputFiles)
+        in_refermask_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputReferMasksFiles,
+                                                          prefix_pattern=prefixPatternInputFiles)
         #endfor
         print("assigned to \'%s\' and \'%s\'..." %(basename(in_image_file), basename(in_refermask_file)))
 

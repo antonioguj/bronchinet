@@ -24,8 +24,8 @@ def main(args):
     nameInputRoiMaskRelPath       = 'Lungs/'
     nameReferenceFilesRelPath     = 'RawImages/'
     nameOutputDataRelPath         = 'CroppingData/'
-    nameCropBoundingBoxes_FileNpy = 'cropBoundingBoxes_images_fullsize.npy'
-    nameCropBoundingBoxes_FileCsv = 'cropBoundingBoxes_images_fullsize.csv'
+    nameCropBoundingBoxes_FileNpy = 'cropBoundingBoxes_images_next.npy'
+    nameCropBoundingBoxes_FileCsv = 'cropBoundingBoxes_images_next.csv'
     size_borders_buffer = (20, 20, 20)
     # ---------- SETTINGS ----------
 

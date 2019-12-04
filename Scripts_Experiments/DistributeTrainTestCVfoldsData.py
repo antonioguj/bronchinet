@@ -76,17 +76,23 @@ def main(args):
         # TRAINING DATA
         print("Files assigned to Training Data:")
         for index in indexes_training_files:
-            print("%s" % (basename(listInputImagesFiles[index])))
-            makelink(listInputImagesFiles[index], joinpathnames(TrainingDataPath, basename(listInputImagesFiles[index])))
-            makelink(listInputLabelsFiles[index], joinpathnames(TrainingDataPath, basename(listInputLabelsFiles[index])))
+            basename_input_images_file = basename(listInputImagesFiles[index])
+            basename_input_labels_file = basename(listInputLabelsFiles[index])
+            print("%s --> %s" %(basename_input_images_file, listInputImagesFiles[index]))
+
+            makelink(listInputImagesFiles[index], joinpathnames(TrainingDataPath, basename_input_images_file))
+            makelink(listInputLabelsFiles[index], joinpathnames(TrainingDataPath, basename_input_labels_file))
         # endfor
 
         # TESTING DATA
         print("Files assigned to Testing Data:")
         for index in indexes_testing_files:
-            print("%s" % (basename(listInputImagesFiles[index])))
-            makelink(listInputImagesFiles[index], joinpathnames(TestingDataPath, basename(listInputImagesFiles[index])))
-            makelink(listInputLabelsFiles[index], joinpathnames(TestingDataPath, basename(listInputLabelsFiles[index])))
+            basename_input_images_file = basename(listInputImagesFiles[index])
+            basename_input_labels_file = basename(listInputLabelsFiles[index])
+            print("%s --> %s" %(basename_input_images_file, listInputImagesFiles[index]))
+
+            makelink(listInputImagesFiles[index], joinpathnames(TestingDataPath, basename_input_images_file))
+            makelink(listInputLabelsFiles[index], joinpathnames(TestingDataPath, basename_input_labels_file))
         # endfor
     #endfor
 

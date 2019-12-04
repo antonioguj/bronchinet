@@ -278,7 +278,7 @@ if __name__ == "__main__":
     parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=True)
-    #parser.add_argument('--propOverlapSlidingWindow', type=str2tuplefloat, default=PROPOVERLAPSLIDINGWINDOW_Z_X_Y)
+    parser.add_argument('--propOverlapSlidingWindow', type=str2tuplefloat, default=PROPOVERLAPSLIDINGWINDOW_TESTING_Z_X_Y)
     parser.add_argument('--randomCropWindowImages', type=str2tuplefloat, default=False)
     parser.add_argument('--numRandomImagesPerVolumeEpoch', type=str2tuplefloat, default=0)
     parser.add_argument('--transformationRigidImages', type=str2bool, default=False)
@@ -289,6 +289,7 @@ if __name__ == "__main__":
     parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
     parser.add_argument('--isModelsWithGNN', type=str2bool, default=ISTESTMODELSWITHGNN)
     parser.add_argument('--isGNNwithAttentionLays', type=str2bool, default=ISGNNWITHATTENTIONLAYS)
+    parser.add_argument('--predictOnRawImages', type=str2bool, default=PREDICTONRAWIMAGES)
     args = parser.parse_args()
 
     if args.cfgfromfile:
@@ -298,22 +299,15 @@ if __name__ == "__main__":
         else:
             input_args_file = readDictionary_configParams(args.cfgfromfile)
         print("Set up experiments with parameters from file: \'%s\'" %(args.cfgfromfile))
-        args.basedir                = str(input_args_file['basedir'])
-        args.size_in_images         = str2tupleint(input_args_file['size_in_images'])
-        #args.testdatadir            = str(input_args_file['testdatadir'])
-        args.masksToRegionInterest  = str2bool(input_args_file['masksToRegionInterest'])
-        args.isValidConvolutions    = str2bool(input_args_file['isValidConvolutions'])
-        #args.cropImages             = str2bool(input_args_file['cropImages'])
-        #args.extendSizeImages       = str2bool(input_args_file['extendSizeImages'])
-        args.slidingWindowImages    = True      #str2bool(input_args_file['slidingWindowImages'])
-        #args.propOverlapSlidingWindow= str2tuplefloat(input_args_file['propOverlapSlidingWindow'])
-        args.randomCropWindowImages = False     #str2bool(input_args_file['randomCropWindowImages'])
-        args.numRandomImagesPerVolumeEpoch = 0  #str2bool(input_args_file['numRandomImagesPerVolumeEpoch'])
-        args.transformationRigidImages   = False   #str2bool(input_args_file['transformationRigidImages'])
-        args.transformElasticDeformImages= False   #str2bool(input_args_file['transformElasticDeformImages'])
+        args.basedir               = str(input_args_file['basedir'])
+        args.size_in_images        = str2tupleint(input_args_file['size_in_images'])
+        args.masksToRegionInterest = str2bool(input_args_file['masksToRegionInterest'])
+        args.isValidConvolutions   = str2bool(input_args_file['isValidConvolutions'])
         args.isGNNwithAttentionLays = str2bool(input_args_file['isGNNwithAttentionLays'])
 
-    args.propOverlapSlidingWindow = (0.5, 0.5, 0.5)
+    if args.predictOnRawImages:
+        args.cropImages = False
+
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).iteritems()):

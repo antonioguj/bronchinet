@@ -33,7 +33,7 @@ def main(args):
     # search for the files in the directory to compute mean data from
     list_input_files = []
     for in_file in list_all_files_indir:
-        name_prefix_case = findFileWithSamePrefix(basename(in_file), temp_search_input_files)
+        name_prefix_case = findFileWithSamePrefixPattern(basename(in_file), temp_search_input_files)
         if name_prefix_case in input_cases_names:
             list_input_files.append(in_file)
         else:

@@ -24,8 +24,8 @@ def main(args):
     nameInputLabelsRelPath   = 'RawAirways/'
     nameInputRoiMasksRelPath = 'RawLungs/'
     nameReferenceFilesRelPath= 'RawImages/'
-    nameOutputImagesRelPath  = 'ImagesWorkData/'
-    nameOutputLabelsRelPath  = 'LabelsWorkData/'
+    nameOutputImagesRelPath  = 'WorkDataAll/ImagesWorkData_Next/'
+    nameOutputLabelsRelPath  = 'WorkDataAll/LabelsWorkData_Next/'
     nameOutputImagesFiles    = 'images_proc-%0.2i.nii.gz'
     nameOutputLabelsFiles    = 'labels_proc-%0.2i.nii.gz'
 

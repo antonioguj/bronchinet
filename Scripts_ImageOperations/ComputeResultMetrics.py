@@ -88,8 +88,8 @@ def main(args):
     for i, in_predictmask_file in enumerate(listInputPredictMasksFiles):
         print("\nInput: \'%s\'..." % (basename(in_predictmask_file)))
 
-        in_refermask_file = findFileWithSamePrefix(basename(in_predictmask_file), listInputReferMasksFiles,
-                                                   prefix_pattern=prefixPatternInputFiles)
+        in_refermask_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputReferMasksFiles,
+                                                          prefix_pattern=prefixPatternInputFiles)
         print("Reference mask file: \'%s\'..." % (basename(in_refermask_file)))
 
         in_predictmask_array = FileReader.getImageArray(in_predictmask_file)
@@ -97,14 +97,14 @@ def main(args):
         print("Predictions of size: %s..." % (str(in_predictmask_array.shape)))
 
         if (isLoadReferenceCentrelineFiles):
-            in_refercenline_file = findFileWithSamePrefix(basename(in_predictmask_file), listInputReferCentrelinesFiles,
-                                                          prefix_pattern=prefixPatternInputFiles)
+            in_refercenline_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputReferCentrelinesFiles,
+                                                                 prefix_pattern=prefixPatternInputFiles)
             print("Reference centrelines file: \'%s\'..." % (basename(in_refercenline_file)))
             in_refercenline_array = FileReader.getImageArray(in_refercenline_file)
 
         if (isLoadPredictedCentrelineFiles):
-            in_predictcenline_file = findFileWithSamePrefix(basename(in_predictmask_file), listInputPredictCentrelinesFiles,
-                                                            prefix_pattern=prefixPatternInputFiles)
+            in_predictcenline_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputPredictCentrelinesFiles,
+                                                                   prefix_pattern=prefixPatternInputFiles)
             print("Predicted centrelines file: \'%s\'..." % (basename(in_predictcenline_file)))
             in_predictcenline_array = FileReader.getImageArray(in_predictcenline_file)
 
@@ -112,8 +112,8 @@ def main(args):
         if (args.removeTracheaResMetrics):
             print("Remove trachea and main bronchi masks in computed metrics...")
 
-            in_roimask_file = findFileWithSamePrefix(basename(in_predictmask_file), listInputRoiMasksFiles,
-                                                     prefix_pattern=prefixPatternInputFiles)
+            in_roimask_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputRoiMasksFiles,
+                                                            prefix_pattern=prefixPatternInputFiles)
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask_array = FileReader.getImageArray(in_roimask_file)

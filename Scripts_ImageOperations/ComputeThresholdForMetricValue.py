@@ -88,20 +88,20 @@ def main(args):
             in_prediction_array = FileReader.getImageArray(in_prediction_file)
 
             if (isLoadReferenceCentrelineFiles):
-                in_refercenline_file = findFileWithSamePrefix(basename(in_prediction_file), listInputReferCentrelinesFiles,
-                                                              prefix_pattern=prefixPatternInputFiles)
+                in_refercenline_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputReferCentrelinesFiles,
+                                                                     prefix_pattern=prefixPatternInputFiles)
                 in_refercenline_array = FileReader.getImageArray(in_refercenline_file)
                 in_reference_array = in_refercenline_array
             else:
-                in_refermask_file = findFileWithSamePrefix(basename(in_prediction_file), listInputReferMasksFiles,
-                                                           prefix_pattern=prefixPatternInputFiles)
+                in_refermask_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputReferMasksFiles,
+                                                                  prefix_pattern=prefixPatternInputFiles)
                 in_refermask_array = FileReader.getImageArray(in_refermask_file)
                 in_reference_array = in_refermask_array
 
 
             if (args.removeTracheaResMetrics):
-                in_roimask_file = findFileWithSamePrefix(basename(in_prediction_file), listInputRoiMasksFiles,
-                                                         prefix_pattern=prefixPatternInputFiles)
+                in_roimask_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputRoiMasksFiles,
+                                                                prefix_pattern=prefixPatternInputFiles)
                 in_roimask_array = FileReader.getImageArray(in_roimask_file)
 
                 in_prediction_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_prediction_array, in_roimask_array)

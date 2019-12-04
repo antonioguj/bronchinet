@@ -294,33 +294,41 @@ def getFileExtension(formatoutfile):
     else:
         return False
 
+def findFileWithSamePrefix(prefix_file, list_infiles):
+    for iter_file in list_infiles:
+        if prefix_file in iter_file:
+            return iter_file
+    #endfor
+    message = 'not found file with same prefix \'%s\' in list files: \'%s\'' %(prefix_file, list_infiles)
+    CatchErrorException(message)
+
 def getSubstringPatternFilename(filename, substr_pattern):
     return re.search(substr_pattern, filename).group(0)
 
-def findFileWithSamePrefix(source_file, list_infiles, prefix_pattern=None):
+def findFileWithSamePrefixPattern(source_file, list_infiles, prefix_pattern=None):
     if not prefix_pattern:
         prefix_pattern = getFilePrefixPattern(list_infiles[0])
 
     prefix_casename = getSubstringPatternFilename(source_file, prefix_pattern)
-    for iterfile in list_infiles:
-        if prefix_casename in iterfile:
-            return iterfile
+    for iter_file in list_infiles:
+        if prefix_casename in iter_file:
+            return iter_file
     #endfor
-    message = 'not found file with same prefix in \'%s\' in list files: \'%s\'' %(source_file, list_infiles)
+    message = 'not found file with same prefix pattern in \'%s\' in list files: \'%s\'' %(source_file, list_infiles)
     CatchErrorException(message)
 
-def findListFilesWithSamePrefix(source_file, list_infiles, prefix_pattern=None):
+def findListFilesWithSamePrefixPattern(source_file, list_infiles, prefix_pattern=None):
     if not prefix_pattern:
         prefix_pattern = getFilePrefixPattern(list_infiles[0])
 
     prefix_casename = getSubstringPatternFilename(source_file, prefix_pattern)
     list_out_files = []
-    for iterfile in list_infiles:
-        if prefix_casename in iterfile:
-            list_out_files.append(iterfile)
+    for iter_file in list_infiles:
+        if prefix_casename in iter_file:
+            list_out_files.append(iter_file)
     #endfor
     if len(list_out_files)==0:
-        message = 'not found files with same prefix in \'%s\' in list files: \'%s\'' % (source_file, list_infiles)
+        message = 'not found files with same prefix pattern in \'%s\' in list files: \'%s\'' % (source_file, list_infiles)
         CatchErrorException(message)
     else:
         return list_out_files

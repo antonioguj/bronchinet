@@ -48,6 +48,10 @@ def main(args):
     nameTrainingDataRelPath    = 'TrainingData/'
     nameValidationDataRelPath  = 'ValidationData/'
     nameTestingDataRelPath     = 'TestingData/'
+
+    if args.predictOnRawImages:
+        nameInputImagesRawDataRelPath = 'Images/'
+        nameInputLabelsRawDataRelPath = 'Airways/'
     # ---------- SETTINGS ----------
 
 
@@ -66,6 +70,21 @@ def main(args):
         message = 'num images in dir \'%s\', not equal to num labels in dir \'%i\'...' %(len(listInputImagesFiles),
                                                                                          len(listInputLabelsFiles))
         CatchErrorException(message)
+
+    if args.predictOnRawImages:
+        print("Use Test Images as Raw Images (no preprocessing)...")
+
+        InputImagesRawDataPath = workDirsManager.getNameExistBaseDataPath(nameInputImagesRawDataRelPath)
+        InputLabelsRawDataPath = workDirsManager.getNameExistBaseDataPath(nameInputLabelsRawDataRelPath)
+
+        listInputRawImagesFiles = findFilesDirAndCheck(InputImagesRawDataPath)
+        listInputRawLabelsFiles = findFilesDirAndCheck(InputLabelsRawDataPath)
+
+        if (len(listInputImagesFiles) != len(listInputRawImagesFiles)):
+            message = 'num images in dir \'%s\', not equal to num raw images in dir \'%i\'...' % (len(listInputImagesFiles),
+                                                                                                  len(listInputRawLabelsFiles))
+            CatchErrorException(message)
+
 
 
     if (args.distribute_fixed_names):
@@ -106,25 +125,41 @@ def main(args):
     # TRAINING DATA
     print("Files assigned to Training Data:")
     for index in indexes_training_files:
-        print("%s" %(listInputImagesFiles[index]))
-        makelink(listInputImagesFiles[index], joinpathnames(TrainingDataPath, basename(listInputImagesFiles[index])))
-        makelink(listInputLabelsFiles[index], joinpathnames(TrainingDataPath, basename(listInputLabelsFiles[index])))
+        basename_input_images_file = basename(listInputImagesFiles[index])
+        basename_input_labels_file = basename(listInputLabelsFiles[index])
+        print("%s --> %s" %(basename_input_images_file, listInputImagesFiles[index]))
+
+        makelink(listInputImagesFiles[index], joinpathnames(TrainingDataPath, basename_input_images_file))
+        makelink(listInputLabelsFiles[index], joinpathnames(TrainingDataPath, basename_input_labels_file))
     #endfor
 
     # VALIDATION DATA
     print("Files assigned to Validation Data:")
     for index in indexes_validation_files:
-        print("%s" %(listInputImagesFiles[index]))
-        makelink(listInputImagesFiles[index], joinpathnames(ValidationDataPath, basename(listInputImagesFiles[index])))
-        makelink(listInputLabelsFiles[index], joinpathnames(ValidationDataPath, basename(listInputLabelsFiles[index])))
+        basename_input_images_file = basename(listInputImagesFiles[index])
+        basename_input_labels_file = basename(listInputLabelsFiles[index])
+        print("%s --> %s" %(basename_input_images_file, listInputImagesFiles[index]))
+
+        makelink(listInputImagesFiles[index], joinpathnames(ValidationDataPath, basename_input_images_file))
+        makelink(listInputLabelsFiles[index], joinpathnames(ValidationDataPath, basename_input_labels_file))
     #endfor
 
     # TESTING DATA
     print("Files assigned to Testing Data:")
+    if args.predictOnRawImages:
+        listUsedInputImagesFiles = listInputRawImagesFiles
+        listUsedInputLabelsFiles = listInputRawLabelsFiles
+    else:
+        listUsedInputImagesFiles = listInputImagesFiles
+        listUsedInputLabelsFiles = listInputLabelsFiles
+
     for index in indexes_testing_files:
-        print("%s" %(listInputImagesFiles[index]))
-        makelink(listInputImagesFiles[index], joinpathnames(TestingDataPath, basename(listInputImagesFiles[index])))
-        makelink(listInputLabelsFiles[index], joinpathnames(TestingDataPath, basename(listInputLabelsFiles[index])))
+        basename_input_images_file = basename(listUsedInputImagesFiles[index])
+        basename_input_labels_file = basename(listUsedInputLabelsFiles[index])
+        print("%s --> %s" %(basename_input_images_file, listUsedInputImagesFiles[index]))
+
+        makelink(listUsedInputImagesFiles[index], joinpathnames(TestingDataPath, basename_input_images_file))
+        makelink(listUsedInputLabelsFiles[index], joinpathnames(TestingDataPath, basename_input_labels_file))
     #endfor
 
 
@@ -137,6 +172,7 @@ if __name__ == "__main__":
     parser.add_argument('--prop_data_testing', type=float, default=PROP_DATA_TESTING)
     parser.add_argument('--distribute_random', type=str2bool, default=DISTRIBUTE_RANDOM)
     parser.add_argument('--distribute_fixed_names', type=str2bool, default=DISTRIBUTE_FIXED_NAMES)
+    parser.add_argument('--predictOnRawImages', type=str2bool, default=PREDICTONRAWIMAGES)
     args = parser.parse_args()
 
     # correct proportion for testing data

@@ -44,8 +44,8 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_cropimage_file)))
         print("Input 2: \'%s\'..." % (basename(in_fullimage_file)))
 
-        in_refer_file = findFileWithSamePrefix(basename(in_cropimage_file), listInputReferFiles,
-                                               prefix_pattern=prefixPatternInputFiles)
+        in_refer_file = findFileWithSamePrefixPattern(basename(in_cropimage_file), listInputReferFiles,
+                                                      prefix_pattern=prefixPatternInputFiles)
         print("Reference file: \'%s\'..." % (basename(in_refer_file)))
         bounding_box = dict_bounding_boxes[filenamenoextension(in_refer_file)]
 
