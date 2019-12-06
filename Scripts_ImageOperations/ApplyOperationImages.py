@@ -13,224 +13,265 @@ from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
 from OperationImages.OperationImages import *
 from OperationImages.OperationMasks import *
+from collections import OrderedDict
 import argparse
 
 
+LIST_OPERATIONS = ['mask', 'binary_mask', 'crop', 'rescale', 'rescale_mask',
+                   'fillholes', 'erode', 'dilate', 'moropen', 'morclose',
+                   'thinning', 'threshold', 'normalize', 'power', 'exponential']
+DICT_OPERS_SUFFIX = {'mask': 'masked', 'binary_mask': None, 'crop': 'cropped', 'rescale': 'rescaled', 'rescale_mask': 'rescaled',
+                     'fillholes': 'fillholes', 'erode': 'eroded', 'dilate': 'dilated', 'moropen': 'moropen', 'morclose': 'morclose',
+                     'thinning': 'cenlines', 'threshold': 'binmask', 'normalize': 'normal', 'power': 'power', 'exponential': 'expon'}
 
-def main(args):
 
-    listInputFiles  = findFilesDirAndCheck(args.inputdir)
-    makedir(args.outputdir)
+def prepare_mask_operation(args):
+    print("Operation: Mask images...")
+    listInputRoiMasksFiles = findFilesDirAndCheck(args.inputRoidir)
+
+    def wrapfun_mask_image(in_array, i):
+        in_roimask_file = listInputRoiMasksFiles[i]
+        in_roimask_array = FileReader.getImageArray(in_roimask_file)
+        print("Mask to RoI: lungs:  \'%s\'..." % (basename(in_roimask_file)))
+
+        return OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_array, in_roimask_array)
+
+    return wrapfun_mask_image
 
 
-    if args.type == 'mask':
-        # *********************************************
-        print("Operation: Mask images...")
+def prepare_binary_mask_operation(args):
+    print("Operation: Binarise masks between (0, 1)...")
 
-        listInputRoiMasksFiles = findFilesDirAndCheck(args.inputRoidir)
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_masked.nii.gz'
+    def wrapfun_binary_mask_image(in_array, i):
+        print("Convert masks to binary (0, 1)...")
+        return OperationBinaryMasks.process_masks(in_array)
 
-        def wrapfun_mask_image(in_array, i):
-            in_roimask_file = listInputRoiMasksFiles[i]
-            in_roimask_array = FileReader.getImageArray(in_roimask_file)
-            print("Mask to RoI: lungs:  \'%s\'..." % (basename(in_roimask_file)))
+    return wrapfun_binary_mask_image
 
-            return OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_array, in_roimask_array)
 
-        fun_operation = wrapfun_mask_image
-        # *********************************************
+def prepare_crop_operation(args):
+    print("Operation: Crop images...")
+    listReferenceFiles = findFilesDirAndCheck(args.referencedir)
+    dict_cropBoundingBoxes = readDictionary(args.boundboxfile)
 
-    elif args.type == 'crop':
-        # *********************************************
-        print("Operation: Crop images...")
+    def wrapfun_crop_image(in_array, i):
+        in_reference_file = listReferenceFiles[i]
+        crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_reference_file)]
+        print("Crop to bounding-box: \'%s\'..." % (str(crop_bounding_box)))
 
-        listReferenceFiles = findFilesDirAndCheck(args.referencedir)
-        dict_cropBoundingBoxes = readDictionary(args.boundboxfile)
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_cropped.nii.gz'
+        return CropImages.compute3D(in_array, crop_bounding_box)
 
-        def wrapfun_crop_image(in_array, i):
-            in_reference_file = listReferenceFiles[i]
-            crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_reference_file)]
-            print("Crop to bounding-box: \'%s\'..." % (str(crop_bounding_box)))
+    return wrapfun_crop_image
 
-            return CropImages.compute3D(in_array, crop_bounding_box)
 
-        fun_operation = wrapfun_crop_image
-        # *********************************************
+def prepare_rescale_operation(args, is_rescale_mask= False):
+    print("Operation: Rescale images...")
+    listReferenceFiles = findFilesDirAndCheck(args.referencedir)
+    dict_rescaleFactors = readDictionary(args.rescalefile)
 
-    elif args.type == 'rescale' or args.type == 'rescale_mask':
-        # *********************************************
-        print("Operation: Rescale images...")
+    def wrapfun_rescale_image(in_array, i):
+        in_reference_file = listReferenceFiles[i]
+        rescale_factor = dict_rescaleFactors[filenamenoextension(in_reference_file)]
 
-        listReferenceFiles = findFilesDirAndCheck(args.referencedir)
-        dict_rescaleFactors = readDictionary(args.rescalefile)
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_rescaled.nii.gz'
-
-        def wrapfun_rescale_image(in_array, i):
-            in_reference_file = listReferenceFiles[i]
-            rescale_factor = dict_rescaleFactors[filenamenoextension(in_reference_file)]
+        if rescale_factor != (1.0, 1.0, 1.0):
             print("Rescale with a factor: \'%s\'..." % (str(rescale_factor)))
-
-            thres_remove_noise = 0.1
-            if args.type == 'rescale_mask':
+            if is_rescale_mask == 'rescale_mask':
+                thres_remove_noise = 0.1
                 out_array = RescaleImages.compute3D(in_array, rescale_factor, order=3, is_binary_mask=True)
                 # remove noise due to interpolation
                 return ThresholdImages.compute(out_array, thres_val=thres_remove_noise)
             else:
                 return RescaleImages.compute3D(in_array, rescale_factor, order=3)
+        else:
+            print("Rescale factor (\'%s\'). Skip rescaling..." % (str(rescale_factor)))
+            return in_array
 
-        fun_operation = wrapfun_rescale_image
-        # *********************************************
+    return wrapfun_rescale_image
 
-    elif args.type == 'fillholes':
-        # *********************************************
-        print("Operation: Fill holes in images...")
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_fillholes.nii.gz'
 
-        def wrapfun_fillholes_image(in_array, i):
-            print("Filling holes from masks...")
+def prepare_fillholes_operation(args):
+    print("Operation: Fill holes in images...")
 
-            return MorphoFillHolesImages.compute(in_array)
+    def wrapfun_fillholes_image(in_array, i):
+        print("Filling holes from masks...")
 
-        fun_operation = wrapfun_fillholes_image
-        # *********************************************
+        return MorphoFillHolesImages.compute(in_array)
 
-    elif args.type == 'erode':
-        # *********************************************
-        print("Operation: Erode images...")
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_eroded.nii.gz'
+    return wrapfun_fillholes_image
 
-        def wrapfun_erode_image(in_array, i):
-            print("Eroding masks one layer...")
 
-            return MorphoErodeImages.compute(in_array)
+def prepare_erode_operation(args):
+    print("Operation: Erode images...")
 
-        fun_operation = wrapfun_erode_image
-        # *********************************************
+    def wrapfun_erode_image(in_array, i):
+        print("Eroding masks one layer...")
 
-    elif args.type == 'dilate':
-        # *********************************************
-        print("Operation: Dilate images...")
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_dilated.nii.gz'
+        return MorphoErodeImages.compute(in_array)
 
-        def wrapfun_dilate_image(in_array, i):
-            print("Dilating masks one layer...")
+    return wrapfun_erode_image
 
-            return MorphoDilateImages.compute(in_array)
 
-        fun_operation = wrapfun_dilate_image
-        # *********************************************
+def prepare_dilate_operation(args):
+    print("Operation: Dilate images...")
 
-    elif args.type == 'moropen':
-        # *********************************************
-        print("Operation: Morphologically open images...")
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_moropen.nii.gz'
+    def wrapfun_dilate_image(in_array, i):
+        print("Dilating masks one layer...")
 
-        def wrapfun_moropen_image(in_array, i):
-            print("Morphologically open masks...")
+        return MorphoDilateImages.compute(in_array)
 
-            return MorphoOpenImages.compute(in_array)
+    return wrapfun_dilate_image
 
-        fun_operation = wrapfun_moropen_image
-        # *********************************************
 
-    elif args.type == 'morclose':
-        # *********************************************
-        print("Operation: Morphologically close images...")
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_morclose.nii.gz'
+def prepare_moropen_operation(args):
+    print("Operation: Morphologically open images...")
 
-        def wrapfun_morclose_image(in_array, i):
-            print("Morphologically close masks...")
+    def wrapfun_moropen_image(in_array, i):
+        print("Morphologically open masks...")
 
-            return MorphoCloseImages.compute(in_array)
+        return MorphoOpenImages.compute(in_array)
 
-        fun_operation = wrapfun_morclose_image
-        # *********************************************
+    return wrapfun_moropen_image
 
-    elif args.type == 'thinning':
-        # *********************************************
-        print("Operation: Thinning images to centrelines...")
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_cenlines.nii.gz'
 
-        def wrapfun_thinning_image(in_array, i):
-            print("Thinning masks to extract centrelines...")
+def prepare_morclose_operation(args):
+    print("Operation: Morphologically close images...")
 
-            return ThinningMasks.compute(in_array)
+    def wrapfun_morclose_image(in_array, i):
+        print("Morphologically close masks...")
 
-        fun_operation = wrapfun_thinning_image
-        # *********************************************
+        return MorphoCloseImages.compute(in_array)
 
-    elif args.type == 'threshold':
-        # *********************************************
-        print("Operation: Threshold images...")
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_binmak.nii.gz'
-        thres_value = 0.5
+    return wrapfun_morclose_image
 
-        def wrapfun_threshold_image(in_array, i):
-            print("Threshold masks to value \'%s\'..." %(thres_value))
 
-            return ThresholdImages.compute(in_array, thres_val=thres_value)
+def prepare_thinning_operation(args):
+    print("Operation: Thinning images to centrelines...")
 
-        fun_operation = wrapfun_threshold_image
-        # *********************************************
+    def wrapfun_thinning_image(in_array, i):
+        print("Thinning masks to extract centrelines...")
 
-    elif args.type == 'normalize':
-        # *********************************************
-        print("Operation: Normalize images...")
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_normal.nii.gz'
+        return ThinningMasks.compute(in_array)
 
-        def wrapfun_normalize_image(in_array, i):
-            print("Normalize image to (0,1)...")
+    return wrapfun_thinning_image
 
-            return NormalizeImages.compute3D(in_array)
 
-        fun_operation = wrapfun_normalize_image
-        # *********************************************
+def prepare_threshold_operation(args):
+    print("Operation: Threshold images...")
+    thres_value = 0.5
 
-    elif args.type == 'power':
-        # *********************************************
-        print("Operation: Power of images...")
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_power2.nii.gz'
-        poworder = 2
+    def wrapfun_threshold_image(in_array, i):
+        print("Threshold masks to value \'%s\'..." %(thres_value))
 
-        def wrapfun_power_image(in_array, i):
-            print("Compute power \'%s\' of image..." %(poworder))
+        return ThresholdImages.compute(in_array, thres_val=thres_value)
 
-            return np.power(in_array, poworder)
+    return wrapfun_threshold_image
 
-        fun_operation = wrapfun_power_image
-        # *********************************************
 
-    elif args.type == 'exponential':
-        # *********************************************
-        print("Operation: Exponential of images...")
-        nameOutputFiles = lambda in_name: filenamenoextension(in_name) + '_expon.nii.gz'
+def prepare_normalize_operation(args):
+    print("Operation: Normalize images...")
 
-        def wrapfun_exponential_image(in_array, i):
-            print("Compute exponential of image...")
+    def wrapfun_normalize_image(in_array, i):
+        print("Normalize image to (0,1)...")
 
-            return (np.exp(in_array) - 1.0) / (np.exp(1) - 1.0)
+        return NormalizeImages.compute3D(in_array)
 
-        fun_operation = wrapfun_exponential_image
-        # *********************************************
+    return wrapfun_normalize_image
 
-    else:
-        message = 'type operation \'%s\' not found' %(args.type)
-        CatchErrorException(message)
+
+def prepare_power_operation(args):
+    print("Operation: Power of images...")
+    poworder = 2
+
+    def wrapfun_power_image(in_array, i):
+        print("Compute power \'%s\' of image..." % (poworder))
+        return np.power(in_array, poworder)
+
+    return wrapfun_power_image
+
+
+def prepare_exponential_operation(args):
+    print("Operation: Exponential of images...")
+
+    def wrapfun_exponential_image(in_array, i):
+        print("Compute exponential of image...")
+        return (np.exp(in_array) - 1.0) / (np.exp(1) - 1.0)
+
+    return wrapfun_exponential_image
+
+
+
+
+def main(args):
+
+    listInputFiles  = findFilesDirAndCheck(args.inputdir)[13:]
+    list_names_operations = args.list_types
+    makedir(args.outputdir)
+
+
+    dict_func_operations = OrderedDict()
+    suffix_output_names  = ''
+
+    for name_operation in list_names_operations:
+        if name_operation not in LIST_OPERATIONS:
+            message = 'Operation \'%s\' not yet implemented...' %(name_operation)
+            CatchErrorException(message)
+        else:
+            if name_operation == 'mask':
+                new_func_operation = prepare_mask_operation(args)
+            elif name_operation == 'binary_mask':
+                new_func_operation = prepare_binary_mask_operation(args)
+            elif name_operation == 'crop':
+                new_func_operation = prepare_crop_operation(args)
+            elif name_operation == 'rescale':
+                new_func_operation = prepare_rescale_operation(args)
+            elif name_operation == 'rescale_mask':
+                new_func_operation = prepare_rescale_operation(args, is_rescale_mask=True)
+            elif name_operation == 'fillholes':
+                new_func_operation = prepare_fillholes_operation(args)
+            elif name_operation == 'erode':
+                new_func_operation = prepare_erode_operation(args)
+            elif name_operation == 'dilate':
+                new_func_operation = prepare_dilate_operation(args)
+            elif name_operation == 'moropen':
+                new_func_operation = prepare_moropen_operation(args)
+            elif name_operation == 'morclose':
+                new_func_operation = prepare_morclose_operation(args)
+            elif name_operation == 'thinning':
+                new_func_operation = prepare_thinning_operation(args)
+            elif name_operation == 'threshold':
+                new_func_operation = prepare_threshold_operation(args)
+            elif name_operation == 'normalize':
+                new_func_operation = prepare_normalize_operation(args)
+            elif name_operation == 'power':
+                new_func_operation = prepare_power_operation(args)
+            elif name_operation == 'exponential':
+                new_func_operation = prepare_exponential_operation(args)
+            else:
+                new_func_operation = None
+            dict_func_operations[new_func_operation] = new_func_operation
+
+        if DICT_OPERS_SUFFIX[name_operation]:
+            suffix_output_names += '_'+ DICT_OPERS_SUFFIX[name_operation]
+    #endfor
+
+    nameOutputFiles = lambda in_name: filenamenoextension(in_name) + suffix_output_names +'.nii.gz'
 
 
 
     for i, in_file in enumerate(listInputFiles):
         print("\nInput: \'%s\'..." % (basename(in_file)))
 
-        in_array = FileReader.getImageArray(in_file)
+        inout_array = FileReader.getImageArray(in_file)
 
-        out_array = fun_operation(in_array, i)  #perform whatever operation
+        for func_name, func_operation in dict_func_operations.items():
+            inout_array = func_operation(inout_array, i)  #perform whichever operation
+        #endfor
 
-        out_file = joinpathnames(args.outputdir, nameOutputFiles(basename(in_file)))
-        print("Output: \'%s\', of dims \'%s\'..." % (basename(out_file), str(out_array.shape)))
 
-        FileReader.writeImageArray(out_file, out_array)
+        out_filename = joinpathnames(args.outputdir, nameOutputFiles(basename(in_file)))
+        print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), str(inout_array.shape)))
+
+        FileReader.writeImageArray(out_filename, inout_array)
     #endfor
 
 
@@ -240,22 +281,23 @@ if __name__ == "__main__":
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
-    parser.add_argument('--type', type=str, default='None')
+    parser.add_argument('--list_types', nargs='+', default=['None'])
     parser.add_argument('--inputRoidir', type=str, default=None)
     parser.add_argument('--referencedir', type=str, default=None)
     parser.add_argument('--boundboxfile', type=str, default=None)
     parser.add_argument('--rescalefile', type=str, default=None)
     args = parser.parse_args()
 
-    if args.type == 'mask':
+    if 'mask' in args.list_types:
         if not args.inputRoidir:
             message = 'need to set argument \'inputRoidir\''
             CatchErrorException(message)
-    elif args.type == 'crop':
+    elif 'crop' in args.list_types:
         if not args.referencedir or not args.boundboxfile:
             message = 'need to set arguments \'referencedir\' and \'boundboxfile\''
             CatchErrorException(message)
-    elif args.type == 'rescale' or args.type == 'rescale_mask':
+    elif 'rescale' in args.list_types or \
+        'rescale_mask' in args.list_types:
         if not args.referencedir or not args.rescalefile:
             message = 'need to set arguments \'referencedir\' and \'rescalefile\''
             CatchErrorException(message)

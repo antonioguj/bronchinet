@@ -105,9 +105,9 @@ def main(args):
                         print("Compute and output the histograms of both images: \'%s\'..." %(basename(out_histo_filename)))
 
                         Histograms.plot_compare_histograms([in_image1_array, in_image2_array],
+                                                           density_range=True,
                                                            isave_outfiles=True,
-                                                           outfilename=out_histo_filename,
-                                                           show_percen_yaxis=True)
+                                                           outfilename=out_histo_filename)
                         
         else:
             print("Images of different size: \'%s\' != \'%s\'" %(in_image1_array.shape, in_image2_array.shape))
@@ -117,9 +117,9 @@ def main(args):
             print("CHECK MANUALLY THE HISTOGRAMS WHETHER THE IMAGES ARE DIFFERENT")
 
             Histograms.plot_compare_histograms([in_image1_array, in_image2_array],
-                                               isave_outfiles= True,
-                                               outfilename= out_histo_filename,
-                                               show_percen_yaxis= True)
+                                               density_range=True,
+                                               isave_outfiles=True,
+                                               outfilename=out_histo_filename)
     #endfor
 
     if (len(names_files_different) == 0):

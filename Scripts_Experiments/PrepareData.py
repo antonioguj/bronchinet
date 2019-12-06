@@ -123,7 +123,7 @@ def main(args):
             rescale_factor = dict_rescaleFactors[filenamenoextension(in_reference_file)]
             print("Rescale image with a factor: \'%s\'..." %(str(rescale_factor)))
 
-            if rescale_factor!=(1.0,1.0,1.0):
+            if rescale_factor != (1.0, 1.0, 1.0):
                 inout_image_array = RescaleImages.compute3D(inout_image_array, rescale_factor, order=args.orderInterpRescale)
                 inout_label_array = RescaleImages.compute3D(inout_label_array, rescale_factor, order=args.orderInterpRescale,
                                                             is_binary_mask=True)
@@ -135,6 +135,8 @@ def main(args):
                                                                is_binary_mask=True)
                     # remove noise in masks due to interpolation
                     in_roimask_array = ThresholdImages.compute(in_roimask_array, thres_val=0.5)
+            else:
+                print("Rescale factor (\'%s'\). Skip rescaling..." % (rescale_factor))
 
             print("Final dims: %s..." %(str(inout_image_array.shape)))
         # *******************************************************************************

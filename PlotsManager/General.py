@@ -50,12 +50,12 @@ class General(object):
 
 
     @classmethod
-    def plot_images_masks_randomSlices(cls, image_array, mask_array,
+    def plot_images_masks_randomSlices(cls, in_image_array, in_mask_array,
                                        num_plot_image_array= max_plot_image_array_figure,
                                        isave_outfiles= False,
                                        template_outfilename= 'slices_%s.png'):
-        num_total_slices= image_array.shape[0]
-        size_slices = (image_array.shape[1], image_array.shape[2])
+        num_total_slices= in_image_array.shape[0]
+        size_slices = (in_image_array.shape[1], in_image_array.shape[2])
         num_plot_image_array = min(num_plot_image_array, num_total_slices)
         indexes_slices = np.random.choice(num_total_slices, size=num_plot_image_array, replace=False)
 
@@ -63,12 +63,12 @@ class General(object):
 
         for i, index in enumerate(indexes_slices):
             (ind_i, ind_j) = (i//cls.max_plot_image_array_axfigy, i%cls.max_plot_image_array_axfigy)
-            image_array_slice_plot= image_array[index].reshape(size_slices)
-            mask_array_slice_plot = mask_array [index].reshape(size_slices)
+            in_image_array_slice_plot= in_image_array[index].reshape(size_slices)
+            in_mask_array_slice_plot = in_mask_array [index].reshape(size_slices)
 
             axis[ind_i, ind_j].set_title('slice %s' %(index))
-            axis[ind_i, ind_j].imshow(image_array_slice_plot,cmap='gray')
-            axis[ind_i, ind_j].imshow(mask_array_slice_plot, cmap='jet', alpha=0.5)
+            axis[ind_i, ind_j].imshow(in_image_array_slice_plot,cmap='gray')
+            axis[ind_i, ind_j].imshow(in_mask_array_slice_plot, cmap='jet', alpha=0.5)
         #endfor
 
         if isave_outfiles:
@@ -80,12 +80,12 @@ class General(object):
 
 
     @classmethod
-    def plot_images_masks_allSlices(cls, image_array, mask_array,
+    def plot_images_masks_allSlices(cls, in_image_array, in_mask_array,
                                     type_output= 2,
                                     isave_outfiles= False,
                                     template_outfilename= 'slices_%s.png'):
-        num_total_slices = image_array.shape[0]
-        size_slices = (image_array.shape[1], image_array.shape[2])
+        num_total_slices = in_image_array.shape[0]
+        size_slices = (in_image_array.shape[1], in_image_array.shape[2])
 
         if type_output==1:
             num_figures_saved = num_total_slices // (cls.skip_slices_plot_image_array * cls.max_plot_image_array_figure)
@@ -102,12 +102,12 @@ class General(object):
 
             for i, index in enumerate(indexes_slices):
                 (ind_i, ind_j) = (i//cls.max_plot_image_array_axfigy, i%cls.max_plot_image_array_axfigy)
-                image_array_slice_plot = image_array[index].reshape(size_slices)
-                mask_array_slice_plot = mask_array [index].reshape(size_slices)
+                in_image_array_slice_plot = in_image_array[index].reshape(size_slices)
+                in_mask_array_slice_plot  = in_mask_array [index].reshape(size_slices)
 
                 axis[ind_i, ind_j].set_title('slice %s' % (index))
-                axis[ind_i, ind_j].imshow(image_array_slice_plot, cmap='gray')
-                axis[ind_i, ind_j].imshow(mask_array_slice_plot, cmap='jet', alpha=0.5)
+                axis[ind_i, ind_j].imshow(in_image_array_slice_plot, cmap='gray')
+                axis[ind_i, ind_j].imshow(in_mask_array_slice_plot, cmap='jet', alpha=0.5)
             #endfor
             count_slice += range_slices_figure
 
@@ -121,12 +121,12 @@ class General(object):
 
 
     @classmethod
-    def plot_compare_images_masks_allSlices(cls, image_array, orig_mask_array, predict_mask_array,
+    def plot_compare_images_masks_allSlices(cls, in_image_array, orig_mask_array, predict_mask_array,
                                             type_output= 2,
                                             isave_outfiles= False,
                                             template_outfilename= 'slices_%s.png'):
-        num_total_slices = image_array.shape[0]
-        size_slices = (image_array.shape[1], image_array.shape[2])
+        num_total_slices = in_image_array.shape[0]
+        size_slices = (in_image_array.shape[1], in_image_array.shape[2])
 
         if type_output==1:
             num_figures_saved = num_total_slices // (cls.skip_slices_plot_image_array * cls.max_plot_image_array_axfigy_2)
@@ -142,15 +142,15 @@ class General(object):
             fig, axis = plt.subplots(2, cls.max_plot_image_array_axfigy_2, figsize=(10,5))
 
             for i, index in enumerate(indexes_slices):
-                image_array_slice_plot = image_array[index].reshape(size_slices)
-                orig_mask_array_slice_plot = orig_mask_array [index].reshape(size_slices)
+                in_image_array_slice_plot  = in_image_array [index].reshape(size_slices)
+                orig_mask_array_slice_plot = orig_mask_array[index].reshape(size_slices)
                 predict_mask_array_slice_plot = predict_mask_array[index].reshape(size_slices)
 
                 axis[0, i].set_title('slice %s' % (index))
-                axis[0, i].imshow(image_array_slice_plot, cmap='gray')
+                axis[0, i].imshow(in_image_array_slice_plot, cmap='gray')
                 axis[0, i].imshow(orig_mask_array_slice_plot, cmap='jet', alpha=0.5)
                 axis[1, i].set_title('slice %s' % (index))
-                axis[1, i].imshow(image_array_slice_plot, cmap='gray')
+                axis[1, i].imshow(in_image_array_slice_plot, cmap='gray')
                 axis[1, i].imshow(predict_mask_array_slice_plot, cmap='jet', alpha=0.5)
             #endfor
             count_slice += range_slices_figure
@@ -188,9 +188,9 @@ class General(object):
 
             for i, index in enumerate(indexes_slices):
                 orig_image_array_slice_plot = orig_image_array[index].reshape(size_slices)
-                orig_mask_array_slice_plot = orig_mask_array[index].reshape(size_slices)
+                orig_mask_array_slice_plot  = orig_mask_array [index].reshape(size_slices)
                 transform_image_array_slice_plot = transform_image_array[index].reshape(size_slices)
-                transform_mask_array_slice_plot = transform_mask_array [index].reshape(size_slices)
+                transform_mask_array_slice_plot  = transform_mask_array [index].reshape(size_slices)
 
                 axis[0, i].set_title('slice %s' % (index))
                 axis[0, i].imshow(orig_image_array_slice_plot, cmap='gray')

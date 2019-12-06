@@ -344,7 +344,7 @@ def getIndexOriginImagesFile(images_file, beginString='images', firstIndex='0'):
 def getFilePrefixPattern(in_file):
     base_infile = basename(in_file)
     infile_prefix = base_infile.split('_')[0]
-    infile_prefix_pattern = ''.join(['[0-9]' if s.isdigit() else s for s in infile_prefix]) #+'_'
+    infile_prefix_pattern = ''.join(['[0-9]' if s.isdigit() else s for s in infile_prefix]) +'_'
     return infile_prefix_pattern
 
 def getIntegerInString(in_name):

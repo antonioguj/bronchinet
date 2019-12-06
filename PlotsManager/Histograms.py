@@ -16,16 +16,24 @@ import numpy as np
 class Histograms(object):
 
     @classmethod
-    def plot_histogram(cls, image_array,
-                       num_bins= 20,
-                       isave_outfiles= False,
-                       outfilename= 'image_test.png',
-                       show_percen_yaxis= False):
-        max_val_img = np.max(image_array)
-        min_val_img = np.min(image_array)
+    def get_histogram_data(cls, in_array, num_bins= 20, density_range= False):
+        max_val_img = np.max(in_array)
+        min_val_img = np.min(in_array)
         bins = np.linspace(min_val_img, max_val_img, num_bins)
-        #(hist, bins) = np.histogram(images_array, bins=bins)
-        plt.hist(image_array.flatten(), bins=bins, log=True, density=show_percen_yaxis)
+        (out_hist_data, bins) = np.histogram(in_array, bins=bins, density=density_range)
+        return out_hist_data
+
+
+    @classmethod
+    def plot_histogram(cls, in_array,
+                       num_bins= 20,
+                       density_range= False,
+                       isave_outfiles= False,
+                       outfilename= 'image_test.png'):
+        max_val_img = np.max(in_array)
+        min_val_img = np.min(in_array)
+        bins = np.linspace(min_val_img, max_val_img, num_bins)
+        plt.hist(in_array.flatten(), bins=bins, log=True, density=density_range)
 
         if isave_outfiles:
             plt.savefig(outfilename)
@@ -37,9 +45,9 @@ class Histograms(object):
     @classmethod
     def plot_compare_histograms(cls, list_images_array,
                                 num_bins=20,
+                                density_range= False,
                                 isave_outfiles= False,
-                                outfilename= 'image_test.png',
-                                show_percen_yaxis= False):
+                                outfilename= 'image_test.png'):
         # num_images = len(list_images_array)
         # cmap = plt.get_cmap('rainbow')
         # colors = [cmap(float(i)/(num_images-1)) for i in range(num_images)]
@@ -47,15 +55,15 @@ class Histograms(object):
 
         max_val_img =-1.0e+06
         min_val_img = 1.0e+06
-        for image_array in list_images_array:
-            max_val_img = max(np.max(image_array), max_val_img)
-            min_val_img = min(np.min(image_array), min_val_img)
+        for in_array in list_images_array:
+            max_val_img = max(np.max(in_array), max_val_img)
+            min_val_img = min(np.min(in_array), min_val_img)
         #endfor
         bins = np.linspace(min_val_img, max_val_img, num_bins)
 
-        for i, image_array in enumerate(list_images_array):
-            plt.hist(image_array.flatten(), bins=bins, alpha=0.5, color=colors[i],
-                     label='image%s'%(i), log=True, density=show_percen_yaxis)
+        for i, in_array in enumerate(list_images_array):
+            plt.hist(in_array.flatten(), bins=bins, alpha=0.5, color=colors[i],
+                     label='image%s'%(i), log=True, density=density_range)
         #endfor
         plt.legend(loc='upper right')
 
