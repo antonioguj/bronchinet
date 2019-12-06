@@ -75,10 +75,11 @@ def prepare_rescale_operation(args, is_rescale_mask= False):
 
         if rescale_factor != (1.0, 1.0, 1.0):
             print("Rescale with a factor: \'%s\'..." % (str(rescale_factor)))
-            if is_rescale_mask == 'rescale_mask':
-                thres_remove_noise = 0.1
+            if is_rescale_mask:
                 out_array = RescaleImages.compute3D(in_array, rescale_factor, order=3, is_binary_mask=True)
                 # remove noise due to interpolation
+                thres_remove_noise = 0.1
+                print("Remove noise in mask by thresholding with value: \'%s\'..." %(thres_remove_noise))
                 return ThresholdImages.compute(out_array, thres_val=thres_remove_noise)
             else:
                 return RescaleImages.compute3D(in_array, rescale_factor, order=3)
@@ -203,7 +204,7 @@ def prepare_exponential_operation(args):
 
 def main(args):
 
-    listInputFiles  = findFilesDirAndCheck(args.inputdir)[13:]
+    listInputFiles  = findFilesDirAndCheck(args.inputdir)
     list_names_operations = args.list_types
     makedir(args.outputdir)
 

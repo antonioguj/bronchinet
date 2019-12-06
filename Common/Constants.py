@@ -18,13 +18,13 @@ np.random.seed(2017)
 DATADIR = '/home/antonio/Data/DLCST+LUVAR_Processed/'
 
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR_Rescaled/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR_Rescaled/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
-TYPEGPUINSTALLED     = 'smaller_GPU'
+TYPEGPUINSTALLED     = 'larger_GPU'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
@@ -74,13 +74,12 @@ DISTRIBUTE_FIXED_NAMES = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 MASKTOREGIONINTEREST = True
 
-RESCALEIMAGES = False
-ORDERINTERPRESCALE = 3
+RESCALEIMAGES = True
+ORDERINTERRESCALE = 3
 #FIXEDRESCALERES = (0.6, 0.6, 0.6)
 #FIXEDRESCALERES = (0.6, 0.55078125, 0.55078125)
-#FIXEDRESCALERES = (0.6, 0.55078125, 0.55078125)
-FIXEDRESCALERES = (0.6, 0.6, 0.6)
-#FIXEDRESCALERES = (1.0, 0.78125, 0.78125)
+#FIXEDRESCALERES = (0.6, 0.6, 0.6)
+FIXEDRESCALERES = (1.0, 0.78125, 0.78125)
 #FIXEDRESCALERES = None
 
 CROPIMAGES = True

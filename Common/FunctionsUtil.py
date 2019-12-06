@@ -123,14 +123,30 @@ def findFilesDirAndCheck(filespath, filename_pattern='*'):
 def readDictionary_numpy(filename):
     return np.load(filename, allow_pickle=True).item()
 
-def readDictionary_csv(filename):
+def readDictionary_csv(filename, out_datatype=None):
     if filenameextension(filename, use_recurse_splitext=False) != '.csv':
         message = 'need \'.csv\' to save dictionary'
         CatchErrorException(message)
     else:
         with open(filename, 'r') as fin:
             reader = csv.reader(fin)
-            return dict(reader)
+            out_dict = dict(reader)
+            if out_datatype:
+                if out_datatype=='tuple_int':
+                    func_convert_val = str2tupleint
+                elif out_datatype=='tuple_float':
+                    func_convert_val = str2tuplefloat
+                else:
+                    message = 'type convert function \'%s\' not implemented' %(out_datatype)
+                    CatchErrorException(message)
+
+                new_out_dict = {}
+                for key, val in out_dict.iteritems():
+                    new_out_dict[key] = func_convert_val(val)
+                #endfor
+                return new_out_dict
+            else:
+                return out_dict
 
 def saveDictionary(filename, dictionary):
     saveDictionary_numpy(filename, dictionary)

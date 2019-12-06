@@ -124,19 +124,21 @@ def main(args):
             print("Rescale image with a factor: \'%s\'..." %(str(rescale_factor)))
 
             if rescale_factor != (1.0, 1.0, 1.0):
-                inout_image_array = RescaleImages.compute3D(inout_image_array, rescale_factor, order=args.orderInterpRescale)
-                inout_label_array = RescaleImages.compute3D(inout_label_array, rescale_factor, order=args.orderInterpRescale,
+                inout_image_array = RescaleImages.compute3D(inout_image_array, rescale_factor, order=args.orderInterRescale)
+                inout_label_array = RescaleImages.compute3D(inout_label_array, rescale_factor, order=args.orderInterRescale,
                                                             is_binary_mask=True)
                 if (args.isInputExtraLabels):
-                    inout_extralabel_array = RescaleImages.compute3D(inout_extralabel_array, rescale_factor, order=args.orderInterpRescale,
+                    inout_extralabel_array = RescaleImages.compute3D(inout_extralabel_array, rescale_factor, order=args.orderInterRescale,
                                                                      is_binary_mask=True)
                 if (args.masksToRegionInterest):
-                    in_roimask_array = RescaleImages.compute3D(in_roimask_array, rescale_factor, order=args.orderInterpRescale,
+                    in_roimask_array = RescaleImages.compute3D(in_roimask_array, rescale_factor, order=args.orderInterRescale,
                                                                is_binary_mask=True)
-                    # remove noise in masks due to interpolation
-                    in_roimask_array = ThresholdImages.compute(in_roimask_array, thres_val=0.5)
+                    # remove noise due to interpolation
+                    thres_remove_noise = 0.1
+                    print("Remove noise in ROI mask by thresholding with value: \'%s\'..." % (thres_remove_noise))
+                    in_roimask_array = ThresholdImages.compute(in_roimask_array, thres_val=thres_remove_noise)
             else:
-                print("Rescale factor (\'%s'\). Skip rescaling..." % (rescale_factor))
+                print("Rescale factor (\'%s'\). Skip rescaling..." %(str(rescale_factor)))
 
             print("Final dims: %s..." %(str(inout_image_array.shape)))
         # *******************************************************************************
@@ -209,7 +211,7 @@ if __name__ == "__main__":
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--isBinaryTrainMasks', type=str, default=ISBINARYTRAINMASKS)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
-    parser.add_argument('--orderInterpRescale', type=int, default=ORDERINTERPRESCALE)
+    parser.add_argument('--orderInterRescale', type=int, default=ORDERINTERRESCALE)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
 
     args = parser.parse_args()
