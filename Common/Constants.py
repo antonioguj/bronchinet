@@ -13,26 +13,26 @@ np.random.seed(2017)
 
 
 #DATADIR = '/home/antonio/Data/LUVAR_Processed/'
-#DATADIR = '/home/antonio/Data/DLCST_Processed/'
+DATADIR = '/home/antonio/Data/DLCST_Processed/'
 #DATADIR = '/home/antonio/Data/DLCST_Processed_ReferPechin/'
-DATADIR = '/home/antonio/Data/DLCST+LUVAR_Processed/'
+#DATADIR = '/home/antonio/Data/DLCST+LUVAR_Processed/'
 
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR_Rescaled/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
-TYPEGPUINSTALLED     = 'larger_GPU'
+TYPEGPUINSTALLED     = 'smaller_GPU'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************
 # MUST BE MULTIPLES OF 16
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (240, 352, 240)
-(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)
-#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (240, 240, 240)
+#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (240, 240, 240)
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (160, 384, 272)
 
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
@@ -87,13 +87,13 @@ FIXEDSIZEBOUNDINGBOX = (352, 480)
 #FIXEDSIZEBOUNDINGBOX = (384, 544)
 ISCALCBOUNDINGBOXINSLICES = False
 
-SLIDINGWINDOWIMAGES = True
+SLIDINGWINDOWIMAGES = False
 PROPOVERLAPSLIDINGWINDOW_Z_X_Y = (0.25, 0.0, 0.0)
 #PROPOVERLAPSLIDINGWINDOW_Z_X_Y = (0.25, 0.25, 0.25)
 #PROPOVERLAPSLIDINGWINDOW_Z_X_Y = (0.5, 0.5, 0.5)
 PROPOVERLAPSLIDINGWINDOW_TESTING_Z_X_Y = (0.5, 0.5, 0.5)
 
-RANDOMCROPWINDOWIMAGES = False
+RANDOMCROPWINDOWIMAGES = True
 NUMRANDOMIMAGESPERVOLUMEEPOCH = 8
 
 TRANSFORMATIONRIGIDIMAGES = True

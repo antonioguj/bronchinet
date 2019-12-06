@@ -29,8 +29,8 @@ def main(args):
     nameOutputImagesFiles    = 'images_proc-%0.2i.nii.gz'
     nameOutputLabelsFiles    = 'labels_proc-%0.2i.nii.gz'
 
-    nameCropBoundingBoxes = 'cropBoundingBoxes_images.npy'
-    nameRescaleFactors    = 'rescaleFactors_images.npy'
+    nameCropBoundingBoxesFile = 'cropBoundingBoxes_images.npy'
+    nameRescaleFactorsFile    = 'rescaleFactors_images.npy'
 
     if args.isInputExtraLabels:
         nameInputExtraLabelsRelPath  = 'RawCentrelines/'
@@ -60,12 +60,12 @@ def main(args):
         OutputExtraLabelsPath     = workDirsManager.getNameNewPath  (nameOutputExtraLabelsRelPath)
 
     if (args.rescaleImages):
-        rescaleFactorsFileName = joinpathnames(args.datadir, nameRescaleFactors)
-        dict_rescaleFactors    = readDictionary(rescaleFactorsFileName)
+        filename_rescaleFactors = joinpathnames(args.datadir, nameRescaleFactorsFile)
+        dict_rescaleFactors     = readDictionary(filename_rescaleFactors)
 
     if (args.cropImages):
-        cropBoundingBoxesFileName = joinpathnames(args.datadir, nameCropBoundingBoxes)
-        dict_cropBoundingBoxes    = readDictionary(cropBoundingBoxesFileName)
+        filename_cropBoundingBoxes = joinpathnames(args.datadir, nameCropBoundingBoxesFile)
+        dict_cropBoundingBoxes     = readDictionary(filename_cropBoundingBoxes)
 
 
     # check that number of files is the same in all dirs

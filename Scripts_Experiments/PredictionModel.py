@@ -42,8 +42,8 @@ def main(args):
     nameReferenceFilesRelPath = 'RawImages/'
     namesImagesFiles          = 'images_proc*.nii.gz'
     namesLabelsFiles          = 'labels_proc*.nii.gz'
-    nameCropBoundingBoxes     = 'cropBoundingBoxes_images.npy'
     nameOutputPredictionsRelPath = args.predictionsdir
+    nameCropBoundingBoxesFile = 'cropBoundingBoxes_images.npy'
 
     if (args.saveFeatMapsLayers):
         nameOutputPredictionFiles = '%s_featmap_lay-%s_feat%0.2i.nii.gz'
@@ -66,8 +66,8 @@ def main(args):
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
     if (args.cropImages):
-        cropBoundingBoxesFileName = joinpathnames(workDirsManager.getNameBaseDataPath(), nameCropBoundingBoxes)
-        dict_cropBoundingBoxes = readDictionary(cropBoundingBoxesFileName)
+        filename_cropBoundingBoxes = joinpathnames(workDirsManager.getNameBaseDataPath(), nameCropBoundingBoxesFile)
+        dict_cropBoundingBoxes = readDictionary(filename_cropBoundingBoxes)
 
 
 

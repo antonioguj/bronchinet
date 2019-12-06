@@ -14,13 +14,14 @@ from DataLoaders.FileReaders import *
 from OperationImages.OperationImages import MorphoOpenImages
 from PlotsManager.Histograms import *
 
+_max_relerror = 1.0e-06
+
 
 
 def main(args):
     # ---------- SETTINGS ----------
     InputPath1   = args.inputdir1
     InputPath2   = args.inputdir2
-    max_relerror = 1.0e-03
     nameOutDiffImageFilesName = 'out_absdiffimgs_image%s.nii.gz'
     nameOutHistoFilesName = 'out_histogram_image%s.png'
     # ---------- SETTINGS ----------
@@ -72,24 +73,24 @@ def main(args):
                     print("Analyse global error magnitudes of the difference between images...")
 
                     num_voxels_nonzero_image1 = np.count_nonzero(in_image1_array)
-                    relerror_voxels_diffimages = (num_voxels_diffimages / float(num_voxels_nonzero_image1)) * 100
+                    relerror_voxels_diffimages = (num_voxels_diffimages / float(num_voxels_nonzero_image1))
 
                     print("Num voxels of difference between images \'%s\' out of total non-zero voxels in image 1 \'%s\'. Relative error \'%s\'..."
                           %(num_voxels_diffimages, num_voxels_nonzero_image1, relerror_voxels_diffimages))
 
                     absmean_intens_diffimages  = abs(np.mean(out_diffimages_array))
                     absmean_intens_image1      = abs(np.mean(in_image1_array))
-                    relerror_intens_diffimages = (absmean_intens_diffimages / absmean_intens_image1) * 100
+                    relerror_intens_diffimages = (absmean_intens_diffimages / absmean_intens_image1)
                     print("Mean value of Intensity of difference between images \'%s\'. Relative error \'%s\'..."
                           %(absmean_intens_diffimages, relerror_intens_diffimages))
 
 
-                    if relerror_intens_diffimages < max_relerror:
+                    if relerror_intens_diffimages < _max_relerror:
                         print("GOOD. Relative error \'%s\' lower than tolerance \'%s\'. Images can be considered equal..."
-                              %(relerror_intens_diffimages, max_relerror))
+                              % (relerror_intens_diffimages, _max_relerror))
                     else:
                         print("WARNING. Relative error \'%s\' larger than tolerance \'%s\'. Images are different..."
-                              %(relerror_intens_diffimages, max_relerror))
+                              % (relerror_intens_diffimages, _max_relerror))
 
                         names_files_different.append(basename(in_file_1))
 
@@ -120,7 +121,6 @@ def main(args):
                                                outfilename= out_histo_filename,
                                                show_percen_yaxis= True)
     #endfor
-
 
     if (len(names_files_different) == 0):
         print("\nGOOD: ALL IMAGE FILES ARE EQUAL...")
