@@ -71,7 +71,7 @@ def main(args):
     # ---------- SETTINGS ----------
     nameReferenceFilesRelPath  = 'RawImages/'
     nameOriginalVoxelSizesFile = 'RescalingData/original_vozelSize.npy'
-    list_names_checks_compare  = args.list_types
+    list_names_checks_compare  = args.type
     rescaled_voxel_size_same   = args.fixedRescaleRes
     # ---------- SETTINGS ----------
 
@@ -153,7 +153,7 @@ if __name__ == "__main__":
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('inputoriginaldir', type=str)
     parser.add_argument('inputrescaleddir', type=str)
-    parser.add_argument('--list_types', nargs='+', default=['volume_mask'])
+    parser.add_argument('--type', nargs='+', default=['volume_mask'])
     parser.add_argument('--fixedRescaleRes', type=str2tuplefloat, default=FIXEDRESCALERES)
     args = parser.parse_args()
 

@@ -15,13 +15,15 @@ np.random.seed(2017)
 #DATADIR = '/home/antonio/Data/LUVAR_Processed/'
 #DATADIR = '/home/antonio/Data/DLCST_Processed/'
 #DATADIR = '/home/antonio/Data/DLCST_Processed_ReferPechin/'
-DATADIR = '/home/antonio/Data/DLCST+LUVAR_Processed/'
+#DATADIR = '/home/antonio/Data/DLCST+LUVAR_Processed/'
+DATADIR = '/home/antonio/Data/EXACT_Processed/'
 
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR_Rescaled/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
 TYPEGPUINSTALLED     = 'larger_GPU'
@@ -63,8 +65,8 @@ else:
 
 # ******************** DATA DISTRIBUTION ********************
 PROP_DATA_TRAINING   = 0.50
-PROP_DATA_VALIDATION = 0.20
-PROP_DATA_TESTING    = 0.30
+PROP_DATA_VALIDATION = 0.15
+PROP_DATA_TESTING    = 0.35
 
 DISTRIBUTE_RANDOM = False
 DISTRIBUTE_FIXED_NAMES = False
@@ -74,13 +76,13 @@ DISTRIBUTE_FIXED_NAMES = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 MASKTOREGIONINTEREST = True
 
-RESCALEIMAGES = True
+RESCALEIMAGES = False
 ORDERINTERRESCALE = 3
 #FIXEDRESCALERES = (0.6, 0.6, 0.6)
 #FIXEDRESCALERES = (0.6, 0.55078125, 0.55078125)
 #FIXEDRESCALERES = (0.6, 0.6, 0.6)
-FIXEDRESCALERES = (1.0, 0.78125, 0.78125)
-#FIXEDRESCALERES = None
+#FIXEDRESCALERES = (1.0, 0.78125, 0.78125)
+FIXEDRESCALERES = None
 
 CROPIMAGES = True
 ISSAMEBOUNDBOXSIZEALLIMAGES = False
@@ -94,6 +96,7 @@ PROPOVERLAPSLIDINGWINDOW_Z_X_Y = (0.25, 0.0, 0.0)
 #PROPOVERLAPSLIDINGWINDOW_Z_X_Y = (0.25, 0.25, 0.25)
 #PROPOVERLAPSLIDINGWINDOW_Z_X_Y = (0.5, 0.5, 0.5)
 PROPOVERLAPSLIDINGWINDOW_TESTING_Z_X_Y = (0.5, 0.5, 0.5)
+#PROPOVERLAPSLIDINGWINDOW_TESTING_Z_X_Y = (0.5, 0.0, 0.0)
 
 RANDOMCROPWINDOWIMAGES = True
 NUMRANDOMIMAGESPERVOLUMEEPOCH = 8
@@ -149,8 +152,8 @@ LISTMETRICS = []
 #                'TrueNegativeRate',
 #                'FalseNegativeRate']
 
-NUMMAXTRAINIMAGES = 16
-NUMMAXVALIDIMAGES = 4
+NUMMAXTRAINIMAGES = 28
+NUMMAXVALIDIMAGES = 8
 
 ISVALIDCONVOLUTIONS = False
 USEVALIDATIONDATA = True
@@ -196,6 +199,7 @@ LISTRESULTMETRICS = ['DiceCoefficient',
                      'AirwayCentrelineFalseNegativeDistanceError']
 
 THRESHOLDPOST = 0.5
+ATTACHTRACHEAPREDICTION = False
 REMOVETRACHEARESMETRICS = True
 
 LISTMETRICSROCCURVE = ['DiceCoefficient',

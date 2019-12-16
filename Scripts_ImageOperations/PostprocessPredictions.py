@@ -34,16 +34,17 @@ def main(args):
 
     workDirsManager        = WorkDirsManager(args.basedir)
     InputPredictionsPath   = workDirsManager.getNameExistPath        (nameInputPredictionsRelPath)
-    InputReferMasksPath    = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
     OutputPredictMasksPath = workDirsManager.getNameNewPath          (nameOutputPredictMasksRelPath)
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath)
-    listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath)
-    prefixPatternInputFiles   = getFilePrefixPattern(listInputReferMasksFiles[0])
 
-    if (args.masksToRegionInterest):
-        InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
-        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
+    if (args.attachTracheaPrediction and args.masksToRegionInterest):
+        InputReferMasksPath = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
+        InputRoiMasksPath   = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
+
+        listInputReferMasksFiles = findFilesDirAndCheck(InputReferMasksPath)
+        listInputRoiMasksFiles   = findFilesDirAndCheck(InputRoiMasksPath)
+        prefixPatternInputFiles  = getFilePrefixPattern(listInputReferMasksFiles[0])
 
         def compute_trachea_masks(in_refermask_array, in_roimask_array):
             return np.where(in_roimask_array == 1, 0, in_refermask_array)
@@ -53,26 +54,26 @@ def main(args):
     for i, in_prediction_file in enumerate(listInputPredictionsFiles):
         print("\nInput: \'%s\'..." % (basename(in_prediction_file)))
 
-        in_refermask_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputReferMasksFiles,
-                                                          prefix_pattern=prefixPatternInputFiles)
-        print("Reference mask file: \'%s\'..." % (basename(in_refermask_file)))
-
         in_prediction_array = FileReader.getImageArray(in_prediction_file)
-        in_refermask_array  = FileReader.getImageArray(in_refermask_file)
         print("Predictions of size: %s..." % (str(in_prediction_array.shape)))
 
 
         print("Compute prediction masks by Thresholding probability maps with value \'%s\'..." % (args.threshold))
         out_predictmask_array = ThresholdImages.compute(in_prediction_array, args.threshold)
 
-        if (args.masksToRegionInterest):
+        if (args.attachTracheaPrediction and args.masksToRegionInterest):
             print("Attach trachea mask to prediction masks...")
 
+            in_refermask_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputReferMasksFiles,
+                                                              prefix_pattern=prefixPatternInputFiles)
             in_roimask_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputRoiMasksFiles,
                                                             prefix_pattern=prefixPatternInputFiles)
+            print("Reference mask file: \'%s\'..." % (basename(in_refermask_file)))
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
-            in_roimask_array = FileReader.getImageArray(in_roimask_file)
+            in_refermask_array = FileReader.getImageArray(in_refermask_file)
+            in_roimask_array   = FileReader.getImageArray(in_roimask_file)
+
             in_tracheamask_array = compute_trachea_masks(in_refermask_array, in_roimask_array)
 
             out_predictmask_array = OperationBinaryMasks.join_two_binmasks_one_image(out_predictmask_array, in_tracheamask_array)
@@ -92,6 +93,7 @@ if __name__ == "__main__":
     parser.add_argument('inputpredictiondir', type=str)
     parser.add_argument('outputpredictmasksdir', type=str)
     parser.add_argument('--threshold', type=float, default=THRESHOLDPOST)
+    parser.add_argument('--attachTracheaPrediction', type=str2bool, default=ATTACHTRACHEAPREDICTION)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     args = parser.parse_args()
 

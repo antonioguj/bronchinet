@@ -205,7 +205,7 @@ def prepare_exponential_operation(args):
 def main(args):
 
     listInputFiles  = findFilesDirAndCheck(args.inputdir)
-    list_names_operations = args.list_types
+    list_names_operations = args.type
     makedir(args.outputdir)
 
 
@@ -282,23 +282,23 @@ if __name__ == "__main__":
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
-    parser.add_argument('--list_types', nargs='+', default=['None'])
+    parser.add_argument('--type', nargs='+', default=['None'])
     parser.add_argument('--inputRoidir', type=str, default=None)
     parser.add_argument('--referencedir', type=str, default=None)
     parser.add_argument('--boundboxfile', type=str, default=None)
     parser.add_argument('--rescalefile', type=str, default=None)
     args = parser.parse_args()
 
-    if 'mask' in args.list_types:
+    if 'mask' in args.type:
         if not args.inputRoidir:
             message = 'need to set argument \'inputRoidir\''
             CatchErrorException(message)
-    elif 'crop' in args.list_types:
+    elif 'crop' in args.type:
         if not args.referencedir or not args.boundboxfile:
             message = 'need to set arguments \'referencedir\' and \'boundboxfile\''
             CatchErrorException(message)
-    elif 'rescale' in args.list_types or \
-        'rescale_mask' in args.list_types:
+    elif 'rescale' in args.type or \
+        'rescale_mask' in args.type:
         if not args.referencedir or not args.rescalefile:
             message = 'need to set arguments \'referencedir\' and \'rescalefile\''
             CatchErrorException(message)

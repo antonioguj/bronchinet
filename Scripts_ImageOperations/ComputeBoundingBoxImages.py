@@ -21,7 +21,7 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputRoiMaskRelPath       = 'Lungs/'
+    nameInputRoiMaskRelPath       = 'RawLungs/'
     nameReferenceFilesRelPath     = 'RawImages/'
     nameOutputDataRelPath         = 'CroppingData/'
     nameCropBoundingBoxes_FileNpy = 'cropBoundingBoxes_images_next.npy'
