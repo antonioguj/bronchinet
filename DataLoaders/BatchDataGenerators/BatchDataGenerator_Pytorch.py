@@ -38,10 +38,9 @@ class BatchDataGenerator_Pytorch(BatchDataGenerator):
                                                          is_outputUnet_validconvs=is_outputUnet_validconvs,
                                                          size_output_image=size_output_image,
                                                          batch_size=batch_size,
+                                                         shuffle=shuffle,
+                                                         seed=seed,
                                                          iswrite_datagen_info= iswrite_datagen_info)
-
-        self.num_images = self.compute_pairIndexes_imagesFile(False, seed=None)
-
         if is_data_generator_in_gpu:
             self.type_data_generated_torch = torch.cuda.FloatTensor
         else:

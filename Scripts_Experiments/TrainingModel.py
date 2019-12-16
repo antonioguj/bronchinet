@@ -323,9 +323,9 @@ def main(args):
     print("-" * 30)
 
     if TYPE_DNNLIBRARY_USED == 'Keras':
-        model.fit_generator(train_batch_data_generator,
-                            nb_epoch=args.num_epochs,
+        model.fit_generator(generator=train_batch_data_generator,
                             steps_per_epoch=args.max_steps_epoch,
+                            epochs=args.num_epochs,
                             verbose=1,
                             callbacks=list_callbacks,
                             validation_data=validation_data,
@@ -333,7 +333,7 @@ def main(args):
                             initial_epoch=initial_epoch)
 
     elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-        trainer.train(train_batch_data_generator,
+        trainer.train(train_data_generator=train_batch_data_generator,
                       num_epochs=args.num_epochs,
                       max_steps_epoch=args.max_steps_epoch,
                       valid_data_generator=validation_data,

@@ -8,9 +8,9 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from keras.layers import Input, concatenate, Dropout, BatchNormalization
-from keras.layers import Convolution3D, MaxPooling3D, UpSampling3D, Cropping3D, Conv3DTranspose
-from keras.models import Model, load_model
+from tensorflow.python.keras.layers import Input, concatenate, Dropout, BatchNormalization
+from tensorflow.python.keras.layers import Convolution3D, MaxPooling3D, UpSampling3D, Cropping3D, Conv3DTranspose
+from tensorflow.python.keras.models import Model, load_model
 
 
 class NeuralNetwork(object):
@@ -87,7 +87,7 @@ class Unet3D_Original(NeuralNetwork):
 
         outputlayer = Convolution3D(self.num_classes_out, kernel_size=(1, 1, 1), activation='sigmoid')(hiddenlayer_up1_3)
 
-        out_model = Model(input=inputlayer, output=outputlayer)
+        out_model = Model(inputs=inputlayer, outputs=outputlayer)
 
         return out_model
 
@@ -224,7 +224,7 @@ class Unet3D_General(NeuralNetwork):
 
         outputlayer = Convolution3D(self.num_classes_out, (1, 1, 1), activation=self.type_activate_output)(hiddenlayer_next)
 
-        out_model = Model(input=inputlayer, output=outputlayer)
+        out_model = Model(inputs=inputlayer, outputs=outputlayer)
 
         return out_model
 
@@ -310,7 +310,7 @@ class Unet3D_Tailored(NeuralNetwork):
 
         outputlayer = Convolution3D(self.num_classes_out, kernel_size=(1, 1, 1), activation='sigmoid')(hiddenlayer_up1_3)
 
-        out_model = Model(input=inputlayer, output=outputlayer)
+        out_model = Model(inputs=inputlayer, outputs=outputlayer)
 
         return out_model
 

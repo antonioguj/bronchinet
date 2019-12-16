@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from keras.optimizers import SGD, RMSprop, Adagrad, Adadelta, Adam
+from tensorflow.python.keras.optimizers import SGD, RMSprop, Adagrad, Adadelta, Adam
 from Common.ErrorMessages import *
 
 

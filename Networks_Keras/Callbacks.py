@@ -9,7 +9,7 @@
 ########################################################################################
 
 from Common.FunctionsUtil import *
-from keras import callbacks
+from tensorflow.python.keras import callbacks
 
 
 class RecordLossHistory(callbacks.Callback):

@@ -8,10 +8,10 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from keras.layers import Input, concatenate, Dropout, BatchNormalization
-from keras.layers import Convolution2D, MaxPooling2D, UpSampling2D, Cropping2D, Conv2DTranspose
-from keras.layers import Convolution3D, MaxPooling3D, UpSampling3D, Cropping3D, Conv3DTranspose
-from keras.models import Model, load_model
+from tensorflow.python.keras.layers import Input, concatenate, Dropout, BatchNormalization
+from tensorflow.python.keras.layers import Convolution2D, MaxPooling2D, UpSampling2D, Cropping2D, Conv2DTranspose
+from tensorflow.python.keras.layers import Convolution3D, MaxPooling3D, UpSampling3D, Cropping3D, Conv3DTranspose
+from tensorflow.python.keras.models import Model, load_model
 
 
 class NeuralNetwork(object):
@@ -412,7 +412,7 @@ class Unet3D_General(NeuralNetwork):
                                 activation=self.activation_output)(last_layer)
 
         # return complete model
-        return Model(input=inputs, output=outputs)
+        return Model(inputs=inputs, outputs=outputs)
 
 
 # all available networks

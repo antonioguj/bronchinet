@@ -16,16 +16,17 @@ np.random.seed(2017)
 #DATADIR = '/home/antonio/Data/DLCST_Processed/'
 #DATADIR = '/home/antonio/Data/DLCST_Processed_ReferPechin/'
 #DATADIR = '/home/antonio/Data/DLCST+LUVAR_Processed/'
-DATADIR = '/home/antonio/Data/EXACT_Processed/'
+#DATADIR = '/home/antonio/Data/EXACT_Processed/'
 
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR_Rescaled/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
+BASEDIR = '/home/antonio/Results/Tests_Keras/'
 
-TYPE_DNNLIBRARY_USED = 'Pytorch'
+TYPE_DNNLIBRARY_USED = 'Keras'
 TYPEGPUINSTALLED     = 'larger_GPU'
 
 
@@ -152,8 +153,8 @@ LISTMETRICS = []
 #                'TrueNegativeRate',
 #                'FalseNegativeRate']
 
-NUMMAXTRAINIMAGES = 28
-NUMMAXVALIDIMAGES = 8
+NUMMAXTRAINIMAGES = 16
+NUMMAXVALIDIMAGES = 4
 
 ISVALIDCONVOLUTIONS = False
 USEVALIDATIONDATA = True

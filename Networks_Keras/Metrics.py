@@ -8,8 +8,9 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from keras.losses import mean_squared_error, binary_crossentropy
-from keras import backend as K
+from tensorflow.python.keras.losses import mean_squared_error, binary_crossentropy
+from tensorflow.python.keras import backend as K
+import tensorflow as tf
 from Common.ErrorMessages import *
 import numpy as np
 
@@ -71,16 +72,16 @@ class Metrics(object):
             return self.compute_np(y_true, y_pred)
 
     def get_mask(self, y_true):
-        return K.tf.where(K.tf.equal(y_true, self.val_exclude), K.zeros_like(y_true), K.ones_like(y_true))
+        return tf.where(K.equal(y_true, self.val_exclude), K.zeros_like(y_true), K.ones_like(y_true))
 
     def get_masked_array(self, y_true, y_array):
-        return K.tf.where(K.tf.equal(y_true, self.val_exclude), K.zeros_like(y_array), y_array)
+        return tf.where(K.equal(y_true, self.val_exclude), K.zeros_like(y_array), y_array)
 
     def get_mask_np(self, y_true):
-        return np.where(y_true == self.val_exclude, 0, 1)
+        return tf.where(y_true == self.val_exclude, 0, 1)
 
     def get_masked_array_np(self, y_true, y_array):
-        return np.where(y_true == self.val_exclude, 0, y_array)
+        return tf.where(y_true == self.val_exclude, 0, y_array)
 
     def get_renamed_compute(self):
         if self.name_fun_out:
@@ -241,13 +242,13 @@ class WeightedBinaryCrossEntropy(Metrics):
         self.name_fun_out = 'wei_bin_cross'
 
     def get_weights(self, y_true):
-        num_class_1 = K.tf.count_nonzero(K.tf.where(K.tf.equal(y_true, 1.0),
-                                                    K.ones_like(y_true),
-                                                    K.zeros_like(y_true)), dtype=K.tf.int32)
-        num_class_0 = K.tf.count_nonzero(K.tf.where(K.tf.equal(y_true, 0.0),
-                                                    K.ones_like(y_true),
-                                                    K.zeros_like(y_true)), dtype=K.tf.int32)
-        return (1.0, K.cast(num_class_0, dtype=K.tf.float32) / (K.cast(num_class_1, dtype=K.tf.float32) + K.variable(_eps)))
+        num_class_1 = tf.count_nonzero(tf.where(K.equal(y_true, 1.0),
+                                                K.ones_like(y_true),
+                                                K.zeros_like(y_true)), dtype=K.int32)
+        num_class_0 = tf.count_nonzero(tf.where(K.equal(y_true, 0.0),
+                                                K.ones_like(y_true),
+                                                K.zeros_like(y_true)), dtype=K.int32)
+        return (1.0, K.cast(num_class_0, dtype=K.float32) / (K.cast(num_class_1, dtype=K.float32) + K.variable(_eps)))
 
     def get_weights_np(self, y_true):
         num_class_1 = np.count_nonzero(y_true == 1)
@@ -337,8 +338,8 @@ class BinaryCrossEntropyFocalLoss(BinaryCrossEntropy):
         return K.clip(y_pred, self.eps_clip, 1.0-self.eps_clip)
 
     def get_predprobs_classes(self, y_true, y_pred):
-        prob_1 = K.tf.where(K.tf.equal(y_true, 1.0), y_pred, K.ones_like(y_pred))
-        prob_0 = K.tf.where(K.tf.equal(y_true, 0.0), y_pred, K.zeros_like(y_pred))
+        prob_1 = tf.where(K.equal(y_true, 1.0), y_pred, K.ones_like(y_pred))
+        prob_0 = tf.where(K.equal(y_true, 0.0), y_pred, K.zeros_like(y_pred))
         return (prob_1, prob_0)
 
     def compute_vec(self, y_true, y_pred):
@@ -382,8 +383,8 @@ class WeightedBinaryCrossEntropyFocalLoss(WeightedBinaryCrossEntropy):
         return K.clip(y_pred, self.eps_clip, 1.0-self.eps_clip)
 
     def get_predprobs_classes(self, y_true, y_pred):
-        prob_1 = K.tf.where(K.tf.equal(y_true, 1.0), y_pred, K.ones_like(y_pred))
-        prob_0 = K.tf.where(K.tf.equal(y_true, 0.0), y_pred, K.zeros_like(y_pred))
+        prob_1 = tf.where(K.equal(y_true, 1.0), y_pred, K.ones_like(y_pred))
+        prob_0 = tf.where(K.equal(y_true, 0.0), y_pred, K.zeros_like(y_pred))
         return (prob_1, prob_0)
 
     def compute_vec(self, y_true, y_pred):

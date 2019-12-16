@@ -27,6 +27,8 @@ class BatchDataGenerator(object):
                  is_outputUnet_validconvs= False,
                  size_output_image= None,
                  batch_size= 1,
+                 shuffle= True,
+                 seed= None,
                  iswrite_datagen_info=True):
         self.size_image = size_image
         self.num_channels_in = num_channels_in
@@ -63,20 +65,54 @@ class BatchDataGenerator(object):
             self.size_output_image = size_image
 
         self.batch_size = batch_size
-        self.num_images = None
+        self.shuffle = shuffle
+        self.seed = seed
 
         self.iswrite_datagen_info = iswrite_datagen_info
 
+        self.num_images = self.compute_list_indexes_imagefile()
 
-    def __getitem__(self, index):
-        return self.get_item(index)
+        self.on_epoch_end()
+
+
 
     def __len__(self):
-        return self.num_images
+        "Denotes the number of batches per epoch"
+        return (self.num_images + self.batch_size - 1) // self.batch_size
 
 
-    def compute_pairIndexes_imagesFile(self, shuffle, seed=None):
-        self.list_pairIndexes_imagesFile = []
+    def on_epoch_end(self):
+        "Updates indexes after each epoch"
+        self.indexes = np.arange(self.num_images)
+        if self.shuffle == True:
+            if self.seed is not None:
+                np.random.seed(self.seed)
+
+            np.random.shuffle(self.indexes)
+
+
+    def __getitem__(self, index):
+        "Generate one batch of data"
+        # generate indexes of the batch
+        indexes = self.indexes[index * self.batch_size: (index + 1) * self.batch_size]
+
+        num_images_batch = len(indexes)
+
+        out_xData_array_shape = [num_images_batch] + list(self.size_image) + [self.num_channels_in]
+        out_yData_array_shape = [num_images_batch] + list(self.size_output_image) + [self.num_classes_out]
+
+        out_xData_array = np.ndarray(out_xData_array_shape, dtype=self.type_xData)
+        out_yData_array = np.ndarray(out_yData_array_shape, dtype=self.type_yData)
+
+        for i, index in enumerate(indexes):
+            (out_xData_array[i], out_yData_array[i]) = self.get_item(index)
+        # endfor
+
+        return (out_xData_array, out_yData_array)
+
+
+    def compute_list_indexes_imagefile(self):
+        self.list_indexes_imagefile = []
 
         for ifile, xData_array in enumerate(self.list_xData_array):
             self.images_generator.update_image_data(xData_array.shape)
@@ -85,7 +121,7 @@ class BatchDataGenerator(object):
 
             #store pair of indexes: (idx_file, idx_batch)
             for index in range(num_images_file):
-                self.list_pairIndexes_imagesFile.append((ifile, index))
+                self.list_indexes_imagefile.append((ifile, index))
             #endfor
 
             if self.iswrite_datagen_info:
@@ -94,20 +130,7 @@ class BatchDataGenerator(object):
                 print(message)
         #endfor
 
-        if (shuffle):
-            if seed is not None:
-                np.random.seed(seed)
-
-            num_images = len(self.list_pairIndexes_imagesFile)
-            random_indexes = np.random.choice(num_images, size=num_images, replace=False)
-
-            self.list_pairIndexes_imagesFile_prev = self.list_pairIndexes_imagesFile
-            self.list_pairIndexes_imagesFile = []
-            for index in random_indexes:
-                self.list_pairIndexes_imagesFile.append(self.list_pairIndexes_imagesFile_prev[index])
-            #endfor
-
-        num_images = len(self.list_pairIndexes_imagesFile)
+        num_images = len(self.list_indexes_imagefile)
         return num_images
 
 
@@ -116,7 +139,7 @@ class BatchDataGenerator(object):
 
 
     def get_item(self, index):
-        (index_file, index_image_file) = self.list_pairIndexes_imagesFile[index]
+        (index_file, index_image_file) = self.list_indexes_imagefile[index]
         self.images_generator.update_image_data(self.list_xData_array[index_file].shape)
 
         return self.images_generator.get_image_2arrays(self.list_xData_array[index_file],
