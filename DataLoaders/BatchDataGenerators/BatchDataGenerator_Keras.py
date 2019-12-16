@@ -15,7 +15,7 @@ np.random.seed(2017)
 
 
 
-class BatchDataGenerator_Keras(BatchDataGenerator, image.Iterator):
+class BatchDataGenerator_Keras(image.Iterator, BatchDataGenerator):
 
     def __init__(self, size_image,
                  list_xData_array,
@@ -29,20 +29,31 @@ class BatchDataGenerator_Keras(BatchDataGenerator, image.Iterator):
                  shuffle= True,
                  seed= None,
                  iswrite_datagen_info= True):
-        super(BatchDataGenerator_Keras, self).__init__(size_image,
-                                                       list_xData_array,
-                                                       list_yData_array,
-                                                       images_generator,
-                                                       num_channels_in=num_channels_in,
-                                                       num_classes_out=num_classes_out,
-                                                       is_outputUnet_validconvs=is_outputUnet_validconvs,
-                                                       size_output_image=size_output_image,
-                                                       batch_size=batch_size,
-                                                       iswrite_datagen_info=iswrite_datagen_info)
+        # super(BatchDataGenerator_Keras, self).__init__(size_image,
+        #                                                list_xData_array,
+        #                                                list_yData_array,
+        #                                                images_generator,
+        #                                                num_channels_in=num_channels_in,
+        #                                                num_classes_out=num_classes_out,
+        #                                                is_outputUnet_validconvs=is_outputUnet_validconvs,
+        #                                                size_output_image=size_output_image,
+        #                                                batch_size=batch_size,
+        #                                                iswrite_datagen_info=iswrite_datagen_info)
+        BatchDataGenerator.__init__(self, size_image,
+                                    list_xData_array,
+                                    list_yData_array,
+                                    images_generator,
+                                    num_channels_in=num_channels_in,
+                                    num_classes_out=num_classes_out,
+                                    is_outputUnet_validconvs=is_outputUnet_validconvs,
+                                    size_output_image=size_output_image,
+                                    batch_size=batch_size,
+                                    iswrite_datagen_info=iswrite_datagen_info)
 
         self.num_images = self.compute_pairIndexes_imagesFile(shuffle, seed=seed)
 
-        super(BatchDataGenerator_Keras, self).__init__(self.num_images, batch_size, shuffle, seed)
+        #super(BatchDataGenerator_Keras, self).__init__(self.num_images, batch_size, shuffle, seed)
+        image.Iterator.__init__(self, self.num_images, batch_size, shuffle, seed)
 
 
     def get_reshaped_output_array(self, in_array):
@@ -69,7 +80,7 @@ class BatchDataGenerator_Keras(BatchDataGenerator, image.Iterator):
     def _get_batches_of_transformed_samples(self, indexes_batch):
         num_images_batch = len(indexes_batch)
         out_xData_array_shape = [num_images_batch] + list(self.size_image) + [self.num_channels_in]
-        out_yData_array_shape = [num_images_batch] + list(self.size_output_model) + [self.num_classes_out]
+        out_yData_array_shape = [num_images_batch] + list(self.size_output_image) + [self.num_classes_out]
         out_xData_array = np.ndarray(out_xData_array_shape, dtype=self.type_xData)
         out_yData_array = np.ndarray(out_yData_array_shape, dtype=self.type_yData)
 

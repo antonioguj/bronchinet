@@ -60,6 +60,7 @@ class BatchDataGenerator(object):
                 raise Exception('Error: self.ndims')
         else:
             self.is_outputUnet_validconvs = False
+            self.size_output_image = size_image
 
         self.batch_size = batch_size
         self.num_images = None
