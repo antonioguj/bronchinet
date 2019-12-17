@@ -24,15 +24,16 @@ And the following libraries to run deep learning on GPUs:
 - cuda: version 9.0. https://developer.nvidia.com/cuda-zone
 - cuDNN: https://developer.nvidia.com/rdp/cudnn-download
 
-# Using the framework
-(The settings are specified in the file ./Code/Common/Constants.py)
-
+# Setting up framework
 1) Create working directory and set-up the framework:
 - mkdir <working_dir> && cd <working_dir>
 - ln -s <directory_where_your_data_is> BaseData
 - ln -s <directory_where_you_store_this_framework> Code
-- (export PYTHONPATH=./Code, if needed)
 
+(The settings for scripts below are input in the file ./Code/Common/Constants.py)
+(if needed, indicate "export PYTHONPATH=./Code" in the "~/.bashrc" file)
+
+# Preprocessing data
 2) Preprocess data: apply various preprocessing techniques to input data / masks, if needed: rescaling, binarise masks
 - python ./Code/Scripts_ImageOperations/ApplyOperationImages.py <dir_input_data> <dir_output_data> --type=[different options]
 
@@ -45,17 +46,22 @@ And the following libraries to run deep learning on GPUs:
 5) Distribute data in training / validation / testing:
 - python ./Code/Scripts_Experiments/DistributeTrainTestData.py
  
+# Training models
 6) Train models:
 - python ./Code/Scripts_Experiments/TrainingModel.py --modelsdir=<dir_output_models> [if restart model: --cfgfromfile=<file_config_params> --restart_model=True --restart_epoch=<last_epoch_hist_file>]
 
-7) Compute Predictions form trained model:
+# Predictions / Postprocessing
+7) Compute predictions form trained model:
 - python ./Code/Scripts_Experiments/PredictionModel.py <file_trained_model> <dir_output_predictions> --cfgfromfile=<file_config_params>
 
-8) Compute Binary masks from Probability maps:
+8) Compute predicted binary masks from probability maps:
 - python ./Code/Scripts_ImageOperations/PostprocessPredictions.py <dir_input_pred_probable_maps> <dir_output_pred_binary_masks>
 
-9) Compute Results metrics / accuracy:
-- python ./Code/Scripts_ImageOperations/ComputeResultMetrics.py <dir_input_predictions>
+9) Compute predicted centrelines from binary masks:
+- python ./Code/Scripts_ImageOperations/ApplyOperationImages.py <dir_input_pred_binary_masks> <dir_output_pred_centrelines> --type=thinning
 
-(7-8-9) Do steps 7-8-9 at once:)
-- python ./Code/Scripts_Experiments/LaunchPredictionsComplete.py <file_trained_model> <dir_output_predictions> 
+10) Compute results metrics / accuracy:
+- python ./Code/Scripts_ImageOperations/ComputeResultMetrics.py <dir_input_predictions> --inputcentrelinesdir=<dir_input_pred_centrelines>
+
+(7-8-9-10) Do steps 7-8-9-10 at once:)
+- python ./Code/Scripts_Experiments/LaunchPredictionsComplete.py <file_trained_model> <dir_output_predictions>
