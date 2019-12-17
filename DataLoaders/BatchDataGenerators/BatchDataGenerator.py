@@ -34,9 +34,9 @@ class BatchDataGenerator(object):
         self.num_channels_in = num_channels_in
 
         self.list_xData_array = list_xData_array
-        self.type_xData = list_xData_array[0].dtype
+        self.dtype_xData = list_xData_array[0].dtype
         self.list_yData_array = list_yData_array
-        self.type_yData = list_yData_array[0].dtype
+        self.dtype_yData = list_yData_array[0].dtype
 
         if len(list_xData_array) != len(list_yData_array):
             message = 'BatchGenerator: num arrays xData \'%s\' not equal to num arrays yData \'%s\'' %(len(list_xData_array),
@@ -101,8 +101,8 @@ class BatchDataGenerator(object):
         out_xData_array_shape = [num_images_batch] + list(self.size_image) + [self.num_channels_in]
         out_yData_array_shape = [num_images_batch] + list(self.size_output_image) + [self.num_classes_out]
 
-        out_xData_array = np.ndarray(out_xData_array_shape, dtype=self.type_xData)
-        out_yData_array = np.ndarray(out_yData_array_shape, dtype=self.type_yData)
+        out_xData_array = np.ndarray(out_xData_array_shape, dtype=self.dtype_xData)
+        out_yData_array = np.ndarray(out_yData_array_shape, dtype=self.dtype_yData)
 
         for i, index in enumerate(indexes):
             (out_xData_array[i], out_yData_array[i]) = self.get_item(index)
@@ -138,20 +138,30 @@ class BatchDataGenerator(object):
         return self.fun_crop_images(in_array, self.crop_output_bounding_box)
 
 
+    def get_formated_output_xData(self, in_array):
+        return NotImplemented
+
+    def get_formated_output_yData(self, in_array):
+        return NotImplemented
+
+
     def get_item(self, index):
         (index_file, index_image_file) = self.list_indexes_imagefile[index]
         self.images_generator.update_image_data(self.list_xData_array[index_file].shape)
 
-        return self.images_generator.get_image_2arrays(self.list_xData_array[index_file],
-                                                       in2nd_array= self.list_yData_array[index_file],
-                                                       index=index_image_file,
-                                                       seed=None)
+        (out_xData_elem, out_yData_elem) = self.images_generator.get_image_2arrays(self.list_xData_array[index_file],
+                                                                                   in2nd_array= self.list_yData_array[index_file],
+                                                                                   index=index_image_file,
+                                                                                   seed=None)
+        return (self.get_formated_output_xData(out_xData_elem),
+                self.get_formated_output_yData(out_yData_elem))
+
 
     def get_full_data(self):
         out_xData_shape = [self.num_images] + list(self.size_image)
         out_yData_shape = [self.num_images] + list(self.size_output_image)
-        out_xData_array = np.ndarray(out_xData_shape, dtype= self.type_xData)
-        out_yData_array = np.ndarray(out_yData_shape, dtype= self.type_yData)
+        out_xData_array = np.ndarray(out_xData_shape, dtype= self.dtype_xData)
+        out_yData_array = np.ndarray(out_yData_shape, dtype= self.dtype_yData)
 
         for i in range(self.num_images):
             (out_xData_array[i], out_yData_array[i]) = self.get_item(i)

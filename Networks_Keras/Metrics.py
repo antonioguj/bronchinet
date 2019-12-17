@@ -8,8 +8,8 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from tensorflow.python.keras.losses import mean_squared_error, binary_crossentropy
-from tensorflow.python.keras import backend as K
+from tensorflow.keras.losses import mean_squared_error, binary_crossentropy
+from tensorflow.keras import backend as K
 import tensorflow as tf
 from Common.ErrorMessages import *
 import numpy as np

@@ -25,7 +25,7 @@ BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR_Rescaled/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
 
-TYPE_DNNLIBRARY_USED = 'Keras'
+TYPE_DNNLIBRARY_USED = 'Pytorch'
 TYPEGPUINSTALLED     = 'larger_GPU'
 
 
@@ -152,8 +152,8 @@ LISTMETRICS = []
 #                'TrueNegativeRate',
 #                'FalseNegativeRate']
 
-NUMMAXTRAINIMAGES = 16
-NUMMAXVALIDIMAGES = 4
+NUMMAXTRAINIMAGES = 1
+NUMMAXVALIDIMAGES = 1
 
 ISVALIDCONVOLUTIONS = False
 USEVALIDATIONDATA = True

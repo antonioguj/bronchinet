@@ -9,7 +9,7 @@
 ########################################################################################
 
 from DataLoaders.BatchDataGenerators.BatchDataGenerator import *
-from tensorflow.python.keras.utils import Sequence
+from tensorflow.keras.utils import Sequence
 import numpy as np
 np.random.seed(2017)
 
@@ -41,6 +41,8 @@ class BatchDataGenerator_Keras(BatchDataGenerator, Sequence):
                                                        shuffle=shuffle,
                                                        seed=seed,
                                                        iswrite_datagen_info=iswrite_datagen_info)
+        self.dtype_yData = np.float32
+
 
     def __len__(self):
         return super(BatchDataGenerator_Keras, self).__len__()
@@ -61,13 +63,7 @@ class BatchDataGenerator_Keras(BatchDataGenerator, Sequence):
 
     def get_formated_output_yData(self, in_array):
         if self.is_outputUnet_validconvs:
-            out_array = self.get_cropped_output(in_array)
+            out_array = self.get_cropped_output(in_array).astype(dtype=self.dtype_yData)
         else:
-            out_array = in_array
+            out_array = in_array.astype(dtype=self.dtype_yData)
         return self.get_formated_output_xData(out_array)
-
-
-    def get_item(self, index):
-        (out_xData_elem, out_yData_elem) = super(BatchDataGenerator_Keras, self).get_item(index)
-        return (self.get_formated_output_xData(out_xData_elem),
-                self.get_formated_output_yData(out_yData_elem))

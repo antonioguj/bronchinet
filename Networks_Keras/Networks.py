@@ -8,9 +8,9 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from tensorflow.python.keras.layers import Input, concatenate, Dropout, BatchNormalization
-from tensorflow.python.keras.layers import Convolution3D, MaxPooling3D, UpSampling3D, Cropping3D, Conv3DTranspose
-from tensorflow.python.keras.models import Model, load_model
+from tensorflow.keras.layers import Input, concatenate, Dropout, BatchNormalization
+from tensorflow.keras.layers import Convolution3D, MaxPooling3D, UpSampling3D, Cropping3D, Conv3DTranspose
+from tensorflow.keras.models import Model, load_model
 
 
 class NeuralNetwork(object):

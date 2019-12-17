@@ -66,12 +66,6 @@ class BatchDataGenerator_Pytorch(BatchDataGenerator):
         return self.get_formated_output_xData(out_array)
 
 
-    def get_item(self, index):
-        (out_xData_elem, out_yData_elem) = super(BatchDataGenerator_Pytorch, self).get_item(index)
-        return (self.get_formated_output_xData(out_xData_elem),
-                self.get_formated_output_yData(out_yData_elem))
-
-
 
 class WrapperBatchGenerator_Pytorch(data.DataLoader):
 
