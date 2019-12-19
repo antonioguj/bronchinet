@@ -270,15 +270,19 @@ class Unet3D_Tailored(NeuralNetwork):
         #hiddenlayer_down4_2 = BatchNormalization()(hiddenlayer_down4_2)
         hiddenlayer_down4_3 = Convolution3D(num_featmaps_lay4, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down4_2)
         #hiddenlayer_down4_3 = BatchNormalization()(hiddenlayer_down4_3)
-        hiddenlayer_down5_1 = MaxPooling3D(pool_size=(1, 2, 2))(hiddenlayer_down4_3)
+        #hiddenlayer_down5_1 = MaxPooling3D(pool_size=(1, 2, 2))(hiddenlayer_down4_3)
+        hiddenlayer_down5_1 = MaxPooling3D(pool_size=(2, 2, 2))(hiddenlayer_down4_3)
 
         num_featmaps_lay5   = 2 * num_featmaps_lay4
-        hiddenlayer_down5_2 = Convolution3D(num_featmaps_lay5, kernel_size=(1, 3, 3), activation='relu', padding='same')(hiddenlayer_down5_1)
+        #hiddenlayer_down5_2 = Convolution3D(num_featmaps_lay5, kernel_size=(1, 3, 3), activation='relu', padding='same')(hiddenlayer_down5_1)
+        hiddenlayer_down5_2 = Convolution3D(num_featmaps_lay5, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down5_1)
         #hiddenlayer_down5_2 = BatchNormalization()(hiddenlayer_down5_2)
-        hiddenlayer_down5_3 = Convolution3D(num_featmaps_lay5, kernel_size=(1, 3, 3), activation='relu', padding='same')(hiddenlayer_down5_2)
+        #hiddenlayer_down5_3 = Convolution3D(num_featmaps_lay5, kernel_size=(1, 3, 3), activation='relu', padding='same')(hiddenlayer_down5_2)
+        hiddenlayer_down5_3 = Convolution3D(num_featmaps_lay5, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_down5_2)
         #hiddenlayer_down5_3 = BatchNormalization()(hiddenlayer_down5_3)
 
-        hiddenlayer_up4_1 = UpSampling3D(size=(1, 2, 2))(hiddenlayer_down5_3)
+        #hiddenlayer_up4_1 = UpSampling3D(size=(1, 2, 2))(hiddenlayer_down5_3)
+        hiddenlayer_up4_1 = UpSampling3D(size=(2, 2, 2))(hiddenlayer_down5_3)
         hiddenlayer_up4_1 = concatenate([hiddenlayer_up4_1, hiddenlayer_down4_3], axis=-1)
         hiddenlayer_up4_2 = Convolution3D(num_featmaps_lay4, kernel_size=(3, 3, 3), activation='relu', padding='same')(hiddenlayer_up4_1)
         #hiddenlayer_up4_2 = BatchNormalization()(hiddenlayer_up4_2)

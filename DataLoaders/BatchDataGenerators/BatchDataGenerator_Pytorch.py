@@ -47,6 +47,10 @@ class BatchDataGenerator_Pytorch(BatchDataGenerator):
             self.type_data_generated_torch = torch.FloatTensor
 
 
+    def __getitem__(self, index):
+        return super(BatchDataGenerator_Pytorch, self).get_item(index)
+
+
     def get_image_torchtensor(self, in_array):
         return torch.from_numpy(in_array.copy()).type(self.type_data_generated_torch)
 
