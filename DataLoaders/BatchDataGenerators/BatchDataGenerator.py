@@ -158,8 +158,11 @@ class BatchDataGenerator(object):
 
 
     def get_full_data(self):
-        out_xData_shape = [self.num_images] + list(self.size_image)
-        out_yData_shape = [self.num_images] + list(self.size_output_image)
+        "Generate full data with all batches"
+
+        out_xData_shape = [self.num_images] + list(self.size_image) + [self.num_channels_in]
+        out_yData_shape = [self.num_images] + list(self.size_output_image) + [self.num_classes_out]
+
         out_xData_array = np.ndarray(out_xData_shape, dtype= self.dtype_xData)
         out_yData_array = np.ndarray(out_yData_shape, dtype= self.dtype_yData)
 

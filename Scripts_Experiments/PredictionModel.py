@@ -182,7 +182,8 @@ def main(args):
         else:
             print("Evaluate model...")
             if TYPE_DNNLIBRARY_USED == 'Keras':
-                out_predict_yData = model.predict(in_testXData_batches, batch_size=1)
+                out_predict_yData = model.predict(in_testXData_batches.get_full_data(),
+                                                  batch_size=1)
             elif TYPE_DNNLIBRARY_USED == 'Pytorch':
                 out_predict_yData = trainer.predict(in_testXData_batches)
         # *******************************************************************************

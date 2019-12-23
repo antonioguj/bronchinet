@@ -177,7 +177,7 @@ def main(args):
 
             optimizer = DICTAVAILOPTIMIZERS(args.optimizer, model_net.parameters(), lr=args.learn_rate)
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
-            metrics_fun = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest) for imetrics in LISTMETRICS]
+            metrics_fun = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest) for imetrics in args.listmetrics]
 
             trainer = Trainer(model_net, optimizer, loss_fun, metrics_fun)
 
@@ -199,7 +199,7 @@ def main(args):
             else:
                 dict_added_model_input_args = {}
 
-            metrics_fun = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest) for imetrics in LISTMETRICS]
+            metrics_fun = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest) for imetrics in args.listmetrics]
             dict_added_other_input_args = {'metrics_fun': metrics_fun}
 
             if RESTART_FROMDIFFMODEL:
@@ -407,7 +407,8 @@ if __name__ == "__main__":
         args.batch_size             = int(input_args_file['batch_size'])
         args.learn_rate             = float(input_args_file['learn_rate'])
         args.lossfun                = str(input_args_file['lossfun'])
-        args.listmetrics            = str(input_args_file['listmetrics'])
+        args.listmetrics            = parseListarg(input_args_file['listmetrics'])
+        args.listmetrics.remove('')
         args.masksToRegionInterest  = str2bool(input_args_file['masksToRegionInterest'])
         args.isValidConvolutions    = str2bool(input_args_file['isValidConvolutions'])
         args.slidingWindowImages    = str2bool(input_args_file['slidingWindowImages'])

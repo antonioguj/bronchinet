@@ -12,18 +12,19 @@ import numpy as np
 np.random.seed(2017)
 
 
-DATADIR = '/home/antonio/Data/LUVAR_Processed/'
-#DATADIR = '/home/antonio/Data/DLCST_Processed/'
+#DATADIR = '/home/antonio/Data/LUVAR_Processed/'
+DATADIR = '/home/antonio/Data/DLCST_Processed/'
 #DATADIR = '/home/antonio/Data/DLCST_Processed_ReferPechin/'
 #DATADIR = '/home/antonio/Data/DLCST+LUVAR_Processed/'
 #DATADIR = '/home/antonio/Data/EXACT_Processed/'
 
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR_Rescaled/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR_Rescaled/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_CTs-Ivan/'
 
 TYPE_DNNLIBRARY_USED = 'Pytorch'
 TYPEGPUINSTALLED     = 'larger_GPU'
@@ -64,7 +65,7 @@ else:
 
 
 # ******************** DATA DISTRIBUTION ********************
-PROP_DATA_TRAINING   = 0.50
+PROP_DATA_TRAINING   = 0.5
 PROP_DATA_VALIDATION = 0.15
 PROP_DATA_TESTING    = 0.35
 
@@ -152,8 +153,8 @@ LISTMETRICS = []
 #                'TrueNegativeRate',
 #                'FalseNegativeRate']
 
-NUMMAXTRAINIMAGES = 1
-NUMMAXVALIDIMAGES = 1
+NUMMAXTRAINIMAGES = 16
+NUMMAXVALIDIMAGES = 4
 
 ISVALIDCONVOLUTIONS = False
 USEVALIDATIONDATA = True

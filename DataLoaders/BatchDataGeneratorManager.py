@@ -75,7 +75,7 @@ def getBatchDataGenerator(size_in_images,
                                               list_yData_arrays,
                                               images_generator,
                                               batch_size,
-                                              is_outputUnet_validconvs= is_outputUnet_validconvs,
-                                              size_output_images= size_output_images,
-                                              shuffle= shuffle,
-                                              seed= seed)
+                                              is_outputUnet_validconvs=is_outputUnet_validconvs,
+                                              size_output_images=size_output_images,
+                                              shuffle=shuffle,
+                                              seed=seed)

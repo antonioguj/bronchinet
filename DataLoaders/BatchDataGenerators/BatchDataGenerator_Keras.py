@@ -41,6 +41,7 @@ class BatchDataGenerator_Keras(BatchDataGenerator, Sequence):
                                                        shuffle=shuffle,
                                                        seed=seed,
                                                        iswrite_datagen_info=iswrite_datagen_info)
+        self.dtype_xData = np.float32
         self.dtype_yData = np.float32
 
 

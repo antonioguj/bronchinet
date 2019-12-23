@@ -30,9 +30,9 @@ def main(args):
     listInputFiles1 = findFilesDirAndCheck(InputPath1)
     listInputFiles2 = findFilesDirAndCheck(InputPath2)
 
-    #if (len(listInputFiles1) != len(listInputFiles2)):
-    #    message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(listInputFiles1), len(listInputFiles2))
-    #    CatchErrorException(message)
+    if (len(listInputFiles1) != len(listInputFiles2)):
+       message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(listInputFiles1), len(listInputFiles2))
+       CatchErrorException(message)
 
     if not isExistdir(args.tempdir):
         makedir(args.tempdir)
