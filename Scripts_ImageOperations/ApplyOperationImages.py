@@ -179,6 +179,17 @@ def prepare_normalize_operation(args):
     return wrapfun_normalize_image
 
 
+def prepare_onlyCorrect_operation(args):
+    print("Operation: On...")
+
+    def wrapfun_normalize_image(in_array, i):
+        print("Normalize image to (0,1)...")
+
+        return NormalizeImages.compute3D(in_array)
+
+    return wrapfun_normalize_image
+
+
 def prepare_power_operation(args):
     print("Operation: Power of images...")
     poworder = 2
@@ -213,7 +224,7 @@ def main(args):
     suffix_output_names  = ''
 
     for name_operation in list_names_operations:
-        if name_operation not in LIST_OPERATIONS:
+        if name_operation not in LIST_OPERATIONS and name_operation != 'None':
             message = 'Operation \'%s\' not yet implemented...' %(name_operation)
             CatchErrorException(message)
         else:
@@ -247,12 +258,17 @@ def main(args):
                 new_func_operation = prepare_power_operation(args)
             elif name_operation == 'exponential':
                 new_func_operation = prepare_exponential_operation(args)
+            elif name_operation == 'None':
+                def fun_do_nothing(in_array, i):
+                    return in_array
+                new_func_operation = fun_do_nothing
             else:
                 new_func_operation = None
-            dict_func_operations[new_func_operation] = new_func_operation
+            dict_func_operations[name_operation] = new_func_operation
 
-        if DICT_OPERS_SUFFIX[name_operation]:
-            suffix_output_names += '_'+ DICT_OPERS_SUFFIX[name_operation]
+        if name_operation != 'None':
+            if DICT_OPERS_SUFFIX[name_operation]:
+                suffix_output_names += '_'+ DICT_OPERS_SUFFIX[name_operation]
     #endfor
 
     nameOutputFiles = lambda in_name: filenamenoextension(in_name) + suffix_output_names +'.nii.gz'

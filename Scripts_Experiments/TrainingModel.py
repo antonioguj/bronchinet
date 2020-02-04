@@ -97,20 +97,19 @@ def main(args):
         if (not args.restart_model) or\
         (args.restart_model and RESTART_ONLY_WEIGHTS):
             model_constructor = DICTAVAILMODELS3D(args.size_in_images,
-                                                  num_layers=args.num_layers,
+                                                  num_levels=args.num_layers,
                                                   num_featmaps_in=args.num_featmaps_in,
-                                                  tailored_build_model=args.tailored_build_model,
-                                                  type_network=args.type_network,
-                                                  type_activate_hidden=args.type_activate_hidden,
-                                                  type_activate_output=args.type_activate_output,
-                                                  type_padding_convol=args.type_padding_convol,
-                                                  is_disable_convol_pooling_lastlayer=args.disable_convol_pooling_lastlayer,
-                                                  isuse_dropout=args.isUse_dropout,
-                                                  isuse_batchnormalize=args.isUse_batchnormalize)
+                                                  isUse_valid_convols=args.isValidConvolutions)
+                                                  # type_network=args.type_network,
+                                                  # type_activate_hidden=args.type_activate_hidden,
+                                                  # type_activate_output=args.type_activate_output,
+                                                  # is_disable_convol_pooling_lastlayer=args.disable_convol_pooling_lastlayer,
+                                                  # isuse_dropout=args.isUse_dropout,
+                                                  # isuse_batchnormalize=args.isUse_batchnormalize)
             optimizer = DICTAVAILOPTIMIZERS(args.optimizer, lr=args.learn_rate)
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).loss
             metrics =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]
-            model = model_constructor.get_model()
+            model = model_constructor.build_model()
             # compile model
             model.compile(optimizer=optimizer, loss=loss_fun, metrics=metrics)
 
@@ -140,11 +139,10 @@ def main(args):
         list_callbacks.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
         # list_callbacks.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
 
-        # size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
-        size_output_modelnet = args.size_in_images  # IMPLEMENT HERE HOW TO COMPUTE SIZE OF OUTPUT MODEL
+        size_output_modelnet = tuple(model_constructor.get_size_output()[1:])
         if args.isValidConvolutions:
-            message = "CODE WITH KERAS NOT IMPLEMENTED FOR VALID CONVOLUTIONS..."
-            CatchErrorException(message)
+            print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
+                                                                                                   str(size_output_modelnet)))
 
         # output model summary
         model.summary()
@@ -159,21 +157,20 @@ def main(args):
                                                 args.size_in_images,
                                                 nfeat=args.num_featmaps_in,
                                                 nlevel=args.num_layers,
-                                                isUse_valid_convs=args.isValidConvolutions,
+                                                isUse_valid_convols=args.isValidConvolutions,
                                                 isGNN_with_attention_lays=args.isGNNwithAttentionLays,
                                                 source_dir_adjs=SOURCEDIR_ADJS)
             else:
                 model_net = DICTAVAILMODELS3D(args.size_in_images,
-                                              num_layers=args.num_layers,
+                                              num_levels=args.num_layers,
                                               num_featmaps_in=args.num_featmaps_in,
-                                              tailored_build_model=args.tailored_build_model,
-                                              type_network=args.type_network,
-                                              type_activate_hidden=args.type_activate_hidden,
-                                              type_activate_output=args.type_activate_output,
-                                              type_padding_convol=args.type_padding_convol,
-                                              is_disable_convol_pooling_lastlayer=args.disable_convol_pooling_lastlayer,
-                                              isuse_dropout=args.isUse_dropout,
-                                              isuse_batchnormalize=args.isUse_batchnormalize)
+                                              isUse_valid_convols=args.isValidConvolutions)
+                                              # type_network=args.type_network,
+                                              # type_activate_hidden=args.type_activate_hidden,
+                                              # type_activate_output=args.type_activate_output,
+                                              # is_disable_convol_pooling_lastlayer=args.disable_convol_pooling_lastlayer,
+                                              # isuse_dropout=args.isUse_dropout,
+                                              # isuse_batchnormalize=args.isUse_batchnormalize)
 
             optimizer = DICTAVAILOPTIMIZERS(args.optimizer, model_net.parameters(), lr=args.learn_rate)
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
@@ -220,14 +217,10 @@ def main(args):
                                          type_save_models='full_model',
                                          freq_save_intermodels=FREQSAVEINTERMODELS)
 
-        # size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
-        # if args.isValidConvolutions:
-        #     print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
-        #                                                                                            str(size_output_modelnet)))
-        size_output_modelnet = args.size_in_images  # IMPLEMENT HERE HOW TO COMPUTE SIZE OF OUTPUT MODEL
+        size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
         if args.isValidConvolutions:
-            message = "CODE WITH KERAS NOT IMPLEMENTED FOR VALID CONVOLUTIONS..."
-            CatchErrorException(message)
+            print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
+                                                                                                   str(size_output_modelnet)))
 
         # output model summary
         if not ISTESTMODELSWITHGNN:

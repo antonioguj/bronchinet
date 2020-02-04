@@ -120,52 +120,50 @@ def findFilesDirAndCheck(filespath, filename_pattern='*'):
 
 
 # input / output data in disk
+def readDictionary(filename):
+    extension = filenameextension(filename, use_recurse_splitext=False)
+    if extension == '.npy':
+        return readDictionary_numpy(filename)
+    elif extension == '.csv':
+        return readDictionary_csv(filename)
+    else:
+        message = 'unknown extension \'%s\' to read dictionary' %(extension)
+        CatchErrorException(message)
+
 def readDictionary_numpy(filename):
     return np.load(filename, allow_pickle=True).item()
 
-def readDictionary_csv(filename, out_datatype=None):
-    if filenameextension(filename, use_recurse_splitext=False) != '.csv':
-        message = 'need \'.csv\' to save dictionary'
-        CatchErrorException(message)
-    else:
-        with open(filename, 'r') as fin:
-            reader = csv.reader(fin)
-            out_dict = dict(reader)
-            if out_datatype:
-                if out_datatype=='tuple_int':
-                    func_convert_val = str2tupleint
-                elif out_datatype=='tuple_float':
-                    func_convert_val = str2tuplefloat
-                else:
-                    message = 'type convert function \'%s\' not implemented' %(out_datatype)
-                    CatchErrorException(message)
-
-                new_out_dict = {}
-                for key, val in out_dict.iteritems():
-                    new_out_dict[key] = func_convert_val(val)
-                #endfor
-                return new_out_dict
-            else:
-                return out_dict
+def readDictionary_csv(filename):
+    with open(filename, 'r') as fin:
+        reader = csv.reader(fin)
+        raw_out_dict = dict(reader)
+        example_value = (raw_out_dict.values())[0]
+        value_datatype = getStringDatatype(example_value)
+        func_convert_values = getFuncConvertStringDatatype(value_datatype)
+        out_dict = {}
+        for key, val in raw_out_dict.iteritems():
+            out_dict[key] = func_convert_values(val)
+        #endfor
+        return out_dict
 
 def saveDictionary(filename, dictionary):
-    saveDictionary_numpy(filename, dictionary)
-
-def readDictionary(filename):
-    return readDictionary_numpy(filename)
+    extension = filenameextension(filename, use_recurse_splitext=False)
+    if extension == '.npy':
+        saveDictionary_numpy(filename, dictionary)
+    elif extension == '.csv':
+        saveDictionary_csv(filename, dictionary)
+    else:
+        message = 'unknown extension \'%s\' to save dictionary' %(extension)
+        CatchErrorException(message)
 
 def saveDictionary_numpy(filename, dictionary):
     np.save(filename, dictionary)
 
 def saveDictionary_csv(filename, dictionary):
-    if filenameextension(filename, use_recurse_splitext=False) != '.csv':
-        message = 'need \'.csv\' to save dictionary'
-        CatchErrorException(message)
-    else:
-        with open(filename, 'w') as fout:
-            writer = csv.writer(fout)
-            for key, value in dictionary.items():
-                writer.writerow([key, value])
+    with open(filename, 'w') as fout:
+        writer = csv.writer(fout)
+        for key, value in dictionary.items():
+            writer.writerow([key, value])
 
 def readDictionary_configParams(filename):
     if filenameextension(filename, use_recurse_splitext=False) != '.txt':
@@ -212,16 +210,96 @@ def sumTwoTuples(var1, var2):
 def substractTwoTuples(var1, var2):
     return tuple(a-b for (a,b) in zip(var1, var2))
 
-def str2bool(strin):
-    return strin.lower() in ('yes', 'true', 't', '1')
+def isStrvalBool(strval):
+    return strval.lower() in ('yes', 'true', 'no', 'false')
 
-def str2tupleint(strin):
-    strin = strin.replace('(','').replace(')','')
-    return tuple([int(i) for i in strin.rsplit(',')])
+def isStrvalInteger(strval):
+    return strval.isdigit()
 
-def str2tuplefloat(strin):
-    strin = strin.replace('(', '').replace(')', '')
-    return tuple([float(i) for i in strin.rsplit(',')])
+def isStrvalFloat(strval):
+    return (strval.count('.')==1) and (strval.replace('.', '', 1).isdigit())
+
+def isStrvalList(strval):
+    return (strval[0] == '[') and (strval[-1] == ']')
+
+def isStrvalTuple(strval):
+    return (strval[0] == '(') and (strval[-1] == ')')
+
+def getStringDatatype(strval):
+    out_datatype = 0
+    if isStrvalBool(strval):
+        out_datatype = 'bool'
+    elif isStrvalInteger(strval):
+        out_datatype = 'int'
+    elif isStrvalFloat(strval):
+        out_datatype = 'float'
+    elif isStrvalList(strval):
+        out_datatype = 'list'
+        elems_list_split = splitStringListOrTuple(strval)
+        out_elem_datatype = getStringDatatype(elems_list_split[0])
+        out_datatype += '_'+ out_elem_datatype
+    elif isStrvalTuple(strval):
+        out_datatype = 'tuple'
+        elems_tuple_split = splitStringListOrTuple(strval)
+        out_elem_datatype = getStringDatatype(elems_tuple_split[0])
+        out_datatype += '_'+ out_elem_datatype
+    else:
+        message = 'not found data type from string value: \'%s\'' %(strval)
+        CatchErrorException(message)
+    return out_datatype
+
+def getFuncConvertStringDatatype(elem_type):
+    if elem_type == 'int':
+        return str2int
+    elif elem_type == 'float':
+        return str2float
+    elif 'list' in elem_type and (elem_type[0:5]=='list_'):
+        def func_conv_elem(strval):
+            return str2list(strval, elem_type[5:])
+        return func_conv_elem
+    elif 'tuple' in elem_type and (elem_type[0:6]=='tuple_'):
+        def func_conv_elem(strval):
+            return str2tuple(strval, elem_type[6:])
+        return func_conv_elem
+    else:
+        message = 'not found data type from string value: \'%s\'' %(elem_type)
+        CatchErrorException(message)
+
+def splitStringListOrTuple(strval):
+    strval_inside = strval[1:-1].replace(' ','')
+    if ('[' in strval_inside) and (']' in strval_inside):
+        strval_inside_split = strval_inside.rsplit('],')
+        num_elems = len(strval_inside_split)
+        return [(elem+']') if i<(num_elems-1) else elem for i, elem in enumerate(strval_inside_split)]
+    elif ('(' in strval_inside) and (')' in strval_inside):
+        strval_inside_split = strval_inside.rsplit('),')
+        num_elems = len(strval_inside_split)
+        return [(elem+')') if i<(num_elems-1) else elem for i, elem in enumerate(strval_inside_split)]
+    else:
+        return strval_inside.rsplit(',')
+
+def str2bool(strval):
+    return strval.lower() in ('yes', 'true', 't', '1')
+
+def str2int(strval):
+    return int(strval)
+
+def str2float(strval):
+    return float(strval)
+
+def str2list(strval, elem_type):
+    func_conv_elem = getFuncConvertStringDatatype(elem_type)
+    return list([func_conv_elem(elem) for elem in splitStringListOrTuple(strval)])
+
+def str2tuple(strval, elem_type):
+    func_conv_elem = getFuncConvertStringDatatype(elem_type)
+    return tuple([func_conv_elem(elem) for elem in splitStringListOrTuple(strval)])
+
+def str2tupleint(strval):
+    return str2tuple(strval, elem_type='tuple_int')
+
+def str2tuplefloat(strval):
+    return str2tuple(strval, elem_type='tuple_float')
 
 def list2str(list):
     return "_".join(str(i) for i in list)

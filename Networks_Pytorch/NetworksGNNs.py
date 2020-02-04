@@ -38,7 +38,7 @@ class NeuralNetwork(nn.Module):
     def __init__(self, size_image,
                  nlevel= nlevel_default,
                  nfeat= nfeat_default,
-                 isUse_valid_convs= False):
+                 isUse_valid_convols= False):
         super(NeuralNetwork, self).__init__()
         self.size_image = size_image
         self.nlevel = nlevel
@@ -47,13 +47,13 @@ class NeuralNetwork(nn.Module):
         self.opChannels = 1
         self.dropout = 0.0
 
-        self.isUse_valid_convs = isUse_valid_convs
-        if self.isUse_valid_convs:
+        self.isUse_valid_convols = isUse_valid_convols
+        if self.isUse_valid_convols:
             self.gen_list_module_operations()
             self.gen_list_sizes_output_valid()
             self.gen_list_sizes_crop_merge()
 
-        if self.isUse_valid_convs:
+        if self.isUse_valid_convols:
             self.size_output = self.get_size_output_valid(self.size_image)
         else:
             self.size_output = self.size_image
@@ -85,96 +85,6 @@ class NeuralNetwork(nn.Module):
 
     def preprocess(self, *args, **kwargs):
         pass
-
-    def gen_list_module_operations(self):
-        return NotImplemented
-
-    def gen_list_sizes_crop_merge(self):
-        indexes_list_sizes_output_where_merge = [i for i,el in enumerate(self.list_module_opers) if el=='upsam']
-        self.list_sizes_crop_merge = [self.list_sizes_output[i] for i in indexes_list_sizes_output_where_merge][::-1]
-
-    def gen_list_sizes_output_valid(self):
-        self.list_sizes_output = []
-        size_last = self.size_image
-        for i, oper in enumerate(self.list_module_opers):
-            if oper=='convol':
-                size_last = self.get_size_output_valid_after_convolution(size_last)
-            elif oper=='convol_pad':
-                size_last = size_last
-            elif oper=='pool':
-                size_last = self.get_size_output_valid_after_pooling(size_last)
-            elif oper=='upsam':
-                size_last = self.get_size_output_valid_after_upsample(size_last)
-            elif oper=='gnn':
-                size_last = self.get_size_output_valid_after_gnn(size_last)
-            elif oper=='conv_last':
-                size_last = self.get_size_output_valid_after_convolution(size_last, size_kernel=(1,1,1))
-            else:
-                return NotImplemented
-            self.list_sizes_output.append(size_last)
-        #endfor
-
-    def get_size_output_valid(self, size_input, level_beg=None, level_end=None):
-        if level_beg and level_end:
-            this_list_module_opers = self.list_module_opers[level_beg:level_end]
-        else:
-            this_list_module_opers = self.list_module_opers
-
-        size_last = size_input
-        for i, oper in enumerate(this_list_module_opers):
-            if oper=='convol':
-                size_last = self.get_size_output_valid_after_convolution(size_last)
-            elif oper=='convol_pad':
-                size_last = size_last
-            elif oper=='pool':
-                size_last = self.get_size_output_valid_after_pooling(size_last)
-            elif oper=='upsam':
-                size_last = self.get_size_output_valid_after_upsample(size_last)
-            elif oper=='gnn':
-                size_last = self.get_size_output_valid_after_gnn(size_last)
-            elif oper=='conv_last':
-                size_last = self.get_size_output_valid_after_convolution(size_last, size_kernel=(1,1,1))
-            else:
-                return NotImplemented
-        #endfor
-        return size_last
-
-    @staticmethod
-    def get_size_output_valid_after_convolution(size_input, size_kernel=(3,3,3)):
-        output_size = tuple([s_i-s_k+1 for s_i, s_k in zip(size_input, size_kernel)])
-        return output_size
-
-    @staticmethod
-    def get_size_output_valid_after_pooling(size_input, size_pool=(2,2,2)):
-        output_size = tuple([s_i//s_p for s_i, s_p in zip(size_input, size_pool)])
-        return output_size
-
-    @staticmethod
-    def get_size_output_valid_after_upsample(size_input, size_upsample=(2,2,2)):
-        output_size = tuple([s_i*s_u for s_i, s_u in zip(size_input, size_upsample)])
-        return output_size
-
-    @staticmethod
-    def get_size_output_valid_after_gnn(size_input):
-        return size_input
-
-    @staticmethod
-    def get_output_lims_crop(size_input, size_crop):
-        z_beg = (size_input[0] - size_crop[0]) / 2
-        x_beg = (size_input[1] - size_crop[1]) / 2
-        y_beg = (size_input[2] - size_crop[2]) / 2
-        output_lims = ((z_beg, z_beg + size_crop[0]),
-                       (x_beg, x_beg + size_crop[1]),
-                       (y_beg, y_beg + size_crop[2]))
-        return output_lims
-
-    @classmethod
-    def crop_image(cls, input, size_crop):
-        size_input = input.shape[-3:]
-        output_lims = cls.get_output_lims_crop(size_input, size_crop)
-        return input[:,:, output_lims[0][0]:output_lims[0][1],
-                          output_lims[1][0]:output_lims[1][1],
-                          output_lims[2][0]:output_lims[2][1]]
 
     @staticmethod
     def get_create_model(type_model, dict_input_args):
@@ -272,11 +182,11 @@ class Unet3D(NeuralNetwork):
     def __init__(self, size_image,
                  nlevel=nlevel_default,
                  nfeat= nfeat_default,
-                 isUse_valid_convs= True):
+                 isUse_valid_convols= True):
         super(Unet3D, self).__init__(size_image,
                                      nlevel,
                                      nfeat,
-                                     isUse_valid_convs= isUse_valid_convs)
+                                     isUse_valid_convols= isUse_valid_convols)
 
     def get_arch_desc(self):
         return ['Unet3D', {'size_image': self.size_image, 'nlevel': self.nlevel, 'nfeat': self.nfeat}]
@@ -307,24 +217,24 @@ class Unet3D(NeuralNetwork):
 
 
     def build_model(self):
-        if self.isUse_valid_convs:
-           padding_convs = 0
+        if self.isUse_valid_convols:
+           padding_val = 0
         else:
-           padding_convs = 1
+           padding_val = 1
 
         nfeatD1 = self.nfeat
-        self.convD11 = Conv3d(self.ipChannels, nfeatD1, kernel_size= 3, padding= padding_convs)
-        self.convD12 = Conv3d(nfeatD1, nfeatD1, kernel_size= 3, padding= padding_convs)
+        self.convD11 = Conv3d(self.ipChannels, nfeatD1, kernel_size= 3, padding= padding_val)
+        self.convD12 = Conv3d(nfeatD1, nfeatD1, kernel_size= 3, padding= padding_val)
         self.mpoolD1 = MaxPool3d(kernel_size= 2, padding= 0)
 
         nfeatD2 = 2 * nfeatD1
-        self.convD21 = Conv3d(nfeatD1, nfeatD2, kernel_size= 3, padding= padding_convs)
-        self.convD22 = Conv3d(nfeatD2, nfeatD2, kernel_size= 3, padding= padding_convs)
+        self.convD21 = Conv3d(nfeatD1, nfeatD2, kernel_size= 3, padding= padding_val)
+        self.convD22 = Conv3d(nfeatD2, nfeatD2, kernel_size= 3, padding= padding_val)
         self.mpoolD2 = MaxPool3d(kernel_size= 2, padding= 0)
 
         nfeatD3 = 2 * nfeatD2
-        self.convD31 = Conv3d(nfeatD2, nfeatD3, kernel_size= 3, padding= padding_convs)
-        self.convD32 = Conv3d(nfeatD3, nfeatD3, kernel_size= 3, padding= padding_convs)
+        self.convD31 = Conv3d(nfeatD2, nfeatD3, kernel_size= 3, padding= padding_val)
+        self.convD32 = Conv3d(nfeatD3, nfeatD3, kernel_size= 3, padding= padding_val)
         # self.mpoolD3 = MaxPool3d(kernel_size= 2, padding= 0)
         #
         # nfeatD4 = 2 * nfeatD3
@@ -345,20 +255,20 @@ class Unet3D(NeuralNetwork):
         # self.upoolU4 = Upsample(scale_factor= 2, mode= 'nearest')
         # nfeatD34 = nfeatD3 + nfeatD4
         # #nfeatD34 = nfeatD4
-        # self.convU31 = Conv3d(nfeatD34, nfeatD3, kernel_size= 3, padding= padding_convs)
-        # self.convU32 = Conv3d(nfeatD3, nfeatD3, kernel_size= 3, padding= padding_convs)
+        # self.convU31 = Conv3d(nfeatD34, nfeatD3, kernel_size= 3, padding= padding_val)
+        # self.convU32 = Conv3d(nfeatD3, nfeatD3, kernel_size= 3, padding= padding_val)
 
         self.upoolU3 = Upsample(scale_factor= 2, mode= 'nearest')
         nfeatD23 = nfeatD2 + nfeatD3
         #nfeatD23 = nfeatD3
-        self.convU21 = Conv3d(nfeatD23, nfeatD2, kernel_size= 3, padding= padding_convs)
-        self.convU22 = Conv3d(nfeatD2, nfeatD2, kernel_size= 3, padding= padding_convs)
+        self.convU21 = Conv3d(nfeatD23, nfeatD2, kernel_size= 3, padding= padding_val)
+        self.convU22 = Conv3d(nfeatD2, nfeatD2, kernel_size= 3, padding= padding_val)
 
         self.upoolU2 = Upsample(scale_factor= 2, mode= 'nearest')
         nfeatD12 = nfeatD1 + nfeatD2
         #nfeatD12 = nfeatD2
-        self.convU11 = Conv3d(nfeatD12, nfeatD1, kernel_size= 3, padding= padding_convs)
-        self.convU12 = Conv3d(nfeatD1, nfeatD1, kernel_size= 3, padding= padding_convs)
+        self.convU11 = Conv3d(nfeatD12, nfeatD1, kernel_size= 3, padding= padding_val)
+        self.convU12 = Conv3d(nfeatD1, nfeatD1, kernel_size= 3, padding= padding_val)
 
         self.classify = Conv3d(nfeatD1, self.opChannels, kernel_size= 1, padding= 0)
 
@@ -369,7 +279,7 @@ class Unet3D(NeuralNetwork):
 
         x = self.relu(self.convD11(input))
         x = self.relu(self.convD12(x))
-        # # if self.isUse_valid_convs:
+        # # if self.isUse_valid_convols:
         # #     x_skip_lev1 = self.crop_image(x, self.list_sizes_crop_merge[0])
         # # else:
         # #     x_skip_lev1 = x
@@ -378,7 +288,7 @@ class Unet3D(NeuralNetwork):
 
         x = self.relu(self.convD21(x))
         x = self.relu(self.convD22(x))
-        # # if self.isUse_valid_convs:
+        # # if self.isUse_valid_convols:
         # #     x_skip_lev2 = self.crop_image(x, self.list_sizes_crop_merge[1])
         # # else:
         # #     x_skip_lev2 = x
@@ -387,7 +297,7 @@ class Unet3D(NeuralNetwork):
 
         x = self.relu(self.convD31(x))
         x = self.relu(self.convD32(x))
-        # # if self.isUse_valid_convs:
+        # # if self.isUse_valid_convols:
         # #     x_skip_lev3 = self.crop_image(x, self.list_sizes_crop_merge[2])
         # # else:
         # #     x_skip_lev3 = x
@@ -396,7 +306,7 @@ class Unet3D(NeuralNetwork):
         #
         # x = self.relu(self.convD41(x))
         # x = self.relu(self.convD42(x))
-        # # if self.isUse_valid_convs:
+        # # if self.isUse_valid_convols:
         # #     x_skip_lev4 = self.crop_image(x, self.list_sizes_crop_merge[3])
         # # else:
         # #     x_skip_lev4 = x
@@ -442,7 +352,7 @@ class Unet3DGNN(NeuralNetwork):
     def __init__(self, size_image,
                  nlevel=nlevel_default,
                  nfeat=nfeat_default,
-                 isUse_valid_convs= True,
+                 isUse_valid_convols= True,
                  isGNN_with_attention_lays= False,
                  source_dir_adjs= source_dir_adjs_default):
         self.isGNN_with_attention_lays = isGNN_with_attention_lays
@@ -450,7 +360,7 @@ class Unet3DGNN(NeuralNetwork):
         super(Unet3DGNN, self).__init__(size_image,
                                         nlevel,
                                         nfeat,
-                                        isUse_valid_convs=isUse_valid_convs)
+                                        isUse_valid_convols=isUse_valid_convols)
 
     def get_arch_desc(self):
         return ['Unet3DGNN', {'size_image': self.size_image, 'nlevel': self.nlevel, 'nfeat': self.nfeat}]
@@ -472,7 +382,7 @@ class Unet3DGNN(NeuralNetwork):
 
 
     def build_comp_data(self):
-        if self.isUse_valid_convs:
+        if self.isUse_valid_convols:
             input_shape_gnnadj = self.list_sizes_output[self.list_module_opers.index('gnn')-1]
         else:
             input_shape_gnnadj = tuple(s//2**(self.nlevel-1) for s in self.size_image)
@@ -508,19 +418,19 @@ class Unet3DGNN(NeuralNetwork):
 
 
     def build_model(self):
-        if self.isUse_valid_convs:
-           padding_convs = 0
+        if self.isUse_valid_convols:
+           padding_val = 0
         else:
-           padding_convs = 1
+           padding_val = 1
 
         nfeatD1 = self.nfeat
-        self.convD11 = Conv3d(self.ipChannels, nfeatD1, kernel_size= 3, padding= padding_convs)
-        self.convD12 = Conv3d(nfeatD1, nfeatD1, kernel_size= 3, padding= padding_convs)
+        self.convD11 = Conv3d(self.ipChannels, nfeatD1, kernel_size= 3, padding= padding_val)
+        self.convD12 = Conv3d(nfeatD1, nfeatD1, kernel_size= 3, padding= padding_val)
         self.mpoolD1 = MaxPool3d(kernel_size= 2, padding= 0)
 
         nfeatD2 = 2 * nfeatD1
-        self.convD21 = Conv3d(nfeatD1, nfeatD2, kernel_size= 3, padding= padding_convs)
-        self.convD22 = Conv3d(nfeatD2, nfeatD2, kernel_size= 3, padding= padding_convs)
+        self.convD21 = Conv3d(nfeatD1, nfeatD2, kernel_size= 3, padding= padding_val)
+        self.convD22 = Conv3d(nfeatD2, nfeatD2, kernel_size= 3, padding= padding_val)
         self.mpoolD2 = MaxPool3d(kernel_size= 2, padding= 0)
 
         nfeatD3 = 2 * nfeatD2
@@ -532,14 +442,14 @@ class Unet3DGNN(NeuralNetwork):
         self.upoolU3 = Upsample(scale_factor= 2, mode= 'nearest')
         nfeatD23 = nfeatD2 + nfeatD2
         #nfeatD23 = nfeatD2
-        self.convU21 = Conv3d(nfeatD23, nfeatD2, kernel_size= 3, padding= padding_convs)
-        self.convU22 = Conv3d(nfeatD2, nfeatD2, kernel_size= 3, padding= padding_convs)
+        self.convU21 = Conv3d(nfeatD23, nfeatD2, kernel_size= 3, padding= padding_val)
+        self.convU22 = Conv3d(nfeatD2, nfeatD2, kernel_size= 3, padding= padding_val)
 
         self.upoolU2 = Upsample(scale_factor= 2, mode= 'nearest')
         nfeatD12 = nfeatD1 + nfeatD2
         #nfeatD12 = nfeatD2
-        self.convU11 = Conv3d(nfeatD12, nfeatD1, kernel_size= 3, padding= padding_convs)
-        self.convU12 = Conv3d(nfeatD1, nfeatD1, kernel_size= 3, padding= padding_convs)
+        self.convU11 = Conv3d(nfeatD12, nfeatD1, kernel_size= 3, padding= padding_val)
+        self.convU12 = Conv3d(nfeatD1, nfeatD1, kernel_size= 3, padding= padding_val)
 
         self.classify = Conv3d(nfeatD1, self.opChannels, kernel_size=1, padding=0)
 
@@ -550,7 +460,7 @@ class Unet3DGNN(NeuralNetwork):
 
         x = self.relu(self.convD11(input))
         x = self.relu(self.convD12(x))
-        # if self.isUse_valid_convs:
+        # if self.isUse_valid_convols:
         #     x_skip_lev1 = self.crop_image(x, self.list_sizes_crop_merge[0])
         # else:
         #     x_skip_lev1 = x
@@ -559,7 +469,7 @@ class Unet3DGNN(NeuralNetwork):
 
         x = self.relu(self.convD21(x))
         x = self.relu(self.convD22(x))
-        # if self.isUse_valid_convs:
+        # if self.isUse_valid_convols:
         #     x_skip_lev2 = self.crop_image(x, self.list_sizes_crop_merge[1])
         # else:
         #     x_skip_lev2 = x
@@ -605,7 +515,7 @@ class Unet3DGNN_OTF(NeuralNetwork):
     def __init__(self, size_image,
                  nlevel=nlevel_default,
                  nfeat=nfeat_default,
-                 isUse_valid_convs= True,
+                 isUse_valid_convols= True,
                  freq_epoch_adj_onthefly=freq_epoch_adj_onthefly_default,
                  is_limit_neighs_onthefly_adj= True,
                  isGNN_with_attention_lays= False,
@@ -627,7 +537,7 @@ class Unet3DGNN_OTF(NeuralNetwork):
         super(Unet3DGNN_OTF, self).__init__(size_image,
                                             nlevel,
                                             nfeat,
-                                            isUse_valid_convs=isUse_valid_convs)
+                                            isUse_valid_convols=isUse_valid_convols)
 
     def get_arch_desc(self):
         return ['UnetGNN_OTF', {'size_image': self.size_image, 'nlevel': self.nlevel, 'nfeat': self.nfeat}]
@@ -649,7 +559,7 @@ class Unet3DGNN_OTF(NeuralNetwork):
 
 
     def build_comp_data(self):
-        if self.isUse_valid_convs:
+        if self.isUse_valid_convols:
             input_shape_gnnadj = self.list_sizes_output[self.list_module_opers.index('gnn')-1]
         else:
             input_shape_gnnadj = tuple(s//2**(self.nlevel-1) for s in self.size_image)
@@ -714,19 +624,19 @@ class Unet3DGNN_OTF(NeuralNetwork):
 
 
     def build_model(self):
-        if self.isUse_valid_convs:
-           padding_convs = 0
+        if self.isUse_valid_convols:
+           padding_val = 0
         else:
-           padding_convs = 1
+           padding_val = 1
 
         nfeatD1 = self.nfeat
-        self.convD11 = Conv3d(self.ipChannels, nfeatD1, kernel_size= 3, padding= padding_convs)
-        self.convD12 = Conv3d(nfeatD1, nfeatD1, kernel_size= 3, padding= padding_convs)
+        self.convD11 = Conv3d(self.ipChannels, nfeatD1, kernel_size= 3, padding= padding_val)
+        self.convD12 = Conv3d(nfeatD1, nfeatD1, kernel_size= 3, padding= padding_val)
         self.mpoolD1 = MaxPool3d(kernel_size= 2, padding= 0)
 
         nfeatD2 = 2 * nfeatD1
-        self.convD21 = Conv3d(nfeatD1, nfeatD2, kernel_size= 3, padding= padding_convs)
-        self.convD22 = Conv3d(nfeatD2, nfeatD2, kernel_size= 3, padding= padding_convs)
+        self.convD21 = Conv3d(nfeatD1, nfeatD2, kernel_size= 3, padding= padding_val)
+        self.convD22 = Conv3d(nfeatD2, nfeatD2, kernel_size= 3, padding= padding_val)
         self.mpoolD2 = MaxPool3d(kernel_size= 2, padding= 0)
 
         nfeatD3 = 2 * nfeatD2
@@ -738,14 +648,14 @@ class Unet3DGNN_OTF(NeuralNetwork):
         self.upoolU3 = Upsample(scale_factor= 2, mode= 'nearest')
         nfeatD23 = nfeatD2 + nfeatD2
         #nfeatD23 = nfeatD2
-        self.convU21 = Conv3d(nfeatD23, nfeatD2, kernel_size= 3, padding= padding_convs)
-        self.convU22 = Conv3d(nfeatD2, nfeatD2, kernel_size= 3, padding= padding_convs)
+        self.convU21 = Conv3d(nfeatD23, nfeatD2, kernel_size= 3, padding= padding_val)
+        self.convU22 = Conv3d(nfeatD2, nfeatD2, kernel_size= 3, padding= padding_val)
 
         self.upoolU2 = Upsample(scale_factor= 2, mode= 'nearest')
         nfeatD12 = nfeatD1 + nfeatD2
         #nfeatD12 = nfeatD2
-        self.convU11 = Conv3d(nfeatD12, nfeatD1, kernel_size= 3, padding= padding_convs)
-        self.convU12 = Conv3d(nfeatD1, nfeatD1, kernel_size= 3, padding= padding_convs)
+        self.convU11 = Conv3d(nfeatD12, nfeatD1, kernel_size= 3, padding= padding_val)
+        self.convU12 = Conv3d(nfeatD1, nfeatD1, kernel_size= 3, padding= padding_val)
 
         self.classify = Conv3d(nfeatD1, self.opChannels, kernel_size= 1, padding= 0)
 
@@ -756,7 +666,7 @@ class Unet3DGNN_OTF(NeuralNetwork):
 
         x = self.relu(self.convD11(input))
         x = self.relu(self.convD12(x))
-        # if self.isUse_valid_convs:
+        # if self.isUse_valid_convols:
         #     x_skip_lev1 = self.crop_image(x, self.list_sizes_crop_merge[0])
         # else:
         #     x_skip_lev1 = x
@@ -765,7 +675,7 @@ class Unet3DGNN_OTF(NeuralNetwork):
 
         x = self.relu(self.convD21(x))
         x = self.relu(self.convD22(x))
-        # if self.isUse_valid_convs:
+        # if self.isUse_valid_convols:
         #     x_skip_lev2 = self.crop_image(x, self.list_sizes_crop_merge[1])
         # else:
         #     x_skip_lev2 = x
@@ -808,12 +718,12 @@ class Unet3DGNN_OTF(NeuralNetwork):
 def DICTAVAILMODELSGNNS(option, size_image,
                         nlevel=Unet3D.nlevel_default,
                         nfeat=Unet3D.nfeat_default,
-                        isUse_valid_convs= True,
+                        isUse_valid_convols= True,
                         isGNN_with_attention_lays= False,
                         source_dir_adjs=source_dir_adjs_default):
     list_models_avail = ['UnetGNN_OTF', 'UnetGNN', 'Unet']
 
-    if not isUse_valid_convs:
+    if not isUse_valid_convols:
         message = 'Neet to set use of Valid Convolutions. Models are reimplemented with this option'
         CatchErrorException(message)
 
@@ -822,19 +732,19 @@ def DICTAVAILMODELSGNNS(option, size_image,
         return Unet3D(size_image,
                       nlevel=nlevel,
                       nfeat=nfeat,
-                      isUse_valid_convs=isUse_valid_convs)
+                      isUse_valid_convols=isUse_valid_convols)
     elif (option == 'UnetGNN'):
         return Unet3DGNN(size_image,
                          nlevel=nlevel,
                          nfeat=nfeat,
-                         isUse_valid_convs=isUse_valid_convs,
+                         isUse_valid_convols=isUse_valid_convols,
                          isGNN_with_attention_lays=isGNN_with_attention_lays,
                          source_dir_adjs=source_dir_adjs)
     elif (option == 'UnetGNN_OTF'):
         return Unet3DGNN_OTF(size_image,
                              nlevel=nlevel,
                              nfeat=nfeat,
-                             isUse_valid_convs=isUse_valid_convs,
+                             isUse_valid_convols=isUse_valid_convols,
                              isGNN_with_attention_lays=isGNN_with_attention_lays,
                              freq_epoch_adj_onthefly=1,
                              is_limit_neighs_onthefly_adj=True,

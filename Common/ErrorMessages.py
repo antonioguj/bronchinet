@@ -10,6 +10,9 @@
 
 import sys
 
+# avoid generation of the annoying compiled '*.pyc' files
+sys.dont_write_bytecode = True
+
 
 def CatchErrorException(message):
     print('ERROR: ' + message + '... EXIT')

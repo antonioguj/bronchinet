@@ -63,12 +63,8 @@ class RandomCropWindowImages(BaseImageGenerator):
         origin_crop_window = []
         for i in range(self.ndims):
             searching_space_1d = self.size_full_image[i] - self.size_image[i]
-            # if searching_space_1d==0:
-            #     origin = 0
-            # else:
-            #     origin = np.random.randint(self.size_full_image[i] - self.size_image[i])
-            origin = np.random.randint(self.size_full_image[i] - self.size_image[i])
-            origin_crop_window.append(origin)
+            origin_1d = np.random.randint(searching_space_1d + 1)
+            origin_crop_window.append(origin_1d)
         #endfor
         origin_crop_window = tuple(origin_crop_window)
         return origin_crop_window

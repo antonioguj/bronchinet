@@ -39,7 +39,7 @@ def main(args):
 
     # ---------- SETTINGS ----------
     nameInputRoiMasksRelPath  = 'Lungs/'
-    nameReferenceFilesRelPath = 'RawImages/'
+    nameReferenceFilesRelPath = 'Images/'
     namesImagesFiles          = 'images_proc*.nii.gz'
     namesLabelsFiles          = 'labels_proc*.nii.gz'
     nameOutputPredictionsRelPath = args.predictionsdir
@@ -58,7 +58,7 @@ def main(args):
     OutputPredictionsPath= workDirsManager.getNameNewPath          (nameOutputPredictionsRelPath)
 
     listTestImagesFiles = findFilesDirAndCheck(TestingDataPath, namesImagesFiles)
-    listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath, namesLabelsFiles)
+    #listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath, namesLabelsFiles)
     listReferenceFiles  = findFilesDirAndCheck(ReferenceFilesPath)
 
     if (args.masksToRegionInterest):
@@ -205,18 +205,17 @@ def main(args):
         out_prediction_array = images_reconstructor.compute(out_predict_yData)
 
 
-        # reconstruct from cropped / rescaled images
-        in_roimask_file = listInputRoiMasksFiles[index_reference_file]
-        out_fullimage_shape = FileReader.getImageSize(in_roimask_file)
-        if (args.saveFeatMapsLayers):
-            num_featmaps = out_prediction_array.shape[-1]
-            out_fullimage_shape = list(out_fullimage_shape) + [num_featmaps]
-
-
         # *******************************************************************************
         if (args.cropImages):
             print("Prediction data are cropped. Extend prediction array to full image size...")
             crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_reference_file)]
+
+            # reconstruct from cropped / rescaled images
+            out_fullimage_shape = FileReader.getImageSize(in_reference_file)
+            if (args.saveFeatMapsLayers):
+                num_featmaps = out_prediction_array.shape[-1]
+                out_fullimage_shape = list(out_fullimage_shape) + [num_featmaps]
+
             print("Initial array size \'%s\'. Full image size: \'%s\'. Bounding-box: \'%s\'..." %(out_prediction_array.shape,
                                                                                                   out_fullimage_shape,
                                                                                                   str(crop_bounding_box)))

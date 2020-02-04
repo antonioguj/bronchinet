@@ -91,15 +91,12 @@ def main(args):
                     else:
                         print("WARNING. Relative error \'%s\' larger than tolerance \'%s\'. Images are different..."
                               % (relerror_intens_diffimages, _max_relerror))
-
                         names_files_different.append(basename(in_file_1))
-
 
                         out_diffimages_filename = joinpathnames(args.tempdir, nameOutDiffImageFilesName %(i+1))
                         print("Output difference between images maps: \'%s\'..." %(basename(out_diffimages_filename)))
 
                         FileReader.writeImageArray(out_diffimages_filename, out_diffimages_array)
-
 
                         out_histo_filename = joinpathnames(args.tempdir, nameOutHistoFilesName%(i+1))
                         print("Compute and output the histograms of both images: \'%s\'..." %(basename(out_histo_filename)))
@@ -115,6 +112,8 @@ def main(args):
             out_histo_filename = joinpathnames(args.tempdir, nameOutHistoFilesName%(i+1))
             print("Compute and output the histograms of both images: \'%s\'..." %(basename(out_histo_filename)))
             print("CHECK MANUALLY THE HISTOGRAMS WHETHER THE IMAGES ARE DIFFERENT")
+
+            names_files_different.append(basename(in_file_1))
 
             Histograms.plot_compare_histograms([in_image1_array, in_image2_array],
                                                density_range=True,

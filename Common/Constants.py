@@ -13,20 +13,22 @@ np.random.seed(2017)
 
 
 #DATADIR = '/home/antonio/Data/LUVAR_Processed/'
-DATADIR = '/home/antonio/Data/DLCST_Processed/'
+#DATADIR = '/home/antonio/Data/DLCST_Processed/'
 #DATADIR = '/home/antonio/Data/DLCST_Processed_ReferPechin/'
-#DATADIR = '/home/antonio/Data/DLCST+LUVAR_Processed/'
+DATADIR = '/home/antonio/Data/DLCST+LUVAR_Processed/'
+#DATADIR = '/home/antonio/Data/DLCST+LUVAR+EXACT_Processed/'
 #DATADIR = '/home/antonio/Data/EXACT_Processed/'
 
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR_Rescaled/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR+EXACT/'
+#BASEDIR = '/home/antonio/Results/AirwaySegmentation_TestingOnEXACT/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_CTs-Ivan/'
 
-TYPE_DNNLIBRARY_USED = 'Pytorch'
+TYPE_DNNLIBRARY_USED = 'Keras'
 TYPEGPUINSTALLED     = 'larger_GPU'
 
 
@@ -35,7 +37,7 @@ TYPEGPUINSTALLED     = 'larger_GPU'
 # FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (240, 352, 240)
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)
-(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (240, 240, 240)
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (252, 252, 252)
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (160, 384, 272)
 
 IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
@@ -65,9 +67,12 @@ else:
 
 
 # ******************** DATA DISTRIBUTION ********************
-PROP_DATA_TRAINING   = 0.5
+#PROP_DATA_TRAINING   = 0.5
+#PROP_DATA_VALIDATION = 0.15
+#PROP_DATA_TESTING    = 0.35
+PROP_DATA_TRAINING   = 0.59
 PROP_DATA_VALIDATION = 0.15
-PROP_DATA_TESTING    = 0.35
+PROP_DATA_TESTING    = 0.26
 
 DISTRIBUTE_RANDOM = False
 DISTRIBUTE_FIXED_NAMES = False
@@ -77,7 +82,7 @@ DISTRIBUTE_FIXED_NAMES = False
 # ******************** PRE-PROCESSING PARAMETERS ********************
 MASKTOREGIONINTEREST = True
 
-RESCALEIMAGES = False
+RESCALEIMAGES = True
 ORDERINTERRESCALE = 3
 #FIXEDRESCALERES = (0.6, 0.6, 0.6)
 #FIXEDRESCALERES = (0.6, 0.55078125, 0.55078125)
@@ -153,10 +158,10 @@ LISTMETRICS = []
 #                'TrueNegativeRate',
 #                'FalseNegativeRate']
 
-NUMMAXTRAINIMAGES = 16
-NUMMAXVALIDIMAGES = 4
+NUMMAXTRAINIMAGES = 70
+NUMMAXVALIDIMAGES = 30
 
-ISVALIDCONVOLUTIONS = False
+ISVALIDCONVOLUTIONS = True
 USEVALIDATIONDATA = True
 FREQVALIDATEMODEL = 3
 FREQSAVEINTERMODELS = 5

@@ -49,7 +49,7 @@ class BatchDataGenerator(object):
 
         self.is_outputUnet_validconvs = is_outputUnet_validconvs
         if is_outputUnet_validconvs and size_output_image and \
-            (size_image == size_output_image):
+            (size_image != size_output_image):
             self.size_output_image = size_output_image
             self.crop_output_bounding_box = BoundingBoxes.compute_bounding_box_centered_image_fit_image(self.size_output_image,
                                                                                                         self.size_image)

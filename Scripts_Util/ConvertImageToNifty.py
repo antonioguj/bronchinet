@@ -23,7 +23,7 @@ def main(args):
     namesOutputFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
-    listInputFiles = findFilesDirAndCheck(InputPath,'*.mhd')
+    listInputFiles = findFilesDirAndCheck(InputPath)
     makedir(OutputPath)
 
 
