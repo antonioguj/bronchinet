@@ -42,13 +42,6 @@ class NeuralNetwork(object):
             self.size_output = self.size_image
 
 
-    @staticmethod
-    def get_create_model(type_model, dict_input_args):
-        if type_model == 'Unet3D_Original':
-            return Unet3D_Original(**dict_input_args)
-        elif type_model == 'Unet3D_General':
-            return Unet3D_General(**dict_input_args)
-
     def get_size_input(self):
         return [self.num_channels_in] + list(self.size_image)
 
@@ -348,131 +341,131 @@ class Unet3D_General(NeuralNetwork):
 
 
 
-class Unet3D_General_EXTENDED(Unet3D_General):
-    num_convols_downlevels_default = 2
-    num_convols_uplevels_default   = 2
-    size_convolfilter_downlevels_default= [(3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3)]
-    size_convolfilter_uplevels_default  = [(3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3)]
-    size_pooling_levels_default         = [(2, 2, 2), (2, 2, 2), (2, 2, 2), (2, 2, 2)]
-    #size_cropping_levels_default        = [(0, 4, 4), (0, 16, 16), (0, 41, 41), (0, 90, 90)]
-
-    where_dropout_downlevels_default       = [False, False, False, False, True]
-    where_dropout_uplevels_default         = [True, True, True, True]
-    where_batchnormalize_downlevels_default= [False, False, False, False, True]
-    where_batchnormalize_uplevels_default  = [True, True, True, True]
-
-
-    def __init__(self, size_image,
-                 num_levels= Unet3D_General.num_levels_default,
-                 num_channels_in= Unet3D_General.num_channels_in_default,
-                 num_classes_out= Unet3D_General.num_classes_out_default,
-                 num_featmaps_in= Unet3D_General.num_featmaps_in_default,
-                 isUse_valid_convols= False,
-                 num_featmaps_levels= None,
-                 num_convols_downlevels= num_convols_downlevels_default,
-                 num_convols_uplevels= num_convols_uplevels_default,
-                 size_convolfilter_downlevels= size_convolfilter_downlevels_default,
-                 size_convolfilter_uplevels= size_convolfilter_uplevels_default,
-                 size_pooling_downlevels= size_pooling_levels_default,
-                 type_activate_hidden= Unet3D_General.type_activate_hidden_default,
-                 type_activate_output= Unet3D_General.type_activate_output_default,
-                 is_disable_convol_pooling_zdim_lastlevel= False,
-                 isuse_dropout= False,
-                 dropout_rate= Unet3D_General.dropout_rate_default,
-                 where_dropout_downlevels= where_dropout_downlevels_default,
-                 where_dropout_uplevels= where_dropout_uplevels_default,
-                 isuse_batchnormalize= False,
-                 where_batchnormalize_downlevels= where_batchnormalize_downlevels_default,
-                 where_batchnormalize_uplevels= where_batchnormalize_uplevels_default):
-        super(Unet3D_General, self).__init__(size_image,
-                                             num_levels,
-                                             num_channels_in,
-                                             num_classes_out,
-                                             num_featmaps_in,
-                                             isUse_valid_convols)
-
-        if num_featmaps_levels:
-            self.num_featmaps_levels = num_featmaps_levels
-        else:
-            # Default: double featmaps after every pooling
-            self.num_featmaps_levels = [num_featmaps_in] + [0]*(self.num_levels-1)
-            for i in range(1, self.num_levels):
-                self.num_featmaps_levels[i] = 2 * self.num_featmaps_levels[i-1]
-
-        self.num_convols_downlevels      = num_convols_downlevels
-        self.num_convols_uplevels        = num_convols_uplevels
-        self.size_convolfilter_downlevels= size_convolfilter_downlevels[0:self.num_levels]
-        self.size_convolfilter_uplevels  = size_convolfilter_uplevels[0:self.num_levels]
-        self.size_pooling_downlevels     = size_pooling_downlevels[0:self.num_levels-1]
-        self.size_upsample_uplevels      = self.size_pooling_downlevels
-
-        if is_disable_convol_pooling_zdim_lastlevel:
-            temp_size_filter_lastlevel = self.size_convolfilter_downlevels[-1]
-            self.size_convolfilter_downlevels[-1] = (1, temp_size_filter_lastlevel[1], temp_size_filter_lastlevel[2])
-            temp_size_pooling_lastlevel = self.size_pooling_downlevels[-1]
-            self.size_pooling_downlevels[-1] = (1, temp_size_pooling_lastlevel[1], temp_size_pooling_lastlevel[2])
-
-        self.type_activate_hidden = type_activate_hidden
-        self.type_activate_output = type_activate_output
-
-        self.isuse_dropout = isuse_dropout
-        if isuse_dropout:
-            self.dropout_rate            = dropout_rate
-            self.where_dropout_downlevels= where_dropout_downlevels
-            self.where_dropout_uplevels  = where_dropout_uplevels
-
-        self.isuse_batchnormalize = isuse_batchnormalize
-        if isuse_batchnormalize:
-            self.where_batchnormalize_downlevels = where_batchnormalize_downlevels
-            self.where_batchnormalize_uplevels   = where_batchnormalize_uplevels
-
-
-    def build_model(self):
-        inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
-        hiddenlayer_next = inputlayer
-
-        list_hiddenlayer_skipconn = []
-        # ENCODING LAYERS
-        for i in range(self.num_levels):
-            for j in range(self.num_convols_downlevels):
-                hiddenlayer_next = Convolution3D(self.num_featmaps_levels[i],
-                                                 self.size_convolfilter_downlevels[i],
-                                                 activation=self.type_activate_hidden,
-                                                 padding=self.type_padding_convol)(hiddenlayer_next)
-            #endfor
-
-            if self.isuse_dropout and self.where_dropout_downlevels[i]:
-                hiddenlayer_next = Dropout(self.dropout_rate)(hiddenlayer_next)
-            if self.isuse_batchnormalize and self.where_batchnormalize_downlevels[i]:
-                hiddenlayer_next = BatchNormalization()(hiddenlayer_next)
-            if i!=self.num_levels-1:
-                list_hiddenlayer_skipconn.append(hiddenlayer_next)
-                hiddenlayer_next = MaxPooling3D(pool_size=self.size_pooling_downlevels[i])(hiddenlayer_next)
-        #endfor
-
-        # DECODING LAYERS
-        for i in range(self.num_levels-2,-1,-1):
-            hiddenlayer_next = UpSampling3D(size=self.size_upsample_uplevels[i])(hiddenlayer_next)
-            hiddenlayer_next = concatenate([hiddenlayer_next, list_hiddenlayer_skipconn[i]], axis=-1)
-
-            for j in range(self.num_convols_downlevels):
-                hiddenlayer_next = Convolution3D(self.num_featmaps_levels[i],
-                                                 self.size_convolfilter_uplevels[i],
-                                                 activation=self.type_activate_hidden,
-                                                 padding=self.type_padding_convol)(hiddenlayer_next)
-            #endfor
-
-            if self.isuse_dropout and self.where_dropout_uplevels[i]:
-                hiddenlayer_next = Dropout(self.dropout_rate)(hiddenlayer_next)
-            if self.isuse_batchnormalize and self.where_batchnormalize_uplevels[i]:
-                hiddenlayer_next = BatchNormalization()(hiddenlayer_next)
-        #endfor
-
-        outputlayer = Convolution3D(self.num_classes_out, (1, 1, 1), activation=self.type_activate_output)(hiddenlayer_next)
-
-        output_model = Model(inputs=inputlayer, outputs=outputlayer)
-
-        return output_model
+# class Unet3D_General_Extended(Unet3D_General):
+#     num_convols_downlevels_default = 2
+#     num_convols_uplevels_default   = 2
+#     size_convolfilter_downlevels_default= [(3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3)]
+#     size_convolfilter_uplevels_default  = [(3, 3, 3), (3, 3, 3), (3, 3, 3), (3, 3, 3)]
+#     size_pooling_levels_default         = [(2, 2, 2), (2, 2, 2), (2, 2, 2), (2, 2, 2)]
+#     #size_cropping_levels_default        = [(0, 4, 4), (0, 16, 16), (0, 41, 41), (0, 90, 90)]
+#
+#     where_dropout_downlevels_default       = [False, False, False, False, True]
+#     where_dropout_uplevels_default         = [True, True, True, True]
+#     where_batchnormalize_downlevels_default= [False, False, False, False, True]
+#     where_batchnormalize_uplevels_default  = [True, True, True, True]
+#
+#
+#     def __init__(self, size_image,
+#                  num_levels= Unet3D_General.num_levels_default,
+#                  num_channels_in= Unet3D_General.num_channels_in_default,
+#                  num_classes_out= Unet3D_General.num_classes_out_default,
+#                  num_featmaps_in= Unet3D_General.num_featmaps_in_default,
+#                  isUse_valid_convols= False,
+#                  num_featmaps_levels= None,
+#                  num_convols_downlevels= num_convols_downlevels_default,
+#                  num_convols_uplevels= num_convols_uplevels_default,
+#                  size_convolfilter_downlevels= size_convolfilter_downlevels_default,
+#                  size_convolfilter_uplevels= size_convolfilter_uplevels_default,
+#                  size_pooling_downlevels= size_pooling_levels_default,
+#                  type_activate_hidden= Unet3D_General.type_activate_hidden_default,
+#                  type_activate_output= Unet3D_General.type_activate_output_default,
+#                  is_disable_convol_pooling_zdim_lastlevel= False,
+#                  isuse_dropout= False,
+#                  dropout_rate= Unet3D_General.dropout_rate_default,
+#                  where_dropout_downlevels= where_dropout_downlevels_default,
+#                  where_dropout_uplevels= where_dropout_uplevels_default,
+#                  isuse_batchnormalize= False,
+#                  where_batchnormalize_downlevels= where_batchnormalize_downlevels_default,
+#                  where_batchnormalize_uplevels= where_batchnormalize_uplevels_default):
+#         super(Unet3D_General_Extended, self).__init__(size_image,
+#                                              num_levels,
+#                                              num_channels_in,
+#                                              num_classes_out,
+#                                              num_featmaps_in,
+#                                              isUse_valid_convols)
+#
+#         if num_featmaps_levels:
+#             self.num_featmaps_levels = num_featmaps_levels
+#         else:
+#             # Default: double featmaps after every pooling
+#             self.num_featmaps_levels = [num_featmaps_in] + [0]*(self.num_levels-1)
+#             for i in range(1, self.num_levels):
+#                 self.num_featmaps_levels[i] = 2 * self.num_featmaps_levels[i-1]
+#
+#         self.num_convols_downlevels      = num_convols_downlevels
+#         self.num_convols_uplevels        = num_convols_uplevels
+#         self.size_convolfilter_downlevels= size_convolfilter_downlevels[0:self.num_levels]
+#         self.size_convolfilter_uplevels  = size_convolfilter_uplevels[0:self.num_levels]
+#         self.size_pooling_downlevels     = size_pooling_downlevels[0:self.num_levels-1]
+#         self.size_upsample_uplevels      = self.size_pooling_downlevels
+#
+#         if is_disable_convol_pooling_zdim_lastlevel:
+#             temp_size_filter_lastlevel = self.size_convolfilter_downlevels[-1]
+#             self.size_convolfilter_downlevels[-1] = (1, temp_size_filter_lastlevel[1], temp_size_filter_lastlevel[2])
+#             temp_size_pooling_lastlevel = self.size_pooling_downlevels[-1]
+#             self.size_pooling_downlevels[-1] = (1, temp_size_pooling_lastlevel[1], temp_size_pooling_lastlevel[2])
+#
+#         self.type_activate_hidden = type_activate_hidden
+#         self.type_activate_output = type_activate_output
+#
+#         self.isuse_dropout = isuse_dropout
+#         if isuse_dropout:
+#             self.dropout_rate            = dropout_rate
+#             self.where_dropout_downlevels= where_dropout_downlevels
+#             self.where_dropout_uplevels  = where_dropout_uplevels
+#
+#         self.isuse_batchnormalize = isuse_batchnormalize
+#         if isuse_batchnormalize:
+#             self.where_batchnormalize_downlevels = where_batchnormalize_downlevels
+#             self.where_batchnormalize_uplevels   = where_batchnormalize_uplevels
+#
+#
+#     def build_model(self):
+#         inputlayer = Input((self.size_image[0], self.size_image[1], self.size_image[2], self.num_channels_in))
+#         hiddenlayer_next = inputlayer
+#
+#         list_hiddenlayer_skipconn = []
+#         # ENCODING LAYERS
+#         for i in range(self.num_levels):
+#             for j in range(self.num_convols_downlevels):
+#                 hiddenlayer_next = Convolution3D(self.num_featmaps_levels[i],
+#                                                  self.size_convolfilter_downlevels[i],
+#                                                  activation=self.type_activate_hidden,
+#                                                  padding=self.type_padding_convol)(hiddenlayer_next)
+#             #endfor
+#
+#             if self.isuse_dropout and self.where_dropout_downlevels[i]:
+#                 hiddenlayer_next = Dropout(self.dropout_rate)(hiddenlayer_next)
+#             if self.isuse_batchnormalize and self.where_batchnormalize_downlevels[i]:
+#                 hiddenlayer_next = BatchNormalization()(hiddenlayer_next)
+#             if i!=self.num_levels-1:
+#                 list_hiddenlayer_skipconn.append(hiddenlayer_next)
+#                 hiddenlayer_next = MaxPooling3D(pool_size=self.size_pooling_downlevels[i])(hiddenlayer_next)
+#         #endfor
+#
+#         # DECODING LAYERS
+#         for i in range(self.num_levels-2,-1,-1):
+#             hiddenlayer_next = UpSampling3D(size=self.size_upsample_uplevels[i])(hiddenlayer_next)
+#             hiddenlayer_next = concatenate([hiddenlayer_next, list_hiddenlayer_skipconn[i]], axis=-1)
+#
+#             for j in range(self.num_convols_downlevels):
+#                 hiddenlayer_next = Convolution3D(self.num_featmaps_levels[i],
+#                                                  self.size_convolfilter_uplevels[i],
+#                                                  activation=self.type_activate_hidden,
+#                                                  padding=self.type_padding_convol)(hiddenlayer_next)
+#             #endfor
+#
+#             if self.isuse_dropout and self.where_dropout_uplevels[i]:
+#                 hiddenlayer_next = Dropout(self.dropout_rate)(hiddenlayer_next)
+#             if self.isuse_batchnormalize and self.where_batchnormalize_uplevels[i]:
+#                 hiddenlayer_next = BatchNormalization()(hiddenlayer_next)
+#         #endfor
+#
+#         outputlayer = Convolution3D(self.num_classes_out, (1, 1, 1), activation=self.type_activate_output)(hiddenlayer_next)
+#
+#         output_model = Model(inputs=inputlayer, outputs=outputlayer)
+#
+#         return output_model
 
 
 

@@ -189,12 +189,16 @@ def main(args):
             modelSavedPath = joinpathnames(ModelsPath, 'model_last.pt')
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
+            dict_added_model_input_args = {'size_image': args.size_in_images,
+                                           'num_levels': args.num_layers,
+                                           'num_featmaps_in': args.num_featmaps_in,
+                                           'isUse_valid_convols': args.isValidConvolutions}
+
             if ISTESTMODELSWITHGNN:
-                dict_added_model_input_args = {'isUse_valid_convs': args.isValidConvolutions,
-                                               'isGNN_with_attention_lays': args.isGNNwithAttentionLays,
-                                               'source_dir_adjs': SOURCEDIR_ADJS}
-            else:
-                dict_added_model_input_args = {}
+                dict_added_input_args_GNNmodel = {'isGNN_with_attention_lays': args.isGNNwithAttentionLays,
+                                                  'source_dir_adjs': SOURCEDIR_ADJS}
+                dict_added_model_input_args.update(dict_added_input_args_GNNmodel)
+
 
             metrics_fun = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest) for imetrics in args.listmetrics]
             dict_added_other_input_args = {'metrics_fun': metrics_fun}

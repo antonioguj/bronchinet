@@ -92,7 +92,7 @@ class NullGenerator(BaseImageGenerator):
         return ''
 
     def get_image(self, in_array):
-        return inout_array
+        return in_array
 
 
 

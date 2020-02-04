@@ -45,10 +45,11 @@ class NeuralNetwork(nn.Module):
 
     @staticmethod
     def get_create_model(type_model, dict_input_args):
-        if type_model == 'Unet3D_Original':
-            return Unet3D_Original(**dict_input_args)
-        elif type_model == 'Unet3D_General':
-            return Unet3D_General(**dict_input_args)
+        # if type_model == 'Unet3D_Original':
+        #     return Unet3D_Original(**dict_input_args)
+        # elif type_model == 'Unet3D_General':
+        #     return Unet3D_General(**dict_input_args)
+        return Unet3D_General(**dict_input_args)
 
     def get_size_input(self):
         return [self.num_channels_in] + list(self.size_image)
@@ -354,7 +355,7 @@ class Unet3D_General(NeuralNetwork):
         self.pooling_downlay4 = MaxPool3d(kernel_size= 2, padding=0)
 
         num_featmaps_lay5 = 2 * num_featmaps_lay4
-        self.convolution_downlay5_1 = Conv3d(num_featmaps_lay4, num_featmaps_lay5, kernel_size=3, padding=1)
+        self.convolution_downlay5_1 = Conv3d(num_featmaps_lay4, num_featmaps_lay5, kernel_size= 3, padding= 1)
         self.convolution_downlay5_2 = Conv3d(num_featmaps_lay5, num_featmaps_lay5, kernel_size= 3, padding= 1)
         self.upsample_downlay5 = Upsample(scale_factor= 2, mode='nearest')
 
@@ -396,60 +397,60 @@ class Unet3D_General(NeuralNetwork):
 
     def forward(self, input):
 
-        hiddenlayer_next = self.relu(self.convolution_downlay1_1(input))
-        hiddenlayer_next = self.relu(self.convolution_downlay1_2(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_downlay1_1(input))
+        hiddenlayer_next = self.activation_hidden(self.convolution_downlay1_2(hiddenlayer_next))
         if self.isUse_valid_convols:
             hiddenlayer_skipconn_lev1 = self.crop_image(hiddenlayer_next, self.list_sizes_crop_merge[0])
         else:
             hiddenlayer_skipconn_lev1 = hiddenlayer_next
         hiddenlayer_next = self.pooling_downlay1(hiddenlayer_next)
 
-        hiddenlayer_next = self.relu(self.convolution_downlay2_1(hiddenlayer_next))
-        hiddenlayer_next = self.relu(self.convolution_downlay2_2(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_downlay2_1(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_downlay2_2(hiddenlayer_next))
         if self.isUse_valid_convols:
             hiddenlayer_skipconn_lev2 = self.crop_image(hiddenlayer_next, self.list_sizes_crop_merge[1])
         else:
             hiddenlayer_skipconn_lev2 = hiddenlayer_next
         hiddenlayer_next = self.pooling_downlay2(hiddenlayer_next)
 
-        hiddenlayer_next = self.relu(self.convolution_downlay3_1(hiddenlayer_next))
-        hiddenlayer_next = self.relu(self.convolution_downlay3_2(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_downlay3_1(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_downlay3_2(hiddenlayer_next))
         if self.isUse_valid_convols:
             hiddenlayer_skipconn_lev3 = self.crop_image(hiddenlayer_next, self.list_sizes_crop_merge[2])
         else:
             hiddenlayer_skipconn_lev3 = hiddenlayer_next
         hiddenlayer_next = self.pooling_downlay3(hiddenlayer_next)
 
-        hiddenlayer_next = self.relu(self.convolution_downlay4_1(hiddenlayer_next))
-        hiddenlayer_next = self.relu(self.convolution_downlay4_2(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_downlay4_1(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_downlay4_2(hiddenlayer_next))
         if self.isUse_valid_convols:
             hiddenlayer_skipconn_lev4 = self.crop_image(hiddenlayer_next, self.list_sizes_crop_merge[3])
         else:
             hiddenlayer_skipconn_lev4 = hiddenlayer_next
         hiddenlayer_next = self.pooling_downlay4(hiddenlayer_next)
 
-        hiddenlayer_next = self.relu(self.convolution_downlay5_1(hiddenlayer_next))
-        hiddenlayer_next = self.relu(self.convolution_downlay5_2(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_downlay5_1(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_downlay5_2(hiddenlayer_next))
         hiddenlayer_next = self.upsample_downlay5(hiddenlayer_next)
 
         hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev4], dim=1)
-        hiddenlayer_next = self.relu(self.convolution_uplay4_1(hiddenlayer_next))
-        hiddenlayer_next = self.relu(self.convolution_uplay4_2(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_uplay4_1(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_uplay4_2(hiddenlayer_next))
         hiddenlayer_next = self.upsample_uplay4(hiddenlayer_next)
 
         hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev3], dim=1)
-        hiddenlayer_next = self.relu(self.convolution_uplay3_1(hiddenlayer_next))
-        hiddenlayer_next = self.relu(self.convolution_uplay3_2(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_uplay3_1(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_uplay3_2(hiddenlayer_next))
         hiddenlayer_next = self.upsample_uplay3(hiddenlayer_next)
 
         hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev2], dim=1)
-        hiddenlayer_next = self.relu(self.convolution_uplay2_1(hiddenlayer_next))
-        hiddenlayer_next = self.relu(self.convolution_uplay2_2(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_uplay2_1(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_uplay2_2(hiddenlayer_next))
         hiddenlayer_next = self.upsample_uplay2(hiddenlayer_next)
 
         hiddenlayer_next = torch.cat([hiddenlayer_next, hiddenlayer_skipconn_lev1], dim=1)
-        hiddenlayer_next = self.relu(self.convolution_uplay1_1(hiddenlayer_next))
-        hiddenlayer_next = self.relu(self.convolution_uplay1_2(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_uplay1_1(hiddenlayer_next))
+        hiddenlayer_next = self.activation_hidden(self.convolution_uplay1_2(hiddenlayer_next))
 
         output = self.classification_layer(hiddenlayer_next)
         output = self.activation_output(output)

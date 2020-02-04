@@ -296,10 +296,10 @@ def str2tuple(strval, elem_type):
     return tuple([func_conv_elem(elem) for elem in splitStringListOrTuple(strval)])
 
 def str2tupleint(strval):
-    return str2tuple(strval, elem_type='tuple_int')
+    return str2tuple(strval, elem_type='int')
 
 def str2tuplefloat(strval):
-    return str2tuple(strval, elem_type='tuple_float')
+    return str2tuple(strval, elem_type='float')
 
 def list2str(list):
     return "_".join(str(i) for i in list)

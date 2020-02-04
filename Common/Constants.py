@@ -10,6 +10,9 @@
 
 import numpy as np
 np.random.seed(2017)
+import sys
+# avoid generation of the annoying compiled '*.pyc' files
+sys.dont_write_bytecode = True
 
 
 #DATADIR = '/home/antonio/Data/LUVAR_Processed/'
