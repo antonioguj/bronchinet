@@ -31,7 +31,7 @@ def makedir(pathname):
         return False
 
 def removedir(pathname):
-    os.remove(pathname)
+    os.rmdir(pathname)
 
 def removefile(filename):
     os.remove(filename)

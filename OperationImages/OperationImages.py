@@ -13,6 +13,7 @@ from skimage.transform import rescale
 #from scipy.misc import imresize
 from scipy.ndimage.morphology import binary_fill_holes
 from skimage.morphology import binary_erosion, binary_dilation, binary_opening, binary_closing
+from skimage.measure import label
 import numpy as np
 
 
@@ -182,3 +183,9 @@ class MorphoCloseImages(OperationImages):
     @staticmethod
     def compute(in_array):
         return binary_closing(in_array).astype(in_array.dtype)
+
+
+class ConnectedRegionsMasks(OperationImages):
+    @staticmethod
+    def compute(in_array, return_num_labels=False):
+        return label(in_array, connectivity=in_array.ndim, background=0, return_num=return_num_labels)

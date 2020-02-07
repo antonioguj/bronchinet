@@ -42,7 +42,7 @@ def main(args):
     for i, in_image_file in enumerate(listInputImageFiles):
         print("\nInput: \'%s\'..." %(basename(in_image_file)))
 
-        in_voxel_size = DICOMreader.getVoxelSize(in_image_file)
+        in_voxel_size = DICOMreader.getImageVoxelSize(in_image_file)
         print("Voxel Size: \'%s\'..." %(str(in_voxel_size)))
 
 

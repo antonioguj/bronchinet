@@ -31,8 +31,8 @@ BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_TestingOnEXACT/'
 #BASEDIR = '/home/antonio/Results/AirwaySegmentation_CTs-Ivan/'
 
-TYPE_DNNLIBRARY_USED = 'Keras'
-TYPEGPUINSTALLED     = 'larger_GPU'
+TYPE_DNNLIBRARY_USED = 'Pytorch'
+TYPEGPUINSTALLED     = 'smaller_GPU'
 
 
 # ******************** INPUT IMAGES PARAMETERS ********************

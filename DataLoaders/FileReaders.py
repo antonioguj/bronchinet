@@ -36,101 +36,47 @@ class GZIPmanager(object):
 
 
 class FileReader(object):
-    @staticmethod
-    def getImageSize(filename):
-        basename, extension = ospath_splitext_recurse(filename)
-        if (extension == '.nii'):
-            return NIFTIreader.getImageSize(filename)
-        elif (extension == '.nii.gz'):
-            return NIFTIreader.getImageSize(filename)
-        elif (extension == '.npy'):
-            return NUMPYreader.getImageSize(filename)
-        elif (extension == '.npz'):
-            return NUMPYZreader.getImageSize(filename)
-        elif (extension == '.npy.gz'):
-            fileobj = GZIPmanager.getReadFile(filename)
-            out_arrsize = NUMPYreader.getImageSize(fileobj)
-            GZIPmanager.closeFile(fileobj)
-            return out_arrsize
-        elif (extension == '.hdf5'):
-            return HDF5reader.getImageSize(filename)
-        elif (extension == '.mhd'):
-            return MHDRAWreader.getImageSize(filename)
-        elif (extension == '.dcm'):
-            return DICOMreader.getImageSize(filename)
-        elif (extension == '.dcm.gz'):
-            print("Not implemented for extension '.dcm.gz'...")
-            return False
-            # fileobj = GZIPmanager.getReadFile(filename)
-            # out_arrsize = DICOMreader.getImageSize(fileobj)
-            # GZIPmanager.closeFile(fileobj)
-            # return out_arrsize
-        else:
-            message = "No valid file extension: %s..." %(extension)
-            CatchErrorException(message)
+    @classmethod
+    def getImagePosition(cls, filename):
+        return cls.getFileReaderClass(filename).getImagePosition(filename)
+
+    @classmethod
+    def getImageVoxelSize(cls, filename):
+        return cls.getFileReaderClass(filename).getImageVoxelSize(filename)
+
+    @classmethod
+    def getImageHeaderInfo(cls, filename):
+        return cls.getFileReaderClass(filename).getImageHeaderInfo(filename)
+
+    @classmethod
+    def getImageSize(cls, filename):
+        return cls.getImageArray(filename).shape
+
+    @classmethod
+    def getImageArray(cls, filename):
+        return cls.getFileReaderClass(filename).getImageArray(filename)
+
+    @classmethod
+    def writeImageArray(cls, filename, images_array, img_header_info=None):
+        cls.getFileReaderClass(filename).writeImageArray(filename, images_array, img_header_info)
 
     @staticmethod
-    def getImageArray(filename):
+    def getFileReaderClass(filename):
         basename, extension = ospath_splitext_recurse(filename)
-        if (extension == '.nii'):
-            return NIFTIreader.getImageArray(filename)
-        elif (extension == '.nii.gz'):
-            return NIFTIreader.getImageArray(filename)
+        if (extension == '.nii' or extension == '.nii.gz'):
+            return NIFTIreader
         elif (extension == '.npy'):
-            return NUMPYreader.getImageArray(filename)
+            return NUMPYreader
         elif (extension == '.npz'):
-            return NUMPYZreader.getImageArray(filename)
-        elif (extension == '.npy.gz'):
-            fileobj = GZIPmanager.getReadFile(filename)
-            out_array = NUMPYreader.getImageArray(fileobj)
-            GZIPmanager.closeFile(fileobj)
-            return out_array
+            return NUMPYZreader
         elif (extension == '.hdf5'):
-            return HDF5reader.getImageArray(filename)
+            return HDF5reader
         elif (extension == '.mhd'):
-            return MHDRAWreader.getImageArray(filename)
+            return MHDRAWreader
         elif (extension == '.dcm'):
-            return DICOMreader.getImageArray(filename)
-        elif (extension == '.dcm.gz'):
-            print("Not implemented for extension '.dcm.gz'...")
-            return False
-            # fileobj = GZIPmanager.getReadFile(filename)
-            # out_array = DICOMreader.getImageArray(fileobj)
-            # GZIPmanager.closeFile(fileobj)
-            # return out_array
+            return DICOMreader
         else:
-            message = "No valid file extension: %s..." %(extension)
-            CatchErrorException(message)
-
-    @staticmethod
-    def writeImageArray(filename, images_array):
-        basename, extension = ospath_splitext_recurse(filename)
-        if (extension == '.nii'):
-            NIFTIreader.writeImageArray(filename, images_array)
-        elif (extension == '.nii.gz'):
-            NIFTIreader.writeImageArray(filename, images_array)
-        elif (extension == '.npy'):
-            NUMPYreader.writeImageArray(filename, images_array)
-        elif (extension == '.npz'):
-            NUMPYZreader.writeImageArray(filename, images_array)
-        elif (extension == '.npy.gz'):
-            fileobj = GZIPmanager.getWriteFile(filename)
-            NUMPYreader.writeImageArray(fileobj, images_array)
-            GZIPmanager.closeFile(fileobj)
-        elif (extension == '.hdf5'):
-            HDF5reader.writeImageArray(filename, images_array)
-        elif (extension == '.mhd'):
-            MHDRAWreader.writeImageArray(filename, images_array)
-        elif (extension == '.dcm'):
-            DICOMreader.writeImageArray(filename, images_array)
-        elif (extension == '.dcm.gz'):
-            print("Not implemented for extension '.dcm.gz'...")
-            return False
-            # fileobj = GZIPmanager.getWriteFile(filename)
-            # DICOMreader.writeImageArray(fileobj, images_array)
-            # GZIPmanager.closeFile(fileobj)
-        else:
-            message = "No valid file extension: %s..." %(extension)
+            message = "Not valid file extension: %s..." %(extension)
             CatchErrorException(message)
 
     @staticmethod
@@ -146,133 +92,152 @@ class FileReader(object):
 
 
 class NIFTIreader(FileReader):
-    # In nifty format, the axes are reversed.
-    # Need to swap axis and set depth_Z first dim
-    # get nifti image size:
     @staticmethod
-    def getImageSize(filename):
-        nib_im = nib.load(filename)
-        return nib_im.get_data().shape[::-1]
+    def getImageAffineMatrix(filename):
+        return nib.load(filename).affine
 
-    # get nifti image array:
     @staticmethod
-    def getImageArray(filename):
-        nib_im = nib.load(filename)
-        return np.swapaxes(nib_im.get_data(), 0, 2)
+    def computeAffineMatrix(img_voxelsize, img_position, img_rotation):
+        affine = np.eye(4)
+        if img_voxelsize != None:
+            np.fill_diagonal(affine[:3,:3], img_voxelsize)
+        if img_position != None:
+            affine[:3,-1] = img_position
+        return affine
 
-    # write nifti file array:
     @staticmethod
-    def writeImageArray(filename, images_array):
-        nib_im = nib.Nifti1Image(np.swapaxes(images_array, 0, 2), np.eye(4))
-        nib.save(nib_im, filename)
+    def changeDimsAffineMatrix(affine):
+        # Change dimensions from (dz, dx, dy) to (dx, dy, dz) (nifty format)
+        # affine[[0, 1, 2], :] = affine[[1, 2, 0], :]
+        # affine[:, [0, 1, 2]] = affine[:, [1, 2, 0]]
+        # Change dimensions from (dz, dy, dz) to (dx, dy, dz) (nifty format)
+        affine[[0, 2], :] = affine[[2, 0], :]
+        affine[:, [0, 2]] = affine[:, [2, 0]]
+        return affine
+
+    @classmethod
+    def getImagePosition(cls, filename):
+        affine = cls.getImageAffineMatrix(filename)
+        return tuple(affine[:3,-1])
+
+    @classmethod
+    def getImageVoxelSize(cls, filename):
+        affine = cls.getImageAffineMatrix(filename)
+        return tuple(np.abs(np.diag(affine)[:3]))
+
+    @classmethod
+    def getImageHeaderInfo(cls, filename):
+        return cls.getImageAffineMatrix(filename)
+
+    @staticmethod
+    def fixDimsImageArray_fromDicom2niix(images_array):
+        return np.flip(images_array, 1)
+
+    @staticmethod
+    def fixDimsImageAffineMatrix_fromDicom2niix(affine):
+        affine[1, 1] = - affine[1, 1]
+        return affine
+
+    @staticmethod
+    def changeDimsImageArray_read(images_array):
+        # Roll array axis to change dimensions from (dz, dx, dy) to (dx, dy, dz) (nifty format)
+        # return np.rollaxis(images_array, 2, 0)
+        # Roll array axis to change dimensions from (dz, dy, dx) to (dx, dy, dz) (nifty format)
+        return np.swapaxes(images_array, 0, 2)
+
+    @staticmethod
+    def changeDimsImageArray_write(images_array):
+        # Roll array axis to change dimensions from (dz, dx, dy) to (dx, dy, dz) (nifty format)
+        # return np.rollaxis(images_array, 0, 3)
+        # Roll array axis to change dimensions from (dz, dy, dx) to (dx, dy, dz) (nifty format)
+        return np.swapaxes(images_array, 0, 2)
+
+    @classmethod
+    def getImageArray(cls, filename, isFix_from_dicom2niix=False):
+        nib_img = nib.load(filename)
+        return cls.changeDimsImageArray_read(nib_img.get_data())
+
+    @classmethod
+    def writeImageArray(cls, filename, images_array, img_header_affine=None):
+        nib_img = nib.Nifti1Image(cls.changeDimsImageArray_write(images_array), img_header_affine)
+        nib.save(nib_img, filename)
 
 
 
 class NUMPYreader(FileReader):
-    # get numpy image size:
-    @staticmethod
-    def getImageSize(filename):
-        return np.load(filename).shape
-
-    # get numpy image array:
-    @staticmethod
-    def getImageArray(filename):
+    @classmethod
+    def getImageArray(cls, filename):
         return np.load(filename)
 
-    # write numpy file array:
-    @staticmethod
-    def writeImageArray(filename, images_array):
+    @classmethod
+    def writeImageArray(cls, filename, images_array, img_header_info=None):
         np.save(filename, images_array)
 
 
-
 class NUMPYZreader(FileReader):
-    # get numpy image size:
-    @staticmethod
-    def getImageSize(filename):
-        return np.load(filename)['arr_0'].shape
-
-    # get numpy image array:
-    @staticmethod
-    def getImageArray(filename):
+    @classmethod
+    def getImageArray(cls, filename):
         return np.load(filename)['arr_0']
 
-    # write numpy file array:
-    @staticmethod
-    def writeImageArray(filename, images_array):
+    @classmethod
+    def writeImageArray(cls, filename, images_array, img_header_info=None):
         np.savez_compressed(filename, images_array)
 
 
-
 class HDF5reader(FileReader):
-    # get h5py image size:
-    @staticmethod
-    def getImageSize(filename):
-        data_file = h5py.File(filename, 'r')
-        return data_file['data'].shape
-
-    # get h5py image array:
-    @staticmethod
-    def getImageArray(filename):
+    @classmethod
+    def getImageArray(cls, filename):
         data_file = h5py.File(filename, 'r')
         return data_file['data'][:]
 
-    # write h5py file array:
-    @staticmethod
-    def writeImageArray(filename, images_array):
+    @classmethod
+    def writeImageArray(cls, filename, images_array, img_header_info=None):
         data_file = h5py.File(filename, 'w')
         data_file.create_dataset('data', data=images_array)
         data_file.close()
 
 
-
 class MHDRAWreader(FileReader):
-    # get mhd/raw image dims:
-    @staticmethod
-    def getImageSize(filename):
-        ds = sitk.ReadImage(filename)
-        return sitk.GetArrayFromImage(ds).shape
-
-    # load mhd/raw file array:
-    @staticmethod
-    def getImageArray(filename):
+    @classmethod
+    def getImageArray(cls, filename):
         ds = sitk.ReadImage(filename)
         return sitk.GetArrayFromImage(ds)
 
-    # write mhd/raw file array:
-    @staticmethod
-    def writeImageArray(filename, images_array):
+    @classmethod
+    def writeImageArray(cls, filename, images_array, img_header_info=None):
         ds = sitk.GetImageFromArray(images_array)
         sitk.WriteImage(ds, filename)
 
 
 
 class DICOMreader(FileReader):
-    # get dcm image dims:
-    @staticmethod
-    def getImageSize(filename):
-        ds = sitk.ReadImage(filename)
-        #np.swapaxes(ds.GetSize(), 0, 2)
-        return sitk.GetArrayFromImage(ds).shape
-
-    # get dcm voxel size:
-    @staticmethod
-    def getVoxelSize(filename):
+    @classmethod
+    def getImagePosition(cls, filename):
         ds = pydicom.read_file(filename)
-        voxel_size = (float(ds.SpacingBetweenSlices),
-                      float(ds.PixelSpacing[0]),
-                      float(ds.PixelSpacing[1]))
-        return voxel_size
+        img_position_str = ds[0x0020, 0x0032].value   # Elem 'Image Position (Patient)'
+        return (float(img_position_str[0]),
+                float(img_position_str[1]),
+                float(img_position_str[2]))
 
-    # load dcm file array:
-    @staticmethod
-    def getImageArray(filename):
+    @classmethod
+    def getImageVoxelSize(cls, filename):
+        ds = pydicom.read_file(filename)
+        return (float(ds.SpacingBetweenSlices),
+                float(ds.PixelSpacing[0]),
+                float(ds.PixelSpacing[1]))
+
+    @classmethod
+    def getImageHeaderInfo(cls, filename):
+        return {'position': cls.getImagePosition(filename),
+                'voxelsize': cls.getImageVoxelSize(filename)}
+
+    @classmethod
+    def getImageArray(cls, filename):
         ds = sitk.ReadImage(filename)
         return sitk.GetArrayFromImage(ds)
 
-    # write dcm file array:
-    @staticmethod
-    def writeImageArray(filename, images_array):
+    @classmethod
+    def writeImageArray(cls, filename, images_array, img_header_info=None):
         ds = sitk.GetImageFromArray(images_array)
         sitk.WriteImage(ds, filename)
 
@@ -337,6 +302,6 @@ class DICOMreader(FileReader):
 
 
 # all available file readers
-DICTAVAILFILEREADERS = {"numpy": NUMPYreader,
-                        "dicom": DICOMreader,
-                        "nifti": NIFTIreader }
+DICTAVAILFILEREADERS = {'nifti': NIFTIreader ,
+                        'numpy': NUMPYreader,
+                        'dicom': DICOMreader}

@@ -146,6 +146,7 @@ class OperationMasks(object):
                 return images_array
 
 
+
 class OperationBinaryMasks(OperationMasks):
 
     @classmethod
@@ -185,21 +186,28 @@ class OperationBinaryMasks(OperationMasks):
             return False
 
     @classmethod
-    def join_two_binmasks_one_image(cls, masks_array_1,
-                                    masks_array_2):
-        # check there is no overlap between the two masks
-        #index_binmasks_1 = np.argwhere(masks_array_1 == cls.val_mask_positive)
-        #index_binmasks_2 = np.argwhere(masks_array_2 == cls.val_mask_positive)
+    def get_masks_with_labels(cls, masks_array, in_labels):
+        return np.where(masks_array == in_labels, cls.val_mask_positive, cls.val_mask_background)
 
-        # check there is no overlap between the two masks
-        intersect_masks = np.multiply(masks_array_1, masks_array_2)
-        index_posit_intersect = np.where(intersect_masks == cls.val_mask_positive)
+    @classmethod
+    def merge_two_masks(cls, masks_array_1, masks_array_2, isNot_intersect_masks=False):
+        if isNot_intersect_masks:
+            # check there is no overlap between the two masks
+            intersect_masks = np.multiply(masks_array_1, masks_array_2)
+            index_posit_intersect = np.where(intersect_masks == cls.val_mask_positive)
 
-        if len(index_posit_intersect[0] != 0):
-            message = "Found intersection in between the two masks in 'join_two_binmasks_one_image'"
-            CatchErrorException(message)
-        else:
-            return masks_array_1 + masks_array_2
+            if len(index_posit_intersect[0] != 0):
+                message = "Found intersection in between the two masks in 'join_two_binmasks_one_image'"
+                CatchErrorException(message)
+
+        out_masks_array = masks_array_1 + masks_array_2
+        return np.clip(out_masks_array, cls.val_mask_background, cls.val_mask_positive)
+
+    @classmethod
+    def substract_two_masks(cls, masks_array_1, masks_array_2):
+        out_masks_array = masks_array_1 - masks_array_2
+        return np.clip(out_masks_array, cls.val_mask_background, cls.val_mask_positive)
+
 
 
 class OperationMultiClassMasks(OperationMasks):

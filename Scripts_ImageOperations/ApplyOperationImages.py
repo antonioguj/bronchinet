@@ -17,12 +17,27 @@ from collections import OrderedDict
 import argparse
 
 
-LIST_OPERATIONS = ['mask', 'binary_mask', 'crop', 'rescale', 'rescale_mask',
-                   'fillholes', 'erode', 'dilate', 'moropen', 'morclose',
+LIST_OPERATIONS = ['mask', 'binarise', 'merge', 'substract', 'crop', 'rescale', 'rescale_mask',
+                   'fillholes', 'erode', 'dilate', 'moropen', 'morclose', 'connregs',
                    'thinning', 'threshold', 'normalize', 'power', 'exponential']
-DICT_OPERS_SUFFIX = {'mask': 'masked', 'binary_mask': None, 'crop': 'cropped', 'rescale': 'rescaled', 'rescale_mask': 'rescaled',
-                     'fillholes': 'fillholes', 'erode': 'eroded', 'dilate': 'dilated', 'moropen': 'moropen', 'morclose': 'morclose',
-                     'thinning': 'cenlines', 'threshold': 'binmask', 'normalize': 'normal', 'power': 'power', 'exponential': 'expon'}
+DICT_OPERS_SUFFIX = {'mask': 'masked',
+                     'binarise': None,
+                     'merge': 'merged',
+                     'substract': 'substed',
+                     'crop': 'cropped',
+                     'rescale': 'rescaled',
+                     'rescale_mask': 'rescaled',
+                     'fillholes': 'fillholes',
+                     'erode': 'eroded',
+                     'dilate': 'dilated',
+                     'moropen': 'moropen',
+                     'morclose': 'morclose',
+                     'connregs': 'connlabs',
+                     'thinning': 'cenlines',
+                     'threshold': 'binmask',
+                     'normalize': 'normal',
+                     'power': 'power',
+                     'exponential': 'expon'}
 
 
 def prepare_mask_operation(args):
@@ -32,21 +47,49 @@ def prepare_mask_operation(args):
     def wrapfun_mask_image(in_array, i):
         in_roimask_file = listInputRoiMasksFiles[i]
         in_roimask_array = FileReader.getImageArray(in_roimask_file)
-        print("Mask to RoI: lungs:  \'%s\'..." % (basename(in_roimask_file)))
+        print("Mask to RoI: lungs: \'%s\'..." % (basename(in_roimask_file)))
 
         return OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_array, in_roimask_array)
 
     return wrapfun_mask_image
 
 
-def prepare_binary_mask_operation(args):
+def prepare_binarise_operation(args):
     print("Operation: Binarise masks between (0, 1)...")
 
-    def wrapfun_binary_mask_image(in_array, i):
+    def wrapfun_binarise_image(in_array, i):
         print("Convert masks to binary (0, 1)...")
         return OperationBinaryMasks.process_masks(in_array)
 
-    return wrapfun_binary_mask_image
+    return wrapfun_binarise_image
+
+
+def prepare_merge_operation(args):
+    print("Operation: Merge two images...")
+    listInput2ndMasksFiles = findFilesDirAndCheck(args.input2nddir)
+
+    def wrapfun_merge_image(in_array, i):
+        in_2ndmask_file = listInput2ndMasksFiles[i]
+        in_2ndmask_array = FileReader.getImageArray(in_2ndmask_file)
+        print("2nd mask file: \'%s\'..." % (basename(in_2ndmask_file)))
+
+        return OperationBinaryMasks.merge_two_masks(in_array, in_2ndmask_array)
+
+    return wrapfun_merge_image
+
+
+def prepare_substract_operation(args):
+    print("Operation: Substract two images (img1 - img2)...")
+    listInput2ndMasksFiles = findFilesDirAndCheck(args.input2nddir)
+
+    def wrapfun_substract_image(in_array, i):
+        in_2ndmask_file = listInput2ndMasksFiles[i]
+        in_2ndmask_array = FileReader.getImageArray(in_2ndmask_file)
+        print("2nd mask file: \'%s\'..." % (basename(in_2ndmask_file)))
+
+        return OperationBinaryMasks.substract_two_masks(in_array, in_2ndmask_array)
+
+    return wrapfun_substract_image
 
 
 def prepare_crop_operation(args):
@@ -95,7 +138,6 @@ def prepare_fillholes_operation(args):
 
     def wrapfun_fillholes_image(in_array, i):
         print("Filling holes from masks...")
-
         return MorphoFillHolesImages.compute(in_array)
 
     return wrapfun_fillholes_image
@@ -106,7 +148,6 @@ def prepare_erode_operation(args):
 
     def wrapfun_erode_image(in_array, i):
         print("Eroding masks one layer...")
-
         return MorphoErodeImages.compute(in_array)
 
     return wrapfun_erode_image
@@ -117,7 +158,6 @@ def prepare_dilate_operation(args):
 
     def wrapfun_dilate_image(in_array, i):
         print("Dilating masks one layer...")
-
         return MorphoDilateImages.compute(in_array)
 
     return wrapfun_dilate_image
@@ -128,7 +168,6 @@ def prepare_moropen_operation(args):
 
     def wrapfun_moropen_image(in_array, i):
         print("Morphologically open masks...")
-
         return MorphoOpenImages.compute(in_array)
 
     return wrapfun_moropen_image
@@ -139,10 +178,21 @@ def prepare_morclose_operation(args):
 
     def wrapfun_morclose_image(in_array, i):
         print("Morphologically close masks...")
-
         return MorphoCloseImages.compute(in_array)
 
     return wrapfun_morclose_image
+
+
+def prepare_connregions_operation(args):
+    print("Operation: Compute connected regions...")
+
+    def wrapfun_connregions_image(in_array, i):
+        print("Compute connected regions...")
+        out_array, num_labels = ConnectedRegionsMasks.compute(in_array, return_num_labels=True)
+        print("Number connected regions: \'%s\'..." %(num_labels))
+        return out_array
+
+    return wrapfun_connregions_image
 
 
 def prepare_thinning_operation(args):
@@ -150,7 +200,6 @@ def prepare_thinning_operation(args):
 
     def wrapfun_thinning_image(in_array, i):
         print("Thinning masks to extract centrelines...")
-
         return ThinningMasks.compute(in_array)
 
     return wrapfun_thinning_image
@@ -162,7 +211,6 @@ def prepare_threshold_operation(args):
 
     def wrapfun_threshold_image(in_array, i):
         print("Threshold masks to value \'%s\'..." %(thres_value))
-
         return ThresholdImages.compute(in_array, thres_val=thres_value)
 
     return wrapfun_threshold_image
@@ -173,21 +221,30 @@ def prepare_normalize_operation(args):
 
     def wrapfun_normalize_image(in_array, i):
         print("Normalize image to (0,1)...")
-
         return NormalizeImages.compute3D(in_array)
 
     return wrapfun_normalize_image
 
 
-def prepare_onlyCorrect_operation(args):
-    print("Operation: On...")
+def prepare_getOnlycorrect_operation(args):
+    print("Operation: Retrieve correct masks (= 1)...")
 
-    def wrapfun_normalize_image(in_array, i):
-        print("Normalize image to (0,1)...")
+    def wrapfun_getOnlyCorrect_image(in_array, i):
+        print("Retrieve correct masks (= 1)...")
+        return OperationBinaryMasks.get_masks_with_labels(in_array, in_labels=[1])
 
-        return NormalizeImages.compute3D(in_array)
+    return wrapfun_getOnlyCorrect_image
 
-    return wrapfun_normalize_image
+
+def prepare_getMaskswithLabels_operation(args):
+    labels_get = [1, 2, 3]
+    print("Operation: Retrieve labels masks: \'%s\'..." %(labels_get))
+
+    def wrapfun_getMaskswithLabels_image(in_array, i):
+        print("Retrieve labels masks: \'%s\'..." %(labels_get))
+        return OperationBinaryMasks.get_masks_with_labels(in_array, in_labels=labels_get)
+
+    return wrapfun_getMaskswithLabels_image
 
 
 def prepare_power_operation(args):
@@ -230,8 +287,12 @@ def main(args):
         else:
             if name_operation == 'mask':
                 new_func_operation = prepare_mask_operation(args)
-            elif name_operation == 'binary_mask':
-                new_func_operation = prepare_binary_mask_operation(args)
+            elif name_operation == 'binarise':
+                new_func_operation = prepare_binarise_operation(args)
+            elif name_operation == 'merge':
+                new_func_operation = prepare_merge_operation(args)
+            elif name_operation == 'substract':
+                new_func_operation = prepare_substract_operation(args)
             elif name_operation == 'crop':
                 new_func_operation = prepare_crop_operation(args)
             elif name_operation == 'rescale':
@@ -248,6 +309,8 @@ def main(args):
                 new_func_operation = prepare_moropen_operation(args)
             elif name_operation == 'morclose':
                 new_func_operation = prepare_morclose_operation(args)
+            elif name_operation == 'connregs':
+                new_func_operation = prepare_connregions_operation(args)
             elif name_operation == 'thinning':
                 new_func_operation = prepare_thinning_operation(args)
             elif name_operation == 'threshold':
@@ -279,16 +342,17 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_file)))
 
         inout_array = FileReader.getImageArray(in_file)
+        header_info = FileReader.getImageHeaderInfo(in_file)
 
         for func_name, func_operation in dict_func_operations.items():
-            inout_array = func_operation(inout_array, i)  #perform whichever operation
+            inout_array = func_operation(inout_array, i)  # perform whichever operation
         #endfor
 
 
         out_filename = joinpathnames(args.outputdir, nameOutputFiles(basename(in_file)))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), str(inout_array.shape)))
 
-        FileReader.writeImageArray(out_filename, inout_array)
+        FileReader.writeImageArray(out_filename, inout_array, header_info)
     #endfor
 
 
@@ -300,6 +364,7 @@ if __name__ == "__main__":
     parser.add_argument('outputdir', type=str)
     parser.add_argument('--type', nargs='+', default=['None'])
     parser.add_argument('--inputRoidir', type=str, default=None)
+    parser.add_argument('--input2nddir', type=str, default=None)
     parser.add_argument('--referencedir', type=str, default=None)
     parser.add_argument('--boundboxfile', type=str, default=None)
     parser.add_argument('--rescalefile', type=str, default=None)
@@ -308,6 +373,10 @@ if __name__ == "__main__":
     if 'mask' in args.type:
         if not args.inputRoidir:
             message = 'need to set argument \'inputRoidir\''
+            CatchErrorException(message)
+    if 'merge' in args.type or 'substract' in args.type:
+        if not args.input2nddir:
+            message = 'need to set argument \'input2nddir\''
             CatchErrorException(message)
     elif 'crop' in args.type:
         if not args.referencedir or not args.boundboxfile:

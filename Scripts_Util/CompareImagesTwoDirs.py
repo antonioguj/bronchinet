@@ -17,7 +17,6 @@ from PlotsManager.Histograms import *
 _max_relerror = 1.0e-06
 
 
-
 def main(args):
     # ---------- SETTINGS ----------
     InputPath1   = args.inputdir1

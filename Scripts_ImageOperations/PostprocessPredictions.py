@@ -76,7 +76,8 @@ def main(args):
 
             in_tracheamask_array = compute_trachea_masks(in_refermask_array, in_roimask_array)
 
-            out_predictmask_array = OperationBinaryMasks.join_two_binmasks_one_image(out_predictmask_array, in_tracheamask_array)
+            out_predictmask_array = OperationBinaryMasks.merge_two_masks(out_predictmask_array, in_tracheamask_array,
+                                                                         isNot_intersect_masks=True)
 
 
         out_file = joinpathnames(OutputPredictMasksPath, nameOutputPredictMasksFiles(basename(in_prediction_file)))
