@@ -19,7 +19,7 @@ import argparse
 
 LIST_OPERATIONS = ['mask', 'binarise', 'merge', 'substract', 'crop', 'rescale', 'rescale_mask',
                    'fillholes', 'erode', 'dilate', 'moropen', 'morclose', 'connregs',
-                   'thinning', 'threshold', 'normalize', 'power', 'exponential']
+                   'thinning', 'threshold', 'normalize', 'onlycorrect', 'labelsmask', 'power', 'exponential']
 DICT_OPERS_SUFFIX = {'mask': 'masked',
                      'binarise': None,
                      'merge': 'merged',
@@ -36,6 +36,8 @@ DICT_OPERS_SUFFIX = {'mask': 'masked',
                      'thinning': 'cenlines',
                      'threshold': 'binmask',
                      'normalize': 'normal',
+                     'onlycorrect': 'onlycorrect',
+                     'labelsmask': 'labs',
                      'power': 'power',
                      'exponential': 'expon'}
 
@@ -226,25 +228,25 @@ def prepare_normalize_operation(args):
     return wrapfun_normalize_image
 
 
-def prepare_getOnlycorrect_operation(args):
+def prepare_onlyCorrect_operation(args):
     print("Operation: Retrieve correct masks (= 1)...")
 
-    def wrapfun_getOnlyCorrect_image(in_array, i):
+    def wrapfun_onlyCorrect_image(in_array, i):
         print("Retrieve correct masks (= 1)...")
-        return OperationBinaryMasks.get_masks_with_labels(in_array, in_labels=[1])
+        return OperationBinaryMasks.get_masks_with_labels(in_array, labels_list=[1])
 
-    return wrapfun_getOnlyCorrect_image
+    return wrapfun_onlyCorrect_image
 
 
-def prepare_getMaskswithLabels_operation(args):
-    labels_get = [1, 2, 3]
-    print("Operation: Retrieve labels masks: \'%s\'..." %(labels_get))
+def prepare_labelsMask_operation(args):
+    labels_mask = args.inlabels
+    print("Operation: Retrieve labels masks: \'%s\'..." %(labels_mask))
 
-    def wrapfun_getMaskswithLabels_image(in_array, i):
-        print("Retrieve labels masks: \'%s\'..." %(labels_get))
-        return OperationBinaryMasks.get_masks_with_labels(in_array, in_labels=labels_get)
+    def wrapfun_labelsMask_image(in_array, i):
+        print("Retrieve labels mask: \'%s\'..." %(labels_mask))
+        return OperationBinaryMasks.get_masks_with_labels(in_array, labels_list=labels_mask)
 
-    return wrapfun_getMaskswithLabels_image
+    return wrapfun_labelsMask_image
 
 
 def prepare_power_operation(args):
@@ -317,6 +319,10 @@ def main(args):
                 new_func_operation = prepare_threshold_operation(args)
             elif name_operation == 'normalize':
                 new_func_operation = prepare_normalize_operation(args)
+            elif name_operation == 'onlycorrect':
+                new_func_operation = prepare_onlyCorrect_operation(args)
+            elif name_operation == 'labelsmask':
+                new_func_operation = prepare_labelsMask_operation(args)
             elif name_operation == 'power':
                 new_func_operation = prepare_power_operation(args)
             elif name_operation == 'exponential':
@@ -368,6 +374,7 @@ if __name__ == "__main__":
     parser.add_argument('--referencedir', type=str, default=None)
     parser.add_argument('--boundboxfile', type=str, default=None)
     parser.add_argument('--rescalefile', type=str, default=None)
+    parser.add_argument('--inlabels', nargs='+', type=int, default=None)
     args = parser.parse_args()
 
     if 'mask' in args.type:
@@ -386,6 +393,10 @@ if __name__ == "__main__":
         'rescale_mask' in args.type:
         if not args.referencedir or not args.rescalefile:
             message = 'need to set arguments \'referencedir\' and \'rescalefile\''
+            CatchErrorException(message)
+    elif 'labelsmask' in args.type:
+        if not args.inlabels:
+            message = 'need to set arguments \'inlabels\''
             CatchErrorException(message)
 
     print("Print input arguments...")

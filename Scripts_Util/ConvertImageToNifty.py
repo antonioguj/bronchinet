@@ -74,7 +74,10 @@ def main(args):
             # (THE OUTPUT NIFTI BY THE TOOL dcm2niix HAVE ONE DIMENSION FLIPPED)
             out_image_array = FileReader.getImageArray(out_file)
             out_image_array = NIFTIreader.fixDimsImageArray_fromDicom2niix(out_image_array)
+
             img_header_affine = NIFTIreader.getImageHeaderInfo(out_file)
+            image_position  = DICOMreader.getImagePosition(in_file)
+            img_header_affine[1, -1] = image_position[1]
             img_header_affine = NIFTIreader.fixDimsImageAffineMatrix_fromDicom2niix(img_header_affine)
 
             print("Fix dims of output nifti: \'%s\', with dims: \'%s\'" %(out_file, out_image_array.shape))

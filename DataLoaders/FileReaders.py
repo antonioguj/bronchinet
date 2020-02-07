@@ -136,6 +136,7 @@ class NIFTIreader(FileReader):
     @staticmethod
     def fixDimsImageAffineMatrix_fromDicom2niix(affine):
         affine[1, 1] = - affine[1, 1]
+        affine[1,-1] = - affine[1,-1]
         return affine
 
     @staticmethod

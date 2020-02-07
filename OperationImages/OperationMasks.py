@@ -186,8 +186,8 @@ class OperationBinaryMasks(OperationMasks):
             return False
 
     @classmethod
-    def get_masks_with_labels(cls, masks_array, in_labels):
-        return np.where(masks_array == in_labels, cls.val_mask_positive, cls.val_mask_background)
+    def get_masks_with_labels(cls, masks_array, labels_list):
+        return np.where(np.isin(masks_array, labels_list), cls.val_mask_positive, cls.val_mask_background).astype(np.uint8)
 
     @classmethod
     def merge_two_masks(cls, masks_array_1, masks_array_2, isNot_intersect_masks=False):
