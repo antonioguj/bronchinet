@@ -340,7 +340,11 @@ def main(args):
                 suffix_output_names += '_'+ DICT_OPERS_SUFFIX[name_operation]
     #endfor
 
-    nameOutputFiles = lambda in_name: filenamenoextension(in_name) + suffix_output_names +'.nii.gz'
+    if args.outnifti:
+        in_file_extension = '.nii'
+    else:
+        in_file_extension = filenameextension(listInputFiles[0])
+    nameOutputFiles = lambda in_name: filenamenoextension(in_name) + suffix_output_names + in_file_extension
 
 
 
@@ -348,7 +352,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_file)))
 
         inout_array = FileReader.getImageArray(in_file)
-        header_info = FileReader.getImageHeaderInfo(in_file)
+        in_metadata = FileReader.getImageMetadataInfo(in_file)
 
         for func_name, func_operation in dict_func_operations.items():
             inout_array = func_operation(inout_array, i)  # perform whichever operation
@@ -358,7 +362,7 @@ def main(args):
         out_filename = joinpathnames(args.outputdir, nameOutputFiles(basename(in_file)))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), str(inout_array.shape)))
 
-        FileReader.writeImageArray(out_filename, inout_array, header_info)
+        FileReader.writeImageArray(out_filename, inout_array, metadata=in_metadata)
     #endfor
 
 
@@ -375,6 +379,7 @@ if __name__ == "__main__":
     parser.add_argument('--boundboxfile', type=str, default=None)
     parser.add_argument('--rescalefile', type=str, default=None)
     parser.add_argument('--inlabels', nargs='+', type=int, default=None)
+    parser.add_argument('--outnifti', type=str2bool, default=False)
     args = parser.parse_args()
 
     if 'mask' in args.type:

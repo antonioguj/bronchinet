@@ -20,8 +20,8 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputCropImagesRelPath = args.cropimagesdir
     nameInputFullImagesRelPath = args.fullimagesdir
-    nameInputReferFilesRelPath = 'CTs_Cropped/'
-    nameBoundingBoxes          = 'found_boundBoxes_original.npy'
+    nameInputReferKeysRelPath  = args.referkeysdir
+    nameBoundingBoxes          = 'found_boundingBox_croppedCTinFull.npy'
     prefixPatternInputFiles    = 'vol[0-9][0-9]_*'
     # ---------- SETTINGS ----------
 
@@ -29,11 +29,11 @@ def main(args):
     workDirsManager     = WorkDirsManager(args.datadir)
     InputCropImagesPath = workDirsManager.getNameExistPath(nameInputCropImagesRelPath)
     InputFullImagesPath = workDirsManager.getNameExistPath(nameInputFullImagesRelPath)
-    InputReferFilesPath = workDirsManager.getNameExistPath(nameInputReferFilesRelPath)
+    InputReferKeysPath  = workDirsManager.getNameExistPath(nameInputReferKeysRelPath)
 
     listInputCropImagesFiles = findFilesDirAndCheck(InputCropImagesPath)
     listInputFullImagesFiles = findFilesDirAndCheck(InputFullImagesPath)
-    listInputReferFiles      = findFilesDirAndCheck(InputReferFilesPath)
+    listInputReferKeysFiles  = findFilesDirAndCheck(InputReferKeysPath)
 
     dict_bounding_boxes = readDictionary(joinpathnames(args.datadir, nameBoundingBoxes))
 
@@ -44,10 +44,10 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_cropimage_file)))
         print("Input 2: \'%s\'..." % (basename(in_fullimage_file)))
 
-        in_refer_file = findFileWithSamePrefixPattern(basename(in_cropimage_file), listInputReferFiles,
-                                                      prefix_pattern=prefixPatternInputFiles)
-        print("Reference file: \'%s\'..." % (basename(in_refer_file)))
-        bounding_box = dict_bounding_boxes[filenamenoextension(in_refer_file)]
+        in_referkey_file = findFileWithSamePrefixPattern(basename(in_cropimage_file), listInputReferKeysFiles,
+                                                         prefix_pattern=prefixPatternInputFiles)
+        print("Reference key: \'%s\'..." % (basename(in_referkey_file)))
+        bounding_box = dict_bounding_boxes[filenamenoextension(in_referkey_file)]
 
 
         in_cropimage_array = FileReader.getImageArray(in_cropimage_file)
@@ -85,6 +85,7 @@ if __name__ == "__main__":
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('cropimagesdir', type=str)
     parser.add_argument('fullimagesdir', type=str)
+    parser.add_argument('--referkeysdir', type=str, default='CTs_Cropped/')
     args = parser.parse_args()
 
     print("Print input arguments...")

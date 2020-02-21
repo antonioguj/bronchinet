@@ -15,37 +15,6 @@ import sys
 sys.dont_write_bytecode = True
 
 
-#DATADIR = '/home/antonio/Data/LUVAR_Processed/'
-#DATADIR = '/home/antonio/Data/DLCST_Processed/'
-#DATADIR = '/home/antonio/Data/DLCST_Processed_ReferPechin/'
-DATADIR = '/home/antonio/Data/DLCST+LUVAR_Processed/'
-#DATADIR = '/home/antonio/Data/DLCST+LUVAR+EXACT_Processed/'
-#DATADIR = '/home/antonio/Data/EXACT_Processed/'
-
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR_Rescaled/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST_RaghavPaper/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR+EXACT/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_TestingOnEXACT/'
-#BASEDIR = '/home/antonio/Results/AirwaySegmentation_CTs-Ivan/'
-
-TYPE_DNNLIBRARY_USED = 'Pytorch'
-TYPEGPUINSTALLED     = 'smaller_GPU'
-
-
-# ******************** INPUT IMAGES PARAMETERS ********************
-# MUST BE MULTIPLES OF 16
-# FOUND VERY CONVENIENT THE VALUES 36, 76, 146, ...
-#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (240, 352, 240)
-#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)
-(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (252, 252, 252)
-#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (160, 384, 272)
-
-IMAGES_DIMS_X_Y   = (IMAGES_HEIGHT, IMAGES_WIDTH)
-IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
-
 FORMATINTDATA   = np.int16
 FORMATSHORTDATA = np.uint8
 FORMATREALDATA  = np.float32
@@ -56,6 +25,42 @@ FORMATPHYSDISTDATA   = FORMATREALDATA
 FORMATPROBABILITYDATA= FORMATREALDATA
 FORMATFEATUREDATA    = FORMATREALDATA
 
+
+
+# ******************** SET-UP WORKDIR ********************
+DATADIR = '/home/antonio/Data/LUVAR_Processed/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
+
+# Names input and output directories
+NAME_RAWIMAGES_RELPATH      = 'RawImages/'
+NAME_RAWLABELS_RELPATH      = 'RawAirways/'
+NAME_RAWROIMASKS_RELPATH    = 'RawLungs/'
+NAME_RAWEXTRALABELS_RELPATH = 'RawCentrelines/'
+NAME_REFERKEYS_RELPATH      = 'RawImages/'
+NAME_PROCIMAGES_RELPATH     = 'ImagesWorkData/'
+NAME_PROCLABELS_RELPATH     = 'LabelsWorkData/'
+NAME_PROCEXTRALABELS_RELPATH= 'ExtraLabelsWorkData/'
+NAME_CROPBOUNDINGBOX_FILE   = 'cropBoundingBoxes_images.npy'
+NAME_RESCALEFACTOR_FILE     = 'rescaleFactors_images.npy'
+NAME_REFERENCEKEYS_FILE     = 'referenceKeys_images.npy'
+NAME_CONFIGPARAMS_FILE      = 'configparams.txt'
+NAME_LOGDESCMODEL_FILE      = 'logdescmodel.txt'
+# ******************** SET-UP WORKDIR ********************
+
+
+# ******************** DATA DISTRIBUTION ********************
+PROP_DATA_TRAINING   = 0.85 #0.5
+PROP_DATA_VALIDATION = 0.16 #0.15
+PROP_DATA_TESTING    = 0.00 #0.35
+
+DISTRIBUTE_RANDOM = False
+DISTRIBUTE_FIXED_NAMES = False
+
+LISTMERGEDATARELDIRS = ['LUVAR_Processed/', 'DLCST_Processed/', 'EXACT_Processed/']
+# ******************** DATA DISTRIBUTION ********************
+
+
+# ******************** PREPROCESS PARAMETERS ********************
 SHUFFLETRAINDATA = True
 NORMALIZEDATA    = False
 ISBINARYTRAINMASKS = True
@@ -66,46 +71,24 @@ if ISBINARYTRAINMASKS:
 else:
     FORMATXDATA = FORMATIMAGESDATA
     FORMATYDATA = FORMATPHYSDISTDATA
-# ******************** INPUT IMAGES PARAMETERS ********************
 
-
-# ******************** DATA DISTRIBUTION ********************
-#PROP_DATA_TRAINING   = 0.5
-#PROP_DATA_VALIDATION = 0.15
-#PROP_DATA_TESTING    = 0.35
-PROP_DATA_TRAINING   = 0.59
-PROP_DATA_VALIDATION = 0.15
-PROP_DATA_TESTING    = 0.26
-
-DISTRIBUTE_RANDOM = False
-DISTRIBUTE_FIXED_NAMES = False
-# ******************** DATA DISTRIBUTION ********************
-
-
-# ******************** PRE-PROCESSING PARAMETERS ********************
 MASKTOREGIONINTEREST = True
 
-RESCALEIMAGES = True
+RESCALEIMAGES = False
 ORDERINTERRESCALE = 3
 #FIXEDRESCALERES = (0.6, 0.6, 0.6)
-#FIXEDRESCALERES = (0.6, 0.55078125, 0.55078125)
-#FIXEDRESCALERES = (0.6, 0.6, 0.6)
-#FIXEDRESCALERES = (1.0, 0.78125, 0.78125)
+#FIXEDRESCALERES = (0.6, 0.55, 0.55)   # for LUVAR
+FIXEDRESCALERES = (0.8, 0.69, 0.69)   # for EXACT
 FIXEDRESCALERES = None
 
 CROPIMAGES = True
 ISSAMEBOUNDBOXSIZEALLIMAGES = False
-#CROPSIZEBOUNDINGBOX = (240, 352, 480)
-FIXEDSIZEBOUNDINGBOX = (352, 480)
-#FIXEDSIZEBOUNDINGBOX = (384, 544)
 ISCALCBOUNDINGBOXINSLICES = False
+FIXEDSIZEBOUNDINGBOX = (352, 480)
 
 SLIDINGWINDOWIMAGES = False
 PROPOVERLAPSLIDINGWINDOW_Z_X_Y = (0.25, 0.0, 0.0)
-#PROPOVERLAPSLIDINGWINDOW_Z_X_Y = (0.25, 0.25, 0.25)
-#PROPOVERLAPSLIDINGWINDOW_Z_X_Y = (0.5, 0.5, 0.5)
 PROPOVERLAPSLIDINGWINDOW_TESTING_Z_X_Y = (0.5, 0.5, 0.5)
-#PROPOVERLAPSLIDINGWINDOW_TESTING_Z_X_Y = (0.5, 0.0, 0.0)
 
 RANDOMCROPWINDOWIMAGES = True
 NUMRANDOMIMAGESPERVOLUMEEPOCH = 8
@@ -125,18 +108,24 @@ FILL_MODE_TRANSFORM = 'reflect'
 
 TRANSFORMELASTICDEFORMIMAGES = False
 TYPETRANSFORMELASTICDEFORMATION = 'gridwise'
-
-CREATEIMAGESBATCHES = False
-SAVEVISUALIZEWORKDATA = False
-# ******************** PRE-PROCESSING PARAMETERS ********************
+# ******************** PREPROCESS PARAMETERS ********************
 
 
 # ******************** TRAINING PARAMETERS ********************
+TYPE_DNNLIBRARY_USED = 'Keras'
+TYPEGPUINSTALLED     = 'larger_GPU'
+
+#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)
+#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (252, 252, 252) # for Keras
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (236, 236, 236) # for Pytorch
+IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
+
 #IMODEL    	  = 'UnetGNN_OTF'
 #IMODEL    	  = 'UnetGNN'
 IMODEL       = 'Unet'
 NUM_LAYERS   = 5
-NUM_FEATMAPS = 16
+#NUM_FEATMAPS = 16 # for Keras
+NUM_FEATMAPS = 10 # for Pytorch
 
 TYPE_NETWORK         = 'classification'
 TYPE_ACTIVATE_HIDDEN = 'relu'
@@ -153,13 +142,7 @@ IOPTIMIZER = 'Adam'
 LEARN_RATE = 1.0e-04
 ILOSSFUN   = 'DiceCoefficient'
 LISTMETRICS = []
-# LISTMETRICS = ['BinaryCrossEntropy',
-#                'WeightedBinaryCrossEntropy',
-#                'DiceCoefficient',
-#                'TruePositiveRate',
-#                'FalsePositiveRate',
-#                'TrueNegativeRate',
-#                'FalseNegativeRate']
+#LISTMETRICS = ['DiceCoefficient', 'TruePositiveRate', 'FalsePositiveRate', 'TrueNegativeRate', 'FalseNegativeRate']
 
 NUMMAXTRAINIMAGES = 70
 NUMMAXVALIDIMAGES = 30

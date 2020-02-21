@@ -39,6 +39,18 @@ def main(args):
 
     elif files_extension == '.hr2':
         files_type = 'hr2'
+
+    elif files_extension == '.mhd':
+        files_type = 'mhd'
+        if not args.inputRefdir:
+            message = 'need to set argument \'inputRefdir\''
+            CatchErrorException(message)
+        if args.outformat == 'dicom':
+            namesOutputFiles = lambda in_name: filenamenoextension(in_name) + '.dcm'
+
+        listInputFiles = findFilesDirAndCheck(InputPath, '*.mhd')
+        listReferFiles = findFilesDirAndCheck(args.inputRefdir)
+        prefixPatternInputFiles = getFilePrefixPattern(listReferFiles[0])
     else:
         message = 'Extension file \'%s\' not known...' %(files_extension)
         CatchErrorException(message)
@@ -75,18 +87,29 @@ def main(args):
             out_image_array = FileReader.getImageArray(out_file)
             out_image_array = NIFTIreader.fixDimsImageArray_fromDicom2niix(out_image_array)
 
-            img_header_affine = NIFTIreader.getImageHeaderInfo(out_file)
+            metadata_affine = NIFTIreader.getImageMetadataInfo(out_file)
             image_position  = DICOMreader.getImagePosition(in_file)
-            img_header_affine[1, -1] = image_position[1]
-            img_header_affine = NIFTIreader.fixDimsImageAffineMatrix_fromDicom2niix(img_header_affine)
+            metadata_affine[1, -1] = image_position[1]
+            metadata_affine = NIFTIreader.fixDimsImageAffineMatrix_fromDicom2niix(metadata_affine)
 
             print("Fix dims of output nifti: \'%s\', with dims: \'%s\'" %(out_file, out_image_array.shape))
-            FileReader.writeImageArray(out_file, out_image_array, img_header_info=img_header_affine)
+            FileReader.writeImageArray(out_file, out_image_array, metadata=metadata_affine)
 
         elif files_type == 'hr2':
             command_string = bin_hr22nifti + ' ' + in_file + ' ' + out_file
             print("%s" % (command_string))
             os.system(command_string)
+
+        elif files_type == 'mhd':
+            inout_array = FileReader.getImageArray(in_file)
+
+            in_refer_file = findFileWithSamePrefixPattern(basename(in_file), listReferFiles,
+                                                          prefix_pattern=prefixPatternInputFiles)
+            print("Metadata from file: \'%s\'..." % (basename(in_refer_file)))
+
+            in_metadata = FileReader.getImageMetadataInfo(in_refer_file)
+
+            FileReader.writeImageArray(out_file, inout_array, metadata=in_metadata)
     #endfor
 
     if files_type == 'dicom':
@@ -98,6 +121,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
+    parser.add_argument('--inputRefdir', type=str, default=None)
+    parser.add_argument('--outformat', type=str, default='dicom')
     args = parser.parse_args()
 
     print("Print input arguments...")

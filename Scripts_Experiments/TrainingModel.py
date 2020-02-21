@@ -37,30 +37,22 @@ def main(args):
     set_session_in_selected_device(use_GPU_device=True,
                                    type_GPU_installed=TYPEGPUINSTALLED)
 
-    # ---------- SETTINGS ----------
-    nameModelsRelPath  = args.modelsdir
-    namesImagesFiles   = 'images_proc*.nii.gz'
-    namesLabelsFiles   = 'labels_proc*.nii.gz'
-    cfgparams_filename = 'cfgparams.txt'
-    descmodel_filename = 'descmodel.txt'
-    # ---------- SETTINGS ----------
-
 
     workDirsManager  = WorkDirsManager(args.basedir)
     TrainingDataPath = workDirsManager.getNameExistPath(args.traindatadir)
     if args.restart_model:
-        ModelsPath = workDirsManager.getNameExistPath(nameModelsRelPath)
+        ModelsPath = workDirsManager.getNameExistPath(args.modelsdir)
     else:
-        ModelsPath = workDirsManager.getNameUpdatePath(nameModelsRelPath)
+        ModelsPath = workDirsManager.getNameNewUpdatePath(args.modelsdir)
 
-    listTrainImagesFiles = findFilesDirAndCheck(TrainingDataPath, namesImagesFiles)[0:args.numMaxTrainImages]
-    listTrainLabelsFiles = findFilesDirAndCheck(TrainingDataPath, namesLabelsFiles)[0:args.numMaxTrainImages]
+    listTrainImagesFiles = findFilesDirAndCheck(TrainingDataPath)[0:args.numMaxTrainImages]
+    listTrainLabelsFiles = findFilesDirAndCheck(TrainingDataPath)[0:args.numMaxTrainImages]
 
     if USEVALIDATIONDATA:
         ValidationDataPath = workDirsManager.getNameExistPath(args.validdatadir)
 
-        listValidImagesFiles = findFilesDir(ValidationDataPath, namesImagesFiles)[0:args.numMaxValidImages]
-        listValidLabelsFiles = findFilesDir(ValidationDataPath, namesLabelsFiles)[0:args.numMaxValidImages]
+        listValidImagesFiles = findFilesDir(ValidationDataPath)[0:args.numMaxValidImages]
+        listValidLabelsFiles = findFilesDir(ValidationDataPath)[0:args.numMaxValidImages]
 
         if not listValidImagesFiles or not listValidLabelsFiles:
             use_validation_data = False
@@ -72,11 +64,11 @@ def main(args):
         use_validation_data = False
 
     # write out experiment parameters in config file
-    cfgparams_filename = joinpathnames(ModelsPath, cfgparams_filename)
-    if not isExistfile(cfgparams_filename):
-        print("Write out config parameters in file: \'%s\'" % (cfgparams_filename))
+    out_cfgparams_file = joinpathnames(ModelsPath, NAME_CONFIGPARAMS_FILE)
+    if not isExistfile(out_cfgparams_file):
+        print("Write out config parameters in file: \'%s\'" % (out_cfgparams_file))
         dict_args = OrderedDict(sorted(vars(args).iteritems()))
-        saveDictionary_configParams(cfgparams_filename, dict_args)
+        saveDictionary_configParams(out_cfgparams_file, dict_args)
 
 
     
@@ -232,12 +224,12 @@ def main(args):
         # ----------------------------------------------
 
     if (WRITEOUTDESCMODELTEXT):
-        descmodel_filename = joinpathnames(ModelsPath, descmodel_filename)
-        # if not isExistfile(descmodel_filename):
-        print("Write out descriptive model source model in text file: \'%s\'" % (descmodel_filename))
-        descmodel_txt = trainer.model_net.get_descmodel_sourcecode()
-        fout = open(descmodel_filename, 'w')
-        fout.write(descmodel_txt)
+        out_logdescmodel_file = joinpathnames(ModelsPath, NAME_LOGDESCMODEL_FILE)
+        # if not isExistfile(out_logdescmodel_file):
+        print("Write out descriptive model source model in text file: \'%s\'" % (out_logdescmodel_file))
+        descmodel_text = trainer.model_net.get_descmodel_sourcecode()
+        fout = open(out_logdescmodel_file, 'w')
+        fout.write(descmodel_text)
         fout.close()
     # ----------------------------------------------
 

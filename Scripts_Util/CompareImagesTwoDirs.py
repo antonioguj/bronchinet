@@ -46,8 +46,17 @@ def main(args):
 
         in_image1_array = FileReader.getImageArray(in_file_1)
         in_image2_array = FileReader.getImageArray(in_file_2)
-        #print("Values in input array 1: %s..." % (np.unique(in_image1_array)))
-        #print("Values in input array 2: %s..." % (np.unique(in_image2_array)))
+
+
+        # # Compare files metadata (header info)
+        # if (filenameextension(in_file_1) == filenameextension(in_file_2)):
+        #     in_img1_metadata = FileReader.getImageMetadataInfo(in_file_1)
+        #     in_img2_metadata = FileReader.getImageMetadataInfo(in_file_2)
+        #
+        #     if (in_img1_metadata == in_img2_metadata):
+        #         print("GOOD: Images have equal metadata (header info)...")
+        #     else:
+        #         print("WARNING: Images have different metadata (header info)...")
 
 
         if (in_image1_array.shape == in_image2_array.shape):
@@ -95,7 +104,7 @@ def main(args):
                         out_diffimages_filename = joinpathnames(args.tempdir, nameOutDiffImageFilesName %(i+1))
                         print("Output difference between images maps: \'%s\'..." %(basename(out_diffimages_filename)))
 
-                        FileReader.writeImageArray(out_diffimages_filename, out_diffimages_array)
+                        #FileReader.writeImageArray(out_diffimages_filename, out_diffimages_array)
 
                         out_histo_filename = joinpathnames(args.tempdir, nameOutHistoFilesName%(i+1))
                         print("Compute and output the histograms of both images: \'%s\'..." %(basename(out_histo_filename)))

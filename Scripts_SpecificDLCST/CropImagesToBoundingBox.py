@@ -18,22 +18,22 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath     = args.inputdir
-    nameInputReferFilesRelPath = 'RawImages/'
-    nameOutputImagesRelPath    = args.outputdir
-    nameBoundingBoxes          = 'found_boundBoxes_original.npy'
-    nameOutputImagesFiles      = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
-    prefixPatternInputFiles    = 'vol[0-9][0-9]_*'
+    nameInputImagesRelPath    = args.inputdir
+    nameOutputImagesRelPath   = args.outputdir
+    nameInputReferKeysRelPath = args.referkeysdir
+    nameBoundingBoxes         = 'found_boundingBox_croppedCTinFull.npy'
+    nameOutputImagesFiles     = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    prefixPatternInputFiles   = 'vol[0-9][0-9]_*'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager     = WorkDirsManager(args.datadir)
-    InputImagesPath     = workDirsManager.getNameExistPath(nameInputImagesRelPath)
-    InputReferFilesPath = workDirsManager.getNameExistPath(nameInputReferFilesRelPath)
-    OutputImagesPath    = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
+    workDirsManager  = WorkDirsManager(args.datadir)
+    InputImagesPath  = workDirsManager.getNameExistPath(nameInputImagesRelPath)
+    InReferKeysPath  = workDirsManager.getNameExistPath(nameInputReferKeysRelPath)
+    OutputImagesPath = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
 
     listInputImagesFiles = findFilesDirAndCheck(InputImagesPath)
-    listInputReferFiles  = findFilesDirAndCheck(InputReferFilesPath)
+    listInReferKeysFiles = findFilesDirAndCheck(InReferKeysPath)
 
     dict_bounding_boxes = readDictionary(joinpathnames(args.datadir, nameBoundingBoxes))
 
@@ -42,10 +42,10 @@ def main(args):
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
-        in_refer_file = findFileWithSamePrefixPattern(basename(in_image_file), listInputReferFiles,
-                                                      prefix_pattern=prefixPatternInputFiles)
-        print("Reference file: \'%s\'..." % (basename(in_refer_file)))
-        bounding_box = dict_bounding_boxes[filenamenoextension(in_refer_file)]
+        in_referkey_file = findFileWithSamePrefixPattern(basename(in_image_file), listInReferKeysFiles,
+                                                         prefix_pattern=prefixPatternInputFiles)
+        print("Reference file: \'%s\'..." % (basename(in_referkey_file)))
+        bounding_box = dict_bounding_boxes[filenamenoextension(in_referkey_file)]
 
 
         in_fullimage_array = FileReader.getImageArray(in_image_file)
@@ -70,6 +70,7 @@ if __name__ == "__main__":
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
+    parser.add_argument('--referkeysdir', type=str, default='RawImages/')
     args = parser.parse_args()
 
     if not args.inputdir:

@@ -69,25 +69,10 @@ class WorkDirsManager(object):
         relPath = joinpathnames(self.baseDataRelPath, relPath)
         return self.getNameNewPath(relPath)
 
-    def getNameUpdatePath(self, relPath):
-        #datetoday_str= '%i-%i-%i'%(getdatetoday())
-        #timenow_str  = '%0.2i-%0.2i-%0.2i'%(gettimenow())
-        suffix_update = '_NEW%0.2i'
-        updatePath = joinpathnames(self.basePath, relPath)
-        if isExistdir(updatePath):
-            count = 1
-            while True:
-                newUpdatePath = updatePath + suffix_update%(count)
-                if not isExistdir(newUpdatePath):
-                    makedir(newUpdatePath)
-                    return newUpdatePath
-                #else:
-                #...keep iterating
-                count = count + 1
-        else:
-            makedir(updatePath)
-            return updatePath
-
+    def getNameNewUpdatePath(self, relPath):
+        newPath = joinpathnames(self.basePath, relPath)
+        newPath = makeupdatedir(newPath)
+        return newPath
 
     @staticmethod
     def getNameExistFullPath(fullPath):

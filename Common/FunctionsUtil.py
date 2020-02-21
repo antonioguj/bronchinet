@@ -30,6 +30,21 @@ def makedir(pathname):
     else:
         return False
 
+def makeupdatedir(pathname):
+    suffix_update = 'NEW%0.2i'
+    if isExistdir(pathname):
+        count = 1
+        while True:
+            update_pathname = updatepathnameWithsuffix(pathname, suffix_update %(count))
+            if not isExistdir(update_pathname):
+                makedir(update_pathname)
+                return update_pathname
+            # else: ...keep iterating
+            count = count + 1
+    else:
+        makedir(pathname)
+        return pathname
+
 def removedir(pathname):
     os.rmdir(pathname)
 
@@ -89,6 +104,11 @@ def filenameextension(filename, use_recurse_splitext=True):
         return ospath_splitext_recurse(filename)[1]
     else:
         return os.path.splitext(filename)[1]
+
+def updatepathnameWithsuffix(pathname, suffix):
+    if pathname.endswith('/'):
+        pathname = pathname[:-1]
+    return '_'.join([pathname, suffix])
 # ------------------------------------
 
 
@@ -436,9 +456,11 @@ def getIndexOriginImagesFile(images_file, beginString='images', firstIndex='0'):
         return False
 
 def getFilePrefixPattern(in_file):
-    base_infile = basename(in_file)
+    base_infile = filenamenoextension(in_file)
     infile_prefix = base_infile.split('_')[0]
-    infile_prefix_pattern = ''.join(['[0-9]' if s.isdigit() else s for s in infile_prefix]) +'_'
+    infile_prefix_pattern = ''.join(['[0-9]' if s.isdigit() else s for s in infile_prefix])
+    if infile_prefix != base_infile:
+        infile_prefix_pattern += '_'
     return infile_prefix_pattern
 
 def getIntegerInString(in_name):

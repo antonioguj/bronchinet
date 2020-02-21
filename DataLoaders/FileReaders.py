@@ -37,16 +37,8 @@ class GZIPmanager(object):
 
 class FileReader(object):
     @classmethod
-    def getImagePosition(cls, filename):
-        return cls.getFileReaderClass(filename).getImagePosition(filename)
-
-    @classmethod
-    def getImageVoxelSize(cls, filename):
-        return cls.getFileReaderClass(filename).getImageVoxelSize(filename)
-
-    @classmethod
-    def getImageHeaderInfo(cls, filename):
-        return cls.getFileReaderClass(filename).getImageHeaderInfo(filename)
+    def getImageMetadataInfo(cls, filename):
+        return cls.getFileReaderClass(filename).getImageMetadataInfo(filename)
 
     @classmethod
     def getImageSize(cls, filename):
@@ -57,12 +49,12 @@ class FileReader(object):
         return cls.getFileReaderClass(filename).getImageArray(filename)
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, img_header_info=None):
-        cls.getFileReaderClass(filename).writeImageArray(filename, images_array, img_header_info)
+    def writeImageArray(cls, filename, images_array, **kwargs):
+        cls.getFileReaderClass(filename).writeImageArray(filename, images_array, **kwargs)
 
     @staticmethod
     def getFileReaderClass(filename):
-        basename, extension = ospath_splitext_recurse(filename)
+        extension = filenameextension(filename)
         if (extension == '.nii' or extension == '.nii.gz'):
             return NIFTIreader
         elif (extension == '.npy'):
@@ -115,20 +107,6 @@ class NIFTIreader(FileReader):
         affine[:, [0, 2]] = affine[:, [2, 0]]
         return affine
 
-    @classmethod
-    def getImagePosition(cls, filename):
-        affine = cls.getImageAffineMatrix(filename)
-        return tuple(affine[:3,-1])
-
-    @classmethod
-    def getImageVoxelSize(cls, filename):
-        affine = cls.getImageAffineMatrix(filename)
-        return tuple(np.abs(np.diag(affine)[:3]))
-
-    @classmethod
-    def getImageHeaderInfo(cls, filename):
-        return cls.getImageAffineMatrix(filename)
-
     @staticmethod
     def fixDimsImageArray_fromDicom2niix(images_array):
         return np.flip(images_array, 1)
@@ -154,13 +132,31 @@ class NIFTIreader(FileReader):
         return np.swapaxes(images_array, 0, 2)
 
     @classmethod
+    def getImagePosition(cls, filename):
+        affine = cls.getImageAffineMatrix(filename)
+        return tuple(affine[:3,-1])
+
+    @classmethod
+    def getImageVoxelSize(cls, filename):
+        affine = cls.getImageAffineMatrix(filename)
+        return tuple(np.abs(np.diag(affine)[:3]))
+
+    @classmethod
+    def getImageMetadataInfo(cls, filename):
+        return cls.getImageAffineMatrix(filename)
+
+    @classmethod
     def getImageArray(cls, filename, isFix_from_dicom2niix=False):
         nib_img = nib.load(filename)
         return cls.changeDimsImageArray_read(nib_img.get_data())
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, img_header_affine=None):
-        nib_img = nib.Nifti1Image(cls.changeDimsImageArray_write(images_array), img_header_affine)
+    def writeImageArray(cls, filename, images_array, **kwargs):
+        if 'metadata' in kwargs.keys():
+            affine = kwargs['metadata']
+        else:
+            affine = None
+        nib_img = nib.Nifti1Image(cls.changeDimsImageArray_write(images_array), affine)
         nib.save(nib_img, filename)
 
 
@@ -171,7 +167,7 @@ class NUMPYreader(FileReader):
         return np.load(filename)
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, img_header_info=None):
+    def writeImageArray(cls, filename, images_array, **kwargs):
         np.save(filename, images_array)
 
 
@@ -181,7 +177,7 @@ class NUMPYZreader(FileReader):
         return np.load(filename)['arr_0']
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, img_header_info=None):
+    def writeImageArray(cls, filename, images_array, **kwargs):
         np.savez_compressed(filename, images_array)
 
 
@@ -192,7 +188,7 @@ class HDF5reader(FileReader):
         return data_file['data'][:]
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, img_header_info=None):
+    def writeImageArray(cls, filename, images_array, **kwargs):
         data_file = h5py.File(filename, 'w')
         data_file.create_dataset('data', data=images_array)
         data_file.close()
@@ -201,17 +197,21 @@ class HDF5reader(FileReader):
 class MHDRAWreader(FileReader):
     @classmethod
     def getImageArray(cls, filename):
-        ds = sitk.ReadImage(filename)
-        return sitk.GetArrayFromImage(ds)
+        img_read = sitk.ReadImage(filename)
+        return sitk.GetArrayFromImage(img_read)
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, img_header_info=None):
-        ds = sitk.GetImageFromArray(images_array)
-        sitk.WriteImage(ds, filename)
+    def writeImageArray(cls, filename, images_array, **kwargs):
+        img_write = sitk.GetImageFromArray(images_array)
+        sitk.WriteImage(img_write, filename)
 
 
 
 class DICOMreader(FileReader):
+    @staticmethod
+    def getImageHeader(filename):
+        return pydicom.read_file(filename)
+
     @classmethod
     def getImagePosition(cls, filename):
         ds = pydicom.read_file(filename)
@@ -228,77 +228,43 @@ class DICOMreader(FileReader):
                 float(ds.PixelSpacing[1]))
 
     @classmethod
-    def getImageHeaderInfo(cls, filename):
-        return {'position': cls.getImagePosition(filename),
-                'voxelsize': cls.getImageVoxelSize(filename)}
+    def getImageMetadataInfo(cls, filename):
+        img_read = sitk.ReadImage(filename)
+        metadata_keys = img_read.GetMetaDataKeys()
+        return {key: img_read.GetMetaData(key) for key in metadata_keys}
+
+    @staticmethod
+    def convertImageArrayStoredDtypeUint16(images_array):
+        max_val_uint16 = np.iinfo(np.uint16).max
+        ind_pos_0 = np.argwhere(images_array == 0)
+        images_array = images_array.astype(np.int32) - max_val_uint16 - 1
+        images_array[ind_pos_0] = 0
+        return images_array
 
     @classmethod
     def getImageArray(cls, filename):
-        ds = sitk.ReadImage(filename)
-        return sitk.GetArrayFromImage(ds)
+        img_read = sitk.ReadImage(filename)
+        return sitk.GetArrayFromImage(img_read)
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, img_header_info=None):
-        ds = sitk.GetImageFromArray(images_array)
-        sitk.WriteImage(ds, filename)
-
-    @staticmethod
-    def writeDICOMimage(filename, images_array):
-        ## This code block was taken from the output of a MATLAB secondary
-        ## capture.  I do not know what the long dotted UIDs mean, but
-        ## this code works.
-        file_meta = Dataset()
-        file_meta.MediaStorageSOPClassUID = 'Secondary Capture Image Storage'
-        file_meta.MediaStorageSOPInstanceUID = '1.3.6.1.4.1.9590.100.1.1.111165684411017669021768385720736873780'
-        file_meta.ImplementationClassUID = '1.3.6.1.4.1.9590.100.1.0.100.4.0'
-        ds = FileDataset(filename, {}, file_meta=file_meta, preamble="\0" * 128)
-        ds.Modality = 'WSD'
-        ds.ContentDate = str(datetime.date.today()).replace('-', '')
-        ds.ContentTime = str(time.time())  # milliseconds since the epoch
-        ds.StudyInstanceUID = '1.3.6.1.4.1.9590.100.1.1.124313977412360175234271287472804872093'
-        ds.SeriesInstanceUID = '1.3.6.1.4.1.9590.100.1.1.369231118011061003403421859172643143649'
-        ds.SOPInstanceUID = '1.3.6.1.4.1.9590.100.1.1.111165684411017669021768385720736873780'
-        ds.SOPClassUID = 'Secondary Capture Image Storage'
-        ds.SecondaryCaptureDeviceManufctur = 'Python 2.7.3'
-        ## These are the necessary imaging components of the FileDataset object.
-        ds.SamplesPerPixel = 1
-        ds.PhotometricInterpretation = "MONOCHROME2"
-        ds.PixelRepresentation = 0
-        ds.HighBit = 15
-        ds.BitsStored = 16
-        ds.BitsAllocated = 16
-        ds.SmallestImagePixelValue = '\\x00\\x00'
-        ds.LargestImagePixelValue = '\\xff\\xff'
-        ds.Rows = images_array.shape[0]
-        ds.Columns = images_array.shape[1]
+    def writeImageArray(cls, filename, images_array, **kwargs):
         if images_array.dtype != np.uint16:
             images_array = images_array.astype(np.uint16)
-        ds.PixelData = images_array.tostring()
-        ds.save_as(filename)
+        img_write = sitk.GetImageFromArray(images_array)
+        if 'metadata' in kwargs.keys():
+            dict_metadata = kwargs['metadata']
+            for (key, val) in dict_metadata.iteritems():
+                img_write.SetMetaData(key, val)
+        return sitk.WriteImage(img_write, filename)
 
-    # get dcm header info:
-    @staticmethod
-    def loadPatientInformation(filename):
-        ds = pydicom.read_file(filename)
-        information = {}
-        information['PatientID'] = ds.PatientID
-        information['PatientName'] = ds.PatientName
-        information['PatientBirthDate'] = ds.PatientBirthDate
-        information['PatientSex'] = ds.PatientSex
-        information['StudyID'] = ds.StudyID
-        # information['StudyTime'] = ds.Studytime
-        information['InstitutionName'] = ds.InstitutionName
-        information['Manufacturer'] = ds.Manufacturer
-        information['NumberOfFrames'] = ds.NumberOfFrames
-        return information
-
-    # copy PixelData info and save image
-    @staticmethod
-    def copyPixelDataAndSaveImage(origfilename, newfilename):
-        orig_ds = pydicom.read_file(origfilename)
-        new_ds  = pydicom.read_file(newfilename)
-        orig_ds.PixelData = new_ds.PixelData
-        orig_ds.save_as(origfilename)
+    @classmethod
+    def writeImageArray_OLD(cls, filename, images_array, ds_refimg):
+        if ds_refimg.file_meta.TransferSyntaxUID.is_compressed:
+            ds_refimg.decompress()
+        if images_array.dtype != np.uint16:
+            images_array = images_array.astype(np.uint16)
+        ds_refimg.PixelData = images_array.tostring()
+        pydicom.write_file(filename, ds_refimg)
 
 
 

@@ -59,9 +59,9 @@ def main(args):
     _alpha_relax = 0.6
     _z_min_top = 15
     _z_numtest = 10
-    nameTempOutResFile   = 'temp_found_boundBoxes_vol16.csv'
-    nameOutResultFileNPY = 'found_boundBoxes_original.npy'
-    nameOutResultFileCSV = 'found_boundBoxes_original.csv'
+    nameTempOutResFile   = 'temp_found_boundingBox_vol16.csv'
+    nameOutResultFileNPY = 'found_boundingBox_croppedCTinFull.npy'
+    nameOutResultFileCSV = 'found_boundingBox_croppedCTinFull.csv'
     # ---------- SETTINGS ----------
 
 
