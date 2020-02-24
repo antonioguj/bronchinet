@@ -55,8 +55,6 @@ PROP_DATA_TESTING    = 0.00 #0.35
 
 DISTRIBUTE_RANDOM = False
 DISTRIBUTE_FIXED_NAMES = False
-
-LISTMERGEDATARELDIRS = ['LUVAR_Processed/', 'DLCST_Processed/', 'EXACT_Processed/']
 # ******************** DATA DISTRIBUTION ********************
 
 

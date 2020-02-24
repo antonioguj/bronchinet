@@ -200,25 +200,25 @@ def main(args):
 
 
 
-        out_image_file = joinpathnames(OutputImagesPath, nameTemplateOutputImagesFiles %(i+1))
-        print("Output: \'%s\', of dims \'%s\'..." % (basename(out_image_file), (inout_image_array.shape)))
+        output_image_file = joinpathnames(OutputImagesPath, nameTemplateOutputImagesFiles %(i+1))
+        print("Output: \'%s\', of dims \'%s\'..." % (basename(output_image_file), (inout_image_array.shape)))
 
-        FileReader.writeImageArray(out_image_file, inout_image_array)
+        FileReader.writeImageArray(output_image_file, inout_image_array)
 
         # save this image in reference keys
-        dict_referenceKeys[basename(out_image_file)] = basename(in_image_file)
+        dict_referenceKeys[basename(output_image_file)] = basename(in_image_file)
 
         if (args.isPrepareLabels):
-            out_label_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles %(i+1))
-            print("And: \'%s\', of dims \'%s\'..." % (basename(out_label_file), str(inout_label_array.shape)))
+            output_label_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles %(i+1))
+            print("And: \'%s\', of dims \'%s\'..." % (basename(output_label_file), str(inout_label_array.shape)))
 
-            FileReader.writeImageArray(out_label_file, inout_label_array)
+            FileReader.writeImageArray(output_label_file, inout_label_array)
 
         if (args.isInputExtraLabels):
-            out_extralabel_file = joinpathnames(OutputExtraLabelsPath, nameTemplateOutputExtraLabelsFiles %(i+1))
-            print("And: \'%s\', of dims \'%s\'..." % (basename(out_extralabel_file), str(inout_extralabel_array.shape)))
+            output_extralabel_file = joinpathnames(OutputExtraLabelsPath, nameTemplateOutputExtraLabelsFiles %(i+1))
+            print("And: \'%s\', of dims \'%s\'..." % (basename(output_extralabel_file), str(inout_extralabel_array.shape)))
 
-            FileReader.writeImageArray(out_extralabel_file, inout_extralabel_array)
+            FileReader.writeImageArray(output_extralabel_file, inout_extralabel_array)
     #endfor
 
 

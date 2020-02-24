@@ -78,6 +78,16 @@ def basename(filename):
 def dirnamepathfile(filename):
     return os.path.dirname(filename)
 
+def basenamedir(pathname):
+    if pathname.endswith('/'):
+        pathname = pathname[:-1]
+    return basename(pathname)
+
+def dirnamepathdir(pathname):
+    if pathname.endswith('/'):
+        pathname = pathname[:-1]
+    return dirnamepathfile(pathname)
+
 def ospath_splitext_recurse(filename):
     #account for extension that are compound: i.e. '.nii.gz'
     basename, extension = os.path.splitext(filename)
