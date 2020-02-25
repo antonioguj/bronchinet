@@ -29,7 +29,7 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 # ******************** SET-UP WORKDIR ********************
 DATADIR = '/home/antonio/Data/LUVAR_Processed/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
 
 # Names input and output directories
 NAME_RAWIMAGES_RELPATH      = 'RawImages/'
@@ -52,7 +52,8 @@ NAME_LOGDESCMODEL_FILE      = 'logdescmodel.txt'
 
 
 # ******************** DATA DISTRIBUTION ********************
-PROPDATA_TRAINVALIDTEST = (0.84, 0.16, 0.0)
+#PROPDATA_TRAINVALIDTEST = (0.84, 0.16, 0.0) # for EXACT
+PROPDATA_TRAINVALIDTEST = (0.5, 0.14, 0.36) # for DLCST+LUVAR
 # ******************** DATA DISTRIBUTION ********************
 
 
@@ -108,7 +109,7 @@ TYPETRANSFORMELASTICDEFORMATION = 'gridwise'
 
 # ******************** TRAINING PARAMETERS ********************
 TYPE_DNNLIBRARY_USED = 'Pytorch'
-TYPEGPUINSTALLED     = 'smaller_GPU'
+TYPEGPUINSTALLED     = 'larger_GPU'
 
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (256, 256, 256) # for Non-valid convolutions
