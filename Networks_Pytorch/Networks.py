@@ -318,14 +318,14 @@ class Unet3D_General(NeuralNetwork):
         self.build_model()
 
     def get_arch_desc(self):
-        return ['Unet3D_Tailored', {'size_image': self.size_image,
-                                    'num_levels': self.num_levels,
-                                    'num_channels_in': self.num_channels_in,
-                                    'num_classes_out': self.num_classes_out,
-                                    'num_featmaps_in': self.num_featmaps_in,
-                                    'isUse_valid_convols': self.isUse_valid_convols,
-                                    'type_activate_hidden': self.type_activate_hidden,
-                                    'type_activate_output': self.type_activate_output}]
+        return ['Unet3D_General', {'size_image': self.size_image,
+                                   'num_levels': self.num_levels,
+                                   'num_channels_in': self.num_channels_in,
+                                   'num_classes_out': self.num_classes_out,
+                                   'num_featmaps_in': self.num_featmaps_in,
+                                   'isUse_valid_convols': self.isUse_valid_convols,
+                                   'type_activate_hidden': self.type_activate_hidden,
+                                   'type_activate_output': self.type_activate_output}]
 
 
     def build_model(self):

@@ -78,10 +78,10 @@ class Metrics(object):
         return tf.where(K.equal(y_true, self.val_exclude), K.zeros_like(y_array), y_array)
 
     def get_mask_np(self, y_true):
-        return tf.where(y_true == self.val_exclude, 0, 1)
+        return np.where(y_true == self.val_exclude, 0, 1)
 
     def get_masked_array_np(self, y_true, y_array):
-        return tf.where(y_true == self.val_exclude, 0, y_array)
+        return np.where(y_true == self.val_exclude, 0, y_array)
 
     def get_renamed_compute(self):
         if self.name_fun_out:

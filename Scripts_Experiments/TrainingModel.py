@@ -33,9 +33,17 @@ import argparse
 
 
 def main(args):
+
+
     # First thing, set session in the selected(s) devices: CPU or GPU
     set_session_in_selected_device(use_GPU_device=True,
                                    type_GPU_installed=TYPEGPUINSTALLED)
+
+    # ---------- SETTINGS ----------
+    nameInputImagesFiles = 'images_proc*.nii.gz'
+    nameInputLabelsFiles = 'labels_proc*.nii.gz'
+    nameInputExtraLabelsFiles = 'cenlines_proc*.nii.gz'
+    # ---------- SETTINGS ----------
 
 
     workDirsManager  = WorkDirsManager(args.basedir)
@@ -45,14 +53,14 @@ def main(args):
     else:
         ModelsPath = workDirsManager.getNameNewUpdatePath(args.modelsdir)
 
-    listTrainImagesFiles = findFilesDirAndCheck(TrainingDataPath)[0:args.numMaxTrainImages]
-    listTrainLabelsFiles = findFilesDirAndCheck(TrainingDataPath)[0:args.numMaxTrainImages]
+    listTrainImagesFiles = findFilesDirAndCheck(TrainingDataPath, nameInputImagesFiles)[0:args.numMaxTrainImages]
+    listTrainLabelsFiles = findFilesDirAndCheck(TrainingDataPath, nameInputLabelsFiles)[0:args.numMaxTrainImages]
 
     if USEVALIDATIONDATA:
         ValidationDataPath = workDirsManager.getNameExistPath(args.validdatadir)
 
-        listValidImagesFiles = findFilesDir(ValidationDataPath)[0:args.numMaxValidImages]
-        listValidLabelsFiles = findFilesDir(ValidationDataPath)[0:args.numMaxValidImages]
+        listValidImagesFiles = findFilesDir(ValidationDataPath, nameInputImagesFiles)[0:args.numMaxValidImages]
+        listValidLabelsFiles = findFilesDir(ValidationDataPath, nameInputLabelsFiles)[0:args.numMaxValidImages]
 
         if not listValidImagesFiles or not listValidLabelsFiles:
             use_validation_data = False

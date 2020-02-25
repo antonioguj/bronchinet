@@ -40,8 +40,9 @@ def main(args):
     # ---------- SETTINGS ----------
     nameInputRoiMasksRelPath  = 'Lungs/'
     nameReferenceFilesRelPath = 'Images/'
-    namesImagesFiles          = 'images_proc*.nii.gz'
-    namesLabelsFiles          = 'labels_proc*.nii.gz'
+    nameInputImagesFiles      = 'images_proc*.nii.gz'
+    nameInputLabelsFiles      = 'labels_proc*.nii.gz'
+    nameInputExtraLabelsFiles = 'cenlines_proc*.nii.gz'
     nameOutputPredictionsRelPath = args.predictionsdir
     nameCropBoundingBoxesFile = 'cropBoundingBoxes_images.npy'
 
@@ -52,13 +53,14 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
+
     workDirsManager      = WorkDirsManager(args.basedir)
     TestingDataPath      = workDirsManager.getNameExistPath        (args.testdatadir)
     ReferenceFilesPath   = workDirsManager.getNameExistBaseDataPath(nameReferenceFilesRelPath)
     OutputPredictionsPath= workDirsManager.getNameNewPath          (nameOutputPredictionsRelPath)
 
-    listTestImagesFiles = findFilesDirAndCheck(TestingDataPath, namesImagesFiles)
-    #listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath, namesLabelsFiles)
+    listTestImagesFiles = findFilesDirAndCheck(TestingDataPath, nameInputImagesFiles)
+    #listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath, nameInputLabelsFiles)
     listReferenceFiles  = findFilesDirAndCheck(ReferenceFilesPath)
 
     if (args.masksToRegionInterest):

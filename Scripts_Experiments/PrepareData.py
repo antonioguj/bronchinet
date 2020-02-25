@@ -27,6 +27,7 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
+
     workDirsManager    = WorkDirsManager(args.datadir)
     InputImagesPath    = workDirsManager.getNameExistPath(args.nameInputImagesRelPath)
     InputReferKeysPath = workDirsManager.getNameExistPath(args.nameInputReferKeysRelPath)

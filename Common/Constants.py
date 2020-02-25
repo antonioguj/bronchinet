@@ -136,8 +136,8 @@ ILOSSFUN   = 'DiceCoefficient'
 LISTMETRICS = []
 #LISTMETRICS = ['DiceCoefficient', 'TruePositiveRate', 'FalsePositiveRate', 'TrueNegativeRate', 'FalseNegativeRate']
 
-NUMMAXTRAINIMAGES = 70
-NUMMAXVALIDIMAGES = 30
+NUMMAXTRAINIMAGES = 50
+NUMMAXVALIDIMAGES = 15
 
 ISVALIDCONVOLUTIONS = True
 USEVALIDATIONDATA = True
