@@ -29,7 +29,7 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 # ******************** SET-UP WORKDIR ********************
 DATADIR = '/home/antonio/Data/LUVAR_Processed/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
 
 # Names input and output directories
 NAME_RAWIMAGES_RELPATH      = 'RawImages/'
@@ -52,8 +52,7 @@ NAME_LOGDESCMODEL_FILE      = 'logdescmodel.txt'
 
 
 # ******************** DATA DISTRIBUTION ********************
-PROPDATA_TRAINVALIDTEST = (0.83, 0.16, 0.01)
-#PROPDATA_TRAINVALIDTEST = (0.5, 0.15, 0.35)
+PROPDATA_TRAINVALIDTEST = (0.84, 0.16, 0.0)
 # ******************** DATA DISTRIBUTION ********************
 
 
@@ -73,7 +72,6 @@ MASKTOREGIONINTEREST = True
 
 RESCALEIMAGES = False
 ORDERINTERRESCALE = 3
-#FIXEDRESCALERES = (0.6, 0.6, 0.6)
 #FIXEDRESCALERES = (0.6, 0.55, 0.55)   # for LUVAR
 FIXEDRESCALERES = (0.8, 0.69, 0.69)   # for EXACT
 FIXEDRESCALERES = None
@@ -109,20 +107,17 @@ TYPETRANSFORMELASTICDEFORMATION = 'gridwise'
 
 
 # ******************** TRAINING PARAMETERS ********************
-TYPE_DNNLIBRARY_USED = 'Keras'
-TYPEGPUINSTALLED     = 'larger_GPU'
+TYPE_DNNLIBRARY_USED = 'Pytorch'
+TYPEGPUINSTALLED     = 'smaller_GPU'
 
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)
-#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (252, 252, 252) # for Keras
-(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (236, 236, 236) # for Pytorch
+#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (256, 256, 256) # for Non-valid convolutions
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (252, 252, 252) # for Valid convolutions
 IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
 
-#IMODEL    	  = 'UnetGNN_OTF'
-#IMODEL    	  = 'UnetGNN'
 IMODEL       = 'Unet'
 NUM_LAYERS   = 5
-#NUM_FEATMAPS = 16 # for Keras
-NUM_FEATMAPS = 10 # for Pytorch
+NUM_FEATMAPS = 16
 
 TYPE_NETWORK         = 'classification'
 TYPE_ACTIVATE_HIDDEN = 'relu'
