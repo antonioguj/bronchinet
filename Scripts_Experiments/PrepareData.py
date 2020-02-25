@@ -27,55 +27,52 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workDirsManager  = WorkDirsManager(args.datadir)
-    InputImagesPath  = workDirsManager.getNameExistPath(args.nameRawImagesRelPath)
-    InReferKeysPath  = workDirsManager.getNameExistPath(args.nameReferKeysRelPath)
-    OutputImagesPath = workDirsManager.getNameNewPath  (args.nameProcImagesRelPath)
+    workDirsManager    = WorkDirsManager(args.datadir)
+    InputImagesPath    = workDirsManager.getNameExistPath(args.nameInputImagesRelPath)
+    InputReferKeysPath = workDirsManager.getNameExistPath(args.nameInputReferKeysRelPath)
+    OutputImagesPath   = workDirsManager.getNameNewPath  (args.nameOutputImagesRelPath)
+    OutputReferKeysFile= workDirsManager.getNameNewUpdateFile(args.nameOutputReferKeysFile)
 
-    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath)
-    listInReferKeysFiles = findFilesDirAndCheck(InReferKeysPath)
+    listInputImagesFiles    = findFilesDirAndCheck(InputImagesPath)
+    listInputReferKeysFiles = findFilesDirAndCheck(InputReferKeysPath)
 
     if (args.isPrepareLabels):
-        InputLabelsPath      = workDirsManager.getNameExistPath(args.nameRawLabelsRelPath)
-        OutputLabelsPath     = workDirsManager.getNameNewPath  (args.nameProcLabelsRelPath)
+        InputLabelsPath      = workDirsManager.getNameExistPath(args.nameInputLabelsRelPath)
+        OutputLabelsPath     = workDirsManager.getNameNewPath  (args.nameOutputLabelsRelPath)
         listInputLabelsFiles = findFilesDirAndCheck(InputLabelsPath)
 
+        if (len(listInputImagesFiles) != len(listInputLabelsFiles)):
+            message = 'num Images \'%s\' and Labels \'%s\' not equal...' %(len(listInputImagesFiles), len(listInputLabelsFiles))
+            CatchErrorException(message)
+
     if (args.masksToRegionInterest):
-        InputRoiMasksPath      = workDirsManager.getNameExistPath(args.nameRawRoiMasksRelPath)
+        InputRoiMasksPath      = workDirsManager.getNameExistPath(args.nameInputRoiMasksRelPath)
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
+        if (len(listInputImagesFiles) != len(listInputRoiMasksFiles)):
+            message = 'num Images \'%s\' and Roi Masks \'%s\' not equal...' %(len(listInputImagesFiles), len(listInputRoiMasksFiles))
+            CatchErrorException(message)
+
     if (args.isInputExtraLabels):
-        InputExtraLabelsPath      = workDirsManager.getNameExistPath(args.nameRawExtraLabelsRelPath)
-        OutputExtraLabelsPath     = workDirsManager.getNameNewPath  (args.nameProcExtraLabelsRelPath)
+        InputExtraLabelsPath      = workDirsManager.getNameExistPath(args.nameInputExtraLabelsRelPath)
+        OutputExtraLabelsPath     = workDirsManager.getNameNewPath  (args.nameOutputExtraLabelsRelPath)
         listInputExtraLabelsFiles = findFilesDirAndCheck(InputExtraLabelsPath)
 
+        if (len(listInputImagesFiles) != len(listInputExtraLabelsFiles)):
+            message = 'num Images \'%s\' and Extra Labels \'%s\' not equal...' %(len(listInputImagesFiles), len(listInputExtraLabelsFiles))
+            CatchErrorException(message)
+
     if (args.rescaleImages):
-        in_rescaleFactors_file = joinpathnames(args.datadir, args.nameRescaleFactorFile)
-        dict_rescaleFactors    = readDictionary(in_rescaleFactors_file)
+        InputRescaleFactorsFile = workDirsManager.getNameExistPath(args.nameRescaleFactorsFile)
+        in_dictRescaleFactors   = readDictionary(InputRescaleFactorsFile)
 
     if (args.cropImages):
-        in_cropBoundingBoxes_file = joinpathnames(args.datadir, args.nameCropBoundingBoxFile)
-        dict_cropBoundingBoxes    = readDictionary(in_cropBoundingBoxes_file)
-
-
-    # check that number of files is the same in all dirs
-    checkNumFilesInDir = [len(listInputImagesFiles), len(listInReferKeysFiles)]
-    if (args.isPrepareLabels):
-        checkNumFilesInDir.append( len(listInputLabelsFiles) )
-    if (args.masksToRegionInterest):
-        checkNumFilesInDir.append( len(listInputRoiMasksFiles) )
-    if (args.isInputExtraLabels):
-        checkNumFilesInDir.append( len(listInputExtraLabelsFiles) )
-
-    for i in range(1, len(checkNumFilesInDir)):
-        if (checkNumFilesInDir[i] != checkNumFilesInDir[0]):
-            message = 'num images \'%s\' and labels \'%s\' not equal...' %(checkNumFilesInDir[i], checkNumFilesInDir[0])
-            CatchErrorException(message)
-    #endfor
+        InputCropBoundingBoxesFile= workDirsManager.getNameExistPath(args.nameCropBoundingBoxesFile)
+        in_dictCropBoundingBoxes  = readDictionary(InputCropBoundingBoxesFile)
 
 
 
-    dict_referenceKeys = OrderedDict()
+    out_dictReferenceKeys = OrderedDict()
 
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
@@ -127,27 +124,27 @@ def main(args):
 
         #*******************************************************************************
         if (args.rescaleImages):
-            in_referkey_file = listInReferKeysFiles[i]
-            rescale_factor = dict_rescaleFactors[filenamenoextension(in_referkey_file)]
-            print("Rescale image with a factor: \'%s\'..." %(str(rescale_factor)))
+            in_referkey_file = listInputReferKeysFiles[i]
+            in_rescale_factor = in_dictRescaleFactors[filenamenoextension(in_referkey_file)]
+            print("Rescale image with a factor: \'%s\'..." %(str(in_rescale_factor)))
 
-            if rescale_factor != (1.0, 1.0, 1.0):
-                inout_image_array = RescaleImages.compute3D(inout_image_array, rescale_factor, order=args.orderInterRescale)
+            if in_rescale_factor != (1.0, 1.0, 1.0):
+                inout_image_array = RescaleImages.compute3D(inout_image_array, in_rescale_factor, order=args.orderInterRescale)
 
                 if (args.isPrepareLabels):
-                    inout_label_array = RescaleImages.compute3D(inout_label_array, rescale_factor, order=args.orderInterRescale, is_binary_mask=True)
+                    inout_label_array = RescaleImages.compute3D(inout_label_array, in_rescale_factor, order=args.orderInterRescale, is_binary_mask=True)
 
                 if (args.masksToRegionInterest):
-                    in_roimask_array = RescaleImages.compute3D(in_roimask_array, rescale_factor, order=args.orderInterRescale, is_binary_mask=True)
+                    in_roimask_array = RescaleImages.compute3D(in_roimask_array, in_rescale_factor, order=args.orderInterRescale, is_binary_mask=True)
                     # remove noise due to interpolation
                     thres_remove_noise = 0.1
                     print("Remove noise in ROI mask by thresholding with value: \'%s\'..." % (thres_remove_noise))
                     in_roimask_array = ThresholdImages.compute(in_roimask_array, thres_val=thres_remove_noise)
 
                 if (args.isInputExtraLabels):
-                    inout_extralabel_array = RescaleImages.compute3D(inout_extralabel_array, rescale_factor, order=args.orderInterRescale, is_binary_mask=True)
+                    inout_extralabel_array = RescaleImages.compute3D(inout_extralabel_array, in_rescale_factor, order=args.orderInterRescale, is_binary_mask=True)
             else:
-                print("Rescale factor (\'%s'\). Skip rescaling..." %(str(rescale_factor)))
+                print("Rescale factor (\'%s'\). Skip rescaling..." %(str(in_rescale_factor)))
 
             print("Final dims: %s..." %(str(inout_image_array.shape)))
         # *******************************************************************************
@@ -165,16 +162,16 @@ def main(args):
 
         # *******************************************************************************
         if (args.cropImages):
-            in_referkey_file = listInReferKeysFiles[i]
-            crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_referkey_file)]
-            print("Crop image to bounding-box: \'%s\'..." % (str(crop_bounding_box)))
+            in_referkey_file = listInputReferKeysFiles[i]
+            in_crop_bounding_box = in_dictCropBoundingBoxes[filenamenoextension(in_referkey_file)]
+            print("Crop image to bounding-box: \'%s\'..." % (str(in_crop_bounding_box)))
 
-            if not BoundingBoxes.is_bounding_box_contained_in_image_size(crop_bounding_box, inout_image_array.shape):
+            if not BoundingBoxes.is_bounding_box_contained_in_image_size(in_crop_bounding_box, inout_image_array.shape):
                 print("Cropping bounding-box: \'%s\' is larger than image size: \'%s\'. Combine cropping with extending images..."
-                      %(str(crop_bounding_box), str(inout_image_array.shape)))
+                      %(str(in_crop_bounding_box), str(inout_image_array.shape)))
 
-                new_inout_image_shape = BoundingBoxes.get_size_bounding_box(crop_bounding_box)
-                (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image(crop_bounding_box,
+                new_inout_image_shape = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
+                (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image(in_crop_bounding_box,
                                                                                                                             inout_image_array.shape)
                 inout_image_array = CropAndExtendImages.compute3D(inout_image_array, croppartial_bounding_box, extendimg_bounding_box, new_inout_image_shape,
                                                                   background_value=inout_image_array[0][0][0])
@@ -187,13 +184,13 @@ def main(args):
                     inout_extralabel_array = CropAndExtendImages.compute3D(inout_extralabel_array, croppartial_bounding_box, extendimg_bounding_box, new_inout_image_shape,
                                                                            background_value=inout_extralabel_array[0][0][0])
             else:
-                inout_image_array = CropImages.compute3D(inout_image_array, crop_bounding_box)
+                inout_image_array = CropImages.compute3D(inout_image_array, in_crop_bounding_box)
 
                 if (args.isPrepareLabels):
-                    inout_label_array = CropImages.compute3D(inout_label_array, crop_bounding_box)
+                    inout_label_array = CropImages.compute3D(inout_label_array, in_crop_bounding_box)
 
                 if (args.isInputExtraLabels):
-                    inout_extralabel_array = CropImages.compute3D(inout_extralabel_array, crop_bounding_box)
+                    inout_extralabel_array = CropImages.compute3D(inout_extralabel_array, in_crop_bounding_box)
 
             print("Final dims: %s..." %(str(inout_image_array.shape)))
         # *******************************************************************************
@@ -206,7 +203,7 @@ def main(args):
         FileReader.writeImageArray(output_image_file, inout_image_array)
 
         # save this image in reference keys
-        dict_referenceKeys[basename(output_image_file)] = basename(in_image_file)
+        out_dictReferenceKeys[basename(output_image_file)] = basename(in_image_file)
 
         if (args.isPrepareLabels):
             output_label_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles %(i+1))
@@ -223,10 +220,8 @@ def main(args):
 
 
     # Save dictionary in file
-    nameoutfile = joinpathnames(args.datadir, args.nameReferenceKeysFile)
-    saveDictionary(nameoutfile, dict_referenceKeys)
-    nameoutfile = joinpathnames(args.datadir, args.nameReferenceKeysFile.replace('.npy','.csv'))
-    saveDictionary_csv(nameoutfile, dict_referenceKeys)
+    saveDictionary(OutputReferKeysFile, out_dictReferenceKeys)
+    saveDictionary_csv(OutputReferKeysFile.replace('.npy','.csv'), out_dictReferenceKeys)
 
 
 
@@ -234,24 +229,24 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
-    parser.add_argument('--nameRawImagesRelPath', type=str, default=NAME_RAWIMAGES_RELPATH)
-    parser.add_argument('--nameRawLabelsRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
-    parser.add_argument('--nameRawRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
-    parser.add_argument('--nameReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
-    parser.add_argument('--nameRawExtraLabelsRelPath', type=str, default=NAME_RAWEXTRALABELS_RELPATH)
-    parser.add_argument('--nameProcImagesRelPath', type=str, default=NAME_PROCIMAGES_RELPATH)
-    parser.add_argument('--nameProcLabelsRelPath', type=str, default=NAME_PROCLABELS_RELPATH)
-    parser.add_argument('--nameProcExtraLabelsRelPath', type=str, default=NAME_PROCEXTRALABELS_RELPATH)
-    parser.add_argument('--nameReferenceKeysFile', type=str, default=NAME_REFERENCEKEYS_FILE)
+    parser.add_argument('--nameInputImagesRelPath', type=str, default=NAME_RAWIMAGES_RELPATH)
+    parser.add_argument('--nameInputLabelsRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
+    parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
+    parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
+    parser.add_argument('--nameInputExtraLabelsRelPath', type=str, default=NAME_RAWEXTRALABELS_RELPATH)
+    parser.add_argument('--nameOutputImagesRelPath', type=str, default=NAME_PROCIMAGES_RELPATH)
+    parser.add_argument('--nameOutputLabelsRelPath', type=str, default=NAME_PROCLABELS_RELPATH)
+    parser.add_argument('--nameOutputExtraLabelsRelPath', type=str, default=NAME_PROCEXTRALABELS_RELPATH)
+    parser.add_argument('--nameOutputReferKeysFile', type=str, default=NAME_PROCREFERKEYS_FILE)
     parser.add_argument('--isPrepareLabels', type=str2bool, default=True)
     parser.add_argument('--isInputExtraLabels', type=str2bool, default=False)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--isBinaryTrainMasks', type=str, default=ISBINARYTRAINMASKS)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
-    parser.add_argument('--nameRescaleFactorFile', type=str, default=NAME_RESCALEFACTOR_FILE)
+    parser.add_argument('--nameRescaleFactorsFile', type=str, default=NAME_RESCALEFACTOR_FILE)
     parser.add_argument('--orderInterRescale', type=int, default=ORDERINTERRESCALE)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
-    parser.add_argument('--nameCropBoundingBoxFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
+    parser.add_argument('--nameCropBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
     args = parser.parse_args()
 
     print("Print input arguments...")

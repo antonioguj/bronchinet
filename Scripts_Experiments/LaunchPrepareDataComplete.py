@@ -44,7 +44,7 @@ def main(args):
     nameSourceRawLabelsPath   = joinpathnames(SourceClusterDataDir, 'Airways/')
     nameSourceRawRoiMasksPath = joinpathnames(SourceClusterDataDir, 'Lungs/')
 
-    OutputDataDir = makeupdatedir(args.outputdatadir)
+    OutputDataDir = makeUpdatedir(args.outputdatadir)
     # OutputDataDir = args.outputdatadir
 
     nameInputRawImagesPath   = joinpathnames(OutputDataDir, NAME_RAWIMAGES_RELPATH)
@@ -83,7 +83,7 @@ def main(args):
         list_calls_all.append(new_call)
 
 
-        nameInputRescaledRoiMasksPath = updatepathnameWithsuffix(nameInputRawRoiMasksPath, 'Recaled')
+        nameInputRescaledRoiMasksPath = updatePathnameWithsuffix(nameInputRawRoiMasksPath, 'Recaled')
         nameRescaleFactorsFile        = joinpathnames(OutputDataDir, NAME_RESCALEFACTOR_FILE)
 
         new_call = ['python', SCRIPT_RESCALEROIMASKS, nameInputRawRoiMasksPath, nameInputRescaledRoiMasksPath,

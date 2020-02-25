@@ -20,30 +20,8 @@ import re
 
 
 # operations in working directory: mkdir, cp, mv...
-def makedir(pathname):
-    pathname = pathname.strip()
-    pathname = pathname.rstrip("\\")
-    isExists = os.path.exists(pathname)
-    if not isExists:
-        os.makedirs(pathname)
-        return True
-    else:
-        return False
-
-def makeupdatedir(pathname):
-    suffix_update = 'NEW%0.2i'
-    if isExistdir(pathname):
-        count = 1
-        while True:
-            update_pathname = updatepathnameWithsuffix(pathname, suffix_update %(count))
-            if not isExistdir(update_pathname):
-                makedir(update_pathname)
-                return update_pathname
-            # else: ...keep iterating
-            count = count + 1
-    else:
-        makedir(pathname)
-        return pathname
+def currentdir():
+    return os.getcwd()
 
 def removedir(pathname):
     os.rmdir(pathname)
@@ -69,6 +47,44 @@ def movedir(pathsrc, pathdest):
 def movefile(filesrc, filedest):
     os.rename(filesrc, filedest)
 
+def makedir(pathname):
+    pathname = pathname.strip()
+    pathname = pathname.rstrip("\\")
+    isExists = os.path.exists(pathname)
+    if not isExists:
+        os.makedirs(pathname)
+        return True
+    else:
+        return False
+
+def makeUpdatedir(pathname):
+    suffix_update = 'NEW%0.2i'
+    if isExistdir(pathname):
+        count = 1
+        while True:
+            update_pathname = updatePathnameWithsuffix(pathname, suffix_update % (count))
+            if not isExistdir(update_pathname):
+                makedir(update_pathname)
+                return update_pathname
+            # else: ...keep iterating
+            count = count + 1
+    else:
+        makedir(pathname)
+        return pathname
+
+def newUpdatefile(filename):
+    suffix_update = 'new%0.2i'
+    if isExistfile(filename):
+        count = 1
+        while True:
+            update_filename = updatePathnameWithsuffix(filename, suffix_update % (count))
+            if not isExistdir(update_filename):
+                return update_filename
+                # else: ...keep iterating
+            count = count + 1
+    else:
+        return filename
+
 def joinpathnames(pathname, filename):
     return os.path.join(pathname, filename)
 
@@ -88,14 +104,20 @@ def dirnamepathdir(pathname):
         pathname = pathname[:-1]
     return dirnamepathfile(pathname)
 
+def fullpathfile(filename):
+    return joinpathnames(currentdir(), filename)
+
+def fullpathdir(pathname):
+    return joinpathnames(currentdir(), pathname)
+
 def ospath_splitext_recurse(filename):
     #account for extension that are compound: i.e. '.nii.gz'
-    basename, extension = os.path.splitext(filename)
+    filename_noext, extension = os.path.splitext(filename)
     if extension == '':
-        return (basename, extension)
+        return (filename_noext, extension)
     else:
-        sub_basename, sub_extension = ospath_splitext_recurse(basename)
-        return (sub_basename, sub_extension + extension)
+        sub_filename_noext, sub_extension = ospath_splitext_recurse(filename_noext)
+        return (sub_filename_noext, sub_extension + extension)
 
 def filenamenoextension(filename, use_recurse_splitext=True):
     if use_recurse_splitext:
@@ -115,10 +137,15 @@ def filenameextension(filename, use_recurse_splitext=True):
     else:
         return os.path.splitext(filename)[1]
 
-def updatepathnameWithsuffix(pathname, suffix):
+def updatePathnameWithsuffix(pathname, suffix):
     if pathname.endswith('/'):
         pathname = pathname[:-1]
     return '_'.join([pathname, suffix])
+
+def updateFilenameWithsuffix(filename, suffix):
+    filename_noext, extension = ospath_splitext_recurse(filename)
+    new_filename_noext = '_'.join([filename_noext, suffix])
+    return new_filename_noext + extension
 # ------------------------------------
 
 
@@ -354,28 +381,37 @@ def mergeTwoListsIntoDictoinary(list1, list2):
 def findElementsSubstringInListStrings(list, pattern):
     return [elem for elem in list if pattern in elem]
 
-def findCommonElementsTwoLists_Option1(list1, list2):
-    if len(list1) == 0 or len(list2) == 0:
-        return False
-    elif type(list1[0]) != type(list2[0]):
-        return False
-    else:
-        list_common_elems = []
-        for elem1 in list1:
-            if elem1 in list2:
-                list_common_elems.append(elem1)
-        #endfor
-        return list_common_elems
+def findIntersectionTwoLists(list1, list2):
+    return [elem for elem in list1 if elem in list2]
 
-def findCommonElementsTwoLists_Option2(list1, list2):
-    if len(list1) == 0 or len(list2) == 0:
-        return False
-    elif type(list1[0]) != type(list2[0]):
-        return False
-    else:
-        setlist1 = set([tuple(elem) for elem in list1])
-        setlist2 = set([tuple(elem) for elem in list2])
-        return list([elem for elem in setlist1 & setlist2])
+def findIntersectionThreeLists(list1, list2, list3):
+    intersection  = findIntersectionTwoLists(list1, list2)
+    intersection += findIntersectionTwoLists(list1, list3)
+    intersection += findIntersectionTwoLists(list2, list3)
+    return intersection
+
+# def findCommonElementsTwoLists_Option1(list1, list2):
+#     if len(list1) == 0 or len(list2) == 0:
+#         return False
+#     elif type(list1[0]) != type(list2[0]):
+#         return False
+#     else:
+#         list_common_elems = []
+#         for elem1 in list1:
+#             if elem1 in list2:
+#                 list_common_elems.append(elem1)
+#         #endfor
+#         return list_common_elems
+#
+# def findCommonElementsTwoLists_Option2(list1, list2):
+#     if len(list1) == 0 or len(list2) == 0:
+#         return False
+#     elif type(list1[0]) != type(list2[0]):
+#         return False
+#     else:
+#         setlist1 = set([tuple(elem) for elem in list1])
+#         setlist2 = set([tuple(elem) for elem in list2])
+#         return list([elem for elem in setlist1 & setlist2])
 # ------------------------------------
 
 

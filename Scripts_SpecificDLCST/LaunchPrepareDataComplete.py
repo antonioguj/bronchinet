@@ -46,7 +46,7 @@ def main(args):
     nameSourceRawRoiMasksPath = joinpathnames(SourceClusterDataDir, 'Lungs/')
     nameFoundBoundingBoxesFile= joinpathnames(SourceClusterDataDir, 'Others/found_boundingBox_croppedCTinFull.npy')
 
-    OutputDataDir = makeupdatedir(args.outputdatadir)
+    OutputDataDir = makeUpdatedir(args.outputdatadir)
     # OutputDataDir = args.outputdatadir
 
     nameInputRawImagesPath   = joinpathnames(OutputDataDir, NAME_RAWIMAGES_RELPATH)
@@ -54,8 +54,8 @@ def main(args):
     nameInputRawRoiMasksPath = joinpathnames(OutputDataDir, NAME_RAWROIMASKS_RELPATH)
     nameInputReferKeysPath   = joinpathnames(OutputDataDir, NAME_REFERKEYS_RELPATH)
 
-    nameInputExtendedLabelsPath   = updatepathnameWithsuffix(nameInputRawLabelsPath, 'Extended')
-    nameInputExtendedRoiMasksPath = updatepathnameWithsuffix(nameInputRawRoiMasksPath, 'Extended')
+    nameInputExtendedLabelsPath   = updatePathnameWithsuffix(nameInputRawLabelsPath, 'Extended')
+    nameInputExtendedRoiMasksPath = updatePathnameWithsuffix(nameInputRawRoiMasksPath, 'Extended')
 
 
     list_calls_all = []
@@ -101,7 +101,7 @@ def main(args):
         list_calls_all.append(new_call)
 
 
-        nameInputRescaledRoiMasksPath = updatepathnameWithsuffix(nameInputExtendedRoiMasksPath, 'Recaled')
+        nameInputRescaledRoiMasksPath = updatePathnameWithsuffix(nameInputExtendedRoiMasksPath, 'Recaled')
         nameRescaleFactorsFile        = joinpathnames(OutputDataDir, NAME_RESCALEFACTOR_FILE)
 
         new_call = ['python', SCRIPT_RESCALEROIMASKS, nameInputExtendedRoiMasksPath, nameInputRescaledRoiMasksPath,

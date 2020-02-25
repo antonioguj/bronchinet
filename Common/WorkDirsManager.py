@@ -21,9 +21,11 @@ class WorkDirsManager(object):
 
 
     def __init__(self, basePath):
-        self.basePath = basePath
-        if not isExistdir(basePath):
-            message = "WorkDirsManager: base path \'%s\' does not exist..." %(basePath)
+        #self.basePath = basePath
+        # add cwd to get full path
+        self.basePath = joinpathnames(currentdir(), basePath)
+        if not isExistdir(self.basePath):
+            message = "WorkDirsManager: base path \'%s\' does not exist..." %(self.basePath)
             CatchErrorException(message)
 
     def getNameDataPath(self, typedata):
@@ -49,60 +51,46 @@ class WorkDirsManager(object):
 
 
     def getNameExistPath(self, relPath):
-        newPath = joinpathnames(self.basePath, relPath)
-        if not isExistdir(newPath):
-            message = "WorkDirsManager: path \'%s\', does not exist..."%(newPath)
-            CatchErrorException(message)
-        return newPath
-
-    def getNameExistBaseDataPath(self, relPath):
-        relPath = joinpathnames(self.baseDataRelPath, relPath)
-        return self.getNameExistPath(relPath)
-
-    def getNameNewPath(self, relPath):
-        newPath = joinpathnames(self.basePath, relPath)
-        if not isExistdir(newPath):
-            makedir(newPath)
-        return newPath
-
-    def getNameNewBaseDataPath(self, relPath):
-        relPath = joinpathnames(self.baseDataRelPath, relPath)
-        return self.getNameNewPath(relPath)
-
-    def getNameNewUpdatePath(self, relPath):
-        newPath = joinpathnames(self.basePath, relPath)
-        newPath = makeupdatedir(newPath)
-        return newPath
-
-    @staticmethod
-    def getNameExistFullPath(fullPath):
+        fullPath = joinpathnames(self.basePath, relPath)
         if not isExistdir(fullPath):
             message = "WorkDirsManager: path \'%s\', does not exist..."%(fullPath)
             CatchErrorException(message)
         return fullPath
 
-    @staticmethod
-    def getNameNewFullPath(fullPath):
+    def getNameNewPath(self, relPath):
+        fullPath = joinpathnames(self.basePath, relPath)
         if not isExistdir(fullPath):
             makedir(fullPath)
         return fullPath
 
+    def getNameNewUpdatePath(self, relPath):
+        newfullPath = makeUpdatedir(joinpathnames(self.basePath, relPath))
+        return newfullPath
 
-    #@staticmethod
-    #def getNewNamePath(namepath):
-    #    if os.path.isdir(namepath):
-    #        count=1
-    #        while( True ):
-    #            if not os.path.isdir(namepath + '_' + count):
-    #                return namepath + '_' + count
-    #            else:
-    #                count = count+1
-    #    else:
-    #        return namepath
+    def getNameExistBaseDataPath(self, relPath):
+        return self.getNameExistPath(joinpathnames(self.baseDataRelPath, relPath))
 
-    #@staticmethod
-    #def getListFilesInPath(path, extension=None):
-    #    if extension:
-    #        sorted( glob(path + '*' + extension))
-    #    else:
-    #        sorted( glob(path) )
+    def getNameNewBaseDataPath(self, relPath):
+        return self.getNameNewPath(joinpathnames(self.baseDataRelPath, relPath))
+
+
+    def getNameExistFile(self, filename):
+        fullFilename = joinpathnames(self.basePath, filename)
+        if not isExistfile(fullFilename):
+            message = "WorkDirsManager: file \'%s\', does not exist..."%(fullFilename)
+            CatchErrorException(message)
+        return fullFilename
+
+    def getNameNewFile(self, filename):
+        fullFilename = joinpathnames(self.basePath, filename)
+        return fullFilename
+
+    def getNameNewUpdateFile(self, filename):
+        newfullFilename = newUpdatefile(joinpathnames(self.basePath, filename))
+        return newfullFilename
+
+    def getNameExistBaseDataFile(self, filename):
+        return self.getNameExistFile(joinpathnames(self.baseDataRelPath, filename))
+
+    def getNameNewBaseDataFile(self, filename):
+        return self.getNameNewFile(joinpathnames(self.baseDataRelPath, filename))

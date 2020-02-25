@@ -21,7 +21,7 @@ def main(args):
     nameInputCropImagesRelPath = args.cropimagesdir
     nameInputFullImagesRelPath = args.fullimagesdir
     nameInputReferKeysRelPath  = args.referkeysdir
-    nameBoundingBoxes          = 'found_boundingBox_croppedCTinFull.npy'
+    nameInputBoundingBoxesFile = 'found_boundingBox_croppedCTinFull.npy'
     prefixPatternInputFiles    = 'vol[0-9][0-9]_*'
     # ---------- SETTINGS ----------
 
@@ -30,12 +30,12 @@ def main(args):
     InputCropImagesPath = workDirsManager.getNameExistPath(nameInputCropImagesRelPath)
     InputFullImagesPath = workDirsManager.getNameExistPath(nameInputFullImagesRelPath)
     InputReferKeysPath  = workDirsManager.getNameExistPath(nameInputReferKeysRelPath)
+    InputBoundBoxesFile = workDirsManager.getNameExistFile(nameInputBoundingBoxesFile)
 
     listInputCropImagesFiles = findFilesDirAndCheck(InputCropImagesPath)
     listInputFullImagesFiles = findFilesDirAndCheck(InputFullImagesPath)
     listInputReferKeysFiles  = findFilesDirAndCheck(InputReferKeysPath)
-
-    dict_bounding_boxes = readDictionary(joinpathnames(args.datadir, nameBoundingBoxes))
+    dictInputBoundingBoxes   = readDictionary(InputBoundBoxesFile)
 
 
     names_files_different = []
@@ -47,14 +47,14 @@ def main(args):
         in_referkey_file = findFileWithSamePrefixPattern(basename(in_cropimage_file), listInputReferKeysFiles,
                                                          prefix_pattern=prefixPatternInputFiles)
         print("Reference key: \'%s\'..." % (basename(in_referkey_file)))
-        bounding_box = dict_bounding_boxes[filenamenoextension(in_referkey_file)]
+        in_bounding_box = dictInputBoundingBoxes[filenamenoextension(in_referkey_file)]
 
 
         in_cropimage_array = FileReader.getImageArray(in_cropimage_file)
         in_fullimage_array = FileReader.getImageArray(in_fullimage_file)
 
         # 1 step: crop image
-        new_cropimage_array = CropImages.compute3D(in_fullimage_array, bounding_box)
+        new_cropimage_array = CropImages.compute3D(in_fullimage_array, in_bounding_box)
         # 2 step: invert image
         new_cropimage_array = FlippingImages.compute(new_cropimage_array, axis=0)
 

@@ -18,24 +18,22 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameOrigVoxelSizeFile  = 'original_vozelSize.npy'
-    nameRescaleFactorsFile = 'rescaleFactors_images.npy'
-
-    # def funcNameRescaleFactorsFile(final_res):
-    #     suffix = '-'.join(['%1.2f'%(elem) for elem in final_res])
-    #     return 'rescaleFactors_images_res%s.npy' %(suffix)
+    nameOrigVoxelSizeFile  = 'original_voxelSize.npy'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager = WorkDirsManager(args.datadir)
-    InputImagesPath = workDirsManager.getNameExistPath(args.nameInputImagesRelPath)
-    InReferKeysPath = workDirsManager.getNameExistPath(args.nameInReferKeysRelPath)
+    workDirsManager     = WorkDirsManager(args.datadir)
+    InputImagesPath     = workDirsManager.getNameExistPath(args.nameInputImagesRelPath)
+    InputReferKeysPath  = workDirsManager.getNameExistPath(args.nameInputReferKeysRelPath)
+    OutputRescaleFactorsFile = workDirsManager.getNameNewUpdateFile(args.nameOutputRescaleFactorsFile)
+    OutputOrigVoxelSizeFile  = workDirsManager.getNameNewUpdateFile(nameOrigVoxelSizeFile)
 
-    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath)
-    listInReferKeysFiles = findFilesDirAndCheck(InReferKeysPath)
+    listInputImagesFiles    = findFilesDirAndCheck(InputImagesPath)
+    listInputReferKeysFiles = findFilesDirAndCheck(InputReferKeysPath)
 
 
-    dict_voxelSizes = OrderedDict()
+
+    out_dictVoxelSizes = OrderedDict()
 
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." %(basename(in_image_file)))
@@ -44,20 +42,18 @@ def main(args):
         print("Voxel Size: \'%s\'..." %(str(in_voxel_size)))
 
 
-        in_referkey_file = listInReferKeysFiles[i]
-        dict_voxelSizes[filenamenoextension(in_referkey_file)] = in_voxel_size
+        in_referkey_file = listInputReferKeysFiles[i]
+        out_dictVoxelSizes[filenamenoextension(in_referkey_file)] = in_voxel_size
     #endfor
 
 
     # Save dictionary in file
-    nameoutfile = joinpathnames(args.datadir, nameOrigVoxelSizeFile)
-    saveDictionary(nameoutfile, dict_voxelSizes)
-    nameoutfile = joinpathnames(args.datadir, nameOrigVoxelSizeFile.replace('.npy','.csv'))
-    saveDictionary_csv(nameoutfile, dict_voxelSizes)
+    saveDictionary(OutputOrigVoxelSizeFile, out_dictVoxelSizes)
+    saveDictionary_csv(OutputOrigVoxelSizeFile.replace('.npy','.csv'), out_dictVoxelSizes)
 
 
 
-    data = np.array(dict_voxelSizes.values())
+    data = np.array(out_dictVoxelSizes.values())
     mean = np.mean(data, axis=0)
     print("\nMean value: \'%s\'..." %(mean))
     median = np.median(data, axis=0)
@@ -72,28 +68,22 @@ def main(args):
     print("Final rescaling resolution: \'%s\'..." %(str(final_rescale_res)))
 
 
-    dict_rescaleFactors = OrderedDict()
+    out_dictRescaleFactors = OrderedDict()
 
-    for key, value in dict_voxelSizes.iteritems():
+    for key, value in out_dictVoxelSizes.iteritems():
         print("\nKey: \'%s\'..." %(key))
 
         rescale_factor = tuple(np.array(value) / np.array(final_rescale_res))
         print("Computed rescale factor: \'%s\'..." %(str(rescale_factor)))
 
 
-        dict_rescaleFactors[key] = rescale_factor
+        out_dictRescaleFactors[key] = rescale_factor
     #endfor
 
 
     # Save dictionary in file
-    # nameRescaleFactorsFile = funcNameRescaleFactorsFile(final_rescale_res)
-    if isExistfile(nameRescaleFactorsFile):
-        nameRescaleFactorsFile = nameRescaleFactorsFile.replace('.npy', '_next.npy')
-
-    nameoutfile = joinpathnames(args.datadir, nameRescaleFactorsFile)
-    saveDictionary(nameoutfile, dict_rescaleFactors)
-    nameoutfile = joinpathnames(args.datadir, nameRescaleFactorsFile.replace('.npy','.csv'))
-    saveDictionary_csv(nameoutfile, dict_rescaleFactors)
+    saveDictionary(OutputRescaleFactorsFile, out_dictRescaleFactors)
+    saveDictionary_csv(OutputRescaleFactorsFile.replace('.npy','.csv'), out_dictRescaleFactors)
 
 
 
@@ -101,7 +91,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('--nameInputImagesRelPath', type=str, default=NAME_RAWIMAGES_RELPATH)
-    parser.add_argument('--nameInReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
+    parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
+    parser.add_argument('--nameOutputRescaleFactorsFile', type=str, default=NAME_RESCALEFACTOR_FILE)
     parser.add_argument('--fixedRescaleRes', type=str2tuplefloat, default=FIXEDRESCALERES)
     args = parser.parse_args()
 

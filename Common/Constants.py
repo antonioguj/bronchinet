@@ -29,7 +29,7 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 # ******************** SET-UP WORKDIR ********************
 DATADIR = '/home/antonio/Data/LUVAR_Processed/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
 
 # Names input and output directories
 NAME_RAWIMAGES_RELPATH      = 'RawImages/'
@@ -42,19 +42,18 @@ NAME_PROCLABELS_RELPATH     = 'LabelsWorkData/'
 NAME_PROCEXTRALABELS_RELPATH= 'ExtraLabelsWorkData/'
 NAME_CROPBOUNDINGBOX_FILE   = 'cropBoundingBoxes_images.npy'
 NAME_RESCALEFACTOR_FILE     = 'rescaleFactors_images.npy'
-NAME_REFERENCEKEYS_FILE     = 'referenceKeys_images.npy'
+NAME_PROCREFERKEYS_FILE     = 'referenceKeys_images.npy'
+NAME_TRAININGDATA_RELPATH   = 'TrainingData/'
+NAME_VALIDATIONDATA_RELPATH = 'ValidationData/'
+NAME_TESTINGDATA_RELPATH    = 'TestingData/'
 NAME_CONFIGPARAMS_FILE      = 'configparams.txt'
 NAME_LOGDESCMODEL_FILE      = 'logdescmodel.txt'
 # ******************** SET-UP WORKDIR ********************
 
 
 # ******************** DATA DISTRIBUTION ********************
-PROP_DATA_TRAINING   = 0.85 #0.5
-PROP_DATA_VALIDATION = 0.16 #0.15
-PROP_DATA_TESTING    = 0.00 #0.35
-
-DISTRIBUTE_RANDOM = False
-DISTRIBUTE_FIXED_NAMES = False
+PROPDATA_TRAINVALIDTEST = (0.83, 0.16, 0.01)
+#PROPDATA_TRAINVALIDTEST = (0.5, 0.15, 0.35)
 # ******************** DATA DISTRIBUTION ********************
 
 

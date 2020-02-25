@@ -11,151 +11,205 @@
 from Common.Constants import *
 from Common.FunctionsUtil import *
 from Common.WorkDirsManager import *
+import math
 import argparse
 
 
+def searchIndexesInputFilesFromReferKeysInFile(in_readfile, list_input_referKeys):
+    if not isExistfile(in_readfile):
+        message = 'File to specify (Train / Valid / Test) data \'infileorder\ not found: \'%s\'...' % (in_readfile)
+        CatchWarningException(message)
+        return []
 
-def find_indexes_names_images_files(names_images_type_data, list_images_files):
-    indexes_names = []
-    for iname in names_images_type_data:
-        ifound = False
-        for i, ifile in enumerate(list_images_files):
-            if iname in ifile:
-                indexes_names.append(i)
-                ifound = True
-                break
-        #endfor
-        if not ifound:
-            message = 'data named: \'%s\' not found' %(iname)
-            CatchErrorException(message)
-    return indexes_names
+    out_indexes_input_files = []
+    with open(in_readfile, 'r') as fin:
+        for in_referkey_file in fin.readlines():
+            in_referkey_file = in_referkey_file.replace('\r\n', '')
+
+            if in_referkey_file in list_input_referKeys:
+                index_pos_referkey_file = list_input_referKeys.index(in_referkey_file)
+                out_indexes_input_files.append(index_pos_referkey_file)
+            else:
+                message = '\'%s\' not found in list of Input Reference Keys: \'%s\'...' %(in_referkey_file, list_input_referKeys)
+                CatchErrorException(message)
+    # --------------------------------------
+    return out_indexes_input_files
 
 
-def find_element_repeated_two_indexes_names(names_images_type_data_1, names_images_type_data_2):
-    list_names_repeated = []
-    for ielem in names_images_type_data_1:
-        if ielem in names_images_type_data_2:
-            list_names_repeated.append(ielem)
-    #endfor
-    return list_names_repeated
+TYPES_DUSTRIBUTE_DATA = ['original', 'random', 'orderfile']
 
 
 
 def main(args):
-    # ---------- SETTINGS ----------
-    nameTrainingDataRelPath   = 'TrainingData/'
-    nameValidationDataRelPath = 'ValidationData/'
-    nameTestingDataRelPath    = 'TestingData/'
-    # ---------- SETTINGS ----------
-
 
     workDirsManager     = WorkDirsManager(args.basedir)
-    InputImagesDataPath = workDirsManager.getNameExistBaseDataPath(args.nameProcImagesRelPath)
-    InputLabelsDataPath = workDirsManager.getNameExistBaseDataPath(args.nameProcLabelsRelPath)
-    TrainingDataPath    = workDirsManager.getNameNewPath          (nameTrainingDataRelPath)
-    ValidationDataPath  = workDirsManager.getNameNewPath          (nameValidationDataRelPath)
-    TestingDataPath     = workDirsManager.getNameNewPath          (nameTestingDataRelPath)
+    InputImagesDataPath = workDirsManager.getNameExistBaseDataPath(args.nameInputImagesRelPath)
+    InputReferKeysFile  = workDirsManager.getNameExistBaseDataFile(args.nameInputReferKeysFile)
+    TrainingDataPath    = workDirsManager.getNameNewPath          (args.nameTrainingDataRelPath)
+    ValidationDataPath  = workDirsManager.getNameNewPath          (args.nameValidationDataRelPath)
+    TestingDataPath     = workDirsManager.getNameNewPath          (args.nameTestingDataRelPath)
 
     listInputImagesFiles = findFilesDirAndCheck(InputImagesDataPath)
-    listInputLabelsFiles = findFilesDirAndCheck(InputLabelsDataPath)
 
-    numImagesFiles = len(listInputImagesFiles)
-    if (len(listInputImagesFiles) != len(listInputLabelsFiles)):
-        message = 'num images in dir \'%s\', not equal to num labels in dir \'%i\'...' %(len(listInputImagesFiles),
-                                                                                         len(listInputLabelsFiles))
-        CatchErrorException(message)
+    if (args.isPrepareLabels):
+        InputLabelsDataPath  = workDirsManager.getNameExistBaseDataPath(args.nameInputLabelsRelPath)
+        listInputLabelsFiles = findFilesDirAndCheck(InputLabelsDataPath)
 
-
-
-    if (args.distribute_fixed_names):
-        print("Split dataset with Fixed Names...")
-        names_repeated  = find_element_repeated_two_indexes_names(NAME_IMAGES_TRAINING,   NAME_IMAGES_VALIDATION)
-        names_repeated += find_element_repeated_two_indexes_names(NAME_IMAGES_TRAINING,   NAME_IMAGES_TESTING)
-        names_repeated += find_element_repeated_two_indexes_names(NAME_IMAGES_VALIDATION, NAME_IMAGES_TESTING)
-
-        if names_repeated:
-            message = "found names repeated in list Training / Validation / Testing names: %s" %(names_repeated)
+        if (len(listInputImagesFiles) != len(listInputLabelsFiles)):
+            message = 'num Images \'%s\' and Labels \'%s\' not equal...' %(len(listInputImagesFiles), len(listInputLabelsFiles))
             CatchErrorException(message)
 
-        indexes_training_files   = find_indexes_names_images_files(NAME_IMAGES_TRAINING,   listInputImagesFiles)
-        indexes_validation_files = find_indexes_names_images_files(NAME_IMAGES_VALIDATION, listInputImagesFiles)
-        indexes_testing_files    = find_indexes_names_images_files(NAME_IMAGES_TESTING,    listInputImagesFiles)
-        print("Training (%s files)/ Validation (%s files)/ Testing (%s files)..." %(len(indexes_training_files),
-                                                                                    len(indexes_validation_files),
-                                                                                    len(indexes_testing_files)))
-    else:
-        numTrainingFiles   = int(args.prop_data_training   * numImagesFiles)
-        numValidationFiles = int(args.prop_data_validation * numImagesFiles)
-        numTestingFiles    = int(args.prop_data_testing    * numImagesFiles)
-        print("Training (%s files)/ Validation (%s files)/ Testing (%s files)..." %(numTrainingFiles,
-                                                                                    numValidationFiles,
-                                                                                    numTestingFiles))
-        if (args.distribute_random):
-            print("Split dataset Randomly...")
-            indexesAllFiles = np.random.choice(range(numImagesFiles), size=numImagesFiles, replace=False)
-        else:
-            print("Split dataset In Order...")
-            indexesAllFiles = range(numImagesFiles)
+    if (args.isInputExtraLabels):
+        InputExtraLabelsDataPath  = workDirsManager.getNameExistBaseDataPath(args.nameInputExtraLabelsRelPath)
+        listInputExtraLabelsFiles = findFilesDirAndCheck(InputExtraLabelsDataPath)
 
-        indexes_training_files   = indexesAllFiles[0:numTrainingFiles]
-        indexes_validation_files = indexesAllFiles[numTrainingFiles:numTrainingFiles+numValidationFiles]
-        indexes_testing_files    = indexesAllFiles[numTrainingFiles+numValidationFiles::]
+        if (len(listInputImagesFiles) != len(listInputExtraLabelsFiles)):
+            message = 'num Images \'%s\' and Extra Labels \'%s\' not equal...' %(len(listInputImagesFiles), len(listInputExtraLabelsFiles))
+            CatchErrorException(message)
+
+
+
+    # Assign indexes for training / validation / testing data (randomly or with fixed order)
+    if args.typedistdata == 'original' or args.typedistdata == 'random':
+        sum_propData = sum(args.propData_trainvalidtest)
+        if sum_propData != 1.0:
+            message = 'Sum of props of Training / Validation / Testing data != 1.0 (%s)... Change input param...' %(sum_propData)
+            CatchErrorException(message)
+
+        numImagesFiles      = len(listInputImagesFiles)
+        numfiles_training   = int(math.ceil(args.propData_trainvalidtest[0] * numImagesFiles))
+        numfiles_validation = int(math.ceil(args.propData_trainvalidtest[1] * numImagesFiles))
+        numfiles_testing    = max(0, numImagesFiles - numfiles_training - numfiles_validation)
+        print("Num files for Training (%s)/ Validation (%s)/ Testing (%s)..." %(numfiles_training, numfiles_validation, numfiles_testing))
+
+        if args.typedistdata == 'random':
+            print("Distribute the Training / Validation / Testing data randomly...")
+            indexesInputFiles = np.random.choice(range(numImagesFiles), size=numImagesFiles, replace=False)
+        else:
+            indexesInputFiles = range(numImagesFiles)
+
+        indexesTrainingFiles   = indexesInputFiles[0:numfiles_training]
+        indexesValidationFiles = indexesInputFiles[numfiles_training:numfiles_training+numfiles_validation]
+        indexesTestingFiles    = indexesInputFiles[numfiles_training+numfiles_validation::]
+
+    elif args.typedistdata == 'orderfile':
+        args.infilevalidorder = args.infiletrainorder.replace('train','valid')
+        args.infiletestorder  = args.infiletrainorder.replace('train','test')
+
+        dictInputReferKeys = readDictionary(InputReferKeysFile)
+        listInputReferKeys = dictInputReferKeys.values()
+
+        indexesTrainingFiles   = searchIndexesInputFilesFromReferKeysInFile(args.infiletrainorder, listInputReferKeys)
+        indexesValidationFiles = searchIndexesInputFilesFromReferKeysInFile(args.infilevalidorder, listInputReferKeys)
+        indexesTestingFiles    = searchIndexesInputFilesFromReferKeysInFile(args.infiletestorder,  listInputReferKeys)
+
+        # Check whether there are files assigned to more than one set (Training / Validation / Testing)
+        intersection_check = findIntersectionThreeLists(indexesTrainingFiles, indexesValidationFiles, indexesTestingFiles)
+        if intersection_check != []:
+            list_intersect_files = [dictInputReferKeys[basename(listInputImagesFiles[ind])] for ind in intersection_check]
+            message = 'Found files assigned to more than one set (Training / Validation / Testing): %s...' %(list_intersect_files)
+            CatchErrorException(message)
 
 
 
     # TRAINING DATA
-    print("Files assigned to Training Data:")
-    for index in indexes_training_files:
-        basename_input_images_file = basename(listInputImagesFiles[index])
-        basename_input_labels_file = basename(listInputLabelsFiles[index])
-        print("%s --> %s" %(basename_input_images_file, listInputImagesFiles[index]))
+    if indexesTrainingFiles == []:
+        print("No Files assigned to Training Data:")
+    else:
+        print("Files assigned to Training Data:")
+        for index in indexesTrainingFiles:
+            input_image_file = listInputImagesFiles[index]
+            output_image_file = joinpathnames(TrainingDataPath, basename(input_image_file))
+            print("%s --> %s" % (basename(output_image_file), input_image_file))
+            makelink(input_image_file, output_image_file)
 
-        makelink(listInputImagesFiles[index], joinpathnames(TrainingDataPath, basename_input_images_file))
-        makelink(listInputLabelsFiles[index], joinpathnames(TrainingDataPath, basename_input_labels_file))
-    #endfor
+            if args.isPrepareLabels:
+                input_label_file = listInputLabelsFiles[index]
+                output_label_file = joinpathnames(TrainingDataPath, basename(input_label_file))
+                makelink(input_label_file, output_label_file)
+
+            if args.isInputExtraLabels:
+                input_extralabel_file = listInputExtraLabelsFiles[index]
+                output_extralabel_file = joinpathnames(TrainingDataPath, basename(input_extralabel_file))
+                makelink(input_extralabel_file, output_extralabel_file)
+        # endfor
+
 
     # VALIDATION DATA
-    print("Files assigned to Validation Data:")
-    for index in indexes_validation_files:
-        basename_input_images_file = basename(listInputImagesFiles[index])
-        basename_input_labels_file = basename(listInputLabelsFiles[index])
-        print("%s --> %s" %(basename_input_images_file, listInputImagesFiles[index]))
+    if indexesValidationFiles == []:
+        print("No Files assigned to Validation Data:")
+    else:
+        print("Files assigned to Validation Data:")
+        for index in indexesValidationFiles:
+            input_image_file = listInputImagesFiles[index]
+            output_image_file = joinpathnames(ValidationDataPath, basename(input_image_file))
+            print("%s --> %s" % (basename(output_image_file), input_image_file))
+            makelink(input_image_file, output_image_file)
 
-        makelink(listInputImagesFiles[index], joinpathnames(ValidationDataPath, basename_input_images_file))
-        makelink(listInputLabelsFiles[index], joinpathnames(ValidationDataPath, basename_input_labels_file))
-    #endfor
+            if args.isPrepareLabels:
+                input_label_file = listInputLabelsFiles[index]
+                output_label_file = joinpathnames(ValidationDataPath, basename(input_label_file))
+                makelink(input_label_file, output_label_file)
+
+            if args.isInputExtraLabels:
+                input_extralabel_file = listInputExtraLabelsFiles[index]
+                output_extralabel_file = joinpathnames(ValidationDataPath, basename(input_extralabel_file))
+                makelink(input_extralabel_file, output_extralabel_file)
+        # endfor
+
 
     # TESTING DATA
-    print("Files assigned to Testing Data:")
-    for index in indexes_testing_files:
-        basename_input_images_file = basename(listInputImagesFiles[index])
-        basename_input_labels_file = basename(listInputLabelsFiles[index])
-        print("%s --> %s" %(basename_input_images_file, listInputImagesFiles[index]))
+    if indexesTestingFiles == []:
+        print("No Files assigned to Testing Data:")
+    else:
+        print("Files assigned to Testing Data:")
+        for index in indexesTestingFiles:
+            input_image_file = listInputImagesFiles[index]
+            output_image_file = joinpathnames(TestingDataPath, basename(input_image_file))
+            print("%s --> %s" % (basename(output_image_file), input_image_file))
+            makelink(input_image_file, output_image_file)
 
-        makelink(listInputImagesFiles[index], joinpathnames(TestingDataPath, basename_input_images_file))
-        makelink(listInputLabelsFiles[index], joinpathnames(TestingDataPath, basename_input_labels_file))
-    #endfor
+            if args.isPrepareLabels:
+                input_label_file = listInputLabelsFiles[index]
+                output_label_file = joinpathnames(TestingDataPath, basename(input_label_file))
+                makelink(input_label_file, output_label_file)
+
+            if args.isInputExtraLabels:
+                input_extralabel_file = listInputExtraLabelsFiles[index]
+                output_extralabel_file = joinpathnames(TestingDataPath, basename(input_extralabel_file))
+                makelink(input_extralabel_file, output_extralabel_file)
+        # endfor
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('--nameProcImagesRelPath', type=str, default=NAME_PROCIMAGES_RELPATH)
-    parser.add_argument('--nameProcLabelsRelPath', type=str, default=NAME_PROCLABELS_RELPATH)
-    parser.add_argument('--nameProcExtraLabelsRelPath', type=str, default=NAME_PROCEXTRALABELS_RELPATH)
-    parser.add_argument('--prop_data_training', type=float, default=PROP_DATA_TRAINING)
-    parser.add_argument('--prop_data_validation', type=float, default=PROP_DATA_VALIDATION)
-    parser.add_argument('--prop_data_testing', type=float, default=PROP_DATA_TESTING)
-    parser.add_argument('--distribute_random', type=str2bool, default=DISTRIBUTE_RANDOM)
-    parser.add_argument('--distribute_fixed_names', type=str2bool, default=DISTRIBUTE_FIXED_NAMES)
+    parser.add_argument('--nameInputImagesRelPath', type=str, default=NAME_PROCIMAGES_RELPATH)
+    parser.add_argument('--nameInputLabelsRelPath', type=str, default=NAME_PROCLABELS_RELPATH)
+    parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_PROCREFERKEYS_FILE)
+    parser.add_argument('--nameInputExtraLabelsRelPath', type=str, default=NAME_PROCEXTRALABELS_RELPATH)
+    parser.add_argument('--nameTrainingDataRelPath', type=str, default=NAME_TRAININGDATA_RELPATH)
+    parser.add_argument('--nameValidationDataRelPath', type=str, default=NAME_VALIDATIONDATA_RELPATH)
+    parser.add_argument('--nameTestingDataRelPath', type=str, default=NAME_TESTINGDATA_RELPATH)
+    parser.add_argument('--isPrepareLabels', type=str2bool, default=True)
+    parser.add_argument('--isInputExtraLabels', type=str2bool, default=False)
+    parser.add_argument('--typedistdata', type=str, default='original')
+    parser.add_argument('--propData_trainvalidtest', type=str2tuplefloat, default=PROPDATA_TRAINVALIDTEST)
+    parser.add_argument('--infiletrainorder', type=str, default=None)
     args = parser.parse_args()
-
-    # correct proportion for testing data
-    args.prop_data_testing = 1.0 - args.prop_data_training - args.prop_data_validation
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():
         print("\'%s\' = %s" %(key, value))
+
+    if args.typedistdata not in TYPES_DUSTRIBUTE_DATA:
+        message = 'Input for Type Distribute Data not valid: \'%s\'. Values accepted are: \'%s\'...' %(args.typedistdata,
+                                                                                                       TYPES_DUSTRIBUTE_DATA)
+        CatchErrorException(message)
+
+    if args.typedistdata == 'orderfile' and not args.infiletrainorder:
+        message = 'Input for file to specify Training data \'infiletrainorder\' needed...'
+        CatchErrorException(message)
 
     main(args)

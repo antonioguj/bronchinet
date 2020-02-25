@@ -21,31 +21,31 @@ def main(args):
     nameInputImagesRelPath    = args.inputdir
     nameOutputImagesRelPath   = args.outputdir
     nameInputReferKeysRelPath = args.referkeysdir
-    nameBoundingBoxes         = 'found_boundingBox_croppedCTinFull.npy'
+    nameInputBoundingBoxesFile= 'found_boundingBox_croppedCTinFull.npy'
     nameOutputImagesFiles     = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
     prefixPatternInputFiles   = 'vol[0-9][0-9]_*'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager  = WorkDirsManager(args.datadir)
-    InputImagesPath  = workDirsManager.getNameExistPath(nameInputImagesRelPath)
-    InReferKeysPath  = workDirsManager.getNameExistPath(nameInputReferKeysRelPath)
-    OutputImagesPath = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
+    workDirsManager     = WorkDirsManager(args.datadir)
+    InputImagesPath     = workDirsManager.getNameExistPath(nameInputImagesRelPath)
+    InputReferKeysPath  = workDirsManager.getNameExistPath(nameInputReferKeysRelPath)
+    InputBoundBoxesFile = workDirsManager.getNameExistFile(nameInputBoundingBoxesFile)
+    OutputImagesPath    = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
 
-    listInputImagesFiles = findFilesDirAndCheck(InputImagesPath)
-    listInReferKeysFiles = findFilesDirAndCheck(InReferKeysPath)
-
-    dict_bounding_boxes = readDictionary(joinpathnames(args.datadir, nameBoundingBoxes))
+    listInputImagesFiles    = findFilesDirAndCheck(InputImagesPath)
+    listInputReferKeysFiles = findFilesDirAndCheck(InputReferKeysPath)
+    dictInputBoundingBoxes  = readDictionary(InputBoundBoxesFile)
 
 
 
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
-        in_referkey_file = findFileWithSamePrefixPattern(basename(in_image_file), listInReferKeysFiles,
+        in_referkey_file = findFileWithSamePrefixPattern(basename(in_image_file), listInputReferKeysFiles,
                                                          prefix_pattern=prefixPatternInputFiles)
         print("Reference file: \'%s\'..." % (basename(in_referkey_file)))
-        bounding_box = dict_bounding_boxes[filenamenoextension(in_referkey_file)]
+        in_bounding_box = dictInputBoundingBoxes[filenamenoextension(in_referkey_file)]
 
 
         in_cropimage_array = FileReader.getImageArray(in_image_file)
@@ -55,7 +55,7 @@ def main(args):
         in_cropimage_array = FlippingImages.compute(in_cropimage_array, axis=0)
         # 2 step: extend image
         out_fullimage_shape = FileReader.getImageSize(in_referkey_file)
-        out_fullimage_array = ExtendImages.compute3D(in_cropimage_array, bounding_box, out_fullimage_shape)
+        out_fullimage_array = ExtendImages.compute3D(in_cropimage_array, in_bounding_box, out_fullimage_shape)
 
         print("Output full image size: \'%s\'..." % (str(out_fullimage_array.shape)))
 
