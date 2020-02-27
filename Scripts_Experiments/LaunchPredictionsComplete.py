@@ -12,7 +12,6 @@ from Common.Constants import *
 from Common.FunctionsUtil import *
 from Common.WorkDirsManager import *
 import subprocess
-import traceback
 import argparse
 
 CODEDIR                            = joinpathnames(BASEDIR, 'Code/')

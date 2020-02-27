@@ -11,7 +11,6 @@
 from Common.FunctionsUtil import *
 from DataLoaders.FileReaders import *
 import argparse
-import sys
 
 #bin_dicom2nifti = '/home/antonio/Libraries/C3d/bin/c3d'
 bin_dicom2nifti = '/home/antonio/Libraries/mricron_dcm2niix/dcm2niix'
