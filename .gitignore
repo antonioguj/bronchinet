@@ -1,0 +1,7 @@
+# Ignore file extensions
+# ----------------------
+*.pyc
+
+# Ignore directories
+# ------------------
+.idea/
