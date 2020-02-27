@@ -50,8 +50,7 @@ def movefile(filesrc, filedest):
 def makedir(pathname):
     pathname = pathname.strip()
     pathname = pathname.rstrip("\\")
-    isExists = os.path.exists(pathname)
-    if not isExists:
+    if not isExistdir(pathname):
         os.makedirs(pathname)
         return True
     else:
