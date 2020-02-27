@@ -19,7 +19,7 @@ def main(args):
     # ---------- SETTINGS ----------
     InputPath = args.inputdir
     OutputPath = args.outputdir
-    namesOutputFiles = lambda in_name: filenamenoextension(in_name) + '.mhd'
+    namesOutputFiles = lambda in_name: basenameNoextension(in_name) + '.mhd'
     # ---------- SETTINGS ----------
 
     listInputFiles = findFilesDirAndCheck(InputPath)
@@ -34,7 +34,7 @@ def main(args):
 
         ndims = len(out_image_size)
         str_out_image_size = ' '.join([str(elem) for elem in out_image_size])
-        name_raw_file = filenamenoextension(in_file) +'.raw'
+        name_raw_file = basenameNoextension(in_file) + '.raw'
 
 
         #contruct mhd header file

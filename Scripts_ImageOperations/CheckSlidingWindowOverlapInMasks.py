@@ -106,14 +106,14 @@ def main(args):
 
         # reconstruct from cropped / rescaled images
         if (args.cropImages):
-            crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(reference_img_file)]
+            crop_bounding_box = dict_cropBoundingBoxes[basenameNoextension(reference_img_file)]
             print("Predicted data are cropped. Extend array size to original. Bounding-box: \'%s\'..." %(str(crop_bounding_box)))
 
             fill_slidewin_overlap_array = ExtendImages.compute3D(fill_slidewin_overlap_array, crop_bounding_box, size_fullimage)
             print("Final dims: %s..." %(str(fill_slidewin_overlap_array.shape)))
 
 
-        outputfilename = nameOutputFiles(filenamenoextension(reference_img_file), args.size_in_images, args.slidewin_propOverlap)
+        outputfilename = nameOutputFiles(basenameNoextension(reference_img_file), args.size_in_images, args.slidewin_propOverlap)
         outputfilename = joinpathnames(OutputFilesPath, outputfilename)
         print("Output: \'%s\', of dims \'%s\'..." % (basename(outputfilename), fill_slidewin_overlap_array.shape))
 

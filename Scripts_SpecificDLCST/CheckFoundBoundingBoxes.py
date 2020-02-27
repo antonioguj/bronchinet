@@ -47,7 +47,7 @@ def main(args):
         in_referkey_file = findFileWithSamePrefixPattern(basename(in_cropimage_file), listInputReferKeysFiles,
                                                          prefix_pattern=prefixPatternInputFiles)
         print("Reference key: \'%s\'..." % (basename(in_referkey_file)))
-        in_bounding_box = dictInputBoundingBoxes[filenamenoextension(in_referkey_file)]
+        in_bounding_box = dictInputBoundingBoxes[basenameNoextension(in_referkey_file)]
 
 
         in_cropimage_array = FileReader.getImageArray(in_cropimage_file)

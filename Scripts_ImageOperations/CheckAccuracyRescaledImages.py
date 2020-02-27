@@ -121,7 +121,7 @@ def main(args):
 
 
         in_reference_file = listReferenceFiles[i]
-        orig_voxel_size = dict_originalVoxelSizes[filenamenoextension(in_reference_file)]
+        orig_voxel_size = dict_originalVoxelSizes[basenameNoextension(in_reference_file)]
         resc_voxel_size = rescaled_voxel_size_same
         dict_add_kwargs = {'orig_voxel_size': orig_voxel_size,
                            'resc_voxel_size': resc_voxel_size}

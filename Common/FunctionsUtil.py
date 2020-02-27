@@ -110,30 +110,27 @@ def fullpathfile(filename):
 def fullpathdir(pathname):
     return joinpathnames(currentdir(), pathname)
 
-def ospath_splitext_recurse(filename):
+def ospathSplitextRecurse(filename):
     #account for extension that are compound: i.e. '.nii.gz'
     filename_noext, extension = os.path.splitext(filename)
     if extension == '':
         return (filename_noext, extension)
     else:
-        sub_filename_noext, sub_extension = ospath_splitext_recurse(filename_noext)
+        sub_filename_noext, sub_extension = ospathSplitextRecurse(filename_noext)
         return (sub_filename_noext, sub_extension + extension)
 
-def filenamenoextension(filename, use_recurse_splitext=True):
+def filenameNoextension(filename, use_recurse_splitext=True):
     if use_recurse_splitext:
-        return ospath_splitext_recurse(basename(filename))[0]
+        return ospathSplitextRecurse(filename)[0]
     else:
         return os.path.splitext(filename)[0]
 
-def filenamepathnoextension(filename, use_recurse_splitext=True):
-    if use_recurse_splitext:
-        return ospath_splitext_recurse(filename)[0]
-    else:
-        return os.path.splitext(filename)[0]
+def basenameNoextension(filename, use_recurse_splitext=True):
+    return filenameNoextension(basename(filename), use_recurse_splitext)
 
-def filenameextension(filename, use_recurse_splitext=True):
+def fileextension(filename, use_recurse_splitext=True):
     if use_recurse_splitext:
-        return ospath_splitext_recurse(filename)[1]
+        return ospathSplitextRecurse(filename)[1]
     else:
         return os.path.splitext(filename)[1]
 
@@ -143,7 +140,7 @@ def updatePathnameWithsuffix(pathname, suffix):
     return '_'.join([pathname, suffix])
 
 def updateFilenameWithsuffix(filename, suffix):
-    filename_noext, extension = ospath_splitext_recurse(filename)
+    filename_noext, extension = ospathSplitextRecurse(filename)
     new_filename_noext = '_'.join([filename_noext, suffix])
     return new_filename_noext + extension
 # ------------------------------------
@@ -178,7 +175,7 @@ def findFilesDirAndCheck(filespath, filename_pattern='*'):
 
 # input / output data in disk
 def readDictionary(filename):
-    extension = filenameextension(filename, use_recurse_splitext=False)
+    extension = fileextension(filename, use_recurse_splitext=False)
     if extension == '.npy':
         return readDictionary_numpy(filename)
     elif extension == '.csv':
@@ -204,7 +201,7 @@ def readDictionary_csv(filename):
         return out_dict
 
 def saveDictionary(filename, dictionary):
-    extension = filenameextension(filename, use_recurse_splitext=False)
+    extension = fileextension(filename, use_recurse_splitext=False)
     if extension == '.npy':
         saveDictionary_numpy(filename, dictionary)
     elif extension == '.csv':
@@ -223,7 +220,7 @@ def saveDictionary_csv(filename, dictionary):
             writer.writerow([key, value])
 
 def readDictionary_configParams(filename):
-    if filenameextension(filename, use_recurse_splitext=False) != '.txt':
+    if fileextension(filename, use_recurse_splitext=False) != '.txt':
         message = 'need \'.txt\' to read dictionary'
         CatchErrorException(message)
     else:
@@ -235,7 +232,7 @@ def readDictionary_configParams(filename):
         return outdictionary
 
 def saveDictionary_configParams(filename, dictionary):
-    if filenameextension(filename, use_recurse_splitext=False) != '.txt':
+    if fileextension(filename, use_recurse_splitext=False) != '.txt':
         message = 'need \'.txt\' to save dictionary'
         CatchErrorException(message)
     else:
@@ -502,7 +499,7 @@ def getIndexOriginImagesFile(images_file, beginString='images', firstIndex='0'):
         return False
 
 def getFilePrefixPattern(in_file):
-    base_infile = filenamenoextension(in_file)
+    base_infile = basenameNoextension(in_file)
     infile_prefix = base_infile.split('_')[0]
     infile_prefix_pattern = ''.join(['[0-9]' if s.isdigit() else s for s in infile_prefix])
     if infile_prefix != base_infile:

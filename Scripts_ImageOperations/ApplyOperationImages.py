@@ -101,7 +101,7 @@ def prepare_crop_operation(args):
 
     def wrapfun_crop_image(in_array, i):
         in_reference_file = listReferenceFiles[i]
-        crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_reference_file)]
+        crop_bounding_box = dict_cropBoundingBoxes[basenameNoextension(in_reference_file)]
         print("Crop to bounding-box: \'%s\'..." % (str(crop_bounding_box)))
 
         return CropImages.compute3D(in_array, crop_bounding_box)
@@ -116,7 +116,7 @@ def prepare_rescale_operation(args, is_rescale_mask= False):
 
     def wrapfun_rescale_image(in_array, i):
         in_reference_file = listReferenceFiles[i]
-        rescale_factor = dict_rescaleFactors[filenamenoextension(in_reference_file)]
+        rescale_factor = dict_rescaleFactors[basenameNoextension(in_reference_file)]
 
         if rescale_factor != (1.0, 1.0, 1.0):
             print("Rescale with a factor: \'%s\'..." % (str(rescale_factor)))
@@ -343,8 +343,8 @@ def main(args):
     if args.outnifti:
         in_file_extension = '.nii'
     else:
-        in_file_extension = filenameextension(listInputFiles[0])
-    nameOutputFiles = lambda in_name: filenamenoextension(in_name) + suffix_output_names + in_file_extension
+        in_file_extension = fileextension(listInputFiles[0])
+    nameOutputFiles = lambda in_name: basenameNoextension(in_name) + suffix_output_names + in_file_extension
 
 
 

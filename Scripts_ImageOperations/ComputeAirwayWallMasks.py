@@ -26,7 +26,7 @@ def main(args):
     def nameOutputMasksFiles(in_name):
         in_name = in_name.replace('surface0','airwall')
         in_name = in_name.replace('surface1','airwall')
-        return filenamenoextension(in_name) + '.nii.gz'
+        return basenameNoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
 

@@ -29,7 +29,7 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 # ******************** SET-UP WORKDIR ********************
 DATADIR = '/home/antonio/Data/LUVAR_Processed/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
 
 # Names input and output directories
 NAME_RAWIMAGES_RELPATH      = 'RawImages/'
@@ -114,6 +114,7 @@ TYPEGPUINSTALLED     = 'larger_GPU'
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (256, 256, 256) # for Non-valid convolutions
 (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (252, 252, 252) # for Valid convolutions
+#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (452, 252, 364) # try large images
 IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
 
 IMODEL       = 'Unet'
@@ -132,7 +133,7 @@ TAILORED_BUILD_MODEL = True
 NUM_EPOCHS = 1000
 BATCH_SIZE = 1
 IOPTIMIZER = 'Adam'
-LEARN_RATE = 1.0e-04
+LEARN_RATE = 8.0e-05
 ILOSSFUN   = 'DiceCoefficient'
 LISTMETRICS = []
 #LISTMETRICS = ['DiceCoefficient', 'TruePositiveRate', 'FalsePositiveRate', 'TrueNegativeRate', 'FalseNegativeRate']

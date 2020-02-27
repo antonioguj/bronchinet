@@ -43,7 +43,7 @@ def main(args):
 
 
         in_referkey_file = listInputReferKeysFiles[i]
-        out_dictVoxelSizes[filenamenoextension(in_referkey_file)] = in_voxel_size
+        out_dictVoxelSizes[basenameNoextension(in_referkey_file)] = in_voxel_size
     #endfor
 
 

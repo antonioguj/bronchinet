@@ -210,7 +210,7 @@ def main(args):
         # *******************************************************************************
         if (args.cropImages):
             print("Prediction data are cropped. Extend prediction array to full image size...")
-            crop_bounding_box = dict_cropBoundingBoxes[filenamenoextension(in_reference_file)]
+            crop_bounding_box = dict_cropBoundingBoxes[basenameNoextension(in_reference_file)]
 
             # reconstruct from cropped / rescaled images
             out_fullimage_shape = FileReader.getImageSize(in_reference_file)
@@ -253,14 +253,14 @@ def main(args):
             num_featmaps = out_prediction_array.shape[-1]
             print("Output model feature maps (\'%s\' in total)..." %(num_featmaps))
             for ifeatmap in range(num_featmaps):
-                out_prediction_file = nameOutputPredictionFiles %(filenamenoextension(in_reference_file), args.nameSaveModelLayer, ifeatmap+1)
+                out_prediction_file = nameOutputPredictionFiles %(basenameNoextension(in_reference_file), args.nameSaveModelLayer, ifeatmap + 1)
                 out_prediction_file = joinpathnames(OutputPredictionsPath, out_prediction_file)
                 print("Output: \'%s\', of dims \'%s\'..." %(basename(out_prediction_file), out_prediction_array[...,ifeatmap].shape))
 
                 FileReader.writeImageArray(out_prediction_file, out_prediction_array[...,ifeatmap])
             #endfor
         else:
-            out_prediction_file = joinpathnames(OutputPredictionsPath, nameOutputPredictionFiles %(filenamenoextension(in_reference_file)))
+            out_prediction_file = joinpathnames(OutputPredictionsPath, nameOutputPredictionFiles % (basenameNoextension(in_reference_file)))
             print("Output: \'%s\', of dims \'%s\'..." % (basename(out_prediction_file), out_prediction_array.shape))
 
             FileReader.writeImageArray(out_prediction_file, out_prediction_array)

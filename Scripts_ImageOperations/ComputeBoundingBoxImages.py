@@ -83,7 +83,7 @@ def main(args):
 
         # store computed bounding-box
         in_referkey_file = listInputReferKeysFiles[i]
-        out_dictCropBoundingBoxes[filenamenoextension(in_referkey_file)] = bounding_box
+        out_dictCropBoundingBoxes[basenameNoextension(in_referkey_file)] = bounding_box
     #endfor
 
     print("\nMax size bounding-box found: \'%s\'..." %(str(max_size_bounding_box)))
@@ -113,7 +113,7 @@ def main(args):
             print("Dims : \'%s\'..." % (str(in_roimask_array_shape)))
 
             in_referkey_file = listInputReferKeysFiles[i]
-            in_bounding_box = out_dictCropBoundingBoxes_prev[filenamenoextension(in_referkey_file)]
+            in_bounding_box = out_dictCropBoundingBoxes_prev[basenameNoextension(in_referkey_file)]
 
 
             # Compute new bounding-box, of fixed size 'args.cropSizeBoundingBox', and with same center as original 'bounding_box'
@@ -127,7 +127,7 @@ def main(args):
 
             # store computed bounding-box
             in_referkey_file = listInputReferKeysFiles[i]
-            out_dictCropBoundingBoxes[filenamenoextension(in_referkey_file)] = out_bounding_box
+            out_dictCropBoundingBoxes[basenameNoextension(in_referkey_file)] = out_bounding_box
         #endfor
     #endif
 

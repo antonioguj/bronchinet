@@ -54,7 +54,7 @@ class FileReader(object):
 
     @staticmethod
     def getFileReaderClass(filename):
-        extension = filenameextension(filename)
+        extension = fileextension(filename)
         if (extension == '.nii' or extension == '.nii.gz'):
             return NIFTIreader
         elif (extension == '.npy'):

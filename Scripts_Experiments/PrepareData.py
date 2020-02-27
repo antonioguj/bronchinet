@@ -126,7 +126,7 @@ def main(args):
         #*******************************************************************************
         if (args.rescaleImages):
             in_referkey_file = listInputReferKeysFiles[i]
-            in_rescale_factor = in_dictRescaleFactors[filenamenoextension(in_referkey_file)]
+            in_rescale_factor = in_dictRescaleFactors[basenameNoextension(in_referkey_file)]
             print("Rescale image with a factor: \'%s\'..." %(str(in_rescale_factor)))
 
             if in_rescale_factor != (1.0, 1.0, 1.0):
@@ -164,7 +164,7 @@ def main(args):
         # *******************************************************************************
         if (args.cropImages):
             in_referkey_file = listInputReferKeysFiles[i]
-            in_crop_bounding_box = in_dictCropBoundingBoxes[filenamenoextension(in_referkey_file)]
+            in_crop_bounding_box = in_dictCropBoundingBoxes[basenameNoextension(in_referkey_file)]
             print("Crop image to bounding-box: \'%s\'..." % (str(in_crop_bounding_box)))
 
             if not BoundingBoxes.is_bounding_box_contained_in_image_size(in_crop_bounding_box, inout_image_array.shape):

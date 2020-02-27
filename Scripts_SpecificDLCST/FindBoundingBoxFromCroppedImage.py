@@ -149,13 +149,13 @@ def main(args):
 
         if (flag_found_boundbox):
             print("SUCESS: found perfect bounding-box: \'%s\', with null error: \'%s\'..." % (str(found_boundbox), sum_test_res))
-            rootimagescropname = filenamenoextension(in_crop_image_file)
+            rootimagescropname = basenameNoextension(in_crop_image_file)
             dict_found_boundingBoxes[rootimagescropname] = found_boundbox
             message = "%s,\"%s\"\n" %(rootimagescropname, str(found_boundbox))
             fout.write(message)
         else:
             print("ERROR: not found perfect bounding-box. Closest found is: \'%s\', with error: \'%s\'..." % (str(found_boundbox), min_sum_test_res))
-            rootimagescropname = filenamenoextension(in_crop_image_file)
+            rootimagescropname = basenameNoextension(in_crop_image_file)
             dict_found_boundingBoxes[rootimagescropname] = found_boundbox
             message = "%s,\"%s\" ...NOT PERFECT...\n" % (rootimagescropname, str(found_boundbox))
             fout.write(message)

@@ -24,16 +24,16 @@ def main(args):
     # ---------- SETTINGS ----------
     InputPath = args.inputdir
     OutputPath = args.outputdir
-    namesOutputFiles = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    namesOutputFiles = lambda in_name: basenameNoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
     listInputFiles = findFilesDirAndCheck(InputPath)
     makedir(OutputPath)
 
-    files_extension = filenameextension(listInputFiles[0])
+    files_extension = fileextension(listInputFiles[0])
     if files_extension == '.dcm':
         files_type = 'dicom'
-        tmpfile_template = lambda in_name: filenamenoextension(in_name) + '_dec.dcm'
+        tmpfile_template = lambda in_name: basenameNoextension(in_name) + '_dec.dcm'
         tmpsubdir = joinpathnames(InputPath, 'tmp')
         makedir(tmpsubdir)
 
@@ -46,7 +46,7 @@ def main(args):
             message = 'need to set argument \'inputRefdir\''
             CatchErrorException(message)
         if args.outformat == 'dicom':
-            namesOutputFiles = lambda in_name: filenamenoextension(in_name) + '.dcm'
+            namesOutputFiles = lambda in_name: basenameNoextension(in_name) + '.dcm'
 
         listInputFiles = findFilesDirAndCheck(InputPath, '*.mhd')
         listReferFiles = findFilesDirAndCheck(args.inputRefdir)
@@ -78,7 +78,7 @@ def main(args):
             os.system(command_string)
 
             # remove tmp input file and aux. .json file
-            out_json_file = joinpathnames(OutputPath, filenamenoextension(out_file) + '.json')
+            out_json_file = joinpathnames(OutputPath, basenameNoextension(out_file) + '.json')
             removefile(in_tmp_file)
             removefile(out_json_file)
 

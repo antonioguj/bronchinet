@@ -28,7 +28,7 @@ def main(args):
     else:
         nameOutputPredictMasksRelPath = nameInputPredictionsRelPath[:-1] + '_Thres%s' % (str(args.threshold))
 
-    nameOutputPredictMasksFiles = lambda in_name: filenamenoextension(in_name).replace('probmap','binmask') + '.nii.gz'
+    nameOutputPredictMasksFiles = lambda in_name: basenameNoextension(in_name).replace('probmap', 'binmask') + '.nii.gz'
     # ---------- SETTINGS ----------
 
 

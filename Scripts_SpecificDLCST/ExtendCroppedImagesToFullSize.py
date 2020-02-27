@@ -22,7 +22,7 @@ def main(args):
     nameOutputImagesRelPath   = args.outputdir
     nameInputReferKeysRelPath = args.referkeysdir
     nameInputBoundingBoxesFile= 'found_boundingBox_croppedCTinFull.npy'
-    nameOutputImagesFiles     = lambda in_name: filenamenoextension(in_name) + '.nii.gz'
+    nameOutputImagesFiles     = lambda in_name: basenameNoextension(in_name) + '.nii.gz'
     prefixPatternInputFiles   = 'vol[0-9][0-9]_*'
     # ---------- SETTINGS ----------
 
@@ -45,7 +45,7 @@ def main(args):
         in_referkey_file = findFileWithSamePrefixPattern(basename(in_image_file), listInputReferKeysFiles,
                                                          prefix_pattern=prefixPatternInputFiles)
         print("Reference file: \'%s\'..." % (basename(in_referkey_file)))
-        in_bounding_box = dictInputBoundingBoxes[filenamenoextension(in_referkey_file)]
+        in_bounding_box = dictInputBoundingBoxes[basenameNoextension(in_referkey_file)]
 
 
         in_cropimage_array = FileReader.getImageArray(in_image_file)
