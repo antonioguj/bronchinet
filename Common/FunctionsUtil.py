@@ -76,7 +76,7 @@ def newUpdatefile(filename):
     if isExistfile(filename):
         count = 1
         while True:
-            update_filename = updatePathnameWithsuffix(filename, suffix_update % (count))
+            update_filename = updateFilenameWithsuffix(filename, suffix_update % (count))
             if not isExistdir(update_filename):
                 return update_filename
                 # else: ...keep iterating

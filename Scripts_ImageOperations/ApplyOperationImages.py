@@ -233,7 +233,7 @@ def prepare_onlyCorrect_operation(args):
 
     def wrapfun_onlyCorrect_image(in_array, i):
         print("Retrieve correct masks (= 1)...")
-        return OperationBinaryMasks.get_masks_with_labels(in_array, labels_list=[1])
+        return OperationBinaryMasks.get_masks_with_labels_all(in_array, labels_list=[1])
 
     return wrapfun_onlyCorrect_image
 
@@ -244,7 +244,7 @@ def prepare_labelsMask_operation(args):
 
     def wrapfun_labelsMask_image(in_array, i):
         print("Retrieve labels mask: \'%s\'..." %(labels_mask))
-        return OperationBinaryMasks.get_masks_with_labels(in_array, labels_list=labels_mask)
+        return OperationBinaryMasks.get_masks_with_labels_all(in_array, labels_list=labels_mask)
 
     return wrapfun_labelsMask_image
 

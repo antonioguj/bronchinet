@@ -28,7 +28,13 @@ def getBatchDataGeneratorWithGenerator(size_in_images,
                                        is_outputUnet_validconvs= False,
                                        size_output_images= None,
                                        shuffle= True,
-                                       seed= None):
+                                       seed= None,
+                                       is_datagen_halfPrec= False):
+
+    if TYPE_DNNLIBRARY_USED == 'Keras' and is_datagen_halfPrec:
+        message = 'Networks implementation in Keras not available in Half Precision'
+        CatchErrorException(message)
+
     batch_data_generator = DNNBatchDataGenerator(size_in_images,
                                                  list_xData_arrays,
                                                  list_yData_arrays,
@@ -37,7 +43,8 @@ def getBatchDataGeneratorWithGenerator(size_in_images,
                                                  is_outputUnet_validconvs=is_outputUnet_validconvs,
                                                  size_output_image=size_output_images,
                                                  shuffle=shuffle,
-                                                 seed=seed)
+                                                 seed=seed,
+                                                 is_datagen_halfPrec=is_datagen_halfPrec)
 
     return batch_data_generator
 
@@ -55,7 +62,8 @@ def getBatchDataGenerator(size_in_images,
                           is_outputUnet_validconvs= False,
                           size_output_images= None,
                           shuffle= True,
-                          seed= None):
+                          seed= None,
+                          is_datagen_halfPrec= False):
     if len(list_xData_arrays)==1:
         size_full_image = list_xData_arrays[0].shape
     else:
@@ -78,4 +86,5 @@ def getBatchDataGenerator(size_in_images,
                                               is_outputUnet_validconvs=is_outputUnet_validconvs,
                                               size_output_images=size_output_images,
                                               shuffle=shuffle,
-                                              seed=seed)
+                                              seed=seed,
+                                              is_datagen_halfPrec=is_datagen_halfPrec)

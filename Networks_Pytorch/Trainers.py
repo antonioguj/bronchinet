@@ -30,7 +30,8 @@ class Trainer(object):
                  optimizer,
                  loss_fun,
                  metrics_fun= None,
-                 callbacks= None):
+                 callbacks= None,
+                 model_halfprec= False):
         self.model_net = model_net
         self.optimizer = optimizer
         self.loss_fun = loss_fun
@@ -44,6 +45,9 @@ class Trainer(object):
         #self.device = self.get_device()
         #self.model_net = self.model_net.to(self.device)
         self.model_net.cuda()
+
+        if model_halfprec:
+            self.model_net.half()
 
 
     @staticmethod

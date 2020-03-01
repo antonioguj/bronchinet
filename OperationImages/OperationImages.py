@@ -88,52 +88,66 @@ class SetPatchInImages(OperationImages):
 
 class ExtendImages(OperationImages):
     @staticmethod
-    def compute2D(in_array, bound_box, out_array_shape, background_value=0):
+    def get_init_output_array(out_array_shape, out_array_dtype, background_value=0):
         if background_value==0:
-            out_array = np.zeros(out_array_shape, dtype=in_array.dtype)
+            return np.zeros(out_array_shape, dtype=out_array_dtype)
         else:
-            out_array = np.full(out_array_shape, background_value, dtype=in_array.dtype)
+            return np.full(out_array_shape, background_value, dtype=out_array_dtype)
+
+    @classmethod
+    def compute2D(cls, in_array, bound_box, out_array_shape, background_value=None):
+        if not background_value:
+            background_value = in_array[0][0]
+        out_array = cls.get_init_output_array(out_array_shape, in_array.dtype, background_value)
         SetPatchInImages.compute2D(in_array, out_array, bound_box)
         return out_array
 
-    @staticmethod
-    def compute3D(in_array, bound_box, out_array_shape, background_value=0):
-        if background_value==0:
-            out_array = np.zeros(out_array_shape, dtype=in_array.dtype)
-        else:
-            out_array = np.full(out_array_shape, background_value, dtype=in_array.dtype)
+    @classmethod
+    def compute3D(cls, in_array, bound_box, out_array_shape, background_value=0):
+        if not background_value:
+            background_value = in_array[0][0][0]
+        out_array = cls.get_init_output_array(out_array_shape, in_array.dtype, background_value)
         SetPatchInImages.compute3D(in_array, out_array, bound_box)
         return out_array
 
 
 class CropAndExtendImages(OperationImages):
     @staticmethod
-    def compute2D(in_array, crop_bound_box, extend_bound_box, out_array_shape, background_value=0):
+    def compute2D(in_array, crop_bound_box, extend_bound_box, out_array_shape, background_value=None):
+        if not background_value:
+            background_value = in_array[0][0]
         return ExtendImages.compute2D(CropImages.compute2D(in_array, crop_bound_box),
-                                      extend_bound_box, out_array_shape, background_value=background_value)
+                                      extend_bound_box, out_array_shape, background_value)
 
     @staticmethod
-    def compute3D(in_array, crop_bound_box, extend_bound_box, out_array_shape, background_value=0):
+    def compute3D(in_array, crop_bound_box, extend_bound_box, out_array_shape, background_value=None):
+        if not background_value:
+            background_value = in_array[0][0][0]
         return ExtendImages.compute3D(CropImages.compute3D(in_array, crop_bound_box),
-                                      extend_bound_box, out_array_shape, background_value=background_value)
+                                      extend_bound_box, out_array_shape, background_value)
 
 
 class RescaleImages(OperationImages):
     order_default = 3
 
     @staticmethod
-    def compute2D(in_array, scale_factor, order=order_default, is_binary_mask=False):
+    def compute2D(in_array, scale_factor, order=order_default, is_binary_mask=False, is_binarise_output=False):
         if is_binary_mask:
             out_array = rescale(in_array, scale=scale_factor, order=order,
                                 preserve_range=True, multichannel=False, anti_aliasing=True)
-            return out_array
+            if is_binarise_output:
+                # remove noise due to interpolation
+                thres_remove_noise = 0.1
+                return ThresholdImages.compute(in_array, thres_val=thres_remove_noise)
+            else:
+                return out_array
         else:
             return rescale(in_array, scale=scale_factor, order=order,
                            preserve_range=True, multichannel=False, anti_aliasing=True)
 
     @staticmethod
-    def compute3D(in_array, scale_factor, order=order_default, is_binary_mask=False):
-        return RescaleImages.compute2D(in_array, scale_factor, order, is_binary_mask)
+    def compute3D(in_array, scale_factor, order=order_default, is_binary_mask=False, is_binarise_output=False):
+        return RescaleImages.compute2D(in_array, scale_factor, order, is_binary_mask, is_binarise_output)
 
 
 class ThresholdImages(OperationImages):

@@ -24,11 +24,11 @@ def searchIndexesInputFilesFromReferKeysInFile(in_readfile, list_input_referKeys
     out_indexes_input_files = []
     with open(in_readfile, 'r') as fin:
         for in_referkey_file in fin.readlines():
-            in_referkey_file = in_referkey_file.replace('\r\n', '')
+            in_referkey_file = in_referkey_file.replace('\n','').replace('\r','')
 
             if in_referkey_file in list_input_referKeys:
-                index_pos_referkey_file = list_input_referKeys.index(in_referkey_file)
-                out_indexes_input_files.append(index_pos_referkey_file)
+                index_pos_referkey_file = [ind for (ind, it_file) in enumerate(list_input_referKeys) if it_file==in_referkey_file]
+                out_indexes_input_files += index_pos_referkey_file
             else:
                 message = '\'%s\' not found in list of Input Reference Keys: \'%s\'...' %(in_referkey_file, list_input_referKeys)
                 CatchErrorException(message)

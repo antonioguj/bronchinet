@@ -26,16 +26,16 @@ class BoundingBoxes(object):
                 (bounding_box[2][1] - bounding_box[2][0]))
 
     @staticmethod
-    def get_max_size_bounding_box(bounding_box, max_bounding_box):
-        return (max(bounding_box[0], max_bounding_box[0]),
-                max(bounding_box[1], max_bounding_box[1]),
-                max(bounding_box[2], max_bounding_box[2]))
+    def get_max_size_bounding_box(size_bounding_box, max_size_bounding_box):
+        return (max(size_bounding_box[0], max_size_bounding_box[0]),
+                max(size_bounding_box[1], max_size_bounding_box[1]),
+                max(size_bounding_box[2], max_size_bounding_box[2]))
 
     @staticmethod
-    def get_min_size_bounding_box(bounding_box, min_bounding_box):
-        return (min(bounding_box[0], min_bounding_box[0]),
-                min(bounding_box[1], min_bounding_box[1]),
-                min(bounding_box[2], min_bounding_box[2]))
+    def get_min_size_bounding_box(size_bounding_box, min_size_bounding_box):
+        return (min(size_bounding_box[0], min_size_bounding_box[0]),
+                min(size_bounding_box[1], min_size_bounding_box[1]),
+                min(size_bounding_box[2], min_size_bounding_box[2]))
 
     @staticmethod
     def get_coords0_bounding_box(bounding_box):
@@ -60,6 +60,7 @@ class BoundingBoxes(object):
     def get_default_bounding_box_image(size_image):
         return ((0, size_image[0]), (0, size_image[1]), (0, size_image[2]))
 
+
     @staticmethod
     def is_bounding_box_contained_in_bounding_box(in_bounding_box, ref_bounding_box):
         return (in_bounding_box[0][0] >= ref_bounding_box[0][0] and in_bounding_box[0][1] <= ref_bounding_box[0][1] and
@@ -67,10 +68,16 @@ class BoundingBoxes(object):
                 in_bounding_box[2][0] >= ref_bounding_box[2][0] and in_bounding_box[2][1] <= ref_bounding_box[2][1])
 
     @staticmethod
-    def is_bounding_box_contained_in_image_size(in_bounding_box, size_in_array):
-        return (in_bounding_box[0][0] >= 0 and in_bounding_box[0][1] <= size_in_array[0] and
-                in_bounding_box[1][0] >= 0 and in_bounding_box[1][1] <= size_in_array[1] and
-                in_bounding_box[2][0] >= 0 and in_bounding_box[2][1] <= size_in_array[2])
+    def is_bounding_box_contained_in_image_size(in_bounding_box, size_image):
+        return (in_bounding_box[0][0] >= 0 and in_bounding_box[0][1] <= size_image[0] and
+                in_bounding_box[1][0] >= 0 and in_bounding_box[1][1] <= size_image[1] and
+                in_bounding_box[2][0] >= 0 and in_bounding_box[2][1] <= size_image[2])
+
+    @staticmethod
+    def is_image_patch_contained_in_bounding_box(size_in_bounding_box, size_image):
+        return (size_image[0] <= size_in_bounding_box[0] and
+                size_image[1] <= size_in_bounding_box[1] and
+                size_image[2] <= size_in_bounding_box[2])
 
     @staticmethod
     def fit_bounding_box_to_bounding_box(in_bounding_box, ref_bounding_box):
@@ -79,10 +86,10 @@ class BoundingBoxes(object):
                 (max(in_bounding_box[2][0], ref_bounding_box[2][0]), min(in_bounding_box[2][1], ref_bounding_box[2][1])))
 
     @staticmethod
-    def fit_bounding_box_to_image(in_bounding_box, size_in_array):
-        return ((max(in_bounding_box[0][0], 0), min(in_bounding_box[0][1], size_in_array[0])),
-                (max(in_bounding_box[1][0], 0), min(in_bounding_box[1][1], size_in_array[1])),
-                (max(in_bounding_box[2][0], 0), min(in_bounding_box[2][1], size_in_array[2])))
+    def fit_bounding_box_to_image(in_bounding_box, size_image):
+        return ((max(in_bounding_box[0][0], 0), min(in_bounding_box[0][1], size_image[0])),
+                (max(in_bounding_box[1][0], 0), min(in_bounding_box[1][1], size_image[1])),
+                (max(in_bounding_box[2][0], 0), min(in_bounding_box[2][1], size_image[2])))
 
     @staticmethod
     def enlarge_bounding_box_to_bounding_box(in_bounding_box, ref_bounding_box):
@@ -91,10 +98,10 @@ class BoundingBoxes(object):
                 (min(in_bounding_box[2][0], ref_bounding_box[2][0]), max(in_bounding_box[2][1], ref_bounding_box[2][1])))
 
     @staticmethod
-    def enlarge_bounding_box_to_image(in_bounding_box, size_in_array):
-        return ((min(in_bounding_box[0][0], 0), max(in_bounding_box[0][1], size_in_array[0])),
-                (min(in_bounding_box[1][0], 0), max(in_bounding_box[1][1], size_in_array[1])),
-                (min(in_bounding_box[2][0], 0), max(in_bounding_box[2][1], size_in_array[2])))
+    def enlarge_bounding_box_to_image(in_bounding_box, size_image):
+        return ((min(in_bounding_box[0][0], 0), max(in_bounding_box[0][1], size_image[0])),
+                (min(in_bounding_box[1][0], 0), max(in_bounding_box[1][1], size_image[1])),
+                (min(in_bounding_box[2][0], 0), max(in_bounding_box[2][1], size_image[2])))
 
     @staticmethod
     def translate_bounding_box(in_bounding_box, trans_dist):
@@ -116,35 +123,35 @@ class BoundingBoxes(object):
 
 
     @classmethod
-    def compute_bounding_box_centered_bounding_box_fit_image(cls, in_bounding_box, out_size_bounding_box, size_in_array,
+    def compute_bounding_box_centered_bounding_box_fit_image(cls, in_bounding_box, out_size_bounding_box, size_image,
                                                              is_bounding_box_slices=False):
         if is_bounding_box_slices:
-            out_size_bounding_box = (size_in_array[0], out_size_bounding_box[0], out_size_bounding_box[1])
+            out_size_bounding_box = (size_image[0], out_size_bounding_box[0], out_size_bounding_box[1])
 
         center_boundbox = cls.get_center_bounding_box(in_bounding_box)
 
         out_bounding_box = cls.get_create_bounding_box(center_boundbox, out_size_bounding_box)
 
-        out_bounding_box = cls.translate_bounding_box_fit_image_size(out_bounding_box, size_in_array)
+        out_bounding_box = cls.translate_bounding_box_fit_image_size(out_bounding_box, size_image)
 
         return out_bounding_box
 
     @classmethod
-    def compute_bounding_box_centered_image_fit_image(cls, out_size_bounding_box, size_in_array,
+    def compute_bounding_box_centered_image_fit_image(cls, out_size_bounding_box, size_image,
                                                       is_bounding_box_slices=False):
-        in_image_bounding_box = cls.get_default_bounding_box_image(size_in_array)
+        in_image_bounding_box = cls.get_default_bounding_box_image(size_image)
 
         return cls.compute_bounding_box_centered_bounding_box_fit_image(in_image_bounding_box, out_size_bounding_box,
-                                                                        size_in_array, is_bounding_box_slices)
+                                                                        size_image, is_bounding_box_slices)
 
 
     @classmethod
-    def translate_bounding_box_fit_image_size(cls, in_bounding_box, size_in_array):
+    def translate_bounding_box_fit_image_size(cls, in_bounding_box, size_image):
         size_in_bounding_box = cls.get_size_bounding_box(in_bounding_box)
         trans_dist = [0,0,0]
         for i in range(3):
-            if size_in_bounding_box[i] < size_in_array[i]:
-                trans_dist[i] = cls.get_translate_distance_fit_segment(in_bounding_box[i], size_in_array[i])
+            if size_in_bounding_box[i] < size_image[i]:
+                trans_dist[i] = cls.get_translate_distance_fit_segment(in_bounding_box[i], size_image[i])
             else:
                 trans_dist[i] = cls.get_translate_distance_fix_origin(in_bounding_box[i])
         #endfor
@@ -168,9 +175,9 @@ class BoundingBoxes(object):
 
 
     @classmethod
-    def compute_bounding_boxes_crop_extend_image(cls, in_bounding_box, size_in_array):
+    def compute_bounding_boxes_crop_extend_image(cls, in_bounding_box, size_image):
 
-        out_crop_bounding_box = cls.fit_bounding_box_to_image(in_bounding_box, size_in_array)
+        out_crop_bounding_box = cls.fit_bounding_box_to_image(in_bounding_box, size_image)
 
         size_in_crop_bounding_box  = cls.get_size_bounding_box(in_bounding_box)
         size_out_crop_bounding_box = cls.get_size_bounding_box(out_crop_bounding_box)
@@ -181,9 +188,9 @@ class BoundingBoxes(object):
         return (out_crop_bounding_box, out_extend_bounding_box)
 
     @classmethod
-    def compute_bounding_boxes_crop_extend_image_reverse(cls, in_bounding_box, size_in_array):
+    def compute_bounding_boxes_crop_extend_image_reverse(cls, in_bounding_box, size_image):
 
-        (out_extend_bounding_box, out_crop_bounding_box) = cls.compute_bounding_boxes_crop_extend_image(in_bounding_box, size_in_array)
+        (out_extend_bounding_box, out_crop_bounding_box) = cls.compute_bounding_boxes_crop_extend_image(in_bounding_box, size_image)
 
         return (out_crop_bounding_box, out_extend_bounding_box)
 

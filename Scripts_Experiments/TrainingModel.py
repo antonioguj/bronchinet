@@ -113,6 +113,10 @@ def main(args):
             # compile model
             model.compile(optimizer=optimizer, loss=loss_fun, metrics=metrics)
 
+            if args.isModel_halfPrecision:
+                message = 'Networks implementation in Keras not available in Half Precision'
+                CatchErrorException(message)
+
             if args.restart_model:
                 print("Loading saved weights and restarting...")
                 modelSavedPath = joinpathnames(ModelsPath, 'model_last.hdf5')
@@ -176,7 +180,8 @@ def main(args):
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
             metrics_fun = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest) for imetrics in args.listmetrics]
 
-            trainer = Trainer(model_net, optimizer, loss_fun, metrics_fun)
+            trainer = Trainer(model_net, optimizer, loss_fun, metrics_fun,
+                              model_halfprec=args.isModel_halfPrecision)
 
             if args.restart_model:
                 print("Loading saved weights and restarting...")
@@ -227,7 +232,7 @@ def main(args):
                                                                                                    str(size_output_modelnet)))
 
         # output model summary
-        if not ISTESTMODELSWITHGNN:
+        if not ISTESTMODELSWITHGNN and not args.isModel_halfPrecision:
             trainer.get_summary_model()
         # ----------------------------------------------
 
@@ -267,7 +272,8 @@ def main(args):
                                                            batch_size=args.batch_size,
                                                            is_outputUnet_validconvs=args.isValidConvolutions,
                                                            size_output_images=size_output_modelnet,
-                                                           shuffle=SHUFFLETRAINDATA)
+                                                           shuffle=SHUFFLETRAINDATA,
+                                                           is_datagen_halfPrec=args.isModel_halfPrecision)
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(train_batch_data_generator)))
     else:
@@ -297,7 +303,8 @@ def main(args):
                                                                batch_size=args.batch_size,
                                                                is_outputUnet_validconvs=args.isValidConvolutions,
                                                                size_output_images=size_output_modelnet,
-                                                               shuffle=SHUFFLETRAINDATA)
+                                                               shuffle=SHUFFLETRAINDATA,
+                                                               is_datagen_halfPrec=args.isModel_halfPrecision)
             validation_data = valid_batch_data_generator
             print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles),
                                                                               len(valid_batch_data_generator)))
@@ -356,6 +363,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_featmaps_in', type=int, default=NUM_FEATMAPS)
     parser.add_argument('--isUse_dropout', type=str2bool, default=ISUSE_DROPOUT)
     parser.add_argument('--isUse_batchnormalize', type=str2bool, default=ISUSE_BATCHNORMALIZE)
+    parser.add_argument('--isModel_halfPrecision', type=str2bool, default=ISMODEL_HALFPRECISION)
     parser.add_argument('--type_activate_hidden', type=str, default=TYPE_ACTIVATE_HIDDEN)
     parser.add_argument('--type_activate_output', type=str, default=TYPE_ACTIVATE_OUTPUT)
     parser.add_argument('--type_padding_convol', type=str, default=TYPE_PADDING_CONVOL)

@@ -28,7 +28,8 @@ class BatchDataGenerator_Pytorch(BatchDataGenerator):
                  shuffle= True,
                  seed= None,
                  iswrite_datagen_info= True,
-                 is_data_generator_in_gpu= True):
+                 is_datagen_in_gpu= True,
+                 is_datagen_halfPrec = False):
         super(BatchDataGenerator_Pytorch, self).__init__(size_image,
                                                          list_xData_array,
                                                          list_yData_array,
@@ -41,10 +42,16 @@ class BatchDataGenerator_Pytorch(BatchDataGenerator):
                                                          shuffle=shuffle,
                                                          seed=seed,
                                                          iswrite_datagen_info= iswrite_datagen_info)
-        if is_data_generator_in_gpu:
-            self.type_data_generated_torch = torch.cuda.FloatTensor
+        if is_datagen_in_gpu:
+            if is_datagen_halfPrec:
+                self.type_data_generated_torch = torch.cuda.HalfTensor
+            else:
+                self.type_data_generated_torch = torch.cuda.FloatTensor
         else:
-            self.type_data_generated_torch = torch.FloatTensor
+            if is_datagen_halfPrec:
+                self.type_data_generated_torch = torch.HalfTensor
+            else:
+                self.type_data_generated_torch = torch.FloatTensor
 
 
     def __getitem__(self, index):
@@ -84,7 +91,9 @@ class WrapperBatchGenerator_Pytorch(data.DataLoader):
                  batch_size= 1,
                  shuffle= True,
                  seed= None,
-                 iswrite_datagen_info= True):
+                 iswrite_datagen_info= True,
+                 is_datagen_in_gpu= True,
+                 is_datagen_halfPrec= False):
         batch_data_generator = BatchDataGenerator_Pytorch(size_image,
                                                           list_xData_array,
                                                           list_yData_array,
@@ -96,7 +105,9 @@ class WrapperBatchGenerator_Pytorch(data.DataLoader):
                                                           batch_size=batch_size,
                                                           shuffle=shuffle,
                                                           seed=seed,
-                                                          iswrite_datagen_info=iswrite_datagen_info)
+                                                          iswrite_datagen_info=iswrite_datagen_info,
+                                                          is_datagen_in_gpu=is_datagen_in_gpu,
+                                                          is_datagen_halfPrec=is_datagen_halfPrec)
         super(WrapperBatchGenerator_Pytorch, self).__init__(batch_data_generator,
                                                             batch_size= batch_size,
                                                             shuffle= shuffle)
