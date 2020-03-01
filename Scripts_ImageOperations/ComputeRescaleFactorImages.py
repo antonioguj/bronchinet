@@ -17,16 +17,12 @@ import argparse
 
 
 def main(args):
-    # ---------- SETTINGS ----------
-    nameOrigVoxelSizeFile  = 'original_voxelSize.npy'
-    # ---------- SETTINGS ----------
-
 
     workDirsManager     = WorkDirsManager(args.datadir)
     InputImagesPath     = workDirsManager.getNameExistPath(args.nameInputImagesRelPath)
     InputReferKeysPath  = workDirsManager.getNameExistPath(args.nameInputReferKeysRelPath)
     OutputRescaleFactorsFile = workDirsManager.getNameNewUpdateFile(args.nameOutputRescaleFactorsFile)
-    OutputOrigVoxelSizeFile  = workDirsManager.getNameNewUpdateFile(nameOrigVoxelSizeFile)
+    OutputOrigVoxelSizeFile  = workDirsManager.getNameNewUpdateFile(args.nameOutputOrigVoxelSizeFile)
 
     listInputImagesFiles    = findFilesDirAndCheck(InputImagesPath)
     listInputReferKeysFiles = findFilesDirAndCheck(InputReferKeysPath)
@@ -92,6 +88,7 @@ if __name__ == "__main__":
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('--nameInputImagesRelPath', type=str, default=NAME_RAWIMAGES_RELPATH)
     parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
+    parser.add_argument('--nameOutputOrigVoxelSizeFile', type=str, default='original_voxelSize.npy')
     parser.add_argument('--nameOutputRescaleFactorsFile', type=str, default=NAME_RESCALEFACTOR_FILE)
     parser.add_argument('--fixedRescaleRes', type=str2tuplefloat, default=FIXEDRESCALERES)
     args = parser.parse_args()

@@ -24,10 +24,6 @@ def isSizeBoundingBoxSmallerThanSizeImages(size_bounding_box, size_images):
 
 
 def main(args):
-    # ---------- SETTINGS ----------
-    size_borders_buffer = (20, 20, 20)
-    # ---------- SETTINGS ----------
-
 
     workDirsManager     = WorkDirsManager(args.datadir)
     InputRoiMasksPath   = workDirsManager.getNameExistPath(args.nameInputRoiMasksRelPath)
@@ -54,7 +50,7 @@ def main(args):
 
 
         bounding_box = BoundingBoxes.compute_bounding_box_contain_masks(in_roimask_array,
-                                                                        size_borders_buffer=size_borders_buffer,
+                                                                        size_borders_buffer=args.sizeBufferInBorders,
                                                                         is_bounding_box_slices=args.isCalcBoundingBoxInSlices)
         size_bounding_box = BoundingBoxes.get_size_bounding_box(bounding_box)
         print("Bounding-box: \'%s\', of size: \'%s\'" %(bounding_box, size_bounding_box))
@@ -144,9 +140,8 @@ if __name__ == "__main__":
     parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
     parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
     parser.add_argument('--nameOutputBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
-    parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
-    parser.add_argument('--nameRescaleFactorFile', type=str, default=NAME_RESCALEFACTOR_FILE)
     parser.add_argument('--sizeInputTrainImages', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
+    parser.add_argument('--sizeBufferInBorders', type=str2tupleint, default=(20, 20, 20))
     parser.add_argument('--isSameBoundBoxSizeAllImages', type=str2bool, default=ISSAMEBOUNDBOXSIZEALLIMAGES)
     parser.add_argument('--fixedSizeBoundingBox', type=str2tuplefloat, default=FIXEDSIZEBOUNDINGBOX)
     parser.add_argument('--isCalcBoundingBoxInSlices', type=str2bool, default=ISCALCBOUNDINGBOXINSLICES)

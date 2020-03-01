@@ -1,7 +1,6 @@
-# Ignore file extensions
-# ----------------------
+# Python cache
 *.pyc
+*__pycache__*
 
-# Ignore directories
-# ------------------
+# Pycharm
 .idea/
