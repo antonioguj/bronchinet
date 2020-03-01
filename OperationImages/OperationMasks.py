@@ -156,6 +156,11 @@ class OperationBinaryMasks(OperationMasks):
         return np.clip(masks_array, cls.val_mask_background, cls.val_mask_positive)
 
     @classmethod
+    def extract_masks_alllabels(cls, masks_array):
+        all_labels = np.unique(masks_array).delete(0)
+        return [np.where(masks_array==ilabel, 1, 0) for ilabel in all_labels]
+
+    @classmethod
     def check_masks(cls, masks_array):
         #check that 'masks_array' only contains binary vals (0, 1)
         values_found = np.unique(masks_array)
@@ -248,12 +253,22 @@ class OperationMultiClassMasks(OperationMasks):
 
 
 class ThinningMasks(OperationMasks):
-
     @classmethod
     def compute(cls, masks_array):
-        # thinning masks to obtain centreline...
+        # thinning masks to obtain centrelines...
         return skeletonize_3d(masks_array.astype(np.uint8))
         #centrelines_array = skeletonize_3d(masks_array)
         ## convert to binary masks (0, 1)
         #return np.where(centrelines_array, cls.val_mask_positive, cls.val_mask_background)
+
+class VolumeMasks(OperationMasks):
+    @classmethod
+    def compute(cls, masks_array, voxel_size=False):
+        masks_sum = np.sum(masks_array)
+        if voxel_size:
+            voxel_vol = np.prod(voxel_size)
+            return masks_sum * voxel_vol
+        else:
+            return masks_sum
+
 

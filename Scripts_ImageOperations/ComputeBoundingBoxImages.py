@@ -60,7 +60,6 @@ def main(args):
         if isSizeBoundingBoxSmallerThanSizeImages(size_bounding_box, args.sizeInputTrainImages):
             print("WARNING: Size of bounding-box: \'%s\' smaller than size of input image patches: \'%s\'..." %(size_bounding_box,
                                                                                                                 args.sizeInputTrainImages))
-
             new_size_bounding_box = tuple([max(el_a, el_b) for (el_a, el_b) in zip(size_bounding_box,
                                                                                    args.sizeInputTrainImages)])
 

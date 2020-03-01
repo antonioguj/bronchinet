@@ -37,7 +37,6 @@ def main(args):
         in_voxel_size = DICOMreader.getImageVoxelSize(in_image_file)
         print("Voxel Size: \'%s\'..." %(str(in_voxel_size)))
 
-
         in_referkey_file = listInputReferKeysFiles[i]
         out_dictVoxelSizes[basenameNoextension(in_referkey_file)] = in_voxel_size
     #endfor
@@ -46,7 +45,6 @@ def main(args):
     # Save dictionary in file
     saveDictionary(OutputOrigVoxelSizeFile, out_dictVoxelSizes)
     saveDictionary_csv(OutputOrigVoxelSizeFile.replace('.npy','.csv'), out_dictVoxelSizes)
-
 
 
     data = np.array(out_dictVoxelSizes.values())
@@ -71,7 +69,6 @@ def main(args):
 
         rescale_factor = tuple(np.array(value) / np.array(final_rescale_res))
         print("Computed rescale factor: \'%s\'..." %(str(rescale_factor)))
-
 
         out_dictRescaleFactors[key] = rescale_factor
     #endfor
