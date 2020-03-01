@@ -179,7 +179,7 @@ if __name__ == "__main__":
     parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
     parser.add_argument('--nameOutputBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
     parser.add_argument('--isTwoBoundBoxLeftRightLungs', type=str2bool, default=ISTWOBOUNDBOXLEFTRIGHTLUNGS)
-    parser.add_argument('--sizeBufferInBorders', type=str2tupleint, default=(0, 0, 0))
+    parser.add_argument('--sizeBufferInBorders', type=str2tupleint, default=SIZEBUFFERBOUNDBOXBORDERS)
     parser.add_argument('--sizeInputTrainImages', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--isSameBoundBoxSizeAllImages', type=str2bool, default=ISSAMEBOUNDBOXSIZEALLIMAGES)
     parser.add_argument('--fixedSizeBoundingBox', type=str2tuplefloat, default=FIXEDSIZEBOUNDINGBOX)
