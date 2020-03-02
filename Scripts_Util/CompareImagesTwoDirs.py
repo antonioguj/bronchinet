@@ -8,13 +8,64 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-import argparse
-
 from DataLoaders.FileReaders import *
 from OperationImages.OperationImages import MorphoOpenImages
 from PlotsManager.Histograms import *
+from collections import OrderedDict
+import argparse
 
 _max_relerror = 1.0e-06
+
+
+
+LIST_CHECKS_FURTHER_COMPARE = ['volume_mask', 'histogram']
+_max_relerror_volume_mask = 1.0e-02
+_max_relerror_histogram   = 1.0e-03
+
+
+# ------------------------------------------------
+def check_compare_equal_volume_mask(in_image1_array, in_image2_array, **kwargs):
+    print("Compare the volumes of original and rescaled masks...")
+    img1_voxel_size = kwargs['img1_voxel_size']
+    img2_voxel_size = kwargs['img2_voxel_size']
+
+    num_voxels_image1_array = np.sum(in_image1_array)
+    num_voxels_image2_array = np.sum(in_image2_array)
+
+    volmask_image1 = np.prod(img1_voxel_size) * num_voxels_image1_array
+    volmask_image2 = np.prod(img2_voxel_size) * num_voxels_image2_array
+
+    rel_error_vols = abs(1.0 - volmask_image2/volmask_image1)
+    if rel_error_vols <_max_relerror_volume_mask:
+        print("GOOD: masks have similar volumes: \'%s\' == \'%s\'. Rel error: \'%s\'..." %(volmask_image1, volmask_image2, rel_error_vols))
+        return True
+    else:
+        print("BAD: masks have different volumes: \'%s\' != \'%s\'. Rel error: \'%s\'..."%(volmask_image1, volmask_image2, rel_error_vols))
+        return False
+
+
+# ------------------------------------------------
+def check_compare_equal_histogram_bins(in_image1_array, in_image2_array, **kwargs):
+    print("Compare the histogram bins of original and rescaled images...")
+    num_bins = 20
+
+    img1_hist_data = Histograms.get_histogram_data(in_image1_array, num_bins=num_bins)
+    img2_hist_data = Histograms.get_histogram_data(in_image2_array, num_bins=num_bins)
+
+    img1_hist_data = img1_hist_data / float(in_image1_array.size)
+    img2_hist_data = img2_hist_data / float(in_image2_array.size)
+
+    diff_hists_data = abs(img1_hist_data - img2_hist_data)
+
+    max_diff_hists_data = max(diff_hists_data)
+    if max_diff_hists_data <_max_relerror_histogram:
+        print("Check GOOD: images have similar histograms: \'max_diff_hists_data\' = \'%s\'" %(max_diff_hists_data))
+        return True
+    else:
+        print("Check BAD: images have different histograms: \'max_diff_hists_data\' = \'%s\'" %(max_diff_hists_data))
+        return False
+
+
 
 
 def main(args):
@@ -35,6 +86,24 @@ def main(args):
 
     if not isExistdir(args.tempdir):
         makedir(args.tempdir)
+
+
+    if args.type_checks_further:
+        dict_func_checks_further_compare = OrderedDict()
+
+        for name_check_fun in args.type_checks_further:
+            if name_check_fun not in LIST_CHECKS_FURTHER_COMPARE:
+                message = 'Check \'%s\' not yet implemented...' %(name_check_fun)
+                CatchErrorException(message)
+            else:
+                if name_check_fun == 'volume_mask':
+                    new_func_checks_compare = check_compare_equal_volume_mask
+                elif name_check_fun == 'histogram':
+                    new_func_checks_compare = check_compare_equal_histogram_bins
+                else:
+                    new_func_checks_compare = None
+                dict_func_checks_further_compare[name_check_fun] = new_func_checks_compare
+        #endfor
 
 
 
@@ -127,6 +196,21 @@ def main(args):
                                                density_range=True,
                                                isave_outfiles=True,
                                                outfilename=out_histo_filename)
+
+            if len(dict_func_checks_further_compare) > 0:
+                print('Do further checks to compare images of different size...')
+                img1_voxel_size = FileReader.getImageVoxelSize(in_file_1)
+                img2_voxel_size = FileReader.getImageVoxelSize(in_file_2)
+
+                for func_name, func_checks_compare in dict_func_checks_further_compare.items():
+                    is_check_OK = func_checks_compare(in_image1_array, in_image2_array,
+                                                      img1_voxel_size=img1_voxel_size,
+                                                      img2_voxel_size=img2_voxel_size)
+                    if is_check_OK:
+                        print("GOOD: Check \'%s\' is correct..." % (func_name))
+                    else:
+                        print("WRONG: Check \'%s\' is not correct..." %(func_name))
+                #endfor
     #endfor
 
     if (len(names_files_different) == 0):
@@ -141,7 +225,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('inputdir1', type=str)
     parser.add_argument('inputdir2', type=str)
-    parser.add_argument('--tempdir', type=str, default='.')
+    parser.add_argument('--tempdir', type=str, default='temp_compare/')
+    parser.add_argument('--type_checks_further', nargs='+', default=['volume_mask'])
     args = parser.parse_args()
 
     print("Print input arguments...")

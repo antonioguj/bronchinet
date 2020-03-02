@@ -8,17 +8,16 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.Constants import *
-from Common.WorkDirsManager import *
+from Common.FunctionsUtil import *
 from DataLoaders.FileReaders import *
-from OperationImages.OperationImages import *
+import argparse
+
 TYPE_ANIMATION = '1'
 if (TYPE_ANIMATION == '1'):
     import imageio
 elif (TYPE_ANIMATION == '2'):
     pass
     #import skimage
-import argparse
 
 WHITE_COLOR  = [255, 255, 255]
 BLACK_COLOR  = [0, 0, 0]
@@ -32,25 +31,15 @@ CYAN_COLOR   = [0, 255, 255]
 
 
 def main(args):
-    # ---------- SETTINGS ----------
-    nameInputPredictMasksRelPath= args.inputpredictiondir
-    nameInputImagesRelPath      = 'Images_Proc/'
-    nameInputReferMasksRelPath  = 'Airways_Proc/'
-    nameOutputRelPath           = 'Movies_Results/'
-    temp_outfilename            = '%s_video.gif'
-    prefixPatternInputFiles     = 'vol[0-9][0-9]_*'
-    # ---------- SETTINGS ----------
 
+    template_outfilename = '%s_video.gif'
 
-    workDirsManager       = WorkDirsManager(args.datadir)
-    InputPredictMasksPath = workDirsManager.getNameExistPath        (nameInputPredictMasksRelPath)
-    InputImagesPath       = workDirsManager.getNameExistBaseDataPath(nameInputImagesRelPath)
-    InputReferMasksPath   = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
-    OutputPath            = workDirsManager.getNameNewPath          (nameOutputRelPath)
+    listInputPredictMasksFiles = findFilesDirAndCheck(args.inputpredictionsdir)
+    listInputImagesFiles       = findFilesDirAndCheck(args.inputimagesdir)
+    listInputReferMasksFiles   = findFilesDirAndCheck(args.inputrefermasksdir)
+    prefixPatternInputFiles    = getFilePrefixPattern(listInputReferMasksFiles[0])
 
-    listInputPredictMasksFiles = findFilesDirAndCheck(InputPredictMasksPath)
-    listInputImagesFiles       = findFilesDirAndCheck(InputImagesPath)
-    listInputReferMasksFiles   = findFilesDirAndCheck(InputReferMasksPath)
+    makedir(args.outputdir)
 
 
 
@@ -116,15 +105,17 @@ def main(args):
             print("Good movie...")
             prefix_casename = getSubstringPatternFilename(basename(in_predictmask_file),
                                                           substr_pattern=prefixPatternInputFiles)
-            out_filename = joinpathnames(OutputPath, temp_outfilename %(prefix_casename))
+            out_filename = joinpathnames(args.outputdir, template_outfilename %(prefix_casename))
             imageio.mimsave(out_filename, out_list_frames, fps=20)
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', type=str, default=DATADIR)
-    parser.add_argument('inputpredictiondir', type=str, default='Predictions_NEW')
+    parser.add_argument('inputpredictionsdir', type=str)
+    parser.add_argument('inputimagesdir', type=str)
+    parser.add_argument('inputrefermasksdir', type=str)
+    parser.add_argument('outputdir', type=str, default='Movies_Result/')
     args = parser.parse_args()
 
     print("Print input arguments...")

@@ -16,14 +16,11 @@ import argparse
 
 
 def main(args):
-    # ---------- SETTINGS ----------
-    InputPath = args.inputdir
-    OutputPath = args.outputdir
-    namesOutputFiles = lambda in_name: basenameNoextension(in_name) + '.mhd'
-    # ---------- SETTINGS ----------
 
-    listInputFiles = findFilesDirAndCheck(InputPath)
-    makedir(OutputPath)
+    namesOutputFiles = lambda in_name: basenameNoextension(in_name) + '.mhd'
+
+    listInputFiles = findFilesDirAndCheck(args.inputdir)
+    makedir(args.outputdir)
 
 
     for in_file in listInputFiles:
@@ -45,7 +42,7 @@ def main(args):
         str_info += 'ElementType = MET_UCHAR\n'
         str_info += 'ElementDataFile = %s' %(name_raw_file)
 
-        out_file = joinpathnames(OutputPath, namesOutputFiles(in_file))
+        out_file = joinpathnames(args.outputdir, namesOutputFiles(in_file))
         print("Output: \'%s\'..." % (basename(out_file)))
 
         fout = open(out_file, 'w')

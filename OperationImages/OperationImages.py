@@ -138,7 +138,7 @@ class RescaleImages(OperationImages):
             if is_binarise_output:
                 # remove noise due to interpolation
                 thres_remove_noise = 0.1
-                return ThresholdImages.compute(in_array, thres_val=thres_remove_noise)
+                return ThresholdImages.compute(out_array, thres_val=thres_remove_noise)
             else:
                 return out_array
         else:

@@ -9,7 +9,6 @@
 ########################################################################################
 
 from Common.Constants import *
-from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
 from OperationImages.OperationImages import *
 from OperationImages.OperationMasks import *
@@ -42,6 +41,7 @@ DICT_OPERS_SUFFIX = {'mask': 'masked',
                      'exponential': 'expon'}
 
 
+# ------------------------------------------------
 def prepare_mask_operation(args):
     print("Operation: Mask images...")
     listInputRoiMasksFiles = findFilesDirAndCheck(args.inputRoidir)
@@ -56,6 +56,7 @@ def prepare_mask_operation(args):
     return wrapfun_mask_image
 
 
+# ------------------------------------------------
 def prepare_binarise_operation(args):
     print("Operation: Binarise masks between (0, 1)...")
 
@@ -66,6 +67,7 @@ def prepare_binarise_operation(args):
     return wrapfun_binarise_image
 
 
+# ------------------------------------------------
 def prepare_merge_operation(args):
     print("Operation: Merge two images...")
     listInput2ndMasksFiles = findFilesDirAndCheck(args.input2nddir)
@@ -80,6 +82,7 @@ def prepare_merge_operation(args):
     return wrapfun_merge_image
 
 
+# ------------------------------------------------
 def prepare_substract_operation(args):
     print("Operation: Substract two images (img1 - img2)...")
     listInput2ndMasksFiles = findFilesDirAndCheck(args.input2nddir)
@@ -94,6 +97,7 @@ def prepare_substract_operation(args):
     return wrapfun_substract_image
 
 
+# ------------------------------------------------
 def prepare_crop_operation(args):
     print("Operation: Crop images...")
     listReferenceFiles = findFilesDirAndCheck(args.referencedir)
@@ -109,6 +113,22 @@ def prepare_crop_operation(args):
     return wrapfun_crop_image
 
 
+# ------------------------------------------------
+def prepare_rescale_updatemetadata(args):
+    print("Update metadata (voxel size) from Rescaling operation...")
+    listReferenceFiles = findFilesDirAndCheck(args.referencedir)
+    dict_rescaleFactors = readDictionary(args.rescalefile)
+
+    def wrapfun_updatemetadata_rescale(in_file, i):
+        in_reference_file = listReferenceFiles[i]
+        rescale_factor = dict_rescaleFactors[basenameNoextension(in_reference_file)]
+        print("Update metadata for a rescaling factor: \'%s\'..." % (str(rescale_factor)))
+
+        return FileReader.updateImageMetadataInfo(in_file, rescale_factor=rescale_factor)
+
+    return wrapfun_updatemetadata_rescale
+
+
 def prepare_rescale_operation(args, is_rescale_mask= False):
     print("Operation: Rescale images...")
     listReferenceFiles = findFilesDirAndCheck(args.referencedir)
@@ -121,11 +141,7 @@ def prepare_rescale_operation(args, is_rescale_mask= False):
         if rescale_factor != (1.0, 1.0, 1.0):
             print("Rescale with a factor: \'%s\'..." % (str(rescale_factor)))
             if is_rescale_mask:
-                out_array = RescaleImages.compute3D(in_array, rescale_factor, order=3, is_binary_mask=True)
-                # remove noise due to interpolation
-                thres_remove_noise = 0.1
-                print("Remove noise in mask by thresholding with value: \'%s\'..." %(thres_remove_noise))
-                return ThresholdImages.compute(out_array, thres_val=thres_remove_noise)
+                return RescaleImages.compute3D(in_array, rescale_factor, order=3, is_binary_mask=True, is_binarise_output=True)
             else:
                 return RescaleImages.compute3D(in_array, rescale_factor, order=3)
         else:
@@ -135,6 +151,7 @@ def prepare_rescale_operation(args, is_rescale_mask= False):
     return wrapfun_rescale_image
 
 
+# ------------------------------------------------
 def prepare_fillholes_operation(args):
     print("Operation: Fill holes in images...")
 
@@ -145,6 +162,7 @@ def prepare_fillholes_operation(args):
     return wrapfun_fillholes_image
 
 
+# ------------------------------------------------
 def prepare_erode_operation(args):
     print("Operation: Erode images...")
 
@@ -155,6 +173,7 @@ def prepare_erode_operation(args):
     return wrapfun_erode_image
 
 
+# ------------------------------------------------
 def prepare_dilate_operation(args):
     print("Operation: Dilate images...")
 
@@ -165,6 +184,7 @@ def prepare_dilate_operation(args):
     return wrapfun_dilate_image
 
 
+# ------------------------------------------------
 def prepare_moropen_operation(args):
     print("Operation: Morphologically open images...")
 
@@ -175,6 +195,7 @@ def prepare_moropen_operation(args):
     return wrapfun_moropen_image
 
 
+# ------------------------------------------------
 def prepare_morclose_operation(args):
     print("Operation: Morphologically close images...")
 
@@ -185,6 +206,7 @@ def prepare_morclose_operation(args):
     return wrapfun_morclose_image
 
 
+# ------------------------------------------------
 def prepare_connregions_operation(args):
     print("Operation: Compute connected regions...")
 
@@ -197,6 +219,7 @@ def prepare_connregions_operation(args):
     return wrapfun_connregions_image
 
 
+# ------------------------------------------------
 def prepare_thinning_operation(args):
     print("Operation: Thinning images to centrelines...")
 
@@ -207,6 +230,7 @@ def prepare_thinning_operation(args):
     return wrapfun_thinning_image
 
 
+# ------------------------------------------------
 def prepare_threshold_operation(args):
     print("Operation: Threshold images...")
     thres_value = 0.5
@@ -218,6 +242,7 @@ def prepare_threshold_operation(args):
     return wrapfun_threshold_image
 
 
+# ------------------------------------------------
 def prepare_normalize_operation(args):
     print("Operation: Normalize images...")
 
@@ -228,6 +253,7 @@ def prepare_normalize_operation(args):
     return wrapfun_normalize_image
 
 
+# ------------------------------------------------
 def prepare_onlyCorrect_operation(args):
     print("Operation: Retrieve correct masks (= 1)...")
 
@@ -238,6 +264,7 @@ def prepare_onlyCorrect_operation(args):
     return wrapfun_onlyCorrect_image
 
 
+# ------------------------------------------------
 def prepare_labelsMask_operation(args):
     labels_mask = args.inlabels
     print("Operation: Retrieve labels masks: \'%s\'..." %(labels_mask))
@@ -249,6 +276,7 @@ def prepare_labelsMask_operation(args):
     return wrapfun_labelsMask_image
 
 
+# ------------------------------------------------
 def prepare_power_operation(args):
     print("Operation: Power of images...")
     poworder = 2
@@ -260,6 +288,7 @@ def prepare_power_operation(args):
     return wrapfun_power_image
 
 
+# ------------------------------------------------
 def prepare_exponential_operation(args):
     print("Operation: Exponential of images...")
 
@@ -282,6 +311,9 @@ def main(args):
     dict_func_operations = OrderedDict()
     suffix_output_names  = ''
 
+    is_update_metadata_file = False
+    func_updatemetadata = None
+
     for name_operation in list_names_operations:
         if name_operation not in LIST_OPERATIONS and name_operation != 'None':
             message = 'Operation \'%s\' not yet implemented...' %(name_operation)
@@ -298,9 +330,13 @@ def main(args):
             elif name_operation == 'crop':
                 new_func_operation = prepare_crop_operation(args)
             elif name_operation == 'rescale':
+                is_update_metadata_file = True
                 new_func_operation = prepare_rescale_operation(args)
+                func_updatemetadata = prepare_rescale_updatemetadata(args)
             elif name_operation == 'rescale_mask':
+                is_update_metadata_file = True
                 new_func_operation = prepare_rescale_operation(args, is_rescale_mask=True)
+                func_updatemetadata = prepare_rescale_updatemetadata(args)
             elif name_operation == 'fillholes':
                 new_func_operation = prepare_fillholes_operation(args)
             elif name_operation == 'erode':
@@ -352,7 +388,12 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_file)))
 
         inout_array = FileReader.getImageArray(in_file)
-        in_metadata = FileReader.getImageMetadataInfo(in_file)
+
+        if is_update_metadata_file:
+            out_metadata = func_updatemetadata(in_file, i)
+        else:
+            out_metadata = FileReader.getImageMetadataInfo(in_file)
+
 
         for func_name, func_operation in dict_func_operations.items():
             inout_array = func_operation(inout_array, i)  # perform whichever operation
@@ -362,7 +403,7 @@ def main(args):
         out_filename = joinpathnames(args.outputdir, nameOutputFiles(basename(in_file)))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), str(inout_array.shape)))
 
-        FileReader.writeImageArray(out_filename, inout_array, metadata=in_metadata)
+        FileReader.writeImageArray(out_filename, inout_array, metadata=out_metadata)
     #endfor
 
 

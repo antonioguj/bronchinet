@@ -20,20 +20,17 @@ bin_hr22nifti   = '/home/antonio/Codes/Silas_repository/image-feature-extraction
 
 
 def main(args):
-    # ---------- SETTINGS ----------
-    InputPath = args.inputdir
-    OutputPath = args.outputdir
-    namesOutputFiles = lambda in_name: basenameNoextension(in_name) + '.nii.gz'
-    # ---------- SETTINGS ----------
 
-    listInputFiles = findFilesDirAndCheck(InputPath)
-    makedir(OutputPath)
+    namesOutputFiles = lambda in_name: basenameNoextension(in_name) + '.nii.gz'
+
+    listInputFiles = findFilesDirAndCheck(args.inputdir)
+    makedir(args.outputdir)
 
     files_extension = fileextension(listInputFiles[0])
     if files_extension == '.dcm':
         files_type = 'dicom'
         tmpfile_template = lambda in_name: basenameNoextension(in_name) + '_dec.dcm'
-        tmpsubdir = joinpathnames(InputPath, 'tmp')
+        tmpsubdir = joinpathnames(args.inputdir, 'tmp')
         makedir(tmpsubdir)
 
     elif files_extension == '.hr2':
@@ -47,7 +44,7 @@ def main(args):
         if args.outformat == 'dicom':
             namesOutputFiles = lambda in_name: basenameNoextension(in_name) + '.dcm'
 
-        listInputFiles = findFilesDirAndCheck(InputPath, '*.mhd')
+        listInputFiles = findFilesDirAndCheck(args.inputdir, '*.mhd')
         listReferFiles = findFilesDirAndCheck(args.inputRefdir)
         prefixPatternInputFiles = getFilePrefixPattern(listReferFiles[0])
     else:
@@ -59,7 +56,7 @@ def main(args):
     for in_file in listInputFiles:
         print("\nInput: \'%s\'..." %(basename(in_file)))
 
-        out_file = joinpathnames(OutputPath, namesOutputFiles(in_file))
+        out_file = joinpathnames(args.outputdir, namesOutputFiles(in_file))
         print("Output: \'%s\'..." % (basename(out_file)))
 
         if files_type == 'dicom':
@@ -72,12 +69,12 @@ def main(args):
             os.system(command_string)
 
             # 2nd step: convert decompressed dicom
-            command_string = bin_dicom2nifti + ' -o ' + OutputPath + ' -f ' + case_file + ' -z y ' + in_tmp_file
+            command_string = bin_dicom2nifti + ' -o ' + args.outputdir + ' -f ' + case_file + ' -z y ' + in_tmp_file
             print("%s" % (command_string))
             os.system(command_string)
 
             # remove tmp input file and aux. .json file
-            out_json_file = joinpathnames(OutputPath, basenameNoextension(out_file) + '.json')
+            out_json_file = joinpathnames(args.outputdir, basenameNoextension(out_file) + '.json')
             removefile(in_tmp_file)
             removefile(out_json_file)
 

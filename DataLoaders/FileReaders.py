@@ -37,8 +37,21 @@ class GZIPmanager(object):
 
 class FileReader(object):
     @classmethod
+    def getImagePosition(cls, filename):
+        return cls.getFileReaderClass(filename).getImagePosition(filename)
+
+    @classmethod
+    def getImageVoxelSize(cls, filename):
+        return cls.getFileReaderClass(filename).getImageVoxelSize(filename)
+
+    @classmethod
     def getImageMetadataInfo(cls, filename):
         return cls.getFileReaderClass(filename).getImageMetadataInfo(filename)
+
+    @classmethod
+    def updateImageMetadataInfo(cls, filename, **kwargs):
+        in_metadata = cls.getImageMetadataInfo(filename)
+        return cls.getFileReaderClass(filename).updateImageMetadataInfo(in_metadata, **kwargs)
 
     @classmethod
     def getImageSize(cls, filename):
@@ -49,8 +62,8 @@ class FileReader(object):
         return cls.getFileReaderClass(filename).getImageArray(filename)
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, **kwargs):
-        cls.getFileReaderClass(filename).writeImageArray(filename, images_array, **kwargs)
+    def writeImageArray(cls, filename, img_array, **kwargs):
+        cls.getFileReaderClass(filename).writeImageArray(filename, img_array, **kwargs)
 
     @staticmethod
     def getFileReaderClass(filename):
@@ -89,13 +102,25 @@ class NIFTIreader(FileReader):
         return nib.load(filename).affine
 
     @staticmethod
-    def computeAffineMatrix(img_voxelsize, img_position, img_rotation):
+    def computeAffineMatrix(img_voxelsize, img_position): #, img_rotation):
+        # Only consider affine transformations composed on rescaling and translation, for the moment
         affine = np.eye(4)
         if img_voxelsize != None:
             np.fill_diagonal(affine[:3,:3], img_voxelsize)
         if img_position != None:
             affine[:3,-1] = img_position
         return affine
+
+    @staticmethod
+    def updateAffineMatrix(in_affine, img_rescalefactor, img_translatefactor): #, img_rotatefactor):
+        # Only consider affine transformations composed on rescaling and translation, for the moment
+        out_affine = in_affine
+        if img_rescalefactor != None:
+            rescale_matrix = np.eye(img_rescalefactor + (1,))
+            out_affine = np.dot(out_affine, rescale_matrix)
+        if img_translatefactor != None:
+            out_affine[:3,-1] += img_translatefactor
+        return out_affine
 
     @staticmethod
     def changeDimsAffineMatrix(affine):
@@ -108,8 +133,8 @@ class NIFTIreader(FileReader):
         return affine
 
     @staticmethod
-    def fixDimsImageArray_fromDicom2niix(images_array):
-        return np.flip(images_array, 1)
+    def fixDimsImageArray_fromDicom2niix(img_array):
+        return np.flip(img_array, 1)
 
     @staticmethod
     def fixDimsImageAffineMatrix_fromDicom2niix(affine):
@@ -118,18 +143,18 @@ class NIFTIreader(FileReader):
         return affine
 
     @staticmethod
-    def changeDimsImageArray_read(images_array):
+    def changeDimsImageArray_read(img_array):
         # Roll array axis to change dimensions from (dz, dx, dy) to (dx, dy, dz) (nifty format)
-        # return np.rollaxis(images_array, 2, 0)
+        # return np.rollaxis(img_array, 2, 0)
         # Roll array axis to change dimensions from (dz, dy, dx) to (dx, dy, dz) (nifty format)
-        return np.swapaxes(images_array, 0, 2)
+        return np.swapaxes(img_array, 0, 2)
 
     @staticmethod
-    def changeDimsImageArray_write(images_array):
+    def changeDimsImageArray_write(img_array):
         # Roll array axis to change dimensions from (dz, dx, dy) to (dx, dy, dz) (nifty format)
-        # return np.rollaxis(images_array, 0, 3)
+        # return np.rollaxis(img_array, 0, 3)
         # Roll array axis to change dimensions from (dz, dy, dx) to (dx, dy, dz) (nifty format)
-        return np.swapaxes(images_array, 0, 2)
+        return np.swapaxes(img_array, 0, 2)
 
     @classmethod
     def getImagePosition(cls, filename):
@@ -146,17 +171,29 @@ class NIFTIreader(FileReader):
         return cls.getImageAffineMatrix(filename)
 
     @classmethod
+    def updateImageMetadataInfo(cls, in_metadata, **kwargs):
+        if 'img_rescalefactor' in kwargs.keys():
+            img_rescalefactor = kwargs['img_rescalefactor']
+        else:
+            img_rescalefactor = None
+        if 'img_translatefactor' in kwargs.keys():
+            img_translatefactor = kwargs['img_translatefactor']
+        else:
+            img_translatefactor = None
+        return cls.updateAffineMatrix(in_metadata, img_rescalefactor, img_translatefactor)
+
+    @classmethod
     def getImageArray(cls, filename, isFix_from_dicom2niix=False):
         nib_img = nib.load(filename)
         return cls.changeDimsImageArray_read(nib_img.get_data())
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, **kwargs):
+    def writeImageArray(cls, filename, img_array, **kwargs):
         if 'metadata' in kwargs.keys():
             affine = kwargs['metadata']
         else:
             affine = None
-        nib_img = nib.Nifti1Image(cls.changeDimsImageArray_write(images_array), affine)
+        nib_img = nib.Nifti1Image(cls.changeDimsImageArray_write(img_array), affine)
         nib.save(nib_img, filename)
 
 
@@ -167,8 +204,8 @@ class NUMPYreader(FileReader):
         return np.load(filename)
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, **kwargs):
-        np.save(filename, images_array)
+    def writeImageArray(cls, filename, img_array, **kwargs):
+        np.save(filename, img_array)
 
 
 class NUMPYZreader(FileReader):
@@ -177,8 +214,8 @@ class NUMPYZreader(FileReader):
         return np.load(filename)['arr_0']
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, **kwargs):
-        np.savez_compressed(filename, images_array)
+    def writeImageArray(cls, filename, img_array, **kwargs):
+        np.savez_compressed(filename, img_array)
 
 
 class HDF5reader(FileReader):
@@ -188,9 +225,9 @@ class HDF5reader(FileReader):
         return data_file['data'][:]
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, **kwargs):
+    def writeImageArray(cls, filename, img_array, **kwargs):
         data_file = h5py.File(filename, 'w')
-        data_file.create_dataset('data', data=images_array)
+        data_file.create_dataset('data', data=img_array)
         data_file.close()
 
 
@@ -201,13 +238,21 @@ class MHDRAWreader(FileReader):
         return sitk.GetArrayFromImage(img_read)
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, **kwargs):
-        img_write = sitk.GetImageFromArray(images_array)
+    def writeImageArray(cls, filename, img_array, **kwargs):
+        img_write = sitk.GetImageFromArray(img_array)
         sitk.WriteImage(img_write, filename)
 
 
 
 class DICOMreader(FileReader):
+    @staticmethod
+    def convertImageArrayStoredDtypeUint16(img_array):
+        max_val_uint16 = np.iinfo(np.uint16).max
+        ind_pos_0 = np.argwhere(img_array == 0)
+        img_array = img_array.astype(np.int32) - max_val_uint16 - 1
+        img_array[ind_pos_0] = 0
+        return img_array
+
     @staticmethod
     def getImageHeader(filename):
         return pydicom.read_file(filename)
@@ -233,13 +278,10 @@ class DICOMreader(FileReader):
         metadata_keys = img_read.GetMetaDataKeys()
         return {key: img_read.GetMetaData(key) for key in metadata_keys}
 
-    @staticmethod
-    def convertImageArrayStoredDtypeUint16(images_array):
-        max_val_uint16 = np.iinfo(np.uint16).max
-        ind_pos_0 = np.argwhere(images_array == 0)
-        images_array = images_array.astype(np.int32) - max_val_uint16 - 1
-        images_array[ind_pos_0] = 0
-        return images_array
+    @classmethod
+    def updateImageMetadataInfo(cls, in_metadata, **kwargs):
+        print('\'updateImageMetadataInfo\' not implemented for DICOMreader...')
+        return NotImplemented
 
     @classmethod
     def getImageArray(cls, filename):
@@ -247,10 +289,10 @@ class DICOMreader(FileReader):
         return sitk.GetArrayFromImage(img_read)
 
     @classmethod
-    def writeImageArray(cls, filename, images_array, **kwargs):
-        if images_array.dtype != np.uint16:
-            images_array = images_array.astype(np.uint16)
-        img_write = sitk.GetImageFromArray(images_array)
+    def writeImageArray(cls, filename, img_array, **kwargs):
+        if img_array.dtype != np.uint16:
+            img_array = img_array.astype(np.uint16)
+        img_write = sitk.GetImageFromArray(img_array)
         if 'metadata' in kwargs.keys():
             dict_metadata = kwargs['metadata']
             for (key, val) in dict_metadata.iteritems():
@@ -258,12 +300,12 @@ class DICOMreader(FileReader):
         return sitk.WriteImage(img_write, filename)
 
     @classmethod
-    def writeImageArray_OLD(cls, filename, images_array, ds_refimg):
+    def writeImageArray_OLD(cls, filename, img_array, ds_refimg):
         if ds_refimg.file_meta.TransferSyntaxUID.is_compressed:
             ds_refimg.decompress()
-        if images_array.dtype != np.uint16:
-            images_array = images_array.astype(np.uint16)
-        ds_refimg.PixelData = images_array.tostring()
+        if img_array.dtype != np.uint16:
+            img_array = img_array.astype(np.uint16)
+        ds_refimg.PixelData = img_array.tostring()
         pydicom.write_file(filename, ds_refimg)
 
 

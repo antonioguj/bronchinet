@@ -18,10 +18,6 @@ import argparse
 
 
 def main(args):
-    # ---------- SETTINGS ----------
-    outputfile = args.outputfile
-    # ---------- SETTINGS ----------
-
 
     if args == 'sphere':
         # *********************************************
@@ -68,8 +64,8 @@ def main(args):
     out_array = fun_operation(out_array)
 
     # write out image
-    print("Write out image: %s..." %(outputfile))
-    FileReader.writeImageArray(outputfile, out_array)
+    print("Write out image: %s..." %(args.outputfile))
+    FileReader.writeImageArray(args.outputfile, out_array)
 
 
 

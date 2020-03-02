@@ -10,6 +10,7 @@
 
 from Common.ErrorMessages import *
 from Common.FunctionsImagesUtil import *
+from OperationImages.BoundingBoxes import *
 from OperationImages.OperationImages import ExtendImages
 import numpy as np
 
@@ -116,7 +117,7 @@ class ImageReconstructor(object):
         else:
             out_array = in_array
         if self.is_filter_output_unet:
-            out_array = filter_images_generator.get_image(out_array)
+            out_array = self.filter_images_generator.get_image(out_array)
         return out_array
 
 
