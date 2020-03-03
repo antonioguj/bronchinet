@@ -25,7 +25,7 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 
 # ******************** SET-UP WORKDIR ********************
-DATADIR = '/home/antonio/Data/EXACT_Processed_Fullsize/'
+DATADIR = '/home/antonio/Data/EXACT_Processed_TestFullLung/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
 
 # Names input and output directories
@@ -69,14 +69,13 @@ else:
 MASKTOREGIONINTEREST = True
 
 RESCALEIMAGES = False
-ORDERINTERRESCALE = 3
 #FIXEDRESCALERES = (0.6, 0.55, 0.55)   # for LUVAR
 FIXEDRESCALERES = (0.8, 0.69, 0.69)   # for EXACT
 #FIXEDRESCALERES = None
 
 CROPIMAGES = True
-ISTWOBOUNDBOXLEFTRIGHTLUNGS = False
-SIZEBUFFERBOUNDBOXBORDERS = (20, 20, 20)
+ISTWOBOUNDBOXLEFTRIGHTLUNGS = True
+SIZEBUFFERBOUNDBOXBORDERS = (0, 0, 0)
 ISSAMEBOUNDBOXSIZEALLIMAGES = False
 ISCALCBOUNDINGBOXINSLICES = False
 FIXEDSIZEBOUNDINGBOX = None
@@ -137,7 +136,7 @@ TAILORED_BUILD_MODEL = True
 NUM_EPOCHS = 1000
 BATCH_SIZE = 1
 IOPTIMIZER = 'Adam'
-LEARN_RATE = 9.0e-05
+LEARN_RATE = 1.0e-04
 ILOSSFUN   = 'DiceCoefficient'
 LISTMETRICS = []
 #LISTMETRICS = ['DiceCoefficient', 'TruePositiveRate', 'FalsePositiveRate', 'TrueNegativeRate', 'FalseNegativeRate']

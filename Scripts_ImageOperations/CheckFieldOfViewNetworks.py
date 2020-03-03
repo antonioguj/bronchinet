@@ -8,21 +8,88 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.Constants import *
-from Common.ErrorMessages import *
-from Common.FunctionsUtil import *
 from Common.WorkDirsManager import *
-from DataLoaders.FileReaders import *
-from Networks_Pytorch.Networks_WithGNN import *
-from OperationImages.OperationImages import *
-from OperationImages.OperationMasks import *
+from DataLoaders.BatchDataGeneratorManager import *
+from DataLoaders.LoadDataManager import *
+from Networks_Pytorch.Networks import *
+from Preprocessing.ImageGeneratorManager import *
 from Postprocessing.ImageReconstructorManager import *
-import numpy as np
+from collections import OrderedDict
 import argparse
 
 
 
 def main(args):
+
+    # ---------- SETTINGS ----------
+    nameInputImagesFiles = 'images_proc*.nii.gz'
+    nameInputLabelsFiles = 'labels_proc*.nii.gz'
+
+    def nameOutputFiles(in_name, in_size_image):
+        suffix = 'img%s' %('x'.join([str(s) for s in in_size_image]))
+        'fieldOfView_' + basenameNoextension(in_name) + '_' + suffix + '.nii.gz'
+    # ---------- SETTINGS ----------
+
+
+    workDirsManager    = WorkDirsManager(args.basedir)
+    TrainingDataPath   = workDirsManager.getNameExistPath(args.traindatadir)
+    ValidationDataPath = workDirsManager.getNameExistPath(args.validdatadir)
+    OutputFilesPath    = workDirsManager.getNameNewPath(args.outputdir)
+
+    listTrainLabelsFiles = findFilesDirAndCheck(TrainingDataPath, nameInputLabelsFiles)
+    listValidLabelsFiles = findFilesDirAndCheck(ValidationDataPath, nameInputLabelsFiles)
+    listAllLabelsFiles   = listTrainLabelsFiles + listValidLabelsFiles
+
+
+    # Build model to calculate the output size
+    model_net = DICTAVAILMODELS3D(args.size_in_images,
+                                  num_levels=1,
+                                  num_featmaps_in=1,
+                                  isUse_valid_convols=args.isValidConvolutions)
+
+    size_output_modelnet = tuple(model_net.get_size_output()[1:])
+    if args.isValidConvolutions:
+        print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
+                                                                                               str(size_output_modelnet)))
+
+
+
+
+    # Load data
+
+
+
+    if (args.slidingWindowImages or args.transformationRigidImages or args.transformElasticDeformImages):
+        print("Generate Training images with Batch Generator of Training data...")
+
+        (list_train_xData, list_train_yData) = LoadDataManager.loadData_ListFiles(listAllLabelsFiles, listAllLabelsFiles)
+
+        train_batch_data_generator = getBatchDataGenerator(args.size_in_images,
+                                                           list_train_xData,
+                                                           list_train_yData,
+                                                           args.slidingWindowImages,
+                                                           args.propOverlapSlidingWindow,
+                                                           args.randomCropWindowImages,
+                                                           args.numRandomImagesPerVolumeEpoch,
+                                                           args.transformationRigidImages,
+                                                           args.transformElasticDeformImages,
+                                                           batch_size=args.batch_size,
+                                                           is_outputUnet_validconvs=args.isValidConvolutions,
+                                                           size_output_images=size_output_modelnet,
+                                                           shuffle=SHUFFLETRAINDATA,
+                                                           is_datagen_halfPrec=args.isModel_halfPrecision)
+        print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
+                                                                          len(train_batch_data_generator)))
+    else:
+        (list_train_xData, list_train_yData) = LoadDataManagerInBatches(args.size_in_images).loadData_ListFiles(listTrainImagesFiles,
+                                                                                                                listTrainLabelsFiles)
+        print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
+                                                                          len(list_train_xData)))
+
+
+
+
+
     # ---------- SETTINGS ----------
     nameInputProcDataRelPath = 'ImagesWorkData/'
     nameInputReferMasksRelPath = 'Airways/'
@@ -43,7 +110,7 @@ def main(args):
     InputProcDataPath   = workDirsManager.getNameExistPath(BaseDataPath, nameInputProcDataRelPath)
     InputReferMasksPath = workDirsManager.getNameExistPath(BaseDataPath, nameInputReferMasksRelPath)
     ReferenceImgPath    = workDirsManager.getNameExistPath(BaseDataPath, nameReferenceImgRelPath)
-    OutputFilesPath     = workDirsManager.getNameNewPath  (args.basedir, nameOutputFilesRelPath)
+
 
     listInputProcDataFiles  = findFilesDirAndCheck(InputProcDataPath)
     listInputReferMasksFiles= findFilesDirAndCheck(InputReferMasksPath)
@@ -134,15 +201,12 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('outputdir', type=str, default='CheckFieldOfViewNetworks/')
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('--num_layers', type=int, default=NUM_LAYERS)
     parser.add_argument('--size_in_images', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
-    parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
-    parser.add_argument('--filterPredictProbMaps', type=str2bool, default=FILTERPREDICTPROBMAPS)
-    parser.add_argument('--prop_valid_outUnet', type=float, default=PROP_VALID_OUTUNET)
-    parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
-    parser.add_argument('--slidewin_propOverlap', type=str2tuplefloat, default=SLIDEWINDOW_PROPOVERLAP_Z_X_Y)
-    parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
+    parser.add_argument('--traindatadir', type=str, default=NAME_TRAININGDATA_RELPATH)
+    parser.add_argument('--validdatadir', type=str, default=NAME_VALIDATIONDATA_RELPATH)
+    parser.add_argument('--validdatadir', type=str, default=NAME_VALIDATIONDATA_RELPATH)
     args = parser.parse_args()
 
     print("Print input arguments...")

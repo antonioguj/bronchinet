@@ -59,8 +59,8 @@ def main(args):
     if USEVALIDATIONDATA:
         ValidationDataPath = workDirsManager.getNameExistPath(args.validdatadir)
 
-        listValidImagesFiles = findFilesDir(ValidationDataPath, nameInputImagesFiles)[0:args.numMaxValidImages]
-        listValidLabelsFiles = findFilesDir(ValidationDataPath, nameInputLabelsFiles)[0:args.numMaxValidImages]
+        listValidImagesFiles = findFilesDirAndCheck(ValidationDataPath, nameInputImagesFiles)[0:args.numMaxValidImages]
+        listValidLabelsFiles = findFilesDirAndCheck(ValidationDataPath, nameInputLabelsFiles)[0:args.numMaxValidImages]
 
         if not listValidImagesFiles or not listValidLabelsFiles:
             use_validation_data = False
@@ -352,8 +352,8 @@ if __name__ == "__main__":
     parser.add_argument('--modelsdir', type=str, default='Models')
     parser.add_argument('--cfgfromfile', type=str, default=None)
     parser.add_argument('--size_in_images', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
-    parser.add_argument('--traindatadir', type=str, default='TrainingData')
-    parser.add_argument('--validdatadir', type=str, default='ValidationData')
+    parser.add_argument('--traindatadir', type=str, default=NAME_TRAININGDATA_RELPATH)
+    parser.add_argument('--validdatadir', type=str, default=NAME_VALIDATIONDATA_RELPATH)
     parser.add_argument('--numMaxTrainImages', type=int, default=NUMMAXTRAINIMAGES)
     parser.add_argument('--numMaxValidImages', type=int, default=NUMMAXVALIDIMAGES)
     parser.add_argument('--imodel', type=str, default=IMODEL)

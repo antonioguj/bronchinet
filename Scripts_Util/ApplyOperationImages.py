@@ -141,7 +141,7 @@ def prepare_rescale_operation(args, is_rescale_mask= False):
         if rescale_factor != (1.0, 1.0, 1.0):
             print("Rescale with a factor: \'%s\'..." % (str(rescale_factor)))
             if is_rescale_mask:
-                return RescaleImages.compute3D(in_array, rescale_factor, order=3, is_binary_mask=True, is_binarise_output=True)
+                return RescaleImages.compute3D(in_array, rescale_factor, order=3, is_inlabels=True, is_binarise_output=True)
             else:
                 return RescaleImages.compute3D(in_array, rescale_factor, order=3)
         else:
@@ -259,7 +259,7 @@ def prepare_onlyCorrect_operation(args):
 
     def wrapfun_onlyCorrect_image(in_array, i):
         print("Retrieve correct masks (= 1)...")
-        return OperationBinaryMasks.get_masks_with_labels_all(in_array, labels_list=[1])
+        return OperationBinaryMasks.get_masks_with_labels(in_array, labels_list=[1])
 
     return wrapfun_onlyCorrect_image
 
@@ -271,7 +271,7 @@ def prepare_labelsMask_operation(args):
 
     def wrapfun_labelsMask_image(in_array, i):
         print("Retrieve labels mask: \'%s\'..." %(labels_mask))
-        return OperationBinaryMasks.get_masks_with_labels_all(in_array, labels_list=labels_mask)
+        return OperationBinaryMasks.get_masks_with_labels(in_array, labels_list=labels_mask)
 
     return wrapfun_labelsMask_image
 

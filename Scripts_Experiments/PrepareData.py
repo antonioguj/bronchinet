@@ -18,6 +18,20 @@ from collections import OrderedDict
 import argparse
 
 
+def check_same_number_files_in_list(list_files_1, list_files_2):
+    if (len(list_files_1) != len(list_files_2)):
+        message = 'num files in two lists not equal: \'%s\' != \'%s\'...' %(len(list_files_1), len(list_files_2))
+        CatchErrorException(message)
+
+def check_same_size_arrays(in_array_1, in_array_2):
+    if in_array_1.shape != in_array_2.shape:
+        message = "arrays have different size: \'%s\' != \'%s\'. Skip these data..." %(str(in_array_1.shape, str(in_array_2.shape)))
+        CatchWarningException(message)
+        return True
+    else:
+        return False
+
+
 
 def main(args):
     # ---------- SETTINGS ----------
@@ -37,31 +51,26 @@ def main(args):
     listInputImagesFiles    = findFilesDirAndCheck(InputImagesPath)
     listInputReferKeysFiles = findFilesDirAndCheck(InputReferKeysPath)
 
+
     if (args.isPrepareLabels):
         InputLabelsPath      = workDirsManager.getNameExistPath(args.nameInputLabelsRelPath)
         OutputLabelsPath     = workDirsManager.getNameNewPath  (args.nameOutputLabelsRelPath)
         listInputLabelsFiles = findFilesDirAndCheck(InputLabelsPath)
 
-        if (len(listInputImagesFiles) != len(listInputLabelsFiles)):
-            message = 'num Images \'%s\' and Labels \'%s\' not equal...' %(len(listInputImagesFiles), len(listInputLabelsFiles))
-            CatchErrorException(message)
+        check_same_number_files_in_list(listInputImagesFiles, listInputLabelsFiles)
 
     if (args.masksToRegionInterest):
         InputRoiMasksPath      = workDirsManager.getNameExistPath(args.nameInputRoiMasksRelPath)
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
-        if (len(listInputImagesFiles) != len(listInputRoiMasksFiles)):
-            message = 'num Images \'%s\' and Roi Masks \'%s\' not equal...' %(len(listInputImagesFiles), len(listInputRoiMasksFiles))
-            CatchErrorException(message)
+        check_same_number_files_in_list(listInputImagesFiles, listInputRoiMasksFiles)
 
     if (args.isInputExtraLabels):
         InputExtraLabelsPath      = workDirsManager.getNameExistPath(args.nameInputExtraLabelsRelPath)
         OutputExtraLabelsPath     = workDirsManager.getNameNewPath  (args.nameOutputExtraLabelsRelPath)
         listInputExtraLabelsFiles = findFilesDirAndCheck(InputExtraLabelsPath)
 
-        if (len(listInputImagesFiles) != len(listInputExtraLabelsFiles)):
-            message = 'num Images \'%s\' and Extra Labels \'%s\' not equal...' %(len(listInputImagesFiles), len(listInputExtraLabelsFiles))
-            CatchErrorException(message)
+        check_same_number_files_in_list(listInputImagesFiles, listInputExtraLabelsFiles)
 
     if (args.rescaleImages):
         InputRescaleFactorsFile = workDirsManager.getNameExistPath(args.nameRescaleFactorsFile)
@@ -75,21 +84,20 @@ def main(args):
     if (args.cropImages):
         first_elem_dictCropBoundingBoxes = in_dictCropBoundingBoxes.values()[0]
         if type(first_elem_dictCropBoundingBoxes) == list:
-            is_outputMultipleProcImages_perRawImage = True  # output several cropped processed images per raw image
-
+            is_output_multiple_files_per_image = True
             print("\nFound list of crop bounding-boxes per Raw image. Output several processed images...")
-            nameTemplateOutputImagesFiles     = 'images_proc-%0.2i_box-%0.2i.nii.gz'
-            nameTemplateOutputLabelsFiles     = 'labels_proc-%0.2i_box-%0.2i.nii.gz'
-            nameTemplateOutputExtraLabelsFiles= 'cenlines_proc-%0.2i_box-%0.2i.nii.gz'
+            nameTemplateOutputImagesFiles     = 'images_proc-%0.2i_crop-%0.2i.nii.gz'
+            nameTemplateOutputLabelsFiles     = 'labels_proc-%0.2i_crop-%0.2i.nii.gz'
+            nameTemplateOutputExtraLabelsFiles= 'cenlines_proc-%0.2i_crop-%0.2i.nii.gz'
 
         else:
             # for new developments, store input dict boundary-boxes per raw images as a list. But output only one processed image
             for key, value in in_dictCropBoundingBoxes.iteritems():
                 in_dictCropBoundingBoxes[key] = [value]
             #endfor
-            is_outputMultipleProcImages_perRawImage = False
+            is_output_multiple_files_per_image = False
     else:
-        is_outputMultipleProcImages_perRawImage = False
+        is_output_multiple_files_per_image = False
 
 
 
@@ -98,11 +106,14 @@ def main(args):
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
-        # *******************************************************************************
         inout_image_array = FileReader.getImageArray(in_image_file)
         print("Original dims : \'%s\'..." % (str(inout_image_array.shape)))
 
+        list_inout_arrays = [inout_image_array]
+        list_type_inout_arrays = ['image']
 
+
+        # *******************************************************************************
         if (args.isPrepareLabels):
             in_label_file = listInputLabelsFiles[i]
             print("And Labels: \'%s\'..." % (basename(in_label_file)))
@@ -112,9 +123,10 @@ def main(args):
                 print("Convert masks to binary (0, 1)...")
                 inout_label_array = OperationBinaryMasks.process_masks(inout_label_array)
 
-            if inout_label_array.shape != inout_image_array.shape:
-                message = "Images and Labels files of different size (not compatible). Skip these data..."
-                CatchWarningException(message)
+            list_inout_arrays.append(inout_label_array)
+            list_type_inout_arrays.append('label')
+
+            if check_same_number_files_in_list(inout_label_array, inout_image_array):
                 continue
 
 
@@ -123,15 +135,16 @@ def main(args):
             print("And ROI Mask for labels: \'%s\'..." %(basename(in_roimask_file)))
 
             in_roimask_array = FileReader.getImageArray(in_roimask_file)
-            if args.isMultipleROImasks:
-                in_roimask_labels = np.delete(np.unique(in_roimask_array), 0)
-                in_list_roimask_array = OperationBinaryMasks.get_masks_with_labels_each(in_roimask_array, in_roimask_labels)
+            if args.isROIlabelsMultiROImasks:
+                in_list_roimask_array = OperationBinaryMasks.get_list_masks_all_labels(in_roimask_array)
+                list_inout_arrays += in_list_roimask_array
+                list_type_inout_arrays += ['roimask'] * len(in_list_roimask_array)
             else:
                 in_roimask_array = OperationBinaryMasks.process_masks(in_roimask_array)
+                list_inout_arrays.append(in_roimask_array)
+                list_type_inout_arrays.append('roimask')
 
-            if in_roimask_array.shape != inout_image_array.shape:
-                message = "Images and ROI Mask files of different size (not compatible). Skip these data..."
-                CatchWarningException(message)
+            if check_same_number_files_in_list(in_roimask_array, inout_image_array):
                 continue
 
 
@@ -141,11 +154,13 @@ def main(args):
 
             inout_extralabel_array = FileReader.getImageArray(in_extralabel_file)
             inout_extralabel_array = OperationBinaryMasks.process_masks(inout_extralabel_array)
+            list_inout_arrays.append(inout_extralabel_array)
+            list_type_inout_arrays.append('label')
 
-            if in_roimask_array.shape != inout_image_array.shape:
-                message = "Images and extra Labels files of different size (not compatible). Skip these data..."
-                CatchWarningException(message)
+            if check_same_number_files_in_list(inout_extralabel_array, inout_image_array):
                 continue
+
+        num_init_labels = list_type_inout_arrays.count('label')
         # *******************************************************************************
 
 
@@ -156,182 +171,150 @@ def main(args):
             print("Rescale image with a factor: \'%s\'..." %(str(in_rescale_factor)))
 
             if in_rescale_factor != (1.0, 1.0, 1.0):
-                inout_image_array = RescaleImages.compute3D(inout_image_array, in_rescale_factor, order=args.orderInterRescale)
-
-                if (args.isPrepareLabels):
-                    inout_label_array = RescaleImages.compute3D(inout_label_array, in_rescale_factor, order=args.orderInterRescale, is_binary_mask=True)
-
-                if (args.masksToRegionInterest):
-                    in_roimask_array = RescaleImages.compute3D(in_roimask_array, in_rescale_factor, order=args.orderInterRescale, is_binary_mask=True, is_binarise_output=True)
-
-                if (args.isInputExtraLabels):
-                    inout_extralabel_array = RescaleImages.compute3D(inout_extralabel_array, in_rescale_factor, order=args.orderInterRescale, is_binary_mask=True, is_binarise_output=True)
+                for j, (in_array, type_in_array) in enumerate(zip(list_inout_arrays, list_type_inout_arrays)):
+                    print('Rescale input array \'%s\' of type \'%s\'...' %(j, type_in_array))
+                    if type_in_array == 'image':
+                        out_array = RescaleImages.compute3D(in_array, in_rescale_factor, order=3)
+                    elif type_in_array == 'label':
+                        out_array = RescaleImages.compute3D(in_array, in_rescale_factor, order=3, is_inlabels=True)
+                    elif type_in_array == 'roimask':
+                        out_array = RescaleImages.compute3D(in_array, in_rescale_factor, order=3, is_inlabels=True, is_binarise_output=True)
+                    list_inout_arrays[j] = out_array
+                # endfor
             else:
                 print("Rescale factor (\'%s'\). Skip rescaling..." %(str(in_rescale_factor)))
 
-            print("Final dims: %s..." %(str(inout_image_array.shape)))
+            print("Final dims: %s..." %(str(list_inout_arrays[0].shape)))
         # *******************************************************************************
 
 
         # *******************************************************************************
-        if (args.isPrepareLabels and args.masksToRegionInterest):
-            print("Mask labels to ROI mask...:")
-            if args.isMultipleROImasks:
-                inout_list_label_array = []
-                for in_roimask_array in in_list_roimask_array:
-                    out_label_array = OperationBinaryMasks.apply_mask_exclude_voxels(inout_label_array, in_roimask_array)
-                    inout_list_label_array.append(out_label_array)
-                #endfor
+        if (args.masksToRegionInterest):
+            list_in_calc_arrays    = [list_inout_arrays[j] for j, type_array in enumerate(list_type_inout_arrays) if type_array == 'label']
+            list_in_roimask_arrays = [list_inout_arrays[j] for j, type_array in enumerate(list_type_inout_arrays) if type_array == 'roimask']
+            list_out_calc_arrays = []
 
-                # overwrite arrays to homogenize with rest of code
-                inout_label_array = inout_list_label_array
-            else:
-                inout_label_array = OperationBinaryMasks.apply_mask_exclude_voxels(inout_label_array, in_roimask_array)
+            for j, in_roimask_array in enumerate(list_in_roimask_arrays):
+                for k, in_array in enumerate(list_in_calc_arrays):
+                    print('Masks input labels array \'%s\' to ROI masks \'%s\'...' % (k, j))
+                    out_array = OperationBinaryMasks.apply_mask_exclude_voxels(in_array, in_roimask_array)
+                    list_out_calc_arrays.append(out_array)
+                # endfor
+            # endfor
 
-            if (args.isInputExtraLabels):
-                if args.isMultipleROImasks:
-                    inout_list_extralabel_array = []
-                    for in_roimask_array in in_list_roimask_array:
-                        out_extralabel_array = OperationBinaryMasks.apply_mask_exclude_voxels(inout_extralabel_array, in_roimask_array)
-                        inout_list_extralabel_array.append(out_extralabel_array)
-                    #endfor
-
-                    # overwrite arrays to homogenize with rest of code
-                    inout_extralabel_array = inout_list_extralabel_array
-                else:
-                    inout_extralabel_array = OperationBinaryMasks.apply_mask_exclude_voxels(inout_extralabel_array, in_roimask_array)
+            list_inout_arrays = [list_inout_arrays[0]] + list_out_calc_arrays
+            list_type_inout_arrays = ['image'] + ['label'] * len(list_out_calc_arrays)
         # *******************************************************************************
 
 
         # *******************************************************************************
         if (args.cropImages):
             in_referkey_file = listInputReferKeysFiles[i]
-            in_list_crop_bounding_boxes = in_dictCropBoundingBoxes[basenameNoextension(in_referkey_file)]
-
-            num_crop_bounding_boxes = len(in_list_crop_bounding_boxes)
+            list_in_crop_bounding_boxes = in_dictCropBoundingBoxes[basenameNoextension(in_referkey_file)]
+            num_crop_bounding_boxes = len(list_in_crop_bounding_boxes)
             print("Compute \'%s\' cropped images for this raw image:" %(num_crop_bounding_boxes))
 
-            if (args.isPrepareLabels and args.isMultipleROImasks):
-                if len(inout_label_array) != num_crop_bounding_boxes:
-                    message = 'num of ROI masks \'%s\' is different to num cropping bounding-boxes \'%s\'...' %(len(inout_label_array),
-                                                                                                                num_crop_bounding_boxes)
-                    CatchWarningException(message)
-                    continue
+            if (args.masksToRegionInterest and args.isROIlabelsMultiROImasks):
+                num_total_labels = list_type_inout_arrays.count('label')
+                num_total_labels_tocrop = num_crop_bounding_boxes * num_init_labels
+                if (num_total_labels_tocrop != num_total_labels):
+                    message = 'num labels to crop to bounding boxes is wrong: \'%s\' != \'%s\' (expected)...' %(num_total_labels, num_total_labels_tocrop)
+                    CatchErrorException(message)
 
-            out_list_image_array = []
-            out_list_label_array = []
-            out_list_extralabel_array = []
-
-            for j, in_crop_bounding_box in enumerate(in_list_crop_bounding_boxes):
-                print("Crop image to bounding-box: \'%s\'..." % (str(in_crop_bounding_box)))
-
-                if not BoundingBoxes.is_bounding_box_contained_in_image_size(in_crop_bounding_box, inout_image_array.shape):
-                    print("Bounding-box: \'%s\' is larger than image size: \'%s\'. Combine cropping with extending images..."
-                          %(str(in_crop_bounding_box), str(inout_image_array.shape)))
-
-                    new_inout_image_shape = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
-                    (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image(in_crop_bounding_box,
-                                                                                                                                inout_image_array.shape)
-
-                    out_image_array = CropAndExtendImages.compute3D(inout_image_array, croppartial_bounding_box, extendimg_bounding_box, new_inout_image_shape)
-                    out_list_image_array.append(out_image_array)
-
-                    if (args.isPrepareLabels):
-                        if args.isMultipleROImasks:
-                            out_label_array = CropAndExtendImages.compute3D(inout_label_array[j], croppartial_bounding_box, extendimg_bounding_box, new_inout_image_shape)
-                        else:
-                            out_label_array = CropAndExtendImages.compute3D(inout_label_array, croppartial_bounding_box, extendimg_bounding_box, new_inout_image_shape)
-                        out_list_label_array.append(out_label_array)
-
-                    if (args.isInputExtraLabels):
-                        if args.isMultipleROImasks:
-                            out_extralabel_array = CropAndExtendImages.compute3D(inout_extralabel_array[j], croppartial_bounding_box, extendimg_bounding_box, new_inout_image_shape)
-                        else:
-                            out_extralabel_array = CropAndExtendImages.compute3D(inout_extralabel_array, croppartial_bounding_box, extendimg_bounding_box, new_inout_image_shape)
-                        out_list_extralabel_array.append(out_extralabel_array)
-                else:
-                    out_image_array = CropImages.compute3D(inout_image_array, in_crop_bounding_box)
-                    out_list_image_array.append(out_image_array)
-
-                    if (args.isPrepareLabels):
-                        if args.isMultipleROImasks:
-                            out_label_array = CropImages.compute3D(inout_label_array[j], in_crop_bounding_box)
-                        else:
-                            out_label_array = CropImages.compute3D(inout_label_array, in_crop_bounding_box)
-                        out_list_label_array.append(out_label_array)
-
-                    if (args.isInputExtraLabels):
-                        if args.isMultipleROImasks:
-                            out_extralabel_array = CropImages.compute3D(inout_extralabel_array[j], in_crop_bounding_box)
-                        else:
-                            out_extralabel_array = CropImages.compute3D(inout_extralabel_array, in_crop_bounding_box)
-                        out_list_extralabel_array.append(out_extralabel_array)
-
-                print("Final dims: %s..." % (str(out_image_array.shape)))
-            #endfor
-
-            # overwrite arrays to homogenize with rest of code
-            if is_outputMultipleProcImages_perRawImage:
-                inout_image_array = out_list_image_array
-                inout_label_array = out_list_label_array
-                if (args.isInputExtraLabels):
-                    inout_extralabel_array = out_list_extralabel_array
+                # In this set-up, there is already computed the input ROI-masked label per cropping bounding-box
+                # Insert input image in the right place: before each set of ROI-masked labels
+                in_image_array = list_inout_arrays[0]
+                for j in range(1,num_crop_bounding_boxes):
+                    pos_insert = j*(num_init_labels+1)
+                    list_inout_arrays.insert(pos_insert, in_image_array)
+                    list_type_inout_arrays.insert(pos_insert, 'image')
+                # endfor
             else:
-                inout_image_array = out_list_image_array[0]
-                inout_label_array = out_list_label_array[0]
-                if (args.isInputExtraLabels):
-                    inout_extralabel_array = out_list_extralabel_array[0]
+                # Concatenate as many input images and labels as num cropping bounding-boxes
+                list_inout_arrays = list_inout_arrays * num_crop_bounding_boxes
+                list_type_inout_arrays = list_type_inout_arrays * num_crop_bounding_boxes
+
+
+            num_arrays_per_crop_bounding_box = len(list_inout_arrays) // num_crop_bounding_boxes
+
+            icount = 0
+            for j, in_crop_bounding_box in enumerate(list_in_crop_bounding_boxes):
+                print("Crop input arrays to bounding-box \'%s\' out of \'%s\': \'%s\'..." % (j, num_crop_bounding_boxes, str(in_crop_bounding_box)))
+
+                size_in_array = list_inout_arrays[icount].shape
+                size_in_crop_bounding_box = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
+
+                if not BoundingBoxes.is_bounding_box_contained_in_image_size(in_crop_bounding_box, size_in_array):
+                    print("Bounding-box is larger than image size: : \'%s\' > \'%s\'. Combine cropping with extending images..."
+                          %(str(size_in_crop_bounding_box), str(size_in_array)))
+
+                    new_size_in_array = size_in_crop_bounding_box
+                    (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image(in_crop_bounding_box, size_in_array)
+
+                    for k in range(num_arrays_per_crop_bounding_box):
+                        print('Crop input array \'%s\' of type \'%s\'...' % (icount, list_type_inout_arrays[icount]))
+                        out_array = CropAndExtendImages.compute3D(list_inout_arrays[icount], croppartial_bounding_box,
+                                                                  extendimg_bounding_box, new_size_in_array)
+                        list_inout_arrays[icount] = out_array
+                        icount += 1
+                    # endfor
+                else:
+                    for k in range(num_arrays_per_crop_bounding_box):
+                        print('Crop input array \'%s\' of type \'%s\'...' % (icount, list_type_inout_arrays[icount]))
+                        out_array = CropImages.compute3D(list_inout_arrays[icount], in_crop_bounding_box)
+                        list_inout_arrays[icount] = out_array
+                        icount += 1
+                    # endfor
+            # endfor
+
+            print("Final dims: %s..." % (str(list_inout_arrays[0].shape)))
         # *******************************************************************************
 
 
 
         # Output processed images
-        if is_outputMultipleProcImages_perRawImage:
-            num_output_images = len(inout_image_array)
-            print("Output \'%s\' processed images for this raw image..." % (num_output_images))
-
-            for j in range(num_output_images):
-                output_image_file = joinpathnames(OutputImagesPath, nameTemplateOutputImagesFiles % (i+1, j+1))
-                print("Output: \'%s\', of dims: \'%s\'..." % (basename(output_image_file), (inout_image_array[j].shape)))
-
-                FileReader.writeImageArray(output_image_file, inout_image_array[j])
-
-                # save this image in reference keys
-                out_dictReferenceKeys[basename(output_image_file)] = basename(in_image_file)
-
-                if (args.isPrepareLabels):
-                    output_label_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1, j+1))
-                    print("And: \'%s\', of dims: \'%s\'..." % (basename(output_label_file), str(inout_label_array[j].shape)))
-
-                    FileReader.writeImageArray(output_label_file, inout_label_array[j])
-
-                if (args.isInputExtraLabels):
-                    output_extralabel_file = joinpathnames(OutputExtraLabelsPath, nameTemplateOutputExtraLabelsFiles % (i+1, j+1))
-                    print("And: \'%s\', of dims: \'%s\'..." % (basename(output_extralabel_file), str(inout_extralabel_array[j].shape)))
-
-                    FileReader.writeImageArray(output_extralabel_file, inout_extralabel_array[j])
-            #endfor
-
+        # *******************************************************************************
+        if (args.cropImages):
+            num_output_files_per_image = num_crop_bounding_boxes
         else:
-            output_image_file = joinpathnames(OutputImagesPath, nameTemplateOutputImagesFiles % (i+1))
-            print("Output: \'%s\', of dims: \'%s\'..." % (basename(output_image_file), (inout_image_array.shape)))
+            num_output_files_per_image = 1
 
-            FileReader.writeImageArray(output_image_file, inout_image_array)
+        icount = 0
+        for j in range(num_output_files_per_image):
+            print("Output \'%s\' image, of type \'%s\'..." % (icount, list_type_inout_arrays[icount]))
+            if is_output_multiple_files_per_image:
+                output_image_file = joinpathnames(OutputImagesPath, nameTemplateOutputImagesFiles %(i+1, j+1))
+            else:
+                output_image_file = joinpathnames(OutputImagesPath, nameTemplateOutputImagesFiles %(i+1))
+
+            FileReader.writeImageArray(output_image_file, list_inout_arrays[icount])
+            icount += 1
 
             # save this image in reference keys
             out_dictReferenceKeys[basename(output_image_file)] = basename(in_image_file)
 
-            if (args.isPrepareLabels):
-                output_label_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1))
-                print("And: \'%s\', of dims: \'%s\'..." % (basename(output_label_file), str(inout_label_array.shape)))
 
-                FileReader.writeImageArray(output_label_file, inout_label_array)
+            if (args.isPrepareLabels):
+                print("Output \'%s\' label, of type \'%s\'..." % (icount, list_type_inout_arrays[icount]))
+                if is_output_multiple_files_per_image:
+                    output_label_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1, j+1))
+                else:
+                    output_label_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1))
+
+                FileReader.writeImageArray(output_label_file, list_inout_arrays[icount])
+                icount += 1
 
             if (args.isInputExtraLabels):
-                output_extralabel_file = joinpathnames(OutputExtraLabelsPath, nameTemplateOutputExtraLabelsFiles % (i+1))
-                print("And: \'%s\', of dims: \'%s\'..." % (basename(output_extralabel_file), str(inout_extralabel_array.shape)))
+                print("Output \'%s\' extra label, of type \'%s\'..." % (icount, list_type_inout_arrays[icount]))
+                if is_output_multiple_files_per_image:
+                    output_extralabel_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1, j+1))
+                else:
+                    output_extralabel_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1))
 
-                FileReader.writeImageArray(output_extralabel_file, inout_extralabel_array)
+                FileReader.writeImageArray(output_extralabel_file, list_inout_arrays[icount])
+                icount += 1
+        # endfor
+        # *******************************************************************************
     #endfor
 
 
@@ -358,12 +341,11 @@ if __name__ == "__main__":
     parser.add_argument('--isInputExtraLabels', type=str2bool, default=False)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--isBinaryTrainMasks', type=str2bool, default=ISBINARYTRAINMASKS)
-    parser.add_argument('--isMultipleROImasks', type=str2bool, default=ISTWOBOUNDBOXLEFTRIGHTLUNGS)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
     parser.add_argument('--nameRescaleFactorsFile', type=str, default=NAME_RESCALEFACTOR_FILE)
-    parser.add_argument('--orderInterRescale', type=int, default=ORDERINTERRESCALE)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--nameCropBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
+    parser.add_argument('--isROIlabelsMultiROImasks', type=str2bool, default=ISTWOBOUNDBOXLEFTRIGHTLUNGS)
     args = parser.parse_args()
 
     print("Print input arguments...")

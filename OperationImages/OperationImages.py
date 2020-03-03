@@ -131,8 +131,8 @@ class RescaleImages(OperationImages):
     order_default = 3
 
     @staticmethod
-    def compute2D(in_array, scale_factor, order=order_default, is_binary_mask=False, is_binarise_output=False):
-        if is_binary_mask:
+    def compute2D(in_array, scale_factor, order=order_default, is_inlabels=False, is_binarise_output=False):
+        if is_inlabels:
             out_array = rescale(in_array, scale=scale_factor, order=order,
                                 preserve_range=True, multichannel=False, anti_aliasing=True)
             if is_binarise_output:
@@ -146,8 +146,8 @@ class RescaleImages(OperationImages):
                            preserve_range=True, multichannel=False, anti_aliasing=True)
 
     @staticmethod
-    def compute3D(in_array, scale_factor, order=order_default, is_binary_mask=False, is_binarise_output=False):
-        return RescaleImages.compute2D(in_array, scale_factor, order, is_binary_mask, is_binarise_output)
+    def compute3D(in_array, scale_factor, order=order_default, is_inlabels=False, is_binarise_output=False):
+        return RescaleImages.compute2D(in_array, scale_factor, order, is_inlabels, is_binarise_output)
 
 
 class ThresholdImages(OperationImages):
