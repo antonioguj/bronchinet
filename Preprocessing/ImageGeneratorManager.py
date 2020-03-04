@@ -101,8 +101,8 @@ def getImagesDataGenerator(size_in_images,
                            slidewindow_propOverlap,
                            use_randomCropWindowImages,
                            numRandomPatchesEpoch,
-                           use_transformationRigidImages,
-                           use_transformElasticDeformImages,
+                           use_transformationRigidImages= False,
+                           use_transformElasticDeformImages= False,
                            size_full_image= 0):
 
     list_images_generators = []

@@ -20,7 +20,7 @@ def getImagesReconstructor(size_in_images,
                            slidewindow_propOverlap,
                            use_randomCropWindowImages,
                            numRandomPatchesEpoch,
-                           use_transformationRigidImages,
+                           use_transformationRigidImages= False,
                            size_full_image= 0,
                            is_outputUnet_validconvs= False,
                            size_output_images= None,
@@ -43,9 +43,9 @@ def getImagesReconstructor(size_in_images,
 
         ndims = len(size_in_images)
         if ndims==2:
-            filter_images_generator = FilteringUnetOutputValidConvs2D(size_image, size_filter_output_unet)
+            filter_images_generator = FilteringUnetOutputValidConvs2D(size_in_images, size_filter_output_unet)
         elif ndims==3:
-            filter_images_generator = FilteringUnetOutputValidConvs3D(size_image, size_filter_output_unet)
+            filter_images_generator = FilteringUnetOutputValidConvs3D(size_in_images, size_filter_output_unet)
         else:
             raise Exception('Error: self.ndims')
     else:

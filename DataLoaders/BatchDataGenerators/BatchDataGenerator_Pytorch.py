@@ -94,20 +94,23 @@ class WrapperBatchGenerator_Pytorch(data.DataLoader):
                  iswrite_datagen_info= True,
                  is_datagen_in_gpu= True,
                  is_datagen_halfPrec= False):
-        batch_data_generator = BatchDataGenerator_Pytorch(size_image,
-                                                          list_xData_array,
-                                                          list_yData_array,
-                                                          images_generator,
-                                                          num_channels_in=num_channels_in,
-                                                          num_classes_out=num_classes_out,
-                                                          is_outputUnet_validconvs=is_outputUnet_validconvs,
-                                                          size_output_image=size_output_image,
-                                                          batch_size=batch_size,
-                                                          shuffle=shuffle,
-                                                          seed=seed,
-                                                          iswrite_datagen_info=iswrite_datagen_info,
-                                                          is_datagen_in_gpu=is_datagen_in_gpu,
-                                                          is_datagen_halfPrec=is_datagen_halfPrec)
-        super(WrapperBatchGenerator_Pytorch, self).__init__(batch_data_generator,
+        self.batch_data_generator = BatchDataGenerator_Pytorch(size_image,
+                                                               list_xData_array,
+                                                               list_yData_array,
+                                                               images_generator,
+                                                               num_channels_in=num_channels_in,
+                                                               num_classes_out=num_classes_out,
+                                                               is_outputUnet_validconvs=is_outputUnet_validconvs,
+                                                               size_output_image=size_output_image,
+                                                               batch_size=batch_size,
+                                                               shuffle=shuffle,
+                                                               seed=seed,
+                                                               iswrite_datagen_info=iswrite_datagen_info,
+                                                               is_datagen_in_gpu=is_datagen_in_gpu,
+                                                               is_datagen_halfPrec=is_datagen_halfPrec)
+        super(WrapperBatchGenerator_Pytorch, self).__init__(self.batch_data_generator,
                                                             batch_size= batch_size,
                                                             shuffle= shuffle)
+
+    def get_full_data(self):
+        return self.batch_data_generator.get_full_data()

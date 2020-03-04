@@ -88,23 +88,23 @@ class SetPatchInImages(OperationImages):
 
 class ExtendImages(OperationImages):
     @staticmethod
-    def get_init_output_array(out_array_shape, out_array_dtype, background_value=0):
-        if background_value==0:
+    def get_init_output_array(out_array_shape, out_array_dtype, background_value=None):
+        if background_value is None:
             return np.zeros(out_array_shape, dtype=out_array_dtype)
         else:
             return np.full(out_array_shape, background_value, dtype=out_array_dtype)
 
     @classmethod
     def compute2D(cls, in_array, bound_box, out_array_shape, background_value=None):
-        if not background_value:
+        if background_value is None:
             background_value = in_array[0][0]
         out_array = cls.get_init_output_array(out_array_shape, in_array.dtype, background_value)
         SetPatchInImages.compute2D(in_array, out_array, bound_box)
         return out_array
 
     @classmethod
-    def compute3D(cls, in_array, bound_box, out_array_shape, background_value=0):
-        if not background_value:
+    def compute3D(cls, in_array, bound_box, out_array_shape, background_value=None):
+        if background_value is None:
             background_value = in_array[0][0][0]
         out_array = cls.get_init_output_array(out_array_shape, in_array.dtype, background_value)
         SetPatchInImages.compute3D(in_array, out_array, bound_box)
@@ -114,14 +114,14 @@ class ExtendImages(OperationImages):
 class CropAndExtendImages(OperationImages):
     @staticmethod
     def compute2D(in_array, crop_bound_box, extend_bound_box, out_array_shape, background_value=None):
-        if not background_value:
+        if background_value is None:
             background_value = in_array[0][0]
         return ExtendImages.compute2D(CropImages.compute2D(in_array, crop_bound_box),
                                       extend_bound_box, out_array_shape, background_value)
 
     @staticmethod
     def compute3D(in_array, crop_bound_box, extend_bound_box, out_array_shape, background_value=None):
-        if not background_value:
+        if background_value is None:
             background_value = in_array[0][0][0]
         return ExtendImages.compute3D(CropImages.compute3D(in_array, crop_bound_box),
                                       extend_bound_box, out_array_shape, background_value)

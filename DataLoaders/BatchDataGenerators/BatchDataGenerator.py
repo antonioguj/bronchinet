@@ -51,7 +51,7 @@ class BatchDataGenerator(object):
         if is_outputUnet_validconvs and size_output_image and \
             (size_image != size_output_image):
             self.size_output_image = size_output_image
-            self.crop_output_bounding_box = BoundingBoxes.compute_bounding_box_centered_image_fit_image(self.size_output_image,
+            self.output_crop_bounding_box = BoundingBoxes.compute_bounding_box_centered_image_fit_image(self.size_output_image,
                                                                                                         self.size_image)
             ndims = len(size_image)
             if ndims==2:
@@ -135,7 +135,7 @@ class BatchDataGenerator(object):
 
 
     def get_cropped_output(self, in_array):
-        return self.fun_crop_images(in_array, self.crop_output_bounding_box)
+        return self.fun_crop_images(in_array, self.output_crop_bounding_box)
 
 
     def get_formated_output_xData(self, in_array):

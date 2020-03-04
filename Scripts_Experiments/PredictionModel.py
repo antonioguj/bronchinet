@@ -56,12 +56,13 @@ def main(args):
 
     workDirsManager      = WorkDirsManager(args.basedir)
     TestingDataPath      = workDirsManager.getNameExistPath        (args.testdatadir)
-    ReferenceFilesPath   = workDirsManager.getNameExistBaseDataPath(nameReferenceFilesRelPath)
+    InputReferKeysFile   = workDirsManager.getNameExistBaseDataFile(NAME_PROCREFERKEYS_FILE)
     OutputPredictionsPath= workDirsManager.getNameNewPath          (nameOutputPredictionsRelPath)
 
     listTestImagesFiles = findFilesDirAndCheck(TestingDataPath, nameInputImagesFiles)
     #listTestLabelsFiles = findFilesDirAndCheck(TestingDataPath, nameInputLabelsFiles)
-    listReferenceFiles  = findFilesDirAndCheck(ReferenceFilesPath)
+    in_dictReferenceKeys = readDictionary(InputReferKeysFile)
+    prefixPatternInputFiles = getFilePrefixPattern(in_dictReferenceKeys.values()[0])
 
     if (args.masksToRegionInterest):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
@@ -111,14 +112,14 @@ def main(args):
         trainer = Trainer.load_model_full(modelSavedPath,
                                           dict_added_model_input_args=dict_added_model_input_args)
 
-        # size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
-        # if args.isValidConvolutions:
-        #     print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." %(str(args.size_in_images),
-        #                                                                                           str(size_output_modelnet)))
-        size_output_modelnet = args.size_in_images  # IMPLEMENT HERE HOW TO COMPUTE SIZE OF OUTPUT MODEL
+        size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
         if args.isValidConvolutions:
-            message = "CODE WITH KERAS NOT IMPLEMENTED FOR VALID CONVOLUTIONS..."
-            CatchErrorException(message)
+            print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." %(str(args.size_in_images),
+                                                                                                  str(size_output_modelnet)))
+        # size_output_modelnet = args.size_in_images  # IMPLEMENT HERE HOW TO COMPUTE SIZE OF OUTPUT MODEL
+        # if args.isValidConvolutions:
+        #     message = "CODE WITH KERAS NOT IMPLEMENTED FOR VALID CONVOLUTIONS..."
+        #     CatchErrorException(message)
 
         # output model summary
         trainer.get_summary_model()
@@ -194,15 +195,9 @@ def main(args):
         # RECONSTRUCT FULL-SIZE PREDICTION
         # *******************************************************************************
         print("Reconstruct prediction to full size...")
-        # Assign original images and masks files
-        index_reference_file = getIndexOriginImagesFile(basename(in_testXData_file),
-                                                        beginString='images_proc', firstIndex='01')
-        in_reference_file = listReferenceFiles[index_reference_file]
-        print("Reference image file: \'%s\'..." %(basename(in_reference_file)))
-
         # init reconstructor with size of "ifile"
-        out_reconstructImage_shape = FileReader.getImageSize(in_testXData_file)
-        images_reconstructor.update_image_data(out_reconstructImage_shape)
+        out_recons_image_shape = FileReader.getImageSize(in_testXData_file)
+        images_reconstructor.update_image_data(out_recons_image_shape)
 
         out_prediction_array = images_reconstructor.compute(out_predict_yData)
 
@@ -210,10 +205,14 @@ def main(args):
         # *******************************************************************************
         if (args.cropImages):
             print("Prediction data are cropped. Extend prediction array to full image size...")
-            crop_bounding_box = dict_cropBoundingBoxes[basenameNoextension(in_reference_file)]
+            in_referkey_file = in_dictReferenceKeys[basename(in_testXData_file)]
+            crop_bounding_box = dict_cropBoundingBoxes[basenameNoextension(in_referkey_file)]
+
+            in_roimask_file = findFileWithSamePrefixPattern(basename(in_referkey_file), listInputRoiMasksFiles,
+                                                            prefix_pattern=prefixPatternInputFiles)
 
             # reconstruct from cropped / rescaled images
-            out_fullimage_shape = FileReader.getImageSize(in_reference_file)
+            out_fullimage_shape = FileReader.getImageSize(in_roimask_file)
             if (args.saveFeatMapsLayers):
                 num_featmaps = out_prediction_array.shape[-1]
                 out_fullimage_shape = list(out_fullimage_shape) + [num_featmaps]
@@ -241,7 +240,9 @@ def main(args):
         # *******************************************************************************
         if (args.masksToRegionInterest):
             print("Mask predictions to RoI: lungs...")
-            in_roimask_file = listInputRoiMasksFiles[index_reference_file]
+            in_referkey_file = in_dictReferenceKeys[basename(in_testXData_file)]
+            in_roimask_file = findFileWithSamePrefixPattern(basename(in_referkey_file), listInputRoiMasksFiles,
+                                                            prefix_pattern=prefixPatternInputFiles)
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask_array = FileReader.getImageArray(in_roimask_file)
@@ -253,14 +254,16 @@ def main(args):
             num_featmaps = out_prediction_array.shape[-1]
             print("Output model feature maps (\'%s\' in total)..." %(num_featmaps))
             for ifeatmap in range(num_featmaps):
-                out_prediction_file = nameOutputPredictionFiles %(basenameNoextension(in_reference_file), args.nameSaveModelLayer, ifeatmap + 1)
+                in_referkey_file    = in_dictReferenceKeys[basename(in_testXData_file)]
+                out_prediction_file = nameOutputPredictionFiles %(basenameNoextension(in_referkey_file), args.nameSaveModelLayer, ifeatmap + 1)
                 out_prediction_file = joinpathnames(OutputPredictionsPath, out_prediction_file)
                 print("Output: \'%s\', of dims \'%s\'..." %(basename(out_prediction_file), out_prediction_array[...,ifeatmap].shape))
 
                 FileReader.writeImageArray(out_prediction_file, out_prediction_array[...,ifeatmap])
             #endfor
         else:
-            out_prediction_file = joinpathnames(OutputPredictionsPath, nameOutputPredictionFiles % (basenameNoextension(in_reference_file)))
+            in_referkey_file    = in_dictReferenceKeys[basename(in_testXData_file)]
+            out_prediction_file = joinpathnames(OutputPredictionsPath, nameOutputPredictionFiles % (basenameNoextension(in_referkey_file)))
             print("Output: \'%s\', of dims \'%s\'..." % (basename(out_prediction_file), out_prediction_array.shape))
 
             FileReader.writeImageArray(out_prediction_file, out_prediction_array)

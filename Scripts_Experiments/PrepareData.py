@@ -25,7 +25,7 @@ def check_same_number_files_in_list(list_files_1, list_files_2):
 
 def check_same_size_arrays(in_array_1, in_array_2):
     if in_array_1.shape != in_array_2.shape:
-        message = "arrays have different size: \'%s\' != \'%s\'. Skip these data..." %(str(in_array_1.shape, str(in_array_2.shape)))
+        message = "arrays have different size: \'%s\' != \'%s\'. Skip these data..." %(str(in_array_1.shape), str(in_array_2.shape))
         CatchWarningException(message)
         return True
     else:
@@ -192,18 +192,18 @@ def main(args):
         if (args.masksToRegionInterest):
             list_in_calc_arrays    = [list_inout_arrays[j] for j, type_array in enumerate(list_type_inout_arrays) if type_array == 'label']
             list_in_roimask_arrays = [list_inout_arrays[j] for j, type_array in enumerate(list_type_inout_arrays) if type_array == 'roimask']
-            list_out_calc_arrays = []
+
+            list_inout_arrays = [list_inout_arrays[0]]
+            list_type_inout_arrays = ['image']
 
             for j, in_roimask_array in enumerate(list_in_roimask_arrays):
                 for k, in_array in enumerate(list_in_calc_arrays):
                     print('Masks input labels array \'%s\' to ROI masks \'%s\'...' % (k, j))
                     out_array = OperationBinaryMasks.apply_mask_exclude_voxels(in_array, in_roimask_array)
-                    list_out_calc_arrays.append(out_array)
+                    list_inout_arrays.append(out_array)
+                    list_type_inout_arrays.append('label')
                 # endfor
             # endfor
-
-            list_inout_arrays = [list_inout_arrays[0]] + list_out_calc_arrays
-            list_type_inout_arrays = ['image'] + ['label'] * len(list_out_calc_arrays)
         # *******************************************************************************
 
 
@@ -291,7 +291,7 @@ def main(args):
             icount += 1
 
             # save this image in reference keys
-            out_dictReferenceKeys[basename(output_image_file)] = basename(in_image_file)
+            out_dictReferenceKeys[basenameNoextension(output_image_file)] = basename(in_image_file)
 
 
             if (args.isPrepareLabels):

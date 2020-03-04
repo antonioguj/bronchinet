@@ -35,8 +35,8 @@ class ImageReconstructor(object):
             self.size_full_image = size_full_image
 
         self.is_outputUnet_validconvs = is_outputUnet_validconvs
-        if is_outputUnet_validconvs and size_output_image \
-            (size_image == size_output_image):
+        if is_outputUnet_validconvs and size_output_image and (size_image != size_output_image):
+
             self.size_output_image = size_output_image
             self.valid_output_bounding_box = BoundingBoxes.compute_bounding_box_centered_image_fit_image(self.size_output_image,
                                                                                                          self.size_image)
@@ -89,12 +89,12 @@ class ImageReconstructor(object):
             return NotImplemented
 
 
-    def get_shape_output_array(self, in_array_shape):
+    def get_shape_output_array(self, in_array_shape, out_size_array):
         if is_image_array_without_channels(self.size_image, in_array_shape):
-            return list(self.size_full_image)
+            return list(out_size_array)
         else:
             num_channels = get_num_channels_array(self.size_image, in_array_shape)
-            return list(self.size_full_image) + [num_channels]
+            return list(out_size_array) + [num_channels]
 
 
     def get_reshaped_input_array(self, in_array):
@@ -113,7 +113,8 @@ class ImageReconstructor(object):
 
     def get_processed_image_patch_array(self, in_array):
         if self.is_outputUnet_validconvs:
-            out_array = self.fun_extend_image_patch(in_array, self.valid_output_bounding_box, self.size_image)
+            size_out_array = self.get_shape_output_array(in_array.shape, self.size_image)
+            out_array = self.fun_extend_image_patch(in_array, self.valid_output_bounding_box, size_out_array, background_value=0)
         else:
             out_array = in_array
         if self.is_filter_output_unet:
@@ -121,16 +122,16 @@ class ImageReconstructor(object):
         return out_array
 
 
-    def compute(self, in_array):
-        if not self.check_correct_shape_input_array(in_array.shape):
-            message = "Wrong shape of input predictions data array..." % (in_array.shape)
+    def compute(self, in_batches_array):
+        if not self.check_correct_shape_input_array(in_batches_array.shape):
+            message = "Wrong shape of input predictions data array: \'%s\'... " % (str(in_batches_array.shape))
             CatchErrorException(message)
 
-        out_array_shape = self.get_shape_output_array(in_array.shape)
-        out_reconstructed_array = np.zeros(out_array_shape, dtype=in_array.dtype)
+        out_array_shape = self.get_shape_output_array(in_batches_array.shape, self.size_full_image)
+        out_reconstructed_array = np.zeros(out_array_shape, dtype=in_batches_array.dtype)
 
         for index in range(self.num_patches_total):
-            in_patch_array = self.get_processed_image_patch_array(in_array[index])
+            in_patch_array = self.get_processed_image_patch_array(in_batches_array[index])
             self.images_generator.set_add_image_patch(in_patch_array, out_reconstructed_array, index)
         # endfor
 
@@ -139,31 +140,38 @@ class ImageReconstructor(object):
         return self.get_reshaped_output_array(out_reconstructed_array)
 
 
-    def compute_normfact_overlap_image_patches(self):
+    def compute_overlap_image_patches(self):
         # compute normalizing factor to account for how many times the sliding-window batches image overlap
         out_array_shape = self.size_full_image
-        normfact_overlap_image_patches_array = np.zeros(out_array_shape, dtype=np.float32)
+        out_overlap_patches_array = np.zeros(out_array_shape, dtype=np.float32)
 
         if self.is_outputUnet_validconvs:
-            weight_sample_array = np.ones(self.size_output_image, dtype=np.float32)
+            weight_sample_shape = self.size_output_image
         else:
-            weight_sample_array = np.ones(self.size_image, dtype=np.float32)
+            weight_sample_shape = self.size_image
 
+        weight_sample_array = np.ones(weight_sample_shape, dtype=np.float32)
         weight_sample_array = self.get_processed_image_patch_array(weight_sample_array)
 
         for index in range(self.num_patches_total):
-            self.images_generator.set_add_image_patch(weight_sample_array, normfact_overlap_image_patches_array, index)
+            self.images_generator.set_add_image_patch(weight_sample_array, out_overlap_patches_array, index)
         # endfor
+
+        return out_overlap_patches_array
+
+
+    def compute_normfact_overlap_image_patches(self):
+        out_normfact_overlap_patches_array = self.compute_overlap_image_patches()
 
         # set to very large overlap to avoid division by zero in
         # those parts where there was no batch extracted
         max_toler = 1.0e+010
-        normfact_overlap_image_patches_array = np.where(normfact_overlap_image_patches_array==0.0,
-                                                        max_toler, normfact_overlap_image_patches_array)
+        out_normfact_overlap_patches_array = np.where(out_normfact_overlap_patches_array==0.0,
+                                                        max_toler, out_normfact_overlap_patches_array)
 
-        normfact_overlap_image_patches_array = np.reciprocal(normfact_overlap_image_patches_array)
+        out_normfact_overlap_patches_array = np.reciprocal(out_normfact_overlap_patches_array)
 
-        return normfact_overlap_image_patches_array
+        return out_normfact_overlap_patches_array
 
 
     # def check_filling_overlap_image_samples(self):

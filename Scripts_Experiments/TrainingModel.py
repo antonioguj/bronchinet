@@ -255,7 +255,7 @@ def main(args):
     print("-" * 30)
 
     print("Load Training data...")
-    if (args.slidingWindowImages or args.transformationRigidImages or args.transformElasticDeformImages):
+    if (args.slidingWindowImages or args.randomCropWindowImages or args.transformationRigidImages or args.transformElasticDeformImages):
         print("Generate Training images with Batch Generator of Training data...")
 
         (list_train_xData, list_train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles, listTrainLabelsFiles)
@@ -284,7 +284,7 @@ def main(args):
 
     if use_validation_data:
         print("Load Validation data...")
-        if (args.slidingWindowImages or args.transformationRigidImages or args.transformElasticDeformImages):
+        if (args.slidingWindowImages or args.randomCropWindowImages or args.transformationRigidImages or args.transformElasticDeformImages):
             print("Generate Validation images with Batch Generator of Validation data...")
             args.transformationRigidImages = args.transformationRigidImages and USETRANSFORMONVALIDATIONDATA
             args.transformElasticDeformImages = args.transformElasticDeformImages and USETRANSFORMONVALIDATIONDATA
