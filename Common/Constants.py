@@ -25,7 +25,7 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 
 # ******************** SET-UP WORKDIR ********************
-DATADIR = '/home/antonio/Data/DLCST+LUVAR+EXACT_Processed_Fullsize/'
+DATADIR = '/home/antonio/Data/EXACT_Processed_Fullsize/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
 
 # Names input and output directories
@@ -81,8 +81,8 @@ FIXEDRESCALERES = (0.8, 0.69, 0.69)   # for EXACT
 #FIXEDRESCALERES = None
 
 CROPIMAGES = True
-ISTWOBOUNDBOXLEFTRIGHTLUNGS = True
-SIZEBUFFERBOUNDBOXBORDERS = (0, 0, 0)
+ISTWOBOUNDBOXLEFTRIGHTLUNGS = False
+SIZEBUFFERBOUNDBOXBORDERS = (20, 20, 20)
 ISSAMEBOUNDBOXSIZEALLIMAGES = False
 ISCALCBOUNDINGBOXINSLICES = False
 FIXEDSIZEBOUNDINGBOX = None

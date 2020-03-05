@@ -60,8 +60,8 @@ def main(args):
 
 
     # OutputBaseDir = makeUpdatedir(args.outputbasedir)
-    makedir(args.outputbasedir)
     OutputBaseDir = args.outputbasedir
+    makedir(OutputBaseDir)
 
     InOutTempoPosteriorsPath     = joinpathnames(OutputBaseDir, nameTempoPosteriorsRelPath)
     InOutPosteriorsPath          = joinpathnames(OutputBaseDir, namePosteriorsRelPath)
