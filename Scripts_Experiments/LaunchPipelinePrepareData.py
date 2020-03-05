@@ -14,7 +14,8 @@ from Common.WorkDirsManager import *
 import subprocess
 import argparse
 
-CODEDIR                   = '/home/antonio/Codes/Antonio_repository/AirwaySegmentation'
+
+CODEDIR                   = '/home/antonio/Codes/Antonio_repository/AirwaySegmentation/'
 SCRIPT_RESCALEFACTORIMAGES= joinpathnames(CODEDIR, 'Scripts_ImageOperations/ComputeRescaleFactorImages.py')
 SCRIPT_RESCALEROIMASKS    = joinpathnames(CODEDIR, 'Scripts_ImageOperations/ApplyOperationImages.py')
 SCRIPT_BOUNDINGBOXIMAGES  = joinpathnames(CODEDIR, 'Scripts_ImageOperations/ComputeBoundingBoxImages.py')

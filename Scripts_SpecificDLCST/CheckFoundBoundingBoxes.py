@@ -8,8 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.Constants import *
-from Common.WorkDirsManager import *
+from Common.ErrorMessages import *
 from DataLoaders.FileReaders import *
 from OperationImages.OperationImages import *
 import argparse
@@ -17,25 +16,10 @@ import argparse
 
 
 def main(args):
-    # ---------- SETTINGS ----------
-    nameInputCropImagesRelPath = args.cropimagesdir
-    nameInputFullImagesRelPath = args.fullimagesdir
-    nameInputReferKeysRelPath  = args.referkeysdir
-    nameInputBoundingBoxesFile = 'found_boundingBox_croppedCTinFull.npy'
-    prefixPatternInputFiles    = 'vol[0-9][0-9]_*'
-    # ---------- SETTINGS ----------
 
-
-    workDirsManager     = WorkDirsManager(args.datadir)
-    InputCropImagesPath = workDirsManager.getNameExistPath(nameInputCropImagesRelPath)
-    InputFullImagesPath = workDirsManager.getNameExistPath(nameInputFullImagesRelPath)
-    InputReferKeysPath  = workDirsManager.getNameExistPath(nameInputReferKeysRelPath)
-    InputBoundBoxesFile = workDirsManager.getNameExistFile(nameInputBoundingBoxesFile)
-
-    listInputCropImagesFiles = findFilesDirAndCheck(InputCropImagesPath)
-    listInputFullImagesFiles = findFilesDirAndCheck(InputFullImagesPath)
-    listInputReferKeysFiles  = findFilesDirAndCheck(InputReferKeysPath)
-    dictInputBoundingBoxes   = readDictionary(InputBoundBoxesFile)
+    listInputCropImagesFiles = findFilesDirAndCheck(args.cropimagesdir)
+    listInputFullImagesFiles = findFilesDirAndCheck(args.fullimagesdir)
+    dictInputBoundingBoxes   = readDictionary(args.inputBoundBoxesFile)
 
 
     names_files_different = []
@@ -44,16 +28,12 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_cropimage_file)))
         print("Input 2: \'%s\'..." % (basename(in_fullimage_file)))
 
-        in_referkey_file = findFileWithSamePrefixPattern(basename(in_cropimage_file), listInputReferKeysFiles,
-                                                         prefix_pattern=prefixPatternInputFiles)
-        print("Reference key: \'%s\'..." % (basename(in_referkey_file)))
-        in_bounding_box = dictInputBoundingBoxes[basenameNoextension(in_referkey_file)]
-
-
         in_cropimage_array = FileReader.getImageArray(in_cropimage_file)
         in_fullimage_array = FileReader.getImageArray(in_fullimage_file)
 
+
         # 1 step: crop image
+        in_bounding_box     = dictInputBoundingBoxes[basenameNoextension(in_cropimage_file)]
         new_cropimage_array = CropImages.compute3D(in_fullimage_array, in_bounding_box)
         # 2 step: invert image
         new_cropimage_array = FlippingImages.compute(new_cropimage_array, axis=0)
@@ -82,10 +62,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('cropimagesdir', type=str)
     parser.add_argument('fullimagesdir', type=str)
-    parser.add_argument('--referkeysdir', type=str, default='CTs_Cropped/')
+    parser.add_argument('--inputBoundBoxesFile', type=str, default='found_boundingBox_croppedCTinFull.npy')
     args = parser.parse_args()
 
     print("Print input arguments...")

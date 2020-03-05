@@ -31,10 +31,18 @@ from collections import OrderedDict
 import argparse
 
 
+def write_train_valid_data_log_file(out_filename, list_data_files, dict_refer_keys, type_data):
+    with open(out_filename, 'w') as fout:
+        fout.write('Total of %s %s files\n' %(len(list_data_files), type_data))
+        fout.write('---------------------------------\n')
+        for in_file in list_data_files:
+            fout.write('%s -> (%s)\n' %(basename(in_file),
+                                        dict_refer_keys[basenameNoextension(in_file)]))
+        #endfor
+
+
 
 def main(args):
-
-
     # First thing, set session in the selected(s) devices: CPU or GPU
     set_session_in_selected_device(use_GPU_device=True,
                                    type_GPU_installed=TYPEGPUINSTALLED)
@@ -46,40 +54,59 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workDirsManager  = WorkDirsManager(args.basedir)
-    TrainingDataPath = workDirsManager.getNameExistPath(args.traindatadir)
+    workDirsManager    = WorkDirsManager(args.basedir)
+    TrainingDataPath   = workDirsManager.getNameExistPath(args.traindatadir)
+    InputReferKeysFile = workDirsManager.getNameExistBaseDataFile(args.nameInputReferKeysFile)
+
+    listTrainImagesFiles = findFilesDirAndCheck(TrainingDataPath, nameInputImagesFiles)[0:args.numMaxTrainImages]
+    listTrainLabelsFiles = findFilesDirAndCheck(TrainingDataPath, nameInputLabelsFiles)[0:args.numMaxTrainImages]
+    in_dictReferenceKeys = readDictionary(InputReferKeysFile)
+
     if args.restart_model:
         ModelsPath = workDirsManager.getNameExistPath(args.modelsdir)
     else:
         ModelsPath = workDirsManager.getNameNewUpdatePath(args.modelsdir)
 
-    listTrainImagesFiles = findFilesDirAndCheck(TrainingDataPath, nameInputImagesFiles)[0:args.numMaxTrainImages]
-    listTrainLabelsFiles = findFilesDirAndCheck(TrainingDataPath, nameInputLabelsFiles)[0:args.numMaxTrainImages]
-
     if USEVALIDATIONDATA:
-        ValidationDataPath = workDirsManager.getNameExistPath(args.validdatadir)
-
+        ValidationDataPath   = workDirsManager.getNameExistPath(args.validdatadir)
         listValidImagesFiles = findFilesDirAndCheck(ValidationDataPath, nameInputImagesFiles)[0:args.numMaxValidImages]
         listValidLabelsFiles = findFilesDirAndCheck(ValidationDataPath, nameInputLabelsFiles)[0:args.numMaxValidImages]
 
         if not listValidImagesFiles or not listValidLabelsFiles:
             use_validation_data = False
-            message = "No validation data used for training the model..."
-            CatchWarningException(message)
+            print("No validation data used for training the model...")
         else:
             use_validation_data = True
     else:
         use_validation_data = False
 
+
+
+    # ----------------------------------------------
     # write out experiment parameters in config file
-    out_cfgparams_file = joinpathnames(ModelsPath, NAME_CONFIGPARAMS_FILE)
-    if not isExistfile(out_cfgparams_file):
-        print("Write out config parameters in file: \'%s\'" % (out_cfgparams_file))
+    out_configparams_file = joinpathnames(ModelsPath, NAME_CONFIGPARAMS_FILE)
+    if not isExistfile(out_configparams_file):
+        print("Write configuration parameters in file: \'%s\'..." % (out_configparams_file))
         dict_args = OrderedDict(sorted(vars(args).iteritems()))
-        saveDictionary_configParams(out_cfgparams_file, dict_args)
+        saveDictionary_configParams(out_configparams_file, dict_args)
+
+    # write out logs with the training and validation files files used
+    out_logtraindata_file = joinpathnames(ModelsPath, NAME_LOGTRAINDATA_FILE)
+    if isExistfile(out_logtraindata_file):
+        out_logtraindata_file = newUpdatefile(out_logtraindata_file)
+    print("Write log for training data in file: \'%s\'..." % (out_logtraindata_file))
+    write_train_valid_data_log_file(out_logtraindata_file, listTrainImagesFiles, in_dictReferenceKeys, 'training')
+
+    if use_validation_data:
+        out_logvaliddata_file = joinpathnames(ModelsPath, NAME_LOGVALIDDATA_FILE)
+        if isExistfile(out_logvaliddata_file):
+            out_logvaliddata_file = newUpdatefile(out_logvaliddata_file)
+        print("Write log for training data in file: \'%s\'..." % (out_logvaliddata_file))
+        write_train_valid_data_log_file(out_logvaliddata_file, listValidImagesFiles, in_dictReferenceKeys, 'validation')
+    # ----------------------------------------------
 
 
-    
+
     # BUILDING MODEL
     # ----------------------------------------------
     print("-" * 30)
@@ -144,9 +171,6 @@ def main(args):
         # list_callbacks.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
 
         size_output_modelnet = tuple(model_constructor.get_size_output()[1:])
-        if args.isValidConvolutions:
-            print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
-                                                                                                   str(size_output_modelnet)))
 
         # output model summary
         model.summary()
@@ -227,14 +251,15 @@ def main(args):
                                          freq_save_intermodels=FREQSAVEINTERMODELS)
 
         size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
-        if args.isValidConvolutions:
-            print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
-                                                                                                   str(size_output_modelnet)))
 
         # output model summary
         if not ISTESTMODELSWITHGNN and not args.isModel_halfPrecision:
             trainer.get_summary_model()
         # ----------------------------------------------
+
+    if args.isValidConvolutions:
+        print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
+                                                                                               str(size_output_modelnet)))
 
     if (WRITEOUTDESCMODELTEXT):
         out_logdescmodel_file = joinpathnames(ModelsPath, NAME_LOGDESCMODEL_FILE)
@@ -354,6 +379,7 @@ if __name__ == "__main__":
     parser.add_argument('--size_in_images', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--traindatadir', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--validdatadir', type=str, default=NAME_VALIDATIONDATA_RELPATH)
+    parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPROCIMAGE_FILE)
     parser.add_argument('--numMaxTrainImages', type=int, default=NUMMAXTRAINIMAGES)
     parser.add_argument('--numMaxValidImages', type=int, default=NUMMAXVALIDIMAGES)
     parser.add_argument('--imodel', type=str, default=IMODEL)

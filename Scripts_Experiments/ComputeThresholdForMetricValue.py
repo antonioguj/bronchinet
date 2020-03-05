@@ -24,11 +24,6 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputPredictionsRelPath     = args.inputpredictionsdir
-    nameInputReferMasksRelPath      = 'Airways/'
-    nameInputRoiMasksRelPath        = 'Lungs/'
-    nameInputReferCentrelinesRelPath= 'Centrelines/'
-
     metricsEvalThreshold = args.metricsEvalThreshold
     value_metrics_sought = args.ValueMetricsSought
     num_iterEvaluate_max = args.numIterEvaluateMax
@@ -50,15 +45,15 @@ def main(args):
 
 
     workDirsManager      = WorkDirsManager(args.basedir)
-    InputPredictionsPath = workDirsManager.getNameExistPath(nameInputPredictionsRelPath)
-    InputReferMasksPath  = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
+    InputPredictionsPath = workDirsManager.getNameExistPath        (args.inputpredictionsdir)
+    InputReferMasksPath  = workDirsManager.getNameExistBaseDataPath(args.nameInputReferMasksRelPath)
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath)
     listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath)
     prefixPatternInputFiles   = getFilePrefixPattern(listInputReferMasksFiles[0])
 
     if (args.removeTracheaResMetrics):
-        InputRoiMasksPath = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
+        InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
     newgenMetrics = DICTAVAILMETRICFUNS(metricsEvalThreshold)
@@ -68,7 +63,7 @@ def main(args):
 
     if (isLoadReferenceCentrelineFiles):
         print("Loading Reference Centrelines...")
-        InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(nameInputReferCentrelinesRelPath)
+        InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputReferCentrelinesRelPath)
         listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath)
 
 
@@ -173,12 +168,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('inputpredictionsdir', type=str)
+    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
+    parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
+    parser.add_argument('--nameInputReferCentrelinesRelPath', type=str, default=NAME_RAWCENTRELINES_RELPATH)
     parser.add_argument('--metricsEvalThreshold', type=str, default='AirwayVolumeLeakage')
     parser.add_argument('--ValueMetricsSought', type=float, default=0.13)
     parser.add_argument('--numIterEvaluateMax', type=int, default=20)
     parser.add_argument('--relErrorEvalMax', type=float, default=1.0e-04)
     parser.add_argument('--initThreshold', type=float, default=0.5)
-    parser.add_argument('--removeTracheaResMetrics', type=str2bool, default=REMOVETRACHEARESMETRICS)
+    parser.add_argument('--removeTracheaResMetrics', type=str2bool, default=REMOVETRACHEACALCMETRICS)
     args = parser.parse_args()
 
     print("Print input arguments...")

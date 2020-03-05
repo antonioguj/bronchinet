@@ -17,5 +17,5 @@ def CatchErrorException(message):
     sys.exit(0)
 
 def CatchWarningException(message):
-    print('WARNING: ' + message + '...')
+    print('WARNING: ' + message + '... CONTINUE')
     pass

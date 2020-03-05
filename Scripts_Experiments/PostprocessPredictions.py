@@ -11,6 +11,7 @@
 from Common.Constants import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
+from OperationImages.BoundingBoxes import *
 from OperationImages.OperationImages import *
 from OperationImages.OperationMasks import *
 import argparse
@@ -19,84 +20,231 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputPredictionsRelPath = args.inputpredictiondir
-    nameInputReferMasksRelPath  = 'Airways/'
-    nameInputRoiMasksRelPath    = 'Lungs/'
-
-    if (args.outputpredictmasksdir):
-        nameOutputPredictMasksRelPath = args.outputpredictmasksdir
-    else:
-        nameOutputPredictMasksRelPath = nameInputPredictionsRelPath[:-1] + '_Thres%s' % (str(args.threshold))
-
-    nameOutputPredictMasksFiles = lambda in_name: basenameNoextension(in_name).replace('probmap', 'binmask') + '.nii.gz'
+    nameOutputPosteriorsFiles   = lambda in_name: basenameNoextension(in_name) + '_probmap.nii.gz'
+    nameOutputPredictMasksFiles = lambda in_name, thres: basenameNoextension(in_name) + '_binmask_thres%s.nii.gz' %(str(thres).replace('.',''))
     # ---------- SETTINGS ----------
 
 
     workDirsManager        = WorkDirsManager(args.basedir)
-    InputPredictionsPath   = workDirsManager.getNameExistPath        (nameInputPredictionsRelPath)
-    OutputPredictMasksPath = workDirsManager.getNameNewPath          (nameOutputPredictMasksRelPath)
+    InputPredictionsPath   = workDirsManager.getNameExistPath        (args.nameInputPredictionsRelPath)
+    InputReferKeysPath     = workDirsManager.getNameExistBaseDataPath(args.nameInputReferKeysRelPath)
+    InputReferKeysFile     = workDirsManager.getNameExistFile        (args.nameInputReferKeysFile)
+    OutputPosteriorsPath   = workDirsManager.getNameNewPath          (args.nameOutputPosteriorsRelPath)
+    OutputPredictMasksPath = workDirsManager.getNameNewPath          (args.nameOutputPredictMasksRelPath)
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath)
+    in_dictReferenceKeys      = readDictionary(InputReferKeysFile)
+    prefixPatternInputFiles   = getFilePrefixPattern(in_dictReferenceKeys.values()[0])
 
-    if (args.attachTracheaPrediction and args.masksToRegionInterest):
-        InputReferMasksPath = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
-        InputRoiMasksPath   = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
+    if (args.masksToRegionInterest):
+        InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
+        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
-        listInputReferMasksFiles = findFilesDirAndCheck(InputReferMasksPath)
-        listInputRoiMasksFiles   = findFilesDirAndCheck(InputRoiMasksPath)
-        prefixPatternInputFiles  = getFilePrefixPattern(listInputReferMasksFiles[0])
+        if (args.attachTracheaPrediction):
+            InputReferMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputReferMasksRelPath)
+            listInputReferMasksFiles = findFilesDirAndCheck(InputReferMasksPath)
 
-        def compute_trachea_masks(in_refermask_array, in_roimask_array):
-            return np.where(in_roimask_array == 1, 0, in_refermask_array)
+            def compute_trachea_masks(in_refermask_array, in_roimask_array):
+                return np.where(in_roimask_array == 1, 0, in_refermask_array)
+
+    if (args.cropImages):
+        InputCropBoundingBoxesFile= workDirsManager.getNameExistBaseDataPath(args.nameCropBoundingBoxesFile)
+        in_dictCropBoundingBoxes  = readDictionary(InputCropBoundingBoxesFile)
+
+    if (args.rescaleImages):
+        InputRescaleFactorsFile = workDirsManager.getNameExistBaseDataPath(args.nameRescaleFactorsFile)
+        in_dictRescaleFactors   = readDictionary(InputRescaleFactorsFile)
+
+    if (args.cropImages):
+        first_elem_dictCropBoundingBoxes = in_dictCropBoundingBoxes.values()[0]
+        if type(first_elem_dictCropBoundingBoxes) != list:
+            # for new developments, store input dict boundary-boxes per raw images as a list. But output only one processed image
+            for key, value in in_dictCropBoundingBoxes.iteritems():
+                in_dictCropBoundingBoxes[key] = [value]
+            #endfor
 
 
+    # needed to manipulate the list iterator inside the 'for loop'
+    listInputPredictionsFiles = iter(listInputPredictionsFiles)
 
     for i, in_prediction_file in enumerate(listInputPredictionsFiles):
         print("\nInput: \'%s\'..." % (basename(in_prediction_file)))
 
-        in_prediction_array = FileReader.getImageArray(in_prediction_file)
-        print("Predictions of size: %s..." % (str(in_prediction_array.shape)))
+        inout_prediction_array = FileReader.getImageArray(in_prediction_file)
+        print("Original dims : \'%s\'..." % (str(inout_prediction_array.shape)))
+
+        in_referkey_file = in_dictReferenceKeys[basenameNoextension(in_prediction_file)]
+        in_reference_file= joinpathnames(InputReferKeysPath, in_referkey_file)
+
+        print("Assigned to Reference file: \'%s\'..." % (basename(in_reference_file)))
+        in_metadata_file = FileReader.getImageMetadataInfo(in_reference_file)
 
 
-        print("Compute prediction masks by Thresholding probability maps with value \'%s\'..." % (args.threshold))
-        out_predictmask_array = ThresholdImages.compute(in_prediction_array, args.threshold)
+        # *******************************************************************************
+        if (args.cropImages):
+            print("Prediction data are cropped. Extend prediction array to full image size...")
 
-        if (args.attachTracheaPrediction and args.masksToRegionInterest):
-            print("Attach trachea mask to prediction masks...")
+            out_fullimage_shape = FileReader.getImageSize(in_reference_file)
 
-            in_refermask_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputReferMasksFiles,
-                                                              prefix_pattern=prefixPatternInputFiles)
-            in_roimask_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputRoiMasksFiles,
+            list_in_crop_bounding_boxes = in_dictCropBoundingBoxes[basenameNoextension(in_referkey_file)]
+            num_crop_bounding_boxes = len(list_in_crop_bounding_boxes)
+
+            if num_crop_bounding_boxes > 1:
+                print("A total of \'%s\' cropped predictions are assigned to image: \'%s\'..." %(num_crop_bounding_boxes, in_referkey_file))
+
+                for j, in_crop_bounding_box in enumerate(list_in_crop_bounding_boxes):
+                    if j>0:
+                        in_next_prediction_file = next(listInputPredictionsFiles)
+                        in_next_prediction_array = FileReader.getImageArray(in_next_prediction_file)
+                        print("Next Input: \'%s\', of dims: \'%s\'..." % (basename(in_next_prediction_file),
+                                                                          str(in_next_prediction_array.shape)))
+
+                    size_in_crop_bounding_box = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
+                    if not BoundingBoxes.is_bounding_box_contained_in_image_size(in_crop_bounding_box, out_fullimage_shape):
+                        print("Bounding-box is larger than image size: : \'%s\' > \'%s\'. Combine cropping with extending images..."
+                              % (str(size_in_crop_bounding_box), str(out_fullimage_shape)))
+
+                        (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image_reverse(in_crop_bounding_box,
+                                                                                                                                            out_fullimage_shape)
+                        if j==0:
+                            print("Extend array to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_fullimage_shape), j, str(in_crop_bounding_box)))
+                            inout_prediction_array = CropAndExtendImages.compute3D(inout_prediction_array, croppartial_bounding_box,
+                                                                                   extendimg_bounding_box, out_fullimage_shape)
+                        else:
+                            print("Set array Patch to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_fullimage_shape), j, str(in_crop_bounding_box)))
+                            CropAndSetPatchInImages.compute3D(in_next_prediction_array, inout_prediction_array,
+                                                              croppartial_bounding_box, extendimg_bounding_box)
+                    else:
+                        if j==0:
+                            print("Extend array to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_fullimage_shape), j, str(in_crop_bounding_box)))
+                            inout_prediction_array = ExtendImages.compute3D(inout_prediction_array, in_crop_bounding_box, out_fullimage_shape)
+                        else:
+                            print("Set array Patch to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_fullimage_shape), j, str(in_crop_bounding_box)))
+                            SetPatchInImages.compute3D(in_next_prediction_array, inout_prediction_array, in_crop_bounding_box)
+                            #endfor
+            else:
+                in_crop_bounding_box = list_in_crop_bounding_boxes[0]
+                size_in_crop_bounding_box = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
+
+                if not BoundingBoxes.is_bounding_box_contained_in_image_size(in_crop_bounding_box, out_fullimage_shape):
+                    print("Bounding-box is larger than image size: : \'%s\' > \'%s\'. Combine cropping with extending images..."
+                          %(str(size_in_crop_bounding_box), str(out_fullimage_shape)))
+
+                    (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image_reverse(in_crop_bounding_box,
+                                                                                                                                        out_fullimage_shape)
+                    inout_prediction_array = CropAndExtendImages.compute3D(inout_prediction_array, croppartial_bounding_box,
+                                                                           extendimg_bounding_box, out_fullimage_shape)
+                else:
+                    print("Extend input array to full size \'%s\' with bounding-box: \'%s\'..." % (str(out_fullimage_shape),
+                                                                                                   str(in_crop_bounding_box)))
+                    inout_prediction_array = ExtendImages.compute3D(inout_prediction_array, in_crop_bounding_box, out_fullimage_shape)
+
+            print("Final dims: %s..." % (str(inout_prediction_array.shape)))
+        # *******************************************************************************
+
+
+        # *******************************************************************************
+        if (args.rescaleImages):
+            message = 'Rescaling at Post-process time not implemented yet'
+            CatchWarningException(message)
+        # *******************************************************************************
+
+
+        # *******************************************************************************
+        if (args.masksToRegionInterest):
+            print("Reverse Mask to RoI (lungs) in predictions...")
+            in_roimask_file = findFileWithSamePrefixPattern(basename(in_reference_file), listInputRoiMasksFiles,
                                                             prefix_pattern=prefixPatternInputFiles)
-            print("Reference mask file: \'%s\'..." % (basename(in_refermask_file)))
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
-            in_refermask_array = FileReader.getImageArray(in_refermask_file)
-            in_roimask_array   = FileReader.getImageArray(in_roimask_file)
-
-            in_tracheamask_array = compute_trachea_masks(in_refermask_array, in_roimask_array)
-
-            out_predictmask_array = OperationBinaryMasks.merge_two_masks(out_predictmask_array, in_tracheamask_array,
-                                                                         isNot_intersect_masks=True)
+            in_roimask_array = FileReader.getImageArray(in_roimask_file)
+            inout_prediction_array = OperationBinaryMasks.reverse_mask_exclude_voxels_fillzero(inout_prediction_array, in_roimask_array)
+        # *******************************************************************************
 
 
-        out_file = joinpathnames(OutputPredictMasksPath, nameOutputPredictMasksFiles(basename(in_prediction_file)))
-        print("Output: \'%s\', of dims \'%s\'..." % (basename(out_file), str(out_predictmask_array.shape)))
+        # Output processed predictions
+        output_pred_file = joinpathnames(OutputPosteriorsPath, nameOutputPosteriorsFiles(in_reference_file))
+        print("Output: \'%s\', of dims \'%s\'..." % (basename(output_pred_file), inout_prediction_array.shape))
 
-        FileReader.writeImageArray(out_file, out_predictmask_array)
+        FileReader.writeImageArray(output_pred_file, inout_prediction_array, metadata=in_metadata_file)
+
+
+        # *******************************************************************************
+        if (args.threshold_values):
+            print("Compute \'%s\' Binary Masks from the Posteriors, using thresholding values: \'%s\'..." % (len(args.threshold_values),
+                                                                                                             args.threshold_values))
+            if (args.attachTracheaPrediction and args.masksToRegionInterest):
+                print("Attach Trachea mask to the computed Binary Masks...")
+                in_refermask_file = findFileWithSamePrefixPattern(basename(in_reference_file), listInputReferMasksFiles,
+                                                                  prefix_pattern=prefixPatternInputFiles)
+                in_roimask_file = findFileWithSamePrefixPattern(basename(in_reference_file), listInputRoiMasksFiles,
+                                                                prefix_pattern=prefixPatternInputFiles)
+                print("Reference mask file: \'%s\'..." % (basename(in_refermask_file)))
+                print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
+
+                in_refermask_array = FileReader.getImageArray(in_refermask_file)
+                in_roimask_array = FileReader.getImageArray(in_roimask_file)
+
+                in_tracheamask_array = compute_trachea_masks(in_refermask_array, in_roimask_array)
+
+
+            for ithreshold in args.threshold_values:
+                print("Compute Binary Masks thresholded to \'%s\'..." %(ithreshold))
+
+                out_predictmask_array = ThresholdImages.compute(inout_prediction_array, ithreshold)
+
+                if (args.attachTracheaPrediction and args.masksToRegionInterest):
+                    out_predictmask_array = OperationBinaryMasks.merge_two_masks(out_predictmask_array, in_tracheamask_array) #isNot_intersect_masks=True)
+            #endfor
+
+
+            # Output predicted binary masks
+            output_pred_file = joinpathnames(OutputPredictMasksPath, nameOutputPredictMasksFiles(in_reference_file, ithreshold))
+            print("Output: \'%s\', of dims \'%s\'..." % (basename(output_pred_file), str(out_predictmask_array.shape)))
+
+            FileReader.writeImageArray(output_pred_file, out_predictmask_array, metadata=in_metadata_file)
+        # *******************************************************************************
     #endfor
+
 
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('inputpredictiondir', type=str)
-    parser.add_argument('outputpredictmasksdir', type=str)
-    parser.add_argument('--threshold', type=float, default=THRESHOLDPOST)
-    parser.add_argument('--attachTracheaPrediction', type=str2bool, default=ATTACHTRACHEAPREDICTION)
+    parser.add_argument('--cfgfromfile', type=str, default=None)
+    parser.add_argument('--nameInputPredictionsRelPath', type=str, default=NAME_TEMPOPOSTERIORS_RELPATH)
+    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
+    parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
+    parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
+    parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPOSTERIORS_FILE)
+    parser.add_argument('--nameOutputPosteriorsRelPath', type=str, default=NAME_POSTERIORS_RELPATH)
+    parser.add_argument('--nameOutputPredictMasksRelPath', type=str, default=NAME_PREDICTMASKS_RELPATH)
+    parser.add_argument('--threshold_values', type=float, default=THRESHOLDPOST)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
+    parser.add_argument('--attachTracheaPrediction', type=str2bool, default=ATTACHTRACHEAPREDICTION)
+    parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
+    parser.add_argument('--nameCropBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
+    parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
+    parser.add_argument('--nameRescaleFactorsFile', type=str, default=NAME_RESCALEFACTOR_FILE)
     args = parser.parse_args()
+
+    if args.cfgfromfile:
+        if not isExistfile(args.cfgfromfile):
+            message = "Config params file not found: \'%s\'..." % (args.cfgfromfile)
+            CatchErrorException(message)
+        else:
+            input_args_file = readDictionary_configParams(args.cfgfromfile)
+        print("Set up experiments with parameters from file: \'%s\'" %(args.cfgfromfile))
+        args.basedir                   = str(input_args_file['basedir'])
+        args.masksToRegionInterest     = str2bool(input_args_file['masksToRegionInterest'])
+        #args.cropImages                = str2bool(input_args_file['cropImages'])
+        #args.nameCropBoundingBoxesFile = str(input_args_file['nameCropBoundingBoxesFile'])
+        #args.rescaleImages             = str2bool(input_args_file['rescaleImages'])
+        #args.nameRescaleFactorsFile    = str(input_args_file['nameRescaleFactorsFile'])
+
+    if type(args.threshold_values) in [int, float]:
+        args.threshold_values = [args.threshold_values]
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

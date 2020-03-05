@@ -27,46 +27,37 @@ np.random.seed(2017)
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputPredictionsRelPath     = args.inputpredictionsdir
-    nameInputReferMasksRelPath      = 'Airways/'
-    nameInputRoiMasksRelPath        = 'Lungs/'
-    nameInputReferCentrelinesRelPath= 'Centrelines/'
-    nameOutROCmetricsFile           = 'dataROC_metrics_%s.txt'
-    nameOutMeanROCmetricsFile       = 'dataROC_metrics_mean.txt'
-
-    if args.outputdir:
-        nameOutputFilesRelPath = args.outputdir
-    else:
-        nameOutputFilesRelPath = nameInputPredictionsRelPath
+    nameOutROCmetricsFile     = 'dataROC_metrics_%s.txt'
+    nameOutMeanROCmetricsFile = 'dataROC_metrics_mean.txt'
 
     # parameters to draw ROC curve
     list_thresholds = [0.0]
-    num_thresholds = 9
-    range_threshold = [-10, -2]
-    list_thresholds += (np.logspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()
-    num_thresholds = 9
-    range_threshold = [0.1, 0.9]
-    list_thresholds += (np.linspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()
-    num_thresholds = 9
-    range_threshold = [-2, -10]
-    list_thresholds += [1.0 - elem for elem in (np.logspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()]
-    #allowedDistance = 0
+    # num_thresholds = 9
+    # range_threshold = [-10, -2]
+    # list_thresholds += (np.logspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()
+    # num_thresholds = 9
+    # range_threshold = [0.1, 0.9]
+    # list_thresholds += (np.linspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()
+    # num_thresholds = 9
+    # range_threshold = [-2, -10]
+    # list_thresholds += [1.0 - elem for elem in (np.logspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()]
+    # #allowedDistance = 0
     list_thresholds += [1.0]
-    # ---------- SETTINGS ----------
     print("List of Threshold values: %s" % (list_thresholds))
+    # ---------- SETTINGS ----------
 
 
     workDirsManager      = WorkDirsManager(args.basedir)
-    InputPredictionsPath = workDirsManager.getNameExistPath        (nameInputPredictionsRelPath)
-    InputReferMasksPath  = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
-    OutputFilesPath      = workDirsManager.getNameNewPath          (nameOutputFilesRelPath)
+    InputPredictionsPath = workDirsManager.getNameExistPath        (args.inputpredictionsdir)
+    InputReferMasksPath  = workDirsManager.getNameExistBaseDataPath(args.nameInputReferMasksRelPath)
+    OutputFilesPath      = workDirsManager.getNameNewPath          (args.outputdir)
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath)
     listInputReferMasksFiles  = findFilesDirAndCheck(InputReferMasksPath)
     prefixPatternInputFiles   = getFilePrefixPattern(listInputReferMasksFiles[0])
 
-    if (args.removeTracheaResMetrics):
-        InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
+    if (args.removeTracheaCalcMetrics):
+        InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
 
@@ -85,7 +76,7 @@ def main(args):
 
     if (isLoadReferenceCentrelineFiles):
         print("Loading Reference Centrelines...")
-        InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(nameInputReferCentrelinesRelPath)
+        InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputReferCentrelinesRelPath)
         listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath)
 
 
@@ -114,7 +105,7 @@ def main(args):
             in_refercenline_array = FileReader.getImageArray(in_refercenline_file)
 
 
-        if (args.removeTracheaResMetrics):
+        if (args.removeTracheaCalcMetrics):
             print("Remove trachea and main bronchi masks in computed metrics...")
 
             in_roimask_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputRoiMasksFiles,
@@ -210,10 +201,16 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('inputpredictionsdir', type=str)
-    parser.add_argument('--outputdir', type=str)
+    parser.add_argument('--outputdir', type=str, default=None)
+    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
+    parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
+    parser.add_argument('--nameInputReferCentrelinesRelPath', type=str, default=NAME_RAWCENTRELINES_RELPATH)
     parser.add_argument('--listMetricsROCcurve', type=parseListarg, default=LISTMETRICSROCCURVE)
-    parser.add_argument('--removeTracheaResMetrics', type=str2bool, default=REMOVETRACHEARESMETRICS)
+    parser.add_argument('--removeTracheaCalcMetrics', type=str2bool, default=REMOVETRACHEACALCMETRICS)
     args = parser.parse_args()
+
+    if not args.outputdir:
+        nameOutputFilesRelPath = args.inputpredictionsdir
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

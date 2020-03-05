@@ -141,11 +141,11 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
-    parser.add_argument('--outputdir', type=str, default='CheckFieldOfViewNetworks/')
+    parser.add_argument('outputdir', type=str, default='CheckFieldOfViewNetworks/')
     parser.add_argument('--size_in_images', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--nameInputImagesRelPath', type=str, default=NAME_PROCIMAGES_RELPATH)
     parser.add_argument('--nameInputLabelsRelPath', type=str, default=NAME_PROCLABELS_RELPATH)
-    parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_PROCREFERKEYS_FILE)
+    parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPROCIMAGE_FILE)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
     parser.add_argument('--num_layers', type=int, default=NUM_LAYERS)

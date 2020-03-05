@@ -25,26 +25,33 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 
 # ******************** SET-UP WORKDIR ********************
-DATADIR = '/home/antonio/Data/EXACT_Testing/'
+DATADIR = '/home/antonio/Data/DLCST+LUVAR+EXACT_Processed_Fullsize/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
 
 # Names input and output directories
-NAME_RAWIMAGES_RELPATH      = 'RawImages/'
-NAME_RAWLABELS_RELPATH      = 'RawAirways/'
-NAME_RAWROIMASKS_RELPATH    = 'RawLungs/'
-NAME_RAWEXTRALABELS_RELPATH = 'RawCentrelines/'
-NAME_REFERKEYS_RELPATH      = 'RawImages/'
-NAME_PROCIMAGES_RELPATH     = 'ImagesWorkData/'
-NAME_PROCLABELS_RELPATH     = 'LabelsWorkData/'
-NAME_PROCEXTRALABELS_RELPATH= 'ExtraLabelsWorkData/'
-NAME_CROPBOUNDINGBOX_FILE   = 'cropBoundingBoxes_images.npy'
-NAME_RESCALEFACTOR_FILE     = 'rescaleFactors_images.npy'
-NAME_PROCREFERKEYS_FILE     = 'referenceKeys_images.npy'
-NAME_TRAININGDATA_RELPATH   = 'TrainingData/'
-NAME_VALIDATIONDATA_RELPATH = 'ValidationData/'
-NAME_TESTINGDATA_RELPATH    = 'TestingData/'
-NAME_CONFIGPARAMS_FILE      = 'configparams.txt'
-NAME_LOGDESCMODEL_FILE      = 'logdescmodel.txt'
+NAME_RAWIMAGES_RELPATH        = 'Images/'
+NAME_RAWLABELS_RELPATH        = 'Airways/'
+NAME_RAWROIMASKS_RELPATH      = 'Lungs/'
+NAME_RAWCENTRELINES_RELPATH   = 'Centrelines/'
+NAME_RAWEXTRALABELS_RELPATH   = 'Centrelines/'
+NAME_REFERKEYS_RELPATH        = 'Images/'
+NAME_PROCIMAGES_RELPATH       = 'ImagesWorkData/'
+NAME_PROCLABELS_RELPATH       = 'LabelsWorkData/'
+NAME_PROCEXTRALABELS_RELPATH  = 'ExtraLabelsWorkData/'
+NAME_CROPBOUNDINGBOX_FILE     = 'cropBoundingBoxes_images.npy'
+NAME_RESCALEFACTOR_FILE       = 'rescaleFactors_images.npy'
+NAME_REFERKEYSPROCIMAGE_FILE  = 'referenceKeys_procimages.npy'
+NAME_TRAININGDATA_RELPATH     = 'TrainingData/'
+NAME_VALIDATIONDATA_RELPATH   = 'ValidationData/'
+NAME_TESTINGDATA_RELPATH      = 'TestingData/'
+NAME_CONFIGPARAMS_FILE        = 'configparams.txt'
+NAME_LOGDESCMODEL_FILE        = 'logdescmodel.txt'
+NAME_LOGTRAINDATA_FILE        = 'traindatafiles.txt'
+NAME_LOGVALIDDATA_FILE        = 'validdatafiles.txt'
+NAME_TEMPOPOSTERIORS_RELPATH  = 'Predictions/PosteriorsWorkData/'
+NAME_POSTERIORS_RELPATH       = 'Predictions/Posteriors/'
+NAME_PREDICTMASKS_RELPATH     = 'Predictions/BinaryMasks/'
+NAME_REFERKEYSPOSTERIORS_FILE = 'Predictions/referenceKeys_posteriors.npy'
 # ******************** SET-UP WORKDIR ********************
 
 
@@ -83,11 +90,11 @@ FIXEDSIZEBOUNDINGBOX = None
 #FIXEDSIZEBOUNDINGBOX = (332, 316, 236) # for DLCST and full size lungs
 #FIXEDSIZEBOUNDINGBOX = (508, 332, 236) # for EXACT and full size lungs
 
-SLIDINGWINDOWIMAGES = True
+SLIDINGWINDOWIMAGES = False
 PROPOVERLAPSLIDINGWINDOW_Z_X_Y = (0.25, 0.0, 0.0)
 PROPOVERLAPSLIDINGWINDOW_TESTING_Z_X_Y = (0.5, 0.5, 0.5)
 
-RANDOMCROPWINDOWIMAGES = False
+RANDOMCROPWINDOWIMAGES = True
 NUMRANDOMIMAGESPERVOLUMEEPOCH = 8
 
 TRANSFORMATIONRIGIDIMAGES = True
@@ -110,18 +117,18 @@ TYPETRANSFORMELASTICDEFORMATION = 'gridwise'
 
 # ******************** TRAINING PARAMETERS ********************
 TYPE_DNNLIBRARY_USED = 'Pytorch'
-TYPEGPUINSTALLED     = 'larger_GPU'
+TYPEGPUINSTALLED     = 'smaller_GPU'
 
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (256, 256, 256) # for Non-valid convolutions
-#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (252, 252, 252) # for Valid convolutions
-(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (332, 316, 236) # for DLCST and full size lungs
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (252, 252, 252) # for Valid convolutions
+#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (332, 316, 236) # for DLCST and full size lungs
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (508, 332, 236) # for EXACT and full size lungs
 IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)
 
 IMODEL       = 'Unet'
 NUM_LAYERS   = 5
-NUM_FEATMAPS = 10
+NUM_FEATMAPS = 16
 
 ISMODEL_HALFPRECISION = False
 TYPE_NETWORK         = 'classification'
@@ -170,7 +177,6 @@ RESTART_FROMDIFFMODEL = False
 
 
 # ******************** PREDICTION PARAMETERS ********************
-PREDICTONRAWIMAGES = False
 SAVEFEATMAPSLAYERS = False
 NAMESAVEMODELLAYER = 'convU12'
 FILTERPREDICTPROBMAPS = False
@@ -182,14 +188,13 @@ PROP_VALID_OUTUNET = 0.75
 LISTRESULTMETRICS = ['DiceCoefficient',
                      'AirwayCompleteness',
                      'AirwayVolumeLeakage',
-                     'AirwayCompletenessModified',
                      'AirwayCentrelineLeakage',
                      'AirwayCentrelineFalsePositiveDistanceError',
                      'AirwayCentrelineFalseNegativeDistanceError']
 
 THRESHOLDPOST = 0.5
 ATTACHTRACHEAPREDICTION = False
-REMOVETRACHEARESMETRICS = True
+REMOVETRACHEACALCMETRICS = True
 
 LISTMETRICSROCCURVE = ['DiceCoefficient',
                        'AirwayCompleteness',

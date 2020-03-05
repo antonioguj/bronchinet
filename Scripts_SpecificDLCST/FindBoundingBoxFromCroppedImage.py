@@ -8,8 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.Constants import *
-from Common.WorkDirsManager import *
+from Common.ErrorMessages import *
 from DataLoaders.FileReaders import *
 from OperationImages.BoundingBoxes import *
 from OperationImages.OperationImages import *
@@ -52,32 +51,23 @@ def get_limits_test_boundbox(test_range_boundbox, size_crop_image, index, option
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputFullImagesRelPath = 'RawImages_Full/'
-    nameInputCropImagesRelPath = 'RawImages_Cropped/'
     #test_range_boundbox = ((16, 352), (109, 433), (45, 460))
     _eps = 1.0e-06
     _alpha_relax = 0.6
     _z_min_top = 15
     _z_numtest = 10
     nameTempOutResFile   = 'temp_found_boundingBox_vol16.csv'
-    nameOutResultFileNPY = 'found_boundingBox_croppedCTinFull.npy'
-    nameOutResultFileCSV = 'found_boundingBox_croppedCTinFull.csv'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager     = WorkDirsManager(args.datadir)
-    InputFullImagesPath = workDirsManager.getNameExistPath(nameInputFullImagesRelPath)
-    InputCropImagesPath = workDirsManager.getNameExistPath(nameInputCropImagesRelPath)
+    listInputFullImagesFiles = findFilesDirAndCheck(args.fullimagesdir)
+    listInputCropImagesFiles = findFilesDirAndCheck(args.cropimagesdir)
 
-    listInputFullImagesFiles = findFilesDirAndCheck(InputFullImagesPath)
-    listInputCropImagesFiles = findFilesDirAndCheck(InputCropImagesPath)
-
-    dict_found_boundingBoxes = {}
-
-    nameTempOutResFile = joinpathnames(args.datadir, nameTempOutResFile)
-
+    nameTempOutResFile = joinpathnames(nameTempOutResFile)
     fout = open(nameTempOutResFile, 'w')
 
+
+    dict_found_boundingBoxes = {}
 
     for in_full_image_file, in_crop_image_file in zip(listInputFullImagesFiles, listInputCropImagesFiles):
         print("\nInput: \'%s\'..." %(basename(in_full_image_file)))
@@ -162,11 +152,9 @@ def main(args):
     #endfor
 
 
-    # Save dictionary in csv file
-    nameoutfile = joinpathnames(args.datadir, nameOutResultFileNPY)
-    saveDictionary(nameoutfile, dict_found_boundingBoxes)
-    nameoutfile = joinpathnames(args.datadir, nameOutResultFileCSV)
-    saveDictionary_csv(nameoutfile, dict_found_boundingBoxes)
+    # Save dictionary in file
+    saveDictionary(args.outputBoundBoxesFile, dict_found_boundingBoxes)
+    saveDictionary_csv(args.outputBoundBoxesFile.replace('.npy','.csv'), dict_found_boundingBoxes)
 
     fout.close()
 
@@ -174,7 +162,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', type=str, default=DATADIR)
+    parser.add_argument('cropimagesdir', type=str)
+    parser.add_argument('fullimagesdir', type=str)
+    parser.add_argument('--outputBoundBoxesFile', type=str, default='found_boundingBox_croppedCTinFull.npy')
     args = parser.parse_args()
 
     print("Print input arguments...")

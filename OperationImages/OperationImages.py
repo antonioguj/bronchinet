@@ -86,6 +86,16 @@ class SetPatchInImages(OperationImages):
         out_array[bound_box[0][0]:bound_box[0][1], bound_box[1][0]:bound_box[1][1], bound_box[2][0]:bound_box[2][1], ...] += in_array
 
 
+class CropAndSetPatchInImages(OperationImages):
+    @staticmethod
+    def compute2D(in_array, out_array, crop_bound_box, extend_bound_box):
+        return SetPatchInImages.compute2D(CropImages.compute2D(in_array, crop_bound_box), out_array, extend_bound_box)
+
+    @staticmethod
+    def compute3D(in_array, out_array, crop_bound_box, extend_bound_box):
+        return SetPatchInImages.compute3D(CropImages.compute3D(in_array, crop_bound_box), out_array, extend_bound_box)
+
+
 class ExtendImages(OperationImages):
     @staticmethod
     def get_init_output_array(out_array_shape, out_array_dtype, background_value=None):
@@ -116,15 +126,13 @@ class CropAndExtendImages(OperationImages):
     def compute2D(in_array, crop_bound_box, extend_bound_box, out_array_shape, background_value=None):
         if background_value is None:
             background_value = in_array[0][0]
-        return ExtendImages.compute2D(CropImages.compute2D(in_array, crop_bound_box),
-                                      extend_bound_box, out_array_shape, background_value)
+        return ExtendImages.compute2D(CropImages.compute2D(in_array, crop_bound_box), extend_bound_box, out_array_shape, background_value)
 
     @staticmethod
     def compute3D(in_array, crop_bound_box, extend_bound_box, out_array_shape, background_value=None):
         if background_value is None:
             background_value = in_array[0][0][0]
-        return ExtendImages.compute3D(CropImages.compute3D(in_array, crop_bound_box),
-                                      extend_bound_box, out_array_shape, background_value)
+        return ExtendImages.compute3D(CropImages.compute3D(in_array, crop_bound_box), extend_bound_box, out_array_shape, background_value)
 
 
 class RescaleImages(OperationImages):

@@ -20,30 +20,17 @@ import argparse
 
 
 def main(args):
-    # ---------- SETTINGS ----------
-    nameInputPredictMasksRelPath      = args.inputpredictmasksdir
-    nameInputReferMasksRelPath        = 'Airways/'
-    nameInputRoiMasksRelPath          = 'Lungs/'
-    nameInputPredictCentrelinesRelPath= args.inputcentrelinesdir
-    nameInputReferCentrelinesRelPath  = 'Centrelines/'
-
-    if (args.removeTracheaResMetrics):
-        nameOutResultMetricsFile = 'result_metrics_notrachea.txt'
-    else:
-        nameOutResultMetricsFile = 'result_metrics_withtrachea.txt'
-    # ---------- SETTINGS ----------
-
 
     workDirsManager       = WorkDirsManager(args.basedir)
-    InputPredictMasksPath = workDirsManager.getNameExistPath        (nameInputPredictMasksRelPath)
-    InputReferMasksPath   = workDirsManager.getNameExistBaseDataPath(nameInputReferMasksRelPath)
+    InputPredictMasksPath = workDirsManager.getNameExistPath        (args.inputpredictmasksdir)
+    InputReferMasksPath   = workDirsManager.getNameExistBaseDataPath(args.nameInputReferMasksRelPath)
 
     listInputPredictMasksFiles = findFilesDirAndCheck(InputPredictMasksPath)
     listInputReferMasksFiles   = findFilesDirAndCheck(InputReferMasksPath)
     prefixPatternInputFiles    = getFilePrefixPattern(listInputReferMasksFiles[0])
 
-    if (args.removeTracheaResMetrics):
-        InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(nameInputRoiMasksRelPath)
+    if (args.removeTracheaCalcMetrics):
+        InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
 
@@ -65,16 +52,16 @@ def main(args):
 
     if (isLoadReferenceCentrelineFiles):
         print("Loading Reference Centrelines...")
-        InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(nameInputReferCentrelinesRelPath)
+        InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputReferCentrelinesRelPath)
         listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath)
 
     if (isLoadPredictedCentrelineFiles):
-        if not nameInputPredictCentrelinesRelPath:
-            message = 'Missing input path for the predicted centrelines...'
+        if not args.inputcentrelinesdir:
+            message = 'Missing input path for the Predicted Centrelines...'
             CatchErrorException(message)
 
         print("Loading Predicted Centrelines...")
-        InputPredictCentrelinesPath      = workDirsManager.getNameExistPath(nameInputPredictCentrelinesRelPath)
+        InputPredictCentrelinesPath      = workDirsManager.getNameExistPath(args.inputcentrelinesdir)
         listInputPredictCentrelinesFiles = findFilesDirAndCheck(InputPredictCentrelinesPath)
 
 
@@ -109,7 +96,7 @@ def main(args):
             in_predictcenline_array = FileReader.getImageArray(in_predictcenline_file)
 
 
-        if (args.removeTracheaResMetrics):
+        if (args.removeTracheaCalcMetrics):
             print("Remove trachea and main bronchi masks in computed metrics...")
 
             in_roimask_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputRoiMasksFiles,
@@ -156,7 +143,7 @@ def main(args):
     #endfor
 
     # write out computed metrics in file
-    out_resultmetrics_filename = joinpathnames(nameInputPredictMasksRelPath, nameOutResultMetricsFile)
+    out_resultmetrics_filename = joinpathnames(args.inputpredictmasksdir, args.outputresultsfile)
     fout = open(out_resultmetrics_filename, 'w')
     strheader = '/case/, ' + ', '.join(['/%s/' % (key) for (key, _) in listResultMetrics.iteritems()]) + '\n'
     fout.write(strheader)
@@ -174,8 +161,12 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('inputpredictmasksdir', type=str)
     parser.add_argument('--inputcentrelinesdir', type=str, default=None)
+    parser.add_argument('--outputresultsfile', type=str, default='result_metrics.txt')
+    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
+    parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
+    parser.add_argument('--nameInputReferCentrelinesRelPath', type=str, default=NAME_RAWCENTRELINES_RELPATH)
     parser.add_argument('--listResultMetrics', type=parseListarg, default=LISTRESULTMETRICS)
-    parser.add_argument('--removeTracheaResMetrics', type=str2bool, default=REMOVETRACHEARESMETRICS)
+    parser.add_argument('--removeTracheaCalcMetrics', type=str2bool, default=REMOVETRACHEACALCMETRICS)
     args = parser.parse_args()
 
     if not args.inputcentrelinesdir:

@@ -8,8 +8,6 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.Constants import *
-from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
 from OperationImages.OperationImages import *
 import argparse
@@ -18,48 +16,41 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameInputImagesRelPath    = args.inputdir
-    nameOutputImagesRelPath   = args.outputdir
-    nameInputReferKeysRelPath = args.referkeysdir
-    nameInputBoundingBoxesFile= 'found_boundingBox_croppedCTinFull.npy'
-    nameOutputImagesFiles     = lambda in_name: basenameNoextension(in_name) + '.nii.gz'
-    prefixPatternInputFiles   = 'vol[0-9][0-9]_*'
+    nameOutputImagesFiles = lambda in_name: basenameNoextension(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager     = WorkDirsManager(args.datadir)
-    InputImagesPath     = workDirsManager.getNameExistPath(nameInputImagesRelPath)
-    InputReferKeysPath  = workDirsManager.getNameExistPath(nameInputReferKeysRelPath)
-    InputBoundBoxesFile = workDirsManager.getNameExistFile(nameInputBoundingBoxesFile)
-    OutputImagesPath    = workDirsManager.getNameNewPath  (nameOutputImagesRelPath)
+    listInputImagesFiles    = findFilesDirAndCheck(args.inputdir)
+    listInputReferKeysFiles = findFilesDirAndCheck(args.referkeysdir)
+    dictInputBoundingBoxes  = readDictionary(args.inputBoundBoxesFile)
+    prefixPatternInputFiles = getFilePrefixPattern(listInputReferKeysFiles[0])
 
-    listInputImagesFiles    = findFilesDirAndCheck(InputImagesPath)
-    listInputReferKeysFiles = findFilesDirAndCheck(InputReferKeysPath)
-    dictInputBoundingBoxes  = readDictionary(InputBoundBoxesFile)
+    makedir(args.outputdir)
 
 
 
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
+        in_cropimage_array = FileReader.getImageArray(in_image_file)
+        print("Original dims: \'%s\'..." %(str(in_cropimage_array.shape)))
+
+
         in_referkey_file = findFileWithSamePrefixPattern(basename(in_image_file), listInputReferKeysFiles,
                                                          prefix_pattern=prefixPatternInputFiles)
         print("Reference file: \'%s\'..." % (basename(in_referkey_file)))
-        in_bounding_box = dictInputBoundingBoxes[basenameNoextension(in_referkey_file)]
 
-
-        in_cropimage_array = FileReader.getImageArray(in_image_file)
-        print("Input cropped image size: \'%s\'..." %(str(in_cropimage_array.shape)))
 
         # 1 step: invert image
         in_cropimage_array = FlippingImages.compute(in_cropimage_array, axis=0)
+
         # 2 step: extend image
+        in_bounding_box     = dictInputBoundingBoxes[basenameNoextension(in_referkey_file)]
         out_fullimage_shape = FileReader.getImageSize(in_referkey_file)
         out_fullimage_array = ExtendImages.compute3D(in_cropimage_array, in_bounding_box, out_fullimage_shape)
 
-        print("Output full image size: \'%s\'..." % (str(out_fullimage_array.shape)))
 
-        out_image_file = joinpathnames(OutputImagesPath, nameOutputImagesFiles(in_image_file))
+        out_image_file = joinpathnames(args.outputdir, nameOutputImagesFiles(in_image_file))
         print("Output: \'%s\', of dims \'%s\'..." %(basename(out_image_file), str(out_fullimage_array.shape)))
 
         FileReader.writeImageArray(out_image_file, out_fullimage_array)
@@ -69,19 +60,12 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', default=DATADIR)
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
     parser.add_argument('--referkeysdir', type=str, default='RawImages/')
+    parser.add_argument('--inputBoundBoxesFile', type=str, default='found_boundingBox_croppedCTinFull.npy')
     args = parser.parse_args()
 
-    if not args.inputdir:
-        message = 'Please input a valid input directory'
-        CatchErrorException(message)
-    if not args.outputdir:
-        message = 'Output directory not indicated. Assume same as input directory'
-        args.outputdir = args.inputdir
-        CatchWarningException(message)
     print("Print input arguments...")
     for key, value in vars(args).iteritems():
         print("\'%s\' = %s" %(key, value))

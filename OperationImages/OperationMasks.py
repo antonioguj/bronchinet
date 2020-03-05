@@ -214,7 +214,7 @@ class OperationBinaryMasks(OperationMasks):
             index_posit_intersect = np.where(intersect_masks == cls.val_mask_positive)
 
             if len(index_posit_intersect[0] != 0):
-                message = "Found intersection in between the two masks in 'join_two_binmasks_one_image'"
+                message = 'OperationBinaryMasks:merge_two_masks: Found intersection between the two input masks'
                 CatchErrorException(message)
 
         out_masks_array = masks_array_1 + masks_array_2

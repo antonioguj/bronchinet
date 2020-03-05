@@ -23,7 +23,7 @@ def searchIndexesInputFilesFromReferKeysInFile(in_readfile, list_input_referKeys
     out_indexes_input_files = []
     with open(in_readfile, 'r') as fin:
         for in_referkey_file in fin.readlines():
-            in_referkey_file = in_referkey_file.replace('\r\n', '')
+            in_referkey_file = in_referkey_file.replace('\n','').replace('\r','')
 
             is_found = False
             for icount_data, it_list_input_referKeys in enumerate(list_input_referKeys_allData):
@@ -179,7 +179,7 @@ if __name__ == "__main__":
     parser.add_argument('--nameInOutImagesRelPath', type=str, default=NAME_PROCIMAGES_RELPATH)
     parser.add_argument('--nameInOutLabelsRelPath', type=str, default=NAME_PROCLABELS_RELPATH)
     parser.add_argument('--nameInOutExtraLabelsRelPath', type=str, default=NAME_PROCEXTRALABELS_RELPATH)
-    parser.add_argument('--nameInOutReferKeysFile', type=str, default=NAME_PROCREFERKEYS_FILE)
+    parser.add_argument('--nameInOutReferKeysFile', type=str, default=NAME_REFERKEYSPROCIMAGE_FILE)
     parser.add_argument('--isPrepareLabels', type=str2bool, default=True)
     parser.add_argument('--isInputExtraLabels', type=str2bool, default=False)
     parser.add_argument('--typedistdata', type=str, default='original')

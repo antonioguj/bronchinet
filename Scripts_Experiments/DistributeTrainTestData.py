@@ -187,7 +187,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--nameInputImagesRelPath', type=str, default=NAME_PROCIMAGES_RELPATH)
     parser.add_argument('--nameInputLabelsRelPath', type=str, default=NAME_PROCLABELS_RELPATH)
-    parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_PROCREFERKEYS_FILE)
+    parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPROCIMAGE_FILE)
     parser.add_argument('--nameInputExtraLabelsRelPath', type=str, default=NAME_PROCEXTRALABELS_RELPATH)
     parser.add_argument('--nameTrainingDataRelPath', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--nameValidationDataRelPath', type=str, default=NAME_VALIDATIONDATA_RELPATH)

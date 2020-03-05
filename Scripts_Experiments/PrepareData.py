@@ -42,11 +42,11 @@ def main(args):
 
 
 
-    workDirsManager    = WorkDirsManager(args.datadir)
-    InputImagesPath    = workDirsManager.getNameExistPath(args.nameInputImagesRelPath)
-    InputReferKeysPath = workDirsManager.getNameExistPath(args.nameInputReferKeysRelPath)
-    OutputImagesPath   = workDirsManager.getNameNewPath  (args.nameOutputImagesRelPath)
-    OutputReferKeysFile= workDirsManager.getNameNewUpdateFile(args.nameOutputReferKeysFile)
+    workDirsManager     = WorkDirsManager(args.datadir)
+    InputImagesPath     = workDirsManager.getNameExistPath(args.nameInputImagesRelPath)
+    InputReferKeysPath  = workDirsManager.getNameExistPath(args.nameInputReferKeysRelPath)
+    OutputImagesPath    = workDirsManager.getNameNewPath  (args.nameOutputImagesRelPath)
+    OutputReferKeysFile = workDirsManager.getNameNewUpdateFile(args.nameOutputReferKeysFile)
 
     listInputImagesFiles    = findFilesDirAndCheck(InputImagesPath)
     listInputReferKeysFiles = findFilesDirAndCheck(InputReferKeysPath)
@@ -239,7 +239,7 @@ def main(args):
 
             icount = 0
             for j, in_crop_bounding_box in enumerate(list_in_crop_bounding_boxes):
-                print("Crop input arrays to bounding-box \'%s\' out of \'%s\': \'%s\'..." % (j, num_crop_bounding_boxes, str(in_crop_bounding_box)))
+                print("Crop input arrays to bounding-box \'%s\' out of total \'%s\': \'%s\'..." % (j, num_crop_bounding_boxes, str(in_crop_bounding_box)))
 
                 size_in_array = list_inout_arrays[icount].shape
                 size_in_crop_bounding_box = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
@@ -269,7 +269,6 @@ def main(args):
 
             print("Final dims: %s..." % (str(list_inout_arrays[0].shape)))
         # *******************************************************************************
-
 
 
         # Output processed images
@@ -336,7 +335,7 @@ if __name__ == "__main__":
     parser.add_argument('--nameOutputImagesRelPath', type=str, default=NAME_PROCIMAGES_RELPATH)
     parser.add_argument('--nameOutputLabelsRelPath', type=str, default=NAME_PROCLABELS_RELPATH)
     parser.add_argument('--nameOutputExtraLabelsRelPath', type=str, default=NAME_PROCEXTRALABELS_RELPATH)
-    parser.add_argument('--nameOutputReferKeysFile', type=str, default=NAME_PROCREFERKEYS_FILE)
+    parser.add_argument('--nameOutputReferKeysFile', type=str, default=NAME_REFERKEYSPROCIMAGE_FILE)
     parser.add_argument('--isPrepareLabels', type=str2bool, default=True)
     parser.add_argument('--isInputExtraLabels', type=str2bool, default=False)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
