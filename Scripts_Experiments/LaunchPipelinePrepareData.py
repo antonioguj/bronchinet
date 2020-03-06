@@ -48,25 +48,23 @@ def create_pipeline_replace_dirs(input_dir, input_dir_to_replace):
 
 def create_pipeline_decompress_data(input_data_dir, is_keep_files):
     list_files = findFilesDir(input_data_dir)
-    extension_file = getFileExtension(list_files[0])
+    extension_file = fileextension(list_files[0])
     sublist_calls = []
 
-    if extension_file == '.dcm':
+    if extension_file == '.dcm.gz':
         # decompress data
         new_call = ['gunzip', '-vr', input_data_dir]
         sublist_calls.append(new_call)
-        if is_keep_files:
-            # convert to nifty, if we keep the raw images for testing
-            new_input_data_dir = updatePathnameWithsuffix(input_data_dir, 'Nifty')
-            new_call = [SCRIPT_CONVERTTONIFTY, input_data_dir, new_input_data_dir]
-            sublist_calls.append(new_call)
 
-            # replace output folder with nifty files
-            new_sublist_calls = create_pipeline_replace_dirs(input_data_dir, new_input_data_dir)
-            sublist_calls += new_sublist_calls
+    if is_keep_files and extension_file in ['.dcm', '.dcm.gz']:
+        # convert to nifty, if we keep the raw images for testing
+        new_input_data_dir = updatePathnameWithsuffix(input_data_dir, 'Nifty')
+        new_call = ['python', SCRIPT_CONVERTTONIFTY, input_data_dir, new_input_data_dir]
+        sublist_calls.append(new_call)
 
-    elif extension_file == '.nii.gz':
-        pass  # do nothing
+        # replace output folder with nifty files
+        new_sublist_calls = create_pipeline_replace_dirs(input_data_dir, new_input_data_dir)
+        sublist_calls += new_sublist_calls
 
     return sublist_calls
 
@@ -79,7 +77,7 @@ def main(args):
     nameSourceRawImagesPath   = joinpathnames(SourceClusterDataDir, 'CTs/')
     nameSourceRawLabelsPath   = joinpathnames(SourceClusterDataDir, 'Airways/')
     nameSourceRawRoiMasksPath = joinpathnames(SourceClusterDataDir, 'Lungs/')
-    if args.inclustercasedir == 'DLCST':
+    if args.inclustercasedir in ['DLCST', 'DLCST/']:
         nameSourceFoundBoundBoxesFile = joinpathnames(SourceClusterDataDir, 'Others/found_boundingBox_croppedCTinFull.npy')
 
 
@@ -96,43 +94,12 @@ def main(args):
         nameInputRawCentrelinesPath   = joinpathnames(OutputDataDir, NAME_RAWCENTRELINES_RELPATH)
     if args.rescaleImages:
         nameInputRescaleFactorsFile   = joinpathnames(OutputDataDir, NAME_RESCALEFACTOR_FILE)
-    if args.inclustercasedir == 'DLCST':
+    if args.inclustercasedir in ['DLCST', 'DLCST/']:
         nameInputFoundBoundBoxesFile  = joinpathnames(OutputDataDir, basename(nameSourceFoundBoundBoxesFile))
-
-
-    if args.typePrepareData not in LIST_TYPE_PREPARE_DATA_AVAIL:
-        message = 'input param \'typePrepareData\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.typePrepareData,
-                                                                                                    LIST_TYPE_PREPARE_DATA_AVAIL)
-        CatchErrorException(message)
-
-    if args.typePrepareData == 'training':
-        print("\nPrepare Training data: Processed Images and Labels...\n")
-        args.isKeepRawImages      = False
-        args.isPrepareLabels      = True
-        args.isPrepareCentrelines = False
-        if args.cropImages:
-            if args.isTwoBoundingBoxEachLungs:
-                args.sizeBufferInBorders = (0, 0, 0)
-                args.isSameSizeBoundBoxAllImages = True
-            else:
-                args.sizeBufferInBorders = (20, 20, 20)
-                args.isSameSizeBoundBoxAllImages = False
-                args.fixedSizeBoundingBox = None
-
-    elif args.typePrepareData == 'testing':
-        print("\nPrepare Testing data: Only Processed Images. Keep raw Images and Labels for testing...\n")
-        args.isKeepRawImages      = True
-        args.isPrepareLabels      = False
-        args.isPrepareCentrelines = True
-        if args.cropImages:
-            args.sizeBufferInBorders = (50, 50, 50)
-            args.isSameSizeBoundBoxAllImages = False
-            args.fixedSizeBoundingBox = None
 
 
 
     list_calls_all = []
-
 
     # 1st: download data from the cluster
     new_call = ['rsync', '-avr', nameSourceRawImagesPath, nameInputRawImagesPath]
@@ -144,11 +111,25 @@ def main(args):
     new_call = ['rsync', '-avr', nameSourceRawRoiMasksPath, nameInputRawRoiMasksPath]
     list_calls_all.append(new_call)
 
-    if args.inclustercasedir == 'DLCST':
+    if args.inclustercasedir in ['DLCST', 'DLCST/']:
         new_call = ['rsync', '-avr', nameSourceFoundBoundBoxesFile, nameInputFoundBoundBoxesFile]
         list_calls_all.append(new_call)
 
+    # Iterate over the list and carry out call serially
+    for icall in list_calls_all:
+        printCall(icall)
+        try:
+            launchCall(icall)
+        except Exception as ex:
+            traceback.print_exc(file=sys.stdout)
+            message = 'Call failed. Stop pipeline...'
+            CatchErrorException(message)
+        print('\n')
+    #endfor
 
+
+
+    list_calls_all = []
 
     # 2nd: decompress (if needed) and prepare the downloaded data
     sublist_calls = create_pipeline_decompress_data(nameInputRawImagesPath, args.isKeepRawImages)
@@ -165,11 +146,11 @@ def main(args):
         nameTempoBinaryLabelsPath   = updatePathnameWithsuffix(nameInputRawLabelsPath,   'Binary')
         nameTempoBinaryRoiMasksPath = updatePathnameWithsuffix(nameInputRawRoiMasksPath, 'Binary')
 
-        new_call = [SCRIPT_BINARISEMASKS, nameInputRawLabelsPath, nameTempoBinaryLabelsPath,
+        new_call = ['python', SCRIPT_BINARISEMASKS, nameInputRawLabelsPath, nameTempoBinaryLabelsPath,
                     '--type', 'binarise']
         list_calls_all.append(new_call)
 
-        new_call = [SCRIPT_BINARISEMASKS, nameInputRawRoiMasksPath, nameTempoBinaryRoiMasksPath,
+        new_call = ['python', SCRIPT_BINARISEMASKS, nameInputRawRoiMasksPath, nameTempoBinaryRoiMasksPath,
                     '--type', 'binarise']
         list_calls_all.append(new_call)
 
@@ -183,7 +164,7 @@ def main(args):
 
 
     # 3rd: for DLCST data: extend the raw images from the cropped and flipped format found in the cluster
-    if args.inclustercasedir == 'DLCST':
+    if args.inclustercasedir in ['DLCST', 'DLCST/']:
         nameTempoExtendedLabelsPath   = updatePathnameWithsuffix(nameInputRawLabelsPath,   'Extended')
         nameTempoExtendedRoiMasksPath = updatePathnameWithsuffix(nameInputRawRoiMasksPath, 'Extended')
 
@@ -241,6 +222,7 @@ def main(args):
                     '--datadir', OutputDataDir,
                     '--isTwoBoundingBoxEachLungs', str(args.isTwoBoundingBoxEachLungs),
                     '--sizeBufferInBorders', str(args.sizeBufferInBorders),
+                    '--sizeTrainImages', str(args.sizeTrainImages),
                     '--isSameSizeBoundBoxAllImages', str(args.isSameSizeBoundBoxAllImages),
                     '--fixedSizeBoundingBox', str(args.fixedSizeBoundingBox)]
         list_calls_all.append(new_call)
@@ -272,7 +254,7 @@ def main(args):
         new_call = ['rm', '-r', nameInputRawRoiMasksPath]
         list_calls_all.append(new_call)
 
-        if args.inclustercasedir == 'DLCST':
+        if args.inclustercasedir in ['DLCST', 'DLCST/']:
             new_call = ['rm', nameInputFoundBoundBoxesFile]
             list_calls_all.append(new_call)
 
@@ -297,13 +279,44 @@ if __name__ == "__main__":
     parser.add_argument('inclustercasedir', type=str)
     parser.add_argument('outputdatadir', type=str)
     parser.add_argument('--typePrepareData', type=str, default='training')
+    parser.add_argument('--sizeTrainImages', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
-    parser.add_argument('--fixedRescaleRes', type=str2tuplefloat, default=FIXEDRESCALERES)
+    parser.add_argument('--fixedRescaleRes', type=str2tuplefloatOrNone, default=FIXEDRESCALERES)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--isTwoBoundingBoxEachLungs', type=str2bool, default=ISTWOBOUNDINGBOXEACHLUNGS)
-    parser.add_argument('--fixedSizeBoundingBox', type=str2tuplefloat, default=FIXEDSIZEBOUNDINGBOX)
+    parser.add_argument('--fixedSizeBoundingBox', type=str2tupleintOrNone, default=FIXEDSIZEBOUNDINGBOX)
     args = parser.parse_args()
+
+    if args.typePrepareData not in LIST_TYPE_PREPARE_DATA_AVAIL:
+        message = 'input param \'typePrepareData\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.typePrepareData,
+                                                                                                    LIST_TYPE_PREPARE_DATA_AVAIL)
+        CatchErrorException(message)
+
+    if args.typePrepareData == 'training':
+        print("Prepare Training data: Processed Images and Labels...")
+        args.isKeepRawImages      = False
+        args.isPrepareLabels      = True
+        args.isPrepareCentrelines = False
+        if args.cropImages:
+            if args.isTwoBoundingBoxEachLungs:
+                args.sizeBufferInBorders = (0, 0, 0)
+                args.isSameSizeBoundBoxAllImages = True
+                args.fixedSizeBoundingBox = args.sizeTrainImages
+            else:
+                args.sizeBufferInBorders = (20, 20, 20)
+                args.isSameSizeBoundBoxAllImages = False
+                args.fixedSizeBoundingBox = None
+
+    elif args.typePrepareData == 'testing':
+        print("Prepare Testing data: Only Processed Images. Keep raw Images and Labels for testing...")
+        args.isKeepRawImages      = True
+        args.isPrepareLabels      = False
+        args.isPrepareCentrelines = True
+        if args.cropImages:
+            args.sizeBufferInBorders = (50, 50, 50)
+            args.isSameSizeBoundBoxAllImages = False
+            args.fixedSizeBoundingBox = None
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

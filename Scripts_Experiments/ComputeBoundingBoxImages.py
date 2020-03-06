@@ -44,7 +44,7 @@ def main(args):
             print("Dims : \'%s\'..." % (str(in_roimask_array.shape)))
 
             # extract masks corresponding to left (=1) and right (=2) lungs
-            (in_roimask_left_array, in_roimask_right_array)  = OperationBinaryMasks.get_masks_with_labels_each(in_roimask_array, [1, 2])
+            (in_roimask_left_array, in_roimask_right_array)  = OperationBinaryMasks.get_list_masks_with_labels(in_roimask_array, [1, 2])
 
 
             # left lung bounding-box:
@@ -138,10 +138,10 @@ def main(args):
                 size_proc_bounding_box = size_bounding_box
 
             # Check whether the size of bounding-box is smaller than the training image patches
-            if not BoundingBoxes.is_image_patch_contained_in_bounding_box(size_proc_bounding_box, args.sizeInputTrainImages):
-                print("Size of bounding-box is smaller than size of training image patches: \'%s\'..." %(str(args.sizeInputTrainImages)))
+            if not BoundingBoxes.is_image_patch_contained_in_bounding_box(size_proc_bounding_box, args.sizeTrainImages):
+                print("Size of bounding-box is smaller than size of training image patches: \'%s\'..." %(str(args.sizeTrainImages)))
 
-                size_proc_bounding_box = BoundingBoxes.get_max_size_bounding_box(size_proc_bounding_box, args.sizeInputTrainImages)
+                size_proc_bounding_box = BoundingBoxes.get_max_size_bounding_box(size_proc_bounding_box, args.sizeTrainImages)
                 print("Resize bounding-box to size: \'%s\'..." %(str(size_proc_bounding_box)))
             #endif
 
@@ -180,9 +180,9 @@ if __name__ == "__main__":
     parser.add_argument('--nameOutputBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
     parser.add_argument('--isTwoBoundingBoxEachLungs', type=str2bool, default=ISTWOBOUNDINGBOXEACHLUNGS)
     parser.add_argument('--sizeBufferInBorders', type=str2tupleint, default=SIZEBUFFERBOUNDBOXBORDERS)
-    parser.add_argument('--sizeInputTrainImages', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
+    parser.add_argument('--sizeTrainImages', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--isSameSizeBoundBoxAllImages', type=str2bool, default=ISSAMESIZEBOUNDBOXALLIMAGES)
-    parser.add_argument('--fixedSizeBoundingBox', type=str2tuplefloat, default=FIXEDSIZEBOUNDINGBOX)
+    parser.add_argument('--fixedSizeBoundingBox', type=str2tupleintOrNone, default=FIXEDSIZEBOUNDINGBOX)
     parser.add_argument('--isCalcBoundingBoxInSlices', type=str2bool, default=ISCALCBOUNDINGBOXINSLICES)
     args = parser.parse_args()
 

@@ -200,7 +200,7 @@ class OperationBinaryMasks(OperationMasks):
     @classmethod
     def get_list_masks_all_labels(cls, masks_array):
         labels_list = cls.extract_labels_in_masks(masks_array)
-        return [cls.get_masks_with_label(masks_array, ilabel) for ilabel in labels_list]
+        return cls.get_list_masks_with_labels(masks_array, labels_list)
 
     @classmethod
     def extract_labels_in_masks(cls, masks_array):

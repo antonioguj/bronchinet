@@ -354,6 +354,12 @@ def str2tupleint(strval):
 def str2tuplefloat(strval):
     return str2tuple(strval, elem_type='float')
 
+def str2tupleintOrNone(strval):
+    return str2tupleint(strval) if (strval != 'None') else None
+
+def str2tuplefloatOrNone(strval):
+    return str2tuplefloat(strval) if (strval != 'None') else None
+
 def list2str(list):
     return "_".join(str(i) for i in list)
 
@@ -432,20 +438,20 @@ class WallClockTime(object):
 def parseListarg(args):
     return args.replace('[','').replace(']','').split(',')
 
-def getFileExtension(formatoutfile):
-    if formatoutfile=='dicom':
+def getFormatFileExtension(formatfile):
+    if formatfile=='dicom':
         return '.dcm'
-    elif formatoutfile=='nifti':
+    elif formatfile=='nifti':
         return '.nii'
-    elif formatoutfile=='nifti_gz':
+    elif formatfile=='nifti_gz':
         return '.nii.gz'
-    elif formatoutfile=='numpy':
+    elif formatfile=='numpy':
         return '.npy'
-    elif formatoutfile=='numpy_gzbi':
+    elif formatfile=='numpy_gzbi':
         return '.npz'
-    elif formatoutfile=='numpy_gz':
+    elif formatfile=='numpy_gz':
         return '.npy.gz'
-    elif formatoutfile=='hdf5':
+    elif formatfile=='hdf5':
         return '.hdf5'
     else:
         return False
