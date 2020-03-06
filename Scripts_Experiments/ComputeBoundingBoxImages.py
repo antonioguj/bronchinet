@@ -35,7 +35,7 @@ def main(args):
     max_size_bounding_box = (0, 0, 0)
     min_size_bounding_box = (1.0e+03, 1.0e+03, 1.0e+03)
 
-    if args.isTwoBoundBoxLeftRightLungs:
+    if args.isTwoBoundingBoxEachLungs:
         # compute two bounding-boxes separately, for both left and right lungs
         for i, in_roimask_file in enumerate(listInputRoiMasksFiles):
             print("\nInput: \'%s\'..." % (basename(in_roimask_file)))
@@ -102,7 +102,7 @@ def main(args):
 
 
     print("\nPost-process the Computed Bounding-Boxes:")
-    if args.isSameBoundBoxSizeAllImages:
+    if args.isSameSizeBoundBoxAllImages:
         print("Compute bounding-boxes of same size for all images...")
 
         if args.fixedSizeBoundingBox:
@@ -122,7 +122,7 @@ def main(args):
         in_roimask_array_shape = FileReader.getImageSize(in_roimask_file)
         print("Assigned to file: \'%s\', of Dims : \'%s\'..." % (basename(in_roimask_file), str(in_roimask_array_shape)))
 
-        if not args.isTwoBoundBoxLeftRightLungs:
+        if not args.isTwoBoundingBoxEachLungs:
             in_list_bounding_boxes = [in_list_bounding_boxes]
 
 
@@ -131,7 +131,7 @@ def main(args):
             print("\nInput Bounding-box: \'%s\', of size: \'%s\'" % (in_bounding_box, size_bounding_box))
 
 
-            if args.isSameBoundBoxSizeAllImages:
+            if args.isSameSizeBoundBoxAllImages:
                 size_proc_bounding_box = fixed_size_bounding_box
                 print("Resize bounding-box to fixed final size: \'%s\'..." %(str(size_proc_bounding_box)))
             else:
@@ -156,7 +156,7 @@ def main(args):
                 print("New processed bounding-box: \'%s\', of size: \'%s\'" % (proc_bounding_box, size_proc_bounding_box))
 
                 # store computed bounding-box
-                if args.isTwoBoundBoxLeftRightLungs:
+                if args.isTwoBoundingBoxEachLungs:
                     out_dictCropBoundingBoxes[in_key][j] = proc_bounding_box
                 else:
                     out_dictCropBoundingBoxes[in_key] = proc_bounding_box
@@ -178,10 +178,10 @@ if __name__ == "__main__":
     parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
     parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
     parser.add_argument('--nameOutputBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
-    parser.add_argument('--isTwoBoundBoxLeftRightLungs', type=str2bool, default=ISTWOBOUNDBOXLEFTRIGHTLUNGS)
+    parser.add_argument('--isTwoBoundingBoxEachLungs', type=str2bool, default=ISTWOBOUNDINGBOXEACHLUNGS)
     parser.add_argument('--sizeBufferInBorders', type=str2tupleint, default=SIZEBUFFERBOUNDBOXBORDERS)
     parser.add_argument('--sizeInputTrainImages', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
-    parser.add_argument('--isSameBoundBoxSizeAllImages', type=str2bool, default=ISSAMEBOUNDBOXSIZEALLIMAGES)
+    parser.add_argument('--isSameSizeBoundBoxAllImages', type=str2bool, default=ISSAMESIZEBOUNDBOXALLIMAGES)
     parser.add_argument('--fixedSizeBoundingBox', type=str2tuplefloat, default=FIXEDSIZEBOUNDINGBOX)
     parser.add_argument('--isCalcBoundingBoxInSlices', type=str2bool, default=ISCALCBOUNDINGBOXINSLICES)
     args = parser.parse_args()
