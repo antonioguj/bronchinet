@@ -297,7 +297,7 @@ class DICOMreader(FileReader):
             dict_metadata = kwargs['metadata']
             for (key, val) in dict_metadata.iteritems():
                 img_write.SetMetaData(key, val)
-        return sitk.WriteImage(img_write, filename)
+        sitk.WriteImage(img_write, filename)
 
     @classmethod
     def writeImageArray_OLD(cls, filename, img_array, ds_refimg):

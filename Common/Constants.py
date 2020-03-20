@@ -25,8 +25,8 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 
 # ******************** SET-UP WORKDIR ********************
-DATADIR = '/home/antonio/Data/EXACT_Processed_Fullsize/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
+DATADIR = '/home/antonio/Data/DLCST+LUVAR+EXACT_Processed_Fullsize/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST+LUVAR+EXACT/'
 
 # Names input and output directories
 NAME_RAWIMAGES_RELPATH        = 'Images/'
@@ -117,7 +117,7 @@ TYPETRANSFORMELASTICDEFORMATION = 'gridwise'
 
 # ******************** TRAINING PARAMETERS ********************
 TYPE_DNNLIBRARY_USED = 'Pytorch'
-TYPEGPUINSTALLED     = 'smaller_GPU'
+TYPEGPUINSTALLED     = 'larger_GPU'
 
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (256, 256, 256) # for Non-valid convolutions
