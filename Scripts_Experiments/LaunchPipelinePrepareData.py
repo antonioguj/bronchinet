@@ -244,7 +244,7 @@ def main(args):
 
 
     # remove all the data not needed anymore
-    if args.typeData == 'training':
+    if args.typedata == 'training':
         new_call = ['rm', '-r', nameInputRawImagesPath]
         list_calls_all.append(new_call)
 
@@ -278,7 +278,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('inclustercasedir', type=str)
     parser.add_argument('outputdatadir', type=str)
-    parser.add_argument('--typeData', type=str, default='training')
+    parser.add_argument('--typedata', type=str, default='training')
     parser.add_argument('--sizeTrainImages', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
@@ -288,7 +288,7 @@ if __name__ == "__main__":
     parser.add_argument('--fixedSizeBoundingBox', type=str2tupleintOrNone, default=FIXEDSIZEBOUNDINGBOX)
     args = parser.parse_args()
 
-    if args.typeData == 'training':
+    if args.typedata == 'training':
         print("Prepare Training data: Processed Images and Labels...")
         args.isKeepRawImages      = False
         args.isPrepareLabels      = True
@@ -303,7 +303,7 @@ if __name__ == "__main__":
                 args.isSameSizeBoundBoxAllImages = False
                 args.fixedSizeBoundingBox = None
 
-    elif args.typeData == 'testing':
+    elif args.typedata == 'testing':
         print("Prepare Testing data: Only Processed Images. Keep raw Images and Labels for testing...")
         args.isKeepRawImages      = True
         args.isPrepareLabels      = False
@@ -314,7 +314,7 @@ if __name__ == "__main__":
             args.fixedSizeBoundingBox = args.sizeTrainImages
 
     else:
-        message = 'input param \'typeData\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typeData, LIST_TYPE_DATA_AVAIL)
+        message = 'input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typedata, LIST_TYPE_DATA_AVAIL)
         CatchErrorException(message)
 
     print("Print input arguments...")

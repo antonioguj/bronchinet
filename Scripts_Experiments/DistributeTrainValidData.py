@@ -195,24 +195,24 @@ if __name__ == "__main__":
     parser.add_argument('--nameTrainingDataRelPath', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--nameValidationDataRelPath', type=str, default=NAME_VALIDATIONDATA_RELPATH)
     parser.add_argument('--nameTestingDataRelPath', type=str, default=NAME_TESTINGDATA_RELPATH)
-    parser.add_argument('--typeData', type=str, default='training')
+    parser.add_argument('--typedata', type=str, default='training')
     parser.add_argument('--typedistdata', type=str, default='original')
     parser.add_argument('--propData_trainvalidtest', type=str2tuplefloat, default=PROPDATA_TRAINVALIDTEST)
     parser.add_argument('--infiletrainorder', type=str, default=None)
     args = parser.parse_args()
 
-    if args.typeData == 'training':
+    if args.typedata == 'training':
         print("Distribute Training data: Processed Images and Labels...")
         args.isPrepareLabels    = True
         args.isInputExtraLabels = False
 
-    elif args.typeData == 'testing':
+    elif args.typedata == 'testing':
         print("Distribute Testing data: Only Processed Images...")
         args.isPrepareLabels    = False
         args.isInputExtraLabels = False
 
     else:
-        message = 'input param \'typeData\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typeData, LIST_TYPE_DATA_AVAIL)
+        message = 'input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typedata, LIST_TYPE_DATA_AVAIL)
         CatchErrorException(message)
 
     if args.typedistdata not in TYPES_DISTRIBUTE_DATA:
