@@ -27,7 +27,7 @@ SCRIPT_PREPAREDATA         = joinpathnames(CODEDIR, 'Scripts_Experiments/Prepare
 
 CLUSTER_ARCHIVEDIR = 'agarcia@bigr-app001:/scratch/agarcia/Data/'
 
-LIST_TYPE_PREPARE_DATA_AVAIL = ['training', 'testing']
+LIST_TYPE_DATA_AVAIL = ['training', 'testing']
 
 
 def printCall(new_call):
@@ -244,7 +244,7 @@ def main(args):
 
 
     # remove all the data not needed anymore
-    if args.typePrepareData == 'training':
+    if args.typeData == 'training':
         new_call = ['rm', '-r', nameInputRawImagesPath]
         list_calls_all.append(new_call)
 
@@ -278,7 +278,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('inclustercasedir', type=str)
     parser.add_argument('outputdatadir', type=str)
-    parser.add_argument('--typePrepareData', type=str, default='training')
+    parser.add_argument('--typeData', type=str, default='training')
     parser.add_argument('--sizeTrainImages', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
@@ -288,12 +288,7 @@ if __name__ == "__main__":
     parser.add_argument('--fixedSizeBoundingBox', type=str2tupleintOrNone, default=FIXEDSIZEBOUNDINGBOX)
     args = parser.parse_args()
 
-    if args.typePrepareData not in LIST_TYPE_PREPARE_DATA_AVAIL:
-        message = 'input param \'typePrepareData\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.typePrepareData,
-                                                                                                    LIST_TYPE_PREPARE_DATA_AVAIL)
-        CatchErrorException(message)
-
-    if args.typePrepareData == 'training':
+    if args.typeData == 'training':
         print("Prepare Training data: Processed Images and Labels...")
         args.isKeepRawImages      = False
         args.isPrepareLabels      = True
@@ -308,15 +303,19 @@ if __name__ == "__main__":
                 args.isSameSizeBoundBoxAllImages = False
                 args.fixedSizeBoundingBox = None
 
-    elif args.typePrepareData == 'testing':
+    elif args.typeData == 'testing':
         print("Prepare Testing data: Only Processed Images. Keep raw Images and Labels for testing...")
         args.isKeepRawImages      = True
         args.isPrepareLabels      = False
         args.isPrepareCentrelines = True
         if args.cropImages:
-            args.sizeBufferInBorders = (50, 50, 50)
-            args.isSameSizeBoundBoxAllImages = False
-            args.fixedSizeBoundingBox = None
+            args.sizeBufferInBorders = (0, 0, 0)
+            args.isSameSizeBoundBoxAllImages = True
+            args.fixedSizeBoundingBox = args.sizeTrainImages
+
+    else:
+        message = 'input param \'typeData\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typeData, LIST_TYPE_DATA_AVAIL)
+        CatchErrorException(message)
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():
