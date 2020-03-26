@@ -132,7 +132,10 @@ def main(args):
 
 
             if args.isSameSizeBoundBoxAllImages:
-                size_proc_bounding_box = fixed_size_bounding_box
+                if args.isCalcBoundingBoxInSlices:
+                    size_proc_bounding_box = (size_bounding_box[0],) + fixed_size_bounding_box
+                else:
+                    size_proc_bounding_box = fixed_size_bounding_box
                 print("Resize bounding-box to fixed final size: \'%s\'..." %(str(size_proc_bounding_box)))
             else:
                 size_proc_bounding_box = size_bounding_box
@@ -150,8 +153,7 @@ def main(args):
                 # Compute new bounding-box: of 'size_proc_bounding_box', with same center as 'in_bounding_box', and that fits in 'in_roimask_array'
                 proc_bounding_box = BoundingBoxes.compute_bounding_box_centered_bounding_box_fit_image(in_bounding_box,
                                                                                                        size_proc_bounding_box,
-                                                                                                       in_roimask_array_shape,
-                                                                                                       is_bounding_box_slices=args.isCalcBoundingBoxInSlices)
+                                                                                                       in_roimask_array_shape)
                 size_proc_bounding_box = BoundingBoxes.get_size_bounding_box(proc_bounding_box)
                 print("New processed bounding-box: \'%s\', of size: \'%s\'" % (proc_bounding_box, size_proc_bounding_box))
 

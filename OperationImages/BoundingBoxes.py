@@ -123,26 +123,19 @@ class BoundingBoxes(object):
 
 
     @classmethod
-    def compute_bounding_box_centered_bounding_box_fit_image(cls, in_bounding_box, out_size_bounding_box, size_image,
-                                                             is_bounding_box_slices=False):
-        if is_bounding_box_slices:
-            out_size_bounding_box = (size_image[0], out_size_bounding_box[0], out_size_bounding_box[1])
-
+    def compute_bounding_box_centered_bounding_box_fit_image(cls, in_bounding_box, out_size_bounding_box, size_image):
         center_boundbox = cls.get_center_bounding_box(in_bounding_box)
 
         out_bounding_box = cls.get_create_bounding_box(center_boundbox, out_size_bounding_box)
-
         out_bounding_box = cls.translate_bounding_box_fit_image_size(out_bounding_box, size_image)
 
         return out_bounding_box
 
     @classmethod
-    def compute_bounding_box_centered_image_fit_image(cls, out_size_bounding_box, size_image,
-                                                      is_bounding_box_slices=False):
+    def compute_bounding_box_centered_image_fit_image(cls, out_size_bounding_box, size_image):
         in_image_bounding_box = cls.get_default_bounding_box_image(size_image)
 
-        return cls.compute_bounding_box_centered_bounding_box_fit_image(in_image_bounding_box, out_size_bounding_box,
-                                                                        size_image, is_bounding_box_slices)
+        return cls.compute_bounding_box_centered_bounding_box_fit_image(in_image_bounding_box, out_size_bounding_box, size_image)
 
 
     @classmethod

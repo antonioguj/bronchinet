@@ -309,9 +309,9 @@ if __name__ == "__main__":
         args.isPrepareLabels      = False
         args.isPrepareCentrelines = True
         if args.cropImages:
-            args.sizeBufferInBorders = (0, 0, 0)
-            args.isSameSizeBoundBoxAllImages = True
-            args.fixedSizeBoundingBox = args.sizeTrainImages
+            args.sizeBufferInBorders = (50, 50, 50)
+            args.isSameSizeBoundBoxAllImages = False
+            args.fixedSizeBoundingBox = None
 
     else:
         message = 'input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typedata, LIST_TYPE_DATA_AVAIL)
