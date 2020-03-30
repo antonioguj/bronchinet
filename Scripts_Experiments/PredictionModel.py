@@ -26,6 +26,7 @@ elif TYPE_DNNLIBRARY_USED == 'Pytorch':
     from Networks_Pytorch.VisualModelParams import *
 from Postprocessing.ImageReconstructorManager import *
 from Preprocessing.ImageGeneratorManager import *
+from collections import OrderedDict
 import argparse
 
 
@@ -58,7 +59,6 @@ def main(args):
     OutputReferKeysFile  = workDirsManager.getNameNewFile          (args.nameOutputReferKeysFile)
 
     listTestImagesFiles   = findFilesDirAndCheck(TestingDataPath, nameInputImagesFiles)
-    #listTestLabelsFiles   = findFilesDirAndCheck(TestingDataPath, nameInputLabelsFiles)
     in_dictReferenceKeys  = readDictionary(InputReferKeysFile)
     prefixPatternInputFiles = getFilePrefixPattern(in_dictReferenceKeys.values()[0])
 

@@ -29,7 +29,7 @@ class BatchDataGenerator_Pytorch(BatchDataGenerator):
                  seed= None,
                  iswrite_datagen_info= True,
                  is_datagen_in_gpu= True,
-                 is_datagen_halfPrec = False):
+                 is_datagen_halfPrec= False):
         super(BatchDataGenerator_Pytorch, self).__init__(size_image,
                                                          list_xData_array,
                                                          list_yData_array,
