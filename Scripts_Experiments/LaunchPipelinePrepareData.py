@@ -27,7 +27,7 @@ SCRIPT_PREPAREDATA         = joinpathnames(CODEDIR, 'Scripts_Experiments/Prepare
 
 CLUSTER_ARCHIVEDIR = 'agarcia@bigr-app001:/scratch/agarcia/Data/'
 
-LIST_TYPE_DATA_AVAIL = ['training', 'testing']
+LIST_TYPEDATA_AVAIL = ['training', 'testing']
 
 
 def printCall(new_call):
@@ -312,9 +312,8 @@ if __name__ == "__main__":
             args.sizeBufferInBorders = (50, 50, 50)
             args.isSameSizeBoundBoxAllImages = False
             args.fixedSizeBoundingBox = None
-
     else:
-        message = 'input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typedata, LIST_TYPE_DATA_AVAIL)
+        message = 'Input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typedata, LIST_TYPEDATA_AVAIL)
         CatchErrorException(message)
 
     print("Print input arguments...")

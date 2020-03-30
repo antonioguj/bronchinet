@@ -36,8 +36,8 @@ def searchIndexesInputFilesFromReferKeysInFile(in_readfile, list_input_referKeys
     return out_indexes_input_files
 
 
-LIST_TYPE_DATA_AVAIL  = ['training', 'testing']
-TYPES_DISTRIBUTE_DATA = ['original', 'random', 'orderfile']
+LIST_TYPEDATA_AVAIL  = ['training', 'testing']
+LIST_TYPESDISTDATA_AVAIL = ['original', 'random', 'orderfile']
 
 
 
@@ -193,8 +193,6 @@ if __name__ == "__main__":
     parser.add_argument('--nameTrainingDataRelPath', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--nameValidationDataRelPath', type=str, default=NAME_VALIDATIONDATA_RELPATH)
     parser.add_argument('--nameTestingDataRelPath', type=str, default=NAME_TESTINGDATA_RELPATH)
-    parser.add_argument('--isPrepareLabels', type=str2bool, default=True)
-    parser.add_argument('--isInputExtraLabels', type=str2bool, default=False)
     parser.add_argument('--typedata', type=str, default='training')
     parser.add_argument('--typedistdata', type=str, default='original')
     parser.add_argument('--propData_trainvalidtest', type=str2tuplefloat, default=PROPDATA_TRAINVALIDTEST)
@@ -210,10 +208,18 @@ if __name__ == "__main__":
         print("Prepare Testing data: Only Processed Images. Keep raw Images and Labels for testing...")
         args.isKeepRawImages      = True
         args.isPrepareLabels      = False
+        args.isInputExtraLabels   = False
         args.isPrepareCentrelines = True
-
     else:
-        message = 'input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typedata, LIST_TYPE_DATA_AVAIL)
+        message = 'Input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typedata, LIST_TYPEDATA_AVAIL)
+        CatchErrorException(message)
+
+    if args.typedistdata not in LIST_TYPESDISTDATA_AVAIL:
+        message = 'Input param \'typedistdata\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.typedistdata, LIST_TYPESDISTDATA_AVAIL)
+        CatchErrorException(message)
+
+    if args.typedistdata == 'orderfile' and not args.infileorder:
+        message = 'Input \'infileorder\' file for \'fixed-order\' data distribution is needed...'
         CatchErrorException(message)
 
     print("Print input arguments...")

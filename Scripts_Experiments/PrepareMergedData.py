@@ -41,7 +41,8 @@ def searchIndexesInputFilesFromReferKeysInFile(in_readfile, list_input_referKeys
     return out_indexes_input_files
 
 
-TYPES_DUSTRIBUTE_DATA = ['original', 'random', 'orderfile']
+LIST_TYPEDATA_AVAIL = ['training', 'testing']
+LIST_TYPESDISTDATA_AVAIL = ['original', 'random', 'orderfile']
 
 
 
@@ -180,24 +181,35 @@ if __name__ == "__main__":
     parser.add_argument('--nameInOutLabelsRelPath', type=str, default=NAME_PROCLABELS_RELPATH)
     parser.add_argument('--nameInOutExtraLabelsRelPath', type=str, default=NAME_PROCEXTRALABELS_RELPATH)
     parser.add_argument('--nameInOutReferKeysFile', type=str, default=NAME_REFERKEYSPROCIMAGE_FILE)
-    parser.add_argument('--isPrepareLabels', type=str2bool, default=True)
-    parser.add_argument('--isInputExtraLabels', type=str2bool, default=False)
+    parser.add_argument('--typedata', type=str, default='training')
     parser.add_argument('--typedistdata', type=str, default='original')
     parser.add_argument('--infileorder', type=str, default=None)
     parser.add_argument('--isLinkmergedfiles', type=str2bool, default=True)
     args = parser.parse_args()
 
-    print("Print input arguments...")
-    for key, value in sorted(vars(args).iteritems()):
-        print("\'%s\' = %s" %(key, value))
+    if args.typedata == 'training':
+        print("Distribute Training data: Processed Images and Labels...")
+        args.isPrepareLabels    = True
+        args.isInputExtraLabels = False
 
-    if args.typedistdata not in TYPES_DUSTRIBUTE_DATA:
-        message = 'Input for Type Distribute Data not valid: \'%s\'. Values accepted are: \'%s\'...' %(args.typedistdata,
-                                                                                                       TYPES_DUSTRIBUTE_DATA)
+    elif args.typedata == 'testing':
+        print("Prepare Testing data: Only Processed Images...")
+        args.isPrepareLabels      = False
+        args.isInputExtraLabels   = False
+    else:
+        message = 'Input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typedata, LIST_TYPEDATA_AVAIL)
+        CatchErrorException(message)
+
+    if args.typedistdata not in LIST_TYPESDISTDATA_AVAIL:
+        message = 'Input param \'typedistdata\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.typedistdata, LIST_TYPESDISTDATA_AVAIL)
         CatchErrorException(message)
 
     if args.typedistdata == 'orderfile' and not args.infileorder:
-        message = 'Input for file for Fixed-order distribution of data \'infileorder\' needed...'
+        message = 'Input \'infileorder\' file for \'fixed-order\' data distribution is needed...'
         CatchErrorException(message)
+
+    print("Print input arguments...")
+    for key, value in sorted(vars(args).iteritems()):
+        print("\'%s\' = %s" %(key, value))
 
     main(args)
