@@ -136,7 +136,7 @@ def main(args):
     for icount, (index_data, index_image_file) in enumerate(indexesMergeInputFiles):
 
         input_image_file  = listInputImagesFiles_allData[index_data][index_image_file]
-        in_referkey_file  = listDictInputReferKeys_allData[index_data][basename(input_image_file)]
+        in_referkey_file  = listDictInputReferKeys_allData[index_data][basenameNoextension(input_image_file)]
         output_image_file = joinpathnames(OutputImagesDataPath, nameTemplateOutputImagesFiles % (icount+1))
         print("%s --> %s (%s)" % (basename(output_image_file), input_image_file, basename(in_referkey_file)))
         if args.isLinkmergedfiles:
@@ -145,7 +145,7 @@ def main(args):
             copyfile(input_image_file, output_image_file)
 
         # save this image in reference keys
-        out_dictReferenceKeys[basename(output_image_file)] = basename(in_referkey_file)
+        out_dictReferenceKeys[basenameNoextension(output_image_file)] = basename(in_referkey_file)
 
 
         if args.isPrepareLabels:

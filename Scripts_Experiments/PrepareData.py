@@ -280,11 +280,12 @@ def main(args):
 
         icount = 0
         for j in range(num_output_files_per_image):
-            print("Output \'%s\' image, of type \'%s\'..." % (icount, list_type_inout_arrays[icount]))
             if is_output_multiple_files_per_image:
                 output_image_file = joinpathnames(OutputImagesPath, nameTemplateOutputImagesFiles %(i+1, j+1))
             else:
                 output_image_file = joinpathnames(OutputImagesPath, nameTemplateOutputImagesFiles %(i+1))
+            print("Output \'%s\' image, of type \'%s\': \'%s\'..." % (icount, list_type_inout_arrays[icount],
+                                                                      basename(output_image_file)))
 
             FileReader.writeImageArray(output_image_file, list_inout_arrays[icount])
             icount += 1
@@ -294,21 +295,23 @@ def main(args):
 
 
             if (args.isPrepareLabels):
-                print("Output \'%s\' label, of type \'%s\'..." % (icount, list_type_inout_arrays[icount]))
                 if is_output_multiple_files_per_image:
                     output_label_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1, j+1))
                 else:
                     output_label_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1))
+                print("Output \'%s\' label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_arrays[icount],
+                                                                          basename(output_label_file)))
 
                 FileReader.writeImageArray(output_label_file, list_inout_arrays[icount])
                 icount += 1
 
             if (args.isInputExtraLabels):
-                print("Output \'%s\' extra label, of type \'%s\'..." % (icount, list_type_inout_arrays[icount]))
                 if is_output_multiple_files_per_image:
                     output_extralabel_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1, j+1))
                 else:
                     output_extralabel_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1))
+                print("Output \'%s\' extra label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_arrays[icount],
+                                                                                basename(output_extralabel_file)))
 
                 FileReader.writeImageArray(output_extralabel_file, list_inout_arrays[icount])
                 icount += 1

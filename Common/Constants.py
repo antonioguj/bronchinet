@@ -26,7 +26,7 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 # ******************** SET-UP WORKDIR ********************
 DATADIR = '/home/antonio/Data/DLCST_Processed_Fullsize/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_TestingOnDLCST/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 
 # Names input and output directories
 NAME_RAWIMAGES_RELPATH        = 'Images/'
@@ -57,7 +57,7 @@ NAME_REFERKEYSPOSTERIORS_FILE = 'Predictions/referenceKeys_posteriors.npy'
 
 # ******************** DATA DISTRIBUTION ********************
 #PROPDATA_TRAINVALIDTEST = (0.84, 0.16, 0.0) # for EXACT
-PROPDATA_TRAINVALIDTEST = (0.5, 0.14, 0.36) # for DLCST+LUVAR
+PROPDATA_TRAINVALIDTEST = (0.5, 0.13, 0.37) # for DLCST+LUVAR
 # ******************** DATA DISTRIBUTION ********************
 
 
