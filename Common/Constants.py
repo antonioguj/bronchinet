@@ -26,7 +26,7 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 # ******************** SET-UP WORKDIR ********************
 DATADIR = '/home/antonio/Data/DLCST_Processed_Fullsize/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_TestingOnDLCST/'
 
 # Names input and output directories
 NAME_RAWIMAGES_RELPATH        = 'Images/'

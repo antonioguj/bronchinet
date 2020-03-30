@@ -218,7 +218,7 @@ if __name__ == "__main__":
         message = 'Input param \'typedistdata\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.typedistdata, LIST_TYPESDISTDATA_AVAIL)
         CatchErrorException(message)
 
-    if args.typedistdata == 'orderfile' and not args.infileorder:
+    if args.typedistdata == 'orderfile' and not args.infiletrainorder:
         message = 'Input \'infileorder\' file for \'fixed-order\' data distribution is needed...'
         CatchErrorException(message)
 
