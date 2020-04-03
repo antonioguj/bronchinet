@@ -163,6 +163,7 @@ def main(args):
         # write out computed metrics in file
         prefix_casename = getSubstringPatternFilename(basename(in_prediction_file), substr_pattern=prefixPatternInputFiles)[:-1]
         out_filename = joinpathnames(OutputFilesPath, nameOutROCmetricsFile%(prefix_casename))
+
         if isExistfile(out_filename):
             fout = open(out_filename, 'a')
         else:

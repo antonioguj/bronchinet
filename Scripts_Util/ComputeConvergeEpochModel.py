@@ -102,9 +102,6 @@ def main(args):
 
         reldiff_valid_loss = abs((eval_valid_loss - compare_valid_loss) / (eval_valid_loss + 1.0e-12))
 
-        print compare_valid_loss
-        print eval_valid_loss
-
         if reldiff_valid_loss > 0.0:
             if reldiff_valid_loss < tolerance_converge:
                 is_converge_found = True
