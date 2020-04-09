@@ -36,8 +36,7 @@ def write_train_valid_data_log_file(out_filename, list_data_files, dict_refer_ke
         fout.write('Total of %s %s files\n' %(len(list_data_files), type_data))
         fout.write('---------------------------------\n')
         for in_file in list_data_files:
-            fout.write('%s -> (%s)\n' %(basename(in_file),
-                                        dict_refer_keys[basenameNoextension(in_file)]))
+            fout.write('%s -> (%s)\n' %(basename(in_file), dict_refer_keys[basenameNoextension(in_file)]))
         #endfor
 
 

@@ -41,15 +41,16 @@ def main(args):
         if not args.inputRefdir:
             message = 'need to set argument \'inputRefdir\''
             CatchErrorException(message)
-        if args.outformat == 'dicom':
-            namesOutputFiles = lambda in_name: basenameNoextension(in_name) + '.dcm'
-
         listInputFiles = findFilesDirAndCheck(args.inputdir, '*.mhd')
         listReferFiles = findFilesDirAndCheck(args.inputRefdir)
         prefixPatternInputFiles = getFilePrefixPattern(listReferFiles[0])
+
     else:
         message = 'Extension file \'%s\' not known...' %(files_extension)
         CatchErrorException(message)
+
+    if args.outdicom and files_type in ['hr2', 'mhd']:
+        namesOutputFiles = lambda in_name: basenameNoextension(in_name) + '.dcm'
 
 
 
@@ -118,7 +119,7 @@ if __name__ == "__main__":
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
     parser.add_argument('--inputRefdir', type=str, default=None)
-    parser.add_argument('--outformat', type=str, default='dicom')
+    parser.add_argument('--outdicom', type=str2bool, default=False)
     args = parser.parse_args()
 
     print("Print input arguments...")
