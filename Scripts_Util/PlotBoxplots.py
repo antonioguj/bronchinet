@@ -36,7 +36,9 @@ def main(args):
     #endfor
 
     labels = ['model_%i'%(i+1) for i in range(num_data_files)]
-    #labels = ['Original', 'Rescaled_RandomWindow', 'Rescaled_SlidingWindow_Fit', 'Rescaled_SlidingWindow_Samesize']
+    #labels = ['Unet_DLCST',
+    #          'Unet_DLCST+LUVAR_28img',
+    #          'Unet_DLCST+LUVAR_18img']
     titles = ['Distance False Positives', 'Distance False Negatives']
     names_outfiles = ['figure_resDFP_NEW.eps', 'figure_resDFN_NEW.eps']
 
@@ -90,7 +92,7 @@ def main(args):
         #plt.boxplot(data, labels=labels)
         sns.boxplot(data=data, palette='Set2', width=0.8)
         sns.swarmplot(data=data, color=".25")
-        plt.xticks(plt.xticks()[0], labels, size=15)
+        plt.xticks(plt.xticks()[0], labels, size=10)
         plt.yticks(plt.yticks()[0], size=15)
         plt.title(str(key), size=25)
         plt.show()

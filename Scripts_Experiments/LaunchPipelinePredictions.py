@@ -79,7 +79,8 @@ def main(args):
                 '--nameOutputPredictionsRelPath', InOutTempoPosteriorsPath,
                 '--nameOutputReferKeysFile', InOutReferKeysPosteriorsFile,
                 '--cfgfromfile', in_cfgparams_file,
-                '--testdatadir', args.testdatadir]
+                '--testdatadir', args.testdatadir,
+                '--typeGPUinstalled', TYPEGPUINSTALLED]
     list_calls_all.append(new_call)
 
 

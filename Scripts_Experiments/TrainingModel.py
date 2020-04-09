@@ -45,7 +45,7 @@ def write_train_valid_data_log_file(out_filename, list_data_files, dict_refer_ke
 def main(args):
     # First thing, set session in the selected(s) devices: CPU or GPU
     set_session_in_selected_device(use_GPU_device=True,
-                                   type_GPU_installed=TYPEGPUINSTALLED)
+                                   type_GPU_installed=args.typeGPUinstalled)
 
     # ---------- SETTINGS ----------
     nameInputImagesFiles = 'images_proc*.nii.gz'
@@ -412,6 +412,7 @@ if __name__ == "__main__":
     parser.add_argument('--restart_model', type=str2bool, default=RESTART_MODEL)
     parser.add_argument('--restart_epoch', type=int, default=RESTART_EPOCH)
     parser.add_argument('--isGNNwithAttentionLays', type=str2bool, default=ISGNNWITHATTENTIONLAYS)
+    parser.add_argument('--typeGPUinstalled', type=str, default=TYPEGPUINSTALLED)
     args = parser.parse_args()
 
     if args.cfgfromfile:

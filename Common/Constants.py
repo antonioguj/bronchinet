@@ -25,8 +25,8 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 
 # ******************** SET-UP WORKDIR ********************
-DATADIR = '/home/antonio/Data/LUVAR_Testing/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_TestingOnLUVAR/'
+DATADIR = '/home/antonio/Data/EXACT_Testing/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
 
 # Names input and output directories
 NAME_RAWIMAGES_RELPATH        = 'Images/'
@@ -58,7 +58,7 @@ NAME_REFERKEYSPOSTERIORS_FILE = 'Predictions/referenceKeys_posteriors.npy'
 # ******************** DATA DISTRIBUTION ********************
 #PROPDATA_TRAINVALIDTEST = (0.84, 0.16, 0.0) # for EXACT
 #PROPDATA_TRAINVALIDTEST = (0.5, 0.13, 0.37) # for DLCST+LUVAR
-PROPDATA_TRAINVALIDTEST = (0.0, 0.0, 1.0)
+PROPDATA_TRAINVALIDTEST = (0.5, 0.12, 0.38)
 # ******************** DATA DISTRIBUTION ********************
 
 
@@ -155,7 +155,7 @@ NUMMAXVALIDIMAGES = 20
 ISVALIDCONVOLUTIONS = True
 USEVALIDATIONDATA = True
 FREQVALIDATEMODEL = 3
-FREQSAVEINTERMODELS = 10
+FREQSAVEINTERMODELS = 5
 USETRANSFORMONVALIDATIONDATA = True
 
 USEMULTITHREADING = False

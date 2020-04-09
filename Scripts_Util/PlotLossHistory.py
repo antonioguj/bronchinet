@@ -138,6 +138,7 @@ def main(args):
             plt.plot(epochs[0], data[0][1], color='r', label='valid')
             plt.xlabel('epoch')
             plt.ylabel(str(key))
+            plt.ylim([0.0, 1.0])
             plt.legend(loc='best')
             plt.show()
         else:
