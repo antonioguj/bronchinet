@@ -209,5 +209,7 @@ class MorphoCloseImages(OperationImages):
 
 class ConnectedRegionsMasks(OperationImages):
     @staticmethod
-    def compute(in_array, return_num_labels=False):
-        return label(in_array, connectivity=in_array.ndim, background=0, return_num=return_num_labels)
+    def compute(in_array, connectivity_dim=None, is_return_num_regs=False):
+        if not connectivity_dim:
+            connectivity_dim = in_array.ndim
+        return label(in_array, connectivity=connectivity_dim, background=0, return_num=is_return_num_regs)

@@ -207,16 +207,17 @@ def prepare_morclose_operation(args):
 
 
 # ------------------------------------------------
-def prepare_connregions_operation(args):
+def prepare_connRegions_operation(args):
     print("Operation: Compute connected regions...")
 
-    def wrapfun_connregions_image(in_array, i):
+    def wrapfun_connRegions_image(in_array, i):
         print("Compute connected regions...")
-        out_array, num_labels = ConnectedRegionsMasks.compute(in_array, return_num_labels=True)
-        print("Number connected regions: \'%s\'..." %(num_labels))
+        #out_array, num_regions = ConnectedRegionsMasks.compute(in_array, is_return_num_regs=True)
+        out_array, num_regions = ConnectedRegionsMasks.compute(in_array, connectivity_dim=1, is_return_num_regs=True)
+        print("Number connected regions: \'%s\'..." %(num_regions))
         return out_array
 
-    return wrapfun_connregions_image
+    return wrapfun_connRegions_image
 
 
 # ------------------------------------------------
@@ -348,7 +349,7 @@ def main(args):
             elif name_operation == 'morclose':
                 new_func_operation = prepare_morclose_operation(args)
             elif name_operation == 'connregs':
-                new_func_operation = prepare_connregions_operation(args)
+                new_func_operation = prepare_connRegions_operation(args)
             elif name_operation == 'thinning':
                 new_func_operation = prepare_thinning_operation(args)
             elif name_operation == 'threshold':
