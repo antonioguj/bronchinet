@@ -25,13 +25,14 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 
 # ******************** SET-UP WORKDIR ********************
-DATADIR = '/home/antonio/Data/EXACT_Testing/'
+DATADIR = '/home/antonio/Data/LUVAR_Testing/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
 
 # Names input and output directories
 NAME_RAWIMAGES_RELPATH        = 'Images/'
 NAME_RAWLABELS_RELPATH        = 'Airways/'
 NAME_RAWROIMASKS_RELPATH      = 'Lungs/'
+NAME_RAWCOARSEAIRWAYS_RELPATH = 'CoarseAirways/'
 NAME_RAWCENTRELINES_RELPATH   = 'Centrelines/'
 NAME_RAWEXTRALABELS_RELPATH   = 'Centrelines/'
 NAME_REFERKEYS_RELPATH        = 'Images/'
@@ -194,7 +195,7 @@ LISTRESULTMETRICS = ['DiceCoefficient',
                      'AirwayCentrelineFalseNegativeDistanceError']
 
 THRESHOLDPOST = 0.5
-ATTACHTRACHEAPREDICTION = False
+ATTACHCOARSEAIRWAYSMASK = True
 REMOVETRACHEACALCMETRICS = True
 
 LISTMETRICSROCCURVE = ['DiceCoefficient',

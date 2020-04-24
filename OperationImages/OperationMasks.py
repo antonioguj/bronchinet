@@ -222,8 +222,8 @@ class OperationBinaryMasks(OperationMasks):
 
     @classmethod
     def substract_two_masks(cls, masks_array_1, masks_array_2):
-        out_masks_array = masks_array_1 - masks_array_2
-        return np.clip(out_masks_array, cls.val_mask_background, cls.val_mask_positive)
+        out_masks_array = (masks_array_1 - masks_array_2).astype(np.int8)
+        return np.clip(out_masks_array, cls.val_mask_background, cls.val_mask_positive).astype(masks_array_1.dtype)
 
 
 
@@ -272,6 +272,7 @@ class ThinningMasks(OperationMasks):
         #centrelines_array = skeletonize_3d(masks_array)
         ## convert to binary masks (0, 1)
         #return np.where(centrelines_array, cls.val_mask_positive, cls.val_mask_background)
+
 
 class VolumeMasks(OperationMasks):
     @classmethod

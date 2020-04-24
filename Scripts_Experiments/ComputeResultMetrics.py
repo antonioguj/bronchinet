@@ -30,8 +30,11 @@ def main(args):
     prefixPatternInputFiles    = getFilePrefixPattern(listInputReferMasksFiles[0])
 
     if (args.removeTracheaCalcMetrics):
-        InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
-        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
+        InputCoarseAirwaysPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputCoarseAirwaysRelPath)
+        listInputCoarseAirwaysFiles = findFilesDirAndCheck(InputCoarseAirwaysPath)
+
+        #InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
+        #listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
 
     listResultMetrics = OrderedDict()
@@ -99,20 +102,23 @@ def main(args):
         if (args.removeTracheaCalcMetrics):
             print("Remove trachea and main bronchi masks in computed metrics...")
 
-            in_roimask_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputRoiMasksFiles,
-                                                            prefix_pattern=prefixPatternInputFiles)
-            print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
+            in_coarseairways_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputCoarseAirwaysFiles,
+                                                                  prefix_pattern=prefixPatternInputFiles)
+            print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarseairways_file)))
 
-            in_roimask_array = FileReader.getImageArray(in_roimask_file)
+            in_coarseairways_array = FileReader.getImageArray(in_coarseairways_file)
 
-            in_predictmask_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_predictmask_array, in_roimask_array)
-            in_refermask_array   = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_refermask_array,   in_roimask_array)
+            print("Dilate coarse airways masks 4 levels to remove completelly trachea and main bronchi from ground-truth...")
+            in_coarseairways_array = MorphoDilateImages.compute(in_coarseairways_array, num_iters=4)
+
+            in_predictmask_array = OperationBinaryMasks.substract_two_masks(in_predictmask_array, in_coarseairways_array)
+            in_refermask_array   = OperationBinaryMasks.substract_two_masks(in_refermask_array,   in_coarseairways_array)
 
             if (isLoadReferenceCentrelineFiles):
-                in_refercenline_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_refercenline_array, in_roimask_array)
+                in_refercenline_array = OperationBinaryMasks.substract_two_masks(in_refercenline_array, in_coarseairways_array)
 
             if (isLoadPredictedCentrelineFiles):
-                in_predictcenline_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_predictcenline_array, in_roimask_array)
+                in_predictcenline_array = OperationBinaryMasks.substract_two_masks(in_predictcenline_array, in_coarseairways_array)
 
 
         # Compute and store Metrics
@@ -163,7 +169,8 @@ if __name__ == "__main__":
     parser.add_argument('--inputcentrelinesdir', type=str, default=None)
     parser.add_argument('--outputresultsfile', type=str, default='result_metrics.txt')
     parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
-    parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
+    parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAWCOARSEAIRWAYS_RELPATH)
+    #parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
     parser.add_argument('--nameInputReferCentrelinesRelPath', type=str, default=NAME_RAWCENTRELINES_RELPATH)
     parser.add_argument('--listResultMetrics', type=parseListarg, default=LISTRESULTMETRICS)
     parser.add_argument('--removeTracheaCalcMetrics', type=str2bool, default=REMOVETRACHEACALCMETRICS)

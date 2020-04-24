@@ -9,10 +9,9 @@
 ########################################################################################
 
 from Common.FunctionsUtil import *
+from scipy.ndimage.morphology import binary_fill_holes, binary_erosion, binary_dilation, binary_opening, binary_closing
 from skimage.transform import rescale
 #from scipy.misc import imresize
-from scipy.ndimage.morphology import binary_fill_holes
-from skimage.morphology import binary_erosion, binary_dilation, binary_opening, binary_closing
 from skimage.measure import label
 import numpy as np
 
@@ -185,26 +184,26 @@ class MorphoFillHolesImages(OperationImages):
 
 class MorphoErodeImages(OperationImages):
     @staticmethod
-    def compute(in_array):
-        return binary_erosion(in_array).astype(in_array.dtype)
+    def compute(in_array, num_iters=1):
+        return binary_erosion(in_array, iterations=num_iters).astype(in_array.dtype)
 
 
 class MorphoDilateImages(OperationImages):
     @staticmethod
-    def compute(in_array):
-        return binary_dilation(in_array).astype(in_array.dtype)
+    def compute(in_array, num_iters=1):
+        return binary_dilation(in_array, iterations=num_iters).astype(in_array.dtype)
 
 
 class MorphoOpenImages(OperationImages):
     @staticmethod
-    def compute(in_array):
-        return binary_opening(in_array).astype(in_array.dtype)
+    def compute(in_array, num_iters=1):
+        return binary_opening(in_array, iterations=num_iters).astype(in_array.dtype)
 
 
 class MorphoCloseImages(OperationImages):
     @staticmethod
-    def compute(in_array):
-        return binary_closing(in_array).astype(in_array.dtype)
+    def compute(in_array, num_iters=1):
+        return binary_closing(in_array, iterations=num_iters).astype(in_array.dtype)
 
 
 class ConnectedRegionsMasks(OperationImages):
@@ -212,4 +211,9 @@ class ConnectedRegionsMasks(OperationImages):
     def compute(in_array, connectivity_dim=None, is_return_num_regs=False):
         if not connectivity_dim:
             connectivity_dim = in_array.ndim
-        return label(in_array, connectivity=connectivity_dim, background=0, return_num=is_return_num_regs)
+        if is_return_num_regs:
+            (out_array, out_num_regs) = label(in_array, connectivity=connectivity_dim, background=0, return_num=is_return_num_regs)
+            return (out_array.astype(in_array.dtype), out_num_regs)
+        else:
+            out_array = label(in_array, connectivity=connectivity_dim, background=0, return_num=is_return_num_regs)
+            return out_array.astype(in_array.dtype)

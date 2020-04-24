@@ -35,10 +35,10 @@ def main(args):
         print("%s: \'%s\'" %(i+1, ifile))
     #endfor
 
-    labels = ['model_%i'%(i+1) for i in range(num_data_files)]
-    #labels = ['Unet_DLCST',
-    #          'Unet_DLCST+LUVAR_28img',
-    #          'Unet_DLCST+LUVAR_18img']
+    #labels = ['model_%i'%(i+1) for i in range(num_data_files)]
+    labels = ['Refer_KNN+RG+VB',
+              'Unet_LUVAR',
+              'Unet_DLCST+LUVAR']
     titles = ['Distance False Positives', 'Distance False Negatives']
     names_outfiles = ['figure_resDFP_NEW.eps', 'figure_resDFN_NEW.eps']
 

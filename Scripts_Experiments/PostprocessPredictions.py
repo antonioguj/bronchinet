@@ -40,12 +40,9 @@ def main(args):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
-        if (args.attachTracheaPrediction):
-            InputReferMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputReferMasksRelPath)
-            listInputReferMasksFiles = findFilesDirAndCheck(InputReferMasksPath)
-
-            def compute_trachea_masks(in_refermask_array, in_roimask_array):
-                return np.where(in_roimask_array == 1, 0, in_refermask_array)
+    if (args.attachCoarseAirwaysMask):
+        InputCoarseAirwaysPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputCoarseAirwaysRelPath)
+        listInputCoarseAirwaysFiles = findFilesDirAndCheck(InputCoarseAirwaysPath)
 
     if (args.cropImages):
         InputCropBoundingBoxesFile= workDirsManager.getNameExistBaseDataPath(args.nameCropBoundingBoxesFile)
@@ -173,19 +170,13 @@ def main(args):
         if (args.threshold_values):
             print("Compute \'%s\' Binary Masks from the Posteriors, using thresholding values: \'%s\'..." % (len(args.threshold_values),
                                                                                                              args.threshold_values))
-            if (args.attachTracheaPrediction and args.masksToRegionInterest):
-                print("Attach Trachea mask to the computed Binary Masks...")
-                in_refermask_file = findFileWithSamePrefixPattern(basename(in_reference_file), listInputReferMasksFiles,
-                                                                  prefix_pattern=prefixPatternInputFiles)
-                in_roimask_file = findFileWithSamePrefixPattern(basename(in_reference_file), listInputRoiMasksFiles,
-                                                                prefix_pattern=prefixPatternInputFiles)
-                print("Reference mask file: \'%s\'..." % (basename(in_refermask_file)))
-                print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
+            if (args.attachCoarseAirwaysMask):
+                print("Attach Trachea and Main Bronchi mask to complete the computed Binary Masks...")
+                in_coarseairways_file = findFileWithSamePrefixPattern(basename(in_reference_file), listInputCoarseAirwaysFiles,
+                                                                      prefix_pattern=prefixPatternInputFiles)
+                print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarseairways_file)))
 
-                in_refermask_array = FileReader.getImageArray(in_refermask_file)
-                in_roimask_array = FileReader.getImageArray(in_roimask_file)
-
-                in_tracheamask_array = compute_trachea_masks(in_refermask_array, in_roimask_array)
+                in_coarseairways_array = FileReader.getImageArray(in_coarseairways_file)
 
 
             for ithreshold in args.threshold_values:
@@ -193,8 +184,8 @@ def main(args):
 
                 out_predictmask_array = ThresholdImages.compute(inout_prediction_array, ithreshold)
 
-                if (args.attachTracheaPrediction and args.masksToRegionInterest):
-                    out_predictmask_array = OperationBinaryMasks.merge_two_masks(out_predictmask_array, in_tracheamask_array) #isNot_intersect_masks=True)
+                if (args.attachCoarseAirwaysMask):
+                    out_predictmask_array = OperationBinaryMasks.merge_two_masks(out_predictmask_array, in_coarseairways_array) #isNot_intersect_masks=True)
             #endfor
 
 
@@ -214,7 +205,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--cfgfromfile', type=str, default=None)
     parser.add_argument('--nameInputPredictionsRelPath', type=str, default=NAME_TEMPOPOSTERIORS_RELPATH)
-    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
+    parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAWCOARSEAIRWAYS_RELPATH)
     parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
     parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
     parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPOSTERIORS_FILE)
@@ -222,7 +213,7 @@ if __name__ == "__main__":
     parser.add_argument('--nameOutputPredictMasksRelPath', type=str, default=NAME_PREDICTMASKS_RELPATH)
     parser.add_argument('--threshold_values', type=float, default=THRESHOLDPOST)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
-    parser.add_argument('--attachTracheaPrediction', type=str2bool, default=ATTACHTRACHEAPREDICTION)
+    parser.add_argument('--attachCoarseAirwaysMask', type=str2bool, default=ATTACHCOARSEAIRWAYSMASK)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--nameCropBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)

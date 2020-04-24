@@ -55,8 +55,9 @@ def main(args):
         CatchErrorException(message)
     else:
         input_args_file = readDictionary_configParams(in_cfgparams_file)
-    print("Retrieve BaseDir from file: \'%s\'...\n" % (in_cfgparams_file))
-    BaseDir = str(input_args_file['basedir'])
+    #print("Retrieve BaseDir from file: \'%s\'...\n" % (in_cfgparams_file))
+    #BaseDir = str(input_args_file['basedir'])
+    BaseDir = currentdir()
 
 
     # OutputBaseDir = makeUpdatedir(args.outputbasedir)
@@ -88,11 +89,14 @@ def main(args):
     new_call = ['python', SCRIPT_POSTPROCESSPREDICTIONS,
                 '--basedir', BaseDir,
                 '--threshold_values', ' '.join([str(el) for el in args.thresholds]),
-                '--attachTracheaPrediction', 'True',
+                '--attachCoarseAirwaysMask', 'True',
                 '--nameInputPredictionsRelPath', InOutTempoPosteriorsPath,
                 '--nameInputReferKeysFile', InOutReferKeysPosteriorsFile,
                 '--nameOutputPosteriorsRelPath', InOutPosteriorsPath,
-                '--nameOutputPredictMasksRelPath', InOutPredictionsPath]
+                '--nameOutputPredictMasksRelPath', InOutPredictionsPath,
+                '--masksToRegionInterest', str(MASKTOREGIONINTEREST),
+                '--rescaleImages', str(RESCALEIMAGES),
+                '--cropImages', str(CROPIMAGES)]
     list_calls_all.append(new_call)
 
 
@@ -106,7 +110,8 @@ def main(args):
     new_call = ['python', SCRIPT_COMPUTERESULTMETRICS, InOutPredictionsPath,
                 '--basedir', BaseDir,
                 '--inputcentrelinesdir', InOutPredictCentrelinesPath,
-                '--outputresultsfile', nameOutputResultsMetricsFile]
+                '--outputresultsfile', nameOutputResultsMetricsFile,
+                '--removeTracheaCalcMetrics', str(REMOVETRACHEACALCMETRICS)]
     list_calls_all.append(new_call)
 
 

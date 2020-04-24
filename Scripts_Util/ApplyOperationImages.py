@@ -36,7 +36,7 @@ DICT_OPERS_SUFFIX = {'mask': 'masked',
                      'threshold': 'binmask',
                      'normalize': 'normal',
                      'onlycorrect': 'onlycorrect',
-                     'labelsmask': 'labs',
+                     'labelsmask': 'lab%s',
                      'power': 'power',
                      'exponential': 'expon'}
 
@@ -360,6 +360,7 @@ def main(args):
                 new_func_operation = prepare_onlyCorrect_operation(args)
             elif name_operation == 'labelsmask':
                 new_func_operation = prepare_labelsMask_operation(args)
+                DICT_OPERS_SUFFIX['labelsmask'] = DICT_OPERS_SUFFIX['labelsmask'] %('-'.join([str(el) for el in args.inlabels]))
             elif name_operation == 'power':
                 new_func_operation = prepare_power_operation(args)
             elif name_operation == 'exponential':
