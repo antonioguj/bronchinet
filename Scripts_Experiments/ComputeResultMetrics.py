@@ -109,7 +109,7 @@ def main(args):
             in_coarseairways_array = FileReader.getImageArray(in_coarseairways_file)
 
             print("Dilate coarse airways masks 4 levels to remove completelly trachea and main bronchi from ground-truth...")
-            in_coarseairways_array = MorphoDilateImages.compute(in_coarseairways_array, num_iters=4)
+            in_coarseairways_array = MorphoDilateMasks.compute(in_coarseairways_array, num_iters=4)
 
             in_predictmask_array = OperationBinaryMasks.substract_two_masks(in_predictmask_array, in_coarseairways_array)
             in_refermask_array   = OperationBinaryMasks.substract_two_masks(in_refermask_array,   in_coarseairways_array)

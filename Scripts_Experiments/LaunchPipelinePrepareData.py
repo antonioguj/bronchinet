@@ -41,12 +41,13 @@ def launchCall(new_call):
     Popen_obj.wait()
 
 
-def create_pipeline_replace_dirs(input_dir, input_dir_to_replace):
+def create_task_replace_dirs(input_dir, input_dir_to_replace):
     new_call_1 = ['rm', '-r', input_dir]
     new_call_2 = ['mv', input_dir_to_replace, input_dir]
     return [new_call_1, new_call_2]
 
-def create_pipeline_decompress_data(input_data_dir, is_keep_files):
+
+def create_task_decompress_data(input_data_dir, is_keep_files):
     list_files = findFilesDir(input_data_dir)
     extension_file = fileextension(list_files[0])
     sublist_calls = []
@@ -63,7 +64,7 @@ def create_pipeline_decompress_data(input_data_dir, is_keep_files):
         sublist_calls.append(new_call)
 
         # replace output folder with nifty files
-        new_sublist_calls = create_pipeline_replace_dirs(input_data_dir, new_input_data_dir)
+        new_sublist_calls = create_task_replace_dirs(input_data_dir, new_input_data_dir)
         sublist_calls += new_sublist_calls
 
     return sublist_calls
@@ -132,13 +133,13 @@ def main(args):
     list_calls_all = []
 
     # 2nd: decompress (if needed) and prepare the downloaded data
-    sublist_calls = create_pipeline_decompress_data(nameInputRawImagesPath, args.isKeepRawImages)
+    sublist_calls = create_task_decompress_data(nameInputRawImagesPath, args.isKeepRawImages)
     list_calls_all += sublist_calls
 
-    sublist_calls = create_pipeline_decompress_data(nameInputRawLabelsPath, args.isKeepRawImages)
+    sublist_calls = create_task_decompress_data(nameInputRawLabelsPath, args.isKeepRawImages)
     list_calls_all += sublist_calls
 
-    sublist_calls = create_pipeline_decompress_data(nameInputRawRoiMasksPath, args.isKeepRawImages)
+    sublist_calls = create_task_decompress_data(nameInputRawRoiMasksPath, args.isKeepRawImages)
     list_calls_all += sublist_calls
 
     # binarise the input arrays for airway and lungs
@@ -155,10 +156,10 @@ def main(args):
         list_calls_all.append(new_call)
 
         # replace output folder with binarised masks
-        new_sublist_calls = create_pipeline_replace_dirs(nameInputRawLabelsPath, nameTempoBinaryLabelsPath)
+        new_sublist_calls = create_task_replace_dirs(nameInputRawLabelsPath, nameTempoBinaryLabelsPath)
         list_calls_all += new_sublist_calls
 
-        new_sublist_calls = create_pipeline_replace_dirs(nameInputRawRoiMasksPath, nameTempoBinaryRoiMasksPath)
+        new_sublist_calls = create_task_replace_dirs(nameInputRawRoiMasksPath, nameTempoBinaryRoiMasksPath)
         list_calls_all += new_sublist_calls
 
 
@@ -179,10 +180,10 @@ def main(args):
         list_calls_all.append(new_call)
 
         # replace output folder with extended images
-        sublist_calls = create_pipeline_replace_dirs(nameInputRawLabelsPath, nameTempoExtendedLabelsPath)
+        sublist_calls = create_task_replace_dirs(nameInputRawLabelsPath, nameTempoExtendedLabelsPath)
         list_calls_all += sublist_calls
 
-        sublist_calls = create_pipeline_replace_dirs(nameInputRawRoiMasksPath, nameTempoExtendedRoiMasksPath)
+        sublist_calls = create_task_replace_dirs(nameInputRawRoiMasksPath, nameTempoExtendedRoiMasksPath)
         list_calls_all += sublist_calls
 
 
@@ -211,7 +212,7 @@ def main(args):
         list_calls_all.append(new_call)
 
         # replace output folder with rescaled Roi masks
-        sublist_calls = create_pipeline_replace_dirs(nameInputRawLabelsPath, nameTempoRescaledRoiMasksPath)
+        sublist_calls = create_task_replace_dirs(nameInputRawLabelsPath, nameTempoRescaledRoiMasksPath)
         list_calls_all += sublist_calls
 
 

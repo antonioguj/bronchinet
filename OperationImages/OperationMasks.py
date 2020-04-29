@@ -10,6 +10,7 @@
 
 from Common.ErrorMessages import *
 from Common.FunctionsUtil import *
+from scipy.ndimage.morphology import binary_fill_holes, binary_erosion, binary_dilation, binary_opening, binary_closing
 from skimage.morphology import skeletonize_3d
 import numpy as np
 
@@ -265,19 +266,19 @@ class OperationMultiClassMasks(OperationMasks):
 
 
 class ThinningMasks(OperationMasks):
-    @classmethod
-    def compute(cls, masks_array):
+    @staticmethod
+    def compute(in_array):
         # thinning masks to obtain centrelines...
-        return skeletonize_3d(masks_array.astype(np.uint8))
-        #centrelines_array = skeletonize_3d(masks_array)
+        return skeletonize_3d(in_array.astype(np.uint8))
+        #out_cenlines_array = skeletonize_3d(in_array)
         ## convert to binary masks (0, 1)
-        #return np.where(centrelines_array, cls.val_mask_positive, cls.val_mask_background)
+        #return np.where(out_cenlines_array, cls.val_mask_positive, cls.val_mask_background)
 
 
 class VolumeMasks(OperationMasks):
-    @classmethod
-    def compute(cls, masks_array, voxel_size=False):
-        masks_sum = np.sum(masks_array)
+    @staticmethod
+    def compute(in_array, voxel_size=False):
+        masks_sum = np.sum(in_array)
         if voxel_size:
             voxel_vol = np.prod(voxel_size)
             return masks_sum * voxel_vol
@@ -285,3 +286,60 @@ class VolumeMasks(OperationMasks):
             return masks_sum
 
 
+class MorphoFillHolesMasks(OperationMasks):
+    @staticmethod
+    def compute(in_array):
+        return binary_fill_holes(in_array).astype(in_array.dtype)
+
+
+class MorphoErodeMasks(OperationMasks):
+    @staticmethod
+    def compute(in_array, num_iters=1):
+        return binary_erosion(in_array, iterations=num_iters).astype(in_array.dtype)
+
+
+class MorphoDilateMasks(OperationMasks):
+    @staticmethod
+    def compute(in_array, num_iters=1):
+        return binary_dilation(in_array, iterations=num_iters).astype(in_array.dtype)
+
+
+class MorphoOpenMasks(OperationMasks):
+    @staticmethod
+    def compute(in_array, num_iters=1):
+        return binary_opening(in_array, iterations=num_iters).astype(in_array.dtype)
+
+
+class MorphoCloseMasks(OperationMasks):
+    @staticmethod
+    def compute(in_array, num_iters=1):
+        return binary_closing(in_array, iterations=num_iters).astype(in_array.dtype)
+
+
+class ConnectedRegionsMasks(OperationMasks):
+    @staticmethod
+    def compute(in_array, connectivity_dim=None, is_return_num_regs=False):
+        if not connectivity_dim:
+            connectivity_dim = in_array.ndim
+        if is_return_num_regs:
+            (out_array, out_num_regs) = label(in_array, connectivity=connectivity_dim, background=0, return_num=is_return_num_regs)
+            return (out_array.astype(in_array.dtype), out_num_regs)
+        else:
+            out_array = label(in_array, connectivity=connectivity_dim, background=0, return_num=is_return_num_regs)
+            return out_array.astype(in_array.dtype)
+
+
+class FirstConnectedRegionMasks(OperationMasks):
+    @staticmethod
+    def compute(in_array, connectivity_dim=None):
+        (all_regions_array, num_regs) = ConnectedRegionsMasks.compute(in_array, connectivity_dim=connectivity_dim, is_return_num_regs=True)
+        # retrieve the conn. region with the largest volume
+        max_vol_regs = 0.0
+        out_array = None
+        for i in range(num_regs):
+            ireg_vol = VolumeMasks.compute(all_regions_array[i])
+            if ireg_vol > max_vol_regs:
+                out_array = all_regions_array[i]
+                max_vol_regs = ireg_vol
+        # endfor
+        return out_array

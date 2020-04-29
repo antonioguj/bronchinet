@@ -9,7 +9,7 @@
 ########################################################################################
 
 from DataLoaders.FileReaders import *
-from OperationImages.OperationImages import MorphoOpenImages
+from OperationImages.OperationMasks import MorphoOpenMasks
 from PlotsManager.Histograms import *
 from collections import OrderedDict
 import argparse
@@ -116,7 +116,6 @@ def main(args):
         in_image1_array = FileReader.getImageArray(in_file_1)
         in_image2_array = FileReader.getImageArray(in_file_2)
 
-
         # # Compare files metadata (header info)
         # if (filenameextension(in_file_1) == filenameextension(in_file_2)):
         #     in_img1_metadata = FileReader.getImageMetadataInfo(in_file_1)
@@ -139,7 +138,7 @@ def main(args):
 
                 out_diffimages_array = abs(in_image1_array - in_image2_array)
 
-                out_diffimages_array = MorphoOpenImages.compute(out_diffimages_array)
+                out_diffimages_array = MorphoOpenMasks.compute(out_diffimages_array)
 
                 num_voxels_diffimages = np.count_nonzero(out_diffimages_array)
 

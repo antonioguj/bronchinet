@@ -18,7 +18,9 @@ import argparse
 CODEDIR                            = joinpathnames(BASEDIR, 'Code/')
 SCRIPT_PREDICTIONMODEL             = joinpathnames(CODEDIR, 'Scripts_Experiments/PredictionModel.py')
 SCRIPT_POSTPROCESSPREDICTIONS      = joinpathnames(CODEDIR, 'Scripts_Experiments/PostprocessPredictions.py')
+SCRIPT_PROCESSPREDICTAIRWAYTREE    = joinpathnames(CODEDIR, 'Scripts_Experiments/ProcessPredictAirwayTree.py')
 SCRIPT_EXTRACTCENTRELINESFROMMASKS = joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
+SCRIPT_CACLFIRSTCONNREGIONFROMMASKS= joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
 SCRIPT_COMPUTERESULTMETRICS        = joinpathnames(CODEDIR, 'Scripts_Experiments/ComputeResultMetrics.py')
 
 
@@ -33,15 +35,21 @@ def launchCall(new_call):
     Popen_obj.wait()
 
 
+def create_task_replace_dirs(input_dir, input_dir_to_replace):
+    new_call_1 = ['rm', '-r', input_dir]
+    new_call_2 = ['mv', input_dir_to_replace, input_dir]
+    return [new_call_1, new_call_2]
+
+
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameTempoPosteriorsRelPath   = 'PosteriorsWorkData/'
-    namePosteriorsRelPath        = 'Posteriors/'
-    namePredictionsRelPath       = 'BinaryMasks/'
-    namePredictCentrelinesRelPath= 'Centrelines/'
-    nameReferKeysPredictionsFile = 'referenceKeys_posteriors.npy'
-    nameOutputResultsMetricsFile = 'result_metrics.txt'
+    nameTempoPosteriorsRelPath    = 'PosteriorsWorkData/'
+    namePosteriorsRelPath         = 'Posteriors/'
+    namePredictBinaryMasksRelPath = 'BinaryMasks/'
+    namePredictCentrelinesRelPath = 'Centrelines/'
+    nameReferKeysPredictionsFile  = 'referenceKeys_posteriors.npy'
+    nameOutputResultsMetricsFile  = 'result_metrics.txt'
 
     listResultsMetrics = ['DiceCoefficient', 'AirwayVolumeLeakage']
     # ---------- SETTINGS ----------
@@ -66,7 +74,7 @@ def main(args):
 
     InOutTempoPosteriorsPath     = joinpathnames(OutputBaseDir, nameTempoPosteriorsRelPath)
     InOutPosteriorsPath          = joinpathnames(OutputBaseDir, namePosteriorsRelPath)
-    InOutPredictionsPath         = joinpathnames(OutputBaseDir, namePredictionsRelPath)
+    InOutPredictBinaryMasksPath  = joinpathnames(OutputBaseDir, namePredictBinaryMasksRelPath)
     InOutPredictCentrelinesPath  = joinpathnames(OutputBaseDir, namePredictCentrelinesRelPath)
     InOutReferKeysPosteriorsFile = joinpathnames(OutputBaseDir, nameReferKeysPredictionsFile)
 
@@ -85,28 +93,48 @@ def main(args):
     list_calls_all.append(new_call)
 
 
-    # 2nd: Compure reconstructed posteriors and binary masks from posteriors work data
+    # 2nd: Compute post-processed posteriors from work predictions
     new_call = ['python', SCRIPT_POSTPROCESSPREDICTIONS,
                 '--basedir', BaseDir,
-                '--threshold_values', ' '.join([str(el) for el in args.thresholds]),
-                '--attachCoarseAirwaysMask', 'True',
                 '--nameInputPredictionsRelPath', InOutTempoPosteriorsPath,
                 '--nameInputReferKeysFile', InOutReferKeysPosteriorsFile,
                 '--nameOutputPosteriorsRelPath', InOutPosteriorsPath,
-                '--nameOutputPredictMasksRelPath', InOutPredictionsPath,
                 '--masksToRegionInterest', str(MASKTOREGIONINTEREST),
                 '--rescaleImages', str(RESCALEIMAGES),
                 '--cropImages', str(CROPIMAGES)]
     list_calls_all.append(new_call)
 
 
-    # 3rd: Compute centrelines by thinning the binary masks
-    new_call = ['python', SCRIPT_EXTRACTCENTRELINESFROMMASKS, InOutPredictionsPath, InOutPredictCentrelinesPath,
+    # 3rd: Compute the predicted binary masks from the posteriors
+    new_call = ['python', SCRIPT_PROCESSPREDICTAIRWAYTREE,
+                '--basedir', BaseDir,
+                '--nameInputPosteriorsRelPath', InOutPosteriorsPath,
+                '--nameOutputBinaryMasksRelPath', InOutPredictBinaryMasksPath,
+                '--threshold_values', ' '.join([str(el) for el in args.thresholds]),
+                '--attachCoarseAirwaysMask', 'True']
+    list_calls_all.append(new_call)
+
+
+    if args.isconnectedmasks:
+        OutTempoPredictBinaryMasksPath = updatePathnameWithsuffix(InOutPredictBinaryMasksPath, 'Tempo')
+
+        # Compute the first connected component from the predicted binary masks
+        new_call = ['python', SCRIPT_CACLFIRSTCONNREGIONFROMMASKS, InOutPredictBinaryMasksPath, OutTempoPredictBinaryMasksPath,
+                    '--type', 'firstconreg']
+        list_calls_all.append(new_call)
+
+        # replace output folder with binary masks
+        new_sublist_calls = create_task_replace_dirs(InOutPredictBinaryMasksPath, OutTempoPredictBinaryMasksPath)
+        list_calls_all += new_sublist_calls
+
+
+    # 4th: Compute centrelines by thinning the binary masks
+    new_call = ['python', SCRIPT_EXTRACTCENTRELINESFROMMASKS, InOutPredictBinaryMasksPath, InOutPredictCentrelinesPath,
                 '--type', 'thinning']
     list_calls_all.append(new_call)
 
 
-    # 4th: Compute testing metrics from predicted binary masks and centrelines
+    # 5th: Compute testing metrics from predicted binary masks and centrelines
     new_call = ['python', SCRIPT_COMPUTERESULTMETRICS, InOutPredictionsPath,
                 '--basedir', BaseDir,
                 '--inputcentrelinesdir', InOutPredictCentrelinesPath,
@@ -152,6 +180,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--thresholds', type=str, nargs='*', default=[0.5])
     parser.add_argument('--testdatadir', type=str, default='TestingData/')
+    parser.add_argument('--isconnectedmasks', type=str2bool, default=False)
     args = parser.parse_args()
 
     print("Print input arguments...")

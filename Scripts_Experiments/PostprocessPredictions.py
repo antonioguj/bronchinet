@@ -20,17 +20,15 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    nameOutputPosteriorsFiles   = lambda in_name: basenameNoextension(in_name) + '_probmap.nii.gz'
-    nameOutputPredictMasksFiles = lambda in_name, thres: basenameNoextension(in_name) + '_binmask_thres%s.nii.gz' %(str(thres).replace('.',''))
+    nameOutputPosteriorsFiles = lambda in_name: basenameNoextension(in_name) + '_probmap.nii.gz'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager        = WorkDirsManager(args.basedir)
-    InputPredictionsPath   = workDirsManager.getNameExistPath        (args.nameInputPredictionsRelPath)
-    InputReferKeysPath     = workDirsManager.getNameExistBaseDataPath(args.nameInputReferKeysRelPath)
-    InputReferKeysFile     = workDirsManager.getNameExistFile        (args.nameInputReferKeysFile)
-    OutputPosteriorsPath   = workDirsManager.getNameNewPath          (args.nameOutputPosteriorsRelPath)
-    OutputPredictMasksPath = workDirsManager.getNameNewPath          (args.nameOutputPredictMasksRelPath)
+    workDirsManager      = WorkDirsManager(args.basedir)
+    InputPredictionsPath = workDirsManager.getNameExistPath        (args.nameInputPredictionsRelPath)
+    InputReferKeysPath   = workDirsManager.getNameExistBaseDataPath(args.nameInputReferKeysRelPath)
+    InputReferKeysFile   = workDirsManager.getNameExistFile        (args.nameInputReferKeysFile)
+    OutputPosteriorsPath = workDirsManager.getNameNewPath          (args.nameOutputPosteriorsRelPath)
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath)
     in_dictReferenceKeys      = readDictionary(InputReferKeysFile)
@@ -39,10 +37,6 @@ def main(args):
     if (args.masksToRegionInterest):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
-
-    if (args.attachCoarseAirwaysMask):
-        InputCoarseAirwaysPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputCoarseAirwaysRelPath)
-        listInputCoarseAirwaysFiles = findFilesDirAndCheck(InputCoarseAirwaysPath)
 
     if (args.cropImages):
         InputCropBoundingBoxesFile= workDirsManager.getNameExistBaseDataPath(args.nameCropBoundingBoxesFile)
@@ -118,7 +112,7 @@ def main(args):
                         else:
                             print("Set array Patch to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_fullimage_shape), j, str(in_crop_bounding_box)))
                             SetPatchInImages.compute3D(in_next_prediction_array, inout_prediction_array, in_crop_bounding_box)
-                            #endfor
+                #endfor
             else:
                 in_crop_bounding_box = list_in_crop_bounding_boxes[0]
                 size_in_crop_bounding_box = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
@@ -160,43 +154,11 @@ def main(args):
 
 
         # Output processed predictions
-        output_pred_file = joinpathnames(OutputPosteriorsPath, nameOutputPosteriorsFiles(in_reference_file))
-        print("Output: \'%s\', of dims \'%s\'..." % (basename(output_pred_file), inout_prediction_array.shape))
+        output_prediction_file = joinpathnames(OutputPosteriorsPath, nameOutputPosteriorsFiles(in_reference_file))
+        print("Output: \'%s\', of dims \'%s\'..." % (basename(output_prediction_file), inout_prediction_array.shape))
 
-        FileReader.writeImageArray(output_pred_file, inout_prediction_array, metadata=in_metadata_file)
-
-
-        # *******************************************************************************
-        if (args.threshold_values):
-            print("Compute \'%s\' Binary Masks from the Posteriors, using thresholding values: \'%s\'..." % (len(args.threshold_values),
-                                                                                                             args.threshold_values))
-            if (args.attachCoarseAirwaysMask):
-                print("Attach Trachea and Main Bronchi mask to complete the computed Binary Masks...")
-                in_coarseairways_file = findFileWithSamePrefixPattern(basename(in_reference_file), listInputCoarseAirwaysFiles,
-                                                                      prefix_pattern=prefixPatternInputFiles)
-                print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarseairways_file)))
-
-                in_coarseairways_array = FileReader.getImageArray(in_coarseairways_file)
-
-
-            for ithreshold in args.threshold_values:
-                print("Compute Binary Masks thresholded to \'%s\'..." %(ithreshold))
-
-                out_predictmask_array = ThresholdImages.compute(inout_prediction_array, ithreshold)
-
-                if (args.attachCoarseAirwaysMask):
-                    out_predictmask_array = OperationBinaryMasks.merge_two_masks(out_predictmask_array, in_coarseairways_array) #isNot_intersect_masks=True)
-            #endfor
-
-
-            # Output predicted binary masks
-            output_pred_file = joinpathnames(OutputPredictMasksPath, nameOutputPredictMasksFiles(in_reference_file, ithreshold))
-            print("Output: \'%s\', of dims \'%s\'..." % (basename(output_pred_file), str(out_predictmask_array.shape)))
-
-            FileReader.writeImageArray(output_pred_file, out_predictmask_array, metadata=in_metadata_file)
-        # *******************************************************************************
+        FileReader.writeImageArray(output_prediction_file, inout_prediction_array, metadata=in_metadata_file)
     #endfor
-
 
 
 
@@ -205,15 +167,10 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--cfgfromfile', type=str, default=None)
     parser.add_argument('--nameInputPredictionsRelPath', type=str, default=NAME_TEMPOPOSTERIORS_RELPATH)
-    parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAWCOARSEAIRWAYS_RELPATH)
     parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
     parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
     parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPOSTERIORS_FILE)
     parser.add_argument('--nameOutputPosteriorsRelPath', type=str, default=NAME_POSTERIORS_RELPATH)
-    parser.add_argument('--nameOutputPredictMasksRelPath', type=str, default=NAME_PREDICTMASKS_RELPATH)
-    parser.add_argument('--threshold_values', type=float, default=THRESHOLDPOST)
-    parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
-    parser.add_argument('--attachCoarseAirwaysMask', type=str2bool, default=ATTACHCOARSEAIRWAYSMASK)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--nameCropBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
@@ -233,9 +190,6 @@ if __name__ == "__main__":
         #args.nameCropBoundingBoxesFile = str(input_args_file['nameCropBoundingBoxesFile'])
         #args.rescaleImages             = str2bool(input_args_file['rescaleImages'])
         #args.nameRescaleFactorsFile    = str(input_args_file['nameRescaleFactorsFile'])
-
-    if type(args.threshold_values) in [int, float]:
-        args.threshold_values = [args.threshold_values]
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

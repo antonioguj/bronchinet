@@ -198,52 +198,6 @@ class NIFTIreader(FileReader):
 
 
 
-class NUMPYreader(FileReader):
-    @classmethod
-    def getImageArray(cls, filename):
-        return np.load(filename)
-
-    @classmethod
-    def writeImageArray(cls, filename, img_array, **kwargs):
-        np.save(filename, img_array)
-
-
-class NUMPYZreader(FileReader):
-    @classmethod
-    def getImageArray(cls, filename):
-        return np.load(filename)['arr_0']
-
-    @classmethod
-    def writeImageArray(cls, filename, img_array, **kwargs):
-        np.savez_compressed(filename, img_array)
-
-
-class HDF5reader(FileReader):
-    @classmethod
-    def getImageArray(cls, filename):
-        data_file = h5py.File(filename, 'r')
-        return data_file['data'][:]
-
-    @classmethod
-    def writeImageArray(cls, filename, img_array, **kwargs):
-        data_file = h5py.File(filename, 'w')
-        data_file.create_dataset('data', data=img_array)
-        data_file.close()
-
-
-class MHDRAWreader(FileReader):
-    @classmethod
-    def getImageArray(cls, filename):
-        img_read = sitk.ReadImage(filename)
-        return sitk.GetArrayFromImage(img_read)
-
-    @classmethod
-    def writeImageArray(cls, filename, img_array, **kwargs):
-        img_write = sitk.GetImageFromArray(img_array)
-        sitk.WriteImage(img_write, filename)
-
-
-
 class DICOMreader(FileReader):
     @staticmethod
     def convertImageArrayStoredDtypeUint16(img_array):
@@ -307,6 +261,52 @@ class DICOMreader(FileReader):
             img_array = img_array.astype(np.uint16)
         ds_refimg.PixelData = img_array.tostring()
         pydicom.write_file(filename, ds_refimg)
+
+
+
+class NUMPYreader(FileReader):
+    @classmethod
+    def getImageArray(cls, filename):
+        return np.load(filename)
+
+    @classmethod
+    def writeImageArray(cls, filename, img_array, **kwargs):
+        np.save(filename, img_array)
+
+
+class NUMPYZreader(FileReader):
+    @classmethod
+    def getImageArray(cls, filename):
+        return np.load(filename)['arr_0']
+
+    @classmethod
+    def writeImageArray(cls, filename, img_array, **kwargs):
+        np.savez_compressed(filename, img_array)
+
+
+class HDF5reader(FileReader):
+    @classmethod
+    def getImageArray(cls, filename):
+        data_file = h5py.File(filename, 'r')
+        return data_file['data'][:]
+
+    @classmethod
+    def writeImageArray(cls, filename, img_array, **kwargs):
+        data_file = h5py.File(filename, 'w')
+        data_file.create_dataset('data', data=img_array)
+        data_file.close()
+
+
+class MHDRAWreader(FileReader):
+    @classmethod
+    def getImageArray(cls, filename):
+        img_read = sitk.ReadImage(filename)
+        return sitk.GetArrayFromImage(img_read)
+
+    @classmethod
+    def writeImageArray(cls, filename, img_array, **kwargs):
+        img_write = sitk.GetImageFromArray(img_array)
+        sitk.WriteImage(img_write, filename)
 
 
 

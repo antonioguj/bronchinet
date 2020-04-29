@@ -51,7 +51,7 @@ NAME_LOGTRAINDATA_FILE        = 'traindatafiles.txt'
 NAME_LOGVALIDDATA_FILE        = 'validdatafiles.txt'
 NAME_TEMPOPOSTERIORS_RELPATH  = 'Predictions/PosteriorsWorkData/'
 NAME_POSTERIORS_RELPATH       = 'Predictions/Posteriors/'
-NAME_PREDICTMASKS_RELPATH     = 'Predictions/BinaryMasks/'
+NAME_PREDBINARYMASKS_RELPATH  = 'Predictions/BinaryMasks/'
 NAME_REFERKEYSPOSTERIORS_FILE = 'Predictions/referenceKeys_posteriors.npy'
 # ******************** SET-UP WORKDIR ********************
 

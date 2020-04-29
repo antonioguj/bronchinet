@@ -17,7 +17,7 @@ import argparse
 
 
 LIST_OPERATIONS = ['mask', 'binarise', 'merge', 'substract', 'crop', 'rescale', 'rescale_mask',
-                   'fillholes', 'erode', 'dilate', 'moropen', 'morclose', 'connregs',
+                   'fillholes', 'erode', 'dilate', 'moropen', 'morclose', 'connregs', 'firstconreg',
                    'thinning', 'threshold', 'normalize', 'onlycorrect', 'labelsmask', 'power', 'exponential']
 DICT_OPERS_SUFFIX = {'mask': 'masked',
                      'binarise': None,
@@ -31,7 +31,8 @@ DICT_OPERS_SUFFIX = {'mask': 'masked',
                      'dilate': 'dilated',
                      'moropen': 'moropen',
                      'morclose': 'morclose',
-                     'connregs': 'connlabs',
+                     'connregs': 'connregs',
+                     'firstconreg': 'firstreg',
                      'thinning': 'cenlines',
                      'threshold': 'binmask',
                      'normalize': 'normal',
@@ -157,7 +158,7 @@ def prepare_fillholes_operation(args):
 
     def wrapfun_fillholes_image(in_array, i):
         print("Filling holes from masks...")
-        return MorphoFillHolesImages.compute(in_array)
+        return MorphoFillHolesMasks.compute(in_array)
 
     return wrapfun_fillholes_image
 
@@ -168,7 +169,7 @@ def prepare_erode_operation(args):
 
     def wrapfun_erode_image(in_array, i):
         print("Eroding masks one layer...")
-        return MorphoErodeImages.compute(in_array)
+        return MorphoErodeMasks.compute(in_array)
 
     return wrapfun_erode_image
 
@@ -179,7 +180,7 @@ def prepare_dilate_operation(args):
 
     def wrapfun_dilate_image(in_array, i):
         print("Dilating masks one layer...")
-        return MorphoDilateImages.compute(in_array)
+        return MorphoDilateMasks.compute(in_array)
 
     return wrapfun_dilate_image
 
@@ -190,7 +191,7 @@ def prepare_moropen_operation(args):
 
     def wrapfun_moropen_image(in_array, i):
         print("Morphologically open masks...")
-        return MorphoOpenImages.compute(in_array)
+        return MorphoOpenMasks.compute(in_array)
 
     return wrapfun_moropen_image
 
@@ -201,7 +202,7 @@ def prepare_morclose_operation(args):
 
     def wrapfun_morclose_image(in_array, i):
         print("Morphologically close masks...")
-        return MorphoCloseImages.compute(in_array)
+        return MorphoCloseMasks.compute(in_array)
 
     return wrapfun_morclose_image
 
@@ -218,6 +219,19 @@ def prepare_connRegions_operation(args):
         return out_array
 
     return wrapfun_connRegions_image
+
+
+# ------------------------------------------------
+def prepare_firstConnRegion_operation(args):
+    print("Operation: Compute the first connected region (with the largest volume)...")
+
+    def wrapfun_firstConnRegion_image(in_array, i):
+        print("Compute the first connected region...")
+        #out_array = FirstConnectedRegionMasks.compute(in_array)
+        out_array = FirstConnectedRegionMasks.compute(in_array, connectivity_dim=1)
+        return out_array
+
+    return wrapfun_firstConnRegion_image
 
 
 # ------------------------------------------------
@@ -350,6 +364,8 @@ def main(args):
                 new_func_operation = prepare_morclose_operation(args)
             elif name_operation == 'connregs':
                 new_func_operation = prepare_connRegions_operation(args)
+            elif name_operation == 'firstconreg':
+                new_func_operation = prepare_firstConnRegion_operation(args)
             elif name_operation == 'thinning':
                 new_func_operation = prepare_thinning_operation(args)
             elif name_operation == 'threshold':
