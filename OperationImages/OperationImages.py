@@ -11,7 +11,6 @@
 from Common.FunctionsUtil import *
 from skimage.transform import rescale
 #from scipy.misc import imresize
-from skimage.measure import label
 import numpy as np
 
 

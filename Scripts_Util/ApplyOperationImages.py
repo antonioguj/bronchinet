@@ -223,7 +223,7 @@ def prepare_connRegions_operation(args):
 
 # ------------------------------------------------
 def prepare_firstConnRegion_operation(args):
-    print("Operation: Compute the first connected region (with the largest volume)...")
+    print("Operation: Compute the first connected region (with largest volume)...")
 
     def wrapfun_firstConnRegion_image(in_array, i):
         print("Compute the first connected region...")

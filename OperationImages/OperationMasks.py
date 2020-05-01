@@ -12,6 +12,7 @@ from Common.ErrorMessages import *
 from Common.FunctionsUtil import *
 from scipy.ndimage.morphology import binary_fill_holes, binary_erosion, binary_dilation, binary_opening, binary_closing
 from skimage.morphology import skeletonize_3d
+from skimage.measure import label
 import numpy as np
 
 
@@ -188,11 +189,11 @@ class OperationBinaryMasks(OperationMasks):
 
     @classmethod
     def get_masks_with_label(cls, masks_array, label):
-        return np.where(np.isin(masks_array, label), cls.val_mask_positive, cls.val_mask_background).astype(np.uint8)
+        return np.where(np.isin(masks_array, label), cls.val_mask_positive, cls.val_mask_background).astype(masks_array.dtype)
 
     @classmethod
     def get_masks_with_labels(cls, masks_array, labels_list):
-        return np.where(np.isin(masks_array, labels_list), cls.val_mask_positive, cls.val_mask_background).astype(np.uint8)
+        return np.where(np.isin(masks_array, labels_list), cls.val_mask_positive, cls.val_mask_background).astype(masks_array.dtype)
 
     @classmethod
     def get_list_masks_with_labels(cls, masks_array, labels_list):
@@ -277,7 +278,7 @@ class ThinningMasks(OperationMasks):
 
 class VolumeMasks(OperationMasks):
     @staticmethod
-    def compute(in_array, voxel_size=False):
+    def compute(in_array, voxel_size=None):
         masks_sum = np.sum(in_array)
         if voxel_size:
             voxel_vol = np.prod(voxel_size)
@@ -336,10 +337,12 @@ class FirstConnectedRegionMasks(OperationMasks):
         # retrieve the conn. region with the largest volume
         max_vol_regs = 0.0
         out_array = None
-        for i in range(num_regs):
-            ireg_vol = VolumeMasks.compute(all_regions_array[i])
-            if ireg_vol > max_vol_regs:
-                out_array = all_regions_array[i]
-                max_vol_regs = ireg_vol
+        for ireg in range(num_regs):
+            # volume = count voxels for the the conn. region with label "i+1"
+            iconreg_vol = np.count_nonzero(all_regions_array == ireg+1)
+            if iconreg_vol > max_vol_regs:
+                # extract the conn. region with label "i+1"
+                out_array = np.where(all_regions_array == ireg+1, 1, 0).astype(in_array.dtype)
+                max_vol_regs = iconreg_vol
         # endfor
         return out_array
