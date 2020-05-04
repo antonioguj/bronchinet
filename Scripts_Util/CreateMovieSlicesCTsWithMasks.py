@@ -16,8 +16,7 @@ TYPE_ANIMATION = '1'
 if (TYPE_ANIMATION == '1'):
     import imageio
 elif (TYPE_ANIMATION == '2'):
-    pass
-    #import skimage
+    import skimage
 
 WHITE_COLOR  = [255, 255, 255]
 BLACK_COLOR  = [0, 0, 0]
@@ -32,12 +31,12 @@ CYAN_COLOR   = [0, 255, 255]
 
 def main(args):
 
-    template_outfilename = '%s_video.gif'
-
     listInputPredictMasksFiles = findFilesDirAndCheck(args.inputpredictionsdir)
     listInputImagesFiles       = findFilesDirAndCheck(args.inputimagesdir)
     listInputReferMasksFiles   = findFilesDirAndCheck(args.inputrefermasksdir)
     prefixPatternInputFiles    = getFilePrefixPattern(listInputReferMasksFiles[0])
+
+    template_outfilename = '%s_video.gif'
 
     makedir(args.outputdir)
 
@@ -86,7 +85,7 @@ def main(args):
                 is_valid_frame = len(index_frame_TP_mask) > 0 or len(index_frame_FN_mask) > 0 or len(index_frame_FP_mask) > 0
 
             elif (TYPE_ANIMATION == '2'):
-                index_frame_predict_bound_mask = skimage.segmentation.find_boundaries(in_predictmask_slice)
+                index_frame_predict_bound_mask   = skimage.segmentation.find_boundaries(in_predictmask_slice)
                 index_frame_grndtruth_bound_mask = skimage.segmentation.find_boundaries(in_refermask_slice)
 
                 # draw boundaries of prediction / ground-truth masks with green / red colour, respectively

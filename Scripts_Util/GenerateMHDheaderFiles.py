@@ -19,14 +19,14 @@ def main(args):
 
     namesOutputFiles = lambda in_name: basenameNoextension(in_name) + '.mhd'
 
-    listInputFiles = findFilesDirAndCheck(args.inputdir)
+    list_input_files = findFilesDirAndCheck(args.inputdir)
     makedir(args.outputdir)
 
 
-    for in_file in listInputFiles:
+    for in_file in list_input_files:
         print("\nInput: \'%s\'..." % (basename(in_file)))
 
-        in_image_size = FileReader.getImageSize(in_file)
+        in_image_size  = FileReader.getImageSize(in_file)
         out_image_size = np.roll(in_image_size, 2)
 
         ndims = len(out_image_size)

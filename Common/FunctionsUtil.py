@@ -147,10 +147,17 @@ def updateFilenameWithsuffix(filename, suffix):
 
 # find files in working directory
 def isExistdir(pathname):
-    return os.path.exists(pathname)
+    return os.path.exists(pathname) and os.path.isdir(pathname)
 
 def isExistfile(filename):
-    return os.path.exists(filename)
+    return os.path.exists(filename) and os.path.isfile(filename)
+
+def isExistexec(execname):
+    return os.path.exists(execname) and os.path.isfile(execname) and os.access(execname, os.X_OK)
+
+def isExistshexec(execname):
+    #return shutil.which(execname) is not None
+    return True # reimplement when having python3
 
 def listFilesDir(pathname):
     listfiles = os.listdir(pathname)

@@ -22,9 +22,9 @@ elif TYPE_DNNLIBRARY_USED == 'Pytorch':
 def main(args):
     # ---------- SETTINGS ----------
     name_rel_loss_history_file = 'lossHistory.txt'
-    name_link_rel_model_last_epoch = 'model_lastEpoch' + EXT_MODELFILE
-    name_link_rel_model_min_loss = 'model_minLoss' + EXT_MODELFILE
-    name_link_rel_model_min_valoss = 'model_minValoss' + EXT_MODELFILE
+    name_link_rel_model_last_epoch = 'model_last' + EXT_MODELFILE
+    name_link_rel_model_min_loss = 'model_minloss' + EXT_MODELFILE
+    name_link_rel_model_min_valoss = 'model_minvaloss' + EXT_MODELFILE
 
     freq_save_model_file = 10
     # ---------- SETTINGS ----------

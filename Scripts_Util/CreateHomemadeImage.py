@@ -56,7 +56,6 @@ def main(args):
         raise Exception("ERROR. type image \'%s\' not found... EXIT" %(args.type))
 
 
-
     # Create image
     out_array_shape = (256, 256, 256)
     out_array = np.zeros(out_array_shape)
