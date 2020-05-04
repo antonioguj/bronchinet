@@ -49,9 +49,9 @@ def main(args):
 
     data = np.array(out_dictVoxelSizes.values())
     mean = np.mean(data, axis=0)
-    print("\nMean value: \'%s\'..." %(mean))
+    print("\nMean value: \'%0.6f\'..." %(mean))
     median = np.median(data, axis=0)
-    print("Median value: \'%s\'..." %(median))
+    print("Median value: \'%0.6f\'..." %(median))
 
 
     if args.fixedRescaleRes:

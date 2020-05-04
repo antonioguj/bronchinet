@@ -13,19 +13,19 @@ from DataLoaders.FileReaders import *
 from OperationImages.OperationImages import *
 from OperationImages.OperationMasks import *
 from collections import OrderedDict
-import argparse
+import argparse, textwrap
 
 
-LIST_OPERATIONS = ['mask', 'binarise', 'merge', 'substract', 'crop', 'rescale', 'rescale_mask',
+LIST_OPERATIONS = ['mask', 'binarise', 'merge', 'substract', 'crop', 'rescale', 'rescalemask',
                    'fillholes', 'erode', 'dilate', 'moropen', 'morclose', 'connregs', 'firstconreg',
-                   'thinning', 'threshold', 'normalize', 'onlycorrect', 'labelsmask', 'power', 'exponential']
+                   'thinning', 'threshold', 'masklabels', 'normalise', 'power', 'exponential']
 DICT_OPERS_SUFFIX = {'mask': 'masked',
                      'binarise': None,
                      'merge': 'merged',
                      'substract': 'substed',
                      'crop': 'cropped',
                      'rescale': 'rescaled',
-                     'rescale_mask': 'rescaled',
+                     'rescalemask': 'rescaled',
                      'fillholes': 'fillholes',
                      'erode': 'eroded',
                      'dilate': 'dilated',
@@ -35,9 +35,8 @@ DICT_OPERS_SUFFIX = {'mask': 'masked',
                      'firstconreg': 'firstreg',
                      'thinning': 'cenlines',
                      'threshold': 'binmask',
-                     'normalize': 'normal',
-                     'onlycorrect': 'onlycorrect',
-                     'labelsmask': 'lab%s',
+                     'masklabels': 'lab%s',
+                     'normalise': 'normal',
                      'power': 'power',
                      'exponential': 'expon'}
 
@@ -208,30 +207,30 @@ def prepare_morclose_operation(args):
 
 
 # ------------------------------------------------
-def prepare_connRegions_operation(args):
+def prepare_connregions_operation(args):
     print("Operation: Compute connected regions...")
 
-    def wrapfun_connRegions_image(in_array, i):
+    def wrapfun_connregions_image(in_array, i):
         print("Compute connected regions...")
         #out_array, num_regions = ConnectedRegionsMasks.compute(in_array, is_return_num_regs=True)
         out_array, num_regions = ConnectedRegionsMasks.compute(in_array, connectivity_dim=1, is_return_num_regs=True)
         print("Number connected regions: \'%s\'..." %(num_regions))
         return out_array
 
-    return wrapfun_connRegions_image
+    return wrapfun_connregions_image
 
 
 # ------------------------------------------------
-def prepare_firstConnRegion_operation(args):
+def prepare_firstconnregion_operation(args):
     print("Operation: Compute the first connected region (with largest volume)...")
 
-    def wrapfun_firstConnRegion_image(in_array, i):
+    def wrapfun_firstconnregion_image(in_array, i):
         print("Compute the first connected region...")
         #out_array = FirstConnectedRegionMasks.compute(in_array)
         out_array = FirstConnectedRegionMasks.compute(in_array, connectivity_dim=1)
         return out_array
 
-    return wrapfun_firstConnRegion_image
+    return wrapfun_firstconnregion_image
 
 
 # ------------------------------------------------
@@ -258,37 +257,26 @@ def prepare_threshold_operation(args):
 
 
 # ------------------------------------------------
-def prepare_normalize_operation(args):
-    print("Operation: Normalize images...")
-
-    def wrapfun_normalize_image(in_array, i):
-        print("Normalize image to (0,1)...")
-        return NormalizeImages.compute3D(in_array)
-
-    return wrapfun_normalize_image
-
-
-# ------------------------------------------------
-def prepare_onlyCorrect_operation(args):
-    print("Operation: Retrieve correct masks (= 1)...")
-
-    def wrapfun_onlyCorrect_image(in_array, i):
-        print("Retrieve correct masks (= 1)...")
-        return OperationBinaryMasks.get_masks_with_labels(in_array, labels_list=[1])
-
-    return wrapfun_onlyCorrect_image
-
-
-# ------------------------------------------------
-def prepare_labelsMask_operation(args):
-    labels_mask = args.inlabels
+def prepare_maskwithlabels_operation(args):
+    labels_mask = args.inmasklabels
     print("Operation: Retrieve labels masks: \'%s\'..." %(labels_mask))
 
-    def wrapfun_labelsMask_image(in_array, i):
+    def wrapfun_maskwithlabels_image(in_array, i):
         print("Retrieve labels mask: \'%s\'..." %(labels_mask))
         return OperationBinaryMasks.get_masks_with_labels(in_array, labels_list=labels_mask)
 
-    return wrapfun_labelsMask_image
+    return wrapfun_maskwithlabels_image
+
+
+# ------------------------------------------------
+def prepare_normalise_operation(args):
+    print("Operation: normalise images...")
+
+    def wrapfun_normalise_image(in_array, i):
+        print("Normalise image to (0,1)...")
+        return NormaliseImages.compute3D(in_array)
+
+    return wrapfun_normalise_image
 
 
 # ------------------------------------------------
@@ -348,7 +336,7 @@ def main(args):
                 is_update_metadata_file = True
                 new_func_operation = prepare_rescale_operation(args)
                 func_updatemetadata = prepare_rescale_updatemetadata(args)
-            elif name_operation == 'rescale_mask':
+            elif name_operation == 'rescalemask':
                 is_update_metadata_file = True
                 new_func_operation = prepare_rescale_operation(args, is_rescale_mask=True)
                 func_updatemetadata = prepare_rescale_updatemetadata(args)
@@ -363,20 +351,18 @@ def main(args):
             elif name_operation == 'morclose':
                 new_func_operation = prepare_morclose_operation(args)
             elif name_operation == 'connregs':
-                new_func_operation = prepare_connRegions_operation(args)
+                new_func_operation = prepare_connregions_operation(args)
             elif name_operation == 'firstconreg':
-                new_func_operation = prepare_firstConnRegion_operation(args)
+                new_func_operation = prepare_firstconnregion_operation(args)
             elif name_operation == 'thinning':
                 new_func_operation = prepare_thinning_operation(args)
             elif name_operation == 'threshold':
                 new_func_operation = prepare_threshold_operation(args)
-            elif name_operation == 'normalize':
-                new_func_operation = prepare_normalize_operation(args)
-            elif name_operation == 'onlycorrect':
-                new_func_operation = prepare_onlyCorrect_operation(args)
-            elif name_operation == 'labelsmask':
-                new_func_operation = prepare_labelsMask_operation(args)
-                DICT_OPERS_SUFFIX['labelsmask'] = DICT_OPERS_SUFFIX['labelsmask'] %('-'.join([str(el) for el in args.inlabels]))
+            elif name_operation == 'masklabels':
+                new_func_operation = prepare_maskwithlabels_operation(args)
+                DICT_OPERS_SUFFIX['masklabels'] = DICT_OPERS_SUFFIX['masklabels'] %('-'.join([str(el) for el in args.inmasklabels]))
+            elif name_operation == 'normalise':
+                new_func_operation = prepare_normalise_operation(args)
             elif name_operation == 'power':
                 new_func_operation = prepare_power_operation(args)
             elif name_operation == 'exponential':
@@ -398,7 +384,11 @@ def main(args):
         in_file_extension = '.nii'
     else:
         in_file_extension = fileextension(listInputFiles[0])
-    nameOutputFiles = lambda in_name: basenameNoextension(in_name) + suffix_output_names + in_file_extension
+
+    if args.noaddsuffixoutname:
+        nameOutputFiles = lambda in_name: basenameNoextension(in_name) + in_file_extension
+    else:
+        nameOutputFiles = lambda in_name: basenameNoextension(in_name) + suffix_output_names + in_file_extension
 
 
 
@@ -427,19 +417,46 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    dict_opers_help = {'mask': 'apply mask to image',
+                       'binarise': 'binarise a mask with multiple labels',
+                       'merge': 'merge (add) two masks',
+                       'substract': 'substract the 2nd mask to the 1st mask',
+                       'crop': 'crop image to bounding box (input arg)',
+                       'rescale': 'rescale image to factor (input arg)',
+                       'rescalemask': 'rescale mask to factor (input arg), keep output format (0, 1)',
+                       'fillholes': 'apply a morphological fill of holes inside a mask',
+                       'erode': 'apply a morphological erosion to mask (1 layer voxels)',
+                       'dilate': 'apply a morphological dilation to mask (1 layer voxels)',
+                       'moropen': 'apply a morphological opening to mask (1 layer voxels)',
+                       'morclose': 'apply a morphological closing to mask (1 layer voxels)',
+                       'connregs': 'split mask in connected components. Get each component with different label',
+                       'firstconreg': 'split mask in connected components and get the one with largest volume',
+                       'thinning': 'apply morphological thinning to mask and obtain centrelines',
+                       'threshold': 'apply threshold of probability image and obtain binary mask',
+                       'masklabels': 'retrieve the labels (input arg) and get mask containing these',
+                       'normalise': 'normalise images to have voxels in the range (0, 1)',
+                       'power': 'compute power of mask values',
+                       'exponential': 'compute exponential of mask values'}
+    string_opers_help = '\n'.join([(key+': '+val) for key,val in dict_opers_help.iteritems()])
+    
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
-    parser.add_argument('--type', nargs='+', default=['None'])
+    parser.add_argument('--type', nargs='+', default=['None'], help=string_opers_help)
     parser.add_argument('--inputRoidir', type=str, default=None)
     parser.add_argument('--input2nddir', type=str, default=None)
     parser.add_argument('--referencedir', type=str, default=None)
     parser.add_argument('--boundboxfile', type=str, default=None)
     parser.add_argument('--rescalefile', type=str, default=None)
-    parser.add_argument('--inlabels', nargs='+', type=int, default=None)
+    parser.add_argument('--inmasklabels', nargs='+', type=int, default=None)
     parser.add_argument('--outnifti', type=str2bool, default=False)
+    parser.add_argument('--noaddsuffixoutname', type=str2bool, default=None)
     args = parser.parse_args()
+
+    if args.type not in LIST_OPERATIONS:
+        message = 'Type operation chosen \'%s\' not available' %(args.type)
+        CatchErrorException(message)
 
     if 'mask' in args.type:
         if not args.inputRoidir:
@@ -458,9 +475,9 @@ if __name__ == "__main__":
         if not args.referencedir or not args.rescalefile:
             message = 'need to set arguments \'referencedir\' and \'rescalefile\''
             CatchErrorException(message)
-    elif 'labelsmask' in args.type:
-        if not args.inlabels:
-            message = 'need to set arguments \'inlabels\''
+    elif 'masklabels' in args.type:
+        if not args.inmasklabels:
+            message = 'need to set arguments \'inmasklabels\''
             CatchErrorException(message)
 
     print("Print input arguments...")

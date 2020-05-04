@@ -28,7 +28,7 @@ np.random.seed(2017)
 def main(args):
     # ---------- SETTINGS ----------
     nameOutROCmetricsFile     = 'dataROC_metrics_%s.txt'
-    nameOutMeanROCmetricsFile = 'dataROC_metrics_mean.txt'
+    nameOutMeanROCmetricsFile = 'mean_dataROC_metrics.txt'
 
     # parameters to draw ROC curve
     list_thresholds = [0.0]
@@ -168,11 +168,11 @@ def main(args):
             fout = open(out_filename, 'a')
         else:
             fout = open(out_filename, 'w')
-            strheader = '/threshold/, ' + ', '.join(['/%s/' % (key) for (key, _) in listMetricsROCcurve.iteritems()]) + '\n'
+            strheader = ', '.join(['/thres/'] + ['/%s/'%(key) for (key, _) in listMetricsROCcurve.iteritems()]) + '\n'
             fout.write(strheader)
 
         for j in range(num_thresholds):
-            strdata = '%s, %s\n' % (list_thresholds[j], ', '.join([str(elem) for elem in list_computed_metrics[i,j]]))
+            strdata = ', '.join(['%0.3f'%(list_thresholds[j])] + ['%0.6f'%(elem) for elem in list_computed_metrics[i]]) + '\n'
             fout.write(strdata)
         # endfor
         fout.close()
@@ -187,11 +187,11 @@ def main(args):
         fout = open(out_filename, 'a')
     else:
         fout = open(out_filename, 'w')
-        strheader = '/threshold/, ' + ', '.join(['/%s/' % (key) for (key, _) in listMetricsROCcurve.iteritems()]) + '\n'
+        strheader = ', '.join(['/thres/'] + ['/%s/'%(key) for (key, _) in listMetricsROCcurve.iteritems()]) + '\n'
         fout.write(strheader)
 
     for i in range(num_thresholds):
-        strdata = '%s, %s\n' % (list_thresholds[i], ', '.join([str(elem) for elem in list_mean_computed_metrics[i]]))
+        strdata = ', '.join(['%0.3f'%(list_thresholds[j])] + ['%0.6f' % (elem) for elem in list_mean_computed_metrics[i]]) + '\n'
         fout.write(strdata)
     # endfor
     fout.close()

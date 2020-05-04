@@ -135,10 +135,10 @@ def main(args):
 
 
     # 5th: Compute testing metrics from predicted binary masks and centrelines
-    new_call = ['python', SCRIPT_COMPUTERESULTMETRICS, InOutPredictionsPath,
+    new_call = ['python', SCRIPT_COMPUTERESULTMETRICS, InOutPredictBinaryMasksPath,
                 '--basedir', BaseDir,
-                '--inputcentrelinesdir', InOutPredictCentrelinesPath,
-                '--outputresultsfile', nameOutputResultsMetricsFile,
+                '--inputcenlinesdir', InOutPredictCentrelinesPath,
+                '--outputresfile', nameOutputResultsMetricsFile,
                 '--removeTracheaCalcMetrics', str(REMOVETRACHEACALCMETRICS)]
     list_calls_all.append(new_call)
 

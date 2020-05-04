@@ -22,7 +22,7 @@ import argparse
 def main(args):
 
     workDirsManager       = WorkDirsManager(args.basedir)
-    InputPredictMasksPath = workDirsManager.getNameExistPath        (args.inputpredictmasksdir)
+    InputPredictMasksPath = workDirsManager.getNameExistPath        (args.inputpredmasksdir)
     InputReferMasksPath   = workDirsManager.getNameExistBaseDataPath(args.nameInputReferMasksRelPath)
 
     listInputPredictMasksFiles = findFilesDirAndCheck(InputPredictMasksPath)
@@ -59,12 +59,12 @@ def main(args):
         listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath)
 
     if (isLoadPredictedCentrelineFiles):
-        if not args.inputcentrelinesdir:
+        if not args.inputcenlinesdir:
             message = 'Missing input path for the Predicted Centrelines...'
             CatchErrorException(message)
 
         print("Loading Predicted Centrelines...")
-        InputPredictCentrelinesPath      = workDirsManager.getNameExistPath(args.inputcentrelinesdir)
+        InputPredictCentrelinesPath      = workDirsManager.getNameExistPath(args.inputcenlinesdir)
         listInputPredictCentrelinesFiles = findFilesDirAndCheck(InputPredictCentrelinesPath)
 
 
@@ -149,13 +149,14 @@ def main(args):
     #endfor
 
     # write out computed metrics in file
-    out_resultmetrics_filename = joinpathnames(args.inputpredictmasksdir, args.outputresultsfile)
-    fout = open(out_resultmetrics_filename, 'w')
-    strheader = '/case/, ' + ', '.join(['/%s/' % (key) for (key, _) in listResultMetrics.iteritems()]) + '\n'
+    outresults_filename = joinpathnames(args.inputpredmasksdir, args.outputfile)
+    fout = open(outresults_filename, 'w')
+
+    strheader = ', '.join(['/case/'] + ['/%s/'%(key) for (key, _) in listResultMetrics.iteritems()]) + '\n'
     fout.write(strheader)
 
     for i in range(nbInputFiles):
-        strdata = '\'%s\', %s\n' % (list_casenames[i], ', '.join([str(elem) for elem in list_computed_metrics[i]]))
+        strdata = ', '.join([list_casenames[i]] + ['%0.6f'%(elem) for elem in list_computed_metrics[i]]) + '\n'
         fout.write(strdata)
     #endfor
     fout.close()
@@ -165,9 +166,9 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('inputpredictmasksdir', type=str)
-    parser.add_argument('--inputcentrelinesdir', type=str, default=None)
-    parser.add_argument('--outputresultsfile', type=str, default='result_metrics.txt')
+    parser.add_argument('inputpredmasksdir', type=str)
+    parser.add_argument('--inputcenlinesdir', type=str, default=None)
+    parser.add_argument('--outputfile', type=str, default='result_metrics.txt')
     parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
     parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAWCOARSEAIRWAYS_RELPATH)
     #parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
@@ -176,8 +177,8 @@ if __name__ == "__main__":
     parser.add_argument('--removeTracheaCalcMetrics', type=str2bool, default=REMOVETRACHEACALCMETRICS)
     args = parser.parse_args()
 
-    if not args.inputcentrelinesdir:
-        args.inputcentrelinesdir = args.inputpredictmasksdir
+    if not args.inputcenlinesdir:
+        args.inputcenlinesdir = args.inputpredmasksdir
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

@@ -46,7 +46,7 @@ def main(args):
     first_epoch_eval = num_epochs_average
     first_epoch_compare = first_epoch_eval + num_epochs_patience
     if len(epochs) < first_epoch_compare:
-        print "ERROR: loss history not long enough: %s < %s... EXIT" %(len(epochs), first_epoch_compare)
+        print("ERROR: loss history not long enough: %s < %s... EXIT" %(len(epochs), first_epoch_compare))
         exit(0)
     else:
         last_epoch_compare = len(epochs)
@@ -104,10 +104,10 @@ def main(args):
 
         reldiff_valid_loss = abs((eval_valid_loss - compare_valid_loss) / (eval_valid_loss + 1.0e-12))
 
-        print "Epoch \'%s\': \'%s\' valid loss \'%s\' (actual loss \'%s\'), rel diff loss \'%s\'..." %(ind_epoch, type_eval_loss,
+        print("Epoch \'%s\': \'%s\' valid loss \'%s\' (actual loss \'%s\'), rel diff loss \'%s\'..." %(ind_epoch, type_eval_loss,
                                                                                                        eval_valid_loss,
                                                                                                        valid_loss[ind_epoch],
-                                                                                                       reldiff_valid_loss)
+                                                                                                       reldiff_valid_loss))
         if reldiff_valid_loss > 0.0:
             if reldiff_valid_loss < tolerance_converge:
                 is_converge_found   = True
@@ -116,8 +116,8 @@ def main(args):
                 epoch_minvalidloss  = 1 + np.argmin(valid_loss[:ind_epoch_lastavail])
                 validloss_converged = valid_loss[epoch_converged-1]
                 validloss_min       = valid_loss[epoch_minvalidloss-1]
-                print "CONVERGED at EPOCH \'%s\' WITH VALIDLOSS \'%s\' AND RELDIFF_LOSS \'%s\'. MIN VALIDLOSS at EPOCH \'%s\': \'%s\'..."\
-                      %(epoch_converged, validloss_converged, reldiff_valid_loss, epoch_minvalidloss, validloss_min)
+                print("CONVERGED at EPOCH \'%s\' WITH VALIDLOSS \'%s\' AND RELDIFF_LOSS \'%s\'. MIN VALIDLOSS at EPOCH \'%s\': \'%s\'..."\
+                      %(epoch_converged, validloss_converged, reldiff_valid_loss, epoch_minvalidloss, validloss_min))
         else:
             if abs(reldiff_valid_loss) > tolerance_diverge:
                 is_converge_found   = False
@@ -126,8 +126,8 @@ def main(args):
                 epoch_minvalidloss  = 1 + np.argmin(valid_loss[:ind_epoch_lastavail])
                 validloss_diverged  = valid_loss[epoch_diverged-1]
                 validloss_min       = valid_loss[epoch_minvalidloss-1]
-                print "DIVERGED at EPOCH \'%s\' WITH VALIDLOSS \'%s\' AND RELDIFF_LOSS \'%s\'. MIN VALIDLOSS at EPOCH \'%s\': \'%s\'..." \
-                      %(epoch_diverged, validloss_diverged, reldiff_valid_loss, epoch_minvalidloss, validloss_min)
+                print("DIVERGED at EPOCH \'%s\' WITH VALIDLOSS \'%s\' AND RELDIFF_LOSS \'%s\'. MIN VALIDLOSS at EPOCH \'%s\': \'%s\'..." \
+                      %(epoch_diverged, validloss_diverged, reldiff_valid_loss, epoch_minvalidloss, validloss_min))
                 #break
     #endfor
 

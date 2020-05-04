@@ -25,7 +25,7 @@ class OperationImages(object):
         return len(in_array_shape) == 3
 
 
-class NormalizeImages(OperationImages):
+class NormaliseImages(OperationImages):
     @staticmethod
     def compute_nochannels(in_array):
         max_val = np.max(in_array)
