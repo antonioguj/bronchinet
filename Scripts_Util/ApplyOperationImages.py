@@ -454,9 +454,10 @@ if __name__ == "__main__":
     parser.add_argument('--noaddsuffixoutname', type=str2bool, default=None)
     args = parser.parse_args()
 
-    if args.type not in LIST_OPERATIONS:
-        message = 'Type operation chosen \'%s\' not available' %(args.type)
-        CatchErrorException(message)
+    for ioperation in args.type:
+        if ioperation not in LIST_OPERATIONS:
+            message = 'Type operation chosen \'%s\' not available' %(ioperation)
+            CatchErrorException(message)
 
     if 'mask' in args.type:
         if not args.inputRoidir:

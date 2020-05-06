@@ -116,6 +116,9 @@ def main(args):
         in_image1_array = FileReader.getImageArray(in_file_1)
         in_image2_array = FileReader.getImageArray(in_file_2)
 
+        in_image1_array = np.clip(in_image1_array, 0, 1)
+        in_image2_array = np.clip(in_image2_array, 0, 1)
+
         # # Compare files metadata (header info)
         # if (filenameextension(in_file_1) == filenameextension(in_file_2)):
         #     in_img1_metadata = FileReader.getImageMetadataInfo(in_file_1)
