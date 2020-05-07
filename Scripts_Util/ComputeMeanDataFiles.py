@@ -79,8 +79,8 @@ def main(args):
                 # allocate vars to store data in files and compute the mean
                 data_fileslist = np.zeros((num_input_files, num_rows-1, num_cols-1))
             else:
-                if rows1elem_this != rows1elem_file:
-                    message = 'header in file: \'%s\' not equal to header found previously: \'%s\'' % (rows1elem_this, rows1elem_file)
+                if header_this != header_file:
+                    message = 'header in file: \'%s\' not equal to header found previously: \'%s\'' % (header_this, header_file)
                     CatchErrorException(message)
                 if rows1elem_this != rows1elem_file:
                     message = '1st column in file: \'%s\' not equal to 1st column found previously: \'%s\'' % (rows1elem_this, rows1elem_file)
