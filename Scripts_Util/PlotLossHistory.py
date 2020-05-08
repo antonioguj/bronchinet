@@ -27,134 +27,104 @@ def main(args):
         print("\'inputfiles\' = %s" % (list_input_files))
     else:
         list_input_files = [infile.replace('\n','') for infile in args.inputfiles]
-    num_plot_files = len(list_input_files)
+    num_input_files = len(list_input_files)
 
-    print("Files to plot (\'%s\')..." %(num_plot_files))
+    print("Files to plot the loss history from: \'%s\'..." %(num_input_files))
     for i, ifile in enumerate(list_input_files):
         print("%s: \'%s\'" %(i+1, ifile))
     #endfor
 
-    labels_train = ['train_%i'%(i+1) for i in range(num_plot_files)]
-    labels_valid = ['valid_%i'%(i+1) for i in range(num_plot_files)]
+
+    # ---------- SETTINGS ----------
+    labels_train = ['train_%i'%(i+1) for i in range(num_input_files)]
+    labels_valid = ['valid_%i'%(i+1) for i in range(num_input_files)]
     #labels_train = ['loss', 'loss_avrg20ep', 'loss_avrg50ep']
     #labels_valid = labels_train
 
-    cmap = plt.get_cmap('rainbow')
-    #colors = [cmap(float(i)/(num_plot_files-1)) for i in range(num_plot_files)]
+    #cmap = plt.get_cmap('rainbow')
+    #colors = [cmap(float(i)/(num_input_files-1)) for i in range(num_input_files)]
     colors = ['blue', 'red', 'green', 'yellow', 'orange']
+    # ---------- SETTINGS ----------
 
 
 
-    data_fields_lossHistory_files = OrderedDict()
-    data_fields_lossHistory_files['epoch'] = []
-    data_fields_lossHistory_files['loss'] = []
+    dict_data_losses_fields_files = OrderedDict()
+    dict_data_losses_fields_files['epoch'] = []
+    dict_data_losses_fields_files['loss']  = []
 
-    for i, in_plotloss_file in enumerate(list_input_files):
-        with open(in_plotloss_file, 'r') as infile:
-            header_line = infile.readline()
-            header_lossHistory = map(lambda item: item.replace('/','').replace('\n',''), header_line.split(' '))
+    for i, in_file in enumerate(list_input_files):
 
-        data_lossHistory = np.loadtxt(in_plotloss_file, skiprows=1)
+        raw_data_this_string = np.genfromtxt(in_file, dtype=str, delimiter=' ')
+        raw_data_this_float  = np.genfromtxt(in_file, dtype=float, delimiter=' ')
 
-        # if the file contains only one line, add extra dimension
-        if len(data_lossHistory.shape) == 1:
-            if len(data_lossHistory.shape) == 1:
-                data_lossHistory = np.array([data_lossHistory, data_lossHistory])
-                data_lossHistory[1][0] = data_lossHistory[0][0] + 1
+        header_this = list(raw_data_this_string[0, :])
+        list_fields = [elem.replace('/','') for elem in header_this]
+        data_this   = raw_data_this_float[1:, :]
 
-        # run checks correct data format
-        num_cols_header = len(header_lossHistory)
-        num_cols_data = data_lossHistory.shape[1]
-
-        if (num_cols_header != num_cols_data):
-            message = 'format input file not correct'
+        # check for correct loss history format
+        if (list_fields[0] != 'epoch') or ('loss' not in list_fields) or ('val_loss' not in list_fields):
+            message = 'mandatory fields \'epoch\', \'loss\', \'val_loss\' not found in file \'%s\'' %(in_file)
             CatchErrorException(message)
-        if ('epoch' not in header_lossHistory) or ('loss' not in header_lossHistory):
-            message = 'mandatory fields \'epoch\' or \'loss\' not found in file \'%s\'' %(in_plotloss_file)
-            CatchErrorException(message)
-        # check that every field has in 'val_%' associated
-        headers_stdalone_fields = list(filter(lambda item: (item!='epoch') and (item[0:4]!='val_'), header_lossHistory))
-        for name in headers_stdalone_fields:
-            val_name = 'val_'+name
-            if val_name not in header_lossHistory:
-                message = 'not found the validation value \'val_\' assiciated to the field \'%s\'' %(name)
+
+        index_field_loss     = list_fields.index('loss')
+        index_field_val_loss = list_fields.index('val_loss')
+
+        dict_data_losses_fields_files['epoch'].append(data_this[:,0])
+        dict_data_losses_fields_files['loss'] .append([data_this[:,index_field_loss],
+                                                       data_this[:,index_field_val_loss]])
+
+
+        # check whether there are extra fields, and that each has two columns: +1 for validation (with preffix 'val_%')
+        list_extra_fields        = [elem for elem in list_fields if elem not in ['epoch', 'loss', 'val_loss']]
+        list_extra_fields_novals = [elem for elem in list_extra_fields if (elem[0:4]!='val_')]
+
+        for i, i_field in enumerate(list_extra_fields_novals):
+            i_valid_field = 'val_' + i_field
+            if i_valid_field not in list_fields:
+                message = 'for the field \'%s\', the associated validation field \'%s\' not found' % (i_field, i_valid_field)
                 CatchErrorException(message)
 
-        data_fields_lossHistory_this = OrderedDict(zip(header_lossHistory, np.transpose(data_lossHistory)))
+            # check whether extra field exists in the dict for output losses. If not, start new elem with empty list
+            if i_field not in dict_data_losses_fields_files.keys():
+                dict_data_losses_fields_files[i_field] = []
 
-        # add mandatory fields: 'epoch' and 'loss'
-        data_fields_lossHistory_files['epoch'].append(data_fields_lossHistory_this.pop('epoch'))
-        data_fields_lossHistory_files['loss' ].append([data_fields_lossHistory_this.pop('loss'),
-                                                       data_fields_lossHistory_this.pop('val_loss')])
+            index_field     = list_fields.index(i_field)
+            index_field_val = list_fields.index(i_valid_field)
 
-        # Look for additional fields in loss History file:
-        # get keys of additional fields already found in previous files:
-        keys_extra_fields_existing = list(filter(lambda item: (item!='epoch') and (item!='loss'), data_fields_lossHistory_files.keys()))
+            dict_data_losses_fields_files[i_field].append([data_this[:, index_field],
+                                                           data_this[:, index_field_val]])
+        # endfor
+    # endfor
 
-        for (key, val) in data_fields_lossHistory_this.iteritems():
-            if key[0:4]=='val_':
-                continue
-            if key not in keys_extra_fields_existing:
-                # new extra field found: allocate in dictionary
-                # create empty spaces to account for previous files
-                data_fields_lossHistory_files[key] = [None] * i # x2 (train and val)
-            else:
-                keys_extra_fields_existing.remove(key)
-            val_key = 'val_' + key
-            # add new data, corresponding to both train and validation data
-            data_fields_lossHistory_files[key].append([val, data_fields_lossHistory_this[val_key]])
-        #endfor
-
-        # for existing extra fields that are not in this file, add empty spaces
-        for key in keys_extra_fields_existing:
-            data_fields_lossHistory_files[key].append(None)
-    #endfor
-
-
-    print("Found fields to plot loss history of: \'%s\'..." %(', '.join(map(lambda item: '/'+item+'/', data_fields_lossHistory_files.keys()))))
-    epochs = data_fields_lossHistory_files.pop('epoch')
-
-    # run checks correct data format
-    for (key, data) in data_fields_lossHistory_files.iteritems():
-        # for each key the data dim must be as much as num plot files,
-        # including empty lists for files without the key
-        if len(data) != num_plot_files:
-            message = 'for key \'%s\' the data dimension is not correct: \'%s\'' %(key, len(data))
-            CatchErrorException(message)
-        # for each file, the data must have two lists (for train and validation data)
-        for i, data_row in enumerate(data):
-            if data_row and len(data_row) != 2:
-                message = 'for key \'%s\' the data dimension for file \'%s\' is not correct: \'%s\'' %(key, i, len(data_row))
-                CatchErrorException(message)
-        #endfor
-    #endfor
+    epochs_files = dict_data_losses_fields_files.pop('epoch')
+    print("Found fields to plot loss history: %s..." %(dict_data_losses_fields_files.keys()))
 
 
 
-    for (key, data) in data_fields_lossHistory_files.iteritems():
-        num_data_plot = len(data)
-        if num_data_plot == 1:
-            plt.plot(epochs[0], data[0][0], color='b', label='train')
-            plt.plot(epochs[0], data[0][1], color='r', label='valid')
-            plt.xlabel('epoch')
-            plt.ylabel(str(key))
+    for (ifield, data_files) in dict_data_losses_fields_files.iteritems():
+        num_data_files = len(data_files)
+
+        if num_data_files == 1:
+            plt.plot(epochs_files[0], data_files[0][0], color='b', label='train')
+            plt.plot(epochs_files[0], data_files[0][1], color='r', label='valid')
+            plt.xlabel('Epoch')
+            plt.ylabel(ifield.title())
             plt.ylim([0.0, 1.0])
             plt.legend(loc='best')
             plt.show()
+
         else:
             fig, axs = plt.subplots(1, 2, figsize=(15, 5))
-            for i in range(num_data_plot):
-                # skip files that do not contain this data
-                if data[i]:
-                    axs[0].plot(epochs[i], data[i][0], color=colors[i], label=labels_train[i])
-                    axs[1].plot(epochs[i], data[i][1], color=colors[i], label=labels_valid[i])
+            for i in range(num_data_files):
+                axs[0].plot(epochs_files[i], data_files[i][0], color=colors[i], label=labels_train[i])
+                axs[1].plot(epochs_files[i], data_files[i][1], color=colors[i], label=labels_valid[i])
             #endfor
-            axs[0].set_xlabel('epoch')
-            axs[0].set_ylabel(str(key))
+            axs[0].set_xlabel('Epoch')
+            axs[0].set_ylabel(ifield.title())
             axs[0].set_title('Training')
             axs[0].legend(loc='best')
-            axs[1].set_xlabel('epoch')
-            axs[1].set_ylabel(str(key))
+            axs[1].set_xlabel('Epoch')
+            axs[1].set_ylabel(ifield.title())
             axs[1].set_title('Validation')
             axs[1].legend(loc='best')
             plt.show()
@@ -168,6 +138,10 @@ if __name__ == "__main__":
     parser.add_argument('--fromfile', type=bool, default=False)
     parser.add_argument('--listinputfiles', type=str, default='listinputfiles.txt')
     args = parser.parse_args()
+
+    if args.fromfile and not args.listinputfiles:
+        message = 'need to input \'listinputfiles\' with filenames to plot'
+        CatchErrorException(message)
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

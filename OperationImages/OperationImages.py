@@ -30,7 +30,7 @@ class NormaliseImages(OperationImages):
     def compute_nochannels(in_array):
         max_val = np.max(in_array)
         min_val = np.min(in_array)
-        return (in_array - min_val) / (max_val - min_val)
+        return (in_array - min_val) / float(max_val - min_val)
 
     @staticmethod
     def compute_withchannels(in_array):

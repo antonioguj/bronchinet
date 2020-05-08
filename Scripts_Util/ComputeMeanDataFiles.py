@@ -28,7 +28,7 @@ def main(args):
         list_input_files = [infile.replace('\n','') for infile in args.inputfiles]
     num_input_files = len(list_input_files)
 
-    print("Files to compute the mean from (\'%s\')..." %(num_input_files))
+    print("Files to compute the mean from: \'%s\'..." %(num_input_files))
     for i, ifile in enumerate(list_input_files):
         print("%s: \'%s\'" %(i+1, ifile))
     #endfor
@@ -119,11 +119,12 @@ if __name__ == "__main__":
     parser.add_argument('--listinputfiles', type=str, default='listinputfiles.txt')
     args = parser.parse_args()
 
+    if args.fromfile and not args.listinputfiles:
+        message = 'need to input \'listinputfiles\' with filenames to plot'
+        CatchErrorException(message)
+
     print("Print input arguments...")
     for key, value in vars(args).iteritems():
         print("\'%s\' = %s" %(key, value))
-
-    if args.fromfile and not args.listinputfiles:
-        print("ERROR. Input input file name with files to plot...")
 
     main(args)

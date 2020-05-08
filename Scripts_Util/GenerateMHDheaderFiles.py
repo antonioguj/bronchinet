@@ -48,7 +48,7 @@ def main(args):
         fout = open(out_file, 'w')
         fout.write(str_info)
         fout.close()
-    #endfor
+    # endfor
 
 
 

@@ -68,20 +68,18 @@ def main(args):
         list_input_files = [infile.replace('\n','') for infile in args.inputfiles]
     num_data_files = len(list_input_files)
 
-    print("Files to plot (\'%s\')..." %(num_data_files))
+    print("Files to plot ROC curves from: \'%s\'..." %(num_data_files))
     for i, ifile in enumerate(list_input_files):
         print("%s: \'%s\'" %(i+1, ifile))
     #endfor
 
+
     if args.isannotations:
-        # if not isExistfile(args.inputannotatefiles):
-        #     message = "Input \inputannotatefiles\' not specified..."
-        #     CatchErrorException(message)
-        # list_input_annotate_files = [infile.replace('\n', '') for infile in args.inputannotatefiles]
-        list_input_annotate_files = ['Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.13/Predictions_UNet-Lev3_Thres0.1/result_metrics_notrachea.txt',
-                                     'Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.13/Predictions_UNet-Lev5_Thres0.04/result_metrics_notrachea.txt',
-                                     'Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.13/Predictions_UNetGNN-RegAdj_Thres0.66/result_metrics_notrachea.txt',
-                                     'Predictions_ResultsMICCAI-MLMI/AllPredictions_SameLeakage0.13/Predictions_UNetGNN-DynAdj_Thres0.33/result_metrics_notrachea.txt']
+        if not isExistfile(args.inputannotatefiles):
+            message = "Input \inputannotatefiles\' not specified..."
+            CatchErrorException(message)
+        list_input_annotate_files = [infile.replace('\n', '') for infile in args.inputannotatefiles]
+
         num_annotate_files = len(list_input_annotate_files)
         if num_annotate_files != num_data_files:
             message = "Num annotation files \'%s\' not equal to num data files \'%s\'..." %(num_annotate_files, num_data_files)
@@ -98,8 +96,10 @@ def main(args):
     threshold_list = []
     data_Xaxis_list = []
     data_Yaxis_list = []
+
     for (i, in_data_file) in enumerate(list_input_files):
-        data_this = np.loadtxt(in_data_file, dtype=float, skiprows=1, delimiter=',')
+
+        data_this  = np.loadtxt(in_data_file, dtype=float, skiprows=1, delimiter=',')
         thresholds = data_this[:, 0]
         data_Xaxis = data_this[:, index_field_Xaxis] * 100
         data_Yaxis = data_this[:, index_field_Yaxis] * 100
@@ -118,6 +118,7 @@ def main(args):
     if args.isannotations:
         annotation_Xaxis_list = []
         annotation_Yaxis_list = []
+
         for (i, in_annot_file) in enumerate(list_input_annotate_files):
             data_this = np.genfromtxt(in_annot_file, dtype=float, delimiter=',')
             data_Xaxis = np.mean(data_this[1:, 1+index_field_Xaxis] * 100)
@@ -178,7 +179,16 @@ if __name__ == "__main__":
     parser.add_argument('--inputannotatefiles', type=str, nargs='*')
     args = parser.parse_args()
 
+    if args.fromfile and not args.listinputfiles:
+        message = 'need to input \'listinputfiles\' with filenames to plot'
+        CatchErrorException(message)
+
+    if args.isannotations and not args.inputannotatefiles:
+        message = 'need to input \'inputannotatefiles\' with annotation names'
+        CatchErrorException(message)
+
     print("Print input arguments...")
     for key, value in vars(args).iteritems():
         print("\'%s\' = %s" %(key, value))
+
     main(args)
