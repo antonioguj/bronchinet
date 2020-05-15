@@ -25,8 +25,8 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 
 # ******************** SET-UP WORKDIR ********************
-DATADIR = '/home/antonio/Data/LUVAR_Testing/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
+DATADIR = '/home/antonio/Data/EXACT_Testing/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
 
 # Names input and output directories
 NAME_RAWIMAGES_RELPATH        = 'Images/'
@@ -121,9 +121,9 @@ TYPETRANSFORMELASTICDEFORMATION = 'gridwise'
 TYPE_DNNLIBRARY_USED = 'Pytorch'
 TYPEGPUINSTALLED     = 'larger_GPU'
 
-(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)
+#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (256, 256, 256) # for Non-valid convolutions
-#(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (252, 252, 252) # for Valid convolutions
+(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (252, 252, 252) # for Valid convolutions
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (332, 316, 236) # for DLCST and full size lungs
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (508, 332, 236) # for EXACT and full size lungs
 IMAGES_DIMS_Z_X_Y = (IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH)

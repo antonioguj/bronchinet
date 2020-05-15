@@ -70,18 +70,16 @@ def check_compare_equal_histogram_bins(in_image1_array, in_image2_array, **kwarg
 
 def main(args):
     # ---------- SETTINGS ----------
-    InputPath1   = args.inputdir1
-    InputPath2   = args.inputdir2
     nameOutDiffImageFilesName = 'out_absdiffimgs_image%s.nii.gz'
     nameOutHistoFilesName = 'out_histogram_image%s.png'
     # ---------- SETTINGS ----------
 
 
-    listInputFiles1 = findFilesDirAndCheck(InputPath1)
-    listInputFiles2 = findFilesDirAndCheck(InputPath2)
+    list_input_files_1 = findFilesDirAndCheck(args.inputdir1)
+    list_input_files_2 = findFilesDirAndCheck(args.inputdir2)
 
-    if (len(listInputFiles1) != len(listInputFiles2)):
-       message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(listInputFiles1), len(listInputFiles2))
+    if (len(list_input_files_1) != len(list_input_files_2)):
+       message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(list_input_files_1), len(list_input_files_2))
        CatchErrorException(message)
 
     if not isExistdir(args.tempdir):
@@ -109,7 +107,7 @@ def main(args):
 
     names_files_different = []
 
-    for i, (in_file_1, in_file_2) in enumerate(zip(listInputFiles1, listInputFiles2)):
+    for i, (in_file_1, in_file_2) in enumerate(zip(list_input_files_1, list_input_files_2)):
         print("\nInput: \'%s\'..." % (in_file_1))
         print("And: \'%s\'..." % (in_file_2))
 

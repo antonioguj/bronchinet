@@ -73,11 +73,11 @@ def main(args):
         check_same_number_files_in_list(listInputImagesFiles, listInputExtraLabelsFiles)
 
     if (args.rescaleImages):
-        InputRescaleFactorsFile = workDirsManager.getNameExistPath(args.nameRescaleFactorsFile)
+        InputRescaleFactorsFile = workDirsManager.getNameExistFile(args.nameRescaleFactorsFile)
         in_dictRescaleFactors   = readDictionary(InputRescaleFactorsFile)
 
     if (args.cropImages):
-        InputCropBoundingBoxesFile= workDirsManager.getNameExistPath(args.nameCropBoundingBoxesFile)
+        InputCropBoundingBoxesFile= workDirsManager.getNameExistFile(args.nameCropBoundingBoxesFile)
         in_dictCropBoundingBoxes  = readDictionary(InputCropBoundingBoxesFile)
 
 

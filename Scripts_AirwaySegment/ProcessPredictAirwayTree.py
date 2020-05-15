@@ -11,6 +11,7 @@
 from Common.Constants import *
 from Common.WorkDirsManager import *
 from DataLoaders.FileReaders import *
+from OperationImages.OperationImages import *
 from OperationImages.OperationMasks import *
 import argparse
 

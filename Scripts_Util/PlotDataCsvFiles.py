@@ -45,7 +45,7 @@ def main(args):
     #          'Unet_DLCST+LUVAR']
     titles = ['Distance False Positives', 'Distance False Negatives']
     save_plot_figures = False
-    template_outfigname = 'fig_%s' %(args.type) + '_%s.eps'
+    template_outfigname = 'fig_%s' %(args.type) + '_%s.png'
     # ---------- SETTINGS ----------
 
 
@@ -91,10 +91,10 @@ def main(args):
                 # endfor
             else:
                 if header_this != header_file:
-                    print("ERROR. header in file: \'%s\' not equal to header found previously: \'%s\''... ERROR" % (header_this, header_file))
+                    message = 'header in file: \'%s\' not equal to header found previously: \'%s\'' % (header_this, header_file)
                     CatchErrorException(message)
                 # if rows1elem_this != rows1elem_file:
-                #    print("ERROR. 1st column in file: \'%s\' not equal to 1st column found previously: \'%s\'... ERROR" % (rows1elem_this, rows1elem_file))
+                #    message = '1st column in file: \'%s\' not equal to 1st column found previously: \'%s\'' % (rows1elem_this, rows1elem_file)
                 #    CatchErrorException(message)
 
             # store data from this file
@@ -141,18 +141,26 @@ def main(args):
 
         if save_plot_figures:
             outfigname = template_outfigname % (ifield)
-            plt.savefig(outfigname, format='eps', dpi=1000)
+            print("Output: \'%s\'..." % (outfigname))
+
+            #plt.savefig(outfigname, format='eps', dpi=1000)
+            plt.savefig(outfigname, format='png')
             plt.close()
         else:
             plt.show()
-    #endfor
+    # endfor
 
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    dict_plots_help = {'plot': 'plot data',
+                       'scatter': 'plot scattered data points',
+                       'boxplot': 'plot boxplots from data'}
+    string_plots_help = '\n'.join([(key + ': ' + val) for key, val in dict_plots_help.iteritems()])
+
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('inputfiles', type=str, nargs='*')
-    parser.add_argument('--type', type=str, default='boxplot')
+    parser.add_argument('--type', type=str, default='boxplot', help=string_plots_help)
     parser.add_argument('--fromfile', type=bool, default=False)
     parser.add_argument('--listinputfiles', type=str, default='listinputfiles.txt')
     parser.add_argument('--alldata_oneplot', type=str, default=False)

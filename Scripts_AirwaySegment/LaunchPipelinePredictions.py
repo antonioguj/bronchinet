@@ -17,11 +17,11 @@ import argparse
 
 CODEDIR                            = joinpathnames(BASEDIR, 'Code/')
 SCRIPT_PREDICTIONMODEL             = joinpathnames(CODEDIR, 'Scripts_Experiments/PredictionModel.py')
-SCRIPT_POSTPROCESSPREDICTIONS      = joinpathnames(CODEDIR, 'Scripts_Experiments/PostprocessPredictions.py')
-SCRIPT_PROCESSPREDICTAIRWAYTREE    = joinpathnames(CODEDIR, 'Scripts_Experiments/ProcessPredictAirwayTree.py')
+SCRIPT_POSTPROCESSPREDICTIONS      = joinpathnames(CODEDIR, 'Scripts_AirwaySegment/PostprocessPredictions.py')
+SCRIPT_PROCESSPREDICTAIRWAYTREE    = joinpathnames(CODEDIR, 'Scripts_AirwaySegment/ProcessPredictAirwayTree.py')
 SCRIPT_EXTRACTCENTRELINESFROMMASKS = joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
 SCRIPT_CACLFIRSTCONNREGIONFROMMASKS= joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
-SCRIPT_COMPUTERESULTMETRICS        = joinpathnames(CODEDIR, 'Scripts_Experiments/ComputeResultMetrics.py')
+SCRIPT_COMPUTERESULTMETRICS        = joinpathnames(CODEDIR, 'Scripts_AirwaySegment/ComputeResultMetrics.py')
 
 
 def printCall(new_call):
@@ -49,7 +49,7 @@ def main(args):
     namePredictBinaryMasksRelPath = 'BinaryMasks/'
     namePredictCentrelinesRelPath = 'Centrelines/'
     nameReferKeysPredictionsFile  = 'referenceKeys_posteriors.npy'
-    nameOutputResultsMetricsFile  = 'result_metrics.txt'
+    nameOutputResultsMetricsFile  = 'result_metrics.csv'
 
     listResultsMetrics = ['DiceCoefficient', 'AirwayVolumeLeakage']
     # ---------- SETTINGS ----------
@@ -138,7 +138,7 @@ def main(args):
     new_call = ['python', SCRIPT_COMPUTERESULTMETRICS, InOutPredictBinaryMasksPath,
                 '--basedir', BaseDir,
                 '--inputcenlinesdir', InOutPredictCentrelinesPath,
-                '--outputresfile', nameOutputResultsMetricsFile,
+                '--outputfile', nameOutputResultsMetricsFile,
                 '--removeTracheaCalcMetrics', str(REMOVETRACHEACALCMETRICS)]
     list_calls_all.append(new_call)
 
@@ -151,7 +151,7 @@ def main(args):
 
 
     # move results file one basedir down
-    in_resfile  = joinpathnames(InOutPredictionsPath, nameOutputResultsMetricsFile)
+    in_resfile  = joinpathnames(InOutPredictBinaryMasksPath, nameOutputResultsMetricsFile)
     out_resfile = joinpathnames(OutputBaseDir, nameOutputResultsMetricsFile)
 
     new_call = ['mv', in_resfile, out_resfile]

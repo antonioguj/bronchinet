@@ -15,17 +15,18 @@ import subprocess
 import argparse
 
 
-CODEDIR                    = '/home/antonio/Codes/Antonio_repository/AirwaySegmentation/'
-SCRIPT_CONVERTTONIFTY      = joinpathnames(CODEDIR, 'Scripts_Util/ConvertImageToNifty.py')
-SCRIPT_BINARISEMASKS       = joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
-SCRIPT_COMPUTECENTRELINES  = joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
-SCRIPT_RESCALEROIMASKS     = joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
-SCRIPT_EXTENDCROPPEDIMAGES = joinpathnames(CODEDIR, 'Scripts_Util/SpecificDLCST/ExtendCroppedImagesToFullSize.py')
-SCRIPT_RESCALEFACTORIMAGES = joinpathnames(CODEDIR, 'Scripts_Experiments/ComputeRescaleFactorImages.py')
-SCRIPT_BOUNDINGBOXIMAGES   = joinpathnames(CODEDIR, 'Scripts_Experiments/ComputeBoundingBoxImages.py')
-SCRIPT_PREPAREDATA         = joinpathnames(CODEDIR, 'Scripts_Experiments/PrepareData.py')
+CODEDIR                     = '/home/antonio/Codes/Antonio_repository/AirwaySegmentation/'
+SCRIPT_CONVERTTONIFTY       = joinpathnames(CODEDIR, 'Scripts_Util/ConvertImageToNifty.py')
+SCRIPT_BINARISEMASKS        = joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
+SCRIPT_GETTRACHEAMAINBRONCHI= joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
+SCRIPT_COMPUTECENTRELINES   = joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
+SCRIPT_RESCALEROIMASKS      = joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
+SCRIPT_EXTENDCROPPEDIMAGES  = joinpathnames(CODEDIR, 'Scripts_Util/SpecificDLCST/ExtendCroppedImagesToFullSize.py')
+SCRIPT_RESCALEFACTORIMAGES  = joinpathnames(CODEDIR, 'Scripts_AirwaySegment/ComputeRescaleFactorImages.py')
+SCRIPT_BOUNDINGBOXIMAGES    = joinpathnames(CODEDIR, 'Scripts_AirwaySegment/ComputeBoundingBoxImages.py')
+SCRIPT_PREPAREDATA          = joinpathnames(CODEDIR, 'Scripts_Experiments/PrepareData.py')
 
-CLUSTER_ARCHIVEDIR = 'agarcia@bigr-app001:/scratch/agarcia/Data/'
+CLUSTER_ARCHIVEDIR = 'agarcia@bigr-app001:/archive/agarcia/Data_Scratch/'
 
 LIST_TYPEDATA_AVAIL = ['training', 'testing']
 
@@ -78,6 +79,8 @@ def main(args):
     nameSourceRawImagesPath   = joinpathnames(SourceClusterDataDir, 'CTs/')
     nameSourceRawLabelsPath   = joinpathnames(SourceClusterDataDir, 'Airways/')
     nameSourceRawRoiMasksPath = joinpathnames(SourceClusterDataDir, 'Lungs/')
+    if args.isPrepareCoarseAirways:
+        nameSourceRawCoarseAirwaysPath= joinpathnames(SourceClusterDataDir, 'CoarseAirways/')
     if args.inclustercasedir in ['DLCST', 'DLCST/']:
         nameSourceFoundBoundBoxesFile = joinpathnames(SourceClusterDataDir, 'Others/found_boundingBox_croppedCTinFull.npy')
 
@@ -93,6 +96,8 @@ def main(args):
     nameInputReferKeysPath   = joinpathnames(OutputDataDir, NAME_REFERKEYS_RELPATH)
     if args.isPrepareCentrelines:
         nameInputRawCentrelinesPath   = joinpathnames(OutputDataDir, NAME_RAWCENTRELINES_RELPATH)
+    if args.isPrepareCoarseAirways:
+        nameInputRawCoarseAirwaysPath = joinpathnames(OutputDataDir, NAME_RAWCOARSEAIRWAYS_RELPATH)
     if args.rescaleImages:
         nameInputRescaleFactorsFile   = joinpathnames(OutputDataDir, NAME_RESCALEFACTOR_FILE)
     if args.inclustercasedir in ['DLCST', 'DLCST/']:
@@ -111,6 +116,10 @@ def main(args):
 
     new_call = ['rsync', '-avr', nameSourceRawRoiMasksPath, nameInputRawRoiMasksPath]
     list_calls_all.append(new_call)
+
+    if args.isPrepareCoarseAirways:
+        new_call = ['rsync', '-avr', nameSourceRawCoarseAirwaysPath, nameInputRawCoarseAirwaysPath]
+        list_calls_all.append(new_call)
 
     if args.inclustercasedir in ['DLCST', 'DLCST/']:
         new_call = ['rsync', '-avr', nameSourceFoundBoundBoxesFile, nameInputFoundBoundBoxesFile]
@@ -142,6 +151,11 @@ def main(args):
     sublist_calls = create_task_decompress_data(nameInputRawRoiMasksPath, args.isKeepRawImages)
     list_calls_all += sublist_calls
 
+    if args.isPrepareCoarseAirways:
+        sublist_calls = create_task_decompress_data(nameInputRawCoarseAirwaysPath, args.isKeepRawImages)
+        list_calls_all += sublist_calls
+
+
     # binarise the input arrays for airway and lungs
     if args.isKeepRawImages:
         nameTempoBinaryLabelsPath   = updatePathnameWithsuffix(nameInputRawLabelsPath,   'Binary')
@@ -160,6 +174,20 @@ def main(args):
         list_calls_all += new_sublist_calls
 
         new_sublist_calls = create_task_replace_dirs(nameInputRawRoiMasksPath, nameTempoBinaryRoiMasksPath)
+        list_calls_all += new_sublist_calls
+
+    # extract the labels for trachea and main bronchii from the coarse airways
+    if args.isPrepareCoarseAirways:
+        nameTempoTracheaMainBronchiPath = updatePathnameWithsuffix(nameInputRawCoarseAirwaysPath, 'TracheaMainBronchi')
+
+        new_call = ['python', SCRIPT_GETTRACHEAMAINBRONCHI, nameInputRawCoarseAirwaysPath, nameTempoTracheaMainBronchiPath,
+                    '--type', 'masklabels',
+                    '--inmasklabels', '2', '3', '4',
+                    '--nosuffixoutname', 'True']
+        list_calls_all.append(new_call)
+
+        # replace output folder with trachea / main bronchi masks
+        new_sublist_calls = create_task_replace_dirs(nameInputRawCoarseAirwaysPath, nameTempoTracheaMainBronchiPath)
         list_calls_all += new_sublist_calls
 
 
@@ -185,6 +213,18 @@ def main(args):
 
         sublist_calls = create_task_replace_dirs(nameInputRawRoiMasksPath, nameTempoExtendedRoiMasksPath)
         list_calls_all += sublist_calls
+
+        if args.isPrepareCoarseAirways:
+            nameTempoExtendedCoarseAirwaysPath = updatePathnameWithsuffix(nameInputRawCoarseAirwaysPath, 'Extended')
+
+            new_call = ['python', SCRIPT_EXTENDCROPPEDIMAGES, nameInputRawCoarseAirwaysPath, nameTempoExtendedCoarseAirwaysPath,
+                        '--referkeysdir', nameInputReferKeysPath,
+                        '--inputBoundBoxesFile', nameInputFoundBoundBoxesFile]
+            list_calls_all.append(new_call)
+
+            # replace output folder with extended images
+            new_sublist_calls = create_task_replace_dirs(nameInputRawCoarseAirwaysPath, nameTempoExtendedCoarseAirwaysPath)
+            list_calls_all += new_sublist_calls
 
 
 
@@ -291,9 +331,10 @@ if __name__ == "__main__":
 
     if args.typedata == 'training':
         print("Prepare Training data: Processed Images and Labels...")
-        args.isKeepRawImages      = False
-        args.isPrepareLabels      = True
-        args.isPrepareCentrelines = False
+        args.isKeepRawImages       = False
+        args.isPrepareLabels       = True
+        args.isPrepareCentrelines  = False
+        args.isPrepareCoarseAirways= False
         if args.cropImages:
             if args.isTwoBoundingBoxEachLungs:
                 args.sizeBufferInBorders = (0, 0, 0)
@@ -306,9 +347,10 @@ if __name__ == "__main__":
 
     elif args.typedata == 'testing':
         print("Prepare Testing data: Only Processed Images. Keep raw Images and Labels for testing...")
-        args.isKeepRawImages      = True
-        args.isPrepareLabels      = False
-        args.isPrepareCentrelines = True
+        args.isKeepRawImages       = True
+        args.isPrepareLabels       = False
+        args.isPrepareCentrelines  = True
+        args.isPrepareCoarseAirways= True
         if args.cropImages:
             args.sizeBufferInBorders = (50, 50, 50)
             args.isSameSizeBoundBoxAllImages = False

@@ -13,7 +13,7 @@ from DataLoaders.FileReaders import *
 from OperationImages.OperationImages import *
 from OperationImages.OperationMasks import *
 from collections import OrderedDict
-import argparse, textwrap
+import argparse
 
 
 LIST_OPERATIONS = ['mask', 'binarise', 'merge', 'substract', 'crop', 'rescale', 'rescalemask',
@@ -385,7 +385,7 @@ def main(args):
     else:
         in_file_extension = fileextension(listInputFiles[0])
 
-    if args.noaddsuffixoutname:
+    if args.nosuffixoutname:
         nameOutputFiles = lambda in_name: basenameNoextension(in_name) + in_file_extension
     else:
         nameOutputFiles = lambda in_name: basenameNoextension(in_name) + suffix_output_names + in_file_extension
@@ -451,7 +451,7 @@ if __name__ == "__main__":
     parser.add_argument('--rescalefile', type=str, default=None)
     parser.add_argument('--inmasklabels', nargs='+', type=int, default=None)
     parser.add_argument('--outnifti', type=str2bool, default=False)
-    parser.add_argument('--noaddsuffixoutname', type=str2bool, default=None)
+    parser.add_argument('--nosuffixoutname', type=str2bool, default=None)
     args = parser.parse_args()
 
     for ioperation in args.type:

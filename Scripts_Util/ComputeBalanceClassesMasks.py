@@ -32,11 +32,11 @@ def compute_balance_classes_with_exclusion(in_mask_array):
 
 def main(args):
 
-    listInputMasksFiles = findFilesDirAndCheck(args.inputdir)
+    list_input_masks_files = findFilesDirAndCheck(args.inputdir)
 
     list_ratio_back_foreground_class = []
 
-    for i, in_mask_file in enumerate(listInputMasksFiles):
+    for i, in_mask_file in enumerate(list_input_masks_files):
         print("\nInput: \'%s\'..." % (basename(in_mask_file)))
 
         in_mask_array = FileReader.getImageArray(in_mask_file)
