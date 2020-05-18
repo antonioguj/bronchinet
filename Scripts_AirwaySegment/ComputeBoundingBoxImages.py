@@ -40,11 +40,11 @@ def main(args):
         for i, in_roimask_file in enumerate(listInputRoiMasksFiles):
             print("\nInput: \'%s\'..." % (basename(in_roimask_file)))
 
-            in_roimask_array = FileReader.getImageArray(in_roimask_file)
+            in_roimask_array = FileReader.get_image_array(in_roimask_file)
             print("Dims : \'%s\'..." % (str(in_roimask_array.shape)))
 
             # extract masks corresponding to left (=1) and right (=2) lungs
-            (in_roimask_left_array, in_roimask_right_array)  = OperationBinaryMasks.get_list_masks_with_labels(in_roimask_array, [1, 2])
+            (in_roimask_left_array, in_roimask_right_array)  = OperationMasks.get_list_masks_with_labels(in_roimask_array, [1, 2])
 
 
             # left lung bounding-box:
@@ -74,11 +74,11 @@ def main(args):
         for i, in_roimask_file in enumerate(listInputRoiMasksFiles):
             print("\nInput: \'%s\'..." % (basename(in_roimask_file)))
 
-            in_roimask_array = FileReader.getImageArray(in_roimask_file)
+            in_roimask_array = FileReader.get_image_array(in_roimask_file)
             print("Dims : \'%s\'..." % (str(in_roimask_array.shape)))
 
             # convert train masks to binary (0, 1)
-            in_roimask_array = OperationBinaryMasks.process_masks(in_roimask_array)
+            in_roimask_array = OperationMasks.binarise(in_roimask_array)
 
 
             bounding_box = BoundingBoxes.compute_bounding_box_contain_masks(in_roimask_array,
@@ -119,7 +119,7 @@ def main(args):
         print("\nInput Key: \'%s\'..." % (in_key))
 
         in_roimask_file = listInputRoiMasksFiles[i]
-        in_roimask_array_shape = FileReader.getImageSize(in_roimask_file)
+        in_roimask_array_shape = FileReader.get_image_size(in_roimask_file)
         print("Assigned to file: \'%s\', of Dims : \'%s\'..." % (basename(in_roimask_file), str(in_roimask_array_shape)))
 
         if not args.isTwoBoundingBoxEachLungs:

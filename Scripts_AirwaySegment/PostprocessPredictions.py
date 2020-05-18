@@ -61,21 +61,21 @@ def main(args):
     for i, in_prediction_file in enumerate(listInputPredictionsFiles):
         print("\nInput: \'%s\'..." % (basename(in_prediction_file)))
 
-        inout_prediction_array = FileReader.getImageArray(in_prediction_file)
+        inout_prediction_array = FileReader.get_image_array(in_prediction_file)
         print("Original dims : \'%s\'..." % (str(inout_prediction_array.shape)))
 
         in_referkey_file = in_dictReferenceKeys[basenameNoextension(in_prediction_file)]
         in_reference_file= joinpathnames(InputReferKeysPath, in_referkey_file)
 
         print("Assigned to Reference file: \'%s\'..." % (basename(in_reference_file)))
-        in_metadata_file = FileReader.getImageMetadataInfo(in_reference_file)
+        in_metadata_file = FileReader.get_image_metadata_info(in_reference_file)
 
 
         # *******************************************************************************
         if (args.cropImages):
             print("Prediction data are cropped. Extend prediction array to full image size...")
 
-            out_fullimage_shape = FileReader.getImageSize(in_reference_file)
+            out_fullimage_shape = FileReader.get_image_size(in_reference_file)
 
             list_in_crop_bounding_boxes = in_dictCropBoundingBoxes[basenameNoextension(in_referkey_file)]
             num_crop_bounding_boxes = len(list_in_crop_bounding_boxes)
@@ -86,7 +86,7 @@ def main(args):
                 for j, in_crop_bounding_box in enumerate(list_in_crop_bounding_boxes):
                     if j>0:
                         in_next_prediction_file = next(listInputPredictionsFiles)
-                        in_next_prediction_array = FileReader.getImageArray(in_next_prediction_file)
+                        in_next_prediction_array = FileReader.get_image_array(in_next_prediction_file)
                         print("Next Input: \'%s\', of dims: \'%s\'..." % (basename(in_next_prediction_file),
                                                                           str(in_next_prediction_array.shape)))
 
@@ -148,8 +148,8 @@ def main(args):
                                                             prefix_pattern=prefixPatternInputFiles)
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
-            in_roimask_array = FileReader.getImageArray(in_roimask_file)
-            inout_prediction_array = OperationBinaryMasks.reverse_mask_exclude_voxels_fillzero(inout_prediction_array, in_roimask_array)
+            in_roimask_array = FileReader.get_image_array(in_roimask_file)
+            inout_prediction_array = OperationMasks.mask_exclude_regions_fillzero(inout_prediction_array, in_roimask_array)
         # *******************************************************************************
 
 
@@ -157,7 +157,7 @@ def main(args):
         output_prediction_file = joinpathnames(OutputPosteriorsPath, nameOutputPosteriorsFiles(in_reference_file))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(output_prediction_file), inout_prediction_array.shape))
 
-        FileReader.writeImageArray(output_prediction_file, inout_prediction_array, metadata=in_metadata_file)
+        FileReader.write_image_array(output_prediction_file, inout_prediction_array, metadata=in_metadata_file)
     #endfor
 
 

@@ -150,7 +150,7 @@ def main(args):
         # -----------------------------------------------------------------------------
         print("Loading data...")
         if (args.slidingWindowImages or args.transformationRigidImages):
-            in_testXData = LoadDataManager.loadData_1File(in_testXData_file)
+            in_testXData = LoadDataManager.load_1file(in_testXData_file)
             in_testXData_batches = getBatchDataGeneratorWithGenerator(args.size_in_images,
                                                                       [in_testXData],
                                                                       [in_testXData],
@@ -160,7 +160,7 @@ def main(args):
                                                                       size_output_images=size_output_modelnet,
                                                                       shuffle=False)
         else:
-            in_testXData_batches = LoadDataManagerInBatches(args.size_in_images).loadData_1File(in_testXData_file)
+            in_testXData_batches = LoadDataManagerInBatches(args.size_in_images).load_1file(in_testXData_file)
             in_testXData_batches = np.expand_dims(in_testXData_batches, axis=0)
 
         print("Total Data batches generated: %s..." % (len(in_testXData_batches)))
@@ -181,7 +181,7 @@ def main(args):
 
         # -----------------------------------------------------------------------------
         print("Reconstruct Prediction in batches to full size...")
-        out_recons_image_shape = FileReader.getImageSize(in_testXData_file) # init with size of "ifile"
+        out_recons_image_shape = FileReader.get_image_size(in_testXData_file) # init with size of "ifile"
         images_reconstructor.update_image_data(out_recons_image_shape)
 
         out_prediction_array = images_reconstructor.compute(out_predict_yData)
@@ -200,7 +200,7 @@ def main(args):
                 output_pred_file = joinpathnames(OutputPredictionsPath, nameOutputPredictionFiles %(in_caseprocname_file, args.nameSaveModelLayer, ifeatmap+1))
                 print("Output: \'%s\', of dims \'%s\'..." %(basename(output_pred_file), out_prediction_array[...,ifeatmap].shape))
 
-                FileReader.writeImageArray(output_pred_file, out_prediction_array[...,ifeatmap])
+                FileReader.write_image_array(output_pred_file, out_prediction_array[..., ifeatmap])
 
                 # save this prediction in reference keys
                 out_dictReferenceKeys[basenameNoextension(output_pred_file)] = basename(in_referkey_file)
@@ -209,7 +209,7 @@ def main(args):
             output_pred_file = joinpathnames(OutputPredictionsPath, nameOutputPredictionFiles % (in_caseprocname_file))
             print("Output: \'%s\', of dims \'%s\'..." % (basename(output_pred_file), out_prediction_array.shape))
 
-            FileReader.writeImageArray(output_pred_file, out_prediction_array)
+            FileReader.write_image_array(output_pred_file, out_prediction_array)
 
             # save this prediction in reference keys
             out_dictReferenceKeys[basenameNoextension(output_pred_file)] = basename(in_referkey_file)

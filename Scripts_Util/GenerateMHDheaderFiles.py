@@ -26,7 +26,7 @@ def main(args):
     for in_file in list_input_files:
         print("\nInput: \'%s\'..." % (basename(in_file)))
 
-        in_image_size  = FileReader.getImageSize(in_file)
+        in_image_size  = FileReader.get_image_size(in_file)
         out_image_size = np.roll(in_image_size, 2)
 
         ndims = len(out_image_size)

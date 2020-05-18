@@ -11,7 +11,6 @@
 import argparse
 
 from Common.WorkDirsManager import *
-from DataLoaders.BatchDataGenerator_OLD import *
 from DataLoaders.FileReaders import *
 from Preprocessing.ImageGeneratorManager import *
 
@@ -51,7 +50,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
         print("And: \'%s\'..." % (basename(in_label_file)))
 
-        (in_image_array, in_label_array) = FileReader.get2ImageArraysAndCheck(in_image_file, in_label_file)
+        (in_image_array, in_label_array) = FileReader.get_2image_arrays_and_check(in_image_file, in_label_file)
         print("Original dims : \'%s\'..." %(str(in_image_array.shape)))
 
 
@@ -70,8 +69,8 @@ def main(args):
                 out_image_filename = joinpathnames(VisualImagesPath, nameOutputVisualImagesFiles % (i+1, tuple2str(out_visualimage_array.shape[1:]), j+1))
                 out_label_filename = joinpathnames(VisualImagesPath, nameOutputVisualLabelsFiles % (i+1, tuple2str(out_visuallabel_array.shape[1:]), j+1))
 
-                FileReader.writeImageArray(out_image_filename, in_batchimage_array)
-                FileReader.writeImageArray(out_label_filename, in_batchlabel_array)
+                FileReader.write_image_array(out_image_filename, in_batchimage_array)
+                FileReader.write_image_array(out_label_filename, in_batchlabel_array)
             # endfor
         else:
             print("Input work data stored as volume. Generate batches of size \'%s\'. Visualize batches..." % (str(IMAGES_DIMS_Z_X_Y)))
@@ -100,8 +99,8 @@ def main(args):
                 out_image_filename = joinpathnames(VisualImagesPath, nameOutputVisualImagesFiles % (i+1, tuple2str(out_visualimage_array.shape), tuple2str(coords_sliding_window_box)))
                 out_label_filename = joinpathnames(VisualImagesPath, nameOutputVisualLabelsFiles % (i+1, tuple2str(out_visuallabel_array.shape), tuple2str(coords_sliding_window_box)))
 
-                FileReader.writeImageArray(out_image_filename, out_visualimage_array)
-                FileReader.writeImageArray(out_label_filename, out_visuallabel_array)
+                FileReader.write_image_array(out_image_filename, out_visualimage_array)
+                FileReader.write_image_array(out_label_filename, out_visuallabel_array)
             # endfor
     #endfor
 

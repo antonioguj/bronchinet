@@ -32,7 +32,7 @@ def main(args):
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
-        in_cropimage_array = FileReader.getImageArray(in_image_file)
+        in_cropimage_array = FileReader.get_image_array(in_image_file)
         print("Original dims: \'%s\'..." %(str(in_cropimage_array.shape)))
 
 
@@ -46,14 +46,14 @@ def main(args):
 
         # 2 step: extend image
         in_bounding_box     = dictInputBoundingBoxes[basenameNoextension(in_referkey_file)]
-        out_fullimage_shape = FileReader.getImageSize(in_referkey_file)
+        out_fullimage_shape = FileReader.get_image_size(in_referkey_file)
         out_fullimage_array = ExtendImages.compute3D(in_cropimage_array, in_bounding_box, out_fullimage_shape)
 
 
         out_image_file = joinpathnames(args.outputdir, nameOutputImagesFiles(in_image_file))
         print("Output: \'%s\', of dims \'%s\'..." %(basename(out_image_file), str(out_fullimage_array.shape)))
 
-        FileReader.writeImageArray(out_image_file, out_fullimage_array)
+        FileReader.write_image_array(out_image_file, out_fullimage_array)
     #endfor
 
 

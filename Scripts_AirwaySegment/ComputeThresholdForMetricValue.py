@@ -80,27 +80,27 @@ def main(args):
     with tqdm(total=num_validpred_files) as progressbar:
         for i, in_prediction_file in enumerate(listInputPredictionsFiles):
 
-            in_prediction_array = FileReader.getImageArray(in_prediction_file)
+            in_prediction_array = FileReader.get_image_array(in_prediction_file)
 
             if (isLoadReferenceCentrelineFiles):
                 in_refercenline_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputReferCentrelinesFiles,
                                                                      prefix_pattern=prefixPatternInputFiles)
-                in_refercenline_array = FileReader.getImageArray(in_refercenline_file)
+                in_refercenline_array = FileReader.get_image_array(in_refercenline_file)
                 in_reference_array = in_refercenline_array
             else:
                 in_refermask_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputReferMasksFiles,
                                                                   prefix_pattern=prefixPatternInputFiles)
-                in_refermask_array = FileReader.getImageArray(in_refermask_file)
+                in_refermask_array = FileReader.get_image_array(in_refermask_file)
                 in_reference_array = in_refermask_array
 
 
             if (args.removeTracheaResMetrics):
                 in_roimask_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputRoiMasksFiles,
                                                                 prefix_pattern=prefixPatternInputFiles)
-                in_roimask_array = FileReader.getImageArray(in_roimask_file)
+                in_roimask_array = FileReader.get_image_array(in_roimask_file)
 
-                in_prediction_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_prediction_array, in_roimask_array)
-                in_reference_array  = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_reference_array,  in_roimask_array)
+                in_prediction_array = OperationMasks.mask_exclude_regions_fillzero(in_prediction_array, in_roimask_array)
+                in_reference_array  = OperationMasks.mask_exclude_regions_fillzero(in_reference_array, in_roimask_array)
 
             listin_prediction_array.append(in_prediction_array)
             listin_reference_array.append(in_reference_array)

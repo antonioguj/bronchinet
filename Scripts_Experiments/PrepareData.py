@@ -106,7 +106,7 @@ def main(args):
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
-        inout_image_array = FileReader.getImageArray(in_image_file)
+        inout_image_array = FileReader.get_image_array(in_image_file)
         print("Original dims : \'%s\'..." % (str(inout_image_array.shape)))
 
         list_inout_arrays = [inout_image_array]
@@ -118,10 +118,10 @@ def main(args):
             in_label_file = listInputLabelsFiles[i]
             print("And Labels: \'%s\'..." % (basename(in_label_file)))
 
-            inout_label_array = FileReader.getImageArray(in_label_file)
+            inout_label_array = FileReader.get_image_array(in_label_file)
             if (args.isBinaryTrainMasks):
                 print("Convert masks to binary (0, 1)...")
-                inout_label_array = OperationBinaryMasks.process_masks(inout_label_array)
+                inout_label_array = OperationMasks.binarise(inout_label_array)
 
             list_inout_arrays.append(inout_label_array)
             list_type_inout_arrays.append('label')
@@ -134,13 +134,13 @@ def main(args):
             in_roimask_file = listInputRoiMasksFiles[i]
             print("And ROI Mask for labels: \'%s\'..." %(basename(in_roimask_file)))
 
-            in_roimask_array = FileReader.getImageArray(in_roimask_file)
+            in_roimask_array = FileReader.get_image_array(in_roimask_file)
             if args.isROIlabelsMultiROImasks:
-                in_list_roimask_array = OperationBinaryMasks.get_list_masks_all_labels(in_roimask_array)
+                in_list_roimask_array = OperationMasks.get_list_masks_all_labels(in_roimask_array)
                 list_inout_arrays += in_list_roimask_array
                 list_type_inout_arrays += ['roimask'] * len(in_list_roimask_array)
             else:
-                in_roimask_array = OperationBinaryMasks.process_masks(in_roimask_array)
+                in_roimask_array = OperationMasks.binarise(in_roimask_array)
                 list_inout_arrays.append(in_roimask_array)
                 list_type_inout_arrays.append('roimask')
 
@@ -152,8 +152,8 @@ def main(args):
             in_extralabel_file = listInputExtraLabelsFiles[i]
             print("And extra labels: \'%s\'..." %(basename(in_extralabel_file)))
 
-            inout_extralabel_array = FileReader.getImageArray(in_extralabel_file)
-            inout_extralabel_array = OperationBinaryMasks.process_masks(inout_extralabel_array)
+            inout_extralabel_array = FileReader.get_image_array(in_extralabel_file)
+            inout_extralabel_array = OperationMasks.binarise(inout_extralabel_array)
             list_inout_arrays.append(inout_extralabel_array)
             list_type_inout_arrays.append('label')
 
@@ -174,11 +174,11 @@ def main(args):
                 for j, (in_array, type_in_array) in enumerate(zip(list_inout_arrays, list_type_inout_arrays)):
                     print('Rescale input array \'%s\' of type \'%s\'...' %(j, type_in_array))
                     if type_in_array == 'image':
-                        out_array = RescaleImages.compute3D(in_array, in_rescale_factor, order=3)
+                        out_array = RescaleImages.compute(in_array, in_rescale_factor, order=3)
                     elif type_in_array == 'label':
-                        out_array = RescaleImages.compute3D(in_array, in_rescale_factor, order=3, is_inlabels=True)
+                        out_array = RescaleImages.compute(in_array, in_rescale_factor, order=3, is_inlabels=True)
                     elif type_in_array == 'roimask':
-                        out_array = RescaleImages.compute3D(in_array, in_rescale_factor, order=3, is_inlabels=True, is_binarise_output=True)
+                        out_array = RescaleImages.compute(in_array, in_rescale_factor, order=3, is_inlabels=True, is_binarise_output=True)
                     list_inout_arrays[j] = out_array
                 # endfor
             else:
@@ -199,7 +199,7 @@ def main(args):
             for j, in_roimask_array in enumerate(list_in_roimask_arrays):
                 for k, in_array in enumerate(list_in_calc_arrays):
                     print('Masks input labels array \'%s\' to ROI masks \'%s\'...' % (k, j))
-                    out_array = OperationBinaryMasks.apply_mask_exclude_voxels(in_array, in_roimask_array)
+                    out_array = OperationMasks.mask_exclude_regions(in_array, in_roimask_array)
                     list_inout_arrays.append(out_array)
                     list_type_inout_arrays.append('label')
                 # endfor
@@ -287,7 +287,7 @@ def main(args):
             print("Output \'%s\' image, of type \'%s\': \'%s\'..." % (icount, list_type_inout_arrays[icount],
                                                                       basename(output_image_file)))
 
-            FileReader.writeImageArray(output_image_file, list_inout_arrays[icount])
+            FileReader.write_image_array(output_image_file, list_inout_arrays[icount])
             icount += 1
 
             # save this image in reference keys
@@ -302,7 +302,7 @@ def main(args):
                 print("Output \'%s\' label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_arrays[icount],
                                                                           basename(output_label_file)))
 
-                FileReader.writeImageArray(output_label_file, list_inout_arrays[icount])
+                FileReader.write_image_array(output_label_file, list_inout_arrays[icount])
                 icount += 1
 
             if (args.isInputExtraLabels):
@@ -313,7 +313,7 @@ def main(args):
                 print("Output \'%s\' extra label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_arrays[icount],
                                                                                 basename(output_extralabel_file)))
 
-                FileReader.writeImageArray(output_extralabel_file, list_inout_arrays[icount])
+                FileReader.write_image_array(output_extralabel_file, list_inout_arrays[icount])
                 icount += 1
         # endfor
         # *******************************************************************************

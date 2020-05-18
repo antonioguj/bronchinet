@@ -73,8 +73,8 @@ def main(args):
         print("\nInput: \'%s\'..." %(basename(in_full_image_file)))
         print("And: \'%s\'..." %(basename(in_crop_image_file)))
 
-        in_fullimage_array = FileReader.getImageArray(in_full_image_file)
-        in_cropimage_array = FileReader.getImageArray(in_crop_image_file)
+        in_fullimage_array = FileReader.get_image_array(in_full_image_file)
+        in_cropimage_array = FileReader.get_image_array(in_crop_image_file)
         in_cropimage_array = FlippingImages.compute(in_cropimage_array, axis=0)
 
         full_image_shape = np.array(in_fullimage_array.shape)

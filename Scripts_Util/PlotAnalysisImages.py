@@ -38,7 +38,7 @@ def main(args):
 
         case_name = basenameNoextension(in_file).split()[0]
 
-        in_image_array = FileReader.getImageArray(in_file)
+        in_image_array = FileReader.get_image_array(in_file)
 
         if args.type == 'histogram':
             num_bins = 20

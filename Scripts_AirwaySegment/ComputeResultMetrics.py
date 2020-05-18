@@ -82,21 +82,21 @@ def main(args):
                                                           prefix_pattern=prefixPatternInputFiles)
         print("Reference mask file: \'%s\'..." % (basename(in_refermask_file)))
 
-        in_predictmask_array = FileReader.getImageArray(in_predictmask_file)
-        in_refermask_array   = FileReader.getImageArray(in_refermask_file)
+        in_predictmask_array = FileReader.get_image_array(in_predictmask_file)
+        in_refermask_array   = FileReader.get_image_array(in_refermask_file)
         print("Predictions of size: %s..." % (str(in_predictmask_array.shape)))
 
         if (isLoadReferenceCentrelineFiles):
             in_refercenline_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputReferCentrelinesFiles,
                                                                  prefix_pattern=prefixPatternInputFiles)
             print("Reference centrelines file: \'%s\'..." % (basename(in_refercenline_file)))
-            in_refercenline_array = FileReader.getImageArray(in_refercenline_file)
+            in_refercenline_array = FileReader.get_image_array(in_refercenline_file)
 
         if (isLoadPredictedCentrelineFiles):
             in_predictcenline_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputPredictCentrelinesFiles,
                                                                    prefix_pattern=prefixPatternInputFiles)
             print("Predicted centrelines file: \'%s\'..." % (basename(in_predictcenline_file)))
-            in_predictcenline_array = FileReader.getImageArray(in_predictcenline_file)
+            in_predictcenline_array = FileReader.get_image_array(in_predictcenline_file)
 
 
         if (args.removeTracheaCalcMetrics):
@@ -106,19 +106,19 @@ def main(args):
                                                                   prefix_pattern=prefixPatternInputFiles)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarseairways_file)))
 
-            in_coarseairways_array = FileReader.getImageArray(in_coarseairways_file)
+            in_coarseairways_array = FileReader.get_image_array(in_coarseairways_file)
 
             print("Dilate coarse airways masks 4 levels to remove completelly trachea and main bronchi from ground-truth...")
             in_coarseairways_array = MorphoDilateMasks.compute(in_coarseairways_array, num_iters=4)
 
-            in_predictmask_array = OperationBinaryMasks.substract_two_masks(in_predictmask_array, in_coarseairways_array)
-            in_refermask_array   = OperationBinaryMasks.substract_two_masks(in_refermask_array,   in_coarseairways_array)
+            in_predictmask_array = OperationMasks.substract_two_masks(in_predictmask_array, in_coarseairways_array)
+            in_refermask_array   = OperationMasks.substract_two_masks(in_refermask_array,   in_coarseairways_array)
 
             if (isLoadReferenceCentrelineFiles):
-                in_refercenline_array = OperationBinaryMasks.substract_two_masks(in_refercenline_array, in_coarseairways_array)
+                in_refercenline_array = OperationMasks.substract_two_masks(in_refercenline_array, in_coarseairways_array)
 
             if (isLoadPredictedCentrelineFiles):
-                in_predictcenline_array = OperationBinaryMasks.substract_two_masks(in_predictcenline_array, in_coarseairways_array)
+                in_predictcenline_array = OperationMasks.substract_two_masks(in_predictcenline_array, in_coarseairways_array)
 
 
         # Compute and store Metrics

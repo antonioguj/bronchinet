@@ -41,10 +41,10 @@ def main(args):
     for i, in_posterior_file in enumerate(listInputPosteriorsFiles):
         print("\nInput: \'%s\'..." % (basename(in_posterior_file)))
 
-        inout_posterior_array = FileReader.getImageArray(in_posterior_file)
+        inout_posterior_array = FileReader.get_image_array(in_posterior_file)
         print("Original dims : \'%s\'..." % (str(inout_posterior_array.shape)))
 
-        in_metadata_file = FileReader.getImageMetadataInfo(in_posterior_file)
+        in_metadata_file = FileReader.get_image_metadata_info(in_posterior_file)
 
 
         if (args.attachCoarseAirwaysMask):
@@ -53,7 +53,7 @@ def main(args):
                                                                   prefix_pattern=prefixPatternInputFiles)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarseairways_file)))
 
-            in_coarseairways_array = FileReader.getImageArray(in_coarseairways_file)
+            in_coarseairways_array = FileReader.get_image_array(in_coarseairways_file)
 
 
         for ithreshold in args.threshold_values:
@@ -62,14 +62,14 @@ def main(args):
             out_binarymask_array = ThresholdImages.compute(inout_posterior_array, ithreshold)
 
             if (args.attachCoarseAirwaysMask):
-                out_binarymask_array = OperationBinaryMasks.merge_two_masks(out_binarymask_array, in_coarseairways_array) #isNot_intersect_masks=True)
+                out_binarymask_array = OperationMasks.merge_two_masks(out_binarymask_array, in_coarseairways_array) #isNot_intersect_masks=True)
 
 
             # Output predicted binary masks
             output_binarymask_file = joinpathnames(OutputBinaryMasksPath, nameOutputBinaryMasksFiles(in_posterior_file, ithreshold))
             print("Output: \'%s\', of dims \'%s\'..." % (basename(output_binarymask_file), str(out_binarymask_array.shape)))
 
-            FileReader.writeImageArray(output_binarymask_file, out_binarymask_array, metadata=in_metadata_file)
+            FileReader.write_image_array(output_binarymask_file, out_binarymask_array, metadata=in_metadata_file)
         #endfor
     # endfor
 

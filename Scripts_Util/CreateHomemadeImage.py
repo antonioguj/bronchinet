@@ -64,7 +64,7 @@ def main(args):
 
     # write out image
     print("Write out image: %s..." %(args.outputfile))
-    FileReader.writeImageArray(args.outputfile, out_array)
+    FileReader.write_image_array(args.outputfile, out_array)
 
 
 

@@ -11,11 +11,10 @@
 from Common.Constants import TYPE_DNNLIBRARY_USED
 
 if TYPE_DNNLIBRARY_USED == 'Pytorch':
-    from BatchDataGenerators.BatchDataGenerator_Pytorch import WrapperBatchGenerator_Pytorch as DNNBatchDataGenerator
+    from DataLoaders.BatchDataGenerator_Pytorch import WrapperBatchGenerator_Pytorch as DNNBatchDataGenerator
 elif TYPE_DNNLIBRARY_USED == 'Keras':
-    from BatchDataGenerators.BatchDataGenerator_Keras import BatchDataGenerator_Keras as DNNBatchDataGenerator
+    from DataLoaders.BatchDataGenerator_Keras import BatchDataGenerator_Keras as DNNBatchDataGenerator
 
-from BatchDataGenerators.BatchDataGenerator import *
 from Preprocessing.ImageGeneratorManager import *
 
 

@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from DataLoaders.BatchDataGenerators.BatchDataGenerator import *
+from DataLoaders.BatchDataGenerator import *
 from tensorflow.keras.utils import Sequence
 import numpy as np
 np.random.seed(2017)

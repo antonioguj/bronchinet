@@ -53,9 +53,9 @@ def main(args):
         #endfor
         print("Assigned to \'%s\' and \'%s\'..." %(basename(in_image_file), basename(in_reference_file)))
 
-        in_image_array      = FileReader.getImageArray(in_image_file)
-        in_prediction_array = FileReader.getImageArray(in_prediction_file)
-        in_reference_array  = FileReader.getImageArray(in_reference_file)
+        in_image_array      = FileReader.get_image_array(in_image_file)
+        in_prediction_array = FileReader.get_image_array(in_prediction_file)
+        in_reference_array  = FileReader.get_image_array(in_reference_file)
 
 
         print("Compute Rendered Animations...")

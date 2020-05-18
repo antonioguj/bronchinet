@@ -39,7 +39,7 @@ def main(args):
     for i, in_mask_file in enumerate(list_input_masks_files):
         print("\nInput: \'%s\'..." % (basename(in_mask_file)))
 
-        in_mask_array = FileReader.getImageArray(in_mask_file)
+        in_mask_array = FileReader.get_image_array(in_mask_file)
 
         if (args.masksToRegionInterest):
             print("Compute ratio foreground / background masks with exclusion to Region of Interest...")

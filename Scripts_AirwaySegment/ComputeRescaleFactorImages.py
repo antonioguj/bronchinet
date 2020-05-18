@@ -34,7 +34,7 @@ def main(args):
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." %(basename(in_image_file)))
 
-        in_voxel_size = DICOMreader.getImageVoxelSize(in_image_file)
+        in_voxel_size = DICOMreader.get_image_voxel_size(in_image_file)
         print("Voxel Size: \'%s\'..." %(str(in_voxel_size)))
 
         in_referkey_file = listInputReferKeysFiles[i]

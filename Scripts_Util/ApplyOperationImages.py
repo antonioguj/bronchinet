@@ -48,10 +48,10 @@ def prepare_mask_operation(args):
 
     def wrapfun_mask_image(in_array, i):
         in_roimask_file = listInputRoiMasksFiles[i]
-        in_roimask_array = FileReader.getImageArray(in_roimask_file)
+        in_roimask_array = FileReader.get_image_array(in_roimask_file)
         print("Mask to RoI: lungs: \'%s\'..." % (basename(in_roimask_file)))
 
-        return OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_array, in_roimask_array)
+        return OperationMasks.mask_exclude_regions_fillzero(in_array, in_roimask_array)
 
     return wrapfun_mask_image
 
@@ -62,7 +62,7 @@ def prepare_binarise_operation(args):
 
     def wrapfun_binarise_image(in_array, i):
         print("Convert masks to binary (0, 1)...")
-        return OperationBinaryMasks.process_masks(in_array)
+        return OperationMasks.binarise(in_array)
 
     return wrapfun_binarise_image
 
@@ -74,10 +74,10 @@ def prepare_merge_operation(args):
 
     def wrapfun_merge_image(in_array, i):
         in_2ndmask_file = listInput2ndMasksFiles[i]
-        in_2ndmask_array = FileReader.getImageArray(in_2ndmask_file)
+        in_2ndmask_array = FileReader.get_image_array(in_2ndmask_file)
         print("2nd mask file: \'%s\'..." % (basename(in_2ndmask_file)))
 
-        return OperationBinaryMasks.merge_two_masks(in_array, in_2ndmask_array)
+        return OperationMasks.merge_two_masks(in_array, in_2ndmask_array)
 
     return wrapfun_merge_image
 
@@ -89,10 +89,10 @@ def prepare_substract_operation(args):
 
     def wrapfun_substract_image(in_array, i):
         in_2ndmask_file = listInput2ndMasksFiles[i]
-        in_2ndmask_array = FileReader.getImageArray(in_2ndmask_file)
+        in_2ndmask_array = FileReader.get_image_array(in_2ndmask_file)
         print("2nd mask file: \'%s\'..." % (basename(in_2ndmask_file)))
 
-        return OperationBinaryMasks.substract_two_masks(in_array, in_2ndmask_array)
+        return OperationMasks.substract_two_masks(in_array, in_2ndmask_array)
 
     return wrapfun_substract_image
 
@@ -124,7 +124,7 @@ def prepare_rescale_updatemetadata(args):
         rescale_factor = dict_rescaleFactors[basenameNoextension(in_referkey_file)]
         print("Update metadata for a rescaling factor: \'%s\'..." % (str(rescale_factor)))
 
-        return FileReader.updateImageMetadataInfo(in_file, rescale_factor=rescale_factor)
+        return FileReader.update_image_metadata_info(in_file, rescale_factor=rescale_factor)
 
     return wrapfun_updatemetadata_rescale
 
@@ -141,9 +141,9 @@ def prepare_rescale_operation(args, is_rescale_mask= False):
         if rescale_factor != (1.0, 1.0, 1.0):
             print("Rescale with a factor: \'%s\'..." % (str(rescale_factor)))
             if is_rescale_mask:
-                return RescaleImages.compute3D(in_array, rescale_factor, order=3, is_inlabels=True, is_binarise_output=True)
+                return RescaleImages.compute(in_array, rescale_factor, order=3, is_inlabels=True, is_binarise_output=True)
             else:
-                return RescaleImages.compute3D(in_array, rescale_factor, order=3)
+                return RescaleImages.compute(in_array, rescale_factor, order=3)
         else:
             print("Rescale factor (\'%s\'). Skip rescaling..." % (str(rescale_factor)))
             return in_array
@@ -263,7 +263,7 @@ def prepare_maskwithlabels_operation(args):
 
     def wrapfun_maskwithlabels_image(in_array, i):
         print("Retrieve labels mask: \'%s\'..." %(labels_mask))
-        return OperationBinaryMasks.get_masks_with_labels(in_array, labels_list=labels_mask)
+        return OperationMasks.get_masks_with_labels_list(in_array, labels_list=labels_mask)
 
     return wrapfun_maskwithlabels_image
 
@@ -395,12 +395,12 @@ def main(args):
     for i, in_file in enumerate(listInputFiles):
         print("\nInput: \'%s\'..." % (basename(in_file)))
 
-        inout_array = FileReader.getImageArray(in_file)
+        inout_array = FileReader.get_image_array(in_file)
 
         if is_update_metadata_file:
             out_metadata = func_updatemetadata(in_file, i)
         else:
-            out_metadata = FileReader.getImageMetadataInfo(in_file)
+            out_metadata = FileReader.get_image_metadata_info(in_file)
 
 
         for func_name, func_operation in dict_func_operations.items():
@@ -411,7 +411,7 @@ def main(args):
         out_filename = joinpathnames(args.outputdir, nameOutputFiles(basename(in_file)))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), str(inout_array.shape)))
 
-        FileReader.writeImageArray(out_filename, inout_array, metadata=out_metadata)
+        FileReader.write_image_array(out_filename, inout_array, metadata=out_metadata)
     #endfor
 
 

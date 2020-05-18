@@ -28,8 +28,8 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_cropimage_file)))
         print("Input 2: \'%s\'..." % (basename(in_fullimage_file)))
 
-        in_cropimage_array = FileReader.getImageArray(in_cropimage_file)
-        in_fullimage_array = FileReader.getImageArray(in_fullimage_file)
+        in_cropimage_array = FileReader.get_image_array(in_cropimage_file)
+        in_fullimage_array = FileReader.get_image_array(in_fullimage_file)
 
 
         # 1 step: crop image

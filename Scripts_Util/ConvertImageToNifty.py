@@ -94,17 +94,17 @@ def main(args):
 
             # 3rd step: fix dims of output nifti image and header affine info
             # (THE OUTPUT NIFTI BY THE TOOL dcm2niix HAVE ONE DIMENSION FLIPPED)
-            out_image_array = FileReader.getImageArray(out_file)
-            out_image_array = NIFTIreader.fixDimsImageArray_fromDicom2niix(out_image_array)
+            out_image_array = FileReader.get_image_array(out_file)
+            out_image_array = NIFTIreader.fix_dims_image_array_from_dicom2niix(out_image_array)
 
-            metadata_affine = NIFTIreader.getImageMetadataInfo(out_file)
-            image_position  = DICOMreader.getImagePosition(in_file)
+            metadata_affine = NIFTIreader.get_image_metadata_info(out_file)
+            image_position  = DICOMreader.get_image_position(in_file)
             metadata_affine[1, -1] = image_position[1]
-            metadata_affine = NIFTIreader.fixDimsImageAffineMatrix_fromDicom2niix(metadata_affine)
+            metadata_affine = NIFTIreader.fix_dims_image_affine_matrix_from_dicom2niix(metadata_affine)
 
             print("Fix dims of output nifti: \'%s\', with dims: \'%s\'" %(out_file, out_image_array.shape))
 
-            FileReader.writeImageArray(out_file, out_image_array, metadata=metadata_affine)
+            FileReader.write_image_array(out_file, out_image_array, metadata=metadata_affine)
 
 
         elif files_type == 'hr2':
@@ -113,14 +113,14 @@ def main(args):
             os.system(command_string)
 
         elif files_type == 'mhd':
-            inout_array = FileReader.getImageArray(in_file)
+            inout_array = FileReader.get_image_array(in_file)
 
             in_refer_file = findFileWithSamePrefixPattern(basename(in_file), list_refer_files,
                                                           prefix_pattern=prefixPatternInputFiles)
-            in_metadata   = FileReader.getImageMetadataInfo(in_refer_file)
+            in_metadata   = FileReader.get_image_metadata_info(in_refer_file)
             print("Metadata from file: \'%s\'..." % (basename(in_refer_file)))
 
-            FileReader.writeImageArray(out_file, inout_array, metadata=in_metadata)
+            FileReader.write_image_array(out_file, inout_array, metadata=in_metadata)
     #endfor
 
     if files_type == 'dicom':

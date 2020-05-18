@@ -111,8 +111,8 @@ def main(args):
         print("\nInput: \'%s\'..." % (in_file_1))
         print("And: \'%s\'..." % (in_file_2))
 
-        in_image1_array = FileReader.getImageArray(in_file_1)
-        in_image2_array = FileReader.getImageArray(in_file_2)
+        in_image1_array = FileReader.get_image_array(in_file_1)
+        in_image2_array = FileReader.get_image_array(in_file_2)
 
         in_image1_array = np.clip(in_image1_array, 0, 1)
         in_image2_array = np.clip(in_image2_array, 0, 1)
@@ -199,8 +199,8 @@ def main(args):
 
             if len(dict_func_checks_further_compare) > 0:
                 print('Do further checks to compare images of different size...')
-                img1_voxel_size = FileReader.getImageVoxelSize(in_file_1)
-                img2_voxel_size = FileReader.getImageVoxelSize(in_file_2)
+                img1_voxel_size = FileReader.get_image_voxel_size(in_file_1)
+                img2_voxel_size = FileReader.get_image_voxel_size(in_file_2)
 
                 for func_name, func_checks_compare in dict_func_checks_further_compare.items():
                     is_check_OK = func_checks_compare(in_image1_array, in_image2_array,

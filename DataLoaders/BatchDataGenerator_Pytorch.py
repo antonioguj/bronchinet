@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from DataLoaders.BatchDataGenerators.BatchDataGenerator import *
+from DataLoaders.BatchDataGenerator import *
 from torch.utils import data
 import torch
 

@@ -25,8 +25,8 @@ FORMATFEATUREDATA    = FORMATREALDATA
 
 
 # ******************** SET-UP WORKDIR ********************
-DATADIR = '/home/antonio/Data/EXACT_Testing/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
+DATADIR = '/home/antonio/Data/LUVAR_Testing/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_LUVAR/'
 
 # Names input and output directories
 NAME_RAWIMAGES_RELPATH        = 'Images/'

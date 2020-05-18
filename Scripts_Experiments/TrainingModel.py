@@ -282,7 +282,7 @@ def main(args):
     if (args.slidingWindowImages or args.randomCropWindowImages or args.transformationRigidImages or args.transformElasticDeformImages):
         print("Generate Training images with Batch Generator of Training data...")
 
-        (list_train_xData, list_train_yData) = LoadDataManager.loadData_ListFiles(listTrainImagesFiles, listTrainLabelsFiles)
+        (list_train_xData, list_train_yData) = LoadDataManager.load_listFiles(listTrainImagesFiles, listTrainLabelsFiles)
 
         train_batch_data_generator = getBatchDataGenerator(args.size_in_images,
                                                            list_train_xData,
@@ -301,8 +301,8 @@ def main(args):
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(train_batch_data_generator)))
     else:
-        (list_train_xData, list_train_yData) = LoadDataManagerInBatches(args.size_in_images).loadData_ListFiles(listTrainImagesFiles,
-                                                                                                                listTrainLabelsFiles)
+        (list_train_xData, list_train_yData) = LoadDataManagerInBatches(args.size_in_images).load_listFiles(listTrainImagesFiles,
+                                                                                                            listTrainLabelsFiles)
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(list_train_xData)))
 
@@ -313,7 +313,7 @@ def main(args):
             args.transformationRigidImages = args.transformationRigidImages and USETRANSFORMONVALIDATIONDATA
             args.transformElasticDeformImages = args.transformElasticDeformImages and USETRANSFORMONVALIDATIONDATA
 
-            (list_valid_xData, list_valid_yData) = LoadDataManager.loadData_ListFiles(listValidImagesFiles, listValidLabelsFiles)
+            (list_valid_xData, list_valid_yData) = LoadDataManager.load_listFiles(listValidImagesFiles, listValidLabelsFiles)
 
             valid_batch_data_generator = getBatchDataGenerator(args.size_in_images,
                                                                list_valid_xData,
@@ -333,8 +333,8 @@ def main(args):
             print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles),
                                                                               len(valid_batch_data_generator)))
         else:
-            (list_valid_xData, list_valid_yData) = LoadDataManagerInBatches(args.size_in_images).loadData_ListFiles(listValidImagesFiles,
-                                                                                                                    listValidLabelsFiles)
+            (list_valid_xData, list_valid_yData) = LoadDataManagerInBatches(args.size_in_images).load_listFiles(listValidImagesFiles,
+                                                                                                                listValidLabelsFiles)
             validation_data = (list_valid_xData, list_valid_yData)
             print("Number volumes: %s. Total Data batches generated: %s..." % (len(listTrainImagesFiles),
                                                                                len(list_valid_xData)))

@@ -73,13 +73,13 @@ def main(args):
     for ifile, in_label_file in enumerate(listInputLabelsFiles):
         print("\nInput: \'%s\'..." % (basename(in_label_file)))
 
-        in_label_array = FileReader.getImageArray(in_label_file)
+        in_label_array = FileReader.get_image_array(in_label_file)
         print("Original dims : \'%s\'..." % (str(in_label_array.shape)))
 
 
         print("Loading data in batches...")
         if (args.slidingWindowImages or args.randomCropWindowImages or args.transformationRigidImages):
-            in_label_data = LoadDataManager.loadData_1File(in_label_file)
+            in_label_data = LoadDataManager.load_1file(in_label_file)
             in_label_data = np.expand_dims(in_label_data, axis=-1)
             in_label_generator = getBatchDataGeneratorWithGenerator(args.size_in_images,
                                                                     [in_label_data],
@@ -92,7 +92,7 @@ def main(args):
                                                                     is_datagen_in_gpu=False)
             (_, inout_batches_label_arrays) = in_label_generator.get_full_data()
         else:
-            inout_batches_label_arrays = LoadDataManagerInBatches(args.size_in_images).loadData_1File(in_label_file)
+            inout_batches_label_arrays = LoadDataManagerInBatches(args.size_in_images).load_1file(in_label_file)
             inout_batches_label_arrays = np.expand_dims(inout_batches_label_arrays, axis=0)
 
         print("Total data batches generated: %s..." % (len(inout_batches_label_arrays)))
@@ -100,7 +100,7 @@ def main(args):
 
         print("Reconstruct data batches to full size...")
         # init reconstructor with size of "ifile"
-        out_recons_image_shape = FileReader.getImageSize(in_label_file)
+        out_recons_image_shape = FileReader.get_image_size(in_label_file)
         images_reconstructor.update_image_data(out_recons_image_shape)
 
         out_recons_label_array = images_reconstructor.compute(inout_batches_label_arrays)
@@ -127,7 +127,7 @@ def main(args):
         out_filename = joinpathnames(OutputFilesPath, nameOutputFiles(in_label_file, size_output_modelnet))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), out_recons_fieldOfView_array.shape))
 
-        FileReader.writeImageArray(out_filename, out_recons_fieldOfView_array)
+        FileReader.write_image_array(out_filename, out_recons_fieldOfView_array)
     # endfor
 
     if (len(names_files_different) == 0):

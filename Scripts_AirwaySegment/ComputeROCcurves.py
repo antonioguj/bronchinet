@@ -94,15 +94,15 @@ def main(args):
                                                           prefix_pattern=prefixPatternInputFiles)
         print("Reference mask file: \'%s\'..." % (basename(in_refermask_file)))
 
-        in_prediction_array = FileReader.getImageArray(in_prediction_file)
-        in_refermask_array  = FileReader.getImageArray(in_refermask_file)
+        in_prediction_array = FileReader.get_image_array(in_prediction_file)
+        in_refermask_array  = FileReader.get_image_array(in_refermask_file)
         print("Predictions of size: %s..." % (str(in_prediction_array.shape)))
 
         if (isLoadReferenceCentrelineFiles):
             in_refercenline_file = findFileWithSamePrefixPattern(basename(in_prediction_file), listInputReferCentrelinesFiles,
                                                                  prefix_pattern=prefixPatternInputFiles)
             print("Reference centrelines file: \'%s\'..." % (basename(in_refercenline_file)))
-            in_refercenline_array = FileReader.getImageArray(in_refercenline_file)
+            in_refercenline_array = FileReader.get_image_array(in_refercenline_file)
 
 
         if (args.removeTracheaCalcMetrics):
@@ -112,13 +112,13 @@ def main(args):
                                                             prefix_pattern=prefixPatternInputFiles)
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
-            in_roimask_array = FileReader.getImageArray(in_roimask_file)
+            in_roimask_array = FileReader.get_image_array(in_roimask_file)
 
-            in_prediction_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_prediction_array, in_roimask_array)
-            in_refermask_array  = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_refermask_array,  in_roimask_array)
+            in_prediction_array = OperationMasks.mask_exclude_regions_fillzero(in_prediction_array, in_roimask_array)
+            in_refermask_array  = OperationMasks.mask_exclude_regions_fillzero(in_refermask_array, in_roimask_array)
 
             if (isLoadReferenceCentrelineFiles):
-                in_refercenline_array = OperationBinaryMasks.apply_mask_exclude_voxels_fillzero(in_refercenline_array, in_roimask_array)
+                in_refercenline_array = OperationMasks.mask_exclude_regions_fillzero(in_refercenline_array, in_roimask_array)
 
 
         print("Compute Metrics at all thresholds \'%s\'..." %(list_thresholds))
