@@ -94,7 +94,6 @@ def main(args):
 
         if (args.removeTracheaCalcMetrics):
             print("Remove trachea and main bronchii masks in computed metrics...")
-
             in_coarseairways_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputCoarseAirwaysFiles,
                                                                   prefix_pattern=prefixPatternInputFiles)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarseairways_file)))

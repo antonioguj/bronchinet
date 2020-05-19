@@ -245,7 +245,7 @@ class ThinningMasks(OperationImages):
         return skeletonize_3d(in_array.astype(np.uint8))
         #out_cenlines_array = skeletonize_3d(in_array)
         ## convert to binary masks (0, 1)
-        #return np.where(out_cenlines_array, cls.val_mask_positive, cls.val_mask_background)
+        #return np.where(out_cenlines_array, cls.val_mask, cls.val_background)
 
 
 class VolumeMasks(OperationImages):

@@ -106,7 +106,6 @@ def main(args):
 
         if (args.removeTracheaCalcMetrics):
             print("Remove trachea and main bronchii masks in computed metrics...")
-
             in_coarseairways_file = findFileWithSamePrefixPattern(basename(in_posterior_file), listInputCoarseAirwaysFiles,
                                                                   prefix_pattern=prefixPatternInputFiles)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarseairways_file)))
@@ -116,7 +115,6 @@ def main(args):
             print("Dilate coarse airways masks 4 levels to remove completely trachea and main bronchi from ground-truth...")
             in_coarseairways_array = MorphoDilateMasks.compute(in_coarseairways_array, num_iters=4)
 
-            in_posterior_array = OperationMasks.substract_two_masks(in_posterior_array, in_coarseairways_array)
             in_refermask_array = OperationMasks.substract_two_masks(in_refermask_array, in_coarseairways_array)
 
             if (is_load_refer_cenlines_files):
@@ -126,11 +124,14 @@ def main(args):
         # *******************************************************************************
         # Compute and store Metrics at all thresholds
         print("\nCompute Metrics with all thresholds \'%s\'..." %(inlist_thresholds))
-        print("Step 1: Compute the binary masks by thresholding the posteriors...")
+        print("- Compute the binary masks by thresholding the posteriors...")
         if args.isconnectedmasks:
-            print("Step 1.5: Compute the first connected component from the binary masks...")
-        print("Step 2: Compute the centrelines by thinning the binary masks...")
-        print("Step 3: Compute the Metrics:")
+            print("- Compute the first connected component from the binary masks...")
+        if args.removeTracheaCalcMetrics:
+            print("- Remove the trachea and main bronchii from the binary masks and centrelines...")
+        if is_load_pred_cenlines_files:
+            print("- Compute the centrelines by thinning the binary masks...")
+        print("- Compute the Metrics:")
 
         key_casename = getSubstringPatternFilename(basename(in_posterior_file), substr_pattern=prefixPatternInputFiles)[:-1]
         outdict_computedMetrics = OrderedDict()
@@ -141,7 +142,7 @@ def main(args):
                 # Compute the binary masks by thresholding the posteriors
                 in_predictmask_array = ThresholdImages.compute(in_posterior_array, in_thres_value)
 
-                if args.isconnectedmasks:
+                if (args.isconnectedmasks):
                     # Compute the first connected component from the binary masks
                     in_predictmask_array = FirstConnectedRegionMasks.compute(in_predictmask_array, connectivity_dim=1)
 
@@ -152,6 +153,14 @@ def main(args):
                         in_predictcenline_array = ThinningMasks.compute(in_predictmask_array)
                     except:
                         in_predictcenline_array = np.zeros_like(in_predictmask_array)
+
+                if (args.removeTracheaCalcMetrics):
+                    # Remove the trachea and main bronchii from the binary masks
+                    in_predictmask_array = OperationMasks.substract_two_masks(in_predictmask_array, in_coarseairways_array)
+
+                    if (is_load_pred_cenlines_files):
+                        in_predictcenline_array = OperationMasks.substract_two_masks(in_predictcenline_array, in_coarseairways_array)
+                # **********************************************
 
 
                 outdict_computedMetrics[in_thres_value] = []
@@ -192,7 +201,7 @@ def main(args):
             fout.write(strheader)
 
         for (in_thres, outlist_computedMetrics) in outdict_computedMetrics.iteritems():
-            list_outdata = ['%0.3f'%(in_thres)] + ['%0.6f'%(elem) for elem in outlist_computedMetrics]
+            list_outdata = ['%0.6f'%(in_thres)] + ['%0.6f'%(elem) for elem in outlist_computedMetrics]
             strdata = ', '.join(list_outdata) + '\n'
             fout.write(strdata)
         # endfor

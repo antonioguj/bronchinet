@@ -78,11 +78,13 @@ def main(args):
 
     print("Load all predictions where to evaluate the metrics, total of \'%s\' files..." %(num_validpred_files))
     listin_posterior_array = []
-    listin_reference_array  = []
+    listin_reference_array = []
+    listin_coarseairways_array = []
     with tqdm(total=num_validpred_files) as progressbar:
         for i, in_posterior_file in enumerate(listInputPosteriorsFiles):
 
             in_posterior_array = FileReader.get_image_array(in_posterior_file)
+            listin_posterior_array.append(in_posterior_array)
 
             if (is_load_refer_cenlines_files):
                 in_refercenline_file = findFileWithSamePrefixPattern(basename(in_posterior_file), listInputReferCentrelinesFiles,
@@ -95,22 +97,20 @@ def main(args):
                 in_refermask_array = FileReader.get_image_array(in_refermask_file)
                 in_reference_array = in_refermask_array
 
-
             if (args.removeTracheaResMetrics):
                 in_coarseairways_file = findFileWithSamePrefixPattern(basename(in_posterior_file), listInputCoarseAirwaysFiles,
                                                                       prefix_pattern=prefixPatternInputFiles)
                 in_coarseairways_array = FileReader.get_image_array(in_coarseairways_file)
-                in_coarseairways_array = MorphoDilateMasks.compute(in_coarseairways_array, num_iters=4)
 
-                in_posterior_array = OperationMasks.substract_two_masks(in_posterior_array, in_coarseairways_array)
+                in_coarseairways_array = MorphoDilateMasks.compute(in_coarseairways_array, num_iters=4)
+                listin_coarseairways_array.append(in_coarseairways_array)
+
                 in_reference_array = OperationMasks.substract_two_masks(in_reference_array, in_coarseairways_array)
 
-            listin_posterior_array.append(in_posterior_array)
             listin_reference_array.append(in_reference_array)
-            
             progressbar.update(1)
         # endfor
-
+    # *******************************************************************************
 
 
     for iter in range(num_iterEvaluate_max):
@@ -124,7 +124,7 @@ def main(args):
                 # Compute the binary masks by thresholding the posteriors
                 in_predictmask_array = ThresholdImages.compute(in_posterior_array, curr_thres_value)
 
-                if args.isconnectedmasks:
+                if (args.isconnectedmasks):
                     # Compute the first connected component from the binary masks
                     in_predictmask_array = FirstConnectedRegionMasks.compute(in_predictmask_array, connectivity_dim=1)
 
@@ -138,6 +138,11 @@ def main(args):
                     in_predictdata_array = in_predictcenline_array
                 else:
                     in_predictdata_array = in_predictmask_array
+
+                if (args.removeTracheaCalcMetrics):
+                    # Remove the trachea and main bronchii from the binary masks
+                    in_predictdata_array = OperationMasks.substract_two_masks(in_predictdata_array, in_coarseairways_array)
+                # **********************************************
 
 
                 outres_metrics = fun_metrics_evalThreshold(in_referdata_array, in_predictdata_array)
