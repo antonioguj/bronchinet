@@ -31,7 +31,7 @@ def main(args):
 
 
 
-    out_dictCropBoundingBoxes = OrderedDict()
+    outdict_cropBoundingBoxes = OrderedDict()
     max_size_bounding_box = (0, 0, 0)
     min_size_bounding_box = (1.0e+03, 1.0e+03, 1.0e+03)
 
@@ -67,7 +67,7 @@ def main(args):
 
             # store computed bounding-boxes
             in_referkey_file = listInputReferKeysFiles[i]
-            out_dictCropBoundingBoxes[basenameNoextension(in_referkey_file)] = [bounding_box_left, bounding_box_right]
+            outdict_cropBoundingBoxes[basenameNoextension(in_referkey_file)] = [bounding_box_left, bounding_box_right]
         #endfor
     else:
         # compute bounding-box including for both left and right lungs
@@ -93,7 +93,7 @@ def main(args):
 
             # store computed bounding-box
             in_referkey_file = listInputReferKeysFiles[i]
-            out_dictCropBoundingBoxes[basenameNoextension(in_referkey_file)] = bounding_box
+            outdict_cropBoundingBoxes[basenameNoextension(in_referkey_file)] = bounding_box
     #endfor
 
     print("\nMax size bounding-box found: \'%s\'..." %(str(max_size_bounding_box)))
@@ -115,8 +115,8 @@ def main(args):
         fixed_size_bounding_box = False
 
 
-    for i, (in_key, in_list_bounding_boxes) in enumerate(out_dictCropBoundingBoxes.iteritems()):
-        print("\nInput Key: \'%s\'..." % (in_key))
+    for i, (in_key_file, in_list_bounding_boxes) in enumerate(outdict_cropBoundingBoxes.iteritems()):
+        print("\nInput Key file: \'%s\'..." % (in_key_file))
 
         in_roimask_file = listInputRoiMasksFiles[i]
         in_roimask_array_shape = FileReader.get_image_size(in_roimask_file)
@@ -159,9 +159,9 @@ def main(args):
 
                 # store computed bounding-box
                 if args.isTwoBoundingBoxEachLungs:
-                    out_dictCropBoundingBoxes[in_key][j] = proc_bounding_box
+                    outdict_cropBoundingBoxes[in_key_file][j] = proc_bounding_box
                 else:
-                    out_dictCropBoundingBoxes[in_key] = proc_bounding_box
+                    outdict_cropBoundingBoxes[in_key_file] = proc_bounding_box
             else:
                 print("No changes made to bounding-box...")
         #endfor
@@ -169,8 +169,8 @@ def main(args):
 
 
     # Save dictionary in file
-    saveDictionary(OutputBoundingBoxesFile, out_dictCropBoundingBoxes)
-    saveDictionary_csv(OutputBoundingBoxesFile.replace('.npy','.csv'), out_dictCropBoundingBoxes)
+    saveDictionary(OutputBoundingBoxesFile, outdict_cropBoundingBoxes)
+    saveDictionary_csv(OutputBoundingBoxesFile.replace('.npy','.csv'), outdict_cropBoundingBoxes)
 
 
 

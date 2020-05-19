@@ -142,7 +142,7 @@ def main(args):
     print("Predicting model...")
     print("-" * 30)
 
-    out_dictReferenceKeys = OrderedDict()
+    outdict_referenceKeys = OrderedDict()
 
     for ifile, in_testXData_file in enumerate(listTestImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_testXData_file)))
@@ -203,7 +203,7 @@ def main(args):
                 FileReader.write_image_array(output_pred_file, out_prediction_array[..., ifeatmap])
 
                 # save this prediction in reference keys
-                out_dictReferenceKeys[basenameNoextension(output_pred_file)] = basename(in_referkey_file)
+                outdict_referenceKeys[basenameNoextension(output_pred_file)] = basename(in_referkey_file)
             #endfor
         else:
             output_pred_file = joinpathnames(OutputPredictionsPath, nameOutputPredictionFiles % (in_caseprocname_file))
@@ -212,12 +212,12 @@ def main(args):
             FileReader.write_image_array(output_pred_file, out_prediction_array)
 
             # save this prediction in reference keys
-            out_dictReferenceKeys[basenameNoextension(output_pred_file)] = basename(in_referkey_file)
+            outdict_referenceKeys[basenameNoextension(output_pred_file)] = basename(in_referkey_file)
     #endfor
 
     # Save dictionary in file
-    saveDictionary(OutputReferKeysFile, out_dictReferenceKeys)
-    saveDictionary_csv(OutputReferKeysFile.replace('.npy', '.csv'), out_dictReferenceKeys)
+    saveDictionary(OutputReferKeysFile, outdict_referenceKeys)
+    saveDictionary_csv(OutputReferKeysFile.replace('.npy', '.csv'), outdict_referenceKeys)
 
 
 

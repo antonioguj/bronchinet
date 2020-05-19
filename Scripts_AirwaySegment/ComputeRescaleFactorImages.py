@@ -29,7 +29,7 @@ def main(args):
 
 
 
-    out_dictVoxelSizes = OrderedDict()
+    outdict_voxelSizes = OrderedDict()
 
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." %(basename(in_image_file)))
@@ -38,16 +38,16 @@ def main(args):
         print("Voxel Size: \'%s\'..." %(str(in_voxel_size)))
 
         in_referkey_file = listInputReferKeysFiles[i]
-        out_dictVoxelSizes[basenameNoextension(in_referkey_file)] = in_voxel_size
+        outdict_voxelSizes[basenameNoextension(in_referkey_file)] = in_voxel_size
     #endfor
 
 
     # Save dictionary in file
-    saveDictionary(OutputOrigVoxelSizeFile, out_dictVoxelSizes)
-    saveDictionary_csv(OutputOrigVoxelSizeFile.replace('.npy','.csv'), out_dictVoxelSizes)
+    saveDictionary(OutputOrigVoxelSizeFile, outdict_voxelSizes)
+    saveDictionary_csv(OutputOrigVoxelSizeFile.replace('.npy','.csv'), outdict_voxelSizes)
 
 
-    data = np.array(out_dictVoxelSizes.values())
+    data = np.array(outdict_voxelSizes.values())
     mean = np.mean(data, axis=0)
     print("\nMean value: \'%0.6f\'..." %(mean))
     median = np.median(data, axis=0)
@@ -62,21 +62,21 @@ def main(args):
     print("Final rescaling resolution: \'%s\'..." %(str(final_rescale_res)))
 
 
-    out_dictRescaleFactors = OrderedDict()
+    outdict_rescaleFactors = OrderedDict()
 
-    for key, value in out_dictVoxelSizes.iteritems():
-        print("\nKey: \'%s\'..." %(key))
+    for in_key_file, in_voxel_size in outdict_voxelSizes.iteritems():
+        print("\nInput Key file: \'%s\'..." % (in_key_file))
 
-        rescale_factor = tuple(np.array(value) / np.array(final_rescale_res))
+        rescale_factor = tuple(np.array(in_voxel_size) / np.array(final_rescale_res))
         print("Computed rescale factor: \'%s\'..." %(str(rescale_factor)))
 
-        out_dictRescaleFactors[key] = rescale_factor
+        outdict_rescaleFactors[in_key_file] = rescale_factor
     #endfor
 
 
     # Save dictionary in file
-    saveDictionary(OutputRescaleFactorsFile, out_dictRescaleFactors)
-    saveDictionary_csv(OutputRescaleFactorsFile.replace('.npy','.csv'), out_dictRescaleFactors)
+    saveDictionary(OutputRescaleFactorsFile, outdict_rescaleFactors)
+    saveDictionary_csv(OutputRescaleFactorsFile.replace('.npy','.csv'), outdict_rescaleFactors)
 
 
 

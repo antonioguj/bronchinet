@@ -32,7 +32,6 @@ def main(args):
     if (args.removeTracheaCalcMetrics):
         InputCoarseAirwaysPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputCoarseAirwaysRelPath)
         listInputCoarseAirwaysFiles = findFilesDirAndCheck(InputCoarseAirwaysPath)
-
         #InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
         #listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
@@ -41,24 +40,24 @@ def main(args):
     list_isUse_reference_centrelines = []
     list_isUse_predicted_centrelines = []
     for imetrics in args.listResultMetrics:
-        newgenMetrics = DICTAVAILMETRICFUNS(imetrics)
-        if newgenMetrics.name_fun_out=='completeness_mod':
-            listResultMetrics[newgenMetrics.name_fun_out] = newgenMetrics.compute_fun_np_correct
+        newgen_metrics = DICTAVAILMETRICFUNS(imetrics)
+        if newgen_metrics.name_fun_out=='completeness_mod':
+            listResultMetrics[newgen_metrics.name_fun_out] = newgen_metrics.compute_fun_np_correct
         else:
-            listResultMetrics[newgenMetrics.name_fun_out] = newgenMetrics.compute_np
+            listResultMetrics[newgen_metrics.name_fun_out] = newgen_metrics.compute_np
 
-        list_isUse_reference_centrelines.append(newgenMetrics._isUse_reference_clines)
-        list_isUse_predicted_centrelines.append(newgenMetrics._isUse_predicted_clines)
+        list_isUse_reference_centrelines.append(newgen_metrics._isUse_reference_clines)
+        list_isUse_predicted_centrelines.append(newgen_metrics._isUse_predicted_clines)
     #endfor
-    isLoadReferenceCentrelineFiles = any(list_isUse_reference_centrelines)
-    isLoadPredictedCentrelineFiles = any(list_isUse_predicted_centrelines)
+    is_load_refer_cenlines_files = any(list_isUse_reference_centrelines)
+    is_load_pred_cenlines_files  = any(list_isUse_predicted_centrelines)
 
-    if (isLoadReferenceCentrelineFiles):
+    if (is_load_refer_cenlines_files):
         print("Loading Reference Centrelines...")
         InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputReferCentrelinesRelPath)
         listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath)
 
-    if (isLoadPredictedCentrelineFiles):
+    if (is_load_pred_cenlines_files):
         if not args.inputcenlinesdir:
             message = 'Missing input path for the Predicted Centrelines...'
             CatchErrorException(message)
@@ -68,12 +67,8 @@ def main(args):
         listInputPredictCentrelinesFiles = findFilesDirAndCheck(InputPredictCentrelinesPath)
 
 
-    nbInputFiles  = len(listInputPredictMasksFiles)
-    nbCompMetrics = len(listResultMetrics)
-    list_casenames = []
-    list_computed_metrics = np.zeros((nbInputFiles, nbCompMetrics))
 
-
+    outdict_computedMetrics = OrderedDict()
 
     for i, in_predictmask_file in enumerate(listInputPredictMasksFiles):
         print("\nInput: \'%s\'..." % (basename(in_predictmask_file)))
@@ -86,13 +81,13 @@ def main(args):
         in_refermask_array   = FileReader.get_image_array(in_refermask_file)
         print("Predictions of size: %s..." % (str(in_predictmask_array.shape)))
 
-        if (isLoadReferenceCentrelineFiles):
+        if (is_load_refer_cenlines_files):
             in_refercenline_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputReferCentrelinesFiles,
                                                                  prefix_pattern=prefixPatternInputFiles)
             print("Reference centrelines file: \'%s\'..." % (basename(in_refercenline_file)))
             in_refercenline_array = FileReader.get_image_array(in_refercenline_file)
 
-        if (isLoadPredictedCentrelineFiles):
+        if (is_load_pred_cenlines_files):
             in_predictcenline_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputPredictCentrelinesFiles,
                                                                    prefix_pattern=prefixPatternInputFiles)
             print("Predicted centrelines file: \'%s\'..." % (basename(in_predictcenline_file)))
@@ -100,7 +95,7 @@ def main(args):
 
 
         if (args.removeTracheaCalcMetrics):
-            print("Remove trachea and main bronchi masks in computed metrics...")
+            print("Remove trachea and main bronchii masks in computed metrics...")
 
             in_coarseairways_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputCoarseAirwaysFiles,
                                                                   prefix_pattern=prefixPatternInputFiles)
@@ -108,55 +103,59 @@ def main(args):
 
             in_coarseairways_array = FileReader.get_image_array(in_coarseairways_file)
 
-            print("Dilate coarse airways masks 4 levels to remove completelly trachea and main bronchi from ground-truth...")
+            print("Dilate coarse airways masks 4 levels to remove completely trachea and main bronchi from ground-truth...")
             in_coarseairways_array = MorphoDilateMasks.compute(in_coarseairways_array, num_iters=4)
 
             in_predictmask_array = OperationMasks.substract_two_masks(in_predictmask_array, in_coarseairways_array)
             in_refermask_array   = OperationMasks.substract_two_masks(in_refermask_array,   in_coarseairways_array)
 
-            if (isLoadReferenceCentrelineFiles):
+            if (is_load_refer_cenlines_files):
                 in_refercenline_array = OperationMasks.substract_two_masks(in_refercenline_array, in_coarseairways_array)
 
-            if (isLoadPredictedCentrelineFiles):
+            if (is_load_pred_cenlines_files):
                 in_predictcenline_array = OperationMasks.substract_two_masks(in_predictcenline_array, in_coarseairways_array)
 
 
+        # *******************************************************************************
         # Compute and store Metrics
-        for j, (key, value) in enumerate(listResultMetrics.iteritems()):
+        key_casename = getSubstringPatternFilename(basename(in_predictmask_file), substr_pattern=prefixPatternInputFiles)[:-1]
+        outdict_computedMetrics[key_casename] = []
+
+        for j, (imetr_name, imetrics_fun) in enumerate(listResultMetrics.iteritems()):
             if list_isUse_reference_centrelines[j]:
-                in_referYdata_array = in_refercenline_array
+                in_referdata_array = in_refercenline_array
             else:
-                in_referYdata_array = in_refermask_array
+                in_referdata_array = in_refermask_array
             if list_isUse_predicted_centrelines[j]:
-                in_predictYdata_array = in_predictcenline_array
+                in_predictdata_array = in_predictcenline_array
             else:
-                in_predictYdata_array = in_predictmask_array
+                in_predictdata_array = in_predictmask_array
 
             try:
-            # 'try' statement to 'catch' issues when predictions are 'null' (for extreme threshold values)
-                if key=='completeness_mod':
-                    metric_value = value(in_referYdata_array, in_predictYdata_array, in_refercenline_array)
+            #'try' statement to 'catch' issues when predictions are 'null' (for extreme threshold values)
+                if imetr_name=='completeness_mod':
+                    outres_metrics = imetrics_fun(in_referdata_array, in_predictdata_array, in_refercenline_array)
                 else:
-                    metric_value = value(in_referYdata_array, in_predictYdata_array)
+                    outres_metrics = imetrics_fun(in_referdata_array, in_predictdata_array)
             except:  # set dummy value for cases with issues
-                metric_value = -1.0
-            print("Metric \'%s\': %s..." % (key, metric_value))
-            list_computed_metrics[i,j] = metric_value
-        # endfor
+                outres_metrics = -1.0
+            print("Metric \'%s\': %s..." % (imetr_name, outres_metrics))
 
-        prefix_casename = getSubstringPatternFilename(basename(in_predictmask_file), substr_pattern=prefixPatternInputFiles)[:-1]
-        list_casenames.append(prefix_casename)
-    #endfor
+            outdict_computedMetrics[key_casename].append(outres_metrics)
+        # endfor
+    # endfor
+
 
     # write out computed metrics in file
-    outresults_filename = joinpathnames(args.inputpredmasksdir, args.outputfile)
-    fout = open(outresults_filename, 'w')
+    out_results_filename = joinpathnames(args.inputpredmasksdir, args.outputfile)
+    fout = open(out_results_filename, 'w')
 
-    strheader = ', '.join(['/case/'] + ['/%s/'%(key) for (key, _) in listResultMetrics.iteritems()]) + '\n'
+    strheader = ', '.join(['/case/'] + ['/%s/'%(key) for key in listResultMetrics.keys()]) + '\n'
     fout.write(strheader)
 
-    for i in range(nbInputFiles):
-        strdata = ', '.join([list_casenames[i]] + ['%0.6f'%(elem) for elem in list_computed_metrics[i]]) + '\n'
+    for (in_casename, outlist_computedMetrics) in outdict_computedMetrics.iteritems():
+        list_outdata = [in_casename] + ['%0.6f'%(elem) for elem in outlist_computedMetrics]
+        strdata = ', '.join(list_outdata) + '\n'
         fout.write(strdata)
     #endfor
     fout.close()

@@ -132,7 +132,7 @@ def main(args):
 
 
 
-    out_dictReferenceKeys = OrderedDict()
+    outdict_referenceKeys = OrderedDict()
 
     for icount, (index_data, index_image_file) in enumerate(indexesMergeInputFiles):
 
@@ -146,7 +146,7 @@ def main(args):
             copyfile(input_image_file, output_image_file)
 
         # save this image in reference keys
-        out_dictReferenceKeys[basenameNoextension(output_image_file)] = basename(in_referkey_file)
+        outdict_referenceKeys[basenameNoextension(output_image_file)] = basename(in_referkey_file)
 
 
         if args.isPrepareLabels:
@@ -168,8 +168,8 @@ def main(args):
 
 
     # Save dictionary in file
-    saveDictionary(OutputReferKeysFile, out_dictReferenceKeys)
-    saveDictionary_csv(OutputReferKeysFile.replace('.npy','.csv'), out_dictReferenceKeys)
+    saveDictionary(OutputReferKeysFile, outdict_referenceKeys)
+    saveDictionary_csv(OutputReferKeysFile.replace('.npy','.csv'), outdict_referenceKeys)
 
 
 

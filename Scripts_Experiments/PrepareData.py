@@ -101,7 +101,7 @@ def main(args):
 
 
 
-    out_dictReferenceKeys = OrderedDict()
+    outdict_referenceKeys = OrderedDict()
 
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
@@ -291,7 +291,7 @@ def main(args):
             icount += 1
 
             # save this image in reference keys
-            out_dictReferenceKeys[basenameNoextension(output_image_file)] = basename(in_image_file)
+            outdict_referenceKeys[basenameNoextension(output_image_file)] = basename(in_image_file)
 
 
             if (args.isPrepareLabels):
@@ -321,8 +321,8 @@ def main(args):
 
 
     # Save dictionary in file
-    saveDictionary(OutputReferKeysFile, out_dictReferenceKeys)
-    saveDictionary_csv(OutputReferKeysFile.replace('.npy','.csv'), out_dictReferenceKeys)
+    saveDictionary(OutputReferKeysFile, outdict_referenceKeys)
+    saveDictionary_csv(OutputReferKeysFile.replace('.npy','.csv'), outdict_referenceKeys)
 
 
 
