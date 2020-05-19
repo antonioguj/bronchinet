@@ -33,22 +33,22 @@ def main(args):
     # parameters to draw ROC curve
     inlist_thresholds = [0.0]
     # num_thresholds = 9
-    # range_threshold = [-10, -2]
-    # inlist_thresholds += (np.logspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()
+    range_threshold = [-6, -2]
+    inlist_thresholds += (np.logspace(range_threshold[0], range_threshold[1], 5)).tolist()
     # num_thresholds = 9
-    # range_threshold = [0.1, 0.9]
-    # inlist_thresholds += (np.linspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()
+    range_threshold = [0.1, 0.5]
+    inlist_thresholds += (np.linspace(range_threshold[0], range_threshold[1], 5)).tolist()
     # num_thresholds = 9
     # range_threshold = [-2, -10]
     # inlist_thresholds += [1.0 - elem for elem in (np.logspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()]
     # #allowedDistance = 0
-    inlist_thresholds += [1.0]
+    #inlist_thresholds += [1.0]
     print("List of Threshold values: %s" % (inlist_thresholds))
     # ---------- SETTINGS ----------
 
 
     workDirsManager     = WorkDirsManager(args.basedir)
-    InputPosteriorsPath = workDirsManager.getNameExistPath        (args.inputpredictionsdir)
+    InputPosteriorsPath = workDirsManager.getNameExistPath        (args.inputposteriorsdir)
     InputReferMasksPath = workDirsManager.getNameExistBaseDataPath(args.nameInputReferMasksRelPath)
     OutputFilesPath     = workDirsManager.getNameNewPath          (args.outputdir)
 
@@ -59,8 +59,6 @@ def main(args):
     if (args.removeTracheaCalcMetrics):
         InputCoarseAirwaysPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputCoarseAirwaysRelPath)
         listInputCoarseAirwaysFiles = findFilesDirAndCheck(InputCoarseAirwaysPath)
-        #InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
-        #listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
 
     listMetricsROCcurve = OrderedDict()
@@ -134,8 +132,12 @@ def main(args):
         with tqdm(total=num_thresholds) as progressbar:
             for j, in_thres_value in enumerate(inlist_thresholds):
 
-                # Compute the binary masks by thresholding
+                # Compute the binary masks by thresholding the posteriors
                 in_predictmask_array = ThresholdImages.compute(in_posterior_array, in_thres_value)
+
+                if args.isconnectedmasks:
+                    # Compute the first connected component from the binary masks
+                    in_predictmask_array = FirstConnectedRegionMasks.compute(in_predictmask_array, connectivity_dim=1)
 
                 if (is_load_pred_cenlines_files):
                     # Compute centrelines by thinning the binary masks
@@ -216,17 +218,18 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('inputpredictionsdir', type=str)
+    parser.add_argument('inputposteriorsdir', type=str)
     parser.add_argument('--outputdir', type=str, default=None)
-    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
-    parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
-    parser.add_argument('--nameInputReferCentrelinesRelPath', type=str, default=NAME_RAWCENTRELINES_RELPATH)
     parser.add_argument('--listMetricsROCcurve', type=parseListarg, default=LISTMETRICSROCCURVE)
     parser.add_argument('--removeTracheaCalcMetrics', type=str2bool, default=REMOVETRACHEACALCMETRICS)
+    parser.add_argument('--isconnectedmasks', type=str2bool, default=False)
+    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
+    parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAWCOARSEAIRWAYS_RELPATH)
+    parser.add_argument('--nameInputReferCentrelinesRelPath', type=str, default=NAME_RAWCENTRELINES_RELPATH)
     args = parser.parse_args()
 
     if not args.outputdir:
-        nameOutputFilesRelPath = args.inputpredictionsdir
+        args.outputdir = args.inputposteriorsdir
 
     print("Print input arguments...")
     for key, value in vars(args).iteritems():

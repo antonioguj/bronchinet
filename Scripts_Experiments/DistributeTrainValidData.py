@@ -71,7 +71,7 @@ def main(args):
 
 
     # Assign indexes for training / validation / testing data (randomly or with fixed order)
-    if args.typedistdata == 'original' or args.typedistdata == 'random':
+    if args.typedist == 'original' or args.typedist == 'random':
         sum_propData = sum(args.propData_trainvalidtest)
         if sum_propData != 1.0:
             message = 'Sum of props of Training / Validation / Testing data != 1.0 (%s)... Change input param...' %(sum_propData)
@@ -83,7 +83,7 @@ def main(args):
         numfiles_testing    = max(0, numImagesFiles - numfiles_training - numfiles_validation)
         print("Num files for Training (%s)/ Validation (%s)/ Testing (%s)..." %(numfiles_training, numfiles_validation, numfiles_testing))
 
-        if args.typedistdata == 'random':
+        if args.typedist == 'random':
             print("Distribute the Training / Validation / Testing data randomly...")
             indexesInputFiles = np.random.choice(range(numImagesFiles), size=numImagesFiles, replace=False)
         else:
@@ -93,7 +93,7 @@ def main(args):
         indexesValidationFiles = indexesInputFiles[numfiles_training:numfiles_training+numfiles_validation]
         indexesTestingFiles    = indexesInputFiles[numfiles_training+numfiles_validation::]
 
-    elif args.typedistdata == 'orderfile':
+    elif args.typedist == 'orderfile':
         args.infilevalidorder = args.infiletrainorder.replace('train','valid')
         args.infiletestorder  = args.infiletrainorder.replace('train','test')
 
@@ -193,32 +193,32 @@ if __name__ == "__main__":
     parser.add_argument('--nameTrainingDataRelPath', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--nameValidationDataRelPath', type=str, default=NAME_VALIDATIONDATA_RELPATH)
     parser.add_argument('--nameTestingDataRelPath', type=str, default=NAME_TESTINGDATA_RELPATH)
-    parser.add_argument('--typedata', type=str, default='training')
-    parser.add_argument('--typedistdata', type=str, default='original')
+    parser.add_argument('--type', type=str, default='training')
+    parser.add_argument('--typedist', type=str, default='original')
     parser.add_argument('--propData_trainvalidtest', type=str2tuplefloat, default=PROPDATA_TRAINVALIDTEST)
     parser.add_argument('--infiletrainorder', type=str, default=None)
     args = parser.parse_args()
 
-    if args.typedata == 'training':
+    if args.type == 'training':
         print("Distribute Training data: Processed Images and Labels...")
         args.isPrepareLabels    = True
         args.isInputExtraLabels = False
 
-    elif args.typedata == 'testing':
+    elif args.type == 'testing':
         print("Prepare Testing data: Only Processed Images. Keep raw Images and Labels for testing...")
         args.isKeepRawImages      = True
         args.isPrepareLabels      = False
         args.isInputExtraLabels   = False
         args.isPrepareCentrelines = True
     else:
-        message = 'Input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typedata, LIST_TYPEDATA_AVAIL)
+        message = 'Input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.type, LIST_TYPEDATA_AVAIL)
         CatchErrorException(message)
 
-    if args.typedistdata not in LIST_TYPESDISTDATA_AVAIL:
-        message = 'Input param \'typedistdata\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.typedistdata, LIST_TYPESDISTDATA_AVAIL)
+    if args.typedist not in LIST_TYPESDISTDATA_AVAIL:
+        message = 'Input param \'typedistdata\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.typedist, LIST_TYPESDISTDATA_AVAIL)
         CatchErrorException(message)
 
-    if args.typedistdata == 'orderfile' and not args.infiletrainorder:
+    if args.typedist == 'orderfile' and not args.infiletrainorder:
         message = 'Input \'infileorder\' file for \'fixed-order\' data distribution is needed...'
         CatchErrorException(message)
 

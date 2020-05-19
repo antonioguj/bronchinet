@@ -90,7 +90,7 @@ def main(args):
 
 
     # Assign indexes for merging the source data (randomly or with fixed order)
-    if args.typedistdata == 'original' or args.typedistdata == 'random':
+    if args.typedist == 'original' or args.typedist == 'random':
         indexesMergeInputFiles = []
 
         for idata, it_listInputImagesFiles in enumerate(listInputImagesFiles_allData):
@@ -98,14 +98,14 @@ def main(args):
             indexesMergeInputFiles += indexes_files_this
         # endfor
 
-        if args.typedistdata == 'random':
+        if args.typedist == 'random':
             print("Distribute the merged data randomly...")
 
             num_inputfiles_total = len(indexesMergeInputFiles)
             random_indexes_sizeTotal = np.random.choice(range(num_inputfiles_total), size=num_inputfiles_total, replace=False)
             indexesMergeInputFiles = [indexesMergeInputFiles[index] for index in random_indexes_sizeTotal]
 
-    elif args.typedistdata == 'orderfile':
+    elif args.typedist == 'orderfile':
         listInputReferKeys_allData = [elem.values() for elem in listDictInputReferKeys_allData]
 
         indexesMergeInputFiles = searchIndexesInputFilesFromReferKeysInFile(args.infileorder, listInputReferKeys_allData)
@@ -181,30 +181,30 @@ if __name__ == "__main__":
     parser.add_argument('--nameInOutLabelsRelPath', type=str, default=NAME_PROCLABELS_RELPATH)
     parser.add_argument('--nameInOutExtraLabelsRelPath', type=str, default=NAME_PROCEXTRALABELS_RELPATH)
     parser.add_argument('--nameInOutReferKeysFile', type=str, default=NAME_REFERKEYSPROCIMAGE_FILE)
-    parser.add_argument('--typedata', type=str, default='training')
-    parser.add_argument('--typedistdata', type=str, default='original')
+    parser.add_argument('--type', type=str, default='training')
+    parser.add_argument('--typedist', type=str, default='original')
     parser.add_argument('--infileorder', type=str, default=None)
     parser.add_argument('--isLinkmergedfiles', type=str2bool, default=True)
     args = parser.parse_args()
 
-    if args.typedata == 'training':
+    if args.type == 'training':
         print("Distribute Training data: Processed Images and Labels...")
         args.isPrepareLabels    = True
         args.isInputExtraLabels = False
 
-    elif args.typedata == 'testing':
+    elif args.type == 'testing':
         print("Prepare Testing data: Only Processed Images...")
         args.isPrepareLabels      = False
         args.isInputExtraLabels   = False
     else:
-        message = 'Input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typedata, LIST_TYPEDATA_AVAIL)
+        message = 'Input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.type, LIST_TYPEDATA_AVAIL)
         CatchErrorException(message)
 
-    if args.typedistdata not in LIST_TYPESDISTDATA_AVAIL:
-        message = 'Input param \'typedistdata\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.typedistdata, LIST_TYPESDISTDATA_AVAIL)
+    if args.typedist not in LIST_TYPESDISTDATA_AVAIL:
+        message = 'Input param \'typedistdata\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.typedist, LIST_TYPESDISTDATA_AVAIL)
         CatchErrorException(message)
 
-    if args.typedistdata == 'orderfile' and not args.infileorder:
+    if args.typedist == 'orderfile' and not args.infileorder:
         message = 'Input \'infileorder\' file for \'fixed-order\' data distribution is needed...'
         CatchErrorException(message)
 

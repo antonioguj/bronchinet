@@ -26,7 +26,7 @@ SCRIPT_RESCALEFACTORIMAGES  = joinpathnames(CODEDIR, 'Scripts_AirwaySegment/Comp
 SCRIPT_BOUNDINGBOXIMAGES    = joinpathnames(CODEDIR, 'Scripts_AirwaySegment/ComputeBoundingBoxImages.py')
 SCRIPT_PREPAREDATA          = joinpathnames(CODEDIR, 'Scripts_Experiments/PrepareData.py')
 
-CLUSTER_ARCHIVEDIR = 'agarcia@bigr-app001:/archive/agarcia/Data_Scratch/'
+CLUSTER_ARCHIVEDIR = 'agarcia@bigr-app001:/scratch/agarcia/Data/'
 
 LIST_TYPEDATA_AVAIL = ['training', 'testing']
 
@@ -285,7 +285,7 @@ def main(args):
 
 
     # remove all the data not needed anymore
-    if args.typedata == 'training':
+    if args.type == 'training':
         new_call = ['rm', '-r', nameInputRawImagesPath]
         list_calls_all.append(new_call)
 
@@ -319,7 +319,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('inclustercasedir', type=str)
     parser.add_argument('outputdatadir', type=str)
-    parser.add_argument('--typedata', type=str, default='training')
+    parser.add_argument('--type', type=str, default='training')
     parser.add_argument('--sizeTrainImages', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
@@ -329,7 +329,7 @@ if __name__ == "__main__":
     parser.add_argument('--fixedSizeBoundingBox', type=str2tupleintOrNone, default=FIXEDSIZEBOUNDINGBOX)
     args = parser.parse_args()
 
-    if args.typedata == 'training':
+    if args.type == 'training':
         print("Prepare Training data: Processed Images and Labels...")
         args.isKeepRawImages       = False
         args.isPrepareLabels       = True
@@ -345,7 +345,7 @@ if __name__ == "__main__":
                 args.isSameSizeBoundBoxAllImages = False
                 args.fixedSizeBoundingBox = None
 
-    elif args.typedata == 'testing':
+    elif args.type == 'testing':
         print("Prepare Testing data: Only Processed Images. Keep raw Images and Labels for testing...")
         args.isKeepRawImages       = True
         args.isPrepareLabels       = False
@@ -356,7 +356,7 @@ if __name__ == "__main__":
             args.isSameSizeBoundBoxAllImages = False
             args.fixedSizeBoundingBox = None
     else:
-        message = 'Input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.typedata, LIST_TYPEDATA_AVAIL)
+        message = 'Input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.type, LIST_TYPEDATA_AVAIL)
         CatchErrorException(message)
 
     print("Print input arguments...")

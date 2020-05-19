@@ -45,7 +45,7 @@ def main(args):
 
 
     workDirsManager     = WorkDirsManager(args.basedir)
-    InputPosteriorsPath = workDirsManager.getNameExistPath        (args.inputpredictionsdir)
+    InputPosteriorsPath = workDirsManager.getNameExistPath        (args.inputposteriorsdir)
     InputReferMasksPath = workDirsManager.getNameExistBaseDataPath(args.nameInputReferMasksRelPath)
 
     listInputPosteriorsFiles = findFilesDirAndCheck(InputPosteriorsPath)
@@ -55,8 +55,6 @@ def main(args):
     if (args.removeTracheaCalcMetrics):
         InputCoarseAirwaysPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputCoarseAirwaysRelPath)
         listInputCoarseAirwaysFiles = findFilesDirAndCheck(InputCoarseAirwaysPath)
-        #InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
-        #listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
         
 
     newgen_metrics = DICTAVAILMETRICFUNS(metricsEvalThreshold)
@@ -123,11 +121,15 @@ def main(args):
             sumrun_res_metrics = 0.0
             for i, (in_posterior_array, in_referdata_array) in enumerate(zip(listin_posterior_array, listin_reference_array)):
 
-                # Threshold probability maps to "curr_thres_value"
+                # Compute the binary masks by thresholding the posteriors
                 in_predictmask_array = ThresholdImages.compute(in_posterior_array, curr_thres_value)
 
+                if args.isconnectedmasks:
+                    # Compute the first connected component from the binary masks
+                    in_predictmask_array = FirstConnectedRegionMasks.compute(in_predictmask_array, connectivity_dim=1)
+
                 if (is_load_pred_cenlines_files):
-                    # Compute centrelines by thinning the masks
+                    # Compute centrelines by thinning the binary masks
                     try:
                         #'try' statement to 'catch' issues when predictions are 'weird' (for extreme threshold values)
                         in_predictcenline_array = ThinningMasks.compute(in_predictmask_array)
@@ -136,6 +138,7 @@ def main(args):
                     in_predictdata_array = in_predictcenline_array
                 else:
                     in_predictdata_array = in_predictmask_array
+
 
                 outres_metrics = fun_metrics_evalThreshold(in_referdata_array, in_predictdata_array)
                 sumrun_res_metrics += outres_metrics
@@ -171,16 +174,17 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('inputpredictionsdir', type=str)
-    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
-    parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
-    parser.add_argument('--nameInputReferCentrelinesRelPath', type=str, default=NAME_RAWCENTRELINES_RELPATH)
+    parser.add_argument('inputposteriorsdir', type=str)
     parser.add_argument('--metricsEvalThreshold', type=str, default='AirwayVolumeLeakage')
     parser.add_argument('--metricsValueSought', type=float, default=0.13)
+    parser.add_argument('--removeTracheaResMetrics', type=str2bool, default=REMOVETRACHEACALCMETRICS)
+    parser.add_argument('--isconnectedmasks', type=str2bool, default=False)
+    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
+    parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAWCOARSEAIRWAYS_RELPATH)
+    parser.add_argument('--nameInputReferCentrelinesRelPath', type=str, default=NAME_RAWCENTRELINES_RELPATH)
     parser.add_argument('--numIterEvaluateMax', type=int, default=20)
     parser.add_argument('--relErrorEvalMax', type=float, default=1.0e-04)
     parser.add_argument('--initThresholdValue', type=float, default=0.5)
-    parser.add_argument('--removeTracheaResMetrics', type=str2bool, default=REMOVETRACHEACALCMETRICS)
     args = parser.parse_args()
 
     print("Print input arguments...")

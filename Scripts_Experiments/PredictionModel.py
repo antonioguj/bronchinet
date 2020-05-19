@@ -255,7 +255,7 @@ if __name__ == "__main__":
         else:
             input_args_file = readDictionary_configParams(args.cfgfromfile)
         print("Set up experiments with parameters from file: \'%s\'" %(args.cfgfromfile))
-        args.basedir               = str(input_args_file['basedir'])
+        #args.basedir               = str(input_args_file['basedir'])
         args.size_in_images        = str2tupleint(input_args_file['size_in_images'])
         args.masksToRegionInterest = str2bool(input_args_file['masksToRegionInterest'])
         args.isValidConvolutions   = str2bool(input_args_file['isValidConvolutions'])

@@ -24,6 +24,7 @@ from tqdm import tqdm
 from collections import OrderedDict
 
 
+
 class Trainer(object):
 
     def __init__(self, model_net,

@@ -32,8 +32,6 @@ def main(args):
     if (args.removeTracheaCalcMetrics):
         InputCoarseAirwaysPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputCoarseAirwaysRelPath)
         listInputCoarseAirwaysFiles = findFilesDirAndCheck(InputCoarseAirwaysPath)
-        #InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
-        #listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
 
     listResultMetrics = OrderedDict()
@@ -168,12 +166,11 @@ if __name__ == "__main__":
     parser.add_argument('inputpredmasksdir', type=str)
     parser.add_argument('--inputcenlinesdir', type=str, default=None)
     parser.add_argument('--outputfile', type=str, default='result_metrics.txt')
-    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
-    parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAWCOARSEAIRWAYS_RELPATH)
-    #parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
-    parser.add_argument('--nameInputReferCentrelinesRelPath', type=str, default=NAME_RAWCENTRELINES_RELPATH)
     parser.add_argument('--listResultMetrics', type=parseListarg, default=LISTRESULTMETRICS)
     parser.add_argument('--removeTracheaCalcMetrics', type=str2bool, default=REMOVETRACHEACALCMETRICS)
+    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
+    parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAWCOARSEAIRWAYS_RELPATH)
+    parser.add_argument('--nameInputReferCentrelinesRelPath', type=str, default=NAME_RAWCENTRELINES_RELPATH)
     args = parser.parse_args()
 
     if not args.inputcenlinesdir:
