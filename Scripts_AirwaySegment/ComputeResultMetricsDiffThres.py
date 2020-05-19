@@ -125,7 +125,13 @@ def main(args):
 
         # *******************************************************************************
         # Compute and store Metrics at all thresholds
-        print("Compute Metrics with Predictions computed with all thresholds \'%s\'..." %(inlist_thresholds))
+        print("\nCompute Metrics with all thresholds \'%s\'..." %(inlist_thresholds))
+        print("Step 1: Compute the binary masks by thresholding the posteriors...")
+        if args.isconnectedmasks:
+            print("Step 1.5: Compute the first connected component from the binary masks...")
+        print("Step 2: Compute the centrelines by thinning the binary masks...")
+        print("Step 3: Compute the Metrics:")
+
         key_casename = getSubstringPatternFilename(basename(in_posterior_file), substr_pattern=prefixPatternInputFiles)[:-1]
         outdict_computedMetrics = OrderedDict()
 

@@ -116,6 +116,7 @@ def main(args):
 
         # *******************************************************************************
         # Compute and store Metrics
+        print("\nCompute the Metrics:")
         key_casename = getSubstringPatternFilename(basename(in_predictmask_file), substr_pattern=prefixPatternInputFiles)[:-1]
         outdict_computedMetrics[key_casename] = []
 
@@ -137,7 +138,7 @@ def main(args):
                     outres_metrics = imetrics_fun(in_referdata_array, in_predictdata_array)
             except:  # set dummy value for cases with issues
                 outres_metrics = -1.0
-            print("Metric \'%s\': %s..." % (imetr_name, outres_metrics))
+            print("\'%s\': %s..." % (imetr_name, outres_metrics))
 
             outdict_computedMetrics[key_casename].append(outres_metrics)
         # endfor
