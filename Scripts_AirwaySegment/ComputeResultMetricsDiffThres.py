@@ -128,7 +128,7 @@ def main(args):
         if args.isconnectedmasks:
             print("- Compute the first connected component from the binary masks...")
         if args.removeTracheaCalcMetrics:
-            print("- Remove the trachea and main bronchii from the binary masks and centrelines...")
+            print("- Remove the trachea and main bronchii from the binary masks...")
         if is_load_pred_cenlines_files:
             print("- Compute the centrelines by thinning the binary masks...")
         print("- Compute the Metrics:")
