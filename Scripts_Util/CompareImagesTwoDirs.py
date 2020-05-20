@@ -9,7 +9,7 @@
 ########################################################################################
 
 from DataLoaders.FileReaders import *
-from OperationImages.OperationMasks import MorphoOpenMasks
+from OperationImages.OperationImages import MorphoOpenMasks
 from PlotsManager.Histograms import *
 from collections import OrderedDict
 import argparse
