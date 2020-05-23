@@ -258,12 +258,12 @@ def prepare_threshold_operation(args):
 
 # ------------------------------------------------
 def prepare_maskwithlabels_operation(args):
-    labels_mask = args.inmasklabels
-    print("Operation: Retrieve labels masks: \'%s\'..." %(labels_mask))
+    in_mask_labels = args.inmasklabels
+    print("Operation: Retrieve from the mask the labels: \'%s\'..." %(in_mask_labels))
 
     def wrapfun_maskwithlabels_image(in_array, i):
-        print("Retrieve labels mask: \'%s\'..." %(labels_mask))
-        return OperationMasks.get_masks_with_labels_list(in_array, labels_list=labels_mask)
+        print("Retrieve labels: \'%s\'..." %(in_mask_labels))
+        return OperationMasks.get_masks_with_labels_list(in_array, inlist_labels=in_mask_labels)
 
     return wrapfun_maskwithlabels_image
 
@@ -274,7 +274,7 @@ def prepare_normalise_operation(args):
 
     def wrapfun_normalise_image(in_array, i):
         print("Normalise image to (0,1)...")
-        return NormaliseImages.compute3D(in_array)
+        return NormaliseImages.compute(in_array)
 
     return wrapfun_normalise_image
 

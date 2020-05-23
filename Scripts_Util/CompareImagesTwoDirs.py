@@ -9,7 +9,8 @@
 ########################################################################################
 
 from DataLoaders.FileReaders import *
-from OperationImages.OperationImages import MorphoOpenMasks
+from OperationImages.OperationImages import *
+from OperationImages.OperationMasks import *
 from PlotsManager.Histograms import *
 from collections import OrderedDict
 import argparse
@@ -114,8 +115,8 @@ def main(args):
         in_image1_array = FileReader.get_image_array(in_file_1)
         in_image2_array = FileReader.get_image_array(in_file_2)
 
-        in_image1_array = np.clip(in_image1_array, 0, 1)
-        in_image2_array = np.clip(in_image2_array, 0, 1)
+        #in_image1_array = OperationMasks.binarise(in_image1_array)
+        #in_image2_array = OperationMasks.binarise(in_image2_array)
 
         # # Compare files metadata (header info)
         # if (filenameextension(in_file_1) == filenameextension(in_file_2)):
