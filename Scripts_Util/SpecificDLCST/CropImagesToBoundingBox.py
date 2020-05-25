@@ -35,6 +35,8 @@ def main(args):
         in_fullimage_array = FileReader.get_image_array(in_image_file)
         print("Original dims: \'%s\'..." % (str(in_fullimage_array.shape)))
 
+        inout_metadata = FileReader.get_image_metadata_info(in_image_file)
+
 
         in_referkey_file = findFileWithSamePrefixPattern(basename(in_image_file), listInputReferKeysFiles,
                                                          prefix_pattern=prefixPatternInputFiles)
@@ -52,7 +54,7 @@ def main(args):
         out_image_file = joinpathnames(args.outputdir, nameOutputImagesFiles(in_image_file))
         print("Output: \'%s\', of dims \'%s\'..." %(basename(out_image_file), str(out_cropimage_array.shape)))
 
-        FileReader.write_image_array(out_image_file, out_cropimage_array)
+        FileReader.write_image_array(out_image_file, out_cropimage_array, metadata=inout_metadata)
     #endfor
 
 

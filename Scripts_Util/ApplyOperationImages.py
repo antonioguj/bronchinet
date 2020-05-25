@@ -398,9 +398,9 @@ def main(args):
         inout_array = FileReader.get_image_array(in_file)
 
         if is_update_metadata_file:
-            out_metadata = func_updatemetadata(in_file, i)
+            inout_metadata = func_updatemetadata(in_file, i)
         else:
-            out_metadata = FileReader.get_image_metadata_info(in_file)
+            inout_metadata = FileReader.get_image_metadata_info(in_file)
 
 
         for func_name, func_operation in dict_func_operations.items():
@@ -411,7 +411,7 @@ def main(args):
         out_filename = joinpathnames(args.outputdir, nameOutputFiles(basename(in_file)))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), str(inout_array.shape)))
 
-        FileReader.write_image_array(out_filename, inout_array, metadata=out_metadata)
+        FileReader.write_image_array(out_filename, inout_array, metadata=inout_metadata)
     #endfor
 
 
