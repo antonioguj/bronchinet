@@ -35,8 +35,10 @@ def main(args):
         in_fullimage_array = FileReader.get_image_array(in_image_file)
         print("Original dims: \'%s\'..." % (str(in_fullimage_array.shape)))
 
-        inout_metadata = FileReader.get_image_metadata_info(in_image_file)
-
+        if fileextension(in_image_file) == '.nii.gz':
+            inout_metadata = FileReader.get_image_metadata_info(in_image_file)
+        else:
+            inout_metadata = None
 
         in_referkey_file = findFileWithSamePrefixPattern(basename(in_image_file), listInputReferKeysFiles,
                                                          prefix_pattern=prefixPatternInputFiles)
