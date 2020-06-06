@@ -28,7 +28,7 @@ np.random.seed(2017)
 def main(args):
     # ---------- SETTINGS ----------
     outfilename_metrics_eachcase = 'results_metrics_diffThres_%s.csv'
-    outfilename_metrics_meanall  = 'meanAllcases_results_metrics_diffThres.txt'
+    outfilename_metrics_meanall  = 'meanAllcases_results_metrics_diffThres.csv'
 
     # parameters to draw ROC curve
     inlist_thresholds = [0.0]
@@ -143,6 +143,9 @@ def main(args):
                 in_predictmask_array = ThresholdImages.compute(in_posterior_array, in_thres_value)
 
                 if (args.isconnectedmasks):
+                    # First, attach the trachea and main bronchii to the binary masks, to be able to compute the largest connected component
+                    in_predictmask_array = OperationMasks.merge_two_masks(in_predictmask_array, in_coarseairways_array)  # isNot_intersect_masks=True)
+
                     # Compute the first connected component from the binary masks
                     in_predictmask_array = FirstConnectedRegionMasks.compute(in_predictmask_array, connectivity_dim=1)
 
@@ -222,7 +225,7 @@ def main(args):
         fout.write(strheader)
 
     for i, in_thres in enumerate(inlist_thresholds):
-        list_outdata = ['%0.3f'%(in_thres)] + ['%0.6f'%(elem) for elem in outmeanallcases_computedMetrics[i]]
+        list_outdata = ['%0.6f'%(in_thres)] + ['%0.6f'%(elem) for elem in outmeanallcases_computedMetrics[i]]
         strdata = ', '.join(list_outdata) + '\n'
         fout.write(strdata)
     # endfor
