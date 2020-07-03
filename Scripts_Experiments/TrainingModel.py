@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.CPUGPUdevicesManager import *
+#from Common.CPUGPUdevicesManager import *
 from Common.WorkDirsManager import *
 from DataLoaders.BatchDataGeneratorManager import *
 from DataLoaders.LoadDataManager import *
@@ -43,8 +43,8 @@ def write_train_valid_data_log_file(out_filename, list_data_files, dict_refer_ke
 
 def main(args):
     # First thing, set session in the selected(s) devices: CPU or GPU
-    set_session_in_selected_device(use_GPU_device=True,
-                                   type_GPU_installed=args.typeGPUinstalled)
+    #set_session_in_selected_device(use_GPU_device=True,
+    #                               type_GPU_installed=args.typeGPUinstalled)
 
     # ---------- SETTINGS ----------
     nameInputImagesFiles = 'images_proc*.nii.gz'

@@ -53,7 +53,7 @@ class NormaliseImages(OperationImages):
 class CropImages(OperationImages):
     @staticmethod
     def compute2D(in_array, in_bound_box):
-        return in_array[:, in_bound_box[0][0]:in_bound_box[0][1], in_bound_box[1][0]:in_bound_box[1][1], ...]
+        return in_array[in_bound_box[0][0]:in_bound_box[0][1], in_bound_box[1][0]:in_bound_box[1][1], ...]
 
     @staticmethod
     def compute3D(in_array, in_bound_box):
