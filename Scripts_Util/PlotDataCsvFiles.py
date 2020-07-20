@@ -107,7 +107,7 @@ def main(args):
 
 
 
-    for (ifield, data_files) in dict_data_fields_files.iteritems():
+    for (ifield, data_files) in dict_data_fields_files.items():
 
         if args.type == 'plot':
             for i, idata in enumerate(data_files):
@@ -156,7 +156,7 @@ if __name__ == "__main__":
     dict_plots_help = {'plot': 'plot data',
                        'scatter': 'plot scattered data points',
                        'boxplot': 'plot boxplots from data'}
-    string_plots_help = '\n'.join([(key + ': ' + val) for key, val in dict_plots_help.iteritems()])
+    string_plots_help = '\n'.join([(key + ': ' + val) for key, val in dict_plots_help.items()])
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('inputfiles', type=str, nargs='*')
@@ -183,7 +183,7 @@ if __name__ == "__main__":
         CatchErrorException(message)
 
     print("Print input arguments...")
-    for key, value in vars(args).iteritems():
+    for key, value in vars(args).items():
         print("\'%s\' = %s" %(key, value))
 
     main(args)

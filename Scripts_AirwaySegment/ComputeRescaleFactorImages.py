@@ -64,7 +64,7 @@ def main(args):
 
     outdict_rescaleFactors = OrderedDict()
 
-    for in_key_file, in_voxel_size in outdict_voxelSizes.iteritems():
+    for in_key_file, in_voxel_size in outdict_voxelSizes.items():
         print("\nInput Key file: \'%s\'..." % (in_key_file))
 
         rescale_factor = tuple(np.array(in_voxel_size) / np.array(final_rescale_res))
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("Print input arguments...")
-    for key, value in vars(args).iteritems():
+    for key, value in vars(args).items():
         print("\'%s\' = %s" %(key, value))
 
     main(args)

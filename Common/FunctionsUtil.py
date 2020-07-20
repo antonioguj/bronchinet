@@ -201,7 +201,7 @@ def readDictionary_csv(filename):
         value_datatype = getStringDatatype(example_value)
         func_convert_values = getFuncConvertStringDatatype(value_datatype)
         out_dict = {}
-        for key, val in raw_out_dict.iteritems():
+        for key, val in raw_out_dict.items():
             out_dict[key] = func_convert_values(val)
         #endfor
         return out_dict

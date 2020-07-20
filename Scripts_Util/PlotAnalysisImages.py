@@ -70,7 +70,7 @@ def main(args):
 
 if __name__ == "__main__":
     dict_plots_help = {'histogram': 'plot histograms from images'}
-    string_plots_help = '\n'.join([(key + ': ' + val) for key, val in dict_plots_help.iteritems()])
+    string_plots_help = '\n'.join([(key + ': ' + val) for key, val in dict_plots_help.items()])
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('inputdir', type=str)
@@ -83,7 +83,7 @@ if __name__ == "__main__":
         CatchErrorException(message)
 
     print("Print input arguments...")
-    for key, value in vars(args).iteritems():
+    for key, value in vars(args).items():
         print("\'%s\' = %s" % (key, value))
 
     main(args)

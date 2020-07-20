@@ -86,7 +86,7 @@ def main(args):
     out_configparams_file = joinpathnames(ModelsPath, NAME_CONFIGPARAMS_FILE)
     if not isExistfile(out_configparams_file):
         print("Write configuration parameters in file: \'%s\'..." % (out_configparams_file))
-        dict_args = OrderedDict(sorted(vars(args).iteritems()))
+        dict_args = OrderedDict(sorted(vars(args).items()))
         saveDictionary_configParams(out_configparams_file, dict_args)
 
     # write out logs with the training and validation files files used
@@ -449,7 +449,7 @@ if __name__ == "__main__":
         args.isGNNwithAttentionLays = str2bool(input_args_file['isGNNwithAttentionLays'])
 
     print("Print input arguments...")
-    for key, value in sorted(vars(args).iteritems()):
+    for key, value in sorted(vars(args).items()):
         print("\'%s\' = %s" %(key, value))
 
     main(args)

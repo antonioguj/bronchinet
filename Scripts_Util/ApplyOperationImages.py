@@ -437,7 +437,7 @@ if __name__ == "__main__":
                        'normalise': 'normalise images to have voxels in the range (0, 1)',
                        'power': 'compute power of mask values',
                        'exponential': 'compute exponential of mask values'}
-    string_opers_help = '\n'.join([(key+': '+val) for key,val in dict_opers_help.iteritems()])
+    string_opers_help = '\n'.join([(key+': '+val) for key,val in dict_opers_help.items()])
     
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--datadir', type=str, default=DATADIR)
@@ -482,7 +482,7 @@ if __name__ == "__main__":
             CatchErrorException(message)
 
     print("Print input arguments...")
-    for key, value in vars(args).iteritems():
+    for key, value in vars(args).items():
         print("\'%s\' = %s" %(key, value))
 
     main(args)

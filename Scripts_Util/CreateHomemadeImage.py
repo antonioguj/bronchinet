@@ -75,7 +75,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     print("Print input arguments...")
-    for key, value in vars(args).iteritems():
+    for key, value in vars(args).items():
         print("\'%s\' = %s" %(key, value))
 
     main(args)

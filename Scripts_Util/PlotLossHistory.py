@@ -101,7 +101,7 @@ def main(args):
 
 
 
-    for (ifield, data_files) in dict_data_losses_fields_files.iteritems():
+    for (ifield, data_files) in dict_data_losses_fields_files.items():
         num_data_files = len(data_files)
 
         if num_data_files == 1:
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         CatchErrorException(message)
 
     print("Print input arguments...")
-    for key, value in vars(args).iteritems():
+    for key, value in vars(args).items():
         print("\'%s\' = %s" %(key, value))
 
     main(args)

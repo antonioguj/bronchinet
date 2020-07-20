@@ -119,7 +119,7 @@ def main(args):
         key_casename = getSubstringPatternFilename(basename(in_predictmask_file), substr_pattern=prefixPatternInputFiles)[:-1]
         outdict_computedMetrics[key_casename] = []
 
-        for j, (imetr_name, imetrics_fun) in enumerate(listResultMetrics.iteritems()):
+        for j, (imetr_name, imetrics_fun) in enumerate(listResultMetrics.items()):
             if list_isUse_reference_centrelines[j]:
                 in_referdata_array = in_refercenline_array
             else:
@@ -151,7 +151,7 @@ def main(args):
     strheader = ', '.join(['/case/'] + ['/%s/'%(key) for key in listResultMetrics.keys()]) + '\n'
     fout.write(strheader)
 
-    for (in_casename, outlist_computedMetrics) in outdict_computedMetrics.iteritems():
+    for (in_casename, outlist_computedMetrics) in outdict_computedMetrics.items():
         list_outdata = [in_casename] + ['%0.6f'%(elem) for elem in outlist_computedMetrics]
         strdata = ', '.join(list_outdata) + '\n'
         fout.write(strdata)
@@ -177,7 +177,7 @@ if __name__ == "__main__":
         args.inputcenlinesdir = args.inputpredmasksdir
 
     print("Print input arguments...")
-    for key, value in vars(args).iteritems():
+    for key, value in vars(args).items():
         print("\'%s\' = %s" %(key, value))
 
     main(args)

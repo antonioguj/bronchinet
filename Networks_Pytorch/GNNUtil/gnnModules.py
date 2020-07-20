@@ -97,7 +97,7 @@ class NodeGNN(nn.Module):
         dict_params_module = self.create_dict_params_module()
 
         out_state_dict = {}
-        for (key_mod, val_module) in dict_params_module.iteritems():
+        for (key_mod, val_module) in dict_params_module.items():
             i_dict_params = alloc_memory_params_module(val_module)
 
             if reset_parameters:
@@ -115,7 +115,7 @@ class NodeGNN(nn.Module):
                     raise NotImplementedError
 
             #update out dict. Need to complete the the key
-            for (key_par, val_params) in i_dict_params.iteritems():
+            for (key_par, val_params) in i_dict_params.items():
                 out_key = '.'.join([basename_module, key_mod, key_par])
                 out_state_dict[out_key] = val_params
             #endfor

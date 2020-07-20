@@ -89,7 +89,7 @@ if __name__ == "__main__":
         args.threshold_values = [args.threshold_values]
 
     print("Print input arguments...")
-    for key, value in vars(args).iteritems():
+    for key, value in vars(args).items():
         print("\'%s\' = %s" %(key, value))
 
     main(args)

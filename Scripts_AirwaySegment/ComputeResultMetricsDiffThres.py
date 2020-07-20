@@ -167,7 +167,7 @@ def main(args):
 
 
                 outdict_computedMetrics[in_thres_value] = []
-                for k, (imetr_name, imetrics_fun) in enumerate(listMetricsROCcurve.iteritems()):
+                for k, (imetr_name, imetrics_fun) in enumerate(listMetricsROCcurve.items()):
                     if list_isUse_reference_centrelines[k]:
                         in_referdata_array = in_refercenline_array
                     else:
@@ -203,7 +203,7 @@ def main(args):
             strheader = ', '.join(['/thres/'] + ['/%s/'%(key) for key in listMetricsROCcurve.keys()]) + '\n'
             fout.write(strheader)
 
-        for (in_thres, outlist_computedMetrics) in outdict_computedMetrics.iteritems():
+        for (in_thres, outlist_computedMetrics) in outdict_computedMetrics.items():
             list_outdata = ['%0.6f'%(in_thres)] + ['%0.6f'%(elem) for elem in outlist_computedMetrics]
             strdata = ', '.join(list_outdata) + '\n'
             fout.write(strdata)
@@ -250,7 +250,7 @@ if __name__ == "__main__":
         args.outputdir = args.inputposteriorsdir
 
     print("Print input arguments...")
-    for key, value in vars(args).iteritems():
+    for key, value in vars(args).items():
         print("\'%s\' = %s" %(key, value))
 
     main(args)
