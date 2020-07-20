@@ -21,7 +21,7 @@ TYPES_PLOT_AVAILABLE = ['histogram']
 
 def main(args):
 
-    save_plot_figures = True
+    save_plot_figures = False
 
     list_input_files = findFilesDirAndCheck(args.inputdir)
 
@@ -46,7 +46,7 @@ def main(args):
             min_val_img = np.min(in_image_array)
             bins = np.linspace(min_val_img, max_val_img, num_bins)
 
-            plt.hist(in_image_array.flatten(), bins=bins, log=True, density=True)
+            plt.hist(in_image_array.flatten(), bins=bins, log=False, density=True)
             plt.xlabel('Voxel value', size=10)
             plt.ylabel(case_name, size=10)
 

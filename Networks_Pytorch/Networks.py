@@ -150,12 +150,12 @@ class NeuralNetwork(nn.Module):
 
     @staticmethod
     def get_output_lims_crop(size_input, size_crop):
-        z_beg = (size_input[0] - size_crop[0]) / 2
-        x_beg = (size_input[1] - size_crop[1]) / 2
-        y_beg = (size_input[2] - size_crop[2]) / 2
-        output_lims = ((z_beg, z_beg + size_crop[0]),
-                       (x_beg, x_beg + size_crop[1]),
-                       (y_beg, y_beg + size_crop[2]))
+        z_begin = int( (size_input[0] - size_crop[0]) / 2)
+        x_begin = int( (size_input[1] - size_crop[1]) / 2)
+        y_begin = int( (size_input[2] - size_crop[2]) / 2)
+        output_lims = ((z_begin, z_begin + size_crop[0]),
+                       (x_begin, x_begin + size_crop[1]),
+                       (y_begin, y_begin + size_crop[2]))
         return output_lims
 
     @classmethod

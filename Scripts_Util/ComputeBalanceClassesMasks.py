@@ -58,7 +58,7 @@ def main(args):
 
     average_ratio_back_foreground_class = sum(list_ratio_back_foreground_class) / len(list_ratio_back_foreground_class)
 
-    print("Average balance classes negative / positive: \'%s\'..." % (average_ratio_back_foreground_class))
+    print("\nAverage balance classes negative / positive: \'%s\'..." % (average_ratio_back_foreground_class))
 
 
 

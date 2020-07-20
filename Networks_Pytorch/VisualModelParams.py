@@ -24,7 +24,7 @@ class VisualModelParams(object):
 
 
     def isExist_name_layer_model(self, name_layer):
-        for ilay_key, _ in self.model._modules.iteritems():
+        for ilay_key, _ in self.model._modules.items():
             if(ilay_key == name_layer):
                 return True
         #endfor

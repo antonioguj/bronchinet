@@ -49,6 +49,7 @@ NAME_CONFIGPARAMS_FILE        = 'configparams.txt'
 NAME_LOGDESCMODEL_FILE        = 'logdescmodel.txt'
 NAME_LOGTRAINDATA_FILE        = 'traindatafiles.txt'
 NAME_LOGVALIDDATA_FILE        = 'validdatafiles.txt'
+NAME_LOSSHISTORY_FILE         = 'lossHistory.csv'
 NAME_TEMPOPOSTERIORS_RELPATH  = 'Predictions/PosteriorsWorkData/'
 NAME_POSTERIORS_RELPATH       = 'Predictions/Posteriors/'
 NAME_PREDBINARYMASKS_RELPATH  = 'Predictions/BinaryMasks/'
@@ -118,7 +119,7 @@ TYPETRANSFORMELASTICDEFORMATION = 'gridwise'
 
 
 # ******************** TRAINING PARAMETERS ********************
-TYPE_DNNLIBRARY_USED = 'Keras'
+TYPE_DNNLIBRARY_USED = 'Pytorch'
 #TYPEGPUINSTALLED     = 'larger_GPU'
 
 #(IMAGES_DEPTHZ, IMAGES_HEIGHT, IMAGES_WIDTH) = (176, 352, 240)

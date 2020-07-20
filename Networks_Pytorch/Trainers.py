@@ -315,12 +315,11 @@ class Trainer(object):
         #endfor
 
 
-    def setup_losshistory_filepath(self, filepath,
-                                   relfilename= 'lossHistory.txt',
-                                   isexists_lossfile= False):
+    def setup_losshistory_filepath(self, filepath, relfilename,
+                                   is_restart_file= False):
         self.is_write_lossfile = True
         self.losshistory_filename = joinpathnames(filepath, relfilename)
-        if isexists_lossfile:
+        if is_restart_file:
             self.fout = open(self.losshistory_filename, 'a')
         else:
             self.fout = open(self.losshistory_filename, 'w')

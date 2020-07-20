@@ -92,13 +92,13 @@ def main(args):
     valid_loss = data_fields[:, index_valid_loss-1]
     evalarr_valid_loss = evalarr_data_fields[:, index_valid_loss-1]
 
-    jump_elems_patiente = num_epochs_patience / num_epochs_jumpeval
+    jump_elems_patience = int(num_epochs_patience / num_epochs_jumpeval)
     is_converge_found = False
     epoch_converged   = None
     epoch_diverged    = None
 
     for count, ind_epoch in enumerate(range(first_epoch_eval, last_epoch_eval, num_epochs_jumpeval)):
-        count_compare      = count + jump_elems_patiente
+        count_compare      = count + jump_elems_patience
         eval_valid_loss    = evalarr_valid_loss[count]
         compare_valid_loss = evalarr_valid_loss[count_compare]
 
@@ -111,7 +111,7 @@ def main(args):
         if reldiff_valid_loss > 0.0:
             if reldiff_valid_loss < tolerance_converge:
                 is_converge_found   = True
-                ind_epoch_lastavail = ind_epoch + jump_elems_patiente
+                ind_epoch_lastavail = ind_epoch + jump_elems_patience
                 epoch_converged     = ind_epoch_lastavail
                 epoch_minvalidloss  = 1 + np.argmin(valid_loss[:ind_epoch_lastavail])
                 validloss_converged = valid_loss[epoch_converged-1]
@@ -121,7 +121,7 @@ def main(args):
         else:
             if abs(reldiff_valid_loss) > tolerance_diverge:
                 is_converge_found   = False
-                ind_epoch_lastavail = ind_epoch + jump_elems_patiente
+                ind_epoch_lastavail = ind_epoch + jump_elems_patience
                 epoch_diverged      = ind_epoch_lastavail
                 epoch_minvalidloss  = 1 + np.argmin(valid_loss[:ind_epoch_lastavail])
                 validloss_diverged  = valid_loss[epoch_diverged-1]

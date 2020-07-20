@@ -14,10 +14,8 @@ from tensorflow.keras import callbacks
 
 class RecordLossHistory(callbacks.Callback):
 
-    relfilename = 'lossHistory.txt'
-
-    def __init__(self, filepath, metrics_funs=None):
-        self.filename = joinpathnames(filepath, self.relfilename)
+    def __init__(self, filepath, relfilename, metrics_funs=None):
+        self.filename = joinpathnames(filepath, relfilename)
         if metrics_funs:
             self.name_metrics_funs = list(map(lambda fun: ['%s'%(fun.__name__),'val_%s'%(fun.__name__)], metrics_funs))
             self.name_metrics_funs = flattenOutListOfLists(self.name_metrics_funs)

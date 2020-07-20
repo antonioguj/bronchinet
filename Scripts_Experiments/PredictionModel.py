@@ -38,7 +38,7 @@ def func_extract_caseprocname_filename(in_filename):
 def main(args):
     # First thing, set session in the selected(s) devices: CPU or GPU
     #set_session_in_selected_device(use_GPU_device=True,
-    #                               type_GPU_installed=args.typeGPUinstalled)
+    #                               type_GPU_installed=TYPEGPUINSTALLED)
 
     # ---------- SETTINGS ----------
     nameInputImagesFiles      = 'images_proc*.nii.gz'
@@ -58,9 +58,8 @@ def main(args):
     OutputPredictionsPath= workDirsManager.getNameNewPath          (args.nameOutputPredictionsRelPath)
     OutputReferKeysFile  = workDirsManager.getNameNewFile          (args.nameOutputReferKeysFile)
 
-    listTestImagesFiles   = findFilesDirAndCheck(TestingDataPath, nameInputImagesFiles)
-    in_dictReferenceKeys  = readDictionary(InputReferKeysFile)
-    prefixPatternInputFiles = getFilePrefixPattern(in_dictReferenceKeys.values()[0])
+    listTestImagesFiles  = findFilesDirAndCheck(TestingDataPath, nameInputImagesFiles)
+    in_dictReferenceKeys = readDictionary(InputReferKeysFile)
 
 
 
@@ -245,7 +244,6 @@ if __name__ == "__main__":
     parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
     parser.add_argument('--isModelsWithGNN', type=str2bool, default=ISTESTMODELSWITHGNN)
     parser.add_argument('--isGNNwithAttentionLays', type=str2bool, default=ISGNNWITHATTENTIONLAYS)
-    parser.add_argument('--typeGPUinstalled', type=str, default=TYPEGPUINSTALLED)
     args = parser.parse_args()
 
     if args.cfgfromfile:

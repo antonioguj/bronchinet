@@ -227,7 +227,7 @@ class DICOMreader(FileReader):
         img_write = sitk.GetImageFromArray(img_array)
         if 'metadata' in kwargs.keys():
             dict_metadata = kwargs['metadata']
-            for (key, val) in dict_metadata.iteritems():
+            for (key, val) in dict_metadata.items():
                 img_write.SetMetaData(key, val)
         sitk.WriteImage(img_write, filename)
 

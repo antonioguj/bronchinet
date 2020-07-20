@@ -83,18 +83,17 @@ def main(args):
 
 
     # 1st: Compute model predictions, and posteriors for testing work data
-    new_call = ['python', SCRIPT_PREDICTIONMODEL, args.inputmodelfile,
+    new_call = ['python3', SCRIPT_PREDICTIONMODEL, args.inputmodelfile,
                 '--basedir', BaseDir,
                 '--nameOutputPredictionsRelPath', InOutTempoPosteriorsPath,
                 '--nameOutputReferKeysFile', InOutReferKeysPosteriorsFile,
                 '--cfgfromfile', in_cfgparams_file,
-                '--testdatadir', args.testdatadir,
-                '--typeGPUinstalled', TYPEGPUINSTALLED]
+                '--testdatadir', args.testdatadir]
     list_calls_all.append(new_call)
 
 
     # 2nd: Compute post-processed posteriors from work predictions
-    new_call = ['python', SCRIPT_POSTPROCESSPREDICTIONS,
+    new_call = ['python3', SCRIPT_POSTPROCESSPREDICTIONS,
                 '--basedir', BaseDir,
                 '--nameInputPredictionsRelPath', InOutTempoPosteriorsPath,
                 '--nameInputReferKeysFile', InOutReferKeysPosteriorsFile,
@@ -106,7 +105,7 @@ def main(args):
 
 
     # 3rd: Compute the predicted binary masks from the posteriors
-    new_call = ['python', SCRIPT_PROCESSPREDICTAIRWAYTREE,
+    new_call = ['python3', SCRIPT_PROCESSPREDICTAIRWAYTREE,
                 '--basedir', BaseDir,
                 '--nameInputPosteriorsRelPath', InOutPosteriorsPath,
                 '--nameOutputBinaryMasksRelPath', InOutPredictBinaryMasksPath,
@@ -119,7 +118,7 @@ def main(args):
         OutTempoPredictBinaryMasksPath = updatePathnameWithsuffix(InOutPredictBinaryMasksPath, 'Tempo')
 
         # Compute the first connected component from the predicted binary masks
-        new_call = ['python', SCRIPT_CACLFIRSTCONNREGIONFROMMASKS, InOutPredictBinaryMasksPath, OutTempoPredictBinaryMasksPath,
+        new_call = ['python3', SCRIPT_CACLFIRSTCONNREGIONFROMMASKS, InOutPredictBinaryMasksPath, OutTempoPredictBinaryMasksPath,
                     '--type', 'firstconreg']
         list_calls_all.append(new_call)
 
@@ -129,13 +128,13 @@ def main(args):
 
 
     # 4th: Compute centrelines by thinning the binary masks
-    new_call = ['python', SCRIPT_EXTRACTCENTRELINESFROMMASKS, InOutPredictBinaryMasksPath, InOutPredictCentrelinesPath,
+    new_call = ['python3', SCRIPT_EXTRACTCENTRELINESFROMMASKS, InOutPredictBinaryMasksPath, InOutPredictCentrelinesPath,
                 '--type', 'thinning']
     list_calls_all.append(new_call)
 
 
     # 5th: Compute testing metrics from predicted binary masks and centrelines
-    new_call = ['python', SCRIPT_COMPUTERESULTMETRICS, InOutPredictBinaryMasksPath,
+    new_call = ['python3', SCRIPT_COMPUTERESULTMETRICS, InOutPredictBinaryMasksPath,
                 '--basedir', BaseDir,
                 '--inputcenlinesdir', InOutPredictCentrelinesPath,
                 '--outputfile', nameOutputResultsMetricsFile,

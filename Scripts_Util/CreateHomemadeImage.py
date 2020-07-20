@@ -19,7 +19,7 @@ import argparse
 
 def main(args):
 
-    if args == 'sphere':
+    if args.type == 'sphere':
         # *********************************************
         print("Create a sphere...")
         coords0 = (128, 128, 128)

@@ -47,11 +47,11 @@ def main(args):
     saveDictionary_csv(OutputOrigVoxelSizeFile.replace('.npy','.csv'), outdict_voxelSizes)
 
 
-    data = np.array(outdict_voxelSizes.values())
+    data = np.array(list(outdict_voxelSizes.values()))
     mean = np.mean(data, axis=0)
-    print("\nMean value: \'%0.6f\'..." %(mean))
+    print("\nMean value: \'%s\'..." %(mean))
     median = np.median(data, axis=0)
-    print("Median value: \'%0.6f\'..." %(median))
+    print("Median value: \'%s\'..." %(median))
 
 
     if args.fixedRescaleRes:

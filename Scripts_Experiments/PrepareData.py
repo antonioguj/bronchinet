@@ -82,7 +82,7 @@ def main(args):
 
 
     if (args.cropImages):
-        first_elem_dictCropBoundingBoxes = in_dictCropBoundingBoxes.values()[0]
+        first_elem_dictCropBoundingBoxes = list(in_dictCropBoundingBoxes.values())[0]
         if type(first_elem_dictCropBoundingBoxes) == list:
             is_output_multiple_files_per_image = True
             print("\nFound list of crop bounding-boxes per Raw image. Output several processed images...")
@@ -92,7 +92,7 @@ def main(args):
 
         else:
             # for new developments, store input dict boundary-boxes per raw images as a list. But output only one processed image
-            for key, value in in_dictCropBoundingBoxes.iteritems():
+            for key, value in in_dictCropBoundingBoxes.items():
                 in_dictCropBoundingBoxes[key] = [value]
             #endfor
             is_output_multiple_files_per_image = False

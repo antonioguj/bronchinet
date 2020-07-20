@@ -44,7 +44,7 @@ def write_train_valid_data_log_file(out_filename, list_data_files, dict_refer_ke
 def main(args):
     # First thing, set session in the selected(s) devices: CPU or GPU
     #set_session_in_selected_device(use_GPU_device=True,
-    #                               type_GPU_installed=args.typeGPUinstalled)
+    #                               type_GPU_installed=TYPEGPUINSTALLED)
 
     # ---------- SETTINGS ----------
     nameInputImagesFiles = 'images_proc*.nii.gz'
@@ -162,7 +162,8 @@ def main(args):
 
         # Callbacks:
         list_callbacks = []
-        list_callbacks.append(RecordLossHistory(ModelsPath, [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]))
+        list_callbacks.append(RecordLossHistory(ModelsPath, NAME_LOSSHISTORY_FILE,
+                                                [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]))
         filename = joinpathnames(ModelsPath, 'model_e{epoch:02d}.hdf5')
         list_callbacks.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
         filename = joinpathnames(ModelsPath, 'model_last.hdf5')
@@ -242,8 +243,8 @@ def main(args):
                                                   dict_added_model_input_args=dict_added_model_input_args,
                                                   dict_added_other_input_args=dict_added_other_input_args)
 
-        trainer.setup_losshistory_filepath(ModelsPath,
-                                           isexists_lossfile=args.restart_model)
+        trainer.setup_losshistory_filepath(ModelsPath, NAME_LOSSHISTORY_FILE,
+                                           is_restart_file=args.restart_model)
         trainer.setup_validate_model(freq_validate_model=FREQVALIDATEMODEL)
         trainer.setup_savemodel_filepath(ModelsPath,
                                          type_save_models='full_model',
@@ -411,7 +412,6 @@ if __name__ == "__main__":
     parser.add_argument('--restart_model', type=str2bool, default=RESTART_MODEL)
     parser.add_argument('--restart_epoch', type=int, default=RESTART_EPOCH)
     parser.add_argument('--isGNNwithAttentionLays', type=str2bool, default=ISGNNWITHATTENTIONLAYS)
-    parser.add_argument('--typeGPUinstalled', type=str, default=TYPEGPUINSTALLED)
     args = parser.parse_args()
 
     if args.cfgfromfile:

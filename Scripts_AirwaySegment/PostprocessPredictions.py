@@ -32,25 +32,26 @@ def main(args):
 
     listInputPredictionsFiles = findFilesDirAndCheck(InputPredictionsPath)
     in_dictReferenceKeys      = readDictionary(InputReferKeysFile)
-    prefixPatternInputFiles   = getFilePrefixPattern(in_dictReferenceKeys.values()[0])
+    prefixPatternInputFiles   = getFilePrefixPattern(list(in_dictReferenceKeys.values())[0])
+
 
     if (args.masksToRegionInterest):
         InputRoiMasksPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputRoiMasksRelPath)
         listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
 
     if (args.cropImages):
-        InputCropBoundingBoxesFile= workDirsManager.getNameExistBaseDataPath(args.nameCropBoundingBoxesFile)
+        InputCropBoundingBoxesFile= workDirsManager.getNameExistBaseDataFile(args.nameCropBoundingBoxesFile)
         in_dictCropBoundingBoxes  = readDictionary(InputCropBoundingBoxesFile)
 
     if (args.rescaleImages):
-        InputRescaleFactorsFile = workDirsManager.getNameExistBaseDataPath(args.nameRescaleFactorsFile)
+        InputRescaleFactorsFile = workDirsManager.getNameExistBaseDataFile(args.nameRescaleFactorsFile)
         in_dictRescaleFactors   = readDictionary(InputRescaleFactorsFile)
 
     if (args.cropImages):
-        first_elem_dictCropBoundingBoxes = in_dictCropBoundingBoxes.values()[0]
+        first_elem_dictCropBoundingBoxes = list(in_dictCropBoundingBoxes.values())[0]
         if type(first_elem_dictCropBoundingBoxes) != list:
             # for new developments, store input dict boundary-boxes per raw images as a list. But output only one processed image
-            for key, value in in_dictCropBoundingBoxes.iteritems():
+            for key, value in in_dictCropBoundingBoxes.items():
                 in_dictCropBoundingBoxes[key] = [value]
             #endfor
 
@@ -171,6 +172,7 @@ if __name__ == "__main__":
     parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
     parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPOSTERIORS_FILE)
     parser.add_argument('--nameOutputPosteriorsRelPath', type=str, default=NAME_POSTERIORS_RELPATH)
+    parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--nameCropBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)

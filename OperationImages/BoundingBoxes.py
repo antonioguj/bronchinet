@@ -43,15 +43,15 @@ class BoundingBoxes(object):
 
     @staticmethod
     def get_center_bounding_box(bounding_box):
-        return ((bounding_box[0][0] + bounding_box[0][1]) / 2,
-                (bounding_box[1][0] + bounding_box[1][1]) / 2,
-                (bounding_box[2][0] + bounding_box[2][1]) / 2)
+        return (int( (bounding_box[0][0] + bounding_box[0][1]) / 2),
+                int( (bounding_box[1][0] + bounding_box[1][1]) / 2),
+                int( (bounding_box[2][0] + bounding_box[2][1]) / 2))
 
     @staticmethod
     def get_create_bounding_box(center_boundbox, size_bounding_box):
-        begin_bounding_box = (center_boundbox[0] - size_bounding_box[0] / 2,
-                              center_boundbox[1] - size_bounding_box[1] / 2,
-                              center_boundbox[2] - size_bounding_box[2] / 2)
+        begin_bounding_box = (center_boundbox[0] - int( size_bounding_box[0] / 2),
+                              center_boundbox[1] - int( size_bounding_box[1] / 2),
+                              center_boundbox[2] - int( size_bounding_box[2] / 2))
         return ((begin_bounding_box[0], begin_bounding_box[0] + size_bounding_box[0]),
                 (begin_bounding_box[1], begin_bounding_box[1] + size_bounding_box[1]),
                 (begin_bounding_box[2], begin_bounding_box[2] + size_bounding_box[2]))

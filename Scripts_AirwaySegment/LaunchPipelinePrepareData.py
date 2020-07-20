@@ -61,7 +61,7 @@ def create_task_decompress_data(input_data_dir, is_keep_files):
     if is_keep_files and extension_file in ['.dcm', '.dcm.gz']:
         # convert to nifty, if we keep the raw images for testing
         new_input_data_dir = updatePathnameWithsuffix(input_data_dir, 'Nifty')
-        new_call = ['python', SCRIPT_CONVERTTONIFTY, input_data_dir, new_input_data_dir]
+        new_call = ['python3', SCRIPT_CONVERTTONIFTY, input_data_dir, new_input_data_dir]
         sublist_calls.append(new_call)
 
         # replace output folder with nifty files
@@ -161,11 +161,11 @@ def main(args):
         nameTempoBinaryLabelsPath   = updatePathnameWithsuffix(nameInputRawLabelsPath,   'Binary')
         nameTempoBinaryRoiMasksPath = updatePathnameWithsuffix(nameInputRawRoiMasksPath, 'Binary')
 
-        new_call = ['python', SCRIPT_BINARISEMASKS, nameInputRawLabelsPath, nameTempoBinaryLabelsPath,
+        new_call = ['python3', SCRIPT_BINARISEMASKS, nameInputRawLabelsPath, nameTempoBinaryLabelsPath,
                     '--type', 'binarise']
         list_calls_all.append(new_call)
 
-        new_call = ['python', SCRIPT_BINARISEMASKS, nameInputRawRoiMasksPath, nameTempoBinaryRoiMasksPath,
+        new_call = ['python3', SCRIPT_BINARISEMASKS, nameInputRawRoiMasksPath, nameTempoBinaryRoiMasksPath,
                     '--type', 'binarise']
         list_calls_all.append(new_call)
 
@@ -180,7 +180,7 @@ def main(args):
     if args.isPrepareCoarseAirways:
         nameTempoTracheaMainBronchiPath = updatePathnameWithsuffix(nameInputRawCoarseAirwaysPath, 'TracheaMainBronchi')
 
-        new_call = ['python', SCRIPT_GETTRACHEAMAINBRONCHI, nameInputRawCoarseAirwaysPath, nameTempoTracheaMainBronchiPath,
+        new_call = ['python3', SCRIPT_GETTRACHEAMAINBRONCHI, nameInputRawCoarseAirwaysPath, nameTempoTracheaMainBronchiPath,
                     '--type', 'masklabels',
                     '--inmasklabels', '2', '3', '4',
                     '--nosuffixoutname', 'True']
@@ -197,12 +197,12 @@ def main(args):
         nameTempoExtendedLabelsPath   = updatePathnameWithsuffix(nameInputRawLabelsPath,   'Extended')
         nameTempoExtendedRoiMasksPath = updatePathnameWithsuffix(nameInputRawRoiMasksPath, 'Extended')
 
-        new_call = ['python', SCRIPT_EXTENDCROPPEDIMAGES, nameInputRawLabelsPath, nameTempoExtendedLabelsPath,
+        new_call = ['python3', SCRIPT_EXTENDCROPPEDIMAGES, nameInputRawLabelsPath, nameTempoExtendedLabelsPath,
                     '--referkeysdir', nameInputReferKeysPath,
                     '--inputBoundBoxesFile', nameInputFoundBoundBoxesFile]
         list_calls_all.append(new_call)
 
-        new_call = ['python', SCRIPT_EXTENDCROPPEDIMAGES, nameInputRawRoiMasksPath, nameTempoExtendedRoiMasksPath,
+        new_call = ['python3', SCRIPT_EXTENDCROPPEDIMAGES, nameInputRawRoiMasksPath, nameTempoExtendedRoiMasksPath,
                     '--referkeysdir', nameInputReferKeysPath,
                     '--inputBoundBoxesFile', nameInputFoundBoundBoxesFile]
         list_calls_all.append(new_call)
@@ -217,7 +217,7 @@ def main(args):
         if args.isPrepareCoarseAirways:
             nameTempoExtendedCoarseAirwaysPath = updatePathnameWithsuffix(nameInputRawCoarseAirwaysPath, 'Extended')
 
-            new_call = ['python', SCRIPT_EXTENDCROPPEDIMAGES, nameInputRawCoarseAirwaysPath, nameTempoExtendedCoarseAirwaysPath,
+            new_call = ['python3', SCRIPT_EXTENDCROPPEDIMAGES, nameInputRawCoarseAirwaysPath, nameTempoExtendedCoarseAirwaysPath,
                         '--referkeysdir', nameInputReferKeysPath,
                         '--inputBoundBoxesFile', nameInputFoundBoundBoxesFile]
             list_calls_all.append(new_call)
@@ -230,7 +230,7 @@ def main(args):
 
     # 4th: compute the ground-truth centrelines by thinning the ground-truth airways
     if args.isPrepareCentrelines:
-        new_call = ['python', SCRIPT_COMPUTECENTRELINES, nameInputRawLabelsPath, nameInputRawCentrelinesPath,
+        new_call = ['python3', SCRIPT_COMPUTECENTRELINES, nameInputRawLabelsPath, nameInputRawCentrelinesPath,
                     '--type', 'thinning']
         list_calls_all.append(new_call)
 
@@ -240,12 +240,12 @@ def main(args):
     if args.rescaleImages:
         nameTempoRescaledRoiMasksPath = updatePathnameWithsuffix(nameInputRawRoiMasksPath, 'Rescaled')
 
-        new_call = ['python', SCRIPT_RESCALEFACTORIMAGES,
+        new_call = ['python3', SCRIPT_RESCALEFACTORIMAGES,
                     '--datadir', OutputDataDir,
                     '--fixedRescaleRes', str(args.fixedRescaleRes)]
         list_calls_all.append(new_call)
 
-        new_call = ['python', SCRIPT_RESCALEROIMASKS, nameInputRawRoiMasksPath, nameTempoRescaledRoiMasksPath,
+        new_call = ['python3', SCRIPT_RESCALEROIMASKS, nameInputRawRoiMasksPath, nameTempoRescaledRoiMasksPath,
                     '--type', 'rescale_mask',
                     '--rescalefile', nameInputRescaleFactorsFile,
                     '--referencedir', nameInputReferKeysPath]
@@ -259,7 +259,7 @@ def main(args):
 
     # 6th: compute the bounding-boxes around the Roi masks
     if args.cropImages:
-        new_call = ['python', SCRIPT_BOUNDINGBOXIMAGES,
+        new_call = ['python3', SCRIPT_BOUNDINGBOXIMAGES,
                     '--datadir', OutputDataDir,
                     '--isTwoBoundingBoxEachLungs', str(args.isTwoBoundingBoxEachLungs),
                     '--sizeBufferInBorders', str(args.sizeBufferInBorders),
@@ -271,7 +271,7 @@ def main(args):
 
 
     # 7th: prepare the data
-    new_call = ['python', SCRIPT_PREPAREDATA,
+    new_call = ['python3', SCRIPT_PREPAREDATA,
                 '--datadir', OutputDataDir,
                 '--isPrepareLabels', str(args.isPrepareLabels),
                 '--isInputExtraLabels', 'False',

@@ -115,7 +115,7 @@ def main(args):
         fixed_size_bounding_box = False
 
 
-    for i, (in_key_file, in_list_bounding_boxes) in enumerate(outdict_cropBoundingBoxes.iteritems()):
+    for i, (in_key_file, in_list_bounding_boxes) in enumerate(outdict_cropBoundingBoxes.items()):
         print("\nInput Key file: \'%s\'..." % (in_key_file))
 
         in_roimask_file = listInputRoiMasksFiles[i]
