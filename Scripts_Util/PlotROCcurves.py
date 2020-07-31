@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.FunctionsUtil import *
+from common.function_util import *
 import matplotlib.pyplot as plt
 from collections import *
 import numpy as np
@@ -58,9 +58,9 @@ def main(args):
 
 
     if args.fromfile:
-        if not isExistfile(args.listinputfiles):
+        if not is_exist_file(args.listinputfiles):
             message = "File \'%s\' not found..." %(args.listinputfiles)
-            CatchErrorException(message)
+            catch_error_exception(message)
         fout = open(args.listinputfiles, 'r')
         list_input_files = [infile.replace('\n','') for infile in fout.readlines()]
         print("\'inputfiles\' = %s" % (list_input_files))
@@ -75,15 +75,15 @@ def main(args):
 
 
     if args.isannotations:
-        if not isExistfile(args.inputannotatefiles):
+        if not is_exist_file(args.inputannotatefiles):
             message = "Input \inputannotatefiles\' not specified..."
-            CatchErrorException(message)
+            catch_error_exception(message)
         list_input_annotate_files = [infile.replace('\n', '') for infile in args.inputannotatefiles]
 
         num_annotate_files = len(list_input_annotate_files)
         if num_annotate_files != num_data_files:
             message = "Num annotation files \'%s\' not equal to num data files \'%s\'..." %(num_annotate_files, num_data_files)
-            CatchErrorException(message)
+            catch_error_exception(message)
 
         print("Files for annotations (\'%s\')..." % (num_annotate_files))
         for i, ifile in enumerate(list_input_annotate_files):
@@ -181,11 +181,11 @@ if __name__ == "__main__":
 
     if args.fromfile and not args.listinputfiles:
         message = 'need to input \'listinputfiles\' with filenames to plot'
-        CatchErrorException(message)
+        catch_error_exception(message)
 
     if args.isannotations and not args.inputannotatefiles:
         message = 'need to input \'inputannotatefiles\' with annotation names'
-        CatchErrorException(message)
+        catch_error_exception(message)
 
     print("Print input arguments...")
     for key, value in vars(args).items():

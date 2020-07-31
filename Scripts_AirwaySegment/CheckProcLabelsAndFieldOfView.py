@@ -8,13 +8,13 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.WorkDirsManager import *
-from DataLoaders.BatchDataGeneratorManager import *
-from DataLoaders.LoadDataManager import *
-from Networks_Pytorch.Networks import *
-from OperationImages.OperationImages import *
-from Preprocessing.ImageGeneratorManager import *
-from Postprocessing.ImageReconstructorManager import *
+from common.workdir_manager import *
+from dataloaders.batchdatagenerator_manager import *
+from dataloaders.loadimagedata_manager import *
+from networks.Networks import *
+from imageoperators.imageoperator import *
+from preprocessing.imagegenerator_manager import *
+from postprocessing.imagereconstructor_manager import *
 from collections import OrderedDict
 import argparse
 
@@ -28,17 +28,17 @@ def main(args):
 
     def nameOutputFiles(in_name, in_size_image):
         suffix = 'outsize-%s' %('x'.join([str(s) for s in in_size_image]))
-        return 'fieldOfView_' + basenameNoextension(in_name) + '_' + suffix + '.nii.gz'
+        return 'fieldOfView_' + basename_file_noext(in_name) + '_' + suffix + '.nii.gz'
     # ---------- SETTINGS ----------
 
 
-    workDirsManager    = WorkDirsManager(args.datadir)
-    InputImagesDataPath= workDirsManager.getNameExistPath(args.nameInputImagesRelPath)
-    InputLabelsDataPath= workDirsManager.getNameExistPath(args.nameInputLabelsRelPath)
-    InputReferKeysFile = workDirsManager.getNameExistFile(args.nameInputReferKeysFile)
-    OutputFilesPath    = workDirsManager.getNameNewPath(args.outputdir)
+    workDirsManager    = GeneralDirManager(args.datadir)
+    InputImagesDataPath= workDirsManager.get_pathdir_exist(args.nameInputImagesRelPath)
+    InputLabelsDataPath= workDirsManager.get_pathdir_exist(args.nameInputLabelsRelPath)
+    InputReferKeysFile = workDirsManager.get_pathfile_exist(args.nameInputReferKeysFile)
+    OutputFilesPath    = workDirsManager.get_pathdir_new(args.outputdir)
 
-    listInputLabelsFiles = findFilesDirAndCheck(InputLabelsDataPath, nameInputLabelsFiles)
+    listInputLabelsFiles = list_files_dir(InputLabelsDataPath, nameInputLabelsFiles)
 
 
     # Build model to calculate the output size
@@ -52,20 +52,20 @@ def main(args):
         print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
                                                                                                str(size_output_modelnet)))
 
-    images_generator = getImagesDataGenerator(args.size_in_images,
-                                              args.slidingWindowImages,
-                                              args.propOverlapSlidingWindow,
-                                              args.randomCropWindowImages,
-                                              args.numRandomImagesPerVolumeEpoch)
-    images_reconstructor = getImagesReconstructor(args.size_in_images,
-                                                  args.slidingWindowImages,
-                                                  args.propOverlapSlidingWindow,
-                                                  args.randomCropWindowImages,
-                                                  args.numRandomImagesPerVolumeEpoch,
-                                                  is_outputUnet_validconvs=args.isValidConvolutions,
-                                                  size_output_images=size_output_modelnet,
-                                                  is_filter_output_unet=FILTERPREDICTPROBMAPS,
-                                                  prop_filter_output_unet=PROP_VALID_OUTUNET)
+    images_generator = get_images_generator(args.size_in_images,
+                                            args.slidingWindowImages,
+                                            args.propOverlapSlidingWindow,
+                                            args.randomCropWindowImages,
+                                            args.numRandomImagesPerVolumeEpoch)
+    images_reconstructor = get_images_reconstructor(args.size_in_images,
+                                                    args.slidingWindowImages,
+                                                    args.propOverlapSlidingWindow,
+                                                    args.randomCropWindowImages,
+                                                    args.numRandomImagesPerVolumeEpoch,
+                                                    is_output_nnet_validconvs=args.isValidConvolutions,
+                                                    size_output_image=size_output_modelnet,
+                                                    is_filter_output_nnet=FILTERPREDICTPROBMAPS,
+                                                    prop_filter_output_nnet=PROP_VALID_OUTUNET)
 
 
     names_files_different = []
@@ -73,26 +73,26 @@ def main(args):
     for ifile, in_label_file in enumerate(listInputLabelsFiles):
         print("\nInput: \'%s\'..." % (basename(in_label_file)))
 
-        in_label_array = FileReader.get_image_array(in_label_file)
+        in_label_array = ImageFileReader.get_image(in_label_file)
         print("Original dims : \'%s\'..." % (str(in_label_array.shape)))
 
 
         print("Loading data in batches...")
         if (args.slidingWindowImages or args.randomCropWindowImages or args.transformationRigidImages):
-            in_label_data = LoadDataManager.load_1file(in_label_file)
+            in_label_data = LoadImageDataManager.load_1image(in_label_file)
             in_label_data = np.expand_dims(in_label_data, axis=-1)
-            in_label_generator = getBatchDataGeneratorWithGenerator(args.size_in_images,
-                                                                    [in_label_data],
-                                                                    [in_label_data],
-                                                                    images_generator,
-                                                                    batch_size=1,
-                                                                    is_outputUnet_validconvs=args.isValidConvolutions,
-                                                                    size_output_images=size_output_modelnet,
-                                                                    shuffle=False,
-                                                                    is_datagen_in_gpu=False)
+            in_label_generator = get_batchdata_generator_with_generator(args.size_in_images,
+                                                                        [in_label_data],
+                                                                        [in_label_data],
+                                                                        images_generator,
+                                                                        batch_size=1,
+                                                                        is_output_nnet_validconvs=args.isValidConvolutions,
+                                                                        size_output_images=size_output_modelnet,
+                                                                        shuffle=False,
+                                                                        is_datagen_in_gpu=False)
             (_, inout_batches_label_arrays) = in_label_generator.get_full_data()
         else:
-            inout_batches_label_arrays = LoadDataManagerInBatches(args.size_in_images).load_1file(in_label_file)
+            inout_batches_label_arrays = LoadImageDataInBatchesManager(args.size_in_images).load_1image(in_label_file)
             inout_batches_label_arrays = np.expand_dims(inout_batches_label_arrays, axis=0)
 
         print("Total data batches generated: %s..." % (len(inout_batches_label_arrays)))
@@ -100,7 +100,7 @@ def main(args):
 
         print("Reconstruct data batches to full size...")
         # init reconstructor with size of "ifile"
-        out_recons_image_shape = FileReader.get_image_size(in_label_file)
+        out_recons_image_shape = ImageFileReader.get_image_size(in_label_file)
         images_reconstructor.update_image_data(out_recons_image_shape)
 
         out_recons_label_array = images_reconstructor.compute(inout_batches_label_arrays)
@@ -124,10 +124,10 @@ def main(args):
             names_files_different.append(basename(in_label_file))
 
 
-        out_filename = joinpathnames(OutputFilesPath, nameOutputFiles(in_label_file, size_output_modelnet))
+        out_filename = join_path_names(OutputFilesPath, nameOutputFiles(in_label_file, size_output_modelnet))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), out_recons_fieldOfView_array.shape))
 
-        FileReader.write_image_array(out_filename, out_recons_fieldOfView_array)
+        ImageFileReader.write_image(out_filename, out_recons_fieldOfView_array)
     # endfor
 
     if (len(names_files_different) == 0):
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('outputdir', type=str, default='CheckFieldOfViewNetworks/')
-    parser.add_argument('--size_in_images', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
+    parser.add_argument('--size_in_images', type=str2tuple_int, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--nameInputImagesRelPath', type=str, default=NAME_PROCIMAGES_RELPATH)
     parser.add_argument('--nameInputLabelsRelPath', type=str, default=NAME_PROCLABELS_RELPATH)
     parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPROCIMAGE_FILE)
@@ -150,9 +150,9 @@ if __name__ == "__main__":
     parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
     parser.add_argument('--num_layers', type=int, default=NUM_LAYERS)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=True)
-    parser.add_argument('--propOverlapSlidingWindow', type=str2tuplefloat, default=PROPOVERLAPSLIDINGWINDOW_TESTING_Z_X_Y)
-    parser.add_argument('--randomCropWindowImages', type=str2tuplefloat, default=False)
-    parser.add_argument('--numRandomImagesPerVolumeEpoch', type=str2tuplefloat, default=0)
+    parser.add_argument('--propOverlapSlidingWindow', type=str2tuple_float, default=PROPOVERLAPSLIDINGWINDOW_TESTING_Z_X_Y)
+    parser.add_argument('--randomCropWindowImages', type=str2tuple_float, default=False)
+    parser.add_argument('--numRandomImagesPerVolumeEpoch', type=str2tuple_float, default=0)
     args = parser.parse_args()
 
     print("Print input arguments...")

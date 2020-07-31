@@ -8,25 +8,24 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-#from Common.CPUGPUdevicesManager import *
-from Common.WorkDirsManager import *
-from DataLoaders.BatchDataGeneratorManager import *
-from DataLoaders.LoadDataManager import *
-if TYPE_DNNLIBRARY_USED == 'Keras':
-    from Networks_Keras.Callbacks import *
+#from common.CPUGPUdevicesManager import *
+from common.workdir_manager import *
+from dataloaders.batchdatagenerator_manager import *
+from dataloaders.loadimagedata_manager import *
+if TYPE_DNNLIB_USED == 'Keras':
+    from networks.keras.callbacks import *
     from Networks_Keras.Metrics import *
     from Networks_Keras.Networks import *
-    from Networks_Keras.Optimizers import *
-elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-    from Networks_Pytorch.Callbacks import *
-    from Networks_Pytorch.Metrics import *
+    from networks.keras.optimizers import *
+elif TYPE_DNNLIB_USED == 'Pytorch':
+    from networks.Metrics import *
     if ISTESTMODELSWITHGNN:
-        from Networks_Pytorch.NetworksGNNs import *
+        from networks.NetworksGNNs import *
     else:
-        from Networks_Pytorch.Networks import *
-    from Networks_Pytorch.Optimizers import *
-    from Networks_Pytorch.Trainers import *
-from Preprocessing.ImageGeneratorManager import *
+        from networks.Networks import *
+    from networks.pytorch.optimizers import *
+    from networks.Trainers import *
+from preprocessing.imagegenerator_manager import *
 from collections import OrderedDict
 import argparse
 
@@ -36,7 +35,7 @@ def write_train_valid_data_log_file(out_filename, list_data_files, dict_refer_ke
         fout.write('Total of %s %s files\n' %(len(list_data_files), type_data))
         fout.write('---------------------------------\n')
         for in_file in list_data_files:
-            fout.write('%s -> (%s)\n' %(basename(in_file), dict_refer_keys[basenameNoextension(in_file)]))
+            fout.write('%s -> (%s)\n' % (basename(in_file), dict_refer_keys[basename_file_noext(in_file)]))
         #endfor
 
 
@@ -53,23 +52,23 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workDirsManager    = WorkDirsManager(args.basedir)
-    TrainingDataPath   = workDirsManager.getNameExistPath(args.traindatadir)
+    workDirsManager    = GeneralDirManager(args.basedir)
+    TrainingDataPath   = workDirsManager.get_pathdir_exist(args.traindatadir)
     InputReferKeysFile = workDirsManager.getNameExistBaseDataFile(args.nameInputReferKeysFile)
 
-    listTrainImagesFiles = findFilesDirAndCheck(TrainingDataPath, nameInputImagesFiles)[0:args.numMaxTrainImages]
-    listTrainLabelsFiles = findFilesDirAndCheck(TrainingDataPath, nameInputLabelsFiles)[0:args.numMaxTrainImages]
-    in_dictReferenceKeys = readDictionary(InputReferKeysFile)
+    listTrainImagesFiles = list_files_dir(TrainingDataPath, nameInputImagesFiles)[0:args.numMaxTrainImages]
+    listTrainLabelsFiles = list_files_dir(TrainingDataPath, nameInputLabelsFiles)[0:args.numMaxTrainImages]
+    in_dictReferenceKeys = read_dictionary(InputReferKeysFile)
 
     if args.restart_model:
-        ModelsPath = workDirsManager.getNameExistPath(args.modelsdir)
+        ModelsPath = workDirsManager.get_pathdir_exist(args.modelsdir)
     else:
-        ModelsPath = workDirsManager.getNameNewUpdatePath(args.modelsdir)
+        ModelsPath = workDirsManager.get_pathdir_update(args.modelsdir)
 
     if USEVALIDATIONDATA:
-        ValidationDataPath   = workDirsManager.getNameExistPath(args.validdatadir)
-        listValidImagesFiles = findFilesDirAndCheck(ValidationDataPath, nameInputImagesFiles)[0:args.numMaxValidImages]
-        listValidLabelsFiles = findFilesDirAndCheck(ValidationDataPath, nameInputLabelsFiles)[0:args.numMaxValidImages]
+        ValidationDataPath   = workDirsManager.get_pathdir_exist(args.validdatadir)
+        listValidImagesFiles = list_files_dir(ValidationDataPath, nameInputImagesFiles)[0:args.numMaxValidImages]
+        listValidLabelsFiles = list_files_dir(ValidationDataPath, nameInputLabelsFiles)[0:args.numMaxValidImages]
 
         if not listValidImagesFiles or not listValidLabelsFiles:
             use_validation_data = False
@@ -83,23 +82,23 @@ def main(args):
 
     # ----------------------------------------------
     # write out experiment parameters in config file
-    out_configparams_file = joinpathnames(ModelsPath, NAME_CONFIGPARAMS_FILE)
-    if not isExistfile(out_configparams_file):
+    out_configparams_file = join_path_names(ModelsPath, NAME_CONFIGPARAMS_FILE)
+    if not is_exist_file(out_configparams_file):
         print("Write configuration parameters in file: \'%s\'..." % (out_configparams_file))
         dict_args = OrderedDict(sorted(vars(args).items()))
-        saveDictionary_configParams(out_configparams_file, dict_args)
+        save_dictionary_configparams(out_configparams_file, dict_args)
 
     # write out logs with the training and validation files files used
-    out_logtraindata_file = joinpathnames(ModelsPath, NAME_LOGTRAINDATA_FILE)
-    if isExistfile(out_logtraindata_file):
-        out_logtraindata_file = newUpdatefile(out_logtraindata_file)
+    out_logtraindata_file = join_path_names(ModelsPath, NAME_LOGTRAINDATA_FILE)
+    if is_exist_file(out_logtraindata_file):
+        out_logtraindata_file = update_filename(out_logtraindata_file)
     print("Write log for training data in file: \'%s\'..." % (out_logtraindata_file))
     write_train_valid_data_log_file(out_logtraindata_file, listTrainImagesFiles, in_dictReferenceKeys, 'training')
 
     if use_validation_data:
-        out_logvaliddata_file = joinpathnames(ModelsPath, NAME_LOGVALIDDATA_FILE)
-        if isExistfile(out_logvaliddata_file):
-            out_logvaliddata_file = newUpdatefile(out_logvaliddata_file)
+        out_logvaliddata_file = join_path_names(ModelsPath, NAME_LOGVALIDDATA_FILE)
+        if is_exist_file(out_logvaliddata_file):
+            out_logvaliddata_file = update_filename(out_logvaliddata_file)
         print("Write log for training data in file: \'%s\'..." % (out_logvaliddata_file))
         write_train_valid_data_log_file(out_logvaliddata_file, listValidImagesFiles, in_dictReferenceKeys, 'validation')
     # ----------------------------------------------
@@ -118,7 +117,7 @@ def main(args):
     else:
         initial_epoch = 0
 
-    if TYPE_DNNLIBRARY_USED == 'Keras':
+    if TYPE_DNNLIB_USED == 'Keras':
         # ----------------------------------------------
         if (not args.restart_model) or\
         (args.restart_model and RESTART_ONLY_WEIGHTS):
@@ -132,7 +131,7 @@ def main(args):
                                                   # is_disable_convol_pooling_lastlayer=args.disable_convol_pooling_lastlayer,
                                                   # isuse_dropout=args.isUse_dropout,
                                                   # isuse_batchnormalize=args.isUse_batchnormalize)
-            optimizer = DICTAVAILOPTIMIZERS(args.optimizer, lr=args.learn_rate)
+            optimizer = get_optimizer_pytorch(args.optimizer, lr=args.learn_rate)
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).loss
             metrics =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]
             model = model_constructor.build_model()
@@ -141,17 +140,17 @@ def main(args):
 
             if args.isModel_halfPrecision:
                 message = 'Networks implementation in Keras not available in Half Precision'
-                CatchErrorException(message)
+                catch_error_exception(message)
 
             if args.restart_model:
                 print("Loading saved weights and restarting...")
-                modelSavedPath = joinpathnames(ModelsPath, 'model_last.hdf5')
+                modelSavedPath = join_path_names(ModelsPath, 'model_last.hdf5')
                 print("Restarting from file: \'%s\'..." %(modelSavedPath))
                 model.load_weights(modelSavedPath)
 
         else: #args.restart_model and RESTART_ONLY_WEIGHTS:
             print("Loading full model: weights, optimizer, loss, metrics ... and restarting...")
-            modelSavedPath = joinpathnames(ModelsPath, 'model_last.hdf5')
+            modelSavedPath = join_path_names(ModelsPath, 'model_last.hdf5')
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).loss
@@ -164,9 +163,9 @@ def main(args):
         list_callbacks = []
         list_callbacks.append(RecordLossHistory(ModelsPath, NAME_LOSSHISTORY_FILE,
                                                 [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]))
-        filename = joinpathnames(ModelsPath, 'model_e{epoch:02d}.hdf5')
+        filename = join_path_names(ModelsPath, 'model_e{epoch:02d}.hdf5')
         list_callbacks.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
-        filename = joinpathnames(ModelsPath, 'model_last.hdf5')
+        filename = join_path_names(ModelsPath, 'model_last.hdf5')
         list_callbacks.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
         # list_callbacks.append(callbacks.EarlyStopping(monitor='val_loss', patience=10, mode='max'))
 
@@ -176,7 +175,7 @@ def main(args):
         model.summary()
         # ----------------------------------------------
 
-    elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+    elif TYPE_DNNLIB_USED == 'Pytorch':
         # ----------------------------------------------
         if (not args.restart_model) or\
         (args.restart_model and RESTART_ONLY_WEIGHTS):
@@ -200,7 +199,7 @@ def main(args):
                                               # isuse_dropout=args.isUse_dropout,
                                               # isuse_batchnormalize=args.isUse_batchnormalize)
 
-            optimizer = DICTAVAILOPTIMIZERS(args.optimizer, model_net.parameters(), lr=args.learn_rate)
+            optimizer = get_optimizer_pytorch(args.optimizer, model_net.parameters(), lr=args.learn_rate)
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
             metrics_fun = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest) for imetrics in args.listmetrics]
 
@@ -209,13 +208,13 @@ def main(args):
 
             if args.restart_model:
                 print("Loading saved weights and restarting...")
-                modelSavedPath = joinpathnames(ModelsPath, 'model_last.pt')
+                modelSavedPath = join_path_names(ModelsPath, 'model_last.pt')
                 print("Restarting from file: \'%s\'..." %(modelSavedPath))
                 trainer.load_model_only_weights(modelSavedPath)
 
         else: #args.restart_model and RESTART_ONLY_WEIGHTS:
             print("Loading full model: weights, optimizer, loss, metrics ... and restarting...")
-            modelSavedPath = joinpathnames(ModelsPath, 'model_last.pt')
+            modelSavedPath = join_path_names(ModelsPath, 'model_last.pt')
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
             dict_added_model_input_args = {'size_image': args.size_in_images,
@@ -262,7 +261,7 @@ def main(args):
                                                                                                str(size_output_modelnet)))
 
     if (WRITEOUTDESCMODELTEXT):
-        out_logdescmodel_file = joinpathnames(ModelsPath, NAME_LOGDESCMODEL_FILE)
+        out_logdescmodel_file = join_path_names(ModelsPath, NAME_LOGDESCMODEL_FILE)
         # if not isExistfile(out_logdescmodel_file):
         print("Write out descriptive model source model in text file: \'%s\'" % (out_logdescmodel_file))
         descmodel_text = trainer.model_net.get_descmodel_sourcecode()
@@ -283,27 +282,27 @@ def main(args):
     if (args.slidingWindowImages or args.randomCropWindowImages or args.transformationRigidImages or args.transformElasticDeformImages):
         print("Generate Training images with Batch Generator of Training data...")
 
-        (list_train_xData, list_train_yData) = LoadDataManager.load_listFiles(listTrainImagesFiles, listTrainLabelsFiles)
+        (list_train_xData, list_train_yData) = LoadImageDataManager.load_2list_images(listTrainImagesFiles, listTrainLabelsFiles)
 
-        train_batch_data_generator = getBatchDataGenerator(args.size_in_images,
-                                                           list_train_xData,
-                                                           list_train_yData,
-                                                           args.slidingWindowImages,
-                                                           args.propOverlapSlidingWindow,
-                                                           args.randomCropWindowImages,
-                                                           args.numRandomImagesPerVolumeEpoch,
-                                                           args.transformationRigidImages,
-                                                           args.transformElasticDeformImages,
-                                                           batch_size=args.batch_size,
-                                                           is_outputUnet_validconvs=args.isValidConvolutions,
-                                                           size_output_images=size_output_modelnet,
-                                                           shuffle=SHUFFLETRAINDATA,
-                                                           is_datagen_halfPrec=args.isModel_halfPrecision)
+        train_batch_data_generator = get_batchdata_generator(args.size_in_images,
+                                                             list_train_xData,
+                                                             list_train_yData,
+                                                             args.slidingWindowImages,
+                                                             args.propOverlapSlidingWindow,
+                                                             args.randomCropWindowImages,
+                                                             args.numRandomImagesPerVolumeEpoch,
+                                                             args.transformationRigidImages,
+                                                             args.transformElasticDeformImages,
+                                                             batch_size=args._batch_size,
+                                                             is_output_nnet_validconvs=args.isValidConvolutions,
+                                                             size_output_images=size_output_modelnet,
+                                                             shuffle=SHUFFLETRAINDATA,
+                                                             is_datagen_halfPrec=args.isModel_halfPrecision)
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(train_batch_data_generator)))
     else:
-        (list_train_xData, list_train_yData) = LoadDataManagerInBatches(args.size_in_images).load_listFiles(listTrainImagesFiles,
-                                                                                                            listTrainLabelsFiles)
+        (list_train_xData, list_train_yData) = LoadImageDataInBatchesManager(args.size_in_images).load_2list_images(listTrainImagesFiles,
+                                                                                                                    listTrainLabelsFiles)
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(list_train_xData)))
 
@@ -314,28 +313,28 @@ def main(args):
             args.transformationRigidImages = args.transformationRigidImages and USETRANSFORMONVALIDATIONDATA
             args.transformElasticDeformImages = args.transformElasticDeformImages and USETRANSFORMONVALIDATIONDATA
 
-            (list_valid_xData, list_valid_yData) = LoadDataManager.load_listFiles(listValidImagesFiles, listValidLabelsFiles)
+            (list_valid_xData, list_valid_yData) = LoadImageDataManager.load_2list_images(listValidImagesFiles, listValidLabelsFiles)
 
-            valid_batch_data_generator = getBatchDataGenerator(args.size_in_images,
-                                                               list_valid_xData,
-                                                               list_valid_yData,
-                                                               args.slidingWindowImages,
-                                                               args.propOverlapSlidingWindow,
-                                                               args.randomCropWindowImages,
-                                                               args.numRandomImagesPerVolumeEpoch,
-                                                               args.transformationRigidImages,
-                                                               args.transformElasticDeformImages,
-                                                               batch_size=args.batch_size,
-                                                               is_outputUnet_validconvs=args.isValidConvolutions,
-                                                               size_output_images=size_output_modelnet,
-                                                               shuffle=SHUFFLETRAINDATA,
-                                                               is_datagen_halfPrec=args.isModel_halfPrecision)
+            valid_batch_data_generator = get_batchdata_generator(args.size_in_images,
+                                                                 list_valid_xData,
+                                                                 list_valid_yData,
+                                                                 args.slidingWindowImages,
+                                                                 args.propOverlapSlidingWindow,
+                                                                 args.randomCropWindowImages,
+                                                                 args.numRandomImagesPerVolumeEpoch,
+                                                                 args.transformationRigidImages,
+                                                                 args.transformElasticDeformImages,
+                                                                 batch_size=args._batch_size,
+                                                                 is_output_nnet_validconvs=args.isValidConvolutions,
+                                                                 size_output_images=size_output_modelnet,
+                                                                 shuffle=SHUFFLETRAINDATA,
+                                                                 is_datagen_halfPrec=args.isModel_halfPrecision)
             validation_data = valid_batch_data_generator
             print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles),
                                                                               len(valid_batch_data_generator)))
         else:
-            (list_valid_xData, list_valid_yData) = LoadDataManagerInBatches(args.size_in_images).load_listFiles(listValidImagesFiles,
-                                                                                                                listValidLabelsFiles)
+            (list_valid_xData, list_valid_yData) = LoadImageDataInBatchesManager(args.size_in_images).load_2list_images(listValidImagesFiles,
+                                                                                                                        listValidLabelsFiles)
             validation_data = (list_valid_xData, list_valid_yData)
             print("Number volumes: %s. Total Data batches generated: %s..." % (len(listTrainImagesFiles),
                                                                                len(list_valid_xData)))
@@ -351,7 +350,7 @@ def main(args):
     print("Training model...")
     print("-" * 30)
 
-    if TYPE_DNNLIBRARY_USED == 'Keras':
+    if TYPE_DNNLIB_USED == 'Keras':
         model.fit_generator(generator=train_batch_data_generator,
                             steps_per_epoch=args.max_steps_epoch,
                             epochs=args.num_epochs,
@@ -361,7 +360,7 @@ def main(args):
                             shuffle=SHUFFLETRAINDATA,
                             initial_epoch=initial_epoch)
 
-    elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+    elif TYPE_DNNLIB_USED == 'Pytorch':
         trainer.train(train_data_generator=train_batch_data_generator,
                       num_epochs=args.num_epochs,
                       max_steps_epoch=args.max_steps_epoch,
@@ -376,7 +375,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--modelsdir', type=str, default='Models')
     parser.add_argument('--cfgfromfile', type=str, default=None)
-    parser.add_argument('--size_in_images', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
+    parser.add_argument('--size_in_images', type=str2tuple_int, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--traindatadir', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--validdatadir', type=str, default=NAME_VALIDATIONDATA_RELPATH)
     parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPROCIMAGE_FILE)
@@ -400,13 +399,13 @@ if __name__ == "__main__":
     parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
     parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
     parser.add_argument('--lossfun', type=str, default=ILOSSFUN)
-    parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
+    parser.add_argument('--listmetrics', type=str2list_string, default=LISTMETRICS)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
-    parser.add_argument('--propOverlapSlidingWindow', type=str2tuplefloat, default=PROPOVERLAPSLIDINGWINDOW_Z_X_Y)
-    parser.add_argument('--randomCropWindowImages', type=str2tuplefloat, default=RANDOMCROPWINDOWIMAGES)
-    parser.add_argument('--numRandomImagesPerVolumeEpoch', type=str2tuplefloat, default=NUMRANDOMIMAGESPERVOLUMEEPOCH)
+    parser.add_argument('--propOverlapSlidingWindow', type=str2tuple_float, default=PROPOVERLAPSLIDINGWINDOW_Z_X_Y)
+    parser.add_argument('--randomCropWindowImages', type=str2tuple_float, default=RANDOMCROPWINDOWIMAGES)
+    parser.add_argument('--numRandomImagesPerVolumeEpoch', type=str2tuple_float, default=NUMRANDOMIMAGESPERVOLUMEEPOCH)
     parser.add_argument('--transformationRigidImages', type=str2bool, default=TRANSFORMATIONRIGIDIMAGES)
     parser.add_argument('--transformElasticDeformImages', type=str2bool, default=TRANSFORMELASTICDEFORMIMAGES)
     parser.add_argument('--restart_model', type=str2bool, default=RESTART_MODEL)
@@ -415,14 +414,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.cfgfromfile:
-        if not isExistfile(args.cfgfromfile):
+        if not is_exist_file(args.cfgfromfile):
             message = "Config params file not found: \'%s\'..." %(args.cfgfromfile)
-            CatchErrorException(message)
+            catch_error_exception(message)
         else:
-            input_args_file = readDictionary_configParams(args.cfgfromfile)
+            input_args_file = read_dictionary_configparams(args.cfgfromfile)
         print("Set up experiments with parameters from file: \'%s\'" %(args.cfgfromfile))
         args.basedir                = str(input_args_file['basedir'])
-        args.size_in_images         = str2tupleint(input_args_file['size_in_images'])
+        args.size_in_images         = str2tuple_int(input_args_file['size_in_images'])
         args.traindatadir           = str(input_args_file['traindatadir'])
         args.validdatadir           = str(input_args_file['validdatadir'])
         args.numMaxTrainImages      = int(input_args_file['numMaxTrainImages'])
@@ -438,12 +437,12 @@ if __name__ == "__main__":
         args.batch_size             = int(input_args_file['batch_size'])
         args.learn_rate             = float(input_args_file['learn_rate'])
         args.lossfun                = str(input_args_file['lossfun'])
-        args.listmetrics            = parseListarg(input_args_file['listmetrics'])
+        args.listmetrics            = str2list_string(input_args_file['listmetrics'])
         args.listmetrics.remove('')
         args.masksToRegionInterest  = str2bool(input_args_file['masksToRegionInterest'])
         args.isValidConvolutions    = str2bool(input_args_file['isValidConvolutions'])
         args.slidingWindowImages    = str2bool(input_args_file['slidingWindowImages'])
-        args.propOverlapSlidingWindow   = str2tuplefloat(input_args_file['propOverlapSlidingWindow'])
+        args.propOverlapSlidingWindow   = str2tuple_float(input_args_file['propOverlapSlidingWindow'])
         args.transformationRigidImages   = str2bool(input_args_file['transformationRigidImages'])
         args.transformElasticDeformImages= str2bool(input_args_file['transformElasticDeformImages'])
         args.isGNNwithAttentionLays = str2bool(input_args_file['isGNNwithAttentionLays'])

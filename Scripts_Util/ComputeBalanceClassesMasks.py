@@ -8,8 +8,8 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from DataLoaders.FileReaders import *
-from OperationImages.OperationImages import *
+from dataloaders.imagefilereader import *
+from imageoperators.imageoperator import *
 import argparse
 
 
@@ -32,14 +32,14 @@ def compute_balance_classes_with_exclusion(in_mask_array):
 
 def main(args):
 
-    list_input_masks_files = findFilesDirAndCheck(args.inputdir)
+    list_input_masks_files = list_files_dir(args.inputdir)
 
     list_ratio_back_foreground_class = []
 
     for i, in_mask_file in enumerate(list_input_masks_files):
         print("\nInput: \'%s\'..." % (basename(in_mask_file)))
 
-        in_mask_array = FileReader.get_image_array(in_mask_file)
+        in_mask_array = ImageFileReader.get_image(in_mask_file)
 
         if (args.masksToRegionInterest):
             print("Compute ratio foreground / background masks with exclusion to Region of Interest...")

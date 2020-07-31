@@ -8,20 +8,20 @@
 # Last update: 09/02/2018
 #######################################################################################
 
-from Common.Constants import *
-from Common.FunctionsUtil import *
-from Common.WorkDirsManager import *
+from common.constant import *
+from common.function_util import *
+from common.workdir_manager import *
 import subprocess
 import argparse
 
 
-CODEDIR                            = joinpathnames(BASEDIR, 'Code/')
-SCRIPT_PREDICTIONMODEL             = joinpathnames(CODEDIR, 'Scripts_Experiments/PredictionModel.py')
-SCRIPT_POSTPROCESSPREDICTIONS      = joinpathnames(CODEDIR, 'Scripts_AirwaySegment/PostprocessPredictions.py')
-SCRIPT_PROCESSPREDICTAIRWAYTREE    = joinpathnames(CODEDIR, 'Scripts_AirwaySegment/ProcessPredictAirwayTree.py')
-SCRIPT_EXTRACTCENTRELINESFROMMASKS = joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
-SCRIPT_CACLFIRSTCONNREGIONFROMMASKS= joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
-SCRIPT_COMPUTERESULTMETRICS        = joinpathnames(CODEDIR, 'Scripts_AirwaySegment/ComputeResultMetrics.py')
+CODEDIR                            = join_path_names(BASEDIR, 'Code/')
+SCRIPT_PREDICTIONMODEL             = join_path_names(CODEDIR, 'Scripts_Experiments/PredictionModel.py')
+SCRIPT_POSTPROCESSPREDICTIONS      = join_path_names(CODEDIR, 'Scripts_AirwaySegment/PostprocessPredictions.py')
+SCRIPT_PROCESSPREDICTAIRWAYTREE    = join_path_names(CODEDIR, 'Scripts_AirwaySegment/ProcessPredictAirwayTree.py')
+SCRIPT_EXTRACTCENTRELINESFROMMASKS = join_path_names(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
+SCRIPT_CACLFIRSTCONNREGIONFROMMASKS= join_path_names(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
+SCRIPT_COMPUTERESULTMETRICS        = join_path_names(CODEDIR, 'Scripts_AirwaySegment/ComputeResultMetrics.py')
 
 
 def printCall(new_call):
@@ -55,14 +55,14 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    inputdir = dirnamepathfile(args.inputmodelfile)
-    in_cfgparams_file = joinpathnames(inputdir, NAME_CONFIGPARAMS_FILE)
+    inputdir = dirname(args.inputmodelfile)
+    in_cfgparams_file = join_path_names(inputdir, NAME_CONFIGPARAMS_FILE)
 
-    if not isExistfile(in_cfgparams_file):
+    if not is_exist_file(in_cfgparams_file):
         message = "Config params file not found: \'%s\'..." % (in_cfgparams_file)
-        CatchErrorException(message)
+        catch_error_exception(message)
     else:
-        input_args_file = readDictionary_configParams(in_cfgparams_file)
+        input_args_file = read_dictionary_configparams(in_cfgparams_file)
     #print("Retrieve BaseDir from file: \'%s\'...\n" % (in_cfgparams_file))
     #BaseDir = str(input_args_file['basedir'])
     BaseDir = currentdir()
@@ -72,11 +72,11 @@ def main(args):
     OutputBaseDir = args.outputbasedir
     makedir(OutputBaseDir)
 
-    InOutTempoPosteriorsPath     = joinpathnames(OutputBaseDir, nameTempoPosteriorsRelPath)
-    InOutPosteriorsPath          = joinpathnames(OutputBaseDir, namePosteriorsRelPath)
-    InOutPredictBinaryMasksPath  = joinpathnames(OutputBaseDir, namePredictBinaryMasksRelPath)
-    InOutPredictCentrelinesPath  = joinpathnames(OutputBaseDir, namePredictCentrelinesRelPath)
-    InOutReferKeysPosteriorsFile = joinpathnames(OutputBaseDir, nameReferKeysPredictionsFile)
+    InOutTempoPosteriorsPath     = join_path_names(OutputBaseDir, nameTempoPosteriorsRelPath)
+    InOutPosteriorsPath          = join_path_names(OutputBaseDir, namePosteriorsRelPath)
+    InOutPredictBinaryMasksPath  = join_path_names(OutputBaseDir, namePredictBinaryMasksRelPath)
+    InOutPredictCentrelinesPath  = join_path_names(OutputBaseDir, namePredictCentrelinesRelPath)
+    InOutReferKeysPosteriorsFile = join_path_names(OutputBaseDir, nameReferKeysPredictionsFile)
 
 
     list_calls_all = []
@@ -115,7 +115,7 @@ def main(args):
 
 
     if args.isconnectedmasks:
-        OutTempoPredictBinaryMasksPath = updatePathnameWithsuffix(InOutPredictBinaryMasksPath, 'Tempo')
+        OutTempoPredictBinaryMasksPath = set_dirname_suffix(InOutPredictBinaryMasksPath, 'Tempo')
 
         # Compute the first connected component from the predicted binary masks
         new_call = ['python3', SCRIPT_CACLFIRSTCONNREGIONFROMMASKS, InOutPredictBinaryMasksPath, OutTempoPredictBinaryMasksPath,
@@ -150,8 +150,8 @@ def main(args):
 
 
     # move results file one basedir down
-    in_resfile  = joinpathnames(InOutPredictBinaryMasksPath, nameOutputResultsMetricsFile)
-    out_resfile = joinpathnames(OutputBaseDir, nameOutputResultsMetricsFile)
+    in_resfile  = join_path_names(InOutPredictBinaryMasksPath, nameOutputResultsMetricsFile)
+    out_resfile = join_path_names(OutputBaseDir, nameOutputResultsMetricsFile)
 
     new_call = ['mv', in_resfile, out_resfile]
     list_calls_all.append(new_call)
@@ -166,7 +166,7 @@ def main(args):
         except Exception as ex:
             traceback.print_exc(file=sys.stdout)
             message = 'Call failed. Stop pipeline...'
-            CatchErrorException(message)
+            catch_error_exception(message)
         print('\n')
     #endfor
 

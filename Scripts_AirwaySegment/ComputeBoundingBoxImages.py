@@ -8,12 +8,12 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.Constants import *
-from Common.WorkDirsManager import *
-from DataLoaders.FileReaders import *
-from OperationImages.BoundingBoxes import *
-from OperationImages.OperationImages import *
-from OperationImages.OperationMasks import *
+from common.constant import *
+from common.workdir_manager import *
+from dataloaders.imagefilereader import *
+from imageoperators.boundingboxes import *
+from imageoperators.imageoperator import *
+from imageoperators.maskoperator import *
 from collections import OrderedDict
 import argparse
 
@@ -21,13 +21,13 @@ import argparse
 
 def main(args):
 
-    workDirsManager     = WorkDirsManager(args.datadir)
-    InputRoiMasksPath   = workDirsManager.getNameExistPath(args.nameInputRoiMasksRelPath)
-    InputReferKeysPath  = workDirsManager.getNameExistPath(args.nameInputReferKeysRelPath)
-    OutputBoundingBoxesFile= workDirsManager.getNameNewUpdateFile(args.nameOutputBoundingBoxesFile)
+    workDirsManager     = GeneralDirManager(args.datadir)
+    InputRoiMasksPath   = workDirsManager.get_pathdir_exist(args.nameInputRoiMasksRelPath)
+    InputReferKeysPath  = workDirsManager.get_pathdir_exist(args.nameInputReferKeysRelPath)
+    OutputBoundingBoxesFile= workDirsManager.get_pathfile_update(args.nameOutputBoundingBoxesFile)
 
-    listInputRoiMasksFiles  = findFilesDirAndCheck(InputRoiMasksPath)
-    listInputReferKeysFiles = findFilesDirAndCheck(InputReferKeysPath)
+    listInputRoiMasksFiles  = list_files_dir(InputRoiMasksPath)
+    listInputReferKeysFiles = list_files_dir(InputReferKeysPath)
 
 
 
@@ -40,11 +40,11 @@ def main(args):
         for i, in_roimask_file in enumerate(listInputRoiMasksFiles):
             print("\nInput: \'%s\'..." % (basename(in_roimask_file)))
 
-            in_roimask_array = FileReader.get_image_array(in_roimask_file)
+            in_roimask_array = ImageFileReader.get_image(in_roimask_file)
             print("Dims : \'%s\'..." % (str(in_roimask_array.shape)))
 
             # extract masks corresponding to left (=1) and right (=2) lungs
-            (in_roimask_left_array, in_roimask_right_array)  = OperationMasks.get_list_masks_with_labels(in_roimask_array, [1, 2])
+            (in_roimask_left_array, in_roimask_right_array)  = MaskOperator.get_list_masks_with_labels(in_roimask_array, [1, 2])
 
 
             # left lung bounding-box:
@@ -67,18 +67,18 @@ def main(args):
 
             # store computed bounding-boxes
             in_referkey_file = listInputReferKeysFiles[i]
-            outdict_cropBoundingBoxes[basenameNoextension(in_referkey_file)] = [bounding_box_left, bounding_box_right]
+            outdict_cropBoundingBoxes[basename_file_noext(in_referkey_file)] = [bounding_box_left, bounding_box_right]
         #endfor
     else:
         # compute bounding-box including for both left and right lungs
         for i, in_roimask_file in enumerate(listInputRoiMasksFiles):
             print("\nInput: \'%s\'..." % (basename(in_roimask_file)))
 
-            in_roimask_array = FileReader.get_image_array(in_roimask_file)
+            in_roimask_array = ImageFileReader.get_image(in_roimask_file)
             print("Dims : \'%s\'..." % (str(in_roimask_array.shape)))
 
             # convert train masks to binary (0, 1)
-            in_roimask_array = OperationMasks.binarise(in_roimask_array)
+            in_roimask_array = MaskOperator.binarise(in_roimask_array)
 
 
             bounding_box = BoundingBoxes.compute_bounding_box_contain_masks(in_roimask_array,
@@ -93,7 +93,7 @@ def main(args):
 
             # store computed bounding-box
             in_referkey_file = listInputReferKeysFiles[i]
-            outdict_cropBoundingBoxes[basenameNoextension(in_referkey_file)] = bounding_box
+            outdict_cropBoundingBoxes[basename_file_noext(in_referkey_file)] = bounding_box
     #endfor
 
     print("\nMax size bounding-box found: \'%s\'..." %(str(max_size_bounding_box)))
@@ -119,7 +119,7 @@ def main(args):
         print("\nInput Key file: \'%s\'..." % (in_key_file))
 
         in_roimask_file = listInputRoiMasksFiles[i]
-        in_roimask_array_shape = FileReader.get_image_size(in_roimask_file)
+        in_roimask_array_shape = ImageFileReader.get_image_size(in_roimask_file)
         print("Assigned to file: \'%s\', of Dims : \'%s\'..." % (basename(in_roimask_file), str(in_roimask_array_shape)))
 
         if not args.isTwoBoundingBoxEachLungs:
@@ -169,8 +169,8 @@ def main(args):
 
 
     # Save dictionary in file
-    saveDictionary(OutputBoundingBoxesFile, outdict_cropBoundingBoxes)
-    saveDictionary_csv(OutputBoundingBoxesFile.replace('.npy','.csv'), outdict_cropBoundingBoxes)
+    save_dictionary(OutputBoundingBoxesFile, outdict_cropBoundingBoxes)
+    save_dictionary_csv(OutputBoundingBoxesFile.replace('.npy', '.csv'), outdict_cropBoundingBoxes)
 
 
 
@@ -181,10 +181,10 @@ if __name__ == "__main__":
     parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
     parser.add_argument('--nameOutputBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
     parser.add_argument('--isTwoBoundingBoxEachLungs', type=str2bool, default=ISTWOBOUNDINGBOXEACHLUNGS)
-    parser.add_argument('--sizeBufferInBorders', type=str2tupleint, default=SIZEBUFFERBOUNDBOXBORDERS)
-    parser.add_argument('--sizeTrainImages', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
+    parser.add_argument('--sizeBufferInBorders', type=str2tuple_int, default=SIZEBUFFERBOUNDBOXBORDERS)
+    parser.add_argument('--sizeTrainImages', type=str2tuple_int, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--isSameSizeBoundBoxAllImages', type=str2bool, default=ISSAMESIZEBOUNDBOXALLIMAGES)
-    parser.add_argument('--fixedSizeBoundingBox', type=str2tupleintOrNone, default=FIXEDSIZEBOUNDINGBOX)
+    parser.add_argument('--fixedSizeBoundingBox', type=str2tuple_int, default=FIXEDSIZEBOUNDINGBOX)
     parser.add_argument('--isCalcBoundingBoxInSlices', type=str2bool, default=ISCALCBOUNDINGBOXINSLICES)
     args = parser.parse_args()
 

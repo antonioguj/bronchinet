@@ -8,11 +8,11 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.Constants import *
-from Common.WorkDirsManager import *
-from DataLoaders.FileReaders import *
-from OperationImages.OperationImages import *
-from OperationImages.OperationMasks import *
+from common.constant import *
+from common.workdir_manager import *
+from dataloaders.imagefilereader import *
+from imageoperators.imageoperator import *
+from imageoperators.maskoperator import *
 import argparse
 
 
@@ -64,7 +64,7 @@ def main(args):
 
     # write out image
     print("Write out image: %s..." %(args.outputfile))
-    FileReader.write_image_array(args.outputfile, out_array)
+    ImageFileReader.write_image(args.outputfile, out_array)
 
 
 

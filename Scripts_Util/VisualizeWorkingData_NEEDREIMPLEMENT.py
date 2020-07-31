@@ -10,9 +10,9 @@
 
 import argparse
 
-from Common.WorkDirsManager import *
-from DataLoaders.FileReaders import *
-from Preprocessing.ImageGeneratorManager import *
+from common.workdir_manager import *
+from dataloaders.imagefilereader import *
+from preprocessing.imagegenerator_manager import *
 
 
 def main(args):
@@ -31,18 +31,18 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workDirsManager  = WorkDirsManager(args.datadir)
-    InputImagesPath  = workDirsManager.getNameExistPath(nameInputImagesRelPath)
-    InputLabelsPath  = workDirsManager.getNameExistPath(nameInputLabelsRelPath)
-    VisualImagesPath = workDirsManager.getNameNewPath  (nameVisualImagesRelPath)
+    workDirsManager  = GeneralDirManager(args.datadir)
+    InputImagesPath  = workDirsManager.get_pathdir_exist(nameInputImagesRelPath)
+    InputLabelsPath  = workDirsManager.get_pathdir_exist(nameInputLabelsRelPath)
+    VisualImagesPath = workDirsManager.get_pathdir_new  (nameVisualImagesRelPath)
 
-    listInputImagesFiles = findFilesDir(InputImagesPath)
-    listInputLabelsFiles = findFilesDir(InputLabelsPath)
+    listInputImagesFiles = list_files_dir(InputImagesPath)
+    listInputLabelsFiles = list_files_dir(InputLabelsPath)
 
     if (len(listInputImagesFiles) != len(listInputLabelsFiles)):
         message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(listInputImagesFiles),
                                                                                            len(listInputLabelsFiles))
-        CatchErrorException(message)
+        catch_error_exception(message)
 
 
 
@@ -50,7 +50,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
         print("And: \'%s\'..." % (basename(in_label_file)))
 
-        (in_image_array, in_label_array) = FileReader.get_2image_arrays_and_check(in_image_file, in_label_file)
+        (in_image_array, in_label_array) = ImageFileReader.get_2image_arrays_and_check(in_image_file, in_label_file)
         print("Original dims : \'%s\'..." %(str(in_image_array.shape)))
 
 
@@ -62,15 +62,15 @@ def main(args):
                                                               args.transformationImages,
                                                               args.elasticDeformationImages)
 
-            (out_visualimage_array, out_visuallabel_array) = images_generator.get_image(in_image_array, in2nd_array=in_label_array)
+            (out_visualimage_array, out_visuallabel_array) = images_generator._get_image(in_image_array, in2nd_array=in_label_array)
 
             for j, (in_batchimage_array, in_batchlabel_array) in enumerate(zip(out_visualimage_array, out_visuallabel_array)):
 
-                out_image_filename = joinpathnames(VisualImagesPath, nameOutputVisualImagesFiles % (i+1, tuple2str(out_visualimage_array.shape[1:]), j+1))
-                out_label_filename = joinpathnames(VisualImagesPath, nameOutputVisualLabelsFiles % (i+1, tuple2str(out_visuallabel_array.shape[1:]), j+1))
+                out_image_filename = join_path_names(VisualImagesPath, nameOutputVisualImagesFiles % (i + 1, tuple2str(out_visualimage_array.shape[1:]), j + 1))
+                out_label_filename = join_path_names(VisualImagesPath, nameOutputVisualLabelsFiles % (i + 1, tuple2str(out_visuallabel_array.shape[1:]), j + 1))
 
-                FileReader.write_image_array(out_image_filename, in_batchimage_array)
-                FileReader.write_image_array(out_label_filename, in_batchlabel_array)
+                ImageFileReader.write_image(out_image_filename, in_batchimage_array)
+                ImageFileReader.write_image(out_label_filename, in_batchlabel_array)
             # endfor
         else:
             print("Input work data stored as volume. Generate batches of size \'%s\'. Visualize batches..." % (str(IMAGES_DIMS_Z_X_Y)))
@@ -96,11 +96,11 @@ def main(args):
                 out_visualimage_array = np.squeeze(out_visualimage_array, axis=0)
                 out_visuallabel_array = np.squeeze(out_visuallabel_array, axis=0)
 
-                out_image_filename = joinpathnames(VisualImagesPath, nameOutputVisualImagesFiles % (i+1, tuple2str(out_visualimage_array.shape), tuple2str(coords_sliding_window_box)))
-                out_label_filename = joinpathnames(VisualImagesPath, nameOutputVisualLabelsFiles % (i+1, tuple2str(out_visuallabel_array.shape), tuple2str(coords_sliding_window_box)))
+                out_image_filename = join_path_names(VisualImagesPath, nameOutputVisualImagesFiles % (i + 1, tuple2str(out_visualimage_array.shape), tuple2str(coords_sliding_window_box)))
+                out_label_filename = join_path_names(VisualImagesPath, nameOutputVisualLabelsFiles % (i + 1, tuple2str(out_visuallabel_array.shape), tuple2str(coords_sliding_window_box)))
 
-                FileReader.write_image_array(out_image_filename, out_visualimage_array)
-                FileReader.write_image_array(out_label_filename, out_visuallabel_array)
+                ImageFileReader.write_image(out_image_filename, out_visualimage_array)
+                ImageFileReader.write_image(out_label_filename, out_visuallabel_array)
             # endfor
     #endfor
 
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
-    parser.add_argument('--slidewin_propOverlap', type=str2tuplefloat, default=SLIDEWINDOW_PROPOVERLAP_Z_X_Y)
+    parser.add_argument('--slidewin_propOverlap', type=str2tuple_float, default=SLIDEWINDOW_PROPOVERLAP_Z_X_Y)
     parser.add_argument('--transformationImages', type=str2bool, default=TRANSFORMATIONRIGIDIMAGES)
     parser.add_argument('--elasticDeformationImages', type=str2bool, default=TRANSFORMELASTICDEFORMIMAGES)
     parser.add_argument('--createImagesBatches', type=str2bool, default=CREATEIMAGESBATCHES)

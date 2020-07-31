@@ -8,12 +8,12 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.Constants import *
-from Common.WorkDirsManager import *
-from DataLoaders.FileReaders import *
-from OperationImages.OperationImages import *
-from OperationImages.BoundingBoxes import *
-from OperationImages.OperationMasks import *
+from common.constant import *
+from common.workdir_manager import *
+from dataloaders.imagefilereader import *
+from imageoperators.imageoperator import *
+from imageoperators.boundingboxes import *
+from imageoperators.maskoperator import *
 from collections import OrderedDict
 import argparse
 
@@ -21,12 +21,12 @@ import argparse
 def check_same_number_files_in_list(list_files_1, list_files_2):
     if (len(list_files_1) != len(list_files_2)):
         message = 'num files in two lists not equal: \'%s\' != \'%s\'...' %(len(list_files_1), len(list_files_2))
-        CatchErrorException(message)
+        catch_error_exception(message)
 
 def check_same_size_arrays(in_array_1, in_array_2):
     if in_array_1.shape != in_array_2.shape:
         message = "arrays have different size: \'%s\' != \'%s\'. Skip these data..." %(str(in_array_1.shape), str(in_array_2.shape))
-        CatchWarningException(message)
+        catch_warning_exception(message)
         return True
     else:
         return False
@@ -42,43 +42,43 @@ def main(args):
 
 
 
-    workDirsManager     = WorkDirsManager(args.datadir)
-    InputImagesPath     = workDirsManager.getNameExistPath(args.nameInputImagesRelPath)
-    InputReferKeysPath  = workDirsManager.getNameExistPath(args.nameInputReferKeysRelPath)
-    OutputImagesPath    = workDirsManager.getNameNewPath  (args.nameOutputImagesRelPath)
-    OutputReferKeysFile = workDirsManager.getNameNewUpdateFile(args.nameOutputReferKeysFile)
+    workDirsManager     = GeneralDirManager(args.datadir)
+    InputImagesPath     = workDirsManager.get_pathdir_exist(args.nameInputImagesRelPath)
+    InputReferKeysPath  = workDirsManager.get_pathdir_exist(args.nameInputReferKeysRelPath)
+    OutputImagesPath    = workDirsManager.get_pathdir_new  (args.nameOutputImagesRelPath)
+    OutputReferKeysFile = workDirsManager.get_pathfile_update(args.nameOutputReferKeysFile)
 
-    listInputImagesFiles    = findFilesDirAndCheck(InputImagesPath)
-    listInputReferKeysFiles = findFilesDirAndCheck(InputReferKeysPath)
+    listInputImagesFiles    = list_files_dir(InputImagesPath)
+    listInputReferKeysFiles = list_files_dir(InputReferKeysPath)
 
 
     if (args.isPrepareLabels):
-        InputLabelsPath      = workDirsManager.getNameExistPath(args.nameInputLabelsRelPath)
-        OutputLabelsPath     = workDirsManager.getNameNewPath  (args.nameOutputLabelsRelPath)
-        listInputLabelsFiles = findFilesDirAndCheck(InputLabelsPath)
+        InputLabelsPath      = workDirsManager.get_pathdir_exist(args.nameInputLabelsRelPath)
+        OutputLabelsPath     = workDirsManager.get_pathdir_new  (args.nameOutputLabelsRelPath)
+        listInputLabelsFiles = list_files_dir(InputLabelsPath)
 
         check_same_number_files_in_list(listInputImagesFiles, listInputLabelsFiles)
 
     if (args.masksToRegionInterest):
-        InputRoiMasksPath      = workDirsManager.getNameExistPath(args.nameInputRoiMasksRelPath)
-        listInputRoiMasksFiles = findFilesDirAndCheck(InputRoiMasksPath)
+        InputRoiMasksPath      = workDirsManager.get_pathdir_exist(args.nameInputRoiMasksRelPath)
+        listInputRoiMasksFiles = list_files_dir(InputRoiMasksPath)
 
         check_same_number_files_in_list(listInputImagesFiles, listInputRoiMasksFiles)
 
     if (args.isInputExtraLabels):
-        InputExtraLabelsPath      = workDirsManager.getNameExistPath(args.nameInputExtraLabelsRelPath)
-        OutputExtraLabelsPath     = workDirsManager.getNameNewPath  (args.nameOutputExtraLabelsRelPath)
-        listInputExtraLabelsFiles = findFilesDirAndCheck(InputExtraLabelsPath)
+        InputExtraLabelsPath      = workDirsManager.get_pathdir_exist(args.nameInputExtraLabelsRelPath)
+        OutputExtraLabelsPath     = workDirsManager.get_pathdir_new  (args.nameOutputExtraLabelsRelPath)
+        listInputExtraLabelsFiles = list_files_dir(InputExtraLabelsPath)
 
         check_same_number_files_in_list(listInputImagesFiles, listInputExtraLabelsFiles)
 
     if (args.rescaleImages):
-        InputRescaleFactorsFile = workDirsManager.getNameExistFile(args.nameRescaleFactorsFile)
-        in_dictRescaleFactors   = readDictionary(InputRescaleFactorsFile)
+        InputRescaleFactorsFile = workDirsManager.get_pathfile_exist(args.nameRescaleFactorsFile)
+        in_dictRescaleFactors   = read_dictionary(InputRescaleFactorsFile)
 
     if (args.cropImages):
-        InputCropBoundingBoxesFile= workDirsManager.getNameExistFile(args.nameCropBoundingBoxesFile)
-        in_dictCropBoundingBoxes  = readDictionary(InputCropBoundingBoxesFile)
+        InputCropBoundingBoxesFile= workDirsManager.get_pathfile_exist(args.nameCropBoundingBoxesFile)
+        in_dictCropBoundingBoxes  = read_dictionary(InputCropBoundingBoxesFile)
 
 
     if (args.cropImages):
@@ -106,7 +106,7 @@ def main(args):
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
-        inout_image_array = FileReader.get_image_array(in_image_file)
+        inout_image_array = ImageFileReader.get_image(in_image_file)
         print("Original dims : \'%s\'..." % (str(inout_image_array.shape)))
 
         list_inout_arrays = [inout_image_array]
@@ -118,10 +118,10 @@ def main(args):
             in_label_file = listInputLabelsFiles[i]
             print("And Labels: \'%s\'..." % (basename(in_label_file)))
 
-            inout_label_array = FileReader.get_image_array(in_label_file)
+            inout_label_array = ImageFileReader.get_image(in_label_file)
             if (args.isBinaryTrainMasks):
                 print("Convert masks to binary (0, 1)...")
-                inout_label_array = OperationMasks.binarise(inout_label_array)
+                inout_label_array = MaskOperator.binarise(inout_label_array)
 
             list_inout_arrays.append(inout_label_array)
             list_type_inout_arrays.append('label')
@@ -134,13 +134,13 @@ def main(args):
             in_roimask_file = listInputRoiMasksFiles[i]
             print("And ROI Mask for labels: \'%s\'..." %(basename(in_roimask_file)))
 
-            in_roimask_array = FileReader.get_image_array(in_roimask_file)
+            in_roimask_array = ImageFileReader.get_image(in_roimask_file)
             if args.isROIlabelsMultiROImasks:
-                in_list_roimask_array = OperationMasks.get_list_masks_all_labels(in_roimask_array)
+                in_list_roimask_array = MaskOperator.get_list_masks_all_labels(in_roimask_array)
                 list_inout_arrays += in_list_roimask_array
                 list_type_inout_arrays += ['roimask'] * len(in_list_roimask_array)
             else:
-                in_roimask_array = OperationMasks.binarise(in_roimask_array)
+                in_roimask_array = MaskOperator.binarise(in_roimask_array)
                 list_inout_arrays.append(in_roimask_array)
                 list_type_inout_arrays.append('roimask')
 
@@ -152,8 +152,8 @@ def main(args):
             in_extralabel_file = listInputExtraLabelsFiles[i]
             print("And extra labels: \'%s\'..." %(basename(in_extralabel_file)))
 
-            inout_extralabel_array = FileReader.get_image_array(in_extralabel_file)
-            inout_extralabel_array = OperationMasks.binarise(inout_extralabel_array)
+            inout_extralabel_array = ImageFileReader.get_image(in_extralabel_file)
+            inout_extralabel_array = MaskOperator.binarise(inout_extralabel_array)
             list_inout_arrays.append(inout_extralabel_array)
             list_type_inout_arrays.append('label')
 
@@ -167,18 +167,18 @@ def main(args):
         #*******************************************************************************
         if (args.rescaleImages):
             in_referkey_file = listInputReferKeysFiles[i]
-            in_rescale_factor = in_dictRescaleFactors[basenameNoextension(in_referkey_file)]
+            in_rescale_factor = in_dictRescaleFactors[basename_file_noext(in_referkey_file)]
             print("Rescale image with a factor: \'%s\'..." %(str(in_rescale_factor)))
 
             if in_rescale_factor != (1.0, 1.0, 1.0):
                 for j, (in_array, type_in_array) in enumerate(zip(list_inout_arrays, list_type_inout_arrays)):
                     print('Rescale input array \'%s\' of type \'%s\'...' %(j, type_in_array))
                     if type_in_array == 'image':
-                        out_array = RescaleImages.compute(in_array, in_rescale_factor, order=3)
+                        out_array = RescaleImage.compute(in_array, in_rescale_factor, order=3)
                     elif type_in_array == 'label':
-                        out_array = RescaleImages.compute(in_array, in_rescale_factor, order=3, is_inlabels=True)
+                        out_array = RescaleImage.compute(in_array, in_rescale_factor, order=3, is_inlabels=True)
                     elif type_in_array == 'roimask':
-                        out_array = RescaleImages.compute(in_array, in_rescale_factor, order=3, is_inlabels=True, is_binarise_output=True)
+                        out_array = RescaleImage.compute(in_array, in_rescale_factor, order=3, is_inlabels=True, is_binarise_output=True)
                     list_inout_arrays[j] = out_array
                 # endfor
             else:
@@ -199,7 +199,7 @@ def main(args):
             for j, in_roimask_array in enumerate(list_in_roimask_arrays):
                 for k, in_array in enumerate(list_in_calc_arrays):
                     print('Masks input labels array \'%s\' to ROI masks \'%s\'...' % (k, j))
-                    out_array = OperationMasks.mask_exclude_regions(in_array, in_roimask_array)
+                    out_array = MaskOperator.mask_exclude_regions(in_array, in_roimask_array)
                     list_inout_arrays.append(out_array)
                     list_type_inout_arrays.append('label')
                 # endfor
@@ -210,7 +210,7 @@ def main(args):
         # *******************************************************************************
         if (args.cropImages):
             in_referkey_file = listInputReferKeysFiles[i]
-            list_in_crop_bounding_boxes = in_dictCropBoundingBoxes[basenameNoextension(in_referkey_file)]
+            list_in_crop_bounding_boxes = in_dictCropBoundingBoxes[basename_file_noext(in_referkey_file)]
             num_crop_bounding_boxes = len(list_in_crop_bounding_boxes)
             print("Compute \'%s\' cropped images for this raw image:" %(num_crop_bounding_boxes))
 
@@ -219,7 +219,7 @@ def main(args):
                 num_total_labels_tocrop = num_crop_bounding_boxes * num_init_labels
                 if (num_total_labels_tocrop != num_total_labels):
                     message = 'num labels to crop to bounding boxes is wrong: \'%s\' != \'%s\' (expected)...' %(num_total_labels, num_total_labels_tocrop)
-                    CatchErrorException(message)
+                    catch_error_exception(message)
 
                 # In this set-up, there is already computed the input ROI-masked label per cropping bounding-box
                 # Insert input image in the right place: before each set of ROI-masked labels
@@ -253,7 +253,7 @@ def main(args):
 
                     for k in range(num_arrays_per_crop_bounding_box):
                         print('Crop input array \'%s\' of type \'%s\'...' % (icount, list_type_inout_arrays[icount]))
-                        out_array = CropAndExtendImages.compute3D(list_inout_arrays[icount], croppartial_bounding_box,
+                        out_array = CropAndExtendImage._compute3D(list_inout_arrays[icount], croppartial_bounding_box,
                                                                   extendimg_bounding_box, new_size_in_array)
                         list_inout_arrays[icount] = out_array
                         icount += 1
@@ -261,7 +261,7 @@ def main(args):
                 else:
                     for k in range(num_arrays_per_crop_bounding_box):
                         print('Crop input array \'%s\' of type \'%s\'...' % (icount, list_type_inout_arrays[icount]))
-                        out_array = CropImages.compute3D(list_inout_arrays[icount], in_crop_bounding_box)
+                        out_array = CropImage._compute3D(list_inout_arrays[icount], in_crop_bounding_box)
                         list_inout_arrays[icount] = out_array
                         icount += 1
                     # endfor
@@ -281,39 +281,39 @@ def main(args):
         icount = 0
         for j in range(num_output_files_per_image):
             if is_output_multiple_files_per_image:
-                output_image_file = joinpathnames(OutputImagesPath, nameTemplateOutputImagesFiles %(i+1, j+1))
+                output_image_file = join_path_names(OutputImagesPath, nameTemplateOutputImagesFiles % (i + 1, j + 1))
             else:
-                output_image_file = joinpathnames(OutputImagesPath, nameTemplateOutputImagesFiles %(i+1))
+                output_image_file = join_path_names(OutputImagesPath, nameTemplateOutputImagesFiles % (i + 1))
             print("Output \'%s\' image, of type \'%s\': \'%s\'..." % (icount, list_type_inout_arrays[icount],
                                                                       basename(output_image_file)))
 
-            FileReader.write_image_array(output_image_file, list_inout_arrays[icount])
+            ImageFileReader.write_image(output_image_file, list_inout_arrays[icount])
             icount += 1
 
             # save this image in reference keys
-            outdict_referenceKeys[basenameNoextension(output_image_file)] = basename(in_image_file)
+            outdict_referenceKeys[basename_file_noext(output_image_file)] = basename(in_image_file)
 
 
             if (args.isPrepareLabels):
                 if is_output_multiple_files_per_image:
-                    output_label_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1, j+1))
+                    output_label_file = join_path_names(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i + 1, j + 1))
                 else:
-                    output_label_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1))
+                    output_label_file = join_path_names(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i + 1))
                 print("Output \'%s\' label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_arrays[icount],
                                                                           basename(output_label_file)))
 
-                FileReader.write_image_array(output_label_file, list_inout_arrays[icount])
+                ImageFileReader.write_image(output_label_file, list_inout_arrays[icount])
                 icount += 1
 
             if (args.isInputExtraLabels):
                 if is_output_multiple_files_per_image:
-                    output_extralabel_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1, j+1))
+                    output_extralabel_file = join_path_names(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i + 1, j + 1))
                 else:
-                    output_extralabel_file = joinpathnames(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i+1))
+                    output_extralabel_file = join_path_names(OutputLabelsPath, nameTemplateOutputLabelsFiles % (i + 1))
                 print("Output \'%s\' extra label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_arrays[icount],
                                                                                 basename(output_extralabel_file)))
 
-                FileReader.write_image_array(output_extralabel_file, list_inout_arrays[icount])
+                ImageFileReader.write_image(output_extralabel_file, list_inout_arrays[icount])
                 icount += 1
         # endfor
         # *******************************************************************************
@@ -321,8 +321,8 @@ def main(args):
 
 
     # Save dictionary in file
-    saveDictionary(OutputReferKeysFile, outdict_referenceKeys)
-    saveDictionary_csv(OutputReferKeysFile.replace('.npy','.csv'), outdict_referenceKeys)
+    save_dictionary(OutputReferKeysFile, outdict_referenceKeys)
+    save_dictionary_csv(OutputReferKeysFile.replace('.npy', '.csv'), outdict_referenceKeys)
 
 
 

@@ -8,13 +8,13 @@
 # Last update: 09/02/2018
 #######################################################################################
 
-from Common.Constants import *
-from Common.FunctionsUtil import *
+from common.constant import *
+from common.function_util import *
 import argparse
 
-if TYPE_DNNLIBRARY_USED == 'Keras':
+if TYPE_DNNLIB_USED == 'Keras':
     EXT_MODELFILE = '.hdf5'
-elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+elif TYPE_DNNLIB_USED == 'Pytorch':
     EXT_MODELFILE = '.pt'
 
 
@@ -32,13 +32,13 @@ def main(args):
 
     print("Clean the directory: \'%s\'..." %(args.resultsdir))
 
-    list_all_files = listFilesDir(args.resultsdir)
+    list_all_files = list_files_dir_old(args.resultsdir)
     list_models_files = list(list_all_files)
 
-    name_loss_history_file = joinpathnames(args.resultsdir, name_rel_loss_history_file)
-    name_link_model_last_epoch = joinpathnames(args.resultsdir, name_link_rel_model_last_epoch)
-    name_link_model_min_loss = joinpathnames(args.resultsdir, name_link_rel_model_min_loss)
-    name_link_model_min_valoss = joinpathnames(args.resultsdir, name_link_rel_model_min_valoss)
+    name_loss_history_file = join_path_names(args.resultsdir, name_rel_loss_history_file)
+    name_link_model_last_epoch = join_path_names(args.resultsdir, name_link_rel_model_last_epoch)
+    name_link_model_min_loss = join_path_names(args.resultsdir, name_link_rel_model_min_loss)
+    name_link_model_min_valoss = join_path_names(args.resultsdir, name_link_rel_model_min_valoss)
 
     list_models_files.remove(name_loss_history_file)
 

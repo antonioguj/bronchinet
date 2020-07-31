@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.ErrorMessages import *
+from common.exception_manager import *
 from tensorflow.keras.layers import Input, concatenate, Dropout, BatchNormalization
 from tensorflow.keras.layers import Convolution3D, MaxPooling3D, UpSampling3D, Cropping3D, Conv3DTranspose
 from tensorflow.keras.models import Model, load_model
@@ -487,7 +487,7 @@ def DICTAVAILMODELS3D(size_image,
         type_activate_output = 'linear'
     else:
         message = 'type network not existing: \'%s\'' %(type_network)
-        CatchErrorException(message)
+        catch_error_exception(message)
 
     return Unet3D_General(size_image,
                           num_levels=num_levels,

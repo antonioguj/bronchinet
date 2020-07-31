@@ -8,23 +8,23 @@
 # Last update: 09/02/2018
 #######################################################################################
 
-from Common.Constants import *
-from Common.FunctionsUtil import *
-from Common.WorkDirsManager import *
+from common.constant import *
+from common.function_util import *
+from common.workdir_manager import *
 import subprocess
 import argparse
 
 
 CODEDIR                     = '/home/antonio/Codes/Antonio_repository/AirwaySegmentation/'
-SCRIPT_CONVERTTONIFTY       = joinpathnames(CODEDIR, 'Scripts_Util/ConvertImageToNifty.py')
-SCRIPT_BINARISEMASKS        = joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
-SCRIPT_GETTRACHEAMAINBRONCHI= joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
-SCRIPT_COMPUTECENTRELINES   = joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
-SCRIPT_RESCALEROIMASKS      = joinpathnames(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
-SCRIPT_EXTENDCROPPEDIMAGES  = joinpathnames(CODEDIR, 'Scripts_Util/SpecificDLCST/ExtendCroppedImagesToFullSize.py')
-SCRIPT_RESCALEFACTORIMAGES  = joinpathnames(CODEDIR, 'Scripts_AirwaySegment/ComputeRescaleFactorImages.py')
-SCRIPT_BOUNDINGBOXIMAGES    = joinpathnames(CODEDIR, 'Scripts_AirwaySegment/ComputeBoundingBoxImages.py')
-SCRIPT_PREPAREDATA          = joinpathnames(CODEDIR, 'Scripts_Experiments/PrepareData.py')
+SCRIPT_CONVERTTONIFTY       = join_path_names(CODEDIR, 'Scripts_Util/ConvertImageToNifty.py')
+SCRIPT_BINARISEMASKS        = join_path_names(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
+SCRIPT_GETTRACHEAMAINBRONCHI= join_path_names(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
+SCRIPT_COMPUTECENTRELINES   = join_path_names(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
+SCRIPT_RESCALEROIMASKS      = join_path_names(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
+SCRIPT_EXTENDCROPPEDIMAGES  = join_path_names(CODEDIR, 'Scripts_Util/SpecificDLCST/ExtendCroppedImagesToFullSize.py')
+SCRIPT_RESCALEFACTORIMAGES  = join_path_names(CODEDIR, 'Scripts_AirwaySegment/ComputeRescaleFactorImages.py')
+SCRIPT_BOUNDINGBOXIMAGES    = join_path_names(CODEDIR, 'Scripts_AirwaySegment/ComputeBoundingBoxImages.py')
+SCRIPT_PREPAREDATA          = join_path_names(CODEDIR, 'Scripts_Experiments/PrepareData.py')
 
 CLUSTER_ARCHIVEDIR = 'agarcia@bigr-app001:/scratch/agarcia/Data/'
 
@@ -49,7 +49,7 @@ def create_task_replace_dirs(input_dir, input_dir_to_replace):
 
 
 def create_task_decompress_data(input_data_dir, is_keep_files):
-    list_files = findFilesDir(input_data_dir)
+    list_files = list_files_dir(input_data_dir)
     extension_file = fileextension(list_files[0])
     sublist_calls = []
 
@@ -60,7 +60,7 @@ def create_task_decompress_data(input_data_dir, is_keep_files):
 
     if is_keep_files and extension_file in ['.dcm', '.dcm.gz']:
         # convert to nifty, if we keep the raw images for testing
-        new_input_data_dir = updatePathnameWithsuffix(input_data_dir, 'Nifty')
+        new_input_data_dir = set_dirname_suffix(input_data_dir, 'Nifty')
         new_call = ['python3', SCRIPT_CONVERTTONIFTY, input_data_dir, new_input_data_dir]
         sublist_calls.append(new_call)
 
@@ -74,34 +74,34 @@ def create_task_decompress_data(input_data_dir, is_keep_files):
 
 def main(args):
 
-    SourceClusterDataDir = joinpathnames(CLUSTER_ARCHIVEDIR, args.inclustercasedir)
+    SourceClusterDataDir = join_path_names(CLUSTER_ARCHIVEDIR, args.inclustercasedir)
 
-    nameSourceRawImagesPath   = joinpathnames(SourceClusterDataDir, 'CTs/')
-    nameSourceRawLabelsPath   = joinpathnames(SourceClusterDataDir, 'Airways/')
-    nameSourceRawRoiMasksPath = joinpathnames(SourceClusterDataDir, 'Lungs/')
+    nameSourceRawImagesPath   = join_path_names(SourceClusterDataDir, 'CTs/')
+    nameSourceRawLabelsPath   = join_path_names(SourceClusterDataDir, 'Airways/')
+    nameSourceRawRoiMasksPath = join_path_names(SourceClusterDataDir, 'Lungs/')
     if args.isPrepareCoarseAirways:
-        nameSourceRawCoarseAirwaysPath= joinpathnames(SourceClusterDataDir, 'CoarseAirways/')
+        nameSourceRawCoarseAirwaysPath= join_path_names(SourceClusterDataDir, 'CoarseAirways/')
     if args.inclustercasedir in ['DLCST', 'DLCST/']:
-        nameSourceFoundBoundBoxesFile = joinpathnames(SourceClusterDataDir, 'Others/found_boundingBox_croppedCTinFull.npy')
+        nameSourceFoundBoundBoxesFile = join_path_names(SourceClusterDataDir, 'Others/found_boundingBox_croppedCTinFull.npy')
 
 
     # OutputDataDir = makeUpdatedir(args.outputdatadir)
     OutputDataDir = args.outputdatadir
     makedir(OutputDataDir)
 
-    OutputDataDir            = joinpathnames(currentdir(), OutputDataDir)
-    nameInputRawImagesPath   = joinpathnames(OutputDataDir, NAME_RAWIMAGES_RELPATH)
-    nameInputRawLabelsPath   = joinpathnames(OutputDataDir, NAME_RAWLABELS_RELPATH)
-    nameInputRawRoiMasksPath = joinpathnames(OutputDataDir, NAME_RAWROIMASKS_RELPATH)
-    nameInputReferKeysPath   = joinpathnames(OutputDataDir, NAME_REFERKEYS_RELPATH)
+    OutputDataDir            = join_path_names(currentdir(), OutputDataDir)
+    nameInputRawImagesPath   = join_path_names(OutputDataDir, NAME_RAWIMAGES_RELPATH)
+    nameInputRawLabelsPath   = join_path_names(OutputDataDir, NAME_RAWLABELS_RELPATH)
+    nameInputRawRoiMasksPath = join_path_names(OutputDataDir, NAME_RAWROIMASKS_RELPATH)
+    nameInputReferKeysPath   = join_path_names(OutputDataDir, NAME_REFERKEYS_RELPATH)
     if args.isPrepareCentrelines:
-        nameInputRawCentrelinesPath   = joinpathnames(OutputDataDir, NAME_RAWCENTRELINES_RELPATH)
+        nameInputRawCentrelinesPath   = join_path_names(OutputDataDir, NAME_RAWCENTRELINES_RELPATH)
     if args.isPrepareCoarseAirways:
-        nameInputRawCoarseAirwaysPath = joinpathnames(OutputDataDir, NAME_RAWCOARSEAIRWAYS_RELPATH)
+        nameInputRawCoarseAirwaysPath = join_path_names(OutputDataDir, NAME_RAWCOARSEAIRWAYS_RELPATH)
     if args.rescaleImages:
-        nameInputRescaleFactorsFile   = joinpathnames(OutputDataDir, NAME_RESCALEFACTOR_FILE)
+        nameInputRescaleFactorsFile   = join_path_names(OutputDataDir, NAME_RESCALEFACTOR_FILE)
     if args.inclustercasedir in ['DLCST', 'DLCST/']:
-        nameInputFoundBoundBoxesFile  = joinpathnames(OutputDataDir, basename(nameSourceFoundBoundBoxesFile))
+        nameInputFoundBoundBoxesFile  = join_path_names(OutputDataDir, basename(nameSourceFoundBoundBoxesFile))
 
 
 
@@ -133,7 +133,7 @@ def main(args):
         except Exception as ex:
             traceback.print_exc(file=sys.stdout)
             message = 'Call failed. Stop pipeline...'
-            CatchErrorException(message)
+            catch_error_exception(message)
         print('\n')
     #endfor
 
@@ -158,8 +158,8 @@ def main(args):
 
     # binarise the input arrays for airway and lungs
     if args.isKeepRawImages:
-        nameTempoBinaryLabelsPath   = updatePathnameWithsuffix(nameInputRawLabelsPath,   'Binary')
-        nameTempoBinaryRoiMasksPath = updatePathnameWithsuffix(nameInputRawRoiMasksPath, 'Binary')
+        nameTempoBinaryLabelsPath   = set_dirname_suffix(nameInputRawLabelsPath, 'Binary')
+        nameTempoBinaryRoiMasksPath = set_dirname_suffix(nameInputRawRoiMasksPath, 'Binary')
 
         new_call = ['python3', SCRIPT_BINARISEMASKS, nameInputRawLabelsPath, nameTempoBinaryLabelsPath,
                     '--type', 'binarise']
@@ -178,7 +178,7 @@ def main(args):
 
     # extract the labels for trachea and main bronchii from the coarse airways
     if args.isPrepareCoarseAirways:
-        nameTempoTracheaMainBronchiPath = updatePathnameWithsuffix(nameInputRawCoarseAirwaysPath, 'TracheaMainBronchi')
+        nameTempoTracheaMainBronchiPath = set_dirname_suffix(nameInputRawCoarseAirwaysPath, 'TracheaMainBronchi')
 
         new_call = ['python3', SCRIPT_GETTRACHEAMAINBRONCHI, nameInputRawCoarseAirwaysPath, nameTempoTracheaMainBronchiPath,
                     '--type', 'masklabels',
@@ -194,8 +194,8 @@ def main(args):
 
     # 3rd: for DLCST data: extend the raw images from the cropped and flipped format found in the cluster
     if args.inclustercasedir in ['DLCST', 'DLCST/']:
-        nameTempoExtendedLabelsPath   = updatePathnameWithsuffix(nameInputRawLabelsPath,   'Extended')
-        nameTempoExtendedRoiMasksPath = updatePathnameWithsuffix(nameInputRawRoiMasksPath, 'Extended')
+        nameTempoExtendedLabelsPath   = set_dirname_suffix(nameInputRawLabelsPath, 'Extended')
+        nameTempoExtendedRoiMasksPath = set_dirname_suffix(nameInputRawRoiMasksPath, 'Extended')
 
         new_call = ['python3', SCRIPT_EXTENDCROPPEDIMAGES, nameInputRawLabelsPath, nameTempoExtendedLabelsPath,
                     '--referkeysdir', nameInputReferKeysPath,
@@ -215,7 +215,7 @@ def main(args):
         list_calls_all += sublist_calls
 
         if args.isPrepareCoarseAirways:
-            nameTempoExtendedCoarseAirwaysPath = updatePathnameWithsuffix(nameInputRawCoarseAirwaysPath, 'Extended')
+            nameTempoExtendedCoarseAirwaysPath = set_dirname_suffix(nameInputRawCoarseAirwaysPath, 'Extended')
 
             new_call = ['python3', SCRIPT_EXTENDCROPPEDIMAGES, nameInputRawCoarseAirwaysPath, nameTempoExtendedCoarseAirwaysPath,
                         '--referkeysdir', nameInputReferKeysPath,
@@ -238,7 +238,7 @@ def main(args):
 
     # 5th: compute rescaling factors, and rescale the Roi masks to compute the bounding masks
     if args.rescaleImages:
-        nameTempoRescaledRoiMasksPath = updatePathnameWithsuffix(nameInputRawRoiMasksPath, 'Rescaled')
+        nameTempoRescaledRoiMasksPath = set_dirname_suffix(nameInputRawRoiMasksPath, 'Rescaled')
 
         new_call = ['python3', SCRIPT_RESCALEFACTORIMAGES,
                     '--datadir', OutputDataDir,
@@ -309,7 +309,7 @@ def main(args):
         except Exception as ex:
             traceback.print_exc(file=sys.stdout)
             message = 'Call failed. Stop pipeline...'
-            CatchErrorException(message)
+            catch_error_exception(message)
         print('\n')
     #endfor
 
@@ -320,13 +320,13 @@ if __name__ == "__main__":
     parser.add_argument('inclustercasedir', type=str)
     parser.add_argument('outputdatadir', type=str)
     parser.add_argument('--type', type=str, default='training')
-    parser.add_argument('--sizeTrainImages', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
+    parser.add_argument('--sizeTrainImages', type=str2tuple_int, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
-    parser.add_argument('--fixedRescaleRes', type=str2tuplefloatOrNone, default=FIXEDRESCALERES)
+    parser.add_argument('--fixedRescaleRes', type=str2tuple_float, default=FIXEDRESCALERES)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--isTwoBoundingBoxEachLungs', type=str2bool, default=ISTWOBOUNDINGBOXEACHLUNGS)
-    parser.add_argument('--fixedSizeBoundingBox', type=str2tupleintOrNone, default=FIXEDSIZEBOUNDINGBOX)
+    parser.add_argument('--fixedSizeBoundingBox', type=str2tuple_int, default=FIXEDSIZEBOUNDINGBOX)
     args = parser.parse_args()
 
     if args.type == 'training':
@@ -357,7 +357,7 @@ if __name__ == "__main__":
             args.fixedSizeBoundingBox = None
     else:
         message = 'Input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.type, LIST_TYPEDATA_AVAIL)
-        CatchErrorException(message)
+        catch_error_exception(message)
 
     print("Print input arguments...")
     for key, value in vars(args).items():

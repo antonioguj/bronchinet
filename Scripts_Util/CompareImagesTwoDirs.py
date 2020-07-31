@@ -8,10 +8,10 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from DataLoaders.FileReaders import *
-from OperationImages.OperationImages import *
-from OperationImages.OperationMasks import *
-from PlotsManager.Histograms import *
+from dataloaders.imagefilereader import *
+from imageoperators.imageoperator import *
+from imageoperators.maskoperator import *
+from plotting.histogram import *
 from collections import OrderedDict
 import argparse
 
@@ -50,8 +50,8 @@ def check_compare_equal_histogram_bins(in_image1_array, in_image2_array, **kwarg
     print("Compare the histogram bins of original and rescaled images...")
     num_bins = 20
 
-    img1_hist_data = Histograms.get_histogram_data(in_image1_array, num_bins=num_bins)
-    img2_hist_data = Histograms.get_histogram_data(in_image2_array, num_bins=num_bins)
+    img1_hist_data = Histogram.get_histogram_data(in_image1_array, num_bins=num_bins)
+    img2_hist_data = Histogram.get_histogram_data(in_image2_array, num_bins=num_bins)
 
     img1_hist_data = img1_hist_data / float(in_image1_array.size)
     img2_hist_data = img2_hist_data / float(in_image2_array.size)
@@ -76,14 +76,14 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    list_input_files_1 = findFilesDirAndCheck(args.inputdir1)
-    list_input_files_2 = findFilesDirAndCheck(args.inputdir2)
+    list_input_files_1 = list_files_dir(args.inputdir1)
+    list_input_files_2 = list_files_dir(args.inputdir2)
 
     if (len(list_input_files_1) != len(list_input_files_2)):
        message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' %(len(list_input_files_1), len(list_input_files_2))
-       CatchErrorException(message)
+       catch_error_exception(message)
 
-    if not isExistdir(args.tempdir):
+    if not is_exist_dir(args.tempdir):
         makedir(args.tempdir)
 
 
@@ -93,7 +93,7 @@ def main(args):
         for name_check_fun in args.type_checks_further:
             if name_check_fun not in LIST_CHECKS_FURTHER_COMPARE:
                 message = 'Check \'%s\' not yet implemented...' %(name_check_fun)
-                CatchErrorException(message)
+                catch_error_exception(message)
             else:
                 if name_check_fun == 'volume_mask':
                     new_func_checks_compare = check_compare_equal_volume_mask
@@ -112,8 +112,8 @@ def main(args):
         print("\nInput: \'%s\'..." % (in_file_1))
         print("And: \'%s\'..." % (in_file_2))
 
-        in_image1_array = FileReader.get_image_array(in_file_1)
-        in_image2_array = FileReader.get_image_array(in_file_2)
+        in_image1_array = ImageFileReader.get_image(in_file_1)
+        in_image2_array = ImageFileReader.get_image(in_file_2)
 
         #in_image1_array = OperationMasks.binarise(in_image1_array)
         #in_image2_array = OperationMasks.binarise(in_image2_array)
@@ -140,7 +140,7 @@ def main(args):
 
                 out_diffimages_array = abs(in_image1_array - in_image2_array)
 
-                out_diffimages_array = MorphoOpenMasks.compute(out_diffimages_array)
+                out_diffimages_array = MorphoOpenMask.compute(out_diffimages_array)
 
                 num_voxels_diffimages = np.count_nonzero(out_diffimages_array)
 
@@ -171,37 +171,37 @@ def main(args):
                               % (relerror_intens_diffimages, _max_relerror))
                         names_files_different.append(basename(in_file_1))
 
-                        out_diffimages_filename = joinpathnames(args.tempdir, nameOutDiffImageFilesName %(i+1))
+                        out_diffimages_filename = join_path_names(args.tempdir, nameOutDiffImageFilesName % (i + 1))
                         print("Output difference between images maps: \'%s\'..." %(basename(out_diffimages_filename)))
 
                         #FileReader.writeImageArray(out_diffimages_filename, out_diffimages_array)
 
-                        out_histo_filename = joinpathnames(args.tempdir, nameOutHistoFilesName%(i+1))
+                        out_histo_filename = join_path_names(args.tempdir, nameOutHistoFilesName % (i + 1))
                         print("Compute and output the histograms of both images: \'%s\'..." %(basename(out_histo_filename)))
 
-                        Histograms.plot_compare_histograms([in_image1_array, in_image2_array],
-                                                           density_range=True,
-                                                           isave_outfiles=True,
-                                                           outfilename=out_histo_filename)
+                        Histogram.plot_compare_histograms([in_image1_array, in_image2_array],
+                                                          density_range=True,
+                                                          is_save_outfiles=True,
+                                                          outfilename=out_histo_filename)
                         
         else:
             print("Images of different size: \'%s\' != \'%s\'" %(in_image1_array.shape, in_image2_array.shape))
 
-            out_histo_filename = joinpathnames(args.tempdir, nameOutHistoFilesName%(i+1))
+            out_histo_filename = join_path_names(args.tempdir, nameOutHistoFilesName % (i + 1))
             print("Compute and output the histograms of both images: \'%s\'..." %(basename(out_histo_filename)))
             print("CHECK MANUALLY THE HISTOGRAMS WHETHER THE IMAGES ARE DIFFERENT")
 
             names_files_different.append(basename(in_file_1))
 
-            Histograms.plot_compare_histograms([in_image1_array, in_image2_array],
-                                               density_range=True,
-                                               isave_outfiles=True,
-                                               outfilename=out_histo_filename)
+            Histogram.plot_compare_histograms([in_image1_array, in_image2_array],
+                                              density_range=True,
+                                              is_save_outfiles=True,
+                                              outfilename=out_histo_filename)
 
             if len(dict_func_checks_further_compare) > 0:
                 print('Do further checks to compare images of different size...')
-                img1_voxel_size = FileReader.get_image_voxel_size(in_file_1)
-                img2_voxel_size = FileReader.get_image_voxel_size(in_file_2)
+                img1_voxel_size = ImageFileReader.get_image_voxelsize(in_file_1)
+                img2_voxel_size = ImageFileReader.get_image_voxelsize(in_file_2)
 
                 for func_name, func_checks_compare in dict_func_checks_further_compare.items():
                     is_check_OK = func_checks_compare(in_image1_array, in_image2_array,

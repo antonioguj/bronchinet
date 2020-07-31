@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.FunctionsUtil import *
+from common.function_util import *
 from collections import *
 import numpy as np
 import argparse

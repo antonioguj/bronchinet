@@ -8,11 +8,11 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.Constants import *
-from Common.WorkDirsManager import *
-from DataLoaders.FileReaders import *
-from OperationImages.OperationImages import *
-from OperationImages.OperationMasks import *
+from common.constant import *
+from common.workdir_manager import *
+from dataloaders.imagefilereader import *
+from imageoperators.imageoperator import *
+from imageoperators.maskoperator import *
 import argparse
 
 
@@ -23,16 +23,16 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workDirsManager       = WorkDirsManager(args.basedir)
-    InputPosteriorsPath   = workDirsManager.getNameExistPath(args.nameInputPosteriorsRelPath)
-    OutputBinaryMasksPath = workDirsManager.getNameNewPath  (args.nameOutputBinaryMasksRelPath)
+    workDirsManager       = GeneralDirManager(args.basedir)
+    InputPosteriorsPath   = workDirsManager.get_pathdir_exist(args.nameInputPosteriorsRelPath)
+    OutputBinaryMasksPath = workDirsManager.get_pathdir_new  (args.nameOutputBinaryMasksRelPath)
 
-    listInputPosteriorsFiles = findFilesDirAndCheck(InputPosteriorsPath)
-    prefixPatternInputFiles  = getFilePrefixPattern(listInputPosteriorsFiles[0])
+    listInputPosteriorsFiles = list_files_dir(InputPosteriorsPath)
+    prefixPatternInputFiles  = get_prefix_pattern_filename(listInputPosteriorsFiles[0])
 
     if (args.attachCoarseAirwaysMask):
         InputCoarseAirwaysPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputCoarseAirwaysRelPath)
-        listInputCoarseAirwaysFiles = findFilesDirAndCheck(InputCoarseAirwaysPath)
+        listInputCoarseAirwaysFiles = list_files_dir(InputCoarseAirwaysPath)
 
 
     print("Compute \'%s\' Binary Masks from the Posteriors, using thresholding values: \'%s\'..." % (len(args.threshold_values),
@@ -41,35 +41,35 @@ def main(args):
     for i, in_posterior_file in enumerate(listInputPosteriorsFiles):
         print("\nInput: \'%s\'..." % (basename(in_posterior_file)))
 
-        inout_posterior_array = FileReader.get_image_array(in_posterior_file)
+        inout_posterior_array = ImageFileReader.get_image(in_posterior_file)
         print("Original dims : \'%s\'..." % (str(inout_posterior_array.shape)))
 
-        in_metadata_file = FileReader.get_image_metadata_info(in_posterior_file)
+        in_metadata_file = ImageFileReader.get_image_metadata_info(in_posterior_file)
 
 
         if (args.attachCoarseAirwaysMask):
             print("Attach Trachea and Main Bronchi mask to complete the computed Binary Masks...")
-            in_coarseairways_file = findFileWithSamePrefixPattern(basename(in_posterior_file), listInputCoarseAirwaysFiles,
-                                                                  prefix_pattern=prefixPatternInputFiles)
+            in_coarseairways_file = find_file_inlist_same_prefix(basename(in_posterior_file), listInputCoarseAirwaysFiles,
+                                                                 prefix_pattern=prefixPatternInputFiles)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarseairways_file)))
 
-            in_coarseairways_array = FileReader.get_image_array(in_coarseairways_file)
+            in_coarseairways_array = ImageFileReader.get_image(in_coarseairways_file)
 
 
         for ithreshold in args.threshold_values:
             print("Compute Binary Masks thresholded to \'%s\'..." %(ithreshold))
 
-            out_binarymask_array = ThresholdImages.compute(inout_posterior_array, ithreshold)
+            out_binarymask_array = ThresholdImage.compute(inout_posterior_array, ithreshold)
 
             if (args.attachCoarseAirwaysMask):
-                out_binarymask_array = OperationMasks.merge_two_masks(out_binarymask_array, in_coarseairways_array) #isNot_intersect_masks=True)
+                out_binarymask_array = MaskOperator.merge_two_masks(out_binarymask_array, in_coarseairways_array) #isNot_intersect_masks=True)
 
 
             # Output predicted binary masks
-            output_binarymask_file = joinpathnames(OutputBinaryMasksPath, nameOutputBinaryMasksFiles(in_posterior_file, ithreshold))
+            output_binarymask_file = join_path_names(OutputBinaryMasksPath, nameOutputBinaryMasksFiles(in_posterior_file, ithreshold))
             print("Output: \'%s\', of dims \'%s\'..." % (basename(output_binarymask_file), str(out_binarymask_array.shape)))
 
-            FileReader.write_image_array(output_binarymask_file, out_binarymask_array, metadata=in_metadata_file)
+            ImageFileReader.write_image(output_binarymask_file, out_binarymask_array, metadata=in_metadata_file)
         #endfor
     # endfor
 

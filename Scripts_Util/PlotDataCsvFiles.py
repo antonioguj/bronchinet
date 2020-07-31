@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.FunctionsUtil import *
+from common.function_util import *
 import matplotlib.pyplot as plt
 import seaborn as sns
 from collections import OrderedDict
@@ -22,9 +22,9 @@ TYPES_PLOT_AVAILABLE = ['plot', 'scatter', 'boxplot']
 def main(args):
 
     if args.fromfile:
-        if not isExistfile(args.listinputfiles):
+        if not is_exist_file(args.listinputfiles):
             message = "File \'%s\' not found..." %(args.listinputfiles)
-            CatchErrorException(message)
+            catch_error_exception(message)
         fout = open(args.listinputfiles, 'r')
         list_input_files = [infile.replace('\n','') for infile in fout.readlines()]
         print("\'inputfiles\' = %s" % (list_input_files))
@@ -92,7 +92,7 @@ def main(args):
             else:
                 if header_this != header_file:
                     message = 'header in file: \'%s\' not equal to header found previously: \'%s\'' % (header_this, header_file)
-                    CatchErrorException(message)
+                    catch_error_exception(message)
                 # if rows1elem_this != rows1elem_file:
                 #    message = '1st column in file: \'%s\' not equal to 1st column found previously: \'%s\'' % (rows1elem_this, rows1elem_file)
                 #    CatchErrorException(message)
@@ -137,7 +137,7 @@ def main(args):
 
         else:
             message = 'type plot \'%s\' not available' % (args.type)
-            CatchErrorException(message)
+            catch_error_exception(message)
 
         if save_plot_figures:
             outfigname = template_outfigname % (ifield)
@@ -168,19 +168,19 @@ if __name__ == "__main__":
 
     if args.type not in TYPES_PLOT_AVAILABLE:
         message = 'Type plot chosen \'%s\' not available' % (args.type)
-        CatchErrorException(message)
+        catch_error_exception(message)
 
     if args.fromfile and not args.listinputfiles:
         message = 'need to input \'listinputfiles\' with filenames to plot'
-        CatchErrorException(message)
+        catch_error_exception(message)
 
     if args.alldata_oneplot and len(args.inputfiles) > 1:
         message = 'when plotting all data in one plot, only need to input one file'
-        CatchErrorException(message)
+        catch_error_exception(message)
 
     if args.alldata_oneplot and args.fromfile:
         message = 'when plotting all data in one plot, cannot read input files from file'
-        CatchErrorException(message)
+        catch_error_exception(message)
 
     print("Print input arguments...")
     for key, value in vars(args).items():

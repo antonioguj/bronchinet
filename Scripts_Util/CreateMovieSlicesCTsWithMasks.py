@@ -8,9 +8,9 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.FunctionsUtil import *
-from DataLoaders.FileReaders import *
-from OperationImages.OperationImages import *
+from common.function_util import *
+from dataloaders.imagefilereader import *
+from imageoperators.imageoperator import *
 import argparse
 
 TYPE_ANIMATION = '1'
@@ -32,10 +32,10 @@ CYAN_COLOR   = [0, 255, 255]
 
 def main(args):
 
-    list_input_images_files      = findFilesDirAndCheck(args.inputimagesdir)
-    list_input_predictions_files = findFilesDirAndCheck(args.inputpredictionsdir)
-    list_input_reference_files   = findFilesDirAndCheck(args.inputrefermasksdir)
-    prefix_pattern_input_files   = getFilePrefixPattern(list_input_predictions_files[0])
+    list_input_images_files      = list_files_dir(args.inputimagesdir)
+    list_input_predictions_files = list_files_dir(args.inputpredictionsdir)
+    list_input_reference_files   = list_files_dir(args.inputrefermasksdir)
+    prefix_pattern_input_files   = get_prefix_pattern_filename(list_input_predictions_files[0])
 
     template_outvideo_filename   = 'video_%s_preds.gif'
 
@@ -46,16 +46,16 @@ def main(args):
     for i, in_prediction_file in enumerate(list_input_predictions_files):
         print("\nInput: \'%s\'..." % (in_prediction_file))
 
-        in_image_file = findFileWithSamePrefixPattern(basename(in_prediction_file), list_input_images_files,
-                                                      prefix_pattern=prefix_pattern_input_files)
-        in_reference_file = findFileWithSamePrefixPattern(basename(in_prediction_file), list_input_reference_files,
-                                                          prefix_pattern=prefix_pattern_input_files)
+        in_image_file = find_file_inlist_same_prefix(basename(in_prediction_file), list_input_images_files,
+                                                     prefix_pattern=prefix_pattern_input_files)
+        in_reference_file = find_file_inlist_same_prefix(basename(in_prediction_file), list_input_reference_files,
+                                                         prefix_pattern=prefix_pattern_input_files)
         #endfor
         print("Assigned to \'%s\' and \'%s\'..." %(basename(in_image_file), basename(in_reference_file)))
 
-        in_image_array      = FileReader.get_image_array(in_image_file)
-        in_prediction_array = FileReader.get_image_array(in_prediction_file)
-        in_reference_array  = FileReader.get_image_array(in_reference_file)
+        in_image_array      = ImageFileReader.get_image(in_image_file)
+        in_prediction_array = ImageFileReader.get_image(in_prediction_file)
+        in_reference_array  = ImageFileReader.get_image(in_reference_file)
 
 
         print("Compute Rendered Animations...")
@@ -66,7 +66,7 @@ def main(args):
             in_prediction_slice = in_prediction_array[i,:,:]
             in_reference_slice  = in_reference_array [i,:,:]
 
-            frame_image = NormaliseImages.compute3D(in_image_slice)
+            frame_image = NormaliseImage.compute3D(in_image_slice)
 
             frame_new = np.zeros((in_image_slice.shape[0], in_image_slice.shape[1], 3), dtype=np.uint8)
             frame_new[:, :, :] = 255 * frame_image[:, :, None]
@@ -107,11 +107,11 @@ def main(args):
 
         if len(out_list_frames) > 0:
             print("Create movie containing \'%s\' frames..." % (len(out_list_frames)))
-            suffix_casename = getSubstringPatternFilename(basename(in_prediction_file),
-                                                          substr_pattern=prefix_pattern_input_files)
+            suffix_casename = get_substring_filename(basename(in_prediction_file),
+                                                     substr_pattern=prefix_pattern_input_files)
 
             out_filename = template_outvideo_filename %(suffix_casename)
-            out_filename = joinpathnames(args.outputdir, out_filename)
+            out_filename = join_path_names(args.outputdir, out_filename)
             imageio.mimsave(out_filename, out_list_frames, fps=20)
     # endfor
 

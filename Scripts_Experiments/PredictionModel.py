@@ -8,30 +8,30 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-#from Common.CPUGPUdevicesManager import *
-from Common.WorkDirsManager import *
-from DataLoaders.BatchDataGeneratorManager import *
-from DataLoaders.LoadDataManager import *
-if TYPE_DNNLIBRARY_USED == 'Keras':
+#from common.CPUGPUdevicesManager import *
+from common.workdir_manager import *
+from dataloaders.batchdatagenerator_manager import *
+from dataloaders.loadimagedata_manager import *
+if TYPE_DNNLIB_USED == 'Keras':
     from Networks_Keras.Metrics import *
     from Networks_Keras.Networks import *
     from Networks_Keras.VisualModelParams import *
-elif TYPE_DNNLIBRARY_USED == 'Pytorch':
-    from Networks_Pytorch.Metrics import *
+elif TYPE_DNNLIB_USED == 'Pytorch':
+    from networks.Metrics import *
     if ISTESTMODELSWITHGNN:
-        from Networks_Pytorch.NetworksGNNs import *
+        from networks.NetworksGNNs import *
     else:
-        from Networks_Pytorch.Networks import *
-    from Networks_Pytorch.Trainers import *
-    from Networks_Pytorch.VisualModelParams import *
-from Postprocessing.ImageReconstructorManager import *
-from Preprocessing.ImageGeneratorManager import *
+        from networks.Networks import *
+    from networks.Trainers import *
+    from networks.VisualModelParams import *
+from postprocessing.imagereconstructor_manager import *
+from preprocessing.imagegenerator_manager import *
 from collections import OrderedDict
 import argparse
 
 
 def func_extract_caseprocname_filename(in_filename):
-    return basenameNoextension(in_filename).replace('images_proc','')
+    return basename_file_noext(in_filename).replace('images_proc', '')
 
 
 
@@ -52,14 +52,14 @@ def main(args):
 
 
 
-    workDirsManager      = WorkDirsManager(args.basedir)
-    TestingDataPath      = workDirsManager.getNameExistPath        (args.testdatadir)
+    workDirsManager      = GeneralDirManager(args.basedir)
+    TestingDataPath      = workDirsManager.get_pathdir_exist        (args.testdatadir)
     InputReferKeysFile   = workDirsManager.getNameExistBaseDataFile(args.nameInputReferKeysFile)
-    OutputPredictionsPath= workDirsManager.getNameNewPath          (args.nameOutputPredictionsRelPath)
-    OutputReferKeysFile  = workDirsManager.getNameNewFile          (args.nameOutputReferKeysFile)
+    OutputPredictionsPath= workDirsManager.get_pathdir_new          (args.nameOutputPredictionsRelPath)
+    OutputReferKeysFile  = workDirsManager.get_pathfile_new          (args.nameOutputReferKeysFile)
 
-    listTestImagesFiles  = findFilesDirAndCheck(TestingDataPath, nameInputImagesFiles)
-    in_dictReferenceKeys = readDictionary(InputReferKeysFile)
+    listTestImagesFiles  = list_files_dir(TestingDataPath, nameInputImagesFiles)
+    in_dictReferenceKeys = read_dictionary(InputReferKeysFile)
 
 
 
@@ -73,7 +73,7 @@ def main(args):
     modelSavedPath = args.predsmodelfile
     print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
-    if TYPE_DNNLIBRARY_USED == 'Keras':
+    if TYPE_DNNLIB_USED == 'Keras':
         loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).loss
         metrics = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]
         custom_objects = dict(map(lambda fun: (fun.__name__, fun), [loss_fun] + metrics))
@@ -85,7 +85,7 @@ def main(args):
         # output model summary
         model.summary()
 
-    elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+    elif TYPE_DNNLIB_USED == 'Pytorch':
         # load and compile model
         if args.isModelsWithGNN:
             dict_added_model_input_args = {'isUse_valid_convs': args.isValidConvolutions,
@@ -107,32 +107,32 @@ def main(args):
 
     if (args.saveFeatMapsLayers):
         print("Compute and store model feature maps, from model layer \'%s\'..." %(args.nameSaveModelLayer))
-        if TYPE_DNNLIBRARY_USED == 'Keras':
+        if TYPE_DNNLIB_USED == 'Keras':
             visual_model_params = VisualModelParams(model, args.size_in_images)
-        elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+        elif TYPE_DNNLIB_USED == 'Pytorch':
             visual_model_params = VisualModelParams(trainer.model_net, args.size_in_images)
     # ----------------------------------------------
 
 
     # Create Image generators / Reconstructors
     # ----------------------------------------------
-    test_images_generator = getImagesDataGenerator(args.size_in_images,
-                                                   args.slidingWindowImages,
-                                                   args.propOverlapSlidingWindow,
-                                                   args.randomCropWindowImages,
-                                                   args.numRandomImagesPerVolumeEpoch,
-                                                   args.transformationRigidImages,
-                                                   args.transformElasticDeformImages)
-    images_reconstructor = getImagesReconstructor(args.size_in_images,
-                                                  args.slidingWindowImages,
-                                                  args.propOverlapSlidingWindow,
-                                                  args.randomCropWindowImages,
-                                                  args.numRandomImagesPerVolumeEpoch,
-                                                  use_transformationRigidImages=False,
-                                                  is_outputUnet_validconvs=args.isValidConvolutions,
-                                                  size_output_images=size_output_modelnet,
-                                                  is_filter_output_unet=FILTERPREDICTPROBMAPS,
-                                                  prop_filter_output_unet=PROP_VALID_OUTUNET)
+    test_images_generator = get_images_generator(args.size_in_images,
+                                                 args.slidingWindowImages,
+                                                 args.propOverlapSlidingWindow,
+                                                 args.randomCropWindowImages,
+                                                 args.numRandomImagesPerVolumeEpoch,
+                                                 args.transformationRigidImages,
+                                                 args.transformElasticDeformImages)
+    images_reconstructor = get_images_reconstructor(args.size_in_images,
+                                                    args.slidingWindowImages,
+                                                    args.propOverlapSlidingWindow,
+                                                    args.randomCropWindowImages,
+                                                    args.numRandomImagesPerVolumeEpoch,
+                                                    use_transform_rigid_images=False,
+                                                    is_output_nnet_validconvs=args.isValidConvolutions,
+                                                    size_output_image=size_output_modelnet,
+                                                    is_filter_output_nnet=FILTERPREDICTPROBMAPS,
+                                                    prop_filter_output_nnet=PROP_VALID_OUTUNET)
     # ----------------------------------------------
 
 
@@ -149,17 +149,17 @@ def main(args):
         # -----------------------------------------------------------------------------
         print("Loading data...")
         if (args.slidingWindowImages or args.transformationRigidImages):
-            in_testXData = LoadDataManager.load_1file(in_testXData_file)
-            in_testXData_batches = getBatchDataGeneratorWithGenerator(args.size_in_images,
-                                                                      [in_testXData],
-                                                                      [in_testXData],
-                                                                      test_images_generator,
-                                                                      batch_size=1,
-                                                                      is_outputUnet_validconvs=args.isValidConvolutions,
-                                                                      size_output_images=size_output_modelnet,
-                                                                      shuffle=False)
+            in_testXData = LoadImageDataManager.load_1image(in_testXData_file)
+            in_testXData_batches = get_batchdata_generator_with_generator(args.size_in_images,
+                                                                          [in_testXData],
+                                                                          [in_testXData],
+                                                                          test_images_generator,
+                                                                          batch_size=1,
+                                                                          is_output_nnet_validconvs=args.isValidConvolutions,
+                                                                          size_output_images=size_output_modelnet,
+                                                                          shuffle=False)
         else:
-            in_testXData_batches = LoadDataManagerInBatches(args.size_in_images).load_1file(in_testXData_file)
+            in_testXData_batches = LoadImageDataInBatchesManager(args.size_in_images).load_1image(in_testXData_file)
             in_testXData_batches = np.expand_dims(in_testXData_batches, axis=0)
 
         print("Total Data batches generated: %s..." % (len(in_testXData_batches)))
@@ -172,15 +172,15 @@ def main(args):
             out_predict_yData = visual_model_params.get_feature_maps(in_testXData_batches, args.nameSaveModelLayer)
         else:
             print("Evaluate model...")
-            if TYPE_DNNLIBRARY_USED == 'Keras':
+            if TYPE_DNNLIB_USED == 'Keras':
                 out_predict_yData = model.predict(in_testXData_batches.get_full_data(),  batch_size=1)
-            elif TYPE_DNNLIBRARY_USED == 'Pytorch':
+            elif TYPE_DNNLIB_USED == 'Pytorch':
                 out_predict_yData = trainer.predict(in_testXData_batches)
 
 
         # -----------------------------------------------------------------------------
         print("Reconstruct Prediction in batches to full size...")
-        out_recons_image_shape = FileReader.get_image_size(in_testXData_file) # init with size of "ifile"
+        out_recons_image_shape = ImageFileReader.get_image_size(in_testXData_file) # init with size of "ifile"
         images_reconstructor.update_image_data(out_recons_image_shape)
 
         out_prediction_array = images_reconstructor.compute(out_predict_yData)
@@ -188,7 +188,7 @@ def main(args):
 
 
         # Output predictions
-        in_referkey_file = in_dictReferenceKeys[basenameNoextension(in_testXData_file)]
+        in_referkey_file = in_dictReferenceKeys[basename_file_noext(in_testXData_file)]
         in_caseprocname_file = func_extract_caseprocname_filename(in_testXData_file)
 
         if (args.saveFeatMapsLayers):
@@ -196,27 +196,27 @@ def main(args):
             print("Output model Feature maps (\'%s\' in total)..." %(num_featmaps))
 
             for ifeatmap in range(num_featmaps):
-                output_pred_file = joinpathnames(OutputPredictionsPath, nameOutputPredictionFiles %(in_caseprocname_file, args.nameSaveModelLayer, ifeatmap+1))
+                output_pred_file = join_path_names(OutputPredictionsPath, nameOutputPredictionFiles % (in_caseprocname_file, args.nameSaveModelLayer, ifeatmap + 1))
                 print("Output: \'%s\', of dims \'%s\'..." %(basename(output_pred_file), out_prediction_array[...,ifeatmap].shape))
 
-                FileReader.write_image_array(output_pred_file, out_prediction_array[..., ifeatmap])
+                ImageFileReader.write_image(output_pred_file, out_prediction_array[..., ifeatmap])
 
                 # save this prediction in reference keys
-                outdict_referenceKeys[basenameNoextension(output_pred_file)] = basename(in_referkey_file)
+                outdict_referenceKeys[basename_file_noext(output_pred_file)] = basename(in_referkey_file)
             #endfor
         else:
-            output_pred_file = joinpathnames(OutputPredictionsPath, nameOutputPredictionFiles % (in_caseprocname_file))
+            output_pred_file = join_path_names(OutputPredictionsPath, nameOutputPredictionFiles % (in_caseprocname_file))
             print("Output: \'%s\', of dims \'%s\'..." % (basename(output_pred_file), out_prediction_array.shape))
 
-            FileReader.write_image_array(output_pred_file, out_prediction_array)
+            ImageFileReader.write_image(output_pred_file, out_prediction_array)
 
             # save this prediction in reference keys
-            outdict_referenceKeys[basenameNoextension(output_pred_file)] = basename(in_referkey_file)
+            outdict_referenceKeys[basename_file_noext(output_pred_file)] = basename(in_referkey_file)
     #endfor
 
     # Save dictionary in file
-    saveDictionary(OutputReferKeysFile, outdict_referenceKeys)
-    saveDictionary_csv(OutputReferKeysFile.replace('.npy', '.csv'), outdict_referenceKeys)
+    save_dictionary(OutputReferKeysFile, outdict_referenceKeys)
+    save_dictionary_csv(OutputReferKeysFile.replace('.npy', '.csv'), outdict_referenceKeys)
 
 
 
@@ -230,31 +230,31 @@ if __name__ == "__main__":
     parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPROCIMAGE_FILE)
     parser.add_argument('--nameOutputPredictionsRelPath', type=str, default=NAME_TEMPOPOSTERIORS_RELPATH)
     parser.add_argument('--nameOutputReferKeysFile', type=str, default=NAME_REFERKEYSPOSTERIORS_FILE)
-    parser.add_argument('--size_in_images', type=str2tupleint, default=IMAGES_DIMS_Z_X_Y)
+    parser.add_argument('--size_in_images', type=str2tuple_int, default=IMAGES_DIMS_Z_X_Y)
     parser.add_argument('--isValidConvolutions', type=str2bool, default=ISVALIDCONVOLUTIONS)
     parser.add_argument('--slidingWindowImages', type=str2bool, default=True)
-    parser.add_argument('--propOverlapSlidingWindow', type=str2tuplefloat, default=PROPOVERLAPSLIDINGWINDOW_TESTING_Z_X_Y)
-    parser.add_argument('--randomCropWindowImages', type=str2tuplefloat, default=False)
-    parser.add_argument('--numRandomImagesPerVolumeEpoch', type=str2tuplefloat, default=0)
+    parser.add_argument('--propOverlapSlidingWindow', type=str2tuple_float, default=PROPOVERLAPSLIDINGWINDOW_TESTING_Z_X_Y)
+    parser.add_argument('--randomCropWindowImages', type=str2tuple_float, default=False)
+    parser.add_argument('--numRandomImagesPerVolumeEpoch', type=str2tuple_float, default=0)
     parser.add_argument('--transformationRigidImages', type=str2bool, default=False)
     parser.add_argument('--transformElasticDeformImages', type=str2bool, default=False)
     parser.add_argument('--saveFeatMapsLayers', type=str2bool, default=SAVEFEATMAPSLAYERS)
     parser.add_argument('--nameSaveModelLayer', type=str, default=NAMESAVEMODELLAYER)
     parser.add_argument('--lossfun', type=str, default=ILOSSFUN)
-    parser.add_argument('--listmetrics', type=parseListarg, default=LISTMETRICS)
+    parser.add_argument('--listmetrics', type=str2list_string, default=LISTMETRICS)
     parser.add_argument('--isModelsWithGNN', type=str2bool, default=ISTESTMODELSWITHGNN)
     parser.add_argument('--isGNNwithAttentionLays', type=str2bool, default=ISGNNWITHATTENTIONLAYS)
     args = parser.parse_args()
 
     if args.cfgfromfile:
-        if not isExistfile(args.cfgfromfile):
+        if not is_exist_file(args.cfgfromfile):
             message = "Config params file not found: \'%s\'..." % (args.cfgfromfile)
-            CatchErrorException(message)
+            catch_error_exception(message)
         else:
-            input_args_file = readDictionary_configParams(args.cfgfromfile)
+            input_args_file = read_dictionary_configparams(args.cfgfromfile)
         print("Set up experiments with parameters from file: \'%s\'" %(args.cfgfromfile))
         #args.basedir               = str(input_args_file['basedir'])
-        args.size_in_images        = str2tupleint(input_args_file['size_in_images'])
+        args.size_in_images        = str2tuple_int(input_args_file['size_in_images'])
         args.masksToRegionInterest = str2bool(input_args_file['masksToRegionInterest'])
         args.isValidConvolutions   = str2bool(input_args_file['isValidConvolutions'])
         args.isGNNwithAttentionLays = str2bool(input_args_file['isGNNwithAttentionLays'])

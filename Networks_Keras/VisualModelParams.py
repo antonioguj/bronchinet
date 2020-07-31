@@ -8,8 +8,8 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.Constants import *
-from Common.ErrorMessages import *
+from common.constant import *
+from common.exception_manager import *
 #from tensorflow.keras import backend as K
 import numpy as np
 
@@ -44,7 +44,7 @@ class VisualModelParams(object):
         idx_layer = self.find_layer_index_from_name(name_layer)
         if not idx_layer:
             message = 'layer \'%s\' does not exist in model...' %(name_layer)
-            CatchErrorException(message)
+            catch_error_exception(message)
 
 
         model_layer_cls = self.model.layers[idx_layer]

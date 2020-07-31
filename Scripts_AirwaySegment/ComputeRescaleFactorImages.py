@@ -8,9 +8,9 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.Constants import *
-from Common.WorkDirsManager import *
-from DataLoaders.FileReaders import *
+from common.constant import *
+from common.workdir_manager import *
+from dataloaders.imagefilereader import *
 from collections import OrderedDict
 import argparse
 
@@ -18,14 +18,14 @@ import argparse
 
 def main(args):
 
-    workDirsManager     = WorkDirsManager(args.datadir)
-    InputImagesPath     = workDirsManager.getNameExistPath(args.nameInputImagesRelPath)
-    InputReferKeysPath  = workDirsManager.getNameExistPath(args.nameInputReferKeysRelPath)
-    OutputRescaleFactorsFile = workDirsManager.getNameNewUpdateFile(args.nameOutputRescaleFactorsFile)
-    OutputOrigVoxelSizeFile  = workDirsManager.getNameNewUpdateFile(args.nameOutputOrigVoxelSizeFile)
+    workDirsManager     = GeneralDirManager(args.datadir)
+    InputImagesPath     = workDirsManager.get_pathdir_exist(args.nameInputImagesRelPath)
+    InputReferKeysPath  = workDirsManager.get_pathdir_exist(args.nameInputReferKeysRelPath)
+    OutputRescaleFactorsFile = workDirsManager.get_pathfile_update(args.nameOutputRescaleFactorsFile)
+    OutputOrigVoxelSizeFile  = workDirsManager.get_pathfile_update(args.nameOutputOrigVoxelSizeFile)
 
-    listInputImagesFiles    = findFilesDirAndCheck(InputImagesPath)
-    listInputReferKeysFiles = findFilesDirAndCheck(InputReferKeysPath)
+    listInputImagesFiles    = list_files_dir(InputImagesPath)
+    listInputReferKeysFiles = list_files_dir(InputReferKeysPath)
 
 
 
@@ -34,17 +34,17 @@ def main(args):
     for i, in_image_file in enumerate(listInputImagesFiles):
         print("\nInput: \'%s\'..." %(basename(in_image_file)))
 
-        in_voxel_size = DICOMreader.get_image_voxel_size(in_image_file)
+        in_voxel_size = DicomReader.get_image_voxelsize(in_image_file)
         print("Voxel Size: \'%s\'..." %(str(in_voxel_size)))
 
         in_referkey_file = listInputReferKeysFiles[i]
-        outdict_voxelSizes[basenameNoextension(in_referkey_file)] = in_voxel_size
+        outdict_voxelSizes[basename_file_noext(in_referkey_file)] = in_voxel_size
     #endfor
 
 
     # Save dictionary in file
-    saveDictionary(OutputOrigVoxelSizeFile, outdict_voxelSizes)
-    saveDictionary_csv(OutputOrigVoxelSizeFile.replace('.npy','.csv'), outdict_voxelSizes)
+    save_dictionary(OutputOrigVoxelSizeFile, outdict_voxelSizes)
+    save_dictionary_csv(OutputOrigVoxelSizeFile.replace('.npy', '.csv'), outdict_voxelSizes)
 
 
     data = np.array(list(outdict_voxelSizes.values()))
@@ -75,8 +75,8 @@ def main(args):
 
 
     # Save dictionary in file
-    saveDictionary(OutputRescaleFactorsFile, outdict_rescaleFactors)
-    saveDictionary_csv(OutputRescaleFactorsFile.replace('.npy','.csv'), outdict_rescaleFactors)
+    save_dictionary(OutputRescaleFactorsFile, outdict_rescaleFactors)
+    save_dictionary_csv(OutputRescaleFactorsFile.replace('.npy', '.csv'), outdict_rescaleFactors)
 
 
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
     parser.add_argument('--nameOutputOrigVoxelSizeFile', type=str, default='original_voxelSize.npy')
     parser.add_argument('--nameOutputRescaleFactorsFile', type=str, default=NAME_RESCALEFACTOR_FILE)
-    parser.add_argument('--fixedRescaleRes', type=str2tuplefloatOrNone, default=FIXEDRESCALERES)
+    parser.add_argument('--fixedRescaleRes', type=str2tuple_float, default=FIXEDRESCALERES)
     args = parser.parse_args()
 
     print("Print input arguments...")

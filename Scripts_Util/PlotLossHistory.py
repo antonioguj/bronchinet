@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.FunctionsUtil import *
+from common.function_util import *
 import matplotlib.pyplot as plt
 from collections import OrderedDict
 import numpy as np
@@ -19,9 +19,9 @@ import argparse
 def main(args):
 
     if args.fromfile:
-        if not isExistfile(args.listinputfiles):
+        if not is_exist_file(args.listinputfiles):
             message = "File \'%s\' not found..." %(args.listinputfiles)
-            CatchErrorException(message)
+            catch_error_exception(message)
         fout = open(args.listinputfiles, 'r')
         list_input_files = [infile.replace('\n','') for infile in fout.readlines()]
         print("\'inputfiles\' = %s" % (list_input_files))
@@ -64,7 +64,7 @@ def main(args):
         # check for correct loss history format
         if (list_fields[0] != 'epoch') or ('loss' not in list_fields) or ('val_loss' not in list_fields):
             message = 'mandatory fields \'epoch\', \'loss\', \'val_loss\' not found in file \'%s\'' %(in_file)
-            CatchErrorException(message)
+            catch_error_exception(message)
 
         index_field_loss     = list_fields.index('loss')
         index_field_val_loss = list_fields.index('val_loss')
@@ -82,7 +82,7 @@ def main(args):
             i_valid_field = 'val_' + i_field
             if i_valid_field not in list_fields:
                 message = 'for the field \'%s\', the associated validation field \'%s\' not found' % (i_field, i_valid_field)
-                CatchErrorException(message)
+                catch_error_exception(message)
 
             # check whether extra field exists in the dict for output losses. If not, start new elem with empty list
             if i_field not in dict_data_losses_fields_files.keys():
@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
     if args.fromfile and not args.listinputfiles:
         message = 'need to input \'listinputfiles\' with filenames to plot'
-        CatchErrorException(message)
+        catch_error_exception(message)
 
     print("Print input arguments...")
     for key, value in vars(args).items():

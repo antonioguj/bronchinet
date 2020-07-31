@@ -8,18 +8,18 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.ErrorMessages import *
-from DataLoaders.FileReaders import *
-from OperationImages.OperationImages import *
+from common.exception_manager import *
+from dataloaders.imagefilereader import *
+from imageoperators.imageoperator import *
 import argparse
 
 
 
 def main(args):
 
-    listInputCropImagesFiles = findFilesDirAndCheck(args.cropimagesdir)
-    listInputFullImagesFiles = findFilesDirAndCheck(args.fullimagesdir)
-    dictInputBoundingBoxes   = readDictionary(args.inputBoundBoxesFile)
+    listInputCropImagesFiles = list_files_dir(args.cropimagesdir)
+    listInputFullImagesFiles = list_files_dir(args.fullimagesdir)
+    dictInputBoundingBoxes   = read_dictionary(args.inputBoundBoxesFile)
 
 
     names_files_different = []
@@ -28,15 +28,15 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_cropimage_file)))
         print("Input 2: \'%s\'..." % (basename(in_fullimage_file)))
 
-        in_cropimage_array = FileReader.get_image_array(in_cropimage_file)
-        in_fullimage_array = FileReader.get_image_array(in_fullimage_file)
+        in_cropimage_array = ImageFileReader.get_image(in_cropimage_file)
+        in_fullimage_array = ImageFileReader.get_image(in_fullimage_file)
 
 
         # 1 step: crop image
-        in_bounding_box     = dictInputBoundingBoxes[basenameNoextension(in_cropimage_file)]
-        new_cropimage_array = CropImages.compute3D(in_fullimage_array, in_bounding_box)
+        in_bounding_box     = dictInputBoundingBoxes[basename_file_noext(in_cropimage_file)]
+        new_cropimage_array = CropImage._compute3D(in_fullimage_array, in_bounding_box)
         # 2 step: invert image
-        new_cropimage_array = FlippingImages.compute(new_cropimage_array, axis=0)
+        new_cropimage_array = FlipImage.compute(new_cropimage_array, axis=0)
 
         if (in_cropimage_array.shape == new_cropimage_array.shape):
             res_voxels_equal = np.array_equal(in_cropimage_array, new_cropimage_array)
@@ -46,11 +46,11 @@ def main(args):
             else:
                 names_files_different.append(basename(in_cropimage_file))
                 message = "ERROR: Images are different..."
-                CatchWarningException(message)
+                catch_warning_exception(message)
         else:
             names_files_different.append(basename(in_cropimage_file))
             message = "ERROR: Images are different..."
-            CatchWarningException(message)
+            catch_warning_exception(message)
     #endfor
 
     if (len(names_files_different) == 0):

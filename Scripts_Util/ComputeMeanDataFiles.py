@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.FunctionsUtil import *
+from common.function_util import *
 from collections import *
 import numpy as np
 import argparse
@@ -18,9 +18,9 @@ import argparse
 def main(args):
 
     if args.fromfile:
-        if not isExistfile(args.listinputfiles):
+        if not is_exist_file(args.listinputfiles):
             message = "File \'%s\' not found..." %(args.listinputfiles)
-            CatchErrorException(message)
+            catch_error_exception(message)
         fout = open(args.listinputfiles, 'r')
         list_input_files = [infile.replace('\n','') for infile in fout.readlines()]
         print("\'inputfiles\' = %s" % (list_input_files))
@@ -81,10 +81,10 @@ def main(args):
             else:
                 if header_this != header_file:
                     message = 'header in file: \'%s\' not equal to header found previously: \'%s\'' % (header_this, header_file)
-                    CatchErrorException(message)
+                    catch_error_exception(message)
                 if rows1elem_this != rows1elem_file:
                     message = '1st column in file: \'%s\' not equal to 1st column found previously: \'%s\'' % (rows1elem_this, rows1elem_file)
-                    CatchErrorException(message)
+                    catch_error_exception(message)
 
             # store data corresponding to this file
             data_fileslist[i, :, :] = data_this
@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     if args.fromfile and not args.listinputfiles:
         message = 'need to input \'listinputfiles\' with filenames to plot'
-        CatchErrorException(message)
+        catch_error_exception(message)
 
     print("Print input arguments...")
     for key, value in vars(args).items():

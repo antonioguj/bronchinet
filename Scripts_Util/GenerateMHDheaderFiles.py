@@ -8,8 +8,8 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from DataLoaders.FileReaders import *
-from Common.FunctionsUtil import *
+from dataloaders.imagefilereader import *
+from common.function_util import *
 import numpy as np
 import argparse
 
@@ -17,21 +17,21 @@ import argparse
 
 def main(args):
 
-    namesOutputFiles = lambda in_name: basenameNoextension(in_name) + '.mhd'
+    namesOutputFiles = lambda in_name: basename_file_noext(in_name) + '.mhd'
 
-    list_input_files = findFilesDirAndCheck(args.inputdir)
+    list_input_files = list_files_dir(args.inputdir)
     makedir(args.outputdir)
 
 
     for in_file in list_input_files:
         print("\nInput: \'%s\'..." % (basename(in_file)))
 
-        in_image_size  = FileReader.get_image_size(in_file)
+        in_image_size  = ImageFileReader.get_image_size(in_file)
         out_image_size = np.roll(in_image_size, 2)
 
         ndims = len(out_image_size)
         str_out_image_size = ' '.join([str(elem) for elem in out_image_size])
-        name_raw_file = basenameNoextension(in_file) + '.raw'
+        name_raw_file = basename_file_noext(in_file) + '.raw'
 
 
         #contruct mhd header file
@@ -42,7 +42,7 @@ def main(args):
         str_info += 'ElementType = MET_UCHAR\n'
         str_info += 'ElementDataFile = %s' %(name_raw_file)
 
-        out_file = joinpathnames(args.outputdir, namesOutputFiles(in_file))
+        out_file = join_path_names(args.outputdir, namesOutputFiles(in_file))
         print("Output: \'%s\'..." % (basename(out_file)))
 
         fout = open(out_file, 'w')

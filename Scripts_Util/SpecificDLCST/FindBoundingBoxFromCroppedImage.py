@@ -8,10 +8,10 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.ErrorMessages import *
-from DataLoaders.FileReaders import *
-from OperationImages.BoundingBoxes import *
-from OperationImages.OperationImages import *
+from common.exception_manager import *
+from dataloaders.imagefilereader import *
+from imageoperators.boundingboxes import *
+from imageoperators.imageoperator import *
 import argparse
 
 
@@ -60,10 +60,10 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    listInputFullImagesFiles = findFilesDirAndCheck(args.fullimagesdir)
-    listInputCropImagesFiles = findFilesDirAndCheck(args.cropimagesdir)
+    listInputFullImagesFiles = list_files_dir(args.fullimagesdir)
+    listInputCropImagesFiles = list_files_dir(args.cropimagesdir)
 
-    nameTempOutResFile = joinpathnames(nameTempOutResFile)
+    nameTempOutResFile = join_path_names(nameTempOutResFile)
     fout = open(nameTempOutResFile, 'w')
 
 
@@ -73,9 +73,9 @@ def main(args):
         print("\nInput: \'%s\'..." %(basename(in_full_image_file)))
         print("And: \'%s\'..." %(basename(in_crop_image_file)))
 
-        in_fullimage_array = FileReader.get_image_array(in_full_image_file)
-        in_cropimage_array = FileReader.get_image_array(in_crop_image_file)
-        in_cropimage_array = FlippingImages.compute(in_cropimage_array, axis=0)
+        in_fullimage_array = ImageFileReader.get_image(in_full_image_file)
+        in_cropimage_array = ImageFileReader.get_image(in_crop_image_file)
+        in_cropimage_array = FlipImage.compute(in_cropimage_array, axis=0)
 
         full_image_shape = np.array(in_fullimage_array.shape)
         crop_image_shape = np.array(in_cropimage_array.shape)
@@ -89,7 +89,7 @@ def main(args):
         if (test_range_boundbox_shape < in_cropimage_array.shape):
             message = 'size test range of Bounding Boxes than cropped Image: \'%s\' < \'%s\'...' %(test_range_boundbox_shape,
                                                                                                    in_cropimage_array.shape)
-            CatchErrorException(message)
+            catch_error_exception(message)
         else:
             test_range_boundbox_shape = np.array(test_range_boundbox_shape)
 
@@ -139,13 +139,13 @@ def main(args):
 
         if (flag_found_boundbox):
             print("SUCESS: found perfect bounding-box: \'%s\', with null error: \'%s\'..." % (str(found_boundbox), sum_test_res))
-            rootimagescropname = basenameNoextension(in_crop_image_file)
+            rootimagescropname = basename_file_noext(in_crop_image_file)
             dict_found_boundingBoxes[rootimagescropname] = found_boundbox
             message = "%s,\"%s\"\n" %(rootimagescropname, str(found_boundbox))
             fout.write(message)
         else:
             print("ERROR: not found perfect bounding-box. Closest found is: \'%s\', with error: \'%s\'..." % (str(found_boundbox), min_sum_test_res))
-            rootimagescropname = basenameNoextension(in_crop_image_file)
+            rootimagescropname = basename_file_noext(in_crop_image_file)
             dict_found_boundingBoxes[rootimagescropname] = found_boundbox
             message = "%s,\"%s\" ...NOT PERFECT...\n" % (rootimagescropname, str(found_boundbox))
             fout.write(message)
@@ -153,8 +153,8 @@ def main(args):
 
 
     # Save dictionary in file
-    saveDictionary(args.outputBoundBoxesFile, dict_found_boundingBoxes)
-    saveDictionary_csv(args.outputBoundBoxesFile.replace('.npy','.csv'), dict_found_boundingBoxes)
+    save_dictionary(args.outputBoundBoxesFile, dict_found_boundingBoxes)
+    save_dictionary_csv(args.outputBoundBoxesFile.replace('.npy', '.csv'), dict_found_boundingBoxes)
 
     fout.close()
 

@@ -11,7 +11,7 @@
 from tensorflow.keras.losses import mean_squared_error, binary_crossentropy
 from tensorflow.keras import backend as K
 import tensorflow as tf
-from Common.ErrorMessages import *
+from common.exception_manager import *
 import numpy as np
 
 _eps = K.epsilon()
@@ -635,7 +635,7 @@ def DICTAVAILMETRICLASS(option,
         return AirwayVolumeLeakage(is_masks_exclude=is_masks_exclude)
     else:
         message = 'Metric \'%s\' chosen not found. Metrics available: \'%s\'...' %(option, ', '.join(list_metric_avail))
-        CatchErrorException(message)
+        catch_error_exception(message)
         return NotImplemented
 
 

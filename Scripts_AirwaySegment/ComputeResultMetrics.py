@@ -8,12 +8,12 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.Constants import *
-from Common.WorkDirsManager import *
-from DataLoaders.FileReaders import *
-from Networks_Pytorch.Metrics import *
-from OperationImages.OperationImages import *
-from OperationImages.OperationMasks import *
+from common.constant import *
+from common.workdir_manager import *
+from dataloaders.imagefilereader import *
+from networks.Metrics import *
+from imageoperators.imageoperator import *
+from imageoperators.maskoperator import *
 from collections import OrderedDict
 import argparse
 
@@ -21,17 +21,17 @@ import argparse
 
 def main(args):
 
-    workDirsManager       = WorkDirsManager(args.basedir)
-    InputPredictMasksPath = workDirsManager.getNameExistPath        (args.inputpredmasksdir)
+    workDirsManager       = GeneralDirManager(args.basedir)
+    InputPredictMasksPath = workDirsManager.get_pathdir_exist        (args.inputpredmasksdir)
     InputReferMasksPath   = workDirsManager.getNameExistBaseDataPath(args.nameInputReferMasksRelPath)
 
-    listInputPredictMasksFiles = findFilesDirAndCheck(InputPredictMasksPath)
-    listInputReferMasksFiles   = findFilesDirAndCheck(InputReferMasksPath)
-    prefixPatternInputFiles    = getFilePrefixPattern(listInputReferMasksFiles[0])
+    listInputPredictMasksFiles = list_files_dir(InputPredictMasksPath)
+    listInputReferMasksFiles   = list_files_dir(InputReferMasksPath)
+    prefixPatternInputFiles    = get_prefix_pattern_filename(listInputReferMasksFiles[0])
 
     if (args.removeTracheaCalcMetrics):
         InputCoarseAirwaysPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputCoarseAirwaysRelPath)
-        listInputCoarseAirwaysFiles = findFilesDirAndCheck(InputCoarseAirwaysPath)
+        listInputCoarseAirwaysFiles = list_files_dir(InputCoarseAirwaysPath)
 
 
     listResultMetrics = OrderedDict()
@@ -53,16 +53,16 @@ def main(args):
     if (is_load_refer_cenlines_files):
         print("Loading Reference Centrelines...")
         InputReferCentrelinesPath      = workDirsManager.getNameExistBaseDataPath(args.nameInputReferCentrelinesRelPath)
-        listInputReferCentrelinesFiles = findFilesDirAndCheck(InputReferCentrelinesPath)
+        listInputReferCentrelinesFiles = list_files_dir(InputReferCentrelinesPath)
 
     if (is_load_pred_cenlines_files):
         if not args.inputcenlinesdir:
             message = 'Missing input path for the Predicted Centrelines...'
-            CatchErrorException(message)
+            catch_error_exception(message)
 
         print("Loading Predicted Centrelines...")
-        InputPredictCentrelinesPath      = workDirsManager.getNameExistPath(args.inputcenlinesdir)
-        listInputPredictCentrelinesFiles = findFilesDirAndCheck(InputPredictCentrelinesPath)
+        InputPredictCentrelinesPath      = workDirsManager.get_pathdir_exist(args.inputcenlinesdir)
+        listInputPredictCentrelinesFiles = list_files_dir(InputPredictCentrelinesPath)
 
 
 
@@ -71,52 +71,52 @@ def main(args):
     for i, in_predictmask_file in enumerate(listInputPredictMasksFiles):
         print("\nInput: \'%s\'..." % (basename(in_predictmask_file)))
 
-        in_refermask_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputReferMasksFiles,
-                                                          prefix_pattern=prefixPatternInputFiles)
+        in_refermask_file = find_file_inlist_same_prefix(basename(in_predictmask_file), listInputReferMasksFiles,
+                                                         prefix_pattern=prefixPatternInputFiles)
         print("Reference mask file: \'%s\'..." % (basename(in_refermask_file)))
 
-        in_predictmask_array = FileReader.get_image_array(in_predictmask_file)
-        in_refermask_array   = FileReader.get_image_array(in_refermask_file)
+        in_predictmask_array = ImageFileReader.get_image(in_predictmask_file)
+        in_refermask_array   = ImageFileReader.get_image(in_refermask_file)
         print("Predictions of size: %s..." % (str(in_predictmask_array.shape)))
 
         if (is_load_refer_cenlines_files):
-            in_refercenline_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputReferCentrelinesFiles,
-                                                                 prefix_pattern=prefixPatternInputFiles)
+            in_refercenline_file = find_file_inlist_same_prefix(basename(in_predictmask_file), listInputReferCentrelinesFiles,
+                                                                prefix_pattern=prefixPatternInputFiles)
             print("Reference centrelines file: \'%s\'..." % (basename(in_refercenline_file)))
-            in_refercenline_array = FileReader.get_image_array(in_refercenline_file)
+            in_refercenline_array = ImageFileReader.get_image(in_refercenline_file)
 
         if (is_load_pred_cenlines_files):
-            in_predictcenline_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputPredictCentrelinesFiles,
-                                                                   prefix_pattern=prefixPatternInputFiles)
+            in_predictcenline_file = find_file_inlist_same_prefix(basename(in_predictmask_file), listInputPredictCentrelinesFiles,
+                                                                  prefix_pattern=prefixPatternInputFiles)
             print("Predicted centrelines file: \'%s\'..." % (basename(in_predictcenline_file)))
-            in_predictcenline_array = FileReader.get_image_array(in_predictcenline_file)
+            in_predictcenline_array = ImageFileReader.get_image(in_predictcenline_file)
 
 
         if (args.removeTracheaCalcMetrics):
             print("Remove trachea and main bronchii masks in computed metrics...")
-            in_coarseairways_file = findFileWithSamePrefixPattern(basename(in_predictmask_file), listInputCoarseAirwaysFiles,
-                                                                  prefix_pattern=prefixPatternInputFiles)
+            in_coarseairways_file = find_file_inlist_same_prefix(basename(in_predictmask_file), listInputCoarseAirwaysFiles,
+                                                                 prefix_pattern=prefixPatternInputFiles)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarseairways_file)))
 
-            in_coarseairways_array = FileReader.get_image_array(in_coarseairways_file)
+            in_coarseairways_array = ImageFileReader.get_image(in_coarseairways_file)
 
             print("Dilate coarse airways masks 4 levels to remove completely trachea and main bronchi from ground-truth...")
-            in_coarseairways_array = MorphoDilateMasks.compute(in_coarseairways_array, num_iters=4)
+            in_coarseairways_array = MorphoDilateMask.compute(in_coarseairways_array, num_iters=4)
 
-            in_predictmask_array = OperationMasks.substract_two_masks(in_predictmask_array, in_coarseairways_array)
-            in_refermask_array   = OperationMasks.substract_two_masks(in_refermask_array,   in_coarseairways_array)
+            in_predictmask_array = MaskOperator.substract_two_masks(in_predictmask_array, in_coarseairways_array)
+            in_refermask_array   = MaskOperator.substract_two_masks(in_refermask_array, in_coarseairways_array)
 
             if (is_load_refer_cenlines_files):
-                in_refercenline_array = OperationMasks.substract_two_masks(in_refercenline_array, in_coarseairways_array)
+                in_refercenline_array = MaskOperator.substract_two_masks(in_refercenline_array, in_coarseairways_array)
 
             if (is_load_pred_cenlines_files):
-                in_predictcenline_array = OperationMasks.substract_two_masks(in_predictcenline_array, in_coarseairways_array)
+                in_predictcenline_array = MaskOperator.substract_two_masks(in_predictcenline_array, in_coarseairways_array)
 
 
         # *******************************************************************************
         # Compute and store Metrics
         print("\nCompute the Metrics:")
-        key_casename = getSubstringPatternFilename(basename(in_predictmask_file), substr_pattern=prefixPatternInputFiles)[:-1]
+        key_casename = get_substring_filename(basename(in_predictmask_file), substr_pattern=prefixPatternInputFiles)[:-1]
         outdict_computedMetrics[key_casename] = []
 
         for j, (imetr_name, imetrics_fun) in enumerate(listResultMetrics.items()):
@@ -145,7 +145,7 @@ def main(args):
 
 
     # write out computed metrics in file
-    out_results_filename = joinpathnames(args.inputpredmasksdir, args.outputfile)
+    out_results_filename = join_path_names(args.inputpredmasksdir, args.outputfile)
     fout = open(out_results_filename, 'w')
 
     strheader = ', '.join(['/case/'] + ['/%s/'%(key) for key in listResultMetrics.keys()]) + '\n'
@@ -166,7 +166,7 @@ if __name__ == "__main__":
     parser.add_argument('inputpredmasksdir', type=str)
     parser.add_argument('--inputcenlinesdir', type=str, default=None)
     parser.add_argument('--outputfile', type=str, default='result_metrics.txt')
-    parser.add_argument('--listResultMetrics', type=parseListarg, default=LISTRESULTMETRICS)
+    parser.add_argument('--listResultMetrics', type=str2list_string, default=LISTRESULTMETRICS)
     parser.add_argument('--removeTracheaCalcMetrics', type=str2bool, default=REMOVETRACHEACALCMETRICS)
     parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
     parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAWCOARSEAIRWAYS_RELPATH)

@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from Common.FunctionsUtil import *
+from common.function_util import *
 #from scipy.stats import ttest_ind as fun_ttest
 from scipy.stats import ttest_rel as fun_ttest
 from collections import *
@@ -24,9 +24,9 @@ def main(args):
     out_filename = './result_ptest_%s.txt' %(args.infield)
 
     if args.fromfile:
-        if not isExistfile(args.listinputfiles):
+        if not is_exist_file(args.listinputfiles):
             message = "File \'%s\' not found..." %(args.listinputfiles)
-            CatchErrorException(message)
+            catch_error_exception(message)
         fout = open(args.listinputfiles, 'r')
         list_input_files = [infile.replace('\n','') for infile in fout.readlines()]
         print("\'inputfiles\' = %s" % (list_input_files))
@@ -47,7 +47,7 @@ def main(args):
 
         if args.infield not in fields_names_this:
             message = 'field \'%s\' not found in file \'%s\'...' % (args.infield, data_file_this)
-            CatchErrorException(message)
+            catch_error_exception(message)
         else:
             index_infield_this = fields_names_this.index(args.infield) + 1
             data_files.append(raw_data_this_float[1:, index_infield_this])
