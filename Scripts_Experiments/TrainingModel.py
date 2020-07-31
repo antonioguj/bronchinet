@@ -14,16 +14,14 @@ from dataloaders.batchdatagenerator_manager import *
 from dataloaders.loadimagedata_manager import *
 if TYPE_DNNLIB_USED == 'Keras':
     from networks.keras.callbacks import *
-    from Networks_Keras.Metrics import *
+    from networks.keras.metrics import *
     from Networks_Keras.Networks import *
-    from networks.keras.optimizers import *
 elif TYPE_DNNLIB_USED == 'Pytorch':
-    from networks.Metrics import *
+    from networks.pytorch.metrics import *
     if ISTESTMODELSWITHGNN:
         from networks.NetworksGNNs import *
     else:
         from networks.Networks import *
-    from networks.pytorch.optimizers import *
     from networks.Trainers import *
 from preprocessing.imagegenerator_manager import *
 from collections import OrderedDict

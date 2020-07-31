@@ -12,10 +12,9 @@ from common.constant import *
 from common.workdir_manager import *
 from dataloaders.imagefilereader import *
 if TYPE_DNNLIB_USED == 'Keras':
-    from Networks_Keras.Metrics import *
+    from networks.keras.metrics import *
 elif TYPE_DNNLIB_USED == 'Pytorch':
-    from networks.Metrics import *
-from plotting.froc_util import compute_FROC, compute_ROC_completeness_volumeleakage
+    from networks.pytorch.metrics import *
 from imageoperators.imageoperator import *
 from imageoperators.maskoperator import *
 from collections import OrderedDict
@@ -66,10 +65,10 @@ def main(args):
     list_isUse_predicted_centrelines = []
     for imetrics in args.listMetricsROCcurve:
         newgen_metrics = DICTAVAILMETRICFUNS(imetrics)
-        listMetricsROCcurve[newgen_metrics.name_fun_out] = newgen_metrics.compute_np
+        listMetricsROCcurve[newgen_metrics._name_func_out] = newgen_metrics.compute
 
-        list_isUse_reference_centrelines.append(newgen_metrics._isUse_reference_clines)
-        list_isUse_predicted_centrelines.append(newgen_metrics._isUse_predicted_clines)
+        list_isUse_reference_centrelines.append(newgen_metrics._is_use_ytrue_cenlines)
+        list_isUse_predicted_centrelines.append(newgen_metrics._is_use_ypred_cenlines)
     #endfor
     is_load_refer_cenlines_files = any(list_isUse_reference_centrelines)
     is_load_pred_cenlines_files  = any(list_isUse_predicted_centrelines)

@@ -1,29 +1,30 @@
 
-from torch.optim import SGD, RMSprop, Adagrad, Adadelta, Adam
+from torch.optim import SGD as SGD_torch, \
+                        Adagrad as Adagrad_torch, \
+                        RMSprop as RMSprop_torch, \
+                        Adadelta as Adadelta_torch, \
+                        Adam as Adam_torch
 
-from common.exception_manager import catch_error_exception
+def SGD(lr: float, **kwargs):
+    model_params = kwargs['model_params']
+    return SGD_torch(model_params, lr=lr)
 
+def SGD_mom(lr: float, momentum: float = 0.9, **kwargs):
+    model_params = kwargs['model_params']
+    return SGD_torch(model_params, lr=lr, momentum=momentum)
 
-def get_optimizer_pytorch(option: str, model_params, lr: float):
-    list_avail_optimizers = ['SGD',
-                             'SGDmom',
-                             'Adagrad',
-                             'RMSprop',
-                             'Adadelta',
-                             'Adam',
-                             ]
-    if option == 'SGD':
-        return SGD(model_params, lr= lr)
-    elif option == 'SGDmom':
-        return SGD(model_params, lr= lr, momentum= 0.9)
-    elif option == 'Adagrad':
-        return Adagrad(model_params, lr= lr)
-    elif option == 'RMSprop':
-        return RMSprop(model_params, lr= lr)
-    elif option == 'Adadelta':
-        return Adadelta(model_params, lr= lr)
-    elif option == 'Adam':
-        return Adam(model_params, lr= lr)
-    else:
-        message = 'Optimizer chosen not found. Optimizers available: %s' % (', '.join(list_avail_optimizers))
-        catch_error_exception(message)
+def Adagrad(lr: float, **kwargs):
+    model_params = kwargs['model_params']
+    return Adagrad_torch(model_params, lr=lr)
+
+def RMSprop(lr: float, **kwargs):
+    model_params = kwargs['model_params']
+    return RMSprop_torch(model_params, lr=lr)
+
+def Adadelta(lr: float, **kwargs):
+    model_params = kwargs['model_params']
+    return Adadelta_torch(model_params, lr=lr)
+
+def Adam(lr: float, **kwargs):
+    model_params = kwargs['model_params']
+    return Adam_torch(model_params, lr=lr)

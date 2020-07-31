@@ -9,12 +9,11 @@
 ########################################################################################
 
 from common.constant import *
-from networks.Metrics import *
+from networks.pytorch.metrics import *
 if ISTESTMODELSWITHGNN:
     from networks.NetworksGNNs import *
 else:
     from networks.Networks import *
-from networks.pytorch.optimizers import *
 import torch
 from torchsummary import summary
 from tqdm import tqdm
@@ -320,7 +319,7 @@ class Trainer(object):
             self.fout = open(self.losshistory_filename, 'w')
             strheader = '/epoch/ /loss/ /val_loss/'
             for i in range(self.num_metrics):
-                name_metrics_fun = self.metrics_fun[i].name_fun_out
+                name_metrics_fun = self.metrics_fun[i]._name_func_out
                 strheader += ' /%s/ /val_%s/' %(name_metrics_fun, name_metrics_fun)
             #endfor
             strheader += '\n'
@@ -374,7 +373,7 @@ class Trainer(object):
                     'model_state_dict': self.model_net.state_dict(),
                     'optimizer_desc': 'Adam',
                     'optimizer_state_dict': self.optimizer.state_dict(),
-                    'loss_fun_desc': [self.loss_fun.__class__.__name__, {'is_masks_exclude': self.loss_fun.is_masks_exclude}]},
+                    'loss_fun_desc': [self.loss_fun.__class__.__name__, {'is_masks_exclude': self.loss_fun._is_mask_exclude}]},
                    filename)
 
 

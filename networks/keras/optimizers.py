@@ -1,31 +1,24 @@
 
-from tensorflow.keras.optimizers import SGD, RMSprop, Adagrad, Adadelta, Adam
+from tensorflow.keras.optimizers import SGD as SGD_keras, \
+                                        Adagrad as Adagrad_keras, \
+                                        RMSprop as RMSprop_keras, \
+                                        Adadelta as Adadelta_keras, \
+                                        Adam as Adam_keras
 
-from common.exception_manager import catch_error_exception
+def SGD(lr: float, **kwargs):
+    return SGD_keras(lr=lr)
 
+def SGD_mom(lr: float, momentum: float = 0.9, **kwargs):
+    return SGD_keras(lr=lr, momentum=momentum)
 
-def get_optimizer_keras(option: str, lr: float):
-    list_avail_optimizers = ['SGD',
-                             'SGDmom',
-                             'Adagrad',
-                             'RMSprop',
-                             'Adadelta',
-                             'Adam',
-                             ]
-    if option == 'SGD':
-        return SGD(lr=lr)
-    elif option == 'SGDmom':
-        return SGD(lr=lr, momentum=0.9)
-    elif option == 'Adagrad':
-        return Adagrad(lr=lr)
-    elif option == 'RMSprop':
-        return RMSprop(lr=lr)
-    elif option == 'Adadelta':
-        return Adadelta(lr=lr)
-    elif option == 'Adam':
-        return Adam(lr=lr)
-    else:
-        message = 'Optimizer chosen not found. Optimizers available: %s' % (', '.join(list_avail_optimizers))
-        catch_error_exception(message)
+def Adagrad(lr: float, **kwargs):
+    return Adagrad_keras(lr=lr)
 
+def RMSprop(lr: float, **kwargs):
+    return RMSprop_keras(lr=lr)
 
+def Adadelta(lr: float, **kwargs):
+    return Adadelta_keras(lr=lr)
+
+def Adam(lr: float, **kwargs):
+    return Adam_keras(lr=lr)

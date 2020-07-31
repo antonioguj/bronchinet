@@ -3,6 +3,8 @@ import numpy as np
 import scipy.sparse as sp
 import torch
 
+SMOOTH = 1.0
+
 
 def row_normalize(mx):
     """Row-normalize sparse matrix"""

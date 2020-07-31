@@ -1,13 +1,13 @@
 
 from typing import List, Tuple
 import numpy as np
-from tensorflow.keras.utils import Sequence as Sequence_Keras
+from tensorflow.keras.utils import Sequence as Sequence_keras
 
 from dataloaders.batchdatagenerator import BatchDataGenerator
 from preprocessing.imagegenerator import ImageGenerator
 
 
-class BatchDataGenerator_Keras(BatchDataGenerator, Sequence_Keras):
+class TrainBatchDataGenerator(BatchDataGenerator, Sequence_keras):
 
     def __init__(self,
                  size_image: Tuple[int, ...],
@@ -25,29 +25,29 @@ class BatchDataGenerator_Keras(BatchDataGenerator, Sequence_Keras):
                  is_datagen_in_gpu: bool = True,
                  is_datagen_halfPrec: bool = False
                  ) -> None:
-        super(BatchDataGenerator_Keras, self).__init__(size_image,
-                                                       list_Xdata,
-                                                       list_Ydata,
-                                                       images_generator,
-                                                       num_channels_in=num_channels_in,
-                                                       num_classes_out=num_classes_out,
-                                                       is_output_nnet_validconvs=is_output_nnet_validconvs,
-                                                       size_output_image=size_output_image,
-                                                       batch_size=batch_size,
-                                                       shuffle=shuffle,
-                                                       seed=seed,
-                                                       iswrite_datagen_info=iswrite_datagen_info)
+        super(TrainBatchDataGenerator, self).__init__(size_image,
+                                                      list_Xdata,
+                                                      list_Ydata,
+                                                      images_generator,
+                                                      num_channels_in=num_channels_in,
+                                                      num_classes_out=num_classes_out,
+                                                      is_output_nnet_validconvs=is_output_nnet_validconvs,
+                                                      size_output_image=size_output_image,
+                                                      batch_size=batch_size,
+                                                      shuffle=shuffle,
+                                                      seed=seed,
+                                                      iswrite_datagen_info=iswrite_datagen_info)
         self._dtype_Xdata = np.float32
         self._dtype_Ydata = np.float32
 
     def __len__(self) -> int:
-        return super(BatchDataGenerator_Keras, self).__len__()
+        return super(TrainBatchDataGenerator, self).__len__()
 
     def _on_epoch_end(self) -> None:
-        super(BatchDataGenerator_Keras, self)._on_epoch_end()
+        super(TrainBatchDataGenerator, self)._on_epoch_end()
 
     def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
-        return super(BatchDataGenerator_Keras, self).__getitem__(index)
+        return super(TrainBatchDataGenerator, self).__getitem__(index)
 
     def _get_reshaped_output_image(self, in_image: np.ndarray) -> np.ndarray:
         return np.expand_dims(in_image, axis=-1)

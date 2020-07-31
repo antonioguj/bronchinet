@@ -11,9 +11,9 @@ import pandas as pd
 
 from common.constant import TYPE_DNNLIB_USED
 if TYPE_DNNLIB_USED == 'Keras':
-    from Networks_Keras.Metrics import AirwayCompleteness, AirwayVolumeLeakage, DiceCoefficient
+    from networks.keras.metrics import AirwayCompleteness, AirwayVolumeLeakage, DiceCoefficient
 elif TYPE_DNNLIB_USED == 'Pytorch':
-    from networks.Metrics import AirwayCompleteness, AirwayVolumeLeakage, DiceCoefficient
+    from networks.pytorch.metrics import AirwayCompleteness, AirwayVolumeLeakage, DiceCoefficient
 
 
 def compute_assignment(list_detections: List[np.ndarray],

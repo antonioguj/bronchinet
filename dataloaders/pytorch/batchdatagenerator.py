@@ -1,14 +1,14 @@
 
 from typing import List, Tuple
 import numpy as np
-from torch.utils import data
+from torch.utils import data as data_torch
 import torch
 
 from dataloaders.batchdatagenerator import BatchDataGenerator
 from preprocessing.imagegenerator import ImageGenerator
 
 
-class BatchDataGenerator_Pytorch(BatchDataGenerator):
+class TrainBatchDataGeneratorInner(BatchDataGenerator):
 
     def __init__(self,
                  size_image: Tuple[int, ...],
@@ -26,18 +26,18 @@ class BatchDataGenerator_Pytorch(BatchDataGenerator):
                  is_datagen_in_gpu: bool = True,
                  is_datagen_halfPrec: bool = False
                  ) -> None:
-        super(BatchDataGenerator_Pytorch, self).__init__(size_image,
-                                                         list_Xdata,
-                                                         list_Ydata,
-                                                         images_generator,
-                                                         num_channels_in=num_channels_in,
-                                                         num_classes_out=num_classes_out,
-                                                         is_output_nnet_validconvs=is_output_nnet_validconvs,
-                                                         size_output_image=size_output_image,
-                                                         batch_size=batch_size,
-                                                         shuffle=shuffle,
-                                                         seed=seed,
-                                                         iswrite_datagen_info= iswrite_datagen_info)
+        super(TrainBatchDataGeneratorInner, self).__init__(size_image,
+                                                           list_Xdata,
+                                                           list_Ydata,
+                                                           images_generator,
+                                                           num_channels_in=num_channels_in,
+                                                           num_classes_out=num_classes_out,
+                                                           is_output_nnet_validconvs=is_output_nnet_validconvs,
+                                                           size_output_image=size_output_image,
+                                                           batch_size=batch_size,
+                                                           shuffle=shuffle,
+                                                           seed=seed,
+                                                           iswrite_datagen_info= iswrite_datagen_info)
         if is_datagen_in_gpu:
             if is_datagen_halfPrec:
                 self._type_data_generated_torch = torch.cuda.HalfTensor
@@ -50,7 +50,7 @@ class BatchDataGenerator_Pytorch(BatchDataGenerator):
                 self._type_data_generated_torch = torch.FloatTensor
 
     def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
-        return super(BatchDataGenerator_Pytorch, self)._get_item(index)
+        return super(TrainBatchDataGeneratorInner, self)._get_item(index)
 
     def _get_image_torchtensor(self, in_image: np.ndarray) -> np.ndarray:
         return torch.from_numpy(in_image.copy()).type(self._type_data_generated_torch)
@@ -70,7 +70,7 @@ class BatchDataGenerator_Pytorch(BatchDataGenerator):
         return self._get_formated_output_Xdata(out_image)
 
 
-class WrapperBatchGenerator_Pytorch(data.DataLoader):
+class TrainBatchDataGenerator(data_torch.DataLoader):
 
     def __init__(self,
                  size_image: Tuple[int, ...],
@@ -88,23 +88,23 @@ class WrapperBatchGenerator_Pytorch(data.DataLoader):
                  is_datagen_in_gpu: bool = True,
                  is_datagen_halfPrec: bool = False
                  ) -> None:
-        self._batchdata_generator = BatchDataGenerator_Pytorch(size_image,
-                                                               list_Xdata,
-                                                               list_Ydata,
-                                                               images_generator,
-                                                               num_channels_in=num_channels_in,
-                                                               num_classes_out=num_classes_out,
-                                                               is_output_nnet_validconvs=is_outputUnet_validconvs,
-                                                               size_output_image=size_output_image,
-                                                               batch_size=batch_size,
-                                                               shuffle=shuffle,
-                                                               seed=seed,
-                                                               iswrite_datagen_info=iswrite_datagen_info,
-                                                               is_datagen_in_gpu=is_datagen_in_gpu,
-                                                               is_datagen_halfPrec=is_datagen_halfPrec)
-        super(WrapperBatchGenerator_Pytorch, self).__init__(self._batchdata_generator,
-                                                            batch_size= batch_size,
-                                                            shuffle= shuffle)
+        self._batchdata_generator = TrainBatchDataGeneratorInner(size_image,
+                                                                 list_Xdata,
+                                                                 list_Ydata,
+                                                                 images_generator,
+                                                                 num_channels_in=num_channels_in,
+                                                                 num_classes_out=num_classes_out,
+                                                                 is_output_nnet_validconvs=is_outputUnet_validconvs,
+                                                                 size_output_image=size_output_image,
+                                                                 batch_size=batch_size,
+                                                                 shuffle=shuffle,
+                                                                 seed=seed,
+                                                                 iswrite_datagen_info=iswrite_datagen_info,
+                                                                 is_datagen_in_gpu=is_datagen_in_gpu,
+                                                                 is_datagen_halfPrec=is_datagen_halfPrec)
+        super(TrainBatchDataGenerator, self).__init__(self._batchdata_generator,
+                                                      batch_size= batch_size,
+                                                      shuffle= shuffle)
 
     def get_full_data(self) -> Tuple[np.ndarray, np.ndarray]:
         return self._batchdata_generator.get_full_data()

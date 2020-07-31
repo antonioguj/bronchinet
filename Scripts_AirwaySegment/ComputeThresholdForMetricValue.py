@@ -12,9 +12,9 @@ from common.constant import *
 from common.workdir_manager import *
 from dataloaders.imagefilereader import *
 if TYPE_DNNLIB_USED == 'Keras':
-    from Networks_Keras.Metrics import *
+    from networks.keras.metrics import *
 elif TYPE_DNNLIB_USED == 'Pytorch':
-    from networks.Metrics import *
+    from networks.pytorch.metrics import *
 from imageoperators.imageoperator import *
 from imageoperators.maskoperator import *
 from tqdm import tqdm
@@ -58,9 +58,9 @@ def main(args):
         
 
     newgen_metrics = DICTAVAILMETRICFUNS(metricsEvalThreshold)
-    fun_metrics_evalThreshold = newgen_metrics.compute_np
-    is_load_refer_cenlines_files = newgen_metrics._isUse_reference_clines
-    is_load_pred_cenlines_files  = newgen_metrics._isUse_predicted_clines
+    fun_metrics_evalThreshold = newgen_metrics.compute
+    is_load_refer_cenlines_files = newgen_metrics._is_use_ytrue_cenlines
+    is_load_pred_cenlines_files  = newgen_metrics._is_use_ypred_cenlines
 
     if (is_load_refer_cenlines_files):
         print("Loading Reference Centrelines...")

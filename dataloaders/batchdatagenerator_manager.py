@@ -5,9 +5,9 @@ import numpy as np
 from common.constant import TYPE_DNNLIB_USED
 from common.exception_manager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
-    from dataloaders.pytorch.batchdatagenerator import WrapperBatchGenerator_Pytorch as DNNBatchDataGenerator
+    from dataloaders.pytorch.batchdatagenerator import TrainBatchDataGenerator
 elif TYPE_DNNLIB_USED == 'Keras':
-    from dataloaders.keras.batchdatagenerator import BatchDataGenerator_Keras as DNNBatchDataGenerator
+    from dataloaders.keras.batchdatagenerator import TrainBatchDataGenerator
 from preprocessing.imagegenerator import ImageGenerator
 from preprocessing.imagegenerator_manager import get_images_generator
 
@@ -23,7 +23,7 @@ def get_batchdata_generator_with_generator(size_images: Tuple[int, ...],
                                            seed: int = None,
                                            is_datagen_in_gpu: bool = True,
                                            is_datagen_halfPrec: bool = False
-                                           ) -> DNNBatchDataGenerator:
+                                           ) -> TrainBatchDataGenerator:
     if TYPE_DNNLIB_USED == 'Keras' and not is_datagen_in_gpu:
         message = 'Networks implementation in Keras is always in gpu...'
         catch_error_exception(message)
@@ -32,17 +32,17 @@ def get_batchdata_generator_with_generator(size_images: Tuple[int, ...],
         message = 'Networks implementation in Keras not available in Half Precision...'
         catch_error_exception(message)
 
-    batch_data_generator = DNNBatchDataGenerator(size_images,
-                                                 list_Xdata,
-                                                 list_Ydata,
-                                                 images_generator,
-                                                 is_output_nnet_validconvs=is_output_nnet_validconvs,
-                                                 size_output_image=size_output_images,
-                                                 batch_size=batch_size,
-                                                 shuffle=shuffle,
-                                                 seed=seed,
-                                                 is_datagen_in_gpu=is_datagen_in_gpu,
-                                                 is_datagen_halfPrec=is_datagen_halfPrec)
+    batch_data_generator = TrainBatchDataGenerator(size_images,
+                                                   list_Xdata,
+                                                   list_Ydata,
+                                                   images_generator,
+                                                   is_output_nnet_validconvs=is_output_nnet_validconvs,
+                                                   size_output_image=size_output_images,
+                                                   batch_size=batch_size,
+                                                   shuffle=shuffle,
+                                                   seed=seed,
+                                                   is_datagen_in_gpu=is_datagen_in_gpu,
+                                                   is_datagen_halfPrec=is_datagen_halfPrec)
     return batch_data_generator
 
 
@@ -62,7 +62,7 @@ def get_batchdata_generator(size_images: Tuple[int, ...],
                             seed: int = None,
                             is_datagen_in_gpu: bool = True,
                             is_datagen_halfPrec: bool = False
-                            ) -> DNNBatchDataGenerator:
+                            ) -> TrainBatchDataGenerator:
     if len(list_Xdata)==1:
         size_full_image = list_Xdata[0].shape
     else:
