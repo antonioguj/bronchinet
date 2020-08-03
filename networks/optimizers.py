@@ -28,5 +28,5 @@ def get_optimizer(type_optimizer: str, lr: float, **kwargs):
     elif type_optimizer == 'Adam':
         Adam(lr, **kwargs)
     else:
-        message = 'Choice optimizer not found. Optimizers available: %s' % (', '.join(LIST_AVAIL_OPTIMIZERS))
+        message = 'Choice Optimizer not found. Optimizers available: %s' % (', '.join(LIST_AVAIL_OPTIMIZERS))
         catch_error_exception(message)

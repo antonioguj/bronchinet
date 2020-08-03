@@ -149,7 +149,7 @@ def main(args):
         # -----------------------------------------------------------------------------
         print("Loading data...")
         if (args.slidingWindowImages or args.transformationRigidImages):
-            in_testXData = LoadImageDataManager.load_1image(in_testXData_file)
+            in_testXData = LoadImageDataManager.load_1file(in_testXData_file)
             in_testXData_batches = get_batchdata_generator_with_generator(args.size_in_images,
                                                                           [in_testXData],
                                                                           [in_testXData],
@@ -159,7 +159,7 @@ def main(args):
                                                                           size_output_images=size_output_modelnet,
                                                                           shuffle=False)
         else:
-            in_testXData_batches = LoadImageDataInBatchesManager(args.size_in_images).load_1image(in_testXData_file)
+            in_testXData_batches = LoadImageDataInBatchesManager(args.size_in_images).load_1file(in_testXData_file)
             in_testXData_batches = np.expand_dims(in_testXData_batches, axis=0)
 
         print("Total Data batches generated: %s..." % (len(in_testXData_batches)))
