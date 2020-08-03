@@ -122,7 +122,7 @@ class FilterNnetOutputValidConvs(ImageGenerator):
             return False
 
     def _compute_probabilitymap_output_nnet(self) -> None:
-        self._probmap_output_nnet = np.zeros(self._size_image, dtype=np.float)
+        self._probmap_output_nnet = np.zeros(self._size_image, dtype=np.float32)
 
         if self._is_multiple_outputs_nnet:
             # set flat probability equal to 'one' inside inner output of nnet

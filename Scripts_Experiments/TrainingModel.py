@@ -119,7 +119,7 @@ def main(args):
         # ----------------------------------------------
         if (not args.restart_model) or\
         (args.restart_model and RESTART_ONLY_WEIGHTS):
-            model_constructor = DICTAVAILMODELS3D(args.size_in_images,
+            model_constructor = DICTAVAILMODELS3D(args._size_image,
                                                   num_levels=args.num_layers,
                                                   num_featmaps_in=args.num_featmaps_in,
                                                   isUse_valid_convols=args.isValidConvolutions)
@@ -179,14 +179,14 @@ def main(args):
         (args.restart_model and RESTART_ONLY_WEIGHTS):
             if ISTESTMODELSWITHGNN:
                 model_net = DICTAVAILMODELSGNNS(args.imodel,
-                                                args.size_in_images,
+                                                args._size_image,
                                                 nfeat=args.num_featmaps_in,
                                                 nlevel=args.num_layers,
                                                 isUse_valid_convols=args.isValidConvolutions,
                                                 isGNN_with_attention_lays=args.isGNNwithAttentionLays,
                                                 source_dir_adjs=SOURCEDIR_ADJS)
             else:
-                model_net = DICTAVAILMODELS3D(args.size_in_images,
+                model_net = DICTAVAILMODELS3D(args._size_image,
                                               num_levels=args.num_layers,
                                               num_featmaps_in=args.num_featmaps_in,
                                               isUse_valid_convols=args.isValidConvolutions)
@@ -215,7 +215,7 @@ def main(args):
             modelSavedPath = join_path_names(ModelsPath, 'model_last.pt')
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
-            dict_added_model_input_args = {'size_image': args.size_in_images,
+            dict_added_model_input_args = {'size_image': args._size_image,
                                            'num_levels': args.num_layers,
                                            'num_featmaps_in': args.num_featmaps_in,
                                            'isUse_valid_convols': args.isValidConvolutions}
@@ -255,7 +255,7 @@ def main(args):
         # ----------------------------------------------
 
     if args.isValidConvolutions:
-        print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
+        print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args._size_image),
                                                                                                str(size_output_modelnet)))
 
     if (WRITEOUTDESCMODELTEXT):
@@ -282,7 +282,7 @@ def main(args):
 
         (list_train_xData, list_train_yData) = LoadImageDataManager.load_2list_files(listTrainImagesFiles, listTrainLabelsFiles)
 
-        train_batch_data_generator = get_batchdata_generator(args.size_in_images,
+        train_batch_data_generator = get_batchdata_generator(args._size_image,
                                                              list_train_xData,
                                                              list_train_yData,
                                                              args.slidingWindowImages,
@@ -299,8 +299,8 @@ def main(args):
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(train_batch_data_generator)))
     else:
-        (list_train_xData, list_train_yData) = LoadImageDataInBatchesManager(args.size_in_images).load_2list_files(listTrainImagesFiles,
-                                                                                                                   listTrainLabelsFiles)
+        (list_train_xData, list_train_yData) = LoadImageDataInBatchesManager(args._size_image).load_2list_files(listTrainImagesFiles,
+                                                                                                                listTrainLabelsFiles)
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(list_train_xData)))
 
@@ -313,7 +313,7 @@ def main(args):
 
             (list_valid_xData, list_valid_yData) = LoadImageDataManager.load_2list_files(listValidImagesFiles, listValidLabelsFiles)
 
-            valid_batch_data_generator = get_batchdata_generator(args.size_in_images,
+            valid_batch_data_generator = get_batchdata_generator(args._size_image,
                                                                  list_valid_xData,
                                                                  list_valid_yData,
                                                                  args.slidingWindowImages,
@@ -331,8 +331,8 @@ def main(args):
             print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles),
                                                                               len(valid_batch_data_generator)))
         else:
-            (list_valid_xData, list_valid_yData) = LoadImageDataInBatchesManager(args.size_in_images).load_2list_files(listValidImagesFiles,
-                                                                                                                       listValidLabelsFiles)
+            (list_valid_xData, list_valid_yData) = LoadImageDataInBatchesManager(args._size_image).load_2list_files(listValidImagesFiles,
+                                                                                                                    listValidLabelsFiles)
             validation_data = (list_valid_xData, list_valid_yData)
             print("Number volumes: %s. Total Data batches generated: %s..." % (len(listTrainImagesFiles),
                                                                                len(list_valid_xData)))

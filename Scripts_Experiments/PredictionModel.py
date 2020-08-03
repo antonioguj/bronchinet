@@ -15,7 +15,7 @@ from dataloaders.loadimagedata_manager import *
 if TYPE_DNNLIB_USED == 'Keras':
     from networks.keras.metrics import *
     from Networks_Keras.Networks import *
-    from Networks_Keras.VisualModelParams import *
+    from networks.keras.visualmodelparams import *
 elif TYPE_DNNLIB_USED == 'Pytorch':
     from networks.pytorch.metrics import *
     if ISTESTMODELSWITHGNN:
@@ -23,7 +23,7 @@ elif TYPE_DNNLIB_USED == 'Pytorch':
     else:
         from networks.Networks import *
     from networks.Trainers import *
-    from networks.VisualModelParams import *
+    from networks.pytorch.visualmodelparams import *
 from postprocessing.imagereconstructor_manager import *
 from preprocessing.imagegenerator_manager import *
 from collections import OrderedDict
@@ -102,28 +102,28 @@ def main(args):
         trainer.get_summary_model()
 
     if args.isValidConvolutions:
-        print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." %(str(args.size_in_images),
+        print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." %(str(args._size_image),
                                                                                               str(size_output_modelnet)))
 
     if (args.saveFeatMapsLayers):
         print("Compute and store model feature maps, from model layer \'%s\'..." %(args.nameSaveModelLayer))
         if TYPE_DNNLIB_USED == 'Keras':
-            visual_model_params = VisualModelParams(model, args.size_in_images)
+            visual_model_params = VisualModelParams(model, args._size_image)
         elif TYPE_DNNLIB_USED == 'Pytorch':
-            visual_model_params = VisualModelParams(trainer.model_net, args.size_in_images)
+            visual_model_params = VisualModelParams(trainer.model_net, args._size_image)
     # ----------------------------------------------
 
 
     # Create Image generators / Reconstructors
     # ----------------------------------------------
-    test_images_generator = get_images_generator(args.size_in_images,
+    test_images_generator = get_images_generator(args._size_image,
                                                  args.slidingWindowImages,
                                                  args.propOverlapSlidingWindow,
                                                  args.randomCropWindowImages,
                                                  args.numRandomImagesPerVolumeEpoch,
                                                  args.transformationRigidImages,
                                                  args.transformElasticDeformImages)
-    images_reconstructor = get_images_reconstructor(args.size_in_images,
+    images_reconstructor = get_images_reconstructor(args._size_image,
                                                     args.slidingWindowImages,
                                                     args.propOverlapSlidingWindow,
                                                     args.randomCropWindowImages,
@@ -150,7 +150,7 @@ def main(args):
         print("Loading data...")
         if (args.slidingWindowImages or args.transformationRigidImages):
             in_testXData = LoadImageDataManager.load_1file(in_testXData_file)
-            in_testXData_batches = get_batchdata_generator_with_generator(args.size_in_images,
+            in_testXData_batches = get_batchdata_generator_with_generator(args._size_image,
                                                                           [in_testXData],
                                                                           [in_testXData],
                                                                           test_images_generator,
@@ -159,7 +159,7 @@ def main(args):
                                                                           size_output_images=size_output_modelnet,
                                                                           shuffle=False)
         else:
-            in_testXData_batches = LoadImageDataInBatchesManager(args.size_in_images).load_1file(in_testXData_file)
+            in_testXData_batches = LoadImageDataInBatchesManager(args._size_image).load_1file(in_testXData_file)
             in_testXData_batches = np.expand_dims(in_testXData_batches, axis=0)
 
         print("Total Data batches generated: %s..." % (len(in_testXData_batches)))

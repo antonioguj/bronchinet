@@ -42,22 +42,22 @@ def main(args):
 
 
     # Build model to calculate the output size
-    model_net = DICTAVAILMODELS3D(args.size_in_images,
+    model_net = DICTAVAILMODELS3D(args._size_image,
                                   num_levels=args.num_layers,
                                   num_featmaps_in=1,
                                   isUse_valid_convols=args.isValidConvolutions)
 
     size_output_modelnet = tuple(model_net.get_size_output()[1:])
     if args.isValidConvolutions:
-        print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
+        print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args._size_image),
                                                                                                str(size_output_modelnet)))
 
-    images_generator = get_images_generator(args.size_in_images,
+    images_generator = get_images_generator(args._size_image,
                                             args.slidingWindowImages,
                                             args.propOverlapSlidingWindow,
                                             args.randomCropWindowImages,
                                             args.numRandomImagesPerVolumeEpoch)
-    images_reconstructor = get_images_reconstructor(args.size_in_images,
+    images_reconstructor = get_images_reconstructor(args._size_image,
                                                     args.slidingWindowImages,
                                                     args.propOverlapSlidingWindow,
                                                     args.randomCropWindowImages,
@@ -81,7 +81,7 @@ def main(args):
         if (args.slidingWindowImages or args.randomCropWindowImages or args.transformationRigidImages):
             in_label_data = LoadImageDataManager.load_1file(in_label_file)
             in_label_data = np.expand_dims(in_label_data, axis=-1)
-            in_label_generator = get_batchdata_generator_with_generator(args.size_in_images,
+            in_label_generator = get_batchdata_generator_with_generator(args._size_image,
                                                                         [in_label_data],
                                                                         [in_label_data],
                                                                         images_generator,
@@ -92,7 +92,7 @@ def main(args):
                                                                         is_datagen_in_gpu=False)
             (_, inout_batches_label_arrays) = in_label_generator.get_full_data()
         else:
-            inout_batches_label_arrays = LoadImageDataInBatchesManager(args.size_in_images).load_1file(in_label_file)
+            inout_batches_label_arrays = LoadImageDataInBatchesManager(args._size_image).load_1file(in_label_file)
             inout_batches_label_arrays = np.expand_dims(inout_batches_label_arrays, axis=0)
 
         print("Total data batches generated: %s..." % (len(inout_batches_label_arrays)))
