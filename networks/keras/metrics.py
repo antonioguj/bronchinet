@@ -6,16 +6,32 @@ from tensorflow.keras.losses import mean_squared_error, binary_crossentropy
 from tensorflow.keras import backend as K
 import tensorflow as tf
 
-from networks.metrics import Metrics as MetricsBase
+from networks.metrics import MetricBase
 
 _EPS = K._epsilon()
 _SMOOTH = 1.0
 
+LIST_AVAIL_METRICS = ['MeanSquaredError',
+                      'MeanSquaredErrorLogarithmic',
+                      'BinaryCrossEntropy',
+                      'WeightedBinaryCrossEntropy',
+                      'WeightedBinaryCrossEntropyFixedWeights',
+                      'BinaryCrossEntropyFocalLoss',
+                      'DiceCoefficient',
+                      'TruePositiveRate',
+                      'TrueNegativeRate',
+                      'FalsePositiveRate',
+                      'FalseNegativeRate',
+                      'AirwayCompleteness',
+                      'AirwayVolumeLeakage',
+                      'AirwayCentrelineLeakage',
+                      ]
 
-class Metrics(MetricsBase):
+
+class Metric(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
-        super(Metrics, self).__init__(is_mask_exclude)
+        super(Metric, self).__init__(is_mask_exclude)
 
     def compute(self, y_true: K.Tensor, y_pred: K.Tensor) -> K.Tensor:
         if self._is_mask_exclude:
@@ -44,14 +60,14 @@ class Metrics(MetricsBase):
             return getattr(self, self._name_func_out)
 
 
-class MetricsWithUncertainty(Metrics):
+class MetricWithUncertainty(Metric):
     # Composed uncertainty loss (ask Shuai)
     _epsilon_default = 0.01
 
-    def __init__(self, metrics_loss: Metrics, epsilon: float = _epsilon_default) -> None:
+    def __init__(self, metrics_loss: Metric, epsilon: float = _epsilon_default) -> None:
         self._metrics_loss = metrics_loss
         self._epsilon = epsilon
-        super(MetricsWithUncertainty, self).__init__(self._metrics_loss._is_mask_exclude)
+        super(MetricWithUncertainty, self).__init__(self._metrics_loss._is_mask_exclude)
         self._name_func_out = self._metrics_loss._name_func_out + '_uncertain'
 
     def _compute(self, y_true: K.Tensor, y_pred: K.Tensor) -> K.Tensor:
@@ -63,9 +79,9 @@ class MetricsWithUncertainty(Metrics):
                self._epsilon * self._metrics_loss._compute_masked(K.ones_like(y_pred) / 3, y_pred)
 
 
-class CombineTwoMetrics(Metrics):
+class CombineTwoMetrics(Metric):
 
-    def __init__(self, metrics_1: Metrics, metrics_2: Metrics, weights_metrics: Tuple[float, float] = (1.0, 1.0)) -> None:
+    def __init__(self, metrics_1: Metric, metrics_2: Metric, weights_metrics: Tuple[float, float] = (1.0, 1.0)) -> None:
         super(CombineTwoMetrics, self).__init__(False)
         self._metrics_1 = metrics_1
         self._metrics_2 = metrics_2
@@ -81,7 +97,7 @@ class CombineTwoMetrics(Metrics):
                self._weights_metrics[1] * self._metrics_2.loss(y_true, y_pred)
 
 
-class MeanSquaredError(Metrics):
+class MeanSquaredError(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredError, self).__init__(is_mask_exclude)
@@ -95,7 +111,7 @@ class MeanSquaredError(Metrics):
         return K.mean(K.square(y_pred - y_true) * mask, axis=-1)
 
 
-class MeanSquaredErrorLogarithmic(Metrics):
+class MeanSquaredErrorLogarithmic(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredErrorLogarithmic, self).__init__(is_mask_exclude)
@@ -111,7 +127,7 @@ class MeanSquaredErrorLogarithmic(Metrics):
                                K.log(K.clip(y_true, _EPS, None) + 1.0)) * mask, axis=-1)
 
 
-class BinaryCrossEntropy(Metrics):
+class BinaryCrossEntropy(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(BinaryCrossEntropy, self).__init__(is_mask_exclude)
@@ -129,7 +145,7 @@ class BinaryCrossEntropy(Metrics):
         #               - (1.0 - y_true) * K.log(1.0 - y_pred + _EPS)) * mask)
 
 
-class WeightedBinaryCrossEntropy(Metrics):
+class WeightedBinaryCrossEntropy(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(WeightedBinaryCrossEntropy, self).__init__(is_mask_exclude)
@@ -152,7 +168,7 @@ class WeightedBinaryCrossEntropy(Metrics):
                        - weights[0] * (1.0 - y_true) * K.log(1.0 - y_pred + _EPS)) * mask)
 
 
-class WeightedBinaryCrossEntropyFixedWeights(Metrics):
+class WeightedBinaryCrossEntropyFixedWeights(Metric):
     weights_no_masks_exclude = (1.0, 80.0)
     weights_mask_exclude = (1.0, 300.0)  # for LUVAR data
     #weights_mask_exclude = (1.0, 361.0)  # for DLCST data
@@ -169,7 +185,7 @@ class WeightedBinaryCrossEntropyFixedWeights(Metrics):
         return self._weights
 
 
-class BinaryCrossEntropyFocalLoss(Metrics):
+class BinaryCrossEntropyFocalLoss(Metric):
     # Binary cross entropy + Focal loss
     _gamma_default = 2.0
 
@@ -193,7 +209,7 @@ class BinaryCrossEntropyFocalLoss(Metrics):
                        - (1.0 - y_true) * K.pow(y_pred, self._gamma) * K.log(1.0 - y_pred + _EPS)) * mask)
 
 
-class DiceCoefficient(Metrics):
+class DiceCoefficient(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(DiceCoefficient, self).__init__(is_mask_exclude)
@@ -206,7 +222,7 @@ class DiceCoefficient(Metrics):
         return 1.0 - self.compute(y_true, y_pred)
 
 
-class TruePositiveRate(Metrics):
+class TruePositiveRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TruePositiveRate, self).__init__(is_mask_exclude)
@@ -219,7 +235,7 @@ class TruePositiveRate(Metrics):
         return 1.0 - self.compute(y_true, y_pred)
 
 
-class TrueNegativeRate(Metrics):
+class TrueNegativeRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TrueNegativeRate, self).__init__(is_mask_exclude)
@@ -232,7 +248,7 @@ class TrueNegativeRate(Metrics):
         return 1.0 - self.compute(y_true, y_pred)
 
 
-class FalsePositiveRate(Metrics):
+class FalsePositiveRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalsePositiveRate, self).__init__(is_mask_exclude)
@@ -242,7 +258,7 @@ class FalsePositiveRate(Metrics):
         return K.sum((1.0 - y_true) * y_pred) / (K.sum((1.0 - y_true)) + _SMOOTH)
 
 
-class FalseNegativeRate(Metrics):
+class FalseNegativeRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalseNegativeRate, self).__init__(is_mask_exclude)
@@ -252,7 +268,7 @@ class FalseNegativeRate(Metrics):
         return K.sum(y_true * (1.0 - y_pred)) / (K.sum(y_true) + _SMOOTH)
 
 
-class AirwayCompleteness(Metrics):
+class AirwayCompleteness(Metric):
     _is_use_ytrue_cenlines = True
     _is_use_ypred_cenlines = False
 
@@ -264,7 +280,7 @@ class AirwayCompleteness(Metrics):
         return K.sum(y_true * y_pred) / (K.sum(y_true) + _SMOOTH)
 
 
-class AirwayVolumeLeakage(Metrics):
+class AirwayVolumeLeakage(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayVolumeLeakage, self).__init__(is_mask_exclude)
@@ -274,7 +290,7 @@ class AirwayVolumeLeakage(Metrics):
         return K.sum((1.0 - y_true) * y_pred) / (K.sum(y_pred) + _SMOOTH)
 
 
-class AirwayCentrelineLeakage(Metrics):
+class AirwayCentrelineLeakage(Metric):
     _is_use_ytrue_cenlines = False
     _is_use_ypred_cenlines = True
 
@@ -284,20 +300,3 @@ class AirwayCentrelineLeakage(Metrics):
 
     def _compute(self, y_true: K.Tensor, y_pred: K.Tensor) -> K.Tensor:
         return K.sum((1.0 - y_true) * y_pred) / (K.sum(y_pred) + _SMOOTH)
-
-
-LIST_AVAIL_METRICS = ['MeanSquaredError',
-                      'MeanSquaredErrorLogarithmic',
-                      'BinaryCrossEntropy',
-                      'WeightedBinaryCrossEntropy',
-                      'WeightedBinaryCrossEntropyFixedWeights',
-                      'BinaryCrossEntropyFocalLoss',
-                      'DiceCoefficient',
-                      'TruePositiveRate',
-                      'TrueNegativeRate',
-                      'FalsePositiveRate',
-                      'FalseNegativeRate',
-                      'AirwayCompleteness',
-                      'AirwayVolumeLeakage',
-                      'AirwayCentrelineLeakage',
-                      ]

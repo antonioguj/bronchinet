@@ -6,7 +6,7 @@ from scipy.spatial import distance
 from common.constant import TYPE_DNNLIB_USED
 from common.exception_manager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
-    from networks.pytorch.metrics import Metrics as Metrics_train, \
+    from networks.pytorch.metrics import Metric as Metric_train, \
                                          CombineTwoMetrics as CombineTwoMetrics_train, \
                                          MeanSquaredError as MeanSquaredError_train, \
                                          MeanSquaredErrorLogarithmic as MeanSquaredErrorLogarithmic_train, \
@@ -24,7 +24,7 @@ if TYPE_DNNLIB_USED == 'Pytorch':
                                          AirwayCentrelineLeakage as AirwayCentrelineLeakage_train, \
                                          LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
 elif TYPE_DNNLIB_USED == 'Keras':
-    from networks.keras.metrics import Metrics as Metrics_train, \
+    from networks.keras.metrics import Metric as Metric_train, \
                                        CombineTwoMetrics as CombineTwoMetrics_train, \
                                        MeanSquaredError as MeanSquaredError_train, \
                                        MeanSquaredErrorLogarithmic as MeanSquaredErrorLogarithmic_train, \
@@ -44,8 +44,25 @@ elif TYPE_DNNLIB_USED == 'Keras':
 _EPS = 1.0e-7
 _SMOOTH = 1.0
 
+LIST_AVAIL_METRICS = ['MeanSquaredError',
+                      'MeanSquaredErrorLogarithmic',
+                      'BinaryCrossEntropy',
+                      'WeightedBinaryCrossEntropy',
+                      'WeightedBinaryCrossEntropyFixedWeights',
+                      'DiceCoefficient',
+                      'TruePositiveRate',
+                      'TrueNegativeRate',
+                      'FalsePositiveRate',
+                      'FalseNegativeRate',
+                      'AirwayCompleteness',
+                      'AirwayVolumeLeakage',
+                      'AirwayCentrelineLeakage',
+                      'AirwayCentrelineDistanceFalsePositiveError',
+                      'AirwayCentrelineDistanceFalseNegativeError',
+                      ]
 
-class Metrics(object):
+
+class MetricBase(object):
     _max_size_memory_safe = 5e+08
     _value_mask_exclude = -1
     _is_use_ytrue_cenlines = False
@@ -87,9 +104,9 @@ class Metrics(object):
         return np.where(y_true == self._value_mask_exclude, 0, y_input)
 
 
-class CombineTwoMetrics(Metrics):
+class CombineTwoMetrics(MetricBase):
 
-    def __init__(self, metrics_1: Metrics, metrics_2: Metrics, weights_metrics: Tuple[float, float] = (1.0, 1.0)) -> None:
+    def __init__(self, metrics_1: MetricBase, metrics_2: MetricBase, weights_metrics: Tuple[float, float] = (1.0, 1.0)) -> None:
         super(CombineTwoMetrics, self).__init__(False)
         self._metrics_1 = metrics_1
         self._metrics_2 = metrics_2
@@ -105,7 +122,7 @@ class CombineTwoMetrics(Metrics):
                self._weights_metrics[1] * self._metrics_2.compute_safememory(y_true, y_pred)
 
 
-class MeanSquaredError(Metrics):
+class MeanSquaredError(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredError, self).__init__(is_mask_exclude)
@@ -119,7 +136,7 @@ class MeanSquaredError(Metrics):
         return np.mean(np.square(y_pred - y_true) * mask)
 
 
-class MeanSquaredErrorLogarithmic(Metrics):
+class MeanSquaredErrorLogarithmic(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredErrorLogarithmic, self).__init__(is_mask_exclude)
@@ -135,7 +152,7 @@ class MeanSquaredErrorLogarithmic(Metrics):
                                  np.log(np.clip(y_true, _EPS, None) + 1.0)) * mask)
 
 
-class BinaryCrossEntropy(Metrics):
+class BinaryCrossEntropy(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(BinaryCrossEntropy, self).__init__(is_mask_exclude)
@@ -151,7 +168,7 @@ class BinaryCrossEntropy(Metrics):
                         - (1.0 - y_true) * np.log(1.0 - y_pred + _EPS)) * mask)
 
 
-class WeightedBinaryCrossEntropy(Metrics):
+class WeightedBinaryCrossEntropy(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(WeightedBinaryCrossEntropy, self).__init__(is_mask_exclude)
@@ -191,7 +208,7 @@ class WeightedBinaryCrossEntropyFixedWeights(WeightedBinaryCrossEntropy):
         return self._weights
 
 
-class BinaryCrossEntropyFocalLoss(Metrics):
+class BinaryCrossEntropyFocalLoss(MetricBase):
     # Binary cross entropy + Focal loss
     _gamma_default = 2.0
 
@@ -215,7 +232,7 @@ class BinaryCrossEntropyFocalLoss(Metrics):
                         - (1.0 - y_true) * pow(y_pred, self._gamma) * np.log(1.0 - y_pred + _EPS)) * mask)
 
 
-class DiceCoefficient(Metrics):
+class DiceCoefficient(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(DiceCoefficient, self).__init__(is_mask_exclude)
@@ -225,7 +242,7 @@ class DiceCoefficient(Metrics):
         return (2.0 * np.sum(y_true * y_pred)) / (np.sum(y_true) + np.sum(y_pred) + _SMOOTH)
 
 
-class TruePositiveRate(Metrics):
+class TruePositiveRate(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TruePositiveRate, self).__init__(is_mask_exclude)
@@ -235,7 +252,7 @@ class TruePositiveRate(Metrics):
         return np.sum(y_true * y_pred) / (np.sum(y_true) + _SMOOTH)
 
 
-class TrueNegativeRate(Metrics):
+class TrueNegativeRate(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TrueNegativeRate, self).__init__(is_mask_exclude)
@@ -245,7 +262,7 @@ class TrueNegativeRate(Metrics):
         return np.sum((1.0 - y_true) * (1.0 - y_pred)) / (np.sum((1.0 - y_true)) + _SMOOTH)
 
 
-class FalsePositiveRate(Metrics):
+class FalsePositiveRate(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalsePositiveRate, self).__init__(is_mask_exclude)
@@ -255,7 +272,7 @@ class FalsePositiveRate(Metrics):
         return np.sum((1.0 - y_true) * y_pred) / (np.sum((1.0 - y_true)) + _SMOOTH)
 
 
-class FalseNegativeRate(Metrics):
+class FalseNegativeRate(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalseNegativeRate, self).__init__(is_mask_exclude)
@@ -265,7 +282,7 @@ class FalseNegativeRate(Metrics):
         return np.sum(y_true * (1.0 - y_pred)) / (np.sum(y_true) + _SMOOTH)
 
 
-class AirwayCompleteness(Metrics):
+class AirwayCompleteness(MetricBase):
     _is_use_ytrue_cenlines = True
     _is_use_ypred_cenlines = False
 
@@ -277,7 +294,7 @@ class AirwayCompleteness(Metrics):
         return np.sum(y_true * y_pred) / (np.sum(y_true) + _SMOOTH)
 
 
-class AirwayVolumeLeakage(Metrics):
+class AirwayVolumeLeakage(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayVolumeLeakage, self).__init__(is_mask_exclude)
@@ -287,7 +304,7 @@ class AirwayVolumeLeakage(Metrics):
         return np.sum((1.0 - y_true) * y_pred) / (np.sum(y_pred) + _SMOOTH)
 
 
-class AirwayCentrelineLeakage(Metrics):
+class AirwayCentrelineLeakage(MetricBase):
     _is_use_ytrue_cenlines = False
     _is_use_ypred_cenlines = True
 
@@ -299,7 +316,7 @@ class AirwayCentrelineLeakage(Metrics):
         return np.sum((1.0 - y_true) * y_pred) / (np.sum(y_pred) + _SMOOTH)
 
 
-class AirwayCentrelineDistanceFalsePositiveError(Metrics):
+class AirwayCentrelineDistanceFalsePositiveError(MetricBase):
     _is_use_ytrue_cenlines = True
     _is_use_ypred_cenlines = True
 
@@ -323,7 +340,7 @@ class AirwayCentrelineDistanceFalsePositiveError(Metrics):
         return np.mean(np.min(dist_y, axis=1))
 
 
-class AirwayCentrelineDistanceFalseNegativeError(Metrics):
+class AirwayCentrelineDistanceFalseNegativeError(MetricBase):
     _is_use_ytrue_cenlines = True
     _is_use_ypred_cenlines = True
 
@@ -347,97 +364,79 @@ class AirwayCentrelineDistanceFalseNegativeError(Metrics):
         return np.mean(np.min(dist_y, axis=0))
 
 
-LIST_AVAIL_METRICS = ['MeanSquaredError',
-                      'MeanSquaredErrorLogarithmic',
-                      'BinaryCrossEntropy',
-                      'WeightedBinaryCrossEntropy',
-                      'WeightedBinaryCrossEntropyFixedWeights',
-                      'DiceCoefficient',
-                      'TruePositiveRate',
-                      'TrueNegativeRate',
-                      'FalsePositiveRate',
-                      'FalseNegativeRate',
-                      'AirwayCompleteness',
-                      'AirwayVolumeLeakage',
-                      'AirwayCentrelineLeakage',
-                      'AirwayCentrelineDistanceFalsePositiveError',
-                      'AirwayCentrelineDistanceFalseNegativeError',
-                      ]
 
-
-
-def get_metrics(type_metrics: str, is_mask_exclude: bool = False, **kwargs) -> Metrics:
-    if type_metrics == 'MeanSquaredError':
+def get_metric(type_metric: str, is_mask_exclude: bool = False, **kwargs) -> MetricBase:
+    if type_metric == 'MeanSquaredError':
         return MeanSquaredError(is_mask_exclude=is_mask_exclude)
-    if type_metrics == 'MeanSquaredErrorLogarithmic':
+    if type_metric == 'MeanSquaredErrorLogarithmic':
         return MeanSquaredErrorLogarithmic(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'BinaryCrossEntropy':
+    elif type_metric == 'BinaryCrossEntropy':
         return BinaryCrossEntropy(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'WeightedBinaryCrossEntropy':
+    elif type_metric == 'WeightedBinaryCrossEntropy':
         return WeightedBinaryCrossEntropy(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'WeightedBinaryCrossEntropyFixedWeights':
+    elif type_metric == 'WeightedBinaryCrossEntropyFixedWeights':
         return WeightedBinaryCrossEntropyFixedWeights(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'DiceCoefficient':
+    elif type_metric == 'DiceCoefficient':
         return DiceCoefficient(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'TruePositiveRate':
+    elif type_metric == 'TruePositiveRate':
         return TruePositiveRate(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'TrueNegativeRate':
+    elif type_metric == 'TrueNegativeRate':
         return TrueNegativeRate(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'FalsePositiveRate':
+    elif type_metric == 'FalsePositiveRate':
         return FalsePositiveRate(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'FalseNegativeRate':
+    elif type_metric == 'FalseNegativeRate':
         return FalseNegativeRate(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'AirwayCompleteness':
+    elif type_metric == 'AirwayCompleteness':
         return AirwayCompleteness(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'AirwayVolumeLeakage':
+    elif type_metric == 'AirwayVolumeLeakage':
         return AirwayVolumeLeakage(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'AirwayCentrelineLeakage':
+    elif type_metric == 'AirwayCentrelineLeakage':
         return AirwayCentrelineLeakage(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'AirwayCentrelineDistanceFalsePositiveError':
+    elif type_metric == 'AirwayCentrelineDistanceFalsePositiveError':
         return AirwayCentrelineDistanceFalsePositiveError(is_mask_exclude=is_mask_exclude)
-    elif type_metrics == 'AirwayCentrelineDistanceFalseNegativeError':
+    elif type_metric == 'AirwayCentrelineDistanceFalseNegativeError':
         return AirwayCentrelineDistanceFalseNegativeError(is_mask_exclude=is_mask_exclude)
     else:
         message = 'Choice Metric not found. Metrics available: %s' % (', '.join(LIST_AVAIL_METRICS))
         catch_error_exception(message)
 
 
-def get_metrics_train(type_metrics: str, is_mask_exclude: bool = False, **kwargs) -> Metrics_train:
+def get_metric_train(type_metric: str, is_mask_exclude: bool = False, **kwargs) -> Metric_train:
     is_combine_metrics = kwargs['is_combine_metrics'] if 'is_combine_metrics' in kwargs.keys() else False
     if is_combine_metrics:
-        type_metrics_1, type_metrics_2 = type_metrics.split('_')
+        type_metrics_1, type_metrics_2 = type_metric.split('_')
         weights_metrics = kwargs['weights_metrics'] if 'weights_metrics' in kwargs.keys() else (1.0, 1.0)
-        metrics_1 = get_metrics_train(type_metrics_1, is_mask_exclude)
-        metrics_2 = get_metrics_train(type_metrics_2, is_mask_exclude)
+        metrics_1 = get_metric_train(type_metrics_1, is_mask_exclude)
+        metrics_2 = get_metric_train(type_metrics_2, is_mask_exclude)
         return CombineTwoMetrics_train(metrics_1, metrics_2, weights_metrics)
     else:
-        if type_metrics == 'MeanSquaredError':
+        if type_metric == 'MeanSquaredError':
             return MeanSquaredError_train(is_mask_exclude=is_mask_exclude)
-        if type_metrics == 'MeanSquaredErrorLogarithmic':
+        if type_metric == 'MeanSquaredErrorLogarithmic':
             return MeanSquaredErrorLogarithmic_train(is_mask_exclude=is_mask_exclude)
-        elif type_metrics == 'BinaryCrossEntropy':
+        elif type_metric == 'BinaryCrossEntropy':
             return BinaryCrossEntropy_train(is_mask_exclude=is_mask_exclude)
-        elif type_metrics == 'WeightedBinaryCrossEntropy':
+        elif type_metric == 'WeightedBinaryCrossEntropy':
             return WeightedBinaryCrossEntropy_train(is_mask_exclude=is_mask_exclude)
-        elif type_metrics == 'WeightedBinaryCrossEntropyFixedWeights':
+        elif type_metric == 'WeightedBinaryCrossEntropyFixedWeights':
             return WeightedBinaryCrossEntropyFixedWeights_train(is_mask_exclude=is_mask_exclude)
-        elif type_metrics == 'BinaryCrossEntropyFocalLoss':
+        elif type_metric == 'BinaryCrossEntropyFocalLoss':
             return BinaryCrossEntropyFocalLoss_train(is_mask_exclude=is_mask_exclude)
-        elif type_metrics == 'DiceCoefficient':
+        elif type_metric == 'DiceCoefficient':
             return DiceCoefficient_train(is_mask_exclude=is_mask_exclude)
-        elif type_metrics == 'TruePositiveRate':
+        elif type_metric == 'TruePositiveRate':
             return TruePositiveRate_train(is_mask_exclude=is_mask_exclude)
-        elif type_metrics == 'TrueNegativeRate':
+        elif type_metric == 'TrueNegativeRate':
             return TrueNegativeRate_train(is_mask_exclude=is_mask_exclude)
-        elif type_metrics == 'FalsePositiveRate':
+        elif type_metric == 'FalsePositiveRate':
             return FalsePositiveRate_train(is_mask_exclude=is_mask_exclude)
-        elif type_metrics == 'FalseNegativeRate':
+        elif type_metric == 'FalseNegativeRate':
             return FalseNegativeRate_train(is_mask_exclude=is_mask_exclude)
-        elif type_metrics == 'AirwayCompleteness':
+        elif type_metric == 'AirwayCompleteness':
             return AirwayCompleteness_train(is_mask_exclude=is_mask_exclude)
-        elif type_metrics == 'AirwayVolumeLeakage':
+        elif type_metric == 'AirwayVolumeLeakage':
             return AirwayVolumeLeakage_train(is_mask_exclude=is_mask_exclude)
-        elif type_metrics == 'AirwayCentrelineLeakage':
+        elif type_metric == 'AirwayCentrelineLeakage':
             return AirwayCentrelineLeakage_train(is_mask_exclude=is_mask_exclude)
         else:
             message = 'Choice Metric for Training not found. Metrics available: %s' % (', '.join(LIST_AVAIL_METRICS_TRAIN))

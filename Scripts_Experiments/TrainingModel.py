@@ -15,13 +15,13 @@ from dataloaders.loadimagedata_manager import *
 if TYPE_DNNLIB_USED == 'Keras':
     from networks.keras.callbacks import *
     from networks.keras.metrics import *
-    from Networks_Keras.Networks import *
+    from networks.keras.networks import *
 elif TYPE_DNNLIB_USED == 'Pytorch':
     from networks.pytorch.metrics import *
     if ISTESTMODELSWITHGNN:
         from networks.NetworksGNNs import *
     else:
-        from networks.Networks import *
+        from networks.pytorch.networks import *
     from networks.Trainers import *
 from preprocessing.imagegenerator_manager import *
 from collections import OrderedDict
@@ -119,9 +119,9 @@ def main(args):
         # ----------------------------------------------
         if (not args.restart_model) or\
         (args.restart_model and RESTART_ONLY_WEIGHTS):
-            model_constructor = DICTAVAILMODELS3D(args._size_image,
+            model_constructor = DICTAVAILMODELS3D(args._size_image_in,
                                                   num_levels=args.num_layers,
-                                                  num_featmaps_in=args.num_featmaps_in,
+                                                  num_featmaps_in=args._num_featmaps_in,
                                                   isUse_valid_convols=args.isValidConvolutions)
                                                   # type_network=args.type_network,
                                                   # type_activate_hidden=args.type_activate_hidden,
@@ -132,7 +132,7 @@ def main(args):
             optimizer = get_optimizer_pytorch(args.optimizer, lr=args.learn_rate)
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).loss
             metrics =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]
-            model = model_constructor.build_model()
+            model = model_constructor._build_model()
             # compile model
             model.compile(optimizer=optimizer, loss=loss_fun, metrics=metrics)
 
@@ -155,7 +155,7 @@ def main(args):
             metrics  =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]
             custom_objects = dict(map(lambda fun: (fun.__name__, fun), [loss_fun] + metrics))
             # load and compile model
-            model = NeuralNetwork.get_load_saved_model(modelSavedPath, custom_objects=custom_objects)
+            model = UNet.get_load_saved_model(modelSavedPath, custom_objects=custom_objects)
 
         # Callbacks:
         list_callbacks = []
@@ -179,16 +179,16 @@ def main(args):
         (args.restart_model and RESTART_ONLY_WEIGHTS):
             if ISTESTMODELSWITHGNN:
                 model_net = DICTAVAILMODELSGNNS(args.imodel,
-                                                args._size_image,
-                                                nfeat=args.num_featmaps_in,
+                                                args._size_image_in,
+                                                nfeat=args._num_featmaps_in,
                                                 nlevel=args.num_layers,
                                                 isUse_valid_convols=args.isValidConvolutions,
                                                 isGNN_with_attention_lays=args.isGNNwithAttentionLays,
                                                 source_dir_adjs=SOURCEDIR_ADJS)
             else:
-                model_net = DICTAVAILMODELS3D(args._size_image,
+                model_net = DICTAVAILMODELS3D(args._size_image_in,
                                               num_levels=args.num_layers,
-                                              num_featmaps_in=args.num_featmaps_in,
+                                              num_featmaps_in=args._num_featmaps_in,
                                               isUse_valid_convols=args.isValidConvolutions)
                                               # type_network=args.type_network,
                                               # type_activate_hidden=args.type_activate_hidden,
@@ -215,9 +215,9 @@ def main(args):
             modelSavedPath = join_path_names(ModelsPath, 'model_last.pt')
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
-            dict_added_model_input_args = {'size_image': args._size_image,
+            dict_added_model_input_args = {'size_image': args._size_image_in,
                                            'num_levels': args.num_layers,
-                                           'num_featmaps_in': args.num_featmaps_in,
+                                           'num_featmaps_in': args._num_featmaps_in,
                                            'isUse_valid_convols': args.isValidConvolutions}
 
             if ISTESTMODELSWITHGNN:
@@ -255,7 +255,7 @@ def main(args):
         # ----------------------------------------------
 
     if args.isValidConvolutions:
-        print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args._size_image),
+        print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args._size_image_in),
                                                                                                str(size_output_modelnet)))
 
     if (WRITEOUTDESCMODELTEXT):
@@ -282,7 +282,7 @@ def main(args):
 
         (list_train_xData, list_train_yData) = LoadImageDataManager.load_2list_files(listTrainImagesFiles, listTrainLabelsFiles)
 
-        train_batch_data_generator = get_batchdata_generator(args._size_image,
+        train_batch_data_generator = get_batchdata_generator(args._size_image_in,
                                                              list_train_xData,
                                                              list_train_yData,
                                                              args.slidingWindowImages,
@@ -299,8 +299,8 @@ def main(args):
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(train_batch_data_generator)))
     else:
-        (list_train_xData, list_train_yData) = LoadImageDataInBatchesManager(args._size_image).load_2list_files(listTrainImagesFiles,
-                                                                                                                listTrainLabelsFiles)
+        (list_train_xData, list_train_yData) = LoadImageDataInBatchesManager(args._size_image_in).load_2list_files(listTrainImagesFiles,
+                                                                                                                   listTrainLabelsFiles)
         print("Number volumes: %s. Total Data batches generated: %s..." %(len(listTrainImagesFiles),
                                                                           len(list_train_xData)))
 
@@ -313,7 +313,7 @@ def main(args):
 
             (list_valid_xData, list_valid_yData) = LoadImageDataManager.load_2list_files(listValidImagesFiles, listValidLabelsFiles)
 
-            valid_batch_data_generator = get_batchdata_generator(args._size_image,
+            valid_batch_data_generator = get_batchdata_generator(args._size_image_in,
                                                                  list_valid_xData,
                                                                  list_valid_yData,
                                                                  args.slidingWindowImages,
@@ -331,8 +331,8 @@ def main(args):
             print("Number volumes: %s. Total Data batches generated: %s..." %(len(listValidImagesFiles),
                                                                               len(valid_batch_data_generator)))
         else:
-            (list_valid_xData, list_valid_yData) = LoadImageDataInBatchesManager(args._size_image).load_2list_files(listValidImagesFiles,
-                                                                                                                    listValidLabelsFiles)
+            (list_valid_xData, list_valid_yData) = LoadImageDataInBatchesManager(args._size_image_in).load_2list_files(listValidImagesFiles,
+                                                                                                                       listValidLabelsFiles)
             validation_data = (list_valid_xData, list_valid_yData)
             print("Number volumes: %s. Total Data batches generated: %s..." % (len(listTrainImagesFiles),
                                                                                len(list_valid_xData)))

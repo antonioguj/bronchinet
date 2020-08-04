@@ -3,10 +3,10 @@ from typing import List, Any, Callable
 from tensorflow.keras import callbacks as callbacks_keras
 
 from common.function_util import join_path_names, flatten_listoflists
-from networks.callbacks import Callback
+from networks.callbacks import CallbackBase
 
 
-class RecordLossHistory(Callback, callbacks_keras.Callback):
+class RecordLossHistory(CallbackBase, callbacks_keras.CallbackBase):
 
     def __init__(self,
                  filepath: str,
@@ -41,7 +41,7 @@ class RecordLossHistory(Callback, callbacks_keras.Callback):
         fout.close()
 
 
-class EarlyStopping(Callback, callbacks_keras.Callback):
+class EarlyStopping(CallbackBase, callbacks_keras.CallbackBase):
 
     def __init__(self,
                  delta: float = 0.005,

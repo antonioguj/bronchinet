@@ -1,2 +1,2 @@
 
-from networks.callbacks import Callback
+from networks.callbacks import CallbackBase

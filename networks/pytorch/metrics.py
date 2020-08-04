@@ -6,16 +6,32 @@ from torch.nn import CrossEntropyLoss
 import torch.nn as nn
 import torch
 
-from networks.metrics import Metrics as MetricsBase
+from networks.metrics import MetricBase
 
 _EPS = 1e-7
 _SMOOTH = 1.0
 
+LIST_AVAIL_METRICS = ['MeanSquaredError',
+                      'MeanSquaredErrorLogarithmic',
+                      'BinaryCrossEntropy',
+                      'WeightedBinaryCrossEntropy',
+                      'WeightedBinaryCrossEntropyFixedWeights',
+                      'BinaryCrossEntropyFocalLoss',
+                      'DiceCoefficient',
+                      'TruePositiveRate',
+                      'TrueNegativeRate',
+                      'FalsePositiveRate',
+                      'FalseNegativeRate',
+                      'AirwayCompleteness',
+                      'AirwayVolumeLeakage',
+                      'AirwayCentrelineLeakage',
+                      ]
 
-class Metrics(MetricsBase, nn.Module):
+
+class Metric(MetricBase, nn.Module):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
-        super(Metrics, self).__init__(is_mask_exclude)
+        super(Metric, self).__init__(is_mask_exclude)
 
     def compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         if self.is_mask_exclude:
@@ -43,14 +59,14 @@ class Metrics(MetricsBase, nn.Module):
         return torch.where(y_true == self._value_mask_exclude, torch.zeros_like(y_input), y_input)
 
 
-class MetricsWithUncertainty(Metrics):
+class MetricWithUncertainty(Metric):
     # Composed uncertainty loss (ask Shuai)
     _epsilon_default = 0.01
 
-    def __init__(self, metrics_loss: Metrics, epsilon: float = _epsilon_default) -> None:
+    def __init__(self, metrics_loss: Metric, epsilon: float = _epsilon_default) -> None:
         self._metrics_loss = metrics_loss
         self._epsilon = epsilon
-        super(MetricsWithUncertainty, self).__init__(self._metrics_loss._is_mask_exclude)
+        super(MetricWithUncertainty, self).__init__(self._metrics_loss._is_mask_exclude)
         self._name_func_out = self._metrics_loss._name_func_out + '_uncertain'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
@@ -62,9 +78,9 @@ class MetricsWithUncertainty(Metrics):
                self._epsilon * self._metrics_loss.__compute_masked(torch.ones_like(y_pred) / 3, y_pred)
 
 
-class CombineTwoMetrics(Metrics):
+class CombineTwoMetrics(Metric):
 
-    def __init__(self, metrics_1: Metrics, metrics_2: Metrics, weights_metrics: Tuple[float, float] = (1.0, 1.0)) -> None:
+    def __init__(self, metrics_1: Metric, metrics_2: Metric, weights_metrics: Tuple[float, float] = (1.0, 1.0)) -> None:
         super(CombineTwoMetrics, self).__init__(False)
         self._metrics_1 = metrics_1
         self._metrics_2 = metrics_2
@@ -80,7 +96,7 @@ class CombineTwoMetrics(Metrics):
                self._weights_metrics[1] * self._metrics_2.forward(y_true, y_pred)
 
 
-class MeanSquaredError(Metrics):
+class MeanSquaredError(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredError, self).__init__(is_mask_exclude)
@@ -94,7 +110,7 @@ class MeanSquaredError(Metrics):
         return torch.mean(torch.square(y_pred - y_true) * mask)
 
 
-class MeanSquaredErrorLogarithmic(Metrics):
+class MeanSquaredErrorLogarithmic(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredErrorLogarithmic, self).__init__(is_mask_exclude)
@@ -110,7 +126,7 @@ class MeanSquaredErrorLogarithmic(Metrics):
                                        torch.log(torch.clip(y_true, _EPS, None) + 1.0)) * mask, axis=-1)
 
 
-class BinaryCrossEntropy(Metrics):
+class BinaryCrossEntropy(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(BinaryCrossEntropy, self).__init__(is_mask_exclude)
@@ -126,7 +142,7 @@ class BinaryCrossEntropy(Metrics):
                            - (1.0 - y_true) * torch.log(1.0 - y_pred + _EPS)) * mask)
 
 
-class WeightedBinaryCrossEntropy(Metrics):
+class WeightedBinaryCrossEntropy(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(WeightedBinaryCrossEntropy, self).__init__(is_mask_exclude)
@@ -166,7 +182,7 @@ class WeightedBinaryCrossEntropyFixedWeights(WeightedBinaryCrossEntropy):
         return self._weights
 
 
-class BinaryCrossEntropyFocalLoss(Metrics):
+class BinaryCrossEntropyFocalLoss(Metric):
     # Binary cross entropy + Focal loss
     _gamma_default = 2.0
 
@@ -190,7 +206,7 @@ class BinaryCrossEntropyFocalLoss(Metrics):
                            - (1.0 - y_true) * torch.pow(y_pred, self._gamma) * torch.log(1.0 - y_pred + _EPS)) * mask)
 
 
-class DiceCoefficient(Metrics):
+class DiceCoefficient(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(DiceCoefficient, self).__init__(is_mask_exclude)
@@ -203,7 +219,7 @@ class DiceCoefficient(Metrics):
         return 1.0 - self.compute(y_true, y_pred)
 
 
-class TruePositiveRate(Metrics):
+class TruePositiveRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TruePositiveRate, self).__init__(is_mask_exclude)
@@ -216,7 +232,7 @@ class TruePositiveRate(Metrics):
         return 1.0 - self.compute(y_true, y_pred)
 
 
-class TrueNegativeRate(Metrics):
+class TrueNegativeRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TrueNegativeRate, self).__init__(is_mask_exclude)
@@ -229,7 +245,7 @@ class TrueNegativeRate(Metrics):
         return 1.0 - self.compute(y_true, y_pred)
 
 
-class FalsePositiveRate(Metrics):
+class FalsePositiveRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalsePositiveRate, self).__init__(is_mask_exclude)
@@ -239,7 +255,7 @@ class FalsePositiveRate(Metrics):
         return torch.sum((1.0 - y_true) * y_pred) / (torch.sum((1.0 - y_true)) + _SMOOTH)
 
 
-class FalseNegativeRate(Metrics):
+class FalseNegativeRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalseNegativeRate, self).__init__(is_mask_exclude)
@@ -249,7 +265,7 @@ class FalseNegativeRate(Metrics):
         return torch.sum(y_true * (1.0 - y_pred)) / (torch.sum(y_true) + _SMOOTH)
 
 
-class AirwayCompleteness(Metrics):
+class AirwayCompleteness(Metric):
     _is_use_ytrue_cenlines = True
     _is_use_ypred_cenlines = False
 
@@ -264,7 +280,7 @@ class AirwayCompleteness(Metrics):
         return 1.0 - self.compute(y_true, y_pred)
 
 
-class AirwayVolumeLeakage(Metrics):
+class AirwayVolumeLeakage(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayVolumeLeakage, self).__init__(is_mask_exclude)
@@ -274,7 +290,7 @@ class AirwayVolumeLeakage(Metrics):
         return torch.sum((1.0 - y_true) * y_pred) / (torch.sum(y_pred) + _SMOOTH)
 
 
-class AirwayCentrelineLeakage(Metrics):
+class AirwayCentrelineLeakage(Metric):
     _is_use_ytrue_cenlines = False
     _is_use_ypred_cenlines = True
 
@@ -284,20 +300,3 @@ class AirwayCentrelineLeakage(Metrics):
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum((1.0 - y_true) * y_pred) / (torch.sum(y_pred) + _SMOOTH)
-
-
-LIST_AVAIL_METRICS = ['MeanSquaredError',
-                      'MeanSquaredErrorLogarithmic',
-                      'BinaryCrossEntropy',
-                      'WeightedBinaryCrossEntropy',
-                      'WeightedBinaryCrossEntropyFixedWeights',
-                      'BinaryCrossEntropyFocalLoss',
-                      'DiceCoefficient',
-                      'TruePositiveRate',
-                      'TrueNegativeRate',
-                      'FalsePositiveRate',
-                      'FalseNegativeRate',
-                      'AirwayCompleteness',
-                      'AirwayVolumeLeakage',
-                      'AirwayCentrelineLeakage',
-                      ]

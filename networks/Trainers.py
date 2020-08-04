@@ -9,11 +9,11 @@
 ########################################################################################
 
 from common.constant import *
-from networks.pytorch.metrics import *
+
 if ISTESTMODELSWITHGNN:
     from networks.NetworksGNNs import *
 else:
-    from networks.Networks import *
+    from networks.pytorch.networks import *
 import torch
 from torchsummary import summary
 from tqdm import tqdm
@@ -369,7 +369,7 @@ class Trainer(object):
         torch.save(self.model_net.state_dict(), filename)
 
     def save_model_full(self, filename):
-        torch.save({'model_desc': self.model_net.get_arch_desc(),
+        torch.save({'model_desc': self.model_net.get_model_construct_input_args(),
                     'model_state_dict': self.model_net.state_dict(),
                     'optimizer_desc': 'Adam',
                     'optimizer_state_dict': self.optimizer.state_dict(),
@@ -398,7 +398,7 @@ class Trainer(object):
         if is_restart_homemade:
             model_net = ModelRestartPlugin.get_create_model(model_type, model_input_args)
         else:
-            model_net = NeuralNetwork.get_create_model(model_type, model_input_args)
+            model_net = UNet.get_create_model(model_type, model_input_args)
         model_net.load_state_dict(trainer_desc['model_state_dict'])
         # CHECK THIS OUT !!!
         model_net.cuda()
@@ -445,7 +445,7 @@ class Trainer(object):
         if is_restart_homemade:
             model_net = ModelRestartPlugin.get_create_model(model_type, model_input_args)
         else:
-            model_net = NeuralNetwork.get_create_model(model_type, model_input_args)
+            model_net = UNet.get_create_model(model_type, model_input_args)
         model_net.modify_state_dict_restartGNN_fromUnet(trainer_desc['model_state_dict'])
         model_net.load_state_dict(trainer_desc['model_state_dict'])
         # CHECK THIS OUT !!!
