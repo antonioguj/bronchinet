@@ -84,7 +84,7 @@ class NiftiReader(ImageFileReader):
 
     @classmethod
     def update_image_metadata_info(cls, in_metadata: Any, **kwargs) -> Any:
-        rescale_factor   = kwargs['rescale_factor']   if 'rescale_factor'   in kwargs.keys() else None
+        rescale_factor = kwargs['rescale_factor'] if 'rescale_factor' in kwargs.keys() else None
         translate_factor = kwargs['translate_factor'] if 'translate_factor' in kwargs.keys() else None
         return cls._update_affine_matrix(in_metadata, rescale_factor, translate_factor)
 

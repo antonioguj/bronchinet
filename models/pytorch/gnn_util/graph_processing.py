@@ -1,5 +1,5 @@
 
-#from networks.pytorch.gnn_util.gnn_utilities import row_normalize, sparse_mx_to_torch_sparse_tensor
+#from models.pytorch.gnn_util.gnn_utilities import row_normalize, sparse_mx_to_torch_sparse_tensor
 import numpy as np
 import scipy.sparse as sp
 import torch.nn.functional as F

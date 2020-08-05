@@ -65,7 +65,7 @@ def main(args):
     list_isUse_predicted_centrelines = []
     for imetrics in args.listMetricsROCcurve:
         newgen_metrics = DICTAVAILMETRICFUNS(imetrics)
-        listMetricsROCcurve[newgen_metrics._name_func_out] = newgen_metrics.compute
+        listMetricsROCcurve[newgen_metrics._name_fun_out] = newgen_metrics.compute
 
         list_isUse_reference_centrelines.append(newgen_metrics._is_use_ytrue_cenlines)
         list_isUse_predicted_centrelines.append(newgen_metrics._is_use_ypred_cenlines)

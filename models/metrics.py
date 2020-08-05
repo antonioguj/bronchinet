@@ -6,25 +6,7 @@ from scipy.spatial import distance
 from common.constant import TYPE_DNNLIB_USED
 from common.exception_manager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
-    from networks.pytorch.metrics import Metric as Metric_train, \
-                                         CombineTwoMetrics as CombineTwoMetrics_train, \
-                                         MeanSquaredError as MeanSquaredError_train, \
-                                         MeanSquaredErrorLogarithmic as MeanSquaredErrorLogarithmic_train, \
-                                         BinaryCrossEntropy as BinaryCrossEntropy_train, \
-                                         WeightedBinaryCrossEntropy as WeightedBinaryCrossEntropy_train, \
-                                         WeightedBinaryCrossEntropyFixedWeights as WeightedBinaryCrossEntropyFixedWeights_train, \
-                                         BinaryCrossEntropyFocalLoss as BinaryCrossEntropyFocalLoss_train, \
-                                         DiceCoefficient as DiceCoefficient_train, \
-                                         TruePositiveRate as TruePositiveRate_train, \
-                                         TrueNegativeRate as TrueNegativeRate_train, \
-                                         FalsePositiveRate as FalsePositiveRate_train, \
-                                         FalseNegativeRate as FalseNegativeRate_train, \
-                                         AirwayCompleteness as AirwayCompleteness_train, \
-                                         AirwayVolumeLeakage as AirwayVolumeLeakage_train, \
-                                         AirwayCentrelineLeakage as AirwayCentrelineLeakage_train, \
-                                         LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
-elif TYPE_DNNLIB_USED == 'Keras':
-    from networks.keras.metrics import Metric as Metric_train, \
+    from models.pytorch.metrics import Metric as Metric_train, \
                                        CombineTwoMetrics as CombineTwoMetrics_train, \
                                        MeanSquaredError as MeanSquaredError_train, \
                                        MeanSquaredErrorLogarithmic as MeanSquaredErrorLogarithmic_train, \
@@ -41,6 +23,24 @@ elif TYPE_DNNLIB_USED == 'Keras':
                                        AirwayVolumeLeakage as AirwayVolumeLeakage_train, \
                                        AirwayCentrelineLeakage as AirwayCentrelineLeakage_train, \
                                        LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
+elif TYPE_DNNLIB_USED == 'Keras':
+    from models.keras.metrics import Metric as Metric_train, \
+                                     CombineTwoMetrics as CombineTwoMetrics_train, \
+                                     MeanSquaredError as MeanSquaredError_train, \
+                                     MeanSquaredErrorLogarithmic as MeanSquaredErrorLogarithmic_train, \
+                                     BinaryCrossEntropy as BinaryCrossEntropy_train, \
+                                     WeightedBinaryCrossEntropy as WeightedBinaryCrossEntropy_train, \
+                                     WeightedBinaryCrossEntropyFixedWeights as WeightedBinaryCrossEntropyFixedWeights_train, \
+                                     BinaryCrossEntropyFocalLoss as BinaryCrossEntropyFocalLoss_train, \
+                                     DiceCoefficient as DiceCoefficient_train, \
+                                     TruePositiveRate as TruePositiveRate_train, \
+                                     TrueNegativeRate as TrueNegativeRate_train, \
+                                     FalsePositiveRate as FalsePositiveRate_train, \
+                                     FalseNegativeRate as FalseNegativeRate_train, \
+                                     AirwayCompleteness as AirwayCompleteness_train, \
+                                     AirwayVolumeLeakage as AirwayVolumeLeakage_train, \
+                                     AirwayCentrelineLeakage as AirwayCentrelineLeakage_train, \
+                                     LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
 _EPS = 1.0e-7
 _SMOOTH = 1.0
 
@@ -70,7 +70,7 @@ class MetricBase(object):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         self._is_mask_exclude = is_mask_exclude
-        self._name_func_out = None
+        self._name_fun_out = None
 
     def compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         if self._is_mask_exclude:
@@ -111,7 +111,7 @@ class CombineTwoMetrics(MetricBase):
         self._metrics_1 = metrics_1
         self._metrics_2 = metrics_2
         self._weights_metrics = weights_metrics
-        self._name_func_out = '_'.join(['combi', metrics_1._name_func_out, metrics_2._name_func_out])
+        self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
     def compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return self._weights_metrics[0] * self._metrics_1.compute(y_true, y_pred) + \
@@ -126,7 +126,7 @@ class MeanSquaredError(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredError, self).__init__(is_mask_exclude)
-        self._name_func_out  = 'mean_squared'
+        self._name_fun_out  = 'mean_squared'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.mean(np.square(y_pred - y_true))
@@ -140,7 +140,7 @@ class MeanSquaredErrorLogarithmic(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredErrorLogarithmic, self).__init__(is_mask_exclude)
-        self._name_func_out  = 'mean_squared_log'
+        self._name_fun_out  = 'mean_squared_log'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.mean(np.square(np.log(np.clip(y_pred, _EPS, None) + 1.0) -
@@ -156,7 +156,7 @@ class BinaryCrossEntropy(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(BinaryCrossEntropy, self).__init__(is_mask_exclude)
-        self._name_func_out = 'bin_cross'
+        self._name_fun_out = 'bin_cross'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.mean(- y_true * np.log(y_pred + _EPS)
@@ -172,7 +172,7 @@ class WeightedBinaryCrossEntropy(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(WeightedBinaryCrossEntropy, self).__init__(is_mask_exclude)
-        self._name_func_out = 'weight_bin_cross'
+        self._name_fun_out = 'weight_bin_cross'
 
     def _get_weights(self, y_true: np.ndarray) -> Tuple[float, float]:
         num_class_1 = np.count_nonzero(y_true == 1)
@@ -202,7 +202,7 @@ class WeightedBinaryCrossEntropyFixedWeights(WeightedBinaryCrossEntropy):
         else:
             self._weights = self.weights_no_masks_exclude
         super(WeightedBinaryCrossEntropyFixedWeights, self).__init__(is_mask_exclude)
-        self._name_func_out = 'weight_bin_cross_fixed'
+        self._name_fun_out = 'weight_bin_cross_fixed'
 
     def _get_weights(self, y_true: np.ndarray) -> Tuple[float, float]:
         return self._weights
@@ -215,7 +215,7 @@ class BinaryCrossEntropyFocalLoss(MetricBase):
     def __init__(self, gamma: float = _gamma_default, is_mask_exclude: bool = False) -> None:
         self._gamma = gamma
         super(BinaryCrossEntropyFocalLoss, self).__init__(is_mask_exclude)
-        self._name_func_out = 'bin_cross_focal_loss'
+        self._name_fun_out = 'bin_cross_focal_loss'
 
     def _get_predprobs_classes(self, y_true: np.ndarray, y_pred: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         prob_1 = np.where(y_true == 1.0, y_pred, 1)
@@ -236,7 +236,7 @@ class DiceCoefficient(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(DiceCoefficient, self).__init__(is_mask_exclude)
-        self._name_func_out = 'dice'
+        self._name_fun_out = 'dice'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return (2.0 * np.sum(y_true * y_pred)) / (np.sum(y_true) + np.sum(y_pred) + _SMOOTH)
@@ -246,7 +246,7 @@ class TruePositiveRate(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TruePositiveRate, self).__init__(is_mask_exclude)
-        self._name_func_out = 'tpr'
+        self._name_fun_out = 'tpr'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.sum(y_true * y_pred) / (np.sum(y_true) + _SMOOTH)
@@ -256,7 +256,7 @@ class TrueNegativeRate(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TrueNegativeRate, self).__init__(is_mask_exclude)
-        self._name_func_out = 'tnr'
+        self._name_fun_out = 'tnr'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.sum((1.0 - y_true) * (1.0 - y_pred)) / (np.sum((1.0 - y_true)) + _SMOOTH)
@@ -266,7 +266,7 @@ class FalsePositiveRate(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalsePositiveRate, self).__init__(is_mask_exclude)
-        self._name_func_out = 'fpr'
+        self._name_fun_out = 'fpr'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.sum((1.0 - y_true) * y_pred) / (np.sum((1.0 - y_true)) + _SMOOTH)
@@ -276,7 +276,7 @@ class FalseNegativeRate(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalseNegativeRate, self).__init__(is_mask_exclude)
-        self._name_func_out = 'fnr'
+        self._name_fun_out = 'fnr'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.sum(y_true * (1.0 - y_pred)) / (np.sum(y_true) + _SMOOTH)
@@ -288,7 +288,7 @@ class AirwayCompleteness(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayCompleteness, self).__init__(is_mask_exclude)
-        self._name_func_out = 'completeness'
+        self._name_fun_out = 'completeness'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.sum(y_true * y_pred) / (np.sum(y_true) + _SMOOTH)
@@ -298,7 +298,7 @@ class AirwayVolumeLeakage(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayVolumeLeakage, self).__init__(is_mask_exclude)
-        self._name_func_out = 'vol_leakage'
+        self._name_fun_out = 'vol_leakage'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.sum((1.0 - y_true) * y_pred) / (np.sum(y_pred) + _SMOOTH)
@@ -310,7 +310,7 @@ class AirwayCentrelineLeakage(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayCentrelineLeakage, self).__init__(is_mask_exclude)
-        self._name_func_out = 'cenline_leakage'
+        self._name_fun_out = 'cenline_leakage'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.sum((1.0 - y_true) * y_pred) / (np.sum(y_pred) + _SMOOTH)
@@ -322,7 +322,7 @@ class AirwayCentrelineDistanceFalsePositiveError(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayCentrelineDistanceFalsePositiveError, self).__init__(is_mask_exclude)
-        self._name_func_out = 'centreline_dist_FP_error'
+        self._name_fun_out = 'centreline_dist_FP_error'
 
     @staticmethod
     def _get_voxel_scaling(y_input: np.ndarray) -> np.ndarray:
@@ -346,7 +346,7 @@ class AirwayCentrelineDistanceFalseNegativeError(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayCentrelineDistanceFalseNegativeError, self).__init__(is_mask_exclude)
-        self._name_func_out = 'centreline_dist_FN_error'
+        self._name_fun_out = 'centreline_dist_FN_error'
 
     @staticmethod
     def _get_voxel_scaling(y_input: np.ndarray) -> np.ndarray:

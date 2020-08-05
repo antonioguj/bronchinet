@@ -22,7 +22,7 @@ elif TYPE_DNNLIB_USED == 'Pytorch':
         from networks.pytorch.gnn_util.NetworksGNNs import *
     else:
         from networks.pytorch.networks import *
-    from networks.Trainers import *
+    from networks.pytorch.modeltrainer import *
 from preprocessing.imagegenerator_manager import *
 from collections import OrderedDict
 import argparse
@@ -111,7 +111,7 @@ def main(args):
 
     if args.restart_model:
         initial_epoch = args.restart_epoch
-        args.num_epochs += initial_epoch
+        args._num_epochs += initial_epoch
     else:
         initial_epoch = 0
 
@@ -130,9 +130,8 @@ def main(args):
                                                   # isuse_dropout=args.isUse_dropout,
                                                   # isuse_batchnormalize=args.isUse_batchnormalize)
             optimizer = get_optimizer_pytorch(args.optimizer, lr=args.learn_rate)
-            loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).loss
-            metrics =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]
-            model = model_constructor._build_model()
+            loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).lossfun
+            metrics =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).renamed_compute() for imetrics in args.listmetrics]
             # compile model
             model.compile(optimizer=optimizer, loss=loss_fun, metrics=metrics)
 
@@ -151,8 +150,8 @@ def main(args):
             modelSavedPath = join_path_names(ModelsPath, 'model_last.hdf5')
             print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
-            loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).loss
-            metrics  =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]
+            loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).lossfun
+            metrics  =[DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).renamed_compute() for imetrics in args.listmetrics]
             custom_objects = dict(map(lambda fun: (fun.__name__, fun), [loss_fun] + metrics))
             # load and compile model
             model = UNet.get_load_saved_model(modelSavedPath, custom_objects=custom_objects)
@@ -160,7 +159,7 @@ def main(args):
         # Callbacks:
         list_callbacks = []
         list_callbacks.append(RecordLossHistory(ModelsPath, NAME_LOSSHISTORY_FILE,
-                                                [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]))
+                                                [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).renamed_compute() for imetrics in args.listmetrics]))
         filename = join_path_names(ModelsPath, 'model_e{epoch:02d}.hdf5')
         list_callbacks.append(callbacks.ModelCheckpoint(filename, monitor='loss', verbose=0))
         filename = join_path_names(ModelsPath, 'model_last.hdf5')
@@ -201,8 +200,8 @@ def main(args):
             loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest)
             metrics_fun = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest) for imetrics in args.listmetrics]
 
-            trainer = Trainer(model_net, optimizer, loss_fun, metrics_fun,
-                              model_halfprec=args.isModel_halfPrecision)
+            trainer = ModelTrainer(model_net, optimizer, loss_fun, metrics_fun,
+                                   model_halfprec=args.isModel_halfPrecision)
 
             if args.restart_model:
                 print("Loading saved weights and restarting...")
@@ -231,14 +230,14 @@ def main(args):
 
             if RESTART_FROMDIFFMODEL:
                 print("Restarting weights of model \'%s\' from a different Unet model..." % (args.imodel))
-                trainer = Trainer.load_model_from_diffmodel(modelSavedPath,
-                                                            args.imodel,
-                                                            dict_added_model_input_args=dict_added_model_input_args,
-                                                            dict_added_other_input_args=dict_added_other_input_args)
+                trainer = ModelTrainer.load_model_from_diffmodel(modelSavedPath,
+                                                                 args.imodel,
+                                                                 dict_added_model_input_args=dict_added_model_input_args,
+                                                                 dict_added_other_input_args=dict_added_other_input_args)
             else:
-                trainer = Trainer.load_model_full(modelSavedPath,
-                                                  dict_added_model_input_args=dict_added_model_input_args,
-                                                  dict_added_other_input_args=dict_added_other_input_args)
+                trainer = ModelTrainer.load_model_full(modelSavedPath,
+                                                       dict_added_model_input_args=dict_added_model_input_args,
+                                                       dict_added_other_input_args=dict_added_other_input_args)
 
         trainer.setup_losshistory_filepath(ModelsPath, NAME_LOSSHISTORY_FILE,
                                            is_restart_file=args.restart_model)
@@ -247,11 +246,11 @@ def main(args):
                                          type_save_models='full_model',
                                          freq_save_intermodels=FREQSAVEINTERMODELS)
 
-        size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
+        size_output_modelnet = tuple(trainer._networks.get_size_output()[1:])
 
         # output model summary
         if not ISTESTMODELSWITHGNN and not args.isModel_halfPrecision:
-            trainer.get_summary_model()
+            trainer.summary_model()
         # ----------------------------------------------
 
     if args.isValidConvolutions:
@@ -262,7 +261,7 @@ def main(args):
         out_logdescmodel_file = join_path_names(ModelsPath, NAME_LOGDESCMODEL_FILE)
         # if not isExistfile(out_logdescmodel_file):
         print("Write out descriptive model source model in text file: \'%s\'" % (out_logdescmodel_file))
-        descmodel_text = trainer.model_net.get_descmodel_sourcecode()
+        descmodel_text = trainer._networks.get_descmodel_sourcecode()
         fout = open(out_logdescmodel_file, 'w')
         fout.write(descmodel_text)
         fout.close()
@@ -350,8 +349,8 @@ def main(args):
 
     if TYPE_DNNLIB_USED == 'Keras':
         model.fit_generator(generator=train_batch_data_generator,
-                            steps_per_epoch=args.max_steps_epoch,
-                            epochs=args.num_epochs,
+                            steps_per_epoch=args._max_steps_epoch,
+                            epochs=args._num_epochs,
                             verbose=1,
                             callbacks=list_callbacks,
                             validation_data=validation_data,
@@ -360,8 +359,8 @@ def main(args):
 
     elif TYPE_DNNLIB_USED == 'Pytorch':
         trainer.train(train_data_generator=train_batch_data_generator,
-                      num_epochs=args.num_epochs,
-                      max_steps_epoch=args.max_steps_epoch,
+                      num_epochs=args._num_epochs,
+                      max_steps_epoch=args._max_steps_epoch,
                       valid_data_generator=validation_data,
                       initial_epoch=initial_epoch)
     # ----------------------------------------------

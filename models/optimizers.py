@@ -2,9 +2,9 @@
 from common.constant import TYPE_DNNLIB_USED
 from common.exception_manager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
-    from networks.pytorch.optimizers import SGD, SGD_mom, RMSprop, Adagrad, Adadelta, Adam
+    from models.pytorch.optimizers import SGD, SGD_mom, RMSprop, Adagrad, Adadelta, Adam
 elif TYPE_DNNLIB_USED == 'Keras':
-    from networks.keras.optimizers import SGD, SGD_mom, RMSprop, Adagrad, Adadelta, Adam
+    from models.keras.optimizers import SGD, SGD_mom, RMSprop, Adagrad, Adadelta, Adam
 
 LIST_AVAIL_OPTIMIZERS = ['SGD',
                          'SGD_mom',
@@ -14,19 +14,19 @@ LIST_AVAIL_OPTIMIZERS = ['SGD',
                          'Adam',
                          ]
 
-def get_optimizer(type_optimizer: str, lr: float, **kwargs):
+def get_optimizer(type_optimizer: str, learn_rate: float, **kwargs):
     if type_optimizer == 'SGD':
-        SGD(lr, **kwargs)
+        SGD(learn_rate, **kwargs)
     elif type_optimizer == 'SGD_mom':
-        SGD_mom(lr, **kwargs)
+        SGD_mom(learn_rate, **kwargs)
     elif type_optimizer == 'Adagrad':
-        Adagrad(lr, **kwargs)
+        Adagrad(learn_rate, **kwargs)
     elif type_optimizer == 'RMSprop':
-        RMSprop(lr, **kwargs)
+        RMSprop(learn_rate, **kwargs)
     elif type_optimizer == 'Adadelta':
-        Adadelta(lr, **kwargs)
+        Adadelta(learn_rate, **kwargs)
     elif type_optimizer == 'Adam':
-        Adam(lr, **kwargs)
+        Adam(learn_rate, **kwargs)
     else:
         message = 'Choice Optimizer not found. Optimizers available: %s' % (', '.join(LIST_AVAIL_OPTIMIZERS))
         catch_error_exception(message)

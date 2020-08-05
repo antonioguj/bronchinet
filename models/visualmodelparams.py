@@ -6,19 +6,19 @@ import numpy as np
 from common.constant import TYPE_DNNLIB_USED
 from common.exception_manager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
-    from networks.pytorch.visualmodelparams import VisualModelParams
+    from models.pytorch.visualmodelparams import VisualModelParams
 elif TYPE_DNNLIB_USED == 'Keras':
-    from networks.keras.visualmodelparams import VisualModelParams
+    from models.keras.visualmodelparams import VisualModelParams
 from preprocessing.imagegenerator import ImageGenerator
 
 
 class VisualModelParamsBase(object):
 
     def __init__(self,
-                 model,
+                 network,
                  size_image: Tuple[int, ...]
                  ) -> None:
-        self._model = model
+        self._network = network
         self._size_image = size_image
 
     def _is_list_images_patches(self, in_shape_image: Tuple[int, ...]) -> bool:
@@ -64,6 +64,6 @@ class VisualModelParamsBase(object):
                                     index_first_featmap: int = None,
                                     max_num_featmaps: int = None
                                     ) -> Dict[str, np.ndarray]:
-        in_list_names_layers = [it_layer.name for it_layer in self._model.layers]
+        in_list_names_layers = [it_layer.name for it_layer in self._network.layers]
         return self.get_feature_maps_list_layers(in_images, in_list_names_layers,
                                                  index_first_featmap, max_num_featmaps)

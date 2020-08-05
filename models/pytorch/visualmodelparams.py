@@ -6,20 +6,20 @@ import torch.nn as nn
 import torch
 
 from common.exception_manager import catch_error_exception
-from networks.visualmodelparams import VisualModelParamsBase
+from models.visualmodelparams import VisualModelParamsBase
 from preprocessing.imagegenerator import ImageGenerator
 
 
 class VisualModelParams(VisualModelParamsBase):
 
     def __init__(self,
-                 model,
+                 network,
                  size_image: Tuple[int, ...]
                  ) -> None:
-        super(VisualModelParams, self).__init__(model, size_image)
+        super(VisualModelParams, self).__init__(network, size_image)
 
     def _is_exist_name_layer_model(self, in_name_layer: str) -> bool:
-        for ilayer_key, _ in self.model._modules.items():
+        for ilayer_key, _ in self._network._modules.items():
             if (ilayer_key == in_name_layer):
                 return True
         return False
@@ -46,18 +46,18 @@ class VisualModelParams(VisualModelParamsBase):
             return None
 
         # attach hook to the corresponding module layer
-        self.model._modules[in_name_layer].register_forward_hook(hook)
+        self._network._modules[in_name_layer].register_forward_hook(hook)
 
         num_patches = len(in_images_generator)
         out_shape_featmaps = [num_patches, num_featmaps] + list(self._size_image)
         out_featmaps = np.zeros(out_shape_featmaps, dtype=np.float32)
 
-        self.model = self.model.eval()
-        self.model.preprocess(-1)
+        self._network = self._network.eval()
+        self._network.preprocess(-1)
 
         for i_batch, (x_batch, y_batch) in enumerate(in_images_generator):
             x_batch.cuda()
-            self.model(x_batch)
+            self._network(x_batch)
             out_featmaps[i_batch] = out_featmaps_patch  # 'out_featmaps_patch' store inside the function 'hook' above
 
         ndims_out = len(out_featmaps.shape)

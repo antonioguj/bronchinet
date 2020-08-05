@@ -22,7 +22,7 @@ elif TYPE_DNNLIB_USED == 'Pytorch':
         from networks.pytorch.gnn_util.NetworksGNNs import *
     else:
         from networks.pytorch.networks import *
-    from networks.Trainers import *
+    from networks.pytorch.modeltrainer import *
     from networks.pytorch.visualmodelparams import *
 from postprocessing.imagereconstructor_manager import *
 from preprocessing.imagegenerator_manager import *
@@ -74,8 +74,8 @@ def main(args):
     print("Restarting from file: \'%s\'..." %(modelSavedPath))
 
     if TYPE_DNNLIB_USED == 'Keras':
-        loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).loss
-        metrics = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).get_renamed_compute() for imetrics in args.listmetrics]
+        loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).lossfun
+        metrics = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).renamed_compute() for imetrics in args.listmetrics]
         custom_objects = dict(map(lambda fun: (fun.__name__, fun), [loss_fun] + metrics))
         # load and compile model
         model = UNet.get_load_saved_model(modelSavedPath, custom_objects=custom_objects)
@@ -94,12 +94,12 @@ def main(args):
         else:
             dict_added_model_input_args = {}
 
-        trainer = Trainer.load_model_full(modelSavedPath, dict_added_model_input_args=dict_added_model_input_args)
+        trainer = ModelTrainer.load_model_full(modelSavedPath, dict_added_model_input_args=dict_added_model_input_args)
 
-        size_output_modelnet = tuple(trainer.model_net.get_size_output()[1:])
+        size_output_modelnet = tuple(trainer._networks.get_size_output()[1:])
 
         # output model summary
-        trainer.get_summary_model()
+        trainer.summary_model()
 
     if args.isValidConvolutions:
         print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." %(str(args._size_image_in),
@@ -110,7 +110,7 @@ def main(args):
         if TYPE_DNNLIB_USED == 'Keras':
             visual_model_params = VisualModelParams(model, args._size_image_in)
         elif TYPE_DNNLIB_USED == 'Pytorch':
-            visual_model_params = VisualModelParams(trainer.model_net, args._size_image_in)
+            visual_model_params = VisualModelParams(trainer._networks, args._size_image_in)
     # ----------------------------------------------
 
 

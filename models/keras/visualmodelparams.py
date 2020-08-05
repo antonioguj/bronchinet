@@ -5,20 +5,20 @@ import numpy as np
 #from tensorflow.keras import backend as K
 
 from common.exception_manager import catch_error_exception
-from networks.visualmodelparams import VisualModelParamsBase
+from models.visualmodelparams import VisualModelParamsBase
 from preprocessing.imagegenerator import ImageGenerator
 
 
 class VisualModelParams(VisualModelParamsBase):
 
     def __init__(self,
-                 model,
+                 network,
                  size_image: Tuple[int, ...]
                  ) -> None:
-        super(VisualModelParams, self).__init__(model, size_image)
+        super(VisualModelParams, self).__init__(network, size_image)
 
     def _find_layer_index_from_name(self, in_name_layer: str) -> int:
-        for index_layer, name_layer in enumerate(self._model.layers):
+        for index_layer, name_layer in enumerate(self._network.layers):
             if (name_layer.name == in_name_layer):
                 return index_layer
         return None
@@ -35,7 +35,7 @@ class VisualModelParams(VisualModelParamsBase):
             message = 'Layer \'%s\' does not exist in model...' % (in_name_layer)
             catch_error_exception(message)
 
-        model_layer_class = self._model.layers[index_layer]
+        model_layer_class = self._network.layers[index_layer]
         num_featmaps = model_layer_class.output.shape[-1].value
 
         if max_num_featmaps:
@@ -50,7 +50,7 @@ class VisualModelParams(VisualModelParamsBase):
                                                   [model_layer_class.output[..., index_first_featmap:index_last_featmap]])
         else:
             # define function to retrieve the feature maps for "index_layer"
-            get_feat_maps_layer_func = K.function([self._model.input],
+            get_feat_maps_layer_func = K.function([self._network.input],
                                                   [model_layer_class.output])
 
         if (self._is_list_images_patches(in_images.shape)):

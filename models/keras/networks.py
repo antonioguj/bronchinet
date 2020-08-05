@@ -6,9 +6,7 @@ from tensorflow.keras.layers import Convolution3D, MaxPooling3D, UpSampling3D, C
 from tensorflow.keras.models import Model, load_model
 
 from common.exception_manager import catch_error_exception
-from networks.metrics import MetricBase
-from networks.keras.metrics import Metric as Metric_train
-from networks.networks import UNetBase
+from models.networks import UNetBase
 
 LIST_AVAIL_NETWORKS = ['UNet3D_Original',
                        'UNet3D_General',
@@ -33,18 +31,9 @@ class UNet(UNetBase):
                                    num_featmaps_in,
                                    is_use_valid_convols=is_use_valid_convols)
 
-    @staticmethod
-    def get_load_saved_model(model_saved_path: str, custom_objects: Any = None):
-        return load_model(model_saved_path, custom_objects=custom_objects)
-
-    def _build_model_and_compile(self, optimizer, loss: Metric_train, list_metrics: List[MetricBase]):
-        return self._build_model().compile(optimizer=optimizer,
-                                           loss=loss,
-                                           metrics=list_metrics)
-
     def _build_list_info_crop_where_merge(self) -> None:
         indexes_output_where_pooling = [(i-1) for i, el in enumerate(self._list_opers_names_layers_all) if el == 'pooling']
-        indexes_output_where_merge   = [i for i, el in enumerate(self._list_opers_names_layers_all) if el == 'upsample']
+        indexes_output_where_merge = [i for i, el in enumerate(self._list_opers_names_layers_all) if el == 'upsample']
         self._list_sizes_borders_crop_where_merge = []
         for i_pool, i_merge in zip(indexes_output_where_pooling, indexes_output_where_merge[::-1]):
             size_borders_crop_where_merge = self._get_size_borders_output_crop(self._list_sizes_output_all_layers[i_pool],

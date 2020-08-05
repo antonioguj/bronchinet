@@ -6,7 +6,7 @@ from torch.nn import CrossEntropyLoss
 import torch.nn as nn
 import torch
 
-from networks.metrics import MetricBase
+from models.metrics import MetricBase
 
 _EPS = 1e-7
 _SMOOTH = 1.0
@@ -67,7 +67,7 @@ class MetricWithUncertainty(Metric):
         self._metrics_loss = metrics_loss
         self._epsilon = epsilon
         super(MetricWithUncertainty, self).__init__(self._metrics_loss._is_mask_exclude)
-        self._name_func_out = self._metrics_loss._name_func_out + '_uncertain'
+        self._name_fun_out = self._metrics_loss._name_fun_out + '_uncertain'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return (1.0 - self._epsilon) * self._metrics_loss._compute(y_true, y_pred) + \
@@ -85,7 +85,7 @@ class CombineTwoMetrics(Metric):
         self._metrics_1 = metrics_1
         self._metrics_2 = metrics_2
         self._weights_metrics = weights_metrics
-        self._name_func_out = '_'.join(['combi', metrics_1._name_func_out, metrics_2._name_func_out])
+        self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
     def compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return self._weights_metrics[0] * self._metrics_1.compute(y_true, y_pred) + \
@@ -100,7 +100,7 @@ class MeanSquaredError(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredError, self).__init__(is_mask_exclude)
-        self._name_func_out  = 'mean_squared'
+        self._name_fun_out  = 'mean_squared'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.mean(torch.square(y_pred - y_true))
@@ -114,7 +114,7 @@ class MeanSquaredErrorLogarithmic(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredErrorLogarithmic, self).__init__(is_mask_exclude)
-        self._name_func_out  = 'mean_squared_log'
+        self._name_fun_out  = 'mean_squared_log'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.mean(torch.square(torch.log(torch.clip(y_pred, _EPS, None) + 1.0) -
@@ -130,7 +130,7 @@ class BinaryCrossEntropy(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(BinaryCrossEntropy, self).__init__(is_mask_exclude)
-        self._name_func_out = 'bin_cross'
+        self._name_fun_out = 'bin_cross'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.mean(- y_true * torch.log(y_pred + _EPS)
@@ -146,7 +146,7 @@ class WeightedBinaryCrossEntropy(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(WeightedBinaryCrossEntropy, self).__init__(is_mask_exclude)
-        self._name_func_out = 'weight_bin_cross'
+        self._name_fun_out = 'weight_bin_cross'
 
     def _get_weights(self, y_true: torch.FloatTensor) -> Tuple[torch.Float, torch.Float]:
         num_class_1 = torch.count_nonzero(torch.where(y_true == 1.0, torch.ones_like(y_true), torch.zeros_like(y_true)), dtype=torch.int32)
@@ -176,7 +176,7 @@ class WeightedBinaryCrossEntropyFixedWeights(WeightedBinaryCrossEntropy):
         else:
             self._weights = self.weights_no_mask_exclude
         super(WeightedBinaryCrossEntropyFixedWeights, self).__init__(is_mask_exclude)
-        self._name_func_out = 'weight_bin_cross_fixed'
+        self._name_fun_out = 'weight_bin_cross_fixed'
 
     def _get_weights(self, y_true: torch.FloatTensor) -> Tuple[torch.Float, torch.Float]:
         return self._weights
@@ -189,7 +189,7 @@ class BinaryCrossEntropyFocalLoss(Metric):
     def __init__(self, gamma: float = _gamma_default, is_mask_exclude: bool = False) -> None:
         self._gamma = gamma
         super(BinaryCrossEntropyFocalLoss, self).__init__(is_mask_exclude)
-        self._name_func_out = 'bin_cross_focal_loss'
+        self._name_fun_out = 'bin_cross_focal_loss'
 
     def get_predprobs_classes(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> Tuple[torch.FloatTensor, torch.FloatTensor]:
         prob_1 = torch.where(y_true == 1.0, y_pred, torch.ones_like(y_pred))
@@ -210,7 +210,7 @@ class DiceCoefficient(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(DiceCoefficient, self).__init__(is_mask_exclude)
-        self._name_func_out = 'dice'
+        self._name_fun_out = 'dice'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return (2.0 * torch.sum(y_true * y_pred)) / (torch.sum(y_true) + torch.sum(y_pred) + _SMOOTH)
@@ -223,7 +223,7 @@ class TruePositiveRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TruePositiveRate, self).__init__(is_mask_exclude)
-        self._name_func_out = 'tpr'
+        self._name_fun_out = 'tpr'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum(y_true * y_pred) / (torch.sum(y_true) + _SMOOTH)
@@ -236,7 +236,7 @@ class TrueNegativeRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TrueNegativeRate, self).__init__(is_mask_exclude)
-        self._name_func_out = 'tnr'
+        self._name_fun_out = 'tnr'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum((1.0 - y_true) * (1.0 - y_pred)) / (torch.sum((1.0 - y_true)) + _SMOOTH)
@@ -249,7 +249,7 @@ class FalsePositiveRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalsePositiveRate, self).__init__(is_mask_exclude)
-        self._name_func_out = 'fpr'
+        self._name_fun_out = 'fpr'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum((1.0 - y_true) * y_pred) / (torch.sum((1.0 - y_true)) + _SMOOTH)
@@ -259,7 +259,7 @@ class FalseNegativeRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalseNegativeRate, self).__init__(is_mask_exclude)
-        self._name_func_out = 'fnr'
+        self._name_fun_out = 'fnr'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum(y_true * (1.0 - y_pred)) / (torch.sum(y_true) + _SMOOTH)
@@ -271,7 +271,7 @@ class AirwayCompleteness(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayCompleteness, self).__init__(is_mask_exclude)
-        self._name_func_out = 'completeness'
+        self._name_fun_out = 'completeness'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum(y_true * y_pred) / (torch.sum(y_true) + _SMOOTH)
@@ -284,7 +284,7 @@ class AirwayVolumeLeakage(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayVolumeLeakage, self).__init__(is_mask_exclude)
-        self._name_func_out = 'vol_leakage'
+        self._name_fun_out = 'vol_leakage'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum((1.0 - y_true) * y_pred) / (torch.sum(y_pred) + _SMOOTH)
@@ -296,7 +296,7 @@ class AirwayCentrelineLeakage(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayCentrelineLeakage, self).__init__(is_mask_exclude)
-        self._name_func_out = 'cenline_leakage'
+        self._name_fun_out = 'cenline_leakage'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum((1.0 - y_true) * y_pred) / (torch.sum(y_pred) + _SMOOTH)

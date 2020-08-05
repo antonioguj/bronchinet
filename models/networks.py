@@ -6,9 +6,9 @@ BoundBoxNDType = Tuple[Tuple[int, int], ...]
 from common.constant import TYPE_DNNLIB_USED
 from common.exception_manager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
-    from networks.pytorch.networks import UNet, UNet3D_Original, UNet3D_General, UNet3D_Plugin, LIST_AVAIL_NETWORKS
+    from models.pytorch.networks import UNet, UNet3D_Original, UNet3D_General, UNet3D_Plugin, LIST_AVAIL_NETWORKS
 elif TYPE_DNNLIB_USED == 'Keras':
-    from networks.keras.networks import UNet, UNet3D_Original, UNet3D_General, UNet3D_Plugin, LIST_AVAIL_NETWORKS
+    from models.keras.networks import UNet, UNet3D_Original, UNet3D_General, UNet3D_Plugin, LIST_AVAIL_NETWORKS
 
 
 class NeuralNetwork(object):
@@ -196,7 +196,7 @@ class UNetBase(ConvNetBase):
 
 
 def get_network(type_network: str,
-                size_image_in: Tuple[int, int, int],
+                size_image_in: Tuple[int, ...],
                 num_levels: int = 5,
                 num_featmaps_in: int = 16,
                 num_channels_in: int = 1,
