@@ -14,7 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 #from torch.nn.functional import interpolate
 from networks.pytorch.gnn_util import GraphConvolutionFirstOrder, LayerNorm
-from networks.NetworksGNNs import NeuralNetwork, source_dir_adjs_default
+from networks.pytorch.gnn_util.NetworksGNNs import NeuralNetwork, source_dir_adjs_default
 
 
 class ModelRestartPlugin(NeuralNetwork):

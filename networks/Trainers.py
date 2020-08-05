@@ -11,7 +11,7 @@
 from common.constant import *
 
 if ISTESTMODELSWITHGNN:
-    from networks.NetworksGNNs import *
+    from networks.pytorch.gnn_util.NetworksGNNs import *
 else:
     from networks.pytorch.networks import *
 import torch
@@ -428,7 +428,7 @@ class Trainer(object):
                                   dict_added_other_input_args=None,
                                   is_restart_homemade=False):
         if is_restart_homemade:
-            from networks.NetworksGNNs_Restart import ModelRestartPlugin
+            from networks.pytorch.gnn_util.NetworksGNNs_Restart import ModelRestartPlugin
         change_input_modelname = {'Unet': 'Unet3D',
                                   'UnetGNN': 'Unet3DGNN',
                                   'UnetGNN_OTF': 'Unet3DGNN_OTF',

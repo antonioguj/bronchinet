@@ -6,9 +6,9 @@ BoundBoxNDType = Tuple[Tuple[int, int], ...]
 from common.constant import TYPE_DNNLIB_USED
 from common.exception_manager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
-    from networks.pytorch.networks import UNet, UNet3D_Original, UNet3D_Plugin, LIST_AVAIL_NETWORKS
+    from networks.pytorch.networks import UNet, UNet3D_Original, UNet3D_General, UNet3D_Plugin, LIST_AVAIL_NETWORKS
 elif TYPE_DNNLIB_USED == 'Keras':
-    from networks.keras.networks import UNet, UNet3D_Original, UNet3D_Plugin, LIST_AVAIL_NETWORKS
+    from networks.keras.networks import UNet, UNet3D_Original, UNet3D_General, UNet3D_Plugin, LIST_AVAIL_NETWORKS
 
 
 class NeuralNetwork(object):
@@ -202,25 +202,41 @@ def get_network(type_network: str,
                 num_channels_in: int = 1,
                 num_classes_out: int = 1,
                 is_use_valid_convols: bool = False,
-                type_activate_hidden: str = 'relu',
-                type_activate_output: str = 'sigmoid'
-                ) -> UNetBase:
+                **kwargs) -> UNet:
     if type_network == 'UNet_Original':
         return UNet3D_Original(size_image_in,
                                num_featmaps_in=num_featmaps_in,
                                num_channels_in=num_channels_in,
                                num_classes_out=num_classes_out)
+
     elif type_network == 'UNet_General':
-        pass
+        type_activate_hidden = kwargs['type_activate_hidden'] if 'type_activate_hidden' in kwargs.keys() else 'relu'
+        type_activate_output = kwargs['type_activate_output'] if 'type_activate_output' in kwargs.keys() else 'sigmoid'
+        num_featmaps_levels = kwargs['num_featmaps_levels'] if 'num_featmaps_levels' in kwargs.keys() else None
+        is_use_dropout = kwargs['is_use_dropout'] if 'is_use_dropout' in kwargs.keys() else False
+        dropout_rate = kwargs['dropout_rate'] if 'dropout_rate' in kwargs.keys() else 0.2
+        is_use_batchnormalize = kwargs['is_use_batchnormalize'] if 'is_use_batchnormalize' in kwargs.keys() else False
+
+        return UNet3D_General(size_image_in,
+                              num_levels,
+                              num_featmaps_in=num_featmaps_in,
+                              num_channels_in=num_channels_in,
+                              num_classes_out=num_classes_out,
+                              is_use_valid_convols=is_use_valid_convols,
+                              type_activate_hidden=type_activate_hidden,
+                              type_activate_output=type_activate_output,
+                              num_featmaps_levels=num_featmaps_levels,
+                              is_use_dropout=is_use_dropout,
+                              dropout_rate=dropout_rate,
+                              is_use_batchnormalize=is_use_batchnormalize)
+
     elif type_network == 'UNet_Plugin':
         return UNet3D_Plugin(size_image_in,
                              num_levels,
                              num_featmaps_in=num_featmaps_in,
                              num_channels_in=num_channels_in,
                              num_classes_out=num_classes_out,
-                             is_use_valid_convols=is_use_valid_convols,
-                             type_activate_hidden=type_activate_hidden,
-                             type_activate_output=type_activate_output)
+                             is_use_valid_convols=is_use_valid_convols)
     else:
         message = 'Choice Network not found. Networks available: %s' % (', '.join(LIST_AVAIL_NETWORKS))
         catch_error_exception(message)

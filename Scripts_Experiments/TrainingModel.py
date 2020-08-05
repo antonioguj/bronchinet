@@ -19,7 +19,7 @@ if TYPE_DNNLIB_USED == 'Keras':
 elif TYPE_DNNLIB_USED == 'Pytorch':
     from networks.pytorch.metrics import *
     if ISTESTMODELSWITHGNN:
-        from networks.NetworksGNNs import *
+        from networks.pytorch.gnn_util.NetworksGNNs import *
     else:
         from networks.pytorch.networks import *
     from networks.Trainers import *
