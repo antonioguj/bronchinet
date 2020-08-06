@@ -57,22 +57,22 @@ class ModelTrainer(ModelTrainerBase):
         pass
 
     def train(self,
-              train_data_generator: BatchDataGenerator,
-              valid_data_generator: BatchDataGenerator = None,
+              train_data_loader: BatchDataGenerator,
+              valid_data_loader: BatchDataGenerator = None,
               num_epochs: int = 1,
               max_steps_epoch: int = None,
               initial_epoch: int = 0
               ) -> None:
-        self._network.fit_generator(generator=train_data_generator,
+        self._network.fit_generator(generator=train_data_loader,
                                     steps_per_epoch=max_steps_epoch,
                                     epochs=num_epochs,
                                     verbose=1,
                                     callbacks=self._list_callbacks,
-                                    validation_data=valid_data_generator,
+                                    validation_data=valid_data_loader,
                                     shuffle=SHUFFLETRAINDATA,
                                     initial_epoch=initial_epoch)
 
-    def predict(self, test_data_generator: BatchDataGenerator) -> np.ndarray:
-        output_prediction = self._network.predict(test_data_generator.get_full_data(),
+    def predict(self, test_data_loader: BatchDataGenerator) -> np.ndarray:
+        output_prediction = self._network.predict(test_data_loader.get_full_data(),
                                                   batch_size=1)
         return output_prediction

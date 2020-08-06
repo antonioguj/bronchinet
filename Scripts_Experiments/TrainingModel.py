@@ -10,7 +10,7 @@
 
 #from common.CPUGPUdevicesManager import *
 from common.workdir_manager import *
-from dataloaders.batchdatagenerator_manager import *
+from dataloaders.dataloader_manager import *
 from dataloaders.loadimagedata_manager import *
 if TYPE_DNNLIB_USED == 'Keras':
     from networks.keras.callbacks import *
@@ -358,10 +358,10 @@ def main(args):
                             initial_epoch=initial_epoch)
 
     elif TYPE_DNNLIB_USED == 'Pytorch':
-        trainer.train(train_data_generator=train_batch_data_generator,
+        trainer.train(train_data_loader=train_batch_data_generator,
                       num_epochs=args._num_epochs,
                       max_steps_epoch=args._max_steps_epoch,
-                      valid_data_generator=validation_data,
+                      valid_data_loader=validation_data,
                       initial_epoch=initial_epoch)
     # ----------------------------------------------
 

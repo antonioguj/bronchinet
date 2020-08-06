@@ -97,13 +97,13 @@ class ModelTrainerBase(object):
         raise NotImplementedError
 
     def train(self,
-              train_data_generator: BatchDataGenerator,
+              train_data_loader: BatchDataGenerator,
               num_epochs: int = 1,
               max_steps_epoch: int = None,
-              valid_data_generator: BatchDataGenerator = None,
+              valid_data_loader: BatchDataGenerator = None,
               initial_epoch: int = 0
               ) -> None:
         raise NotImplementedError
 
-    def predict(self, test_data_generator: BatchDataGenerator) -> np.ndarray:
+    def predict(self, test_data_loader: BatchDataGenerator) -> np.ndarray:
         raise NotImplementedError

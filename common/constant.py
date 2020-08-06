@@ -128,6 +128,7 @@ IMODEL       = 'Unet'
 NUM_LAYERS   = 5
 NUM_FEATMAPS = 16
 
+ISMODEL_IN_GPU       = True
 ISMODEL_HALFPRECISION = False
 TYPE_NETWORK         = 'classification'
 TYPE_ACTIVATE_HIDDEN = 'relu'

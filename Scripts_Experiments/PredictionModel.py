@@ -10,7 +10,7 @@
 
 #from common.CPUGPUdevicesManager import *
 from common.workdir_manager import *
-from dataloaders.batchdatagenerator_manager import *
+from dataloaders.dataloader_manager import *
 from dataloaders.loadimagedata_manager import *
 if TYPE_DNNLIB_USED == 'Keras':
     from networks.keras.metrics import *

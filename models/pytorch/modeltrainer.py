@@ -106,14 +106,14 @@ class ModelTrainer(ModelTrainerBase):
 
 
     def train(self,
-              train_data_generator: BatchDataGenerator,
-              valid_data_generator: BatchDataGenerator = None,
+              train_data_loader: BatchDataGenerator,
+              valid_data_loader: BatchDataGenerator = None,
               num_epochs: int = 1,
               max_steps_epoch: int = None,
               initial_epoch: int = 0
               ) -> None:
-        self._train_data_generator = train_data_generator
-        self._valid_data_generator = valid_data_generator
+        self._train_data_loader = train_data_loader
+        self._valid_data_loader = valid_data_loader
         self._num_epochs = num_epochs
         self._max_steps_epoch = max_steps_epoch
 
@@ -133,8 +133,8 @@ class ModelTrainer(ModelTrainerBase):
             self._epoch_start_count += 1
 
 
-    def predict(self, test_data_generator: BatchDataGenerator) -> np.ndarray:
-        self._test_data_generator = test_data_generator
+    def predict(self, test_data_loader: BatchDataGenerator) -> np.ndarray:
+        self._test_data_loader = test_data_loader
 
         self._networks.to(self._device)     # if 'cuda:0', dispatch model to 'gpu'
 
@@ -159,7 +159,7 @@ class ModelTrainer(ModelTrainerBase):
         else:
             self._train_loss = self._train_epoch()
 
-        if self._valid_data_generator and \
+        if self._valid_data_loader and \
             (self._epoch_count % self.freq_validate_model == 0 or self._epoch_start_count == 0):
 
             self._networks = self._networks.eval()  # switch to evaluate mode
@@ -169,7 +169,7 @@ class ModelTrainer(ModelTrainerBase):
             else:
                 self._valid_loss = self._validation_epoch()
 
-        if self._valid_data_generator:
+        if self._valid_data_loader:
             self._data_output = [self._train_loss, self._valid_loss] + self._train_metrics + self._valid_metrics
         else:
             self._data_output = [self._train_loss] + self._train_metrics
@@ -183,10 +183,10 @@ class ModelTrainer(ModelTrainerBase):
 
 
     def _train_epoch(self) -> Union[float, Tuple[float, List[float]]]:
-        if self._max_steps_epoch and self._max_steps_epoch < len(self._train_data_generator):
+        if self._max_steps_epoch and self._max_steps_epoch < len(self._train_data_loader):
             num_batches = self._max_steps_epoch
         else:
-            num_batches = len(self._train_data_generator)
+            num_batches = len(self._train_data_loader)
 
         progressbar = tqdm(total= num_batches,
                            desc= 'Epochs {}/{}'.format(self._epoch_count, self._num_epochs),
@@ -198,7 +198,7 @@ class ModelTrainer(ModelTrainerBase):
         sumrun_metrics = [0.0] * self._num_metrics
 
         i_batch = 0
-        for (in_batch_Xdata, in_batch_Ydata) in self._train_data_generator:
+        for (in_batch_Xdata, in_batch_Ydata) in self._train_data_loader:
             in_batch_Xdata = in_batch_Xdata.to(self._device)
             in_batch_Ydata = in_batch_Ydata.to(self._device)
 
@@ -242,10 +242,10 @@ class ModelTrainer(ModelTrainerBase):
 
 
     def _validation_epoch(self) -> Union[float, Tuple[float, List[float]]]:
-        if self._max_steps_epoch and self._max_steps_epoch < len(self._valid_data_generator):
+        if self._max_steps_epoch and self._max_steps_epoch < len(self._valid_data_loader):
             num_batches = self._max_steps_epoch
         else:
-            num_batches = len(self._valid_data_generator)
+            num_batches = len(self._valid_data_loader)
 
         progressbar = tqdm(total= num_batches, desc= 'Validation', leave= False)
 
@@ -255,7 +255,7 @@ class ModelTrainer(ModelTrainerBase):
         sumrun_metrics = [0.0] * self._num_metrics
 
         i_batch = 0
-        for (in_batch_Xdata, in_batch_Ydata) in self._valid_data_generator:
+        for (in_batch_Xdata, in_batch_Ydata) in self._valid_data_loader:
             in_batch_Xdata = in_batch_Xdata.to(self._device)
             in_batch_Ydata = in_batch_Ydata.to(self._device)
 
@@ -295,7 +295,7 @@ class ModelTrainer(ModelTrainerBase):
 
 
     def _run_prediction(self) -> np.ndarray:
-        num_batches = len(self._test_data_generator)
+        num_batches = len(self._test_data_loader)
         size_output_batch = self._networks.get_size_output()
         num_classes_out = size_output_batch[0]
 
@@ -307,7 +307,7 @@ class ModelTrainer(ModelTrainerBase):
         #time_compute = 0.0
         #time_total_ini = dt.now()
 
-        for i_batch, (in_batch_Xdata, in_batch_Ydata) in enumerate(self._test_data_generator):
+        for i_batch, (in_batch_Xdata, in_batch_Ydata) in enumerate(self._test_data_loader):
             in_batch_Xdata = in_batch_Xdata.to(self._device)
 
             #time_ini = dt.now()
