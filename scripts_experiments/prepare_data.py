@@ -35,30 +35,27 @@ def main(args):
 
     workdir_manager         = GeneralDirManager(args.datadir)
     input_images_path       = workdir_manager.get_pathdir_exist(args.name_input_images_relpath)
-    in_reference_keys_files_path = workdir_manager.get_pathdir_exist(args.name_input_reference_keys_relpath)
+    in_reference_files_path = workdir_manager.get_pathdir_exist(args.name_input_reference_files_relpath)
     output_images_path      = workdir_manager.get_pathdir_new(args.name_output_images_rel_path)
     out_reference_keys_file = workdir_manager.get_pathfile_update(args.name_output_reference_keys_file)
     list_input_images_files = list_files_dir(input_images_path)
-    list_in_reference_keys_files = list_files_dir(in_reference_keys_files_path)
+    list_in_reference_files = list_files_dir(in_reference_files_path)
 
     if (args.is_prepare_labels):
         input_labels_path       = workdir_manager.get_pathdir_exist(args.name_input_labels_relpath)
         output_labels_path      = workdir_manager.get_pathdir_new(args.name_output_labels_rel_path)
         list_input_labels_files = list_files_dir(input_labels_path)
-
         check_same_number_files_in_list(list_input_images_files, list_input_labels_files)
 
     if (args.is_mask_region_interest):
-        input_RoI_masks_path        = workdir_manager.get_pathdir_exist(args.name_input_RoI_masks_relpath)
-        list_input_RoI_masks_files  = list_files_dir(input_RoI_masks_path)
-
-        check_same_number_files_in_list(list_input_images_files, list_input_RoI_masks_files)
+        input_RoImasks_path       = workdir_manager.get_pathdir_exist(args.name_input_RoImasks_relpath)
+        list_input_RoImasks_files = list_files_dir(input_RoImasks_path)
+        check_same_number_files_in_list(list_input_images_files, list_input_RoImasks_files)
 
     if (args.is_input_extra_labels):
         input_extra_labels_path       = workdir_manager.get_pathdir_exist(args.name_input_extra_labels_rel_path)
         output_extra_labels_path      = workdir_manager.get_pathdir_new  (args.name_output_extra_labels_relpath)
         list_input_extra_labels_files = list_files_dir(input_extra_labels_path)
-
         check_same_number_files_in_list(list_input_images_files, list_input_extra_labels_files)
 
     if (args.is_rescale_images):
@@ -119,11 +116,11 @@ def main(args):
 
 
         if (args.is_mask_region_interest):
-            in_roimask_file = list_input_RoI_masks_files[i]
+            in_roimask_file = list_input_RoImasks_files[i]
             print("And ROI Mask for labels: \'%s\'..." %(basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)
-            if args.is_RoI_labels_multi_RoI_masks:
+            if args.is_RoIlabels_multi_RoImasks:
                 in_list_roimasks = MaskOperator.get_list_masks_all_labels(in_roimask)
                 list_inout_data += in_list_roimasks
                 list_type_inout_data += ['roimask'] * len(in_list_roimasks)
@@ -154,8 +151,8 @@ def main(args):
 
         #*******************************************************************************
         if (args.is_rescale_images):
-            in_reference_key_file = list_in_reference_keys_files[i]
-            in_rescale_factor = indict_rescale_factors[basename_file_noext(in_reference_key_file)]
+            in_reference_key = list_in_reference_files[i]
+            in_rescale_factor = indict_rescale_factors[basename_file_noext(in_reference_key)]
             print("Rescale image with a factor: \'%s\'..." %(str(in_rescale_factor)))
 
             if in_rescale_factor != (1.0, 1.0, 1.0):
@@ -197,12 +194,12 @@ def main(args):
 
         # *******************************************************************************
         if (args.is_crop_images):
-            in_reference_key_file = list_in_reference_keys_files[i]
-            list_in_crop_bounding_boxes = indict_crop_bounding_boxes[basename_file_noext(in_reference_key_file)]
+            in_reference_key = list_in_reference_files[i]
+            list_in_crop_bounding_boxes = indict_crop_bounding_boxes[basename_file_noext(in_reference_key)]
             num_crop_bounding_boxes = len(list_in_crop_bounding_boxes)
             print("Compute \'%s\' cropped images for this raw image:" %(num_crop_bounding_boxes))
 
-            if (args.is_mask_region_interest and args.is_RoI_labels_multi_RoI_masks):
+            if (args.is_mask_region_interest and args.is_RoIlabels_multi_RoImasks):
                 num_total_labels = list_type_inout_data.count('label')
                 num_total_labels_tocrop = num_crop_bounding_boxes * num_init_labels
                 if (num_total_labels_tocrop != num_total_labels):
@@ -305,7 +302,7 @@ def main(args):
         # *******************************************************************************
     # endfor
 
-
+    # Save reference keys for processed data
     save_dictionary(out_reference_keys_file, outdict_reference_keys)
     save_dictionary_csv(out_reference_keys_file.replace('.npy', '.csv'), outdict_reference_keys)
 
@@ -316,8 +313,8 @@ if __name__ == "__main__":
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_RAW_IMAGES_RELPATH)
     parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
-    parser.add_argument('--name_input_RoI_masks_relpath', type=str, default=NAME_RAW_ROIMASKS_RELPATH)
-    parser.add_argument('--name_input_reference_keys_relpath', type=str, default=NAME_REFERENCE_KEYS_RELPATH)
+    parser.add_argument('--name_input_RoImasks_relpath', type=str, default=NAME_RAW_ROIMASKS_RELPATH)
+    parser.add_argument('--name_input_reference_files_relpath', type=str, default=NAME_REFERENCE_FILES_RELPATH)
     parser.add_argument('--name_input_extra_labels_rel_path', type=str, default=NAME_RAW_EXTRALABELS_RELPATH)
     parser.add_argument('--name_output_images_rel_path', type=str, default=NAME_PROC_IMAGES_RELPATH)
     parser.add_argument('--name_output_labels_rel_path', type=str, default=NAME_PROC_LABELS_RELPATH)
@@ -331,7 +328,7 @@ if __name__ == "__main__":
     parser.add_argument('--name_rescale_factors_file', type=str, default=NAME_RESCALE_FACTOR_FILE)
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--name_crop_bounding_boxes_file', type=str, default=NAME_CROP_BOUNDINGBOX_FILE)
-    parser.add_argument('--is_RoI_labels_multi_RoI_masks', type=str2bool, default=IS_TWO_BOUNDBOX_EACH_LUNGS)
+    parser.add_argument('--is_RoIlabels_multi_RoImasks', type=str2bool, default=IS_TWO_BOUNDBOXES_EACH_LUNGS)
     args = parser.parse_args()
 
     print("Print input arguments...")

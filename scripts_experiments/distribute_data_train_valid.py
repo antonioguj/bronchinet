@@ -6,7 +6,7 @@ import math
 import argparse
 
 
-def search_indexes_input_files_from_reference_keys_in_file(in_readfile: str, list_in_reference_keys: List[str]) -> List[int]:
+def search_indexes_input_files_from_reference_keys_in_file(in_readfile: str, list_in_reference_files: List[str]) -> List[int]:
     if not is_exist_file(in_readfile):
         message = 'File to specify (Train / Valid / Test) data \'infileorder\ not found: \'%s\'...' % (in_readfile)
         catch_warning_exception(message)
@@ -14,21 +14,21 @@ def search_indexes_input_files_from_reference_keys_in_file(in_readfile: str, lis
 
     out_indexes_input_files = []
     with open(in_readfile, 'r') as fin:
-        for in_reference_key in fin.readlines():
-            in_reference_key = in_reference_key.replace('\n','').replace('\r','')
+        for in_reference_file in fin.readlines():
+            in_reference_file = in_reference_file.replace('\n','').replace('\r','')
 
-            if in_reference_key in list_in_reference_keys:
-                index_pos_reference_file = [ind for (ind, it_file) in enumerate(list_in_reference_keys) if it_file == in_reference_key]
+            if in_reference_file in list_in_reference_files:
+                index_pos_reference_file = [ind for (ind, it_file) in enumerate(list_in_reference_files) if it_file == in_reference_file]
                 out_indexes_input_files += index_pos_reference_file
             else:
-                message = '\'%s\' not found in list of Input Reference Keys: \'%s\'...' %(in_reference_key, list_in_reference_keys)
+                message = '\'%s\' not found in list of Input Reference Keys: \'%s\'...' %(in_reference_file, list_in_reference_files)
                 catch_error_exception(message)
     # --------------------------------------
     return out_indexes_input_files
 
 
 LIST_TYPE_DATA_AVAIL  = ['training', 'testing']
-LIST_TYPES_DISTRBUTE_AVAIL = ['original', 'random', 'orderfile']
+LIST_TYPE_DISTRIBUTE_AVAIL = ['original', 'random', 'orderfile']
 
 
 
@@ -36,25 +36,22 @@ def main(args):
 
     workdir_manager         = TrainDirManager(args.basedir)
     input_images_data_path  = workdir_manager.get_datafile_exist(args.name_input_images_relpath)
-    in_reference_keys_file  = workdir_manager.get_datafile_exist(args.name_input_reference_keys_File)
+    in_reference_keys_file  = workdir_manager.get_datafile_exist(args.name_input_reference_keys_file)
     training_data_path      = workdir_manager.get_pathdir_new(args.name_training_data_relpath)
     validation_data_path    = workdir_manager.get_pathdir_new(args.name_validation_data_relpath)
     testing_data_path       = workdir_manager.get_pathdir_new(args.name_testing_data_relpath)
-
     list_input_images_files = list_files_dir(input_images_data_path)
 
     if (args.is_prepare_labels):
-        input_labels_data_path  = workdir_manager.getNameExistBaseDataPath(args.nameI_input_labels_relpath)
+        input_labels_data_path  = workdir_manager.get_datafile_exist(args.nameI_input_labels_relpath)
         list_input_labels_files = list_files_dir(input_labels_data_path)
-
         if (len(list_input_images_files) != len(list_input_labels_files)):
             message = 'num Images \'%s\' and Labels \'%s\' not equal...' %(len(list_input_images_files), len(list_input_labels_files))
             catch_error_exception(message)
 
     if (args.is_input_extra_labels):
-        input_extra_labels_data_path  = workdir_manager.getNameExistBaseDataPath(args.name_input_extra_labels_relpath)
+        input_extra_labels_data_path  = workdir_manager.get_datafile_exist(args.name_input_extra_labels_relpath)
         list_input_extra_labels_files = list_files_dir(input_extra_labels_data_path)
-
         if (len(list_input_images_files) != len(list_input_extra_labels_files)):
             message = 'num Images \'%s\' and Extra Labels \'%s\' not equal...' %(len(list_input_images_files), len(list_input_extra_labels_files))
             catch_error_exception(message)
@@ -88,8 +85,8 @@ def main(args):
         args.infile_valid_order = args.infile_train_order.replace('train', 'valid')
         args.infile_test_order  = args.infile_train_order.replace('train', 'test')
 
-        indict_input_reference_keys = read_dictionary(in_reference_keys_file)
-        list_in_reference_keys   = indict_input_reference_keys.values()
+        indict_reference_keys    = read_dictionary(in_reference_keys_file)
+        list_in_reference_keys   = indict_reference_keys.values()
 
         indexes_training_files   = search_indexes_input_files_from_reference_keys_in_file(args.infile_train_order, list_in_reference_keys)
         indexes_validation_files = search_indexes_input_files_from_reference_keys_in_file(args.infile_valid_order, list_in_reference_keys)
@@ -98,7 +95,7 @@ def main(args):
         # Check whether there are files assigned to more than one set (Training / Validation / Testing)
         intersection_check = find_intersection_3lists(indexes_training_files, indexes_validation_files, indexes_testing_files)
         if intersection_check != []:
-            list_intersect_files = [indict_input_reference_keys[basename(list_input_images_files[ind])] for ind in intersection_check]
+            list_intersect_files = [indict_reference_keys[basename(list_input_images_files[ind])] for ind in intersection_check]
             message = 'Found files assigned to more than one set (Training / Validation / Testing): %s...' %(list_intersect_files)
             catch_error_exception(message)
 
@@ -179,7 +176,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
     parser.add_argument('--nameI_input_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
-    parser.add_argument('--name_input_reference_keys_File', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
+    parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--name_input_extra_labels_relpath', type=str, default=NAME_PROC_EXTRA_LABELS_RELPATH)
     parser.add_argument('--name_training_data_relpath', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--name_validation_data_relpath', type=str, default=NAME_VALIDATIONDATA_RELPATH)
@@ -205,8 +202,8 @@ if __name__ == "__main__":
         message = 'Input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.type_data, LIST_TYPE_DATA_AVAIL)
         catch_error_exception(message)
 
-    if args.type_distribute not in LIST_TYPES_DISTRBUTE_AVAIL:
-        message = 'Input param \'type_distributedata\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.type_distribute, LIST_TYPES_DISTRBUTE_AVAIL)
+    if args.type_distribute not in LIST_TYPE_DISTRIBUTE_AVAIL:
+        message = 'Input param \'type_distributedata\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.type_distribute, LIST_TYPE_DISTRIBUTE_AVAIL)
         catch_error_exception(message)
 
     if args.type_distribute == 'orderfile' and not args.infile_train_order:

@@ -14,7 +14,7 @@ NAME_RAW_ROIMASKS_RELPATH       = 'Lungs/'
 NAME_RAW_COARSEAIRWAYS_RELPATH  = 'CoarseAirways/'
 NAME_RAW_CENTRELINES_RELPATH    = 'Centrelines/'
 NAME_RAW_EXTRALABELS_RELPATH    = 'Centrelines/'
-NAME_REFERENCE_KEYS_RELPATH     = 'Images/'
+NAME_REFERENCE_FILES_RELPATH    = 'Images/'
 NAME_PROC_IMAGES_RELPATH        = 'ImagesWorkData/'
 NAME_PROC_LABELS_RELPATH        = 'LabelsWorkData/'
 NAME_PROC_EXTRA_LABELS_RELPATH  = 'ExtraLabelsWorkData/'
@@ -49,7 +49,7 @@ IS_RESCALE_IMAGES           = False
 FIXED_RESCALE_RESOL         = (0.8, 0.69, 0.69)   # for EXACT
 #FIXED_RESCALE_RESOL         = None
 IS_CROP_IMAGES              = True
-IS_TWO_BOUNDBOX_EACH_LUNGS  = False
+IS_TWO_BOUNDBOXES_EACH_LUNGS = False
 SIZE_BUFFER_BOUNDBOX_BORDERS = (20, 20, 20)
 IS_SAME_SIZE_BOUNDBOX_ALL_IMAGES = False
 IS_CALC_BOUNDINGBOX_IN_SLICES = False
@@ -123,21 +123,21 @@ IS_GNN_WITH_ATTENTION   = False
 
 # PREDICTIONS / POST-PROCESSING PARAMETERS
 PROP_OVERLAP_SLIDING_WINDOW_TESTING = (0.5, 0.5, 0.5)
-IS_FILTER_PRED_PROBMAPS = False
-PROP_VALID_OUTPUT_NNET  = 0.75
-POST_THRESHOLD_VAL      = 0.5
-IS_ATTACH_COARSE_AIRWAYS= True
+IS_FILTER_PRED_PROBMAPS     = False
+PROP_VALID_OUTPUT_NNET      = 0.75
+POST_THRESHOLD_VALUE        = 0.5
+IS_ATTACH_COARSE_AIRWAYS    = True
 IS_REMOVE_TRACHEA_CALC_METRICS = True
-LIST_RESULT_METRICS     = ['DiceCoefficient',
-                           'AirwayCompleteness',
-                           'AirwayVolumeLeakage',
-                           'AirwayCentrelineLeakage',
-                           'AirwayCentrelineFalsePositiveDistanceError',
-                           'AirwayCentrelineFalseNegativeDistanceError']
-LIST_METRICS_ROC_CURVE  = ['DiceCoefficient',
-                           'AirwayCompleteness',
-                           'AirwayVolumeLeakage',
-                           'AirwayCentrelineFalsePositiveDistanceError',
-                           'AirwayCentrelineFalseNegativeDistanceError']
-IS_SAVE_FEATMAPS_LAYERS = False
+LIST_TYPE_METRICS_RESULT    = ['DiceCoefficient',
+                               'AirwayCompleteness',
+                               'AirwayVolumeLeakage',
+                               'AirwayCentrelineLeakage',
+                               'AirwayCentrelineFalsePositiveDistanceError',
+                               'AirwayCentrelineFalseNegativeDistanceError']
+LIST_TYPE_METRICS_ROC_CURVE = ['DiceCoefficient',
+                               'AirwayCompleteness',
+                               'AirwayVolumeLeakage',
+                               'AirwayCentrelineFalsePositiveDistanceError',
+                               'AirwayCentrelineFalseNegativeDistanceError']
+IS_SAVE_FEATMAPS_LAYERS     = False
 NAME_SAVE_FEATS_MODEL_LAYER = 'convU12'

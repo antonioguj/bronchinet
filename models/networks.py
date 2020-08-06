@@ -196,7 +196,7 @@ class UNetBase(ConvNetBase):
 
 
 def get_network(type_network: str,
-                size_image_in: Tuple[int, ...],
+                size_image_in: Tuple[int, int, int],
                 num_levels: int = 5,
                 num_featmaps_in: int = 16,
                 num_channels_in: int = 1,

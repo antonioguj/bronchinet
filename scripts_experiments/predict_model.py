@@ -68,8 +68,8 @@ def main(args):
     images_reconstructor = get_images_reconstructor(args.size_in_images,
                                                     args.use_sliding_window_images,
                                                     args.prop_overlap_sliding_window,
-                                                    args.use_random_window_images,
-                                                    args.num_random_patches_epoch,
+                                                    use_random_window_images=False,
+                                                    num_random_patches_epoch=0,
                                                     use_transform_rigid_images=False,
                                                     is_output_nnet_validconvs=args.is_valid_convolutions,
                                                     size_output_image=size_out_image_model,
@@ -111,32 +111,32 @@ def main(args):
         out_shape_reconstructed_image = ImageFileReader.get_image_size(in_image_file)
         images_reconstructor.update_image_data(out_shape_reconstructed_image)
 
-        out_prediction_reconstruced = images_reconstructor.compute(out_prediction_batches)
+        out_prediction_reconstructed = images_reconstructor.compute(out_prediction_batches)
 
 
         # Output predictions
-        in_reference_keys_file = indict_reference_keys[basename_file_noext(in_image_file)]
+        in_reference_key = indict_reference_keys[basename_file_noext(in_image_file)]
         in_caseprocname_file = func_extract_caseprocname_filename(in_image_file)
 
         if (args.is_save_featmaps_layers):
-            num_featmaps = out_prediction_reconstruced.shape[-1]
+            num_featmaps = out_prediction_reconstructed.shape[-1]
             print("Output model Feature maps (\'%s\' in total)..." %(num_featmaps))
 
             for ifeatmap in range(num_featmaps):
                 output_prediction_file = join_path_names(output_predictions_path, name_output_prediction_files % (in_caseprocname_file, args.name_save_feats_model_layer, ifeatmap+1))
-                print("Output: \'%s\', of dims \'%s\'..." %(basename(output_prediction_file), out_prediction_reconstruced[...,ifeatmap].shape))
+                print("Output: \'%s\', of dims \'%s\'..." %(basename(output_prediction_file), out_prediction_reconstructed[...,ifeatmap].shape))
 
-                ImageFileReader.write_image(output_prediction_file, out_prediction_reconstruced[..., ifeatmap])
+                ImageFileReader.write_image(output_prediction_file, out_prediction_reconstructed[..., ifeatmap])
 
-                outdict_reference_keys[basename_file_noext(output_prediction_file)] = basename(in_reference_keys_file)
+                outdict_reference_keys[basename_file_noext(output_prediction_file)] = basename(in_reference_key)
             # endfor
         else:
             output_prediction_file = join_path_names(output_predictions_path, name_output_prediction_files % (in_caseprocname_file))
-            print("Output: \'%s\', of dims \'%s\'..." % (basename(output_prediction_file), out_prediction_reconstruced.shape))
+            print("Output: \'%s\', of dims \'%s\'..." % (basename(output_prediction_file), out_prediction_reconstructed.shape))
 
-            ImageFileReader.write_image(output_prediction_file, out_prediction_reconstruced)
+            ImageFileReader.write_image(output_prediction_file, out_prediction_reconstructed)
 
-            outdict_reference_keys[basename_file_noext(output_prediction_file)] = basename(in_reference_keys_file)
+            outdict_reference_keys[basename_file_noext(output_prediction_file)] = basename(in_reference_key)
     # endfor
 
     # Save reference keys for predictions

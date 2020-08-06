@@ -64,7 +64,6 @@ def main(args):
         validation_data_path    = workdir_manager.get_pathdir_exist(args.validation_datadir)
         list_valid_images_files = list_files_dir(validation_data_path, name_input_images_files)[0:args.max_valid_images]
         list_valid_labels_files = list_files_dir(validation_data_path, name_input_labels_files)[0:args.max_valid_images]
-
         if not list_valid_images_files or not list_valid_labels_files:
             use_validation_data = False
             print("No validation data used for Training the model...")
