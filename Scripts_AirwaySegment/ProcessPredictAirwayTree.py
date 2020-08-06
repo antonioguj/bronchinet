@@ -77,12 +77,12 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', type=str, default=BASEDIR)
+    parser.add_argument('--basedir', type=str, default=TRAINDIR)
     parser.add_argument('--nameInputPosteriorsRelPath', type=str, default=NAME_POSTERIORS_RELPATH)
-    parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAWCOARSEAIRWAYS_RELPATH)
-    parser.add_argument('--nameOutputBinaryMasksRelPath', type=str, default=NAME_PREDBINARYMASKS_RELPATH)
-    parser.add_argument('--threshold_values', type=float, default=THRESHOLDPOST)
-    parser.add_argument('--attachCoarseAirwaysMask', type=str2bool, default=ATTACHCOARSEAIRWAYSMASK)
+    parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)
+    parser.add_argument('--nameOutputBinaryMasksRelPath', type=str, default=NAME_PRED_BINARYMASKS_RELPATH)
+    parser.add_argument('--threshold_values', type=float, default=POST_THRESHOLD_VAL)
+    parser.add_argument('--attachCoarseAirwaysMask', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
     args = parser.parse_args()
 
     if type(args.threshold_values) in [int, float]:

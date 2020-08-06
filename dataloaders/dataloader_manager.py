@@ -2,7 +2,7 @@
 from typing import List, Tuple, Union
 import numpy as np
 
-from common.constant import TYPE_DNNLIB_USED, ISMODEL_IN_GPU, ISMODEL_HALFPRECISION
+from common.constant import TYPE_DNNLIB_USED, IS_MODEL_IN_GPU, IS_MODEL_HALFPRECISION
 from common.exceptionmanager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
     from dataloaders.pytorch.batchdatagenerator import Wrapper_TrainBatchImageDataGenerator_1Image as TrainBatchImageDataGenerator_1Image, \
@@ -19,10 +19,10 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
                                size_images: Tuple[int, ...],
                                use_sliding_window_images: bool,
                                slide_window_prop_overlap: Tuple[int, ...],
-                               use_random_window_images: bool,
-                               num_random_patches_epoch: int,
                                use_transform_rigid_images: bool,
                                use_transform_elasticdeform_images: bool,
+                               use_random_window_images: bool = False,
+                               num_random_patches_epoch: int = 0,
                                batch_size: int = 1,
                                shuffle: bool = True,
                                seed: int = None
@@ -65,10 +65,10 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
                                 size_images: Tuple[int, ...],
                                 use_sliding_window_images: bool,
                                 slide_window_prop_overlap: Tuple[int, ...],
-                                use_random_window_images: bool,
-                                num_random_patches_epoch: int,
                                 use_transform_rigid_images: bool,
                                 use_transform_elasticdeform_images: bool,
+                                use_random_window_images: bool = False,
+                                num_random_patches_epoch: int = 0,
                                 is_output_nnet_validconvs: bool = False,
                                 size_output_images: Tuple[int, ...] = None,
                                 batch_size: int = 1,
@@ -117,10 +117,10 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                      size_images: Tuple[int, ...],
                                      use_sliding_window_images: bool,
                                      slide_window_prop_overlap: Tuple[int, ...],
-                                     use_random_window_images: bool,
-                                     num_random_patches_epoch: int,
                                      use_transform_rigid_images: bool,
                                      use_transform_elasticdeform_images: bool,
+                                     use_random_window_images: bool = False,
+                                     num_random_patches_epoch: int = 0,
                                      batch_size: int = 1,
                                      shuffle: bool = True,
                                      seed: int = None,
@@ -151,8 +151,8 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                                    batch_size=batch_size,
                                                    shuffle=shuffle,
                                                    seed=seed,
-                                                   is_datagen_gpu=ISMODEL_IN_GPU,
-                                                   is_datagen_halfPrec=ISMODEL_HALFPRECISION)
+                                                   is_datagen_gpu=IS_MODEL_IN_GPU,
+                                                   is_datagen_halfPrec=IS_MODEL_HALFPRECISION)
     else:
         print("Load Data directly from stored Batches...")
 
@@ -165,10 +165,10 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                       size_images: Tuple[int, ...],
                                       use_sliding_window_images: bool,
                                       slide_window_prop_overlap: Tuple[int, ...],
-                                      use_random_window_images: bool,
-                                      num_random_patches_epoch: int,
                                       use_transform_rigid_images: bool,
                                       use_transform_elasticdeform_images: bool,
+                                      use_random_window_images: bool = False,
+                                      num_random_patches_epoch: int = 0,
                                       is_output_nnet_validconvs: bool = False,
                                       size_output_images: Tuple[int, ...] = None,
                                       batch_size: int = 1,
@@ -206,8 +206,8 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                                     batch_size=batch_size,
                                                     shuffle=shuffle,
                                                     seed=seed,
-                                                    is_datagen_gpu=ISMODEL_IN_GPU,
-                                                    is_datagen_halfPrec=ISMODEL_HALFPRECISION)
+                                                    is_datagen_gpu=IS_MODEL_IN_GPU,
+                                                    is_datagen_halfPrec=IS_MODEL_HALFPRECISION)
     else:
         print("Load Data directly from stored Batches...")
 

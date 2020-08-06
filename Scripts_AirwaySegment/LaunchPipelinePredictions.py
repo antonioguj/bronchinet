@@ -15,8 +15,8 @@ import subprocess
 import argparse
 
 
-CODEDIR                            = join_path_names(BASEDIR, 'Code/')
-SCRIPT_PREDICTIONMODEL             = join_path_names(CODEDIR, 'Scripts_Experiments/PredictionModel.py')
+CODEDIR                            = join_path_names(TRAINDIR, 'Code/')
+SCRIPT_PREDICTIONMODEL             = join_path_names(CODEDIR, 'scripts_experiments/predict_model.py')
 SCRIPT_POSTPROCESSPREDICTIONS      = join_path_names(CODEDIR, 'Scripts_AirwaySegment/PostprocessPredictions.py')
 SCRIPT_PROCESSPREDICTAIRWAYTREE    = join_path_names(CODEDIR, 'Scripts_AirwaySegment/ProcessPredictAirwayTree.py')
 SCRIPT_EXTRACTCENTRELINESFROMMASKS = join_path_names(CODEDIR, 'Scripts_Util/ApplyOperationImages.py')
@@ -99,8 +99,8 @@ def main(args):
                 '--nameInputReferKeysFile', InOutReferKeysPosteriorsFile,
                 '--nameOutputPosteriorsRelPath', InOutPosteriorsPath,
                 '--masksToRegionInterest', str(IS_MASK_REGION_INTEREST),
-                '--rescaleImages', str(RESCALEIMAGES),
-                '--cropImages', str(CROPIMAGES)]
+                '--rescaleImages', str(IS_RESCALE_IMAGES),
+                '--cropImages', str(IS_CROP_IMAGES)]
     list_calls_all.append(new_call)
 
 
@@ -138,7 +138,7 @@ def main(args):
                 '--basedir', BaseDir,
                 '--inputcenlinesdir', InOutPredictCentrelinesPath,
                 '--outputfile', nameOutputResultsMetricsFile,
-                '--removeTracheaCalcMetrics', str(REMOVETRACHEACALCMETRICS)]
+                '--removeTracheaCalcMetrics', str(IS_REMOVE_TRACHEA_CALC_METRICS)]
     list_calls_all.append(new_call)
 
 
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('inputmodelfile', type=str)
     parser.add_argument('outputbasedir', type=str)
-    parser.add_argument('--basedir', type=str, default=BASEDIR)
+    parser.add_argument('--basedir', type=str, default=TRAINDIR)
     parser.add_argument('--thresholds', type=str, nargs='*', default=[0.5])
     parser.add_argument('--testdatadir', type=str, default='TestingData/')
     parser.add_argument('--isconnectedmasks', type=str2bool, default=False)

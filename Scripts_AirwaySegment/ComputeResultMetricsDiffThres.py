@@ -234,15 +234,15 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', type=str, default=BASEDIR)
+    parser.add_argument('--basedir', type=str, default=TRAINDIR)
     parser.add_argument('inputposteriorsdir', type=str)
     parser.add_argument('--outputdir', type=str, default=None)
-    parser.add_argument('--listMetricsROCcurve', type=str2list_string, default=LISTMETRICSROCCURVE)
-    parser.add_argument('--removeTracheaCalcMetrics', type=str2bool, default=REMOVETRACHEACALCMETRICS)
+    parser.add_argument('--listMetricsROCcurve', type=str2list_string, default=LIST_METRICS_ROC_CURVE)
+    parser.add_argument('--removeTracheaCalcMetrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--isconnectedmasks', type=str2bool, default=False)
-    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAWLABELS_RELPATH)
-    parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAWCOARSEAIRWAYS_RELPATH)
-    parser.add_argument('--nameInputReferCentrelinesRelPath', type=str, default=NAME_RAWCENTRELINES_RELPATH)
+    parser.add_argument('--nameInputReferMasksRelPath', type=str, default=NAME_RAW_LABELS_RELPATH)
+    parser.add_argument('--nameInputCoarseAirwaysRelPath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)
+    parser.add_argument('--nameInputReferCentrelinesRelPath', type=str, default=NAME_RAW_CENTRELINES_RELPATH)
     args = parser.parse_args()
 
     if not args.outputdir:

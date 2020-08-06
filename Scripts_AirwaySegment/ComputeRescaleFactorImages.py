@@ -83,11 +83,11 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
-    parser.add_argument('--nameInputImagesRelPath', type=str, default=NAME_RAWIMAGES_RELPATH)
-    parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
+    parser.add_argument('--nameInputImagesRelPath', type=str, default=NAME_RAW_IMAGES_RELPATH)
+    parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERENCE_KEYS_RELPATH)
     parser.add_argument('--nameOutputOrigVoxelSizeFile', type=str, default='original_voxelSize.npy')
-    parser.add_argument('--nameOutputRescaleFactorsFile', type=str, default=NAME_RESCALEFACTOR_FILE)
-    parser.add_argument('--fixedRescaleRes', type=str2tuple_float, default=FIXEDRESCALERES)
+    parser.add_argument('--nameOutputRescaleFactorsFile', type=str, default=NAME_RESCALE_FACTOR_FILE)
+    parser.add_argument('--fixedRescaleRes', type=str2tuple_float, default=FIXED_RESCALE_RESOL)
     args = parser.parse_args()
 
     print("Print input arguments...")

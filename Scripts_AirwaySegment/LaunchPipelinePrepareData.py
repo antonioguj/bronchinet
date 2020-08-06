@@ -24,7 +24,7 @@ SCRIPT_RESCALEROIMASKS      = join_path_names(CODEDIR, 'Scripts_Util/ApplyOperat
 SCRIPT_EXTENDCROPPEDIMAGES  = join_path_names(CODEDIR, 'Scripts_Util/SpecificDLCST/ExtendCroppedImagesToFullSize.py')
 SCRIPT_RESCALEFACTORIMAGES  = join_path_names(CODEDIR, 'Scripts_AirwaySegment/ComputeRescaleFactorImages.py')
 SCRIPT_BOUNDINGBOXIMAGES    = join_path_names(CODEDIR, 'Scripts_AirwaySegment/ComputeBoundingBoxImages.py')
-SCRIPT_PREPAREDATA          = join_path_names(CODEDIR, 'Scripts_Experiments/PrepareData.py')
+SCRIPT_PREPAREDATA          = join_path_names(CODEDIR, 'scripts_experiments/prepare_data.py')
 
 CLUSTER_ARCHIVEDIR = 'agarcia@bigr-app001:/scratch/agarcia/Data/'
 
@@ -90,16 +90,16 @@ def main(args):
     makedir(OutputDataDir)
 
     OutputDataDir            = join_path_names(currentdir(), OutputDataDir)
-    nameInputRawImagesPath   = join_path_names(OutputDataDir, NAME_RAWIMAGES_RELPATH)
-    nameInputRawLabelsPath   = join_path_names(OutputDataDir, NAME_RAWLABELS_RELPATH)
-    nameInputRawRoiMasksPath = join_path_names(OutputDataDir, NAME_RAWROIMASKS_RELPATH)
-    nameInputReferKeysPath   = join_path_names(OutputDataDir, NAME_REFERKEYS_RELPATH)
-    if args.isPrepareCentrelines:
-        nameInputRawCentrelinesPath   = join_path_names(OutputDataDir, NAME_RAWCENTRELINES_RELPATH)
+    nameInputRawImagesPath   = join_path_names(OutputDataDir, NAME_RAW_IMAGES_RELPATH)
+    nameInputRawLabelsPath   = join_path_names(OutputDataDir, NAME_RAW_LABELS_RELPATH)
+    nameInputRawRoiMasksPath = join_path_names(OutputDataDir, NAME_RAW_ROIMASKS_RELPATH)
+    nameInputReferKeysPath   = join_path_names(OutputDataDir, NAME_REFERENCE_KEYS_RELPATH)
+    if args.is_prepare_centrelines:
+        nameInputRawCentrelinesPath   = join_path_names(OutputDataDir, NAME_RAW_CENTRELINES_RELPATH)
     if args.isPrepareCoarseAirways:
-        nameInputRawCoarseAirwaysPath = join_path_names(OutputDataDir, NAME_RAWCOARSEAIRWAYS_RELPATH)
+        nameInputRawCoarseAirwaysPath = join_path_names(OutputDataDir, NAME_RAW_COARSEAIRWAYS_RELPATH)
     if args.rescaleImages:
-        nameInputRescaleFactorsFile   = join_path_names(OutputDataDir, NAME_RESCALEFACTOR_FILE)
+        nameInputRescaleFactorsFile   = join_path_names(OutputDataDir, NAME_RESCALE_FACTOR_FILE)
     if args.inclustercasedir in ['DLCST', 'DLCST/']:
         nameInputFoundBoundBoxesFile  = join_path_names(OutputDataDir, basename(nameSourceFoundBoundBoxesFile))
 
@@ -142,22 +142,22 @@ def main(args):
     list_calls_all = []
 
     # 2nd: decompress (if needed) and prepare the downloaded data
-    sublist_calls = create_task_decompress_data(nameInputRawImagesPath, args.isKeepRawImages)
+    sublist_calls = create_task_decompress_data(nameInputRawImagesPath, args.is_keep_raw_images)
     list_calls_all += sublist_calls
 
-    sublist_calls = create_task_decompress_data(nameInputRawLabelsPath, args.isKeepRawImages)
+    sublist_calls = create_task_decompress_data(nameInputRawLabelsPath, args.is_keep_raw_images)
     list_calls_all += sublist_calls
 
-    sublist_calls = create_task_decompress_data(nameInputRawRoiMasksPath, args.isKeepRawImages)
+    sublist_calls = create_task_decompress_data(nameInputRawRoiMasksPath, args.is_keep_raw_images)
     list_calls_all += sublist_calls
 
     if args.isPrepareCoarseAirways:
-        sublist_calls = create_task_decompress_data(nameInputRawCoarseAirwaysPath, args.isKeepRawImages)
+        sublist_calls = create_task_decompress_data(nameInputRawCoarseAirwaysPath, args.is_keep_raw_images)
         list_calls_all += sublist_calls
 
 
     # binarise the input arrays for airway and lungs
-    if args.isKeepRawImages:
+    if args.is_keep_raw_images:
         nameTempoBinaryLabelsPath   = set_dirname_suffix(nameInputRawLabelsPath, 'Binary')
         nameTempoBinaryRoiMasksPath = set_dirname_suffix(nameInputRawRoiMasksPath, 'Binary')
 
@@ -229,7 +229,7 @@ def main(args):
 
 
     # 4th: compute the ground-truth centrelines by thinning the ground-truth airways
-    if args.isPrepareCentrelines:
+    if args.is_prepare_centrelines:
         new_call = ['python3', SCRIPT_COMPUTECENTRELINES, nameInputRawLabelsPath, nameInputRawCentrelinesPath,
                     '--type', 'thinning']
         list_calls_all.append(new_call)
@@ -273,7 +273,7 @@ def main(args):
     # 7th: prepare the data
     new_call = ['python3', SCRIPT_PREPAREDATA,
                 '--datadir', OutputDataDir,
-                '--isPrepareLabels', str(args.isPrepareLabels),
+                '--isPrepareLabels', str(args.is_prepare_labels),
                 '--isInputExtraLabels', 'False',
                 '--isBinaryTrainMasks', 'True',
                 '--masksToRegionInterest', str(args.masksToRegionInterest),
@@ -320,13 +320,13 @@ if __name__ == "__main__":
     parser.add_argument('inclustercasedir', type=str)
     parser.add_argument('outputdatadir', type=str)
     parser.add_argument('--type', type=str, default='training')
-    parser.add_argument('--sizeTrainImages', type=str2tuple_int, default=IMAGES_DIMS_Z_X_Y)
+    parser.add_argument('--sizeTrainImages', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=IS_MASK_REGION_INTEREST)
-    parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
-    parser.add_argument('--fixedRescaleRes', type=str2tuple_float, default=FIXEDRESCALERES)
-    parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
-    parser.add_argument('--isTwoBoundingBoxEachLungs', type=str2bool, default=ISTWOBOUNDINGBOXEACHLUNGS)
-    parser.add_argument('--fixedSizeBoundingBox', type=str2tuple_int, default=FIXEDSIZEBOUNDINGBOX)
+    parser.add_argument('--rescaleImages', type=str2bool, default=IS_RESCALE_IMAGES)
+    parser.add_argument('--fixedRescaleRes', type=str2tuple_float, default=FIXED_RESCALE_RESOL)
+    parser.add_argument('--cropImages', type=str2bool, default=IS_CROP_IMAGES)
+    parser.add_argument('--isTwoBoundingBoxEachLungs', type=str2bool, default=IS_TWO_BOUNDBOX_EACH_LUNGS)
+    parser.add_argument('--fixedSizeBoundingBox', type=str2tuple_int, default=FIXED_SIZE_BOUNDING_BOX)
     args = parser.parse_args()
 
     if args.type == 'training':

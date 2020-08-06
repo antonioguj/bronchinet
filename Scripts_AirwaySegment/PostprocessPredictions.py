@@ -165,18 +165,18 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', type=str, default=BASEDIR)
+    parser.add_argument('--basedir', type=str, default=TRAINDIR)
     parser.add_argument('--cfgfromfile', type=str, default=None)
-    parser.add_argument('--nameInputPredictionsRelPath', type=str, default=NAME_TEMPOPOSTERIORS_RELPATH)
-    parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAWROIMASKS_RELPATH)
-    parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
-    parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPOSTERIORS_FILE)
+    parser.add_argument('--nameInputPredictionsRelPath', type=str, default=NAME_TEMPO_POSTERIORS_RELPATH)
+    parser.add_argument('--nameInputRoiMasksRelPath', type=str, default=NAME_RAW_ROIMASKS_RELPATH)
+    parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERENCE_KEYS_RELPATH)
+    parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERENCE_KEYS_POSTERIORS_FILE)
     parser.add_argument('--nameOutputPosteriorsRelPath', type=str, default=NAME_POSTERIORS_RELPATH)
     parser.add_argument('--masksToRegionInterest', type=str2bool, default=IS_MASK_REGION_INTEREST)
-    parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
-    parser.add_argument('--nameCropBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
-    parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
-    parser.add_argument('--nameRescaleFactorsFile', type=str, default=NAME_RESCALEFACTOR_FILE)
+    parser.add_argument('--cropImages', type=str2bool, default=IS_CROP_IMAGES)
+    parser.add_argument('--nameCropBoundingBoxesFile', type=str, default=NAME_CROP_BOUNDINGBOX_FILE)
+    parser.add_argument('--rescaleImages', type=str2bool, default=IS_RESCALE_IMAGES)
+    parser.add_argument('--nameRescaleFactorsFile', type=str, default=NAME_RESCALE_FACTOR_FILE)
     args = parser.parse_args()
 
     if args.cfgfromfile:

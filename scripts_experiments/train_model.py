@@ -48,23 +48,22 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workdir_manager          = TrainDirManager(args.basedir)
-    training_data_path       = workdir_manager.get_pathdir_exist(args.traindatadir)
-    input_reference_keys_file= workdir_manager.get_datafile_exist(args.nameInputReferKeysFile)
-
-    list_train_images_files = list_files_dir(training_data_path, name_input_images_files)[0:args.numMaxTrainImages]
-    list_train_labels_files = list_files_dir(training_data_path, name_input_labels_files)[0:args.numMaxTrainImages]
-    dict_reference_keys     = read_dictionary(input_reference_keys_file)
+    workdir_manager         = TrainDirManager(args.basedir)
+    training_data_path      = workdir_manager.get_pathdir_exist(args.traininig_datadir)
+    reference_keys_file     = workdir_manager.get_datafile_exist(args.name_reference_keys_file)
+    list_train_images_files = list_files_dir(training_data_path, name_input_images_files)[0:args.max_train_images]
+    list_train_labels_files = list_files_dir(training_data_path, name_input_labels_files)[0:args.max_train_images]
+    dict_reference_keys     = read_dictionary(reference_keys_file)
 
     if args.is_restart_model:
         models_path = workdir_manager.get_pathdir_exist(args.modelsdir)
     else:
         models_path = workdir_manager.get_pathdir_update(args.modelsdir)
 
-    if USEVALIDATIONDATA:
-        validation_data_path    = workdir_manager.get_pathdir_exist(args.validdatadir)
-        list_valid_images_files = list_files_dir(validation_data_path, name_input_images_files)[0:args.numMaxValidImages]
-        list_valid_labels_files = list_files_dir(validation_data_path, name_input_labels_files)[0:args.numMaxValidImages]
+    if USE_VALIDATION_DATA:
+        validation_data_path    = workdir_manager.get_pathdir_exist(args.validation_datadir)
+        list_valid_images_files = list_files_dir(validation_data_path, name_input_images_files)[0:args.max_valid_images]
+        list_valid_labels_files = list_files_dir(validation_data_path, name_input_labels_files)[0:args.max_valid_images]
 
         if not list_valid_images_files or not list_valid_labels_files:
             use_validation_data = False
@@ -100,7 +99,7 @@ def main(args):
     if not args.is_restart_model or (args.is_restart_model and IS_RESTART_ONLY_WEIGHTS):
         model_trainer.create_network(type_network=args.type_network,
                                      size_image_in=args.size_in_images,
-                                     num_levels=args.num_levels,
+                                     num_levels=args.net_num_levels,
                                      num_featmaps_in=args.num_featmaps,
                                      num_channels_in=1,
                                      num_classes_out=1,
@@ -108,9 +107,9 @@ def main(args):
         model_trainer.create_optimizer(type_optimizer=args.type_optimizer,
                                        learn_rate=args.learn_rate)
         model_trainer.create_loss(type_loss=args.type_loss,
-                                  is_mask_to_region_interest=args.is_masks_to_region_interest)
+                                  is_mask_to_region_interest=args.is_mask_region_interest)
         model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
-                                          is_mask_to_region_interest=args.is_masks_to_region_interest)
+                                          is_mask_to_region_interest=args.is_mask_region_interest)
         model_trainer.compile_model()
 
         model_trainer.create_callbacks(models_path=models_path,
@@ -129,9 +128,9 @@ def main(args):
             if TYPE_DNNLIB_USED == 'Keras':
                 # CHECK WHETHER THIS IS NECESSARY
                 model_trainer.create_loss(type_loss=args.type_loss,
-                                          is_mask_to_region_interest=args.is_masks_to_region_interest)
+                                          is_mask_to_region_interest=args.is_mask_region_interest)
                 model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
-                                                  is_mask_to_region_interest=args.is_masks_to_region_interest)
+                                                  is_mask_to_region_interest=args.is_mask_region_interest)
             model_trainer.load_model_full(model_restart_file)
 
     model_trainer.summary_model()
@@ -158,37 +157,37 @@ def main(args):
     training_data_loader = get_train_imagedataloader_2images(list_train_images_files,
                                                              list_train_labels_files,
                                                              args.size_in_images,
-                                                             args.slidingWindowImages,
-                                                             args.propOverlapSlidingWindow,
-                                                             args.randomCropWindowImages,
-                                                             args.numRandomImagesPerVolumeEpoch,
-                                                             args.transformationRigidImages,
-                                                             args.transformElasticDeformImages,
+                                                             args.use_sliding_window_images,
+                                                             args.prop_overlap_sliding_window,
+                                                             args.use_transform_rigid_images,
+                                                             args.use_transform_elasticdeform_images,
+                                                             args.use_random_window_images,
+                                                             args.num_random_patches_epoch,
                                                              is_output_nnet_validconvs=args.is_valid_convolutions,
                                                              size_output_images=size_out_image_model,
-                                                             batch_size=args._batch_size,
-                                                             shuffle=SHUFFLETRAINDATA)
+                                                             batch_size=args.batch_size,
+                                                             shuffle=IS_SHUFFLE_TRAINDATA)
     print("Loaded \'%s\' files. Total batches generated: %s..." % (len(list_train_images_files),
                                                                    len(training_data_loader)))
 
     if use_validation_data:
         print("Load Validation data...")
-        args.transformationRigidImages = args.transformationRigidImages and USE_TRANSFORM_VALIDATION_DATA
-        args.transformElasticDeformImages = args.transformElasticDeformImages and USE_TRANSFORM_VALIDATION_DATA
+        args.use_transform_rigid_images = args.use_transform_rigid_images and USE_TRANSFORM_VALIDATION_DATA
+        args.use_transform_elasticdeform_images = args.use_transform_elasticdeform_images and USE_TRANSFORM_VALIDATION_DATA
 
         validation_data_loader = get_train_imagedataloader_2images(list_valid_images_files,
                                                                    list_valid_labels_files,
                                                                    args.size_in_images,
-                                                                   args.slidingWindowImages,
-                                                                   args.propOverlapSlidingWindow,
-                                                                   args.randomCropWindowImages,
-                                                                   args.numRandomImagesPerVolumeEpoch,
-                                                                   args.transformationRigidImages,
-                                                                   args.transformElasticDeformImages,
+                                                                   args.use_sliding_window_images,
+                                                                   args.prop_overlap_sliding_window,
+                                                                   args.use_transform_rigid_images,
+                                                                   args.use_transform_elasticdeform_images,
+                                                                   args.use_random_window_images,
+                                                                   args.num_random_patches_epoch,
                                                                    is_output_nnet_validconvs=args.is_valid_convolutions,
                                                                    size_output_images=size_out_image_model,
-                                                                   batch_size=args._batch_size,
-                                                                   shuffle=SHUFFLETRAINDATA)
+                                                                   batch_size=args.batch_size,
+                                                                   shuffle=IS_SHUFFLE_TRAINDATA)
         print("Loaded \'%s\' files. Total batches generated: %s..." % (len(list_valid_images_files),
                                                                        len(validation_data_loader)))
     else:
@@ -207,7 +206,7 @@ def main(args):
             restart_epoch = get_restart_epoch_from_model_filename(model_restart_file)
 
         initial_epoch = restart_epoch
-        args._num_epochs += initial_epoch
+        args.num_epochs += initial_epoch
     else:
         initial_epoch = 0
 
@@ -223,76 +222,65 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--modelsdir', type=str, default='Models')
-    parser.add_argument('--cfgfromfile', type=str, default=None)
-    parser.add_argument('--size_in_images', type=str2tuple_int, default=IMAGES_DIMS_Z_X_Y)
-    parser.add_argument('--traindatadir', type=str, default=NAME_TRAININGDATA_RELPATH)
-    parser.add_argument('--validdatadir', type=str, default=NAME_VALIDATIONDATA_RELPATH)
-    parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPROCIMAGE_FILE)
-    parser.add_argument('--numMaxTrainImages', type=int, default=NUMMAXTRAINIMAGES)
-    parser.add_argument('--numMaxValidImages', type=int, default=NUMMAXVALIDIMAGES)
-    parser.add_argument('--type_network', type=str, default=TYPE_NETWORK)
-    parser.add_argument('--tailored_build_model', type=str2bool, default=TAILORED_BUILD_MODEL)
-    parser.add_argument('--num_levels', type=int, default=NUM_LEVELS)
-    parser.add_argument('--num_featmaps_in', type=int, default=NUM_FEATMAPS)
-    parser.add_argument('--isUse_dropout', type=str2bool, default=ISUSE_DROPOUT)
-    parser.add_argument('--isUse_batchnormalize', type=str2bool, default=ISUSE_BATCHNORMALIZE)
-    parser.add_argument('--isModel_halfPrecision', type=str2bool, default=ISMODEL_HALFPRECISION)
-    parser.add_argument('--type_activate_hidden', type=str, default=TYPE_ACTIVATE_HIDDEN)
-    parser.add_argument('--type_activate_output', type=str, default=TYPE_ACTIVATE_OUTPUT)
-    parser.add_argument('--type_padding_convol', type=str, default=TYPE_PADDING_CONVOL)
-    parser.add_argument('--disable_convol_pooling_lastlayer', type=str2bool, default=DISABLE_CONVOL_POOLING_LASTLAYER)
-    parser.add_argument('--type_optimizer', type=str, default=TYPE_OPTIMIZER)
+    parser.add_argument('--is_config_fromfile', type=str, default=None)
+    parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
+    parser.add_argument('--traininig_datadir', type=str, default=NAME_TRAININGDATA_RELPATH)
+    parser.add_argument('--validation_datadir', type=str, default=NAME_VALIDATIONDATA_RELPATH)
+    parser.add_argument('--name_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
+    parser.add_argument('--max_train_images', type=int, default=MAX_TRAIN_IMAGES)
+    parser.add_argument('--max_valid_images', type=int, default=MAX_VALID_IMAGES)
+    parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
     parser.add_argument('--num_epochs', type=int, default=NUM_EPOCHS)
     parser.add_argument('--max_steps_epoch', type=int, default=None)
-    parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
+    parser.add_argument('--type_network', type=str, default=TYPE_NETWORK)
+    parser.add_argument('--net_num_levels', type=int, default=NET_NUM_LEVELS)
+    parser.add_argument('--net_num_featmaps', type=int, default=NET_NUM_FEATMAPS)
+    parser.add_argument('--type_optimizer', type=str, default=TYPE_OPTIMIZER)
     parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
+    parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--list_type_metrics', type=str2list_string, default=LIST_TYPE_METRICS)
-    parser.add_argument('--is_masks_to_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
-    parser.add_argument('--slidingWindowImages', type=str2bool, default=SLIDINGWINDOWIMAGES)
-    parser.add_argument('--propOverlapSlidingWindow', type=str2tuple_float, default=PROPOVERLAPSLIDINGWINDOW_Z_X_Y)
-    parser.add_argument('--randomCropWindowImages', type=str2tuple_float, default=RANDOMCROPWINDOWIMAGES)
-    parser.add_argument('--numRandomImagesPerVolumeEpoch', type=str2tuple_float, default=NUMRANDOMIMAGESPERVOLUMEEPOCH)
-    parser.add_argument('--transformationRigidImages', type=str2bool, default=TRANSFORMATIONRIGIDIMAGES)
-    parser.add_argument('--transformElasticDeformImages', type=str2bool, default=TRANSFORMELASTICDEFORMIMAGES)
+    parser.add_argument('--use_sliding_window_images', type=str2bool, default=USE_SLIDING_WINDOW_IMAGES)
+    parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW)
+    parser.add_argument('--use_random_window_images', type=str2tuple_float, default=USE_RANDOM_WINDOW_IMAGES)
+    parser.add_argument('--num_random_patches_epoch', type=str2tuple_float, default=NUM_RANDOM_PATCHES_EPOCH)
+    parser.add_argument('--use_transform_rigid_images', type=str2bool, default=USE_TRANSFORM_RIGID_IMAGES)
+    parser.add_argument('--use_transform_elasticdeform_images', type=str2bool, default=USE_TRANSFORM_ELASTICDEFORM_IMAGES)
     parser.add_argument('--is_restart_model', type=str2bool, default=IS_RESTART_MODEL)
     parser.add_argument('--restart_file', type=str, default=NAME_SAVEDMODEL_LAST)
     args = parser.parse_args()
 
-    if args.cfgfromfile:
-        if not is_exist_file(args.cfgfromfile):
-            message = "Config params file not found: \'%s\'..." %(args.cfgfromfile)
+    if args.is_config_fromfile:
+        if not is_exist_file(args.is_config_fromfile):
+            message = "Config params file not found: \'%s\'..." %(args.is_config_fromfile)
             catch_error_exception(message)
         else:
-            input_args_file = read_dictionary_configparams(args.cfgfromfile)
-        print("Set up experiments with parameters from file: \'%s\'" %(args.cfgfromfile))
-        args.basedir                = str(input_args_file['basedir'])
-        args.size_in_images         = str2tuple_int(input_args_file['size_in_images'])
-        args.traindatadir           = str(input_args_file['traindatadir'])
-        args.validdatadir           = str(input_args_file['validdatadir'])
-        args.numMaxTrainImages      = int(input_args_file['numMaxTrainImages'])
-        args.numMaxValidImages      = int(input_args_file['numMaxValidImages'])
-        args.imodel                 = str(input_args_file['imodel'])
-        args.num_levels             = int(input_args_file['num_layers'])
-        args.num_featmaps_in        = int(input_args_file['num_featmaps_in'])
-        args.isUse_dropout          = str2bool(input_args_file['isUse_dropout'])
-        args.isUse_batchnormalize   = str2bool(input_args_file['isUse_batchnormalize'])
-        args.type_optimizer              = str(input_args_file['type_optimizer'])
-        args.num_epochs             = int(input_args_file['num_epochs'])
-        args.max_steps_epoch        = None # CHECK THIS OUT!
-        args.batch_size             = int(input_args_file['batch_size'])
-        args.learn_rate             = float(input_args_file['learn_rate'])
-        args.type_loss                = str(input_args_file['type_loss'])
-        args.list_type_metrics            = str2list_string(input_args_file['listmetrics'])
+            input_args_file = read_dictionary_configparams(args.is_config_fromfile)
+        print("Set up experiments with parameters from file: \'%s\'" %(args.is_config_fromfile))
+        args.basedir           = str(input_args_file['workdir'])
+        args.size_in_images     = str2tuple_int(input_args_file['size_in_images'])
+        args.traininig_datadir  = str(input_args_file['traininig_datadir'])
+        args.validation_datadir = str(input_args_file['validation_datadir'])
+        args.max_train_images   = int(input_args_file['max_train_images'])
+        args.max_valid_images   = int(input_args_file['max_valid_images'])
+        args.batch_size         = int(input_args_file['batch_size'])
+        args.num_epochs         = int(input_args_file['num_epochs'])
+        args.max_steps_epoch    = None # CHECK THIS OUT!
+        args.type_network       = str(input_args_file['type_network'])
+        args.net_num_levels     = int(input_args_file['net_num_levels'])
+        args.net_num_featmaps   = int(input_args_file['net_num_featmaps'])
+        args.type_optimizer     = str(input_args_file['type_optimizer'])
+        args.learn_rate         = float(input_args_file['learn_rate'])
+        args.type_loss          = str(input_args_file['type_loss'])
+        args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
+        args.list_type_metrics  = str2list_string(input_args_file['list_type_metrics'])
         args.list_type_metrics.remove('')
-        args.is_masks_to_region_interest  = str2bool(input_args_file['is_masks_to_region_interest'])
-        args.is_valid_convolutions    = str2bool(input_args_file['is_valid_convolutions'])
-        args.slidingWindowImages    = str2bool(input_args_file['slidingWindowImages'])
-        args.propOverlapSlidingWindow   = str2tuple_float(input_args_file['propOverlapSlidingWindow'])
-        args.transformationRigidImages   = str2bool(input_args_file['transformationRigidImages'])
-        args.transformElasticDeformImages= str2bool(input_args_file['transformElasticDeformImages'])
-        args.isGNNwithAttentionLays = str2bool(input_args_file['isGNNwithAttentionLays'])
+        args.is_valid_convolutions          = str2bool(input_args_file['is_valid_convolutions'])
+        args.use_sliding_window_images      = str2bool(input_args_file['use_sliding_window_images'])
+        args.prop_overlap_sliding_window    = str2tuple_float(input_args_file['prop_overlap_sliding_window'])
+        args.use_transform_rigid_images     = str2bool(input_args_file['use_transform_rigid_images'])
+        args.use_transform_elasticdeform_images= str2bool(input_args_file['use_transform_elasticdeform_images'])
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).items()):

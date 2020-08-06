@@ -40,6 +40,9 @@ class BatchDataGenerator(object):
     def __getitem__(self, index: int):
         raise NotImplementedError
 
+    def get_full_data(self) -> np.ndarray:
+        raise NotImplementedError
+
 
 class BatchImageDataGenerator_1Image(BatchDataGenerator):
 

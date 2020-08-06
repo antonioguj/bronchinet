@@ -4,7 +4,7 @@ import numpy as np
 
 from tensorflow.keras.models import load_model
 
-from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_INTER_KERAS, NAME_SAVEDMODEL_LAST_KERAS, SHUFFLETRAINDATA
+from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_INTER_KERAS, NAME_SAVEDMODEL_LAST_KERAS, IS_SHUFFLE_TRAINDATA
 from common.exceptionmanager import catch_error_exception
 from common.functionutil import join_path_names
 from dataloaders.batchdatagenerator import BatchDataGenerator
@@ -71,7 +71,7 @@ class ModelTrainer(ModelTrainerBase):
                                     verbose=1,
                                     callbacks=self._list_callbacks,
                                     validation_data=valid_data_loader,
-                                    shuffle=SHUFFLETRAINDATA,
+                                    shuffle=IS_SHUFFLE_TRAINDATA,
                                     initial_epoch=initial_epoch)
 
     def predict(self, test_data_loader: BatchDataGenerator) -> np.ndarray:

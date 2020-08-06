@@ -74,13 +74,13 @@ def main(args):
         listInputImagesFiles_allData.append(listInputImagesFiles)
         listDictInputReferKeys_allData.append(dictInputReferKeys)
 
-        if args.isPrepareLabels:
+        if args.is_prepare_labels:
             InputLabelsPath      = workDirsManager.get_pathdir_exist(args.nameInOutLabelsRelPath)
             listInputLabelsFiles = list_files_dir(InputLabelsPath)
             listInputLabelsFiles_allData.append(listInputLabelsFiles)
         #endif
 
-        if args.isInputExtraLabels:
+        if args.is_input_extra_labels:
             InputExtraLabelsPath      = workDirsManager.get_pathdir_exist(args.nameInOutExtraLabelsRelPath)
             listInputExtraLabelsFiles = list_files_dir(InputExtraLabelsPath)
             listInputExtraLabelsFiles_allData.append(listInputExtraLabelsFiles)
@@ -124,10 +124,10 @@ def main(args):
     OutputImagesDataPath = workDirsManager.get_pathdir_new(args.nameInOutImagesRelPath)
     OutputReferKeysFile  = workDirsManager.get_pathfile_new(args.nameInOutReferKeysFile)
 
-    if args.isPrepareLabels:
+    if args.is_prepare_labels:
         OutputLabelsDataPath = workDirsManager.get_pathdir_new(args.nameInOutLabelsRelPath)
 
-    if args.isInputExtraLabels:
+    if args.is_input_extra_labels:
         OutputExtraLabelsDataPath = workDirsManager.get_pathdir_new(args.nameInOutExtraLabelsRelPath)
 
 
@@ -149,7 +149,7 @@ def main(args):
         outdict_referenceKeys[basename_file_noext(output_image_file)] = basename(in_referkey_file)
 
 
-        if args.isPrepareLabels:
+        if args.is_prepare_labels:
             input_label_file  = listInputLabelsFiles_allData[index_data][index_image_file]
             output_label_file = join_path_names(OutputLabelsDataPath, nameTemplateOutputLabelsFiles % (icount + 1))
             if args.isLinkmergedfiles:
@@ -157,7 +157,7 @@ def main(args):
             else:
                 copyfile(input_label_file, output_label_file)
 
-        if args.isInputExtraLabels:
+        if args.is_input_extra_labels:
             input_extralabel_file  = listInputExtraLabelsFiles_allData[index_data][index_image_file]
             output_extralabel_file = join_path_names(OutputExtraLabelsDataPath, nameTemplateOutputExtraLabelsFiles % (icount + 1))
             if args.isLinkmergedfiles:
@@ -177,10 +177,10 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('listMergeDataPaths', nargs='+', type=str, default=None)
-    parser.add_argument('--nameInOutImagesRelPath', type=str, default=NAME_PROCIMAGES_RELPATH)
-    parser.add_argument('--nameInOutLabelsRelPath', type=str, default=NAME_PROCLABELS_RELPATH)
-    parser.add_argument('--nameInOutExtraLabelsRelPath', type=str, default=NAME_PROCEXTRALABELS_RELPATH)
-    parser.add_argument('--nameInOutReferKeysFile', type=str, default=NAME_REFERKEYSPROCIMAGE_FILE)
+    parser.add_argument('--nameInOutImagesRelPath', type=str, default=NAME_PROC_IMAGES_RELPATH)
+    parser.add_argument('--nameInOutLabelsRelPath', type=str, default=NAME_PROC_LABELS_RELPATH)
+    parser.add_argument('--nameInOutExtraLabelsRelPath', type=str, default=NAME_PROC_EXTRA_LABELS_RELPATH)
+    parser.add_argument('--nameInOutReferKeysFile', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--type', type=str, default='training')
     parser.add_argument('--typedist', type=str, default='original')
     parser.add_argument('--infileorder', type=str, default=None)

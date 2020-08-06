@@ -1,9 +1,9 @@
 
 from typing import Tuple
 
-from common.constant import ROTATION_XY_RANGE, ROTATION_XZ_RANGE, ROTATION_YZ_RANGE, HEIGHT_SHIFT_RANGE, WIDTH_SHIFT_RANGE, \
-                            DEPTH_SHIFT_RANGE, HORIZONTAL_FLIP, VERTICAL_FLIP, AXIALDIR_FLIP,  ZOOM_RANGE, FILL_MODE_TRANSFORM, \
-                            TYPETRANSFORMELASTICDEFORMATION
+from common.constant import TRANS_ROTATION_XY_RANGE, TRANS_ROTATION_XZ_RANGE, TRANS_ROTATION_YZ_RANGE, TRANS_HEIGHT_SHIFT_RANGE, TRANS_WIDTH_SHIFT_RANGE, \
+                            TRANS_DEPTH_SHIFT_RANGE, TRANS_HORIZONTAL_FLIP, TRANS_VERTICAL_FLIP, TRANS_AXIALDIR_FLIP,  TRANS_ZOOM_RANGE, TRANS_FILL_MODE_TRANSFORM, \
+                            TYPE_TRANSFORM_ELASTICDEFORM_IMAGES
 from common.exceptionmanager import catch_error_exception
 from preprocessing.imagegenerator import ImageGenerator, NullGenerator, CombinedImagesGenerator
 from preprocessing.randomwindowimages import RandomWindowImages
@@ -43,34 +43,34 @@ def get_images_generator(size_images: Tuple[int, ...],
         ndims = len(size_images)
         if ndims==2:
             new_images_generator = TransformRigidImages2D(size_images,
-                                                          rotation_range=ROTATION_XY_RANGE,
-                                                          height_shift_range=HEIGHT_SHIFT_RANGE,
-                                                          width_shift_range=WIDTH_SHIFT_RANGE,
-                                                          horizontal_flip=HORIZONTAL_FLIP,
-                                                          vertical_flip=VERTICAL_FLIP,
-                                                          zoom_range=ZOOM_RANGE,
-                                                          fill_mode=FILL_MODE_TRANSFORM)
+                                                          rotation_range=TRANS_ROTATION_XY_RANGE,
+                                                          height_shift_range=TRANS_HEIGHT_SHIFT_RANGE,
+                                                          width_shift_range=TRANS_WIDTH_SHIFT_RANGE,
+                                                          horizontal_flip=TRANS_HORIZONTAL_FLIP,
+                                                          vertical_flip=TRANS_VERTICAL_FLIP,
+                                                          zoom_range=TRANS_ZOOM_RANGE,
+                                                          fill_mode=TRANS_FILL_MODE_TRANSFORM)
             list_images_generators.append(new_images_generator)
         elif ndims==3:
             new_images_generator = TransformRigidImages3D(size_images,
-                                                          rotation_XY_range=ROTATION_XY_RANGE,
-                                                          rotation_XZ_range=ROTATION_XZ_RANGE,
-                                                          rotation_YZ_range=ROTATION_YZ_RANGE,
-                                                          height_shift_range=HEIGHT_SHIFT_RANGE,
-                                                          width_shift_range=WIDTH_SHIFT_RANGE,
-                                                          depth_shift_range=DEPTH_SHIFT_RANGE,
-                                                          horizontal_flip=HORIZONTAL_FLIP,
-                                                          vertical_flip=VERTICAL_FLIP,
-                                                          axialdir_flip=AXIALDIR_FLIP,
-                                                          zoom_range=ZOOM_RANGE,
-                                                          fill_mode=FILL_MODE_TRANSFORM)
+                                                          rotation_XY_range=TRANS_ROTATION_XY_RANGE,
+                                                          rotation_XZ_range=TRANS_ROTATION_XZ_RANGE,
+                                                          rotation_YZ_range=TRANS_ROTATION_YZ_RANGE,
+                                                          height_shift_range=TRANS_HEIGHT_SHIFT_RANGE,
+                                                          width_shift_range=TRANS_WIDTH_SHIFT_RANGE,
+                                                          depth_shift_range=TRANS_DEPTH_SHIFT_RANGE,
+                                                          horizontal_flip=TRANS_HORIZONTAL_FLIP,
+                                                          vertical_flip=TRANS_VERTICAL_FLIP,
+                                                          axialdir_flip=TRANS_AXIALDIR_FLIP,
+                                                          zoom_range=TRANS_ZOOM_RANGE,
+                                                          fill_mode=TRANS_FILL_MODE_TRANSFORM)
             list_images_generators.append(new_images_generator)
         else:
             message = 'Wrong value of \'ndims\': %s' % (ndims)
             catch_error_exception(message)
 
     if use_elasticdeform_images:
-        if TYPETRANSFORMELASTICDEFORMATION == 'pixelwise':
+        if TYPE_TRANSFORM_ELASTICDEFORM_IMAGES == 'pixelwise':
             new_images_generator = ElasticDeformPixelwiseImages(size_images)
             list_images_generators.append(new_images_generator)
 
