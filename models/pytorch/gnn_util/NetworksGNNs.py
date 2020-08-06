@@ -18,7 +18,7 @@ import scipy.sparse as sp
 from networks.pytorch.gnn_util import makeAdjacency, compute_ontheflyAdjacency,\
     compute_ontheflyAdjacency_with_attention_layers, GenOntheflyAdjacency_NeighCandit
 from networks.pytorch.gnn_util.gnn_utilities import sparse_mx_to_torch_sparse_tensor
-from common.function_util import *
+from common.functionutil import *
 import numpy as np
 
 torch.manual_seed(2017)

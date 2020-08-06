@@ -4,9 +4,9 @@ import numpy as np
 
 from tensorflow.keras.models import load_model
 
-from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODELS_EPOCHS_KERAS, NAME_SAVEDMODELS_LAST_KERAS, SHUFFLETRAINDATA
-from common.exception_manager import catch_error_exception
-from common.function_util import join_path_names
+from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_INTER_KERAS, NAME_SAVEDMODEL_LAST_KERAS, SHUFFLETRAINDATA
+from common.exceptionmanager import catch_error_exception
+from common.functionutil import join_path_names
 from dataloaders.batchdatagenerator import BatchDataGenerator
 from models.modeltrainer import ModelTrainerBase
 from models.keras.callbacks import RecordLossHistory, EarlyStopping, ModelCheckpoint
@@ -24,18 +24,20 @@ class ModelTrainer(ModelTrainerBase):
                               loss=self._loss.lossfun,
                               metrics=list_metrics_funs)
 
-    def create_callbacks(self, modelspath: str, **kwargs) -> None:
+    def create_callbacks(self, models_path: str, **kwargs) -> None:
         self._list_callbacks = []
 
-        loss_filename = join_path_names(modelspath, NAME_LOSSHISTORY_FILE)
-        new_callback = RecordLossHistory(loss_filename, self._list_metrics),
+        losshist_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
+        new_callback = RecordLossHistory(losshist_filename, self._list_metrics),
         self._list_callbacks.append(new_callback)
 
-        model_filename = join_path_names(modelspath, NAME_SAVEDMODELS_EPOCHS_KERAS)
+        freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
+
+        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_INTER_KERAS)
         new_callback = ModelCheckpoint(model_filename)
         self._list_callbacks.append(new_callback)
 
-        model_filename = join_path_names(modelspath, NAME_SAVEDMODELS_LAST_KERAS)
+        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_LAST_KERAS)
         new_callback = ModelCheckpoint(model_filename)
         self._list_callbacks.append(new_callback)
 

@@ -4,7 +4,7 @@ import numpy as np
 #from tensorflow.keras import backend as K
 
 from common.constant import TYPE_DNNLIB_USED
-from common.exception_manager import catch_error_exception
+from common.exceptionmanager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
     from models.pytorch.visualmodelparams import VisualModelParams
 elif TYPE_DNNLIB_USED == 'Keras':

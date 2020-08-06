@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 
-from common.exception_manager import catch_error_exception
+from common.exceptionmanager import catch_error_exception
 from models.networks import UNetBase
 
 LIST_AVAIL_NETWORKS = ['UNet3D_Original',

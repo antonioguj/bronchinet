@@ -9,7 +9,7 @@
 #######################################################################################
 
 from common.constant import *
-from common.function_util import *
+from common.functionutil import *
 import argparse
 
 if TYPE_DNNLIB_USED == 'Keras':

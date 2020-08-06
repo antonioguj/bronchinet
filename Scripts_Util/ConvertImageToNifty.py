@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from common.function_util import *
+from common.functionutil import *
 from dataloaders.imagefilereader import *
 import argparse
 

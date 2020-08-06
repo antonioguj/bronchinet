@@ -5,7 +5,7 @@ np.random.seed(2017)
 
 from scipy.ndimage import map_coordinates, gaussian_filter
 
-from common.exception_manager import catch_error_exception
+from common.exceptionmanager import catch_error_exception
 from preprocessing.transformrigidimages import TransformRigidImages
 
 

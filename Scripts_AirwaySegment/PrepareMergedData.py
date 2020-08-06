@@ -9,8 +9,8 @@
 ########################################################################################
 
 from common.constant import *
-from common.function_util import *
-from common.workdir_manager import *
+from common.functionutil import *
+from common.workdirmanager import *
 from collections import OrderedDict
 import argparse
 

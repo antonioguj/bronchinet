@@ -9,7 +9,7 @@
 ########################################################################################
 
 from common.constant import *
-from common.workdir_manager import *
+from common.workdirmanager import *
 from dataloaders.imagefilereader import *
 from imageoperators.boundingboxes import *
 from imageoperators.imageoperator import *
@@ -172,7 +172,7 @@ if __name__ == "__main__":
     parser.add_argument('--nameInputReferKeysRelPath', type=str, default=NAME_REFERKEYS_RELPATH)
     parser.add_argument('--nameInputReferKeysFile', type=str, default=NAME_REFERKEYSPOSTERIORS_FILE)
     parser.add_argument('--nameOutputPosteriorsRelPath', type=str, default=NAME_POSTERIORS_RELPATH)
-    parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
+    parser.add_argument('--masksToRegionInterest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)
     parser.add_argument('--nameCropBoundingBoxesFile', type=str, default=NAME_CROPBOUNDINGBOX_FILE)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)

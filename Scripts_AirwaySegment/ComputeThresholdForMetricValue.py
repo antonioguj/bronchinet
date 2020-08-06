@@ -9,7 +9,7 @@
 ########################################################################################
 
 from common.constant import *
-from common.workdir_manager import *
+from common.workdirmanager import *
 from dataloaders.imagefilereader import *
 if TYPE_DNNLIB_USED == 'Keras':
     from networks.keras.metrics import *

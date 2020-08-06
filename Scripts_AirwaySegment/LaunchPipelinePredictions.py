@@ -9,8 +9,8 @@
 #######################################################################################
 
 from common.constant import *
-from common.function_util import *
-from common.workdir_manager import *
+from common.functionutil import *
+from common.workdirmanager import *
 import subprocess
 import argparse
 
@@ -98,7 +98,7 @@ def main(args):
                 '--nameInputPredictionsRelPath', InOutTempoPosteriorsPath,
                 '--nameInputReferKeysFile', InOutReferKeysPosteriorsFile,
                 '--nameOutputPosteriorsRelPath', InOutPosteriorsPath,
-                '--masksToRegionInterest', str(MASKTOREGIONINTEREST),
+                '--masksToRegionInterest', str(IS_MASK_REGION_INTEREST),
                 '--rescaleImages', str(RESCALEIMAGES),
                 '--cropImages', str(CROPIMAGES)]
     list_calls_all.append(new_call)

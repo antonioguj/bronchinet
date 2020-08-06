@@ -6,9 +6,9 @@ import torch
 from torchsummary import summary
 from tqdm import tqdm
 
-from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODELS_EPOCHS_TORCH, NAME_SAVEDMODELS_LAST_TORCH
-from common.exception_manager import catch_error_exception
-from common.function_util import join_path_names
+from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_EPOCH_TORCH, NAME_SAVEDMODEL_LAST_TORCH
+from common.exceptionmanager import catch_error_exception
+from common.functionutil import join_path_names
 from dataloaders.batchdatagenerator import BatchDataGenerator
 from models.modeltrainer import ModelTrainerBase
 from models.pytorch.callbacks import RecordLossHistory, ModelCheckpoint
@@ -24,24 +24,24 @@ class ModelTrainer(ModelTrainerBase):
     def compile_model(self) -> None:
         pass
 
-    def create_callbacks(self, modelspath: str, **kwargs) -> None:
+    def create_callbacks(self, models_path: str, **kwargs) -> None:
         self._list_callbacks = []
 
-        loss_filename = join_path_names(modelspath, NAME_LOSSHISTORY_FILE)
-        new_callback = RecordLossHistory(loss_filename, self._list_metrics),
+        losshist_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
+        new_callback = RecordLossHistory(losshist_filename, self._list_metrics),
         self._list_callbacks.append(new_callback)
 
+        freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
         freq_validate_model = kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() else 1
-        freq_save_checkmodel = kwargs['freq_save_checkmodel'] if 'freq_save_checkmodel' in kwargs.keys() else 1
 
-        model_filename = join_path_names(modelspath, NAME_SAVEDMODELS_EPOCHS_TORCH)
+        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_EPOCH_TORCH)
         new_callback = ModelCheckpoint(model_filename, self,
-                                       freq_save_model=freq_save_checkmodel,
+                                       freq_save_model=freq_save_check_model,
                                        type_save_model='full_model',
                                        update_filename_epoch=True)
         self._list_callbacks.append(new_callback)
 
-        model_filename = join_path_names(modelspath, NAME_SAVEDMODELS_LAST_TORCH)
+        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_LAST_TORCH)
         new_callback = ModelCheckpoint(model_filename, self,
                                        type_save_model='full_model')
         self._list_callbacks.append(new_callback)
@@ -74,15 +74,25 @@ class ModelTrainer(ModelTrainerBase):
         self.create_optimizer(type_optimizer, learn_rate=0.0)
         self._optimizer.load_state_dict(model_full['optimizer_state_dict'])
 
+        # create loss
+        type_loss = model_full['loss_desc'][0]
+        loss_input_args = model_full['loss_desc'][1]
+        self.create_loss(type_loss, is_mask_to_region_interest=loss_input_args['is_masks_exclude'])
+
+        # create list of metrics
+        list_type_metrics = model_full['metrics_desc']
+        self.create_list_metrics(list_type_metrics, is_mask_to_region_interest=loss_input_args['is_masks_exclude'])
+
     def save_model_only_weights(self, model_filename: str) -> None:
         torch.save(self._network.state_dict(), model_filename)
 
     def save_model_full(self, model_filename: str) -> None:
         model_full = {'network_desc': self._network.get_network_input_args(),
                       'network_state_dict': self._network.state_dict(),
-                      'loss_desc': [self._loss.__class__.__name__, {'is_masks_exclude': self._loss._is_mask_exclude}],
                       'optimizer_desc': self._optimizer.__name__,
-                      'optimizer_state_dict': self._optimizer.state_dict()}
+                      'optimizer_state_dict': self._optimizer.state_dict(),
+                      'loss_desc': [self._loss.__class__.__name__, {'is_masks_exclude': self._loss._is_mask_exclude}],
+                      'metrics_desc': [imetric.__class__.__name__ for imetric in self._list_metrics]}
         torch.save(model_full, model_filename)
 
     def _criterion(self, in_prediction: torch.FloatTensor, in_groundtruth: torch.FloatTensor) -> torch.FloatTensor:

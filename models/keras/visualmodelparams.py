@@ -4,7 +4,7 @@ import numpy as np
 
 #from tensorflow.keras import backend as K
 
-from common.exception_manager import catch_error_exception
+from common.exceptionmanager import catch_error_exception
 from models.visualmodelparams import VisualModelParamsBase
 from preprocessing.imagegenerator import ImageGenerator
 

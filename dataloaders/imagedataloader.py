@@ -2,12 +2,12 @@
 from typing import List, Tuple, Any
 import numpy as np
 
-from common.exception_manager import catch_error_exception
-from common.function_util import is_exist_file
+from common.exceptionmanager import catch_error_exception
+from common.functionutil import is_exist_file
 from dataloaders.imagefilereader import ImageFileReader
 
 
-class LoadImageDataManager(object):
+class ImageDataLoader(object):
 
     @classmethod
     def load_1file(cls, filename: str) -> np.ndarray:
@@ -66,7 +66,7 @@ class LoadImageDataManager(object):
         return (out_list_images_1, out_list_images_2)
 
 
-class LoadImageDataInBatchesManager(LoadImageDataManager):
+class ImageDataInBatchesLoader(ImageDataLoader):
     _max_num_images_batch_default = None
 
     def __init__(self, size_image: Tuple[int, ...]) -> None:
@@ -88,7 +88,7 @@ class LoadImageDataInBatchesManager(LoadImageDataManager):
                    max_num_images_batch: int = _max_num_images_batch_default,
                    is_shuffle_data: bool = True
                    ) -> np.ndarray:
-        in_stack_images = super(LoadImageDataInBatchesManager, self).load_1file(filename)
+        in_stack_images = super(ImageDataInBatchesLoader, self).load_1file(filename)
         num_images_stack = in_stack_images.shape[0]
 
         if in_stack_images[0].shape != self._size_image:
@@ -112,7 +112,7 @@ class LoadImageDataInBatchesManager(LoadImageDataManager):
                     max_num_images_batch: int = _max_num_images_batch_default,
                     is_shuffle_data: bool = True
                     ) -> Tuple[np.ndarray, np.ndarray]:
-        (in_stack_images_1, in_stack_images_2) = super(LoadImageDataInBatchesManager, self).load_2files(filename_1, filename_2)
+        (in_stack_images_1, in_stack_images_2) = super(ImageDataInBatchesLoader, self).load_2files(filename_1, filename_2)
         num_images_stack = in_stack_images_1.shape[0]
 
         if in_stack_images_1[0].shape != self._size_image:
@@ -137,12 +137,12 @@ class LoadImageDataInBatchesManager(LoadImageDataManager):
                          max_num_images_batch: int = _max_num_images_batch_default,
                          is_shuffle_data: bool = True
                          ) -> List[np.ndarray]:
-        out_dtype = super(LoadImageDataInBatchesManager, self).load_1file(list_filenames[0]).dtype
+        out_dtype = super(ImageDataInBatchesLoader, self).load_1file(list_filenames[0]).dtype
         out_batch_images = np.array([], dtype=out_dtype).reshape((0,) + self._size_image)
         sumrun_out_images = 0
 
         for in_file in list_filenames:
-            out_stack_images = super(LoadImageDataInBatchesManager, self).load_1file(in_file)
+            out_stack_images = super(ImageDataInBatchesLoader, self).load_1file(in_file)
             num_images_stack = out_stack_images.shape[0]
             sumrun_out_images = sumrun_out_images + num_images_stack
 
@@ -167,14 +167,14 @@ class LoadImageDataInBatchesManager(LoadImageDataManager):
             message = 'number files in list1 (%s) and list2 (%s) are not equal' % (len(list_filenames_1), len(list_filenames_2))
             catch_error_exception(message)
 
-        out_dtype_1 = super(LoadImageDataInBatchesManager, self).load_1file(list_filenames_1[0]).dtype
-        out_dtype_2 = super(LoadImageDataInBatchesManager, self).load_1file(list_filenames_2[0]).dtype
+        out_dtype_1 = super(ImageDataInBatchesLoader, self).load_1file(list_filenames_1[0]).dtype
+        out_dtype_2 = super(ImageDataInBatchesLoader, self).load_1file(list_filenames_2[0]).dtype
         out_batch_images_1 = np.array([], dtype=out_dtype_1).reshape((0,) + self._size_image)
         out_batch_images_2 = np.array([], dtype=out_dtype_2).reshape((0,) + self._size_image)
         sumrun_out_images = 0
 
         for in_file_1, in_file_2 in zip(list_filenames_1, list_filenames_2):
-            (out_stack_images_1, out_stack_images_2) = super(LoadImageDataInBatchesManager, self).load_2files(in_file_1, in_file_2)
+            (out_stack_images_1, out_stack_images_2) = super(ImageDataInBatchesLoader, self).load_2files(in_file_1, in_file_2)
             num_images_stack = out_stack_images_1.shape[0]
             sumrun_out_images = sumrun_out_images + num_images_stack
 

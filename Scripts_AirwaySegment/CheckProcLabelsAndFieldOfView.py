@@ -8,9 +8,9 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from common.workdir_manager import *
+from common.workdirmanager import *
 from dataloaders.dataloader_manager import *
-from dataloaders.loadimagedata_manager import *
+from dataloaders.imagedataloader import *
 from networks.pytorch.networks import *
 from imageoperators.imageoperator import *
 from postprocessing.imagereconstructor_manager import *
@@ -41,7 +41,7 @@ def main(args):
 
     # Build model to calculate the output size
     model_net = DICTAVAILMODELS3D(args._size_image_in,
-                                  num_levels=args.num_layers,
+                                  num_levels=args.num_levels,
                                   num_featmaps_in=1,
                                   isUse_valid_convols=args.isValidConvolutions)
 
@@ -77,7 +77,7 @@ def main(args):
 
         print("Loading data in batches...")
         if (args.slidingWindowImages or args.randomCropWindowImages or args.transformationRigidImages):
-            in_label_data = LoadImageDataManager.load_1file(in_label_file)
+            in_label_data = ImageDataLoader.load_1file(in_label_file)
             in_label_data = np.expand_dims(in_label_data, axis=-1)
             in_label_generator = get_batchdata_generator_with_generator(args._size_image_in,
                                                                         [in_label_data],
@@ -90,7 +90,7 @@ def main(args):
                                                                         is_datagen_in_gpu=False)
             (_, inout_batches_label_arrays) = in_label_generator.get_full_data()
         else:
-            inout_batches_label_arrays = LoadImageDataInBatchesManager(args._size_image_in).load_1file(in_label_file)
+            inout_batches_label_arrays = ImageDataInBatchesLoader(args._size_image_in).load_1file(in_label_file)
             inout_batches_label_arrays = np.expand_dims(inout_batches_label_arrays, axis=0)
 
         print("Total data batches generated: %s..." % (len(inout_batches_label_arrays)))

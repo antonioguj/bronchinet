@@ -1,5 +1,5 @@
 
-from common.exception_manager import catch_warning_exception, catch_error_exception
+from common.exceptionmanager import catch_warning_exception, catch_error_exception
 import tensorflow as tf
 #from tensorflow.keras.client import device_lib
 import multiprocessing

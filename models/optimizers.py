@@ -1,6 +1,6 @@
 
 from common.constant import TYPE_DNNLIB_USED
-from common.exception_manager import catch_error_exception
+from common.exceptionmanager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
     from models.pytorch.optimizers import SGD, SGD_mom, RMSprop, Adagrad, Adadelta, Adam
 elif TYPE_DNNLIB_USED == 'Keras':

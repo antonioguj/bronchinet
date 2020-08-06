@@ -2,7 +2,7 @@
 from typing import List
 import numpy as np
 
-from common.exception_manager import catch_error_exception
+from common.exceptionmanager import catch_error_exception
 
 
 class MaskOperator(object):

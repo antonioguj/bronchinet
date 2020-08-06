@@ -3,7 +3,7 @@ from typing import Tuple, List
 import numpy as np
 
 from common.constant import TYPE_DNNLIB_USED
-from common.exception_manager import catch_error_exception
+from common.exceptionmanager import catch_error_exception
 from dataloaders.batchdatagenerator import BatchDataGenerator
 from models.networks import get_network
 from models.metrics import get_metric_train
@@ -78,7 +78,7 @@ class ModelTrainerBase(object):
     def compile_model(self) -> None:
         raise NotImplementedError
 
-    def create_callbacks(self, modelspath: str, **kwargs) -> None:
+    def create_callbacks(self, models_path: str, **kwargs) -> None:
         raise NotImplementedError
 
     def summary_model(self) -> None:
@@ -96,11 +96,14 @@ class ModelTrainerBase(object):
     def save_model_full(self, model_filename: str) -> None:
         raise NotImplementedError
 
+    def get_size_output_image_model(self):
+        return self._network.get_size_output()[:-1]
+
     def train(self,
               train_data_loader: BatchDataGenerator,
+              valid_data_loader: BatchDataGenerator = None,
               num_epochs: int = 1,
               max_steps_epoch: int = None,
-              valid_data_loader: BatchDataGenerator = None,
               initial_epoch: int = 0
               ) -> None:
         raise NotImplementedError

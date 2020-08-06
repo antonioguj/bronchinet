@@ -9,7 +9,7 @@
 ########################################################################################
 
 from common.constant import *
-from common.workdir_manager import *
+from common.workdirmanager import *
 from dataloaders.imagefilereader import *
 from imageoperators.imageoperator import *
 from imageoperators.maskoperator import *

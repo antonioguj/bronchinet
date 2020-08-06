@@ -9,7 +9,7 @@
 ########################################################################################
 
 from dataloaders.imagefilereader import *
-from common.function_util import *
+from common.functionutil import *
 import numpy as np
 import argparse
 

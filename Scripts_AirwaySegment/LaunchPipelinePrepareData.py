@@ -9,8 +9,8 @@
 #######################################################################################
 
 from common.constant import *
-from common.function_util import *
-from common.workdir_manager import *
+from common.functionutil import *
+from common.workdirmanager import *
 import subprocess
 import argparse
 
@@ -321,7 +321,7 @@ if __name__ == "__main__":
     parser.add_argument('outputdatadir', type=str)
     parser.add_argument('--type', type=str, default='training')
     parser.add_argument('--sizeTrainImages', type=str2tuple_int, default=IMAGES_DIMS_Z_X_Y)
-    parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
+    parser.add_argument('--masksToRegionInterest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
     parser.add_argument('--fixedRescaleRes', type=str2tuple_float, default=FIXEDRESCALERES)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)

@@ -15,7 +15,7 @@ import torch
 from networks.pytorch.gnn_util import NodeGNN
 from networks.pytorch.gnn_util import compute_ontheflyAdjacency
 from networks.pytorch.gnn_util.NetworksGNNs import NeuralNetwork, source_dir_adjs_default
-from common.function_util import *
+from common.functionutil import *
 
 torch.manual_seed(2017)
 

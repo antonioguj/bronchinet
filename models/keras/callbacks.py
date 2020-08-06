@@ -44,5 +44,13 @@ class EarlyStopping(EarlyStoppingBase, callbacks_keras.Callback):
 
 class ModelCheckpoint(CallbackBase, callbacks_keras.ModelCheckpoint):
 
-    def __init__(self, model_filename: str):
-        super(ModelCheckpoint, self).__init__(model_filename, monitor='loss', verbose=0)
+    def __init__(self,
+                 model_filename: str,
+                 data_monitor: str = 'loss',
+                 type_save_model: str = 'full_model'
+                 ) -> None:
+        super(ModelCheckpoint, self).__init__(model_filename,
+                                              monitor=data_monitor,
+                                              verbose=0,
+                                              save_weights_only=(type_save_model=='only_weights'),
+                                              save_freq='epoch')

@@ -5,7 +5,7 @@ import numpy as np
 import torch.nn as nn
 import torch
 
-from common.exception_manager import catch_error_exception
+from common.exceptionmanager import catch_error_exception
 from models.visualmodelparams import VisualModelParamsBase
 from preprocessing.imagegenerator import ImageGenerator
 

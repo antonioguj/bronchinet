@@ -4,7 +4,7 @@ import numpy as np
 from scipy.spatial import distance
 
 from common.constant import TYPE_DNNLIB_USED
-from common.exception_manager import catch_error_exception
+from common.exceptionmanager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
     from models.pytorch.metrics import Metric as Metric_train, \
                                        CombineTwoMetrics as CombineTwoMetrics_train, \

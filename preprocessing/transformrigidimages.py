@@ -4,8 +4,8 @@ import numpy as np
 np.random.seed(2017)
 import scipy.ndimage as ndi
 
-from common.exception_manager import catch_error_exception
-from common.function_util import ImagesUtil
+from common.exceptionmanager import catch_error_exception
+from common.functionutil import ImagesUtil
 from preprocessing.imagegenerator import ImageGenerator
 
 _epsilon = 1e-6

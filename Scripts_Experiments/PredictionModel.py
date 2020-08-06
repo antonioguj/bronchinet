@@ -9,9 +9,9 @@
 ########################################################################################
 
 #from common.CPUGPUdevicesManager import *
-from common.workdir_manager import *
+from common.workdirmanager import *
 from dataloaders.dataloader_manager import *
-from dataloaders.loadimagedata_manager import *
+from dataloaders.imagedataloader import *
 if TYPE_DNNLIB_USED == 'Keras':
     from networks.keras.metrics import *
     from networks.keras.networks import *
@@ -75,7 +75,7 @@ def main(args):
 
     if TYPE_DNNLIB_USED == 'Keras':
         loss_fun = DICTAVAILLOSSFUNS(args.lossfun, is_masks_exclude=args.masksToRegionInterest).lossfun
-        metrics = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).renamed_compute() for imetrics in args.listmetrics]
+        metrics = [DICTAVAILMETRICFUNS(imetrics, is_masks_exclude=args.masksToRegionInterest).renamed_compute() for imetrics in args.list_type_metrics]
         custom_objects = dict(map(lambda fun: (fun.__name__, fun), [loss_fun] + metrics))
         # load and compile model
         model = UNet.get_load_saved_model(modelSavedPath, custom_objects=custom_objects)
@@ -149,7 +149,7 @@ def main(args):
         # -----------------------------------------------------------------------------
         print("Loading data...")
         if (args.slidingWindowImages or args.transformationRigidImages):
-            in_testXData = LoadImageDataManager.load_1file(in_testXData_file)
+            in_testXData = ImageDataLoader.load_1file(in_testXData_file)
             in_testXData_batches = get_batchdata_generator_with_generator(args._size_image_in,
                                                                           [in_testXData],
                                                                           [in_testXData],
@@ -159,7 +159,7 @@ def main(args):
                                                                           size_output_images=size_output_modelnet,
                                                                           shuffle=False)
         else:
-            in_testXData_batches = LoadImageDataInBatchesManager(args._size_image_in).load_1file(in_testXData_file)
+            in_testXData_batches = ImageDataInBatchesLoader(args._size_image_in).load_1file(in_testXData_file)
             in_testXData_batches = np.expand_dims(in_testXData_batches, axis=0)
 
         print("Total Data batches generated: %s..." % (len(in_testXData_batches)))

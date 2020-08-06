@@ -3,8 +3,8 @@ from typing import Tuple
 import numpy as np
 
 #from common.constant import *
-from common.exception_manager import catch_error_exception
-from common.function_util import ImagesUtil
+from common.exceptionmanager import catch_error_exception
+from common.functionutil import ImagesUtil
 from imageoperators.boundingboxes import BoundingBoxes
 from preprocessing.imagegenerator import ImageGenerator
 

@@ -4,7 +4,7 @@ from typing import Tuple
 from common.constant import ROTATION_XY_RANGE, ROTATION_XZ_RANGE, ROTATION_YZ_RANGE, HEIGHT_SHIFT_RANGE, WIDTH_SHIFT_RANGE, \
                             DEPTH_SHIFT_RANGE, HORIZONTAL_FLIP, VERTICAL_FLIP, AXIALDIR_FLIP,  ZOOM_RANGE, FILL_MODE_TRANSFORM, \
                             TYPETRANSFORMELASTICDEFORMATION
-from common.exception_manager import catch_error_exception
+from common.exceptionmanager import catch_error_exception
 from preprocessing.imagegenerator import ImageGenerator, NullGenerator, CombinedImagesGenerator
 from preprocessing.randomwindowimages import RandomWindowImages
 from preprocessing.slidingwindowimages import SlidingWindowImages

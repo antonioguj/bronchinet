@@ -10,7 +10,7 @@ import csv
 import os
 import re
 
-from common.exception_manager import catch_error_exception
+from common.exceptionmanager import catch_error_exception
 
 
 # to interact with the command shell:

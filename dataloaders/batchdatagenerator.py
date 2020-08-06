@@ -3,8 +3,8 @@ from typing import List, Tuple
 import numpy as np
 np.random.seed(2017)
 
-from common.exception_manager import catch_error_exception
-from common.function_util import ImagesUtil
+from common.exceptionmanager import catch_error_exception
+from common.functionutil import ImagesUtil
 from imageoperators.boundingboxes import BoundingBoxes
 from imageoperators.imageoperator import CropImage
 from preprocessing.imagegenerator import ImageGenerator

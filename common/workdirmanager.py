@@ -1,6 +1,6 @@
 
-from common.function_util import join_path_names, is_exist_dir, is_exist_file, currentdir, makedir, update_dirname, update_filename
-from common.exception_manager import catch_error_exception
+from common.functionutil import join_path_names, is_exist_dir, is_exist_file, currentdir, makedir, update_dirname, update_filename
+from common.exceptionmanager import catch_error_exception
 
 
 class GeneralDirManager(object):

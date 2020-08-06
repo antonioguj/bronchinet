@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from common.function_util import *
+from common.functionutil import *
 #from scipy.stats import ttest_ind as fun_ttest
 from scipy.stats import ttest_rel as fun_ttest
 from collections import *

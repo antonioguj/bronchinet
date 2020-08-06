@@ -10,7 +10,7 @@
 
 import argparse
 
-from common.workdir_manager import *
+from common.workdirmanager import *
 from dataloaders.imagefilereader import *
 from preprocessing.imagegenerator_manager import *
 

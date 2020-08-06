@@ -4,7 +4,7 @@ from typing import Tuple, List, Dict, Any
 BoundBoxNDType = Tuple[Tuple[int, int], ...]
 
 from common.constant import TYPE_DNNLIB_USED
-from common.exception_manager import catch_error_exception
+from common.exceptionmanager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
     from models.pytorch.networks import UNet, UNet3D_Original, UNet3D_General, UNet3D_Plugin, LIST_AVAIL_NETWORKS
 elif TYPE_DNNLIB_USED == 'Keras':

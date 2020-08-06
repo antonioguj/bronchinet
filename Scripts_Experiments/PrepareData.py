@@ -9,7 +9,7 @@
 ########################################################################################
 
 from common.constant import *
-from common.workdir_manager import *
+from common.workdirmanager import *
 from dataloaders.imagefilereader import *
 from imageoperators.imageoperator import *
 from imageoperators.boundingboxes import *
@@ -342,7 +342,7 @@ if __name__ == "__main__":
     parser.add_argument('--isPrepareLabels', type=str2bool, default=True)
     parser.add_argument('--isInputExtraLabels', type=str2bool, default=False)
     parser.add_argument('--isBinaryTrainMasks', type=str2bool, default=ISBINARYTRAINMASKS)
-    parser.add_argument('--masksToRegionInterest', type=str2bool, default=MASKTOREGIONINTEREST)
+    parser.add_argument('--masksToRegionInterest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--rescaleImages', type=str2bool, default=RESCALEIMAGES)
     parser.add_argument('--nameRescaleFactorsFile', type=str, default=NAME_RESCALEFACTOR_FILE)
     parser.add_argument('--cropImages', type=str2bool, default=CROPIMAGES)

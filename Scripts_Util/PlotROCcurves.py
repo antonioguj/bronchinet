@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from common.function_util import *
+from common.functionutil import *
 import matplotlib.pyplot as plt
 from collections import *
 import numpy as np

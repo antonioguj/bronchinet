@@ -8,7 +8,7 @@
 # Last update: 09/02/2018
 ########################################################################################
 
-from common.exception_manager import *
+from common.exceptionmanager import *
 from dataloaders.imagefilereader import *
 from imageoperators.imageoperator import *
 import argparse

@@ -11,8 +11,8 @@ with warnings.catch_warnings():
     import nibabel as nib
     import h5py
 
-from common.exception_manager import catch_error_exception, catch_warning_exception
-from common.function_util import fileextension
+from common.exceptionmanager import catch_error_exception, catch_warning_exception
+from common.functionutil import fileextension
 
 
 class ImageFileReader(object):

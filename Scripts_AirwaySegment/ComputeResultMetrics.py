@@ -9,7 +9,7 @@
 ########################################################################################
 
 from common.constant import *
-from common.workdir_manager import *
+from common.workdirmanager import *
 from dataloaders.imagefilereader import *
 from networks.pytorch.metrics import *
 from imageoperators.imageoperator import *
