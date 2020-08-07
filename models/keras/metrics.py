@@ -1,6 +1,5 @@
 
 from typing import Tuple, Callable
-import numpy as np
 
 from tensorflow.keras.losses import mean_squared_error, binary_crossentropy
 from tensorflow.keras import backend as K

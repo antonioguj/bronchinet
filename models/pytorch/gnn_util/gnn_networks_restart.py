@@ -1,20 +1,12 @@
-#
-# created by
-# Antonio Garcia-Uceda Juarez
-# PhD student
-# Medical Informatics
-#
-# created on 09/02/2018
-# Last update: 09/02/2018
-########################################################################################
 
 from torch.nn import Conv3d, MaxPool3d, Upsample, ReLU, Sigmoid
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 #from torch.nn.functional import interpolate
-from networks.pytorch.gnn_util import GraphConvolutionFirstOrder, LayerNorm
-from networks.pytorch.gnn_util.NetworksGNNs import NeuralNetwork, source_dir_adjs_default
+
+from models.pytorch.gnn_util import GraphConvolutionFirstOrder, LayerNorm
+from models.pytorch.gnn_util.NetworksGNNs import NeuralNetwork, source_dir_adjs_default
 
 
 class ModelRestartPlugin(NeuralNetwork):

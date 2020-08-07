@@ -1,12 +1,5 @@
-#
-# created by
-# Antonio Garcia-Uceda Juarez
-# PhD student
-# Medical Informatics
-#
-# created on 09/02/2018
-# Last update: 09/02/2018
-########################################################################################
+
+import numpy as np
 
 from torch.nn import Conv3d, MaxPool3d, Upsample, ReLU, Sigmoid
 import torch.nn as nn
@@ -18,14 +11,13 @@ import scipy.sparse as sp
 from networks.pytorch.gnn_util import makeAdjacency, compute_ontheflyAdjacency,\
     compute_ontheflyAdjacency_with_attention_layers, GenOntheflyAdjacency_NeighCandit
 from networks.pytorch.gnn_util.gnn_utilities import sparse_mx_to_torch_sparse_tensor
-from common.functionutil import *
-import numpy as np
-
 torch.manual_seed(2017)
 
+from common.functionutil import join_path_names
+from common.exceptionmanager import catch_error_exception
 
 
-source_dir_adjs_default = './Code/GNN/adj/'
+SOURCE_DIR_ADJS_DEFAULT = './Code/GNN/adj/'
 
 class NeuralNetwork(nn.Module):
 
@@ -78,7 +70,7 @@ class NeuralNetwork(nn.Module):
     def build_model(self):
         return NotImplemented
 
-    def load_adjacency_matrixes(self, source_dir_adjs=source_dir_adjs_default):
+    def load_adjacency_matrixes(self, source_dir_adjs=SOURCE_DIR_ADJS_DEFAULT):
         return NotImplemented
 
     def preprocess(self, *args, **kwargs):
@@ -352,7 +344,7 @@ class Unet3DGNN(NeuralNetwork):
                  nfeat=nfeat_default,
                  isUse_valid_convols= True,
                  isGNN_with_attention_lays= False,
-                 source_dir_adjs= source_dir_adjs_default):
+                 source_dir_adjs= SOURCE_DIR_ADJS_DEFAULT):
         self.isGNN_with_attention_lays = isGNN_with_attention_lays
         self.source_dir_adjs = source_dir_adjs
         super(Unet3DGNN, self).__init__(size_image,
@@ -517,7 +509,7 @@ class Unet3DGNN_OTF(NeuralNetwork):
                  freq_epoch_adj_onthefly=freq_epoch_adj_onthefly_default,
                  is_limit_neighs_onthefly_adj= True,
                  isGNN_with_attention_lays= False,
-                 source_dir_adjs = source_dir_adjs_default):
+                 source_dir_adjs = SOURCE_DIR_ADJS_DEFAULT):
         self.freq_epoch_adj_onthefly = freq_epoch_adj_onthefly
         if self.freq_epoch_adj_onthefly>1:
             print("Alternate between i) \'On-the-fly\' and ii) \'Precomputed\' adjacency matrix, every \'%s\' epochs..."
@@ -612,13 +604,13 @@ class Unet3DGNN_OTF(NeuralNetwork):
         if self.is_alter_onthefly_precalc_adj:
             self.is_onthefly_adjacency_inepoch = (epoch_count+1) % self.freq_epoch_adj_onthefly == 0
             if self.is_onthefly_adjacency_inepoch:
-                print "Using on-the-fly computed adjacency matrix in this epoch..."
+                print("Using on-the-fly computed adjacency matrix in this epoch...")
             else:
-                print "Using precomputed and stored adjacency matrix in this epoch..."
+                print("Using precomputed and stored adjacency matrix in this epoch...")
                 # Depending on the GNN module: list_matrix_adjs_gnn_sto := i) adj_sto, ii) adj_sto, n2e_in, n2e_out
                 self.nGNN._preprocess(self.list_matrix_adjs_gnn_sto)
         else:
-            print "Using every epoch on-the-fly computed adjacency matrix in this epoch..."
+            print("Using every epoch on-the-fly computed adjacency matrix in this epoch...")
 
 
     def build_model(self):
@@ -718,7 +710,7 @@ def DICTAVAILMODELSGNNS(option, size_image,
                         nfeat=Unet3D.nfeat_default,
                         isUse_valid_convols= True,
                         isGNN_with_attention_lays= False,
-                        source_dir_adjs=source_dir_adjs_default):
+                        source_dir_adjs=SOURCE_DIR_ADJS_DEFAULT):
     list_models_avail = ['UnetGNN_OTF', 'UnetGNN', 'Unet']
 
     if not isUse_valid_convols:

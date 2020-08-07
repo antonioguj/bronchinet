@@ -1,6 +1,5 @@
 
 from typing import Tuple
-import numpy as np
 
 from torch.nn import CrossEntropyLoss
 import torch.nn as nn

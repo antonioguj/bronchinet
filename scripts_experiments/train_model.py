@@ -74,11 +74,11 @@ def main(args):
 
 
     # write out experiment parameters in config file
-    out_configparams_file = join_path_names(models_path, NAME_CONFIGPARAMS_FILE)
-    if not is_exist_file(out_configparams_file):
-        print("Write configuration parameters in file: \'%s\'..." % (out_configparams_file))
+    out_config_params_file = join_path_names(models_path, NAME_CONFIG_PARAMS_FILE)
+    if not is_exist_file(out_config_params_file):
+        print("Write configuration parameters in file: \'%s\'..." % (out_config_params_file))
         dict_args = OrderedDict(sorted(vars(args).items()))
-        save_dictionary_configparams(out_configparams_file, dict_args)
+        save_dictionary_configparams(out_config_params_file, dict_args)
 
     # write out logs with the training and validation files files used
     out_traindata_logfile = join_path_names(models_path, NAME_TRAINDATA_LOGFILE)
@@ -135,10 +135,10 @@ def main(args):
     model_trainer.summary_model()
 
     if (WRITE_OUT_DESC_MODEL_TEXT):
-        out_descmodel_logfile = join_path_names(models_path, NAME_DESCMODEL_LOGFILE)
-        print("Write out descriptive model source model in text file: \'%s\'" % (out_descmodel_logfile))
+        out_descript_model_logfile = join_path_names(models_path, NAME_DESCRIPT_MODEL_LOGFILE)
+        print("Write out descriptive model source model in text file: \'%s\'" % (out_descript_model_logfile))
         descmodel_text = model_trainer._networks.get_descmodel_sourcecode()
-        fout = open(out_descmodel_logfile, 'w')
+        fout = open(out_descript_model_logfile, 'w')
         fout.write(descmodel_text)
         fout.close()
 

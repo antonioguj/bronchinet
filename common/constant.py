@@ -2,7 +2,6 @@
 import numpy as np
 np.random.seed(2017)
 
-
 DATADIR = '/home/antonio/Data/DLCST_Testing/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 
@@ -24,8 +23,8 @@ NAME_REFERENCE_KEYS_PROCIMAGE_FILE = 'referenceKeys_procimages.npy'
 NAME_TRAININGDATA_RELPATH       = 'TrainingData/'
 NAME_VALIDATIONDATA_RELPATH     = 'ValidationData/'
 NAME_TESTINGDATA_RELPATH        = 'TestingData/'
-NAME_CONFIGPARAMS_FILE          = 'configparams.txt'
-NAME_DESCMODEL_LOGFILE          = 'logdescmodel.txt'
+NAME_CONFIG_PARAMS_FILE         = 'configparams.txt'
+NAME_DESCRIPT_MODEL_LOGFILE     = 'descriptmodel.txt'
 NAME_TRAINDATA_LOGFILE          = 'traindatafiles.txt'
 NAME_VALIDDATA_LOGFILE          = 'validdatafiles.txt'
 NAME_LOSSHISTORY_FILE           = 'lossHistory.csv'
@@ -139,5 +138,6 @@ LIST_TYPE_METRICS_ROC_CURVE = ['DiceCoefficient',
                                'AirwayVolumeLeakage',
                                'AirwayCentrelineFalsePositiveDistanceError',
                                'AirwayCentrelineFalseNegativeDistanceError']
+METRIC_EVALUATE_THRESHOLD   = 'AirwayVolumeLeakage'
 IS_SAVE_FEATMAPS_LAYERS     = False
 NAME_SAVE_FEATS_MODEL_LAYER = 'convU12'

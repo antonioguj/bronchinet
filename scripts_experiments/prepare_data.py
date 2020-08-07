@@ -36,14 +36,14 @@ def main(args):
     workdir_manager         = GeneralDirManager(args.datadir)
     input_images_path       = workdir_manager.get_pathdir_exist(args.name_input_images_relpath)
     in_reference_files_path = workdir_manager.get_pathdir_exist(args.name_input_reference_files_relpath)
-    output_images_path      = workdir_manager.get_pathdir_new(args.name_output_images_rel_path)
+    output_images_path      = workdir_manager.get_pathdir_new(args.name_output_images_relpath)
     out_reference_keys_file = workdir_manager.get_pathfile_update(args.name_output_reference_keys_file)
     list_input_images_files = list_files_dir(input_images_path)
     list_in_reference_files = list_files_dir(in_reference_files_path)
 
     if (args.is_prepare_labels):
         input_labels_path       = workdir_manager.get_pathdir_exist(args.name_input_labels_relpath)
-        output_labels_path      = workdir_manager.get_pathdir_new(args.name_output_labels_rel_path)
+        output_labels_path      = workdir_manager.get_pathdir_new(args.name_output_labels_relpath)
         list_input_labels_files = list_files_dir(input_labels_path)
         check_same_number_files_in_list(list_input_images_files, list_input_labels_files)
 
@@ -53,7 +53,7 @@ def main(args):
         check_same_number_files_in_list(list_input_images_files, list_input_RoImasks_files)
 
     if (args.is_input_extra_labels):
-        input_extra_labels_path       = workdir_manager.get_pathdir_exist(args.name_input_extra_labels_rel_path)
+        input_extra_labels_path       = workdir_manager.get_pathdir_exist(args.name_input_extra_labels_relpath)
         output_extra_labels_path      = workdir_manager.get_pathdir_new  (args.name_output_extra_labels_relpath)
         list_input_extra_labels_files = list_files_dir(input_extra_labels_path)
         check_same_number_files_in_list(list_input_images_files, list_input_extra_labels_files)
@@ -104,7 +104,7 @@ def main(args):
             print("And Labels: \'%s\'..." % (basename(in_label_file)))
 
             inout_label = ImageFileReader.get_image(in_label_file)
-            if (args.is_binary_train_asks):
+            if (args.is_binary_train_masks):
                 print("Convert masks to binary (0, 1)...")
                 inout_label = MaskOperator.binarise(inout_label)
 
@@ -315,14 +315,14 @@ if __name__ == "__main__":
     parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     parser.add_argument('--name_input_RoImasks_relpath', type=str, default=NAME_RAW_ROIMASKS_RELPATH)
     parser.add_argument('--name_input_reference_files_relpath', type=str, default=NAME_REFERENCE_FILES_RELPATH)
-    parser.add_argument('--name_input_extra_labels_rel_path', type=str, default=NAME_RAW_EXTRALABELS_RELPATH)
-    parser.add_argument('--name_output_images_rel_path', type=str, default=NAME_PROC_IMAGES_RELPATH)
-    parser.add_argument('--name_output_labels_rel_path', type=str, default=NAME_PROC_LABELS_RELPATH)
+    parser.add_argument('--name_input_extra_labels_relpath', type=str, default=NAME_RAW_EXTRALABELS_RELPATH)
+    parser.add_argument('--name_output_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
+    parser.add_argument('--name_output_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
     parser.add_argument('--name_output_extra_labels_relpath', type=str, default=NAME_PROC_EXTRA_LABELS_RELPATH)
     parser.add_argument('--name_output_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--is_prepare_labels', type=str2bool, default=True)
     parser.add_argument('--is_input_extra_labels', type=str2bool, default=False)
-    parser.add_argument('--is_binary_train_asks', type=str2bool, default=IS_BINARY_TRAIN_MASKS)
+    parser.add_argument('--is_binary_train_masks', type=str2bool, default=IS_BINARY_TRAIN_MASKS)
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
     parser.add_argument('--name_rescale_factors_file', type=str, default=NAME_RESCALE_FACTOR_FILE)

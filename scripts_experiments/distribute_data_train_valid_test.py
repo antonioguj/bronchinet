@@ -199,15 +199,15 @@ if __name__ == "__main__":
         args.is_input_extra_labels  = False
         args.is_prepare_centrelines = True
     else:
-        message = 'Input param \'typedata\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.type_data, LIST_TYPE_DATA_AVAIL)
+        message = 'Input param \'type_data\' = \'%s\' not valid, must be inside: \'%s\'...' % (args.type_data, LIST_TYPE_DATA_AVAIL)
         catch_error_exception(message)
 
     if args.type_distribute not in LIST_TYPE_DISTRIBUTE_AVAIL:
-        message = 'Input param \'type_distributedata\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.type_distribute, LIST_TYPE_DISTRIBUTE_AVAIL)
+        message = 'Input param \'type_distribute\' = \'%s\' not valid, must be inside: \'%s\'...' %(args.type_distribute, LIST_TYPE_DISTRIBUTE_AVAIL)
         catch_error_exception(message)
 
     if args.type_distribute == 'orderfile' and not args.infile_train_order:
-        message = 'Input \'infileorder\' file for \'fixed-order\' data distribution is needed...'
+        message = 'Input \'infile_train_order\' file for \'orderfile\' data distribution is needed...'
         catch_error_exception(message)
 
     print("Print input arguments...")

@@ -38,7 +38,7 @@ DICT_OPERS_SUFFIX = {'mask': 'masked',
 # ------------------------------------------------
 def prepare_mask_operation(args):
     print("Operation: Mask images...")
-    listInputRoiMasksFiles = list_files_dir(args.inputRoidir)
+    listInputRoiMasksFiles = list_files_dir(args.input_roidir)
 
     def wrapfun_mask_image(in_data, i):
         in_roimask_file = listInputRoiMasksFiles[i]
@@ -64,7 +64,7 @@ def prepare_binarise_operation(args):
 # ------------------------------------------------
 def prepare_merge_operation(args):
     print("Operation: Merge two images...")
-    listInput2ndMasksFiles = list_files_dir(args.input2nddir)
+    listInput2ndMasksFiles = list_files_dir(args.input_2nddir)
 
     def wrapfun_merge_image(in_data, i):
         in_2ndmask_file = listInput2ndMasksFiles[i]
@@ -79,7 +79,7 @@ def prepare_merge_operation(args):
 # ------------------------------------------------
 def prepare_substract_operation(args):
     print("Operation: Substract two images (img1 - img2)...")
-    listInput2ndMasksFiles = list_files_dir(args.input2nddir)
+    listInput2ndMasksFiles = list_files_dir(args.input_2nddir)
 
     def wrapfun_substract_image(in_data, i):
         in_2ndmask_file = listInput2ndMasksFiles[i]
@@ -94,8 +94,8 @@ def prepare_substract_operation(args):
 # ------------------------------------------------
 def prepare_crop_operation(args):
     print("Operation: Crop images...")
-    listReferenceFiles = list_files_dir(args.referencedir)
-    dict_cropBoundingBoxes = read_dictionary(args.boundboxfile)
+    listReferenceFiles = list_files_dir(args.reference_dir)
+    dict_cropBoundingBoxes = read_dictionary(args.boundbox_file)
 
     def wrapfun_crop_image(in_data, i):
         in_referkey_file = listReferenceFiles[i]
@@ -110,8 +110,8 @@ def prepare_crop_operation(args):
 # ------------------------------------------------
 def prepare_rescale_updatemetadata(args):
     print("Update metadata (voxel size) from Rescaling operation...")
-    listReferenceFiles = list_files_dir(args.referencedir)
-    dict_rescaleFactors = read_dictionary(args.rescalefile)
+    listReferenceFiles = list_files_dir(args.reference_dir)
+    dict_rescaleFactors = read_dictionary(args.rescale_file)
 
     def wrapfun_updatemetadata_rescale(in_file, i):
         in_referkey_file = listReferenceFiles[i]
@@ -125,8 +125,8 @@ def prepare_rescale_updatemetadata(args):
 
 def prepare_rescale_operation(args, is_rescale_mask= False):
     print("Operation: Rescale images...")
-    listReferenceFiles = list_files_dir(args.referencedir)
-    dict_rescaleFactors = read_dictionary(args.rescalefile)
+    listReferenceFiles = list_files_dir(args.reference_dir)
+    dict_rescaleFactors = read_dictionary(args.rescale_file)
 
     def wrapfun_rescale_image(in_data, i):
         in_referkey_file = listReferenceFiles[i]
@@ -252,7 +252,7 @@ def prepare_threshold_operation(args):
 
 # ------------------------------------------------
 def prepare_maskwithlabels_operation(args):
-    in_mask_labels = args.inmasklabels
+    in_mask_labels = args.in_mask_labels
     print("Operation: Retrieve from the mask the labels: \'%s\'..." %(in_mask_labels))
 
     def wrapfun_maskwithlabels_image(in_data, i):
@@ -300,9 +300,9 @@ def prepare_exponential_operation(args):
 
 def main(args):
 
-    listInputFiles  = list_files_dir(args.inputdir)
+    listInputFiles  = list_files_dir(args.input_dir)
     list_names_operations = args.type
-    makedir(args.outputdir)
+    makedir(args.output_dir)
 
 
     dict_func_operations = OrderedDict()
@@ -354,7 +354,7 @@ def main(args):
                 new_func_operation = prepare_threshold_operation(args)
             elif name_operation == 'masklabels':
                 new_func_operation = prepare_maskwithlabels_operation(args)
-                DICT_OPERS_SUFFIX['masklabels'] = DICT_OPERS_SUFFIX['masklabels'] %('-'.join([str(el) for el in args.inmasklabels]))
+                DICT_OPERS_SUFFIX['masklabels'] = DICT_OPERS_SUFFIX['masklabels'] %('-'.join([str(el) for el in args.in_mask_labels]))
             elif name_operation == 'normalise':
                 new_func_operation = prepare_normalise_operation(args)
             elif name_operation == 'power':
@@ -374,12 +374,12 @@ def main(args):
                 suffix_output_names += '_'+ DICT_OPERS_SUFFIX[name_operation]
     #endfor
 
-    if args.outnifti:
+    if args.out_nifti:
         in_file_extension = '.nii'
     else:
         in_file_extension = fileextension(listInputFiles[0])
 
-    if args.nosuffixoutname:
+    if args.no_suffix_outname:
         nameOutputFiles = lambda in_name: basename_file_noext(in_name) + in_file_extension
     else:
         nameOutputFiles = lambda in_name: basename_file_noext(in_name) + suffix_output_names + in_file_extension
@@ -402,7 +402,7 @@ def main(args):
         #endfor
 
 
-        out_filename = join_path_names(args.outputdir, nameOutputFiles(basename(in_file)))
+        out_filename = join_path_names(args.output_dir, nameOutputFiles(basename(in_file)))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), str(inout_data.shape)))
 
         ImageFileReader.write_image(out_filename, inout_data, metadata=inout_metadata)
@@ -435,17 +435,17 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--datadir', type=str, default=DATADIR)
-    parser.add_argument('inputdir', type=str)
-    parser.add_argument('outputdir', type=str)
+    parser.add_argument('input_dir', type=str)
+    parser.add_argument('output_dir', type=str)
     parser.add_argument('--type', nargs='+', default=['None'], help=string_opers_help)
-    parser.add_argument('--inputRoidir', type=str, default=None)
-    parser.add_argument('--input2nddir', type=str, default=None)
-    parser.add_argument('--referencedir', type=str, default=None)
-    parser.add_argument('--boundboxfile', type=str, default=None)
-    parser.add_argument('--rescalefile', type=str, default=None)
-    parser.add_argument('--inmasklabels', nargs='+', type=int, default=None)
-    parser.add_argument('--outnifti', type=str2bool, default=False)
-    parser.add_argument('--nosuffixoutname', type=str2bool, default=None)
+    parser.add_argument('--input_roidir', type=str, default=None)
+    parser.add_argument('--input_2nddir', type=str, default=None)
+    parser.add_argument('--reference_dir', type=str, default=None)
+    parser.add_argument('--boundbox_file', type=str, default=None)
+    parser.add_argument('--rescale_file', type=str, default=None)
+    parser.add_argument('--in_mask_labels', nargs='+', type=int, default=None)
+    parser.add_argument('--out_nifti', type=str2bool, default=False)
+    parser.add_argument('--no_suffix_outname', type=str2bool, default=None)
     args = parser.parse_args()
 
     for ioperation in args.type:
@@ -454,25 +454,25 @@ if __name__ == "__main__":
             catch_error_exception(message)
 
     if 'mask' in args.type:
-        if not args.inputRoidir:
-            message = 'need to set argument \'inputRoidir\''
+        if not args.input_roidir:
+            message = 'need to set argument \'input_roidir\''
             catch_error_exception(message)
     if 'merge' in args.type or 'substract' in args.type:
-        if not args.input2nddir:
-            message = 'need to set argument \'input2nddir\''
+        if not args.input_2nddir:
+            message = 'need to set argument \'input_2nddir\''
             catch_error_exception(message)
     elif 'crop' in args.type:
-        if not args.referencedir or not args.boundboxfile:
-            message = 'need to set arguments \'referencedir\' and \'boundboxfile\''
+        if not args.reference_dir or not args.boundbox_file:
+            message = 'need to set arguments \'reference_dir\' and \'boundbox_file\''
             catch_error_exception(message)
     elif 'rescale' in args.type or \
         'rescale_mask' in args.type:
-        if not args.referencedir or not args.rescalefile:
-            message = 'need to set arguments \'referencedir\' and \'rescalefile\''
+        if not args.reference_dir or not args.rescale_file:
+            message = 'need to set arguments \'reference_dir\' and \'rescale_file\''
             catch_error_exception(message)
     elif 'masklabels' in args.type:
-        if not args.inmasklabels:
-            message = 'need to set arguments \'inmasklabels\''
+        if not args.in_mask_labels:
+            message = 'need to set arguments \'in_mask_labels\''
             catch_error_exception(message)
 
     print("Print input arguments...")
