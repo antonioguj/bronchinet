@@ -138,8 +138,8 @@ def main(args):
     # endfor
 
     # Save computed bounding-boxes
-    save_dictionary(args.output_boundboxes_file, dict_found_bounding_boxes)
-    save_dictionary_csv(args.output_boundboxes_file.replace('.npy', '.csv'), dict_found_bounding_boxes)
+    save_dictionary(args.found_boundingbox_file, dict_found_bounding_boxes)
+    save_dictionary_csv(args.found_boundingbox_file.replace('.npy', '.csv'), dict_found_bounding_boxes)
 
     fout.close()
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('crop_images_dir', type=str)
     parser.add_argument('full_images_dir', type=str)
-    parser.add_argument('--output_boundboxes_file', type=str, default='found_boundingBox_croppedCTinFull.npy')
+    parser.add_argument('--found_boundingbox_file', type=str, default='found_boundingBox_croppedCTinFull.npy')
     args = parser.parse_args()
 
     print("Print input arguments...")

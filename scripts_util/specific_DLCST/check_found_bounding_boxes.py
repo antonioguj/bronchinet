@@ -10,7 +10,7 @@ def main(args):
 
     list_input_crop_images_files = list_files_dir(args.crop_images_dir)
     list_input_full_images_files = list_files_dir(args.full_images_dir)
-    dict_input_bounding_boxes    = read_dictionary(args.input_boundboxes_file)
+    dict_input_bounding_boxes    = read_dictionary(args.found_boundingbox_file)
 
 
     names_files_different = []
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('crop_images_dir', type=str)
     parser.add_argument('full_images_dir', type=str)
-    parser.add_argument('--input_boundboxes_file', type=str, default='found_boundingBox_croppedCTinFull.npy')
+    parser.add_argument('--found_boundingbox_file', type=str, default='found_boundingBox_croppedCTinFull.npy')
     args = parser.parse_args()
 
     print("Print input arguments...")

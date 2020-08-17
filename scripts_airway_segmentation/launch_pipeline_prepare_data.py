@@ -7,7 +7,7 @@ import sys
 import argparse
 
 
-CODEDIR                         = '/home/antonio/Codes/Antonio_repository/AirwaySegmentation/'
+CODEDIR                         = '/home/antonio/Codes/Antonio_repository/AirwaySegmentation_Cleaned/'
 SCRIPT_CONVERT_TO_NIFTI         = join_path_names(CODEDIR, 'scripts_util/convert_images_to_nifti.py')
 SCRIPT_BINARISE_MASKS           = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
 SCRIPT_GET_TRACHEA_MAIN_BRONCHI = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
@@ -185,13 +185,13 @@ def main(args):
         name_tempo_extended_RoImasks_path = set_dirname_suffix(name_input_raw_RoImasks_path, 'Extended')
 
         new_call = ['python3', SCRIPT_EXTEND_CROPPED_IMAGES, name_input_raw_labels_path, name_tempo_extended_labels_path,
-                    '--reference_files_dir', name_input_reference_files_path,
-                    '--input_boundboxes_file', name_input_found_bound_boxes_file]
+                    '--reference_dir', name_input_reference_files_path,
+                    '--boundingbox_file', name_input_found_bound_boxes_file]
         list_calls_all.append(new_call)
 
         new_call = ['python3', SCRIPT_EXTEND_CROPPED_IMAGES, name_input_raw_RoImasks_path, name_tempo_extended_RoImasks_path,
-                    '--reference_files_dir', name_input_reference_files_path,
-                    '--input_boundboxes_file', name_input_found_bound_boxes_file]
+                    '--reference_dir', name_input_reference_files_path,
+                    '--boundingbox_file', name_input_found_bound_boxes_file]
         list_calls_all.append(new_call)
 
         sublist_calls = create_task_replace_dirs(name_input_raw_labels_path, name_tempo_extended_labels_path)
@@ -204,8 +204,8 @@ def main(args):
             name_tempo_extended_coarse_airways_path = set_dirname_suffix(name_input_raw_coarse_airways_path, 'Extended')
 
             new_call = ['python3', SCRIPT_EXTEND_CROPPED_IMAGES, name_input_raw_coarse_airways_path, name_tempo_extended_coarse_airways_path,
-                        '--reference_files_dir', name_input_reference_files_path,
-                        '--input_boundboxes_file', name_input_found_bound_boxes_file]
+                        '--reference_dir', name_input_reference_files_path,
+                        '--boundingbox_file', name_input_found_bound_boxes_file]
             list_calls_all.append(new_call)
 
             new_sublist_calls = create_task_replace_dirs(name_input_raw_coarse_airways_path, name_tempo_extended_coarse_airways_path)
@@ -232,7 +232,7 @@ def main(args):
 
         new_call = ['python3', SCRIPT_RESCALE_ROI_MASKS, name_input_raw_RoImasks_path, name_tempo_rescaled_roi_masks_path,
                     '--type', 'rescale_mask',
-                    '--rescale_file', name_input_rescale_factors_file,
+                    '--rescalefactor_file', name_input_rescale_factors_file,
                     '--reference_dir', name_input_reference_files_path]
         list_calls_all.append(new_call)
 
@@ -269,7 +269,7 @@ def main(args):
 
 
     # Remove all the data not needed anymore
-    if args.type == 'training':
+    if args.type_data == 'training':
         new_call = ['rm', '-r', name_input_raw_images_path]
         list_calls_all.append(new_call)
 

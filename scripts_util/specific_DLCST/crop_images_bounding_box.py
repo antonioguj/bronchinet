@@ -13,8 +13,8 @@ def main(args):
 
 
     list_input_images_files    = list_files_dir(args.inputdir)
-    list_input_reference_files = list_files_dir(args.reference_files_dir)
-    dict_input_bounding_boxes  = read_dictionary(args.input_boundboxes_file)
+    list_input_reference_files = list_files_dir(args.reference_dir)
+    dict_input_bounding_boxes  = read_dictionary(args.boundingbox_file)
     prefix_pattern_input_files = get_prefix_pattern_filename(list_input_reference_files[0])
 
     makedir(args.outputdir)
@@ -56,8 +56,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
-    parser.add_argument('--reference_files_dir', type=str, default='RawImages/')
-    parser.add_argument('--input_boundboxes_file', type=str, default='found_boundingBox_croppedCTinFull.npy')
+    parser.add_argument('--reference_dir', type=str, default='RawImages/')
+    parser.add_argument('--boundingbox_file', type=str, default='found_boundingBox_croppedCTinFull.npy')
     args = parser.parse_args()
 
     print("Print input arguments...")

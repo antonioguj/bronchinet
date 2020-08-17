@@ -262,13 +262,13 @@ def str2tuple_datatype(in_str: str, elem_type: str) -> Tuple[Any, ...]:
     return tuple([func_convert_elem(elem) for elem in list_elems_tuple])
 
 def str2tuple_int(in_str: str) -> Tuple[Any, ...]:
-    if str == 'None':
+    if in_str == 'None':
         return None
     else:
         return str2tuple_datatype(in_str, elem_type='int')
 
 def str2tuple_float(in_str: str) -> Tuple[Any, ...]:
-    if str == 'None':
+    if in_str == 'None':
         return None
     else:
         return str2tuple_datatype(in_str, elem_type='float')

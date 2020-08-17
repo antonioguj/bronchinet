@@ -40,7 +40,7 @@ class ImageFileReader(object):
 
     @classmethod
     def get_image(cls, filename: str) -> np.ndarray:
-        return cls._get_filereader_class(filename)._get_image(filename)
+        return cls._get_filereader_class(filename).get_image(filename)
 
     @classmethod
     def write_image(cls, filename: str, in_image: np.ndarray, **kwargs) -> None:
