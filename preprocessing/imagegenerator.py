@@ -63,10 +63,10 @@ class ImageGenerator(object):
         return out_list_images
 
     def get_shape_output_image(self, in_shape_image: Tuple[int, ...]) -> Tuple[int, ...]:
-        if ImagesUtil.is_image_without_channels(self._size_image, in_shape_image):
+        if ImagesUtil.is_without_channels(self._size_image, in_shape_image):
             return (self._num_images,) + self._size_image
         else:
-            num_channels = ImagesUtil.get_num_channels_image(self._size_image, in_shape_image)
+            num_channels = ImagesUtil.get_num_channels(self._size_image, in_shape_image)
             return (self._num_images,) + self._size_image + (num_channels,)
 
     def compute_images_all(self, in_list_images: List[np.ndarray], **kwargs) -> List[np.ndarray]:
@@ -135,7 +135,7 @@ class CombinedImagesGenerator(ImageGenerator):
         for images_generator in self._list_images_generators:
             images_generator.update_image_data(in_shape_image)
 
-        self.num_images = self._get_compute_num_images()
+        self._num_images = self._get_compute_num_images()
 
     def _compute_gendata(self, **kwargs) -> None:
         for images_generator in self._list_images_generators:

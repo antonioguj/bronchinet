@@ -18,7 +18,7 @@ def main(args):
 
     workDirsManager             = TrainDirManager(args.basedir)
     input_predictions_path      = workDirsManager.get_pathdir_exist(args.name_input_predictions_relpath)
-    in_reference_files_path     = workDirsManager.get_datafile_exist(args.name_input_reference_files_relpath)
+    in_reference_files_path     = workDirsManager.get_datadir_exist(args.name_input_reference_files_relpath)
     in_reference_keys_file      = workDirsManager.get_pathfile_exist(args.name_input_reference_keys_file)
     output_posteriors_path      = workDirsManager.get_pathdir_new(args.name_output_posteriors_relpath)
     list_input_predictions_files= list_files_dir(input_predictions_path)
@@ -26,7 +26,7 @@ def main(args):
     prefix_pattern_input_files  = get_prefix_pattern_filename(list(indict_reference_keys.values())[0])
 
     if (args.is_mask_region_interest):
-        input_RoImasks_path       = workDirsManager.get_datafile_exist(args.name_input_RoImasks_relpath)
+        input_RoImasks_path       = workDirsManager.get_datadir_exist(args.name_input_RoImasks_relpath)
         list_input_RoImasks_files = list_files_dir(input_RoImasks_path)
 
     if (args.is_crop_images):

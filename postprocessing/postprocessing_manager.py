@@ -4,7 +4,7 @@ from typing import Tuple
 from common.exceptionmanager import catch_error_exception
 from postprocessing.imagereconstructor import ImageReconstructor, ImageReconstructorWithTransformation
 from preprocessing.filternnetoutput_validconvs import FilteringNnetOutputValidConvs2D, FilteringNnetOutputValidConvs3D
-from preprocessing.imagegenerator_manager import get_images_generator
+from preprocessing.preprocessing_manager import get_images_generator
 
 
 def get_images_reconstructor(size_images: Tuple[int, ...],

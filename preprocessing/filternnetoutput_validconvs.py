@@ -72,7 +72,7 @@ class FilterNnetOutputValidConvs(ImageGenerator):
 
     def _get_filtered_probout_nnet(self, in_image: np.ndarray) -> np.ndarray:
         if self._check_correct_dims_image_filter(in_image.shape):
-            if ImagesUtil.is_image_without_channels(self._size_image, in_image.shape):
+            if ImagesUtil.is_without_channels(self._size_image, in_image.shape):
                 return np.multiply(self._probmap_output_nnet, in_image)
             else:
                 return np.multiply(self._probmap_output_nnet, in_image[..., :])
@@ -112,7 +112,7 @@ class FilterNnetOutputValidConvs(ImageGenerator):
         return NotImplemented
 
     def _check_correct_dims_image_filter(self, in_shape_image: Tuple[int, ...]) -> bool:
-        if ImagesUtil.is_image_without_channels(self._size_image, in_shape_image):
+        if ImagesUtil.is_without_channels(self._size_image, in_shape_image):
             in_size_image = in_shape_image
         else:
             in_size_image = in_shape_image[:-2]

@@ -3,7 +3,7 @@ from common.constant import *
 from common.functionutil import *
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
-from models.metrics import get_metric
+from models.model_manager import get_metric
 from imageoperators.imageoperator import MorphoDilateMask
 from imageoperators.maskoperator import MaskOperator
 from collections import OrderedDict
@@ -15,13 +15,13 @@ def main(args):
 
     workdir_manager                 = TrainDirManager(args.basedir)
     input_predicted_masks_path      = workdir_manager.get_pathdir_exist(args.input_predicted_masks_dir)
-    input_reference_masks_path      = workdir_manager.get_datafile_exist(args.name_input_reference_masks_relpath)
+    input_reference_masks_path      = workdir_manager.get_datadir_exist(args.name_input_reference_masks_relpath)
     list_input_predicted_masks_files= list_files_dir(input_predicted_masks_path)
     list_input_reference_masks_files= list_files_dir(input_reference_masks_path)
     prefix_pattern_input_files      = get_prefix_pattern_filename(list_input_reference_masks_files[0])
 
     if (args.is_remove_trachea_calc_metrics):
-        input_coarse_airways_path       = workdir_manager.get_datafile_exist(args.name_input_coarse_airways_relpath)
+        input_coarse_airways_path       = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
 
 
@@ -41,7 +41,7 @@ def main(args):
 
     if (is_load_reference_cenlines_files):
         print("Loading Reference Centrelines...")
-        input_reference_cenlines_path       = workdir_manager.get_datafile_exist(args.name_input_reference_centrelines_relpath)
+        input_reference_cenlines_path       = workdir_manager.get_datadir_exist(args.name_input_reference_centrelines_relpath)
         list_input_reference_cenlines_files = list_files_dir(input_reference_cenlines_path)
 
     if (is_load_predicted_cenlines_files):

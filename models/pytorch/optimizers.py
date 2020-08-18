@@ -5,6 +5,14 @@ from torch.optim import SGD as SGD_torch, \
                         Adadelta as Adadelta_torch, \
                         Adam as Adam_torch
 
+LIST_AVAIL_OPTIMIZERS = ['SGD',
+                         'SGD_mom',
+                         'Adagrad',
+                         'RMSprop',
+                         'Adadelta',
+                         'Adam',
+                         ]
+
 def SGD(learn_rate: float, **kwargs):
     model_params = kwargs['model_params']
     return SGD_torch(model_params, lr=learn_rate)

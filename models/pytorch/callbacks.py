@@ -3,7 +3,7 @@ from typing import List
 
 from models.callbacks import CallbackBase, RecordLossHistoryBase, EarlyStoppingBase
 from models.metrics import MetricBase
-from models.modeltrainer import ModelTrainerBase
+#from models.modeltrainer import ModelTrainerBase
 
 
 class RecordLossHistory(RecordLossHistoryBase):
@@ -27,7 +27,7 @@ class ModelCheckpoint(CallbackBase):
 
     def __init__(self,
                  model_filename: str,
-                 model_trainer: ModelTrainerBase,
+                 model_trainer,
                  freq_save_model: int = 1,
                  type_save_model: str = 'full_model',
                  update_filename_epoch: bool = False

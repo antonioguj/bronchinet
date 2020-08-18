@@ -2,9 +2,9 @@
 from torch.nn import Conv3d, MaxPool3d, Upsample, ReLU, Sigmoid
 #from torch.nn.functional import interpolate
 import torch
-from networks.pytorch.gnn_util import NodeGNN
-from networks.pytorch.gnn_util import compute_ontheflyAdjacency
-from networks.pytorch.gnn_util.NetworksGNNs import NeuralNetwork, source_dir_adjs_default
+from models.pytorch.gnn_util import NodeGNN
+from models.pytorch.gnn_util import compute_ontheflyAdjacency
+from models.pytorch.gnn_util.NetworksGNNs import NeuralNetwork, source_dir_adjs_default
 torch.manual_seed(2017)
 
 from common.functionutil import join_path_names

@@ -24,12 +24,11 @@ class UNet(UNetBase):
                  num_classes_out: int,
                  is_use_valid_convols: bool = False
                  ) -> None:
-        super(UNet, self).__init__(size_image_in,
-                                   num_levels,
-                                   num_channels_in,
-                                   num_classes_out,
-                                   num_featmaps_in,
+        super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in, num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols)
+
+    def preprocess(self, *args, **kwargs) -> None:
+        pass
 
     def _build_list_info_crop_where_merge(self) -> None:
         indexes_output_where_pooling = [(i-1) for i, el in enumerate(self._list_opers_names_layers_all) if el == 'pooling']
@@ -146,7 +145,7 @@ class UNet3D_General(UNet):
                  is_use_batchnormalize_levels_down: Union[bool, List[bool]] = True,
                  is_use_batchnormalize_levels_up: Union[bool, List[bool]] = True
                  ) -> None:
-        super(UNet, self).__init__(size_image_in, num_levels, num_channels_in, num_classes_out, num_featmaps_in,
+        super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in, num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols)
 
         self._type_activate_hidden = type_activate_hidden

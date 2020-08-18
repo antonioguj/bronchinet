@@ -33,8 +33,8 @@ class Metric(MetricBase, nn.Module):
         super(Metric, self).__init__(is_mask_exclude)
 
     def compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
-        if self.is_mask_exclude:
-            return self.__compute_masked(torch.flatten(y_true), torch.flatten(y_pred.flatten))
+        if self._is_mask_exclude:
+            return self._compute_masked(torch.flatten(y_true), torch.flatten(y_pred))
         else:
             return self._compute(torch.flatten(y_true), torch.flatten(y_pred))
 
@@ -47,14 +47,14 @@ class Metric(MetricBase, nn.Module):
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         raise NotImplementedError
 
-    def __compute_masked(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
+    def _compute_masked(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return self._compute(self._get_masked_input(y_true, y_true),
                              self._get_masked_input(y_pred, y_true))
 
-    def get_mask(self, y_true: torch.FloatTensor) -> torch.FloatTensor:
+    def _get_mask(self, y_true: torch.FloatTensor) -> torch.FloatTensor:
         return torch.where(y_true == self._value_mask_exclude, torch.zeros_like(y_true), torch.ones_like(y_true))
 
-    def get_masked_input(self, y_input: torch.FloatTensor, y_true: torch.FloatTensor) -> torch.FloatTensor:
+    def _get_masked_input(self, y_input: torch.FloatTensor, y_true: torch.FloatTensor) -> torch.FloatTensor:
         return torch.where(y_true == self._value_mask_exclude, torch.zeros_like(y_input), y_input)
 
 
@@ -72,7 +72,7 @@ class MetricWithUncertainty(Metric):
         return (1.0 - self._epsilon) * self._metrics_loss._compute(y_true, y_pred) + \
                self._epsilon * self._metrics_loss._compute(torch.ones_like(y_pred) / 3, y_pred)
 
-    def __compute_masked(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
+    def _compute_masked(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return (1.0 - self._epsilon) * self._metrics_loss.__compute_masked(y_true, y_pred) + \
                self._epsilon * self._metrics_loss.__compute_masked(torch.ones_like(y_pred) / 3, y_pred)
 
@@ -147,7 +147,7 @@ class WeightedBinaryCrossEntropy(Metric):
         super(WeightedBinaryCrossEntropy, self).__init__(is_mask_exclude)
         self._name_fun_out = 'weight_bin_cross'
 
-    def _get_weights(self, y_true: torch.FloatTensor) -> Tuple[torch.Float, torch.Float]:
+    def _get_weights(self, y_true: torch.FloatTensor) -> Tuple[torch.FloatTensor, torch.FloatTensor]:
         num_class_1 = torch.count_nonzero(torch.where(y_true == 1.0, torch.ones_like(y_true), torch.zeros_like(y_true)), dtype=torch.int32)
         num_class_0 = torch.count_nonzero(torch.where(y_true == 0.0, torch.ones_like(y_true), torch.zeros_like(y_true)), dtype=torch.int32)
         return (1.0, torch.cast(num_class_0, dtype=torch.float32) / (torch.cast(num_class_1, dtype=torch.float32) + torch.variable(_EPS)))
@@ -177,7 +177,7 @@ class WeightedBinaryCrossEntropyFixedWeights(WeightedBinaryCrossEntropy):
         super(WeightedBinaryCrossEntropyFixedWeights, self).__init__(is_mask_exclude)
         self._name_fun_out = 'weight_bin_cross_fixed'
 
-    def _get_weights(self, y_true: torch.FloatTensor) -> Tuple[torch.Float, torch.Float]:
+    def _get_weights(self, y_true: torch.FloatTensor) -> Tuple[torch.FloatTensor, torch.FloatTensor]:
         return self._weights
 
 

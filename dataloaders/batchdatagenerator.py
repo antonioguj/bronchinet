@@ -37,6 +37,9 @@ class BatchDataGenerator(object):
                 np.random.seed(self._seed)
             np.random.shuffle(self._indexes)
 
+    def _get_indexes_batch(self, index: int) -> List[int]:
+        return self._indexes[index * self._batch_size: (index + 1) * self._batch_size]
+
     def __getitem__(self, index: int):
         raise NotImplementedError
 
@@ -51,6 +54,7 @@ class BatchImageDataGenerator_1Image(BatchDataGenerator):
                  list_Xdata: List[np.ndarray],
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
+                 type_image_format: str = 'channels_last',
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
@@ -63,6 +67,8 @@ class BatchImageDataGenerator_1Image(BatchDataGenerator):
         self._num_channels_in = num_channels_in
 
         self._num_images = self._compute_list_indexes_images_files(is_print_datagen_info)
+
+        self._is_reshape_channels_first = type_image_format == 'channels_first'
 
         super(BatchImageDataGenerator_1Image, self).__init__(self._num_images, batch_size, shuffle, seed)
 
@@ -90,16 +96,16 @@ class BatchImageDataGenerator_1Image(BatchDataGenerator):
 
     def _get_data_batch(self, index: int) -> np.ndarray:
         "Generate one batch of data"
-        indexes = self._indexes[index * self._batch_size: (index + 1) * self._batch_size]  # indexes of this batch
-        num_images_batch = len(indexes)
+        indexes_batch = self._get_indexes_batch(index)
+        num_images_batch = len(indexes_batch)
 
-        out_shape_Xdata = [num_images_batch] + list(self._size_image) + [self._num_channels_in]
+        out_shape_Xdata = (num_images_batch,) + self._size_image + (self._num_channels_in,)
         out_Xdata = np.ndarray(out_shape_Xdata, dtype=self._dtype_Xdata)
 
-        for i, index in enumerate(indexes):
+        for i, index in enumerate(indexes_batch):
             out_Xdata[i] = self._get_data_sample(index)
 
-        return out_Xdata
+        return self._process_batch_data(out_Xdata)
 
     def _get_data_sample(self, index: int) -> np.ndarray:
         "Generate one sample of batch of data"
@@ -108,22 +114,28 @@ class BatchImageDataGenerator_1Image(BatchDataGenerator):
 
         out_Xdata_elem = self._images_generator.get_image(self._list_Xdata[index_file],
                                                           index=index_image_file, seed=None)
-        return self._process_output_Xdata(out_Xdata_elem)
+        return self._process_sample_Xdata(out_Xdata_elem)
 
     def get_full_data(self) -> np.ndarray:
         "Generate full data including all batches"
-        out_shape_Xdata = [self._num_images] + list(self._size_image) + [self._num_channels_in]
+        out_shape_Xdata = (self._num_images,) + self._size_image + (self._num_channels_in,)
         out_Xdata = np.ndarray(out_shape_Xdata, dtype= self._dtype_Xdata)
 
         for i in range(self._num_images):
             out_Xdata[i] = self._get_data_sample(i)
 
-        return out_Xdata
+        return self._process_batch_data(out_Xdata)
 
-    def _process_output_Xdata(self, in_image: np.ndarray) -> np.ndarray:
-        if ImagesUtil.is_image_without_channels(self._size_image, in_image.shape):
+    def _process_sample_Xdata(self, in_image: np.ndarray) -> np.ndarray:
+        if ImagesUtil.is_without_channels(self._size_image, in_image.shape):
             in_image = np.expand_dims(in_image, axis=-1)
         return in_image
+        
+    def _process_batch_data(self, in_batch_data: np.ndarray) -> np.ndarray:
+        if self._is_reshape_channels_first:
+            return ImagesUtil.reshape_channels_first(in_batch_data)
+        else:
+            return in_batch_data
 
 
 class BatchImageDataGenerator_2Images(BatchImageDataGenerator_1Image):
@@ -135,6 +147,7 @@ class BatchImageDataGenerator_2Images(BatchImageDataGenerator_1Image):
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
                  num_classes_out: int = 1,
+                 type_image_format: str = 'channels_last',
                  is_output_nnet_validconvs: bool = False,
                  size_output_image: Tuple[int, ...] = None,
                  batch_size: int = 1,
@@ -146,6 +159,7 @@ class BatchImageDataGenerator_2Images(BatchImageDataGenerator_1Image):
                                                               list_Xdata,
                                                               images_generator,
                                                               num_channels_in=num_channels_in,
+                                                              type_image_format=type_image_format,
                                                               batch_size=batch_size,
                                                               shuffle=shuffle,
                                                               seed=seed,
@@ -182,18 +196,19 @@ class BatchImageDataGenerator_2Images(BatchImageDataGenerator_1Image):
 
     def _get_data_batch(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
         "Generate one batch of data"
-        indexes = self._indexes[index * self._batch_size: (index + 1) * self._batch_size]  # indexes of this batch
-        num_images_batch = len(indexes)
+        indexes_batch = self._get_indexes_batch(index)
+        num_images_batch = len(indexes_batch)
 
-        out_shape_Xdata = [num_images_batch] + list(self._size_image) + [self._num_channels_in]
-        out_shape_Ydata = [num_images_batch] + list(self._size_output_image) + [self._num_classes_out]
+        out_shape_Xdata = (num_images_batch,) + self._size_image + (self._num_channels_in,)
+        out_shape_Ydata = (num_images_batch,) + self._size_output_image + (self._num_classes_out,)
         out_Xdata = np.ndarray(out_shape_Xdata, dtype=self._dtype_Xdata)
         out_Ydata = np.ndarray(out_shape_Ydata, dtype=self._dtype_Ydata)
 
-        for i, index in enumerate(indexes):
+        for i, index in enumerate(indexes_batch):
             (out_Xdata[i], out_Ydata[i]) = self._get_data_sample(index)
 
-        return (out_Xdata, out_Ydata)
+        return (self._process_batch_data(out_Xdata),
+                self._process_batch_data(out_Ydata))
 
     def _get_data_sample(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
         "Generate one sample of batch of data"
@@ -203,25 +218,26 @@ class BatchImageDataGenerator_2Images(BatchImageDataGenerator_1Image):
         (out_Xdata_elem, out_Ydata_elem) = self._images_generator.get_2images(self._list_Xdata[index_file],
                                                                               self._list_Ydata[index_file],
                                                                               index=index_image_file, seed=None)
-        return (self._process_output_Xdata(out_Xdata_elem),
-                self._process_output_Ydata(out_Ydata_elem))
+        return (self._process_sample_Xdata(out_Xdata_elem),
+                self._process_sample_Ydata(out_Ydata_elem))
 
     def get_full_data(self) -> Tuple[np.ndarray, np.ndarray]:
         "Generate full data including all batches"
-        out_shape_Xdata = [self._num_images] + list(self._size_image) + [self._num_channels_in]
-        out_shape_Ydata = [self._num_images] + list(self._size_output_image) + [self._num_classes_out]
+        out_shape_Xdata = (self._num_images,) + self._size_image + (self._num_channels_in,)
+        out_shape_Ydata = (self._num_images,) + self._size_output_image + (self._num_classes_out,)
         out_Xdata = np.ndarray(out_shape_Xdata, dtype= self._dtype_Xdata)
         out_Ydata = np.ndarray(out_shape_Ydata, dtype= self._dtype_Ydata)
 
         for i in range(self._num_images):
             (out_Xdata[i], out_Ydata[i]) = self._get_data_sample(i)
 
-        return (out_Xdata, out_Ydata)
+        return (self._process_batch_data(out_Xdata),
+                self._process_batch_data(out_Ydata))
 
-    def _get_cropped_output(self, in_image: np.ndarray) -> np.ndarray:
+    def _get_cropped_sample(self, in_image: np.ndarray) -> np.ndarray:
         return self._func_crop_images(in_image, self._output_crop_bounding_box)
 
-    def _process_output_Ydata(self, in_image: np.ndarray) -> np.ndarray:
+    def _process_sample_Ydata(self, in_image: np.ndarray) -> np.ndarray:
         if self._is_output_nnet_validconvs:
-            in_image = self._get_cropped_output(in_image)
-        return self._process_output_Xdata(in_image)
+            in_image = self._get_cropped_sample(in_image)
+        return self._process_sample_Xdata(in_image)

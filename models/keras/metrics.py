@@ -7,7 +7,7 @@ import tensorflow as tf
 
 from models.metrics import MetricBase
 
-_EPS = K._epsilon()
+_EPS = K.epsilon()
 _SMOOTH = 1.0
 
 LIST_AVAIL_METRICS = ['MeanSquaredError',

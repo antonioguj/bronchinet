@@ -3,7 +3,7 @@ from common.constant import *
 from common.functionutil import *
 from common.workdirmanager import TrainDirManager
 from dataloaders.dataloader_manager import get_train_imagedataloader_2images
-from models.modeltrainer import ModelTrainer
+from models.model_manager import ModelTrainer
 from collections import OrderedDict
 import argparse
 if TYPE_DNNLIB_USED == 'Pytorch':
@@ -50,10 +50,10 @@ def main(args):
 
     workdir_manager         = TrainDirManager(args.basedir)
     training_data_path      = workdir_manager.get_pathdir_exist(args.traininig_datadir)
-    reference_keys_file     = workdir_manager.get_datafile_exist(args.name_reference_keys_file)
+    in_reference_keys_file  = workdir_manager.get_datafile_exist(args.name_reference_keys_file)
     list_train_images_files = list_files_dir(training_data_path, name_input_images_files)[0:args.max_train_images]
     list_train_labels_files = list_files_dir(training_data_path, name_input_labels_files)[0:args.max_train_images]
-    dict_reference_keys     = read_dictionary(reference_keys_file)
+    indict_reference_keys   = read_dictionary(in_reference_keys_file)
 
     if args.is_restart_model:
         models_path = workdir_manager.get_pathdir_exist(args.modelsdir)
@@ -82,11 +82,11 @@ def main(args):
 
     # write out logs with the training and validation files files used
     out_traindata_logfile = join_path_names(models_path, NAME_TRAINDATA_LOGFILE)
-    write_train_valid_data_logfile(out_traindata_logfile, list_train_images_files, dict_reference_keys, 'training')
+    write_train_valid_data_logfile(out_traindata_logfile, list_train_images_files, indict_reference_keys, 'training')
 
     if use_validation_data:
         out_validdata_logfile = join_path_names(models_path, NAME_VALIDDATA_LOGFILE)
-        write_train_valid_data_logfile(out_validdata_logfile, list_valid_images_files, dict_reference_keys, 'validation')
+        write_train_valid_data_logfile(out_validdata_logfile, list_valid_images_files, indict_reference_keys, 'validation')
 
 
     # BUILDING MODEL
@@ -99,7 +99,7 @@ def main(args):
         model_trainer.create_network(type_network=args.type_network,
                                      size_image_in=args.size_in_images,
                                      num_levels=args.net_num_levels,
-                                     num_featmaps_in=args.num_featmaps,
+                                     num_featmaps_in=args.net_num_featmaps,
                                      num_channels_in=1,
                                      num_classes_out=1,
                                      is_use_valid_convols=args.is_valid_convolutions)

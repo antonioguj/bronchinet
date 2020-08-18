@@ -3,12 +3,7 @@ from typing import Tuple, List, Dict, Union
 import numpy as np
 #from tensorflow.keras import backend as K
 
-from common.constant import TYPE_DNNLIB_USED
 from common.exceptionmanager import catch_error_exception
-if TYPE_DNNLIB_USED == 'Pytorch':
-    from models.pytorch.visualmodelparams import VisualModelParams
-elif TYPE_DNNLIB_USED == 'Keras':
-    from models.keras.visualmodelparams import VisualModelParams
 from preprocessing.imagegenerator import ImageGenerator
 
 

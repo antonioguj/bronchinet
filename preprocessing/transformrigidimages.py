@@ -54,7 +54,7 @@ class TransformRigidImages(ImageGenerator):
         self._initialize_gendata()
 
     def update_image_data(self, in_shape_image: Tuple[int, ...]) -> None:
-        # self.num_images = in_shape_image[0]
+        # self._num_images = in_shape_image[0]
         pass
 
     def _compute_gendata(self, **kwargs) -> None:
@@ -74,7 +74,7 @@ class TransformRigidImages(ImageGenerator):
         return self._get_transformed_image(in_image, is_type_input_image=is_type_input_image)
 
     def _get_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
-        if ImagesUtil.is_image_without_channels(self._size_image, in_image.shape):
+        if ImagesUtil.is_without_channels(self._size_image, in_image.shape):
             in_image = np.expand_dims(in_image, axis=-1)
             is_reshape_input_image = True
         else:
@@ -90,7 +90,7 @@ class TransformRigidImages(ImageGenerator):
         return in_image
 
     def _get_inverse_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:        
-        if ImagesUtil.is_image_without_channels(self._size_image, in_image.shape):
+        if ImagesUtil.is_without_channels(self._size_image, in_image.shape):
             in_image = np.expand_dims(in_image, axis=-1)
             is_reshape_input_image = True
         else:

@@ -35,7 +35,7 @@ LIST_TYPE_DISTRIBUTE_AVAIL = ['original', 'random', 'orderfile']
 def main(args):
 
     workdir_manager         = TrainDirManager(args.basedir)
-    input_images_data_path  = workdir_manager.get_datafile_exist(args.name_input_images_relpath)
+    input_images_data_path  = workdir_manager.get_datadir_exist(args.name_input_images_relpath)
     in_reference_keys_file  = workdir_manager.get_datafile_exist(args.name_input_reference_keys_file)
     training_data_path      = workdir_manager.get_pathdir_new(args.name_training_data_relpath)
     validation_data_path    = workdir_manager.get_pathdir_new(args.name_validation_data_relpath)
@@ -43,14 +43,14 @@ def main(args):
     list_input_images_files = list_files_dir(input_images_data_path)
 
     if (args.is_prepare_labels):
-        input_labels_data_path  = workdir_manager.get_datafile_exist(args.nameI_input_labels_relpath)
+        input_labels_data_path  = workdir_manager.get_datadir_exist(args.nameI_input_labels_relpath)
         list_input_labels_files = list_files_dir(input_labels_data_path)
         if (len(list_input_images_files) != len(list_input_labels_files)):
             message = 'num Images \'%s\' and Labels \'%s\' not equal...' %(len(list_input_images_files), len(list_input_labels_files))
             catch_error_exception(message)
 
     if (args.is_input_extra_labels):
-        input_extra_labels_data_path  = workdir_manager.get_datafile_exist(args.name_input_extra_labels_relpath)
+        input_extra_labels_data_path  = workdir_manager.get_datadir_exist(args.name_input_extra_labels_relpath)
         list_input_extra_labels_files = list_files_dir(input_extra_labels_data_path)
         if (len(list_input_images_files) != len(list_input_extra_labels_files)):
             message = 'num Images \'%s\' and Extra Labels \'%s\' not equal...' %(len(list_input_images_files), len(list_input_extra_labels_files))

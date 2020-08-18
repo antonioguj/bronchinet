@@ -420,12 +420,33 @@ class ImagesUtil:
     # shape_image: full shape or image array
 
     @staticmethod
-    def is_image_without_channels(in_size_image: Tuple[int, ...], in_shape_image: Tuple[int, ...]) -> bool:
+    def is_without_channels(in_size_image: Tuple[int, ...], in_shape_image: Tuple[int, ...]) -> bool:
         return len(in_shape_image) == len(in_size_image)
 
     @classmethod
-    def get_num_channels_image(cls, in_size_image: Tuple[int, ...], in_shape_image: Tuple[int, ...]) -> int:
-        if cls.is_image_without_channels(in_size_image, in_shape_image):
+    def get_num_channels(cls, in_size_image: Tuple[int, ...], in_shape_image: Tuple[int, ...]) -> int:
+        if cls.is_without_channels(in_size_image, in_shape_image):
             return None
         else:
             return in_shape_image[-1]
+
+    @staticmethod
+    def get_shape_channels_first(in_shape_image: Tuple[int, ...]) -> Tuple[int, ...]:
+        return tuple(np.roll(in_shape_image, 1))
+
+    @staticmethod
+    def get_shape_channels_last(in_shape_image: Tuple[int, ...]) -> Tuple[int, ...]:
+        ndim = len(in_shape_image)
+        return tuple(np.roll(in_shape_image, ndim - 1))
+
+    @staticmethod
+    def reshape_channels_first(in_image: np.ndarray, is_input_sample: bool = False) -> np.ndarray:
+        ndim = len(in_image.shape)
+        start_val = 0 if is_input_sample else 1
+        return np.rollaxis(in_image, ndim - 1, start_val)
+
+    @staticmethod
+    def reshape_channels_last(in_image: np.ndarray, is_input_sample: bool = False) -> np.ndarray:
+        ndim = len(in_image.shape)
+        axis_val = 0 if is_input_sample else 1
+        return np.rollaxis(in_image, axis_val, ndim)

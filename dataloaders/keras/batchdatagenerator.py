@@ -23,13 +23,15 @@ class TrainBatchImageDataGenerator_1Image(BatchImageDataGenerator_1Image, Sequen
                  is_datagen_halfPrec: bool = False
                  ) -> None:
         super(TrainBatchImageDataGenerator_1Image, self).__init__(size_image,
-                                                                   list_Xdata,
-                                                                   images_generator,
-                                                                   num_channels_in=num_channels_in,
-                                                                   batch_size=batch_size,
-                                                                   shuffle=shuffle,
-                                                                   seed=seed,
-                                                                   is_print_datagen_info=is_print_datagen_info)
+                                                                  list_Xdata,
+                                                                  images_generator,
+                                                                  num_channels_in=num_channels_in,
+                                                                  type_image_format='channels_last',
+                                                                  batch_size=batch_size,
+                                                                  shuffle=shuffle,
+                                                                  seed=seed,
+                                                                  is_print_datagen_info=is_print_datagen_info)
+        Sequence_keras.__init__(self)   # Only way to call constructor from second inherited class
         self._type_data_generated = np.float32
 
     def __len__(self) -> int:
@@ -67,12 +69,14 @@ class TrainBatchImageDataGenerator_2Images(BatchImageDataGenerator_2Images, Sequ
                                                                    images_generator,
                                                                    num_channels_in=num_channels_in,
                                                                    num_classes_out=num_classes_out,
+                                                                   type_image_format='channels_last',
                                                                    is_output_nnet_validconvs=is_output_nnet_validconvs,
                                                                    size_output_image=size_output_image,
                                                                    batch_size=batch_size,
                                                                    shuffle=shuffle,
                                                                    seed=seed,
                                                                    is_print_datagen_info=is_print_datagen_info)
+        Sequence_keras.__init__(self)  # Only way to call constructor from second inherited class
         self._type_data_generated = np.float32
 
     def __len__(self) -> int:

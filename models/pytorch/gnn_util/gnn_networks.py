@@ -5,12 +5,12 @@ from torch.nn import Conv3d, MaxPool3d, Upsample, ReLU, Sigmoid
 import torch.nn as nn
 #from torch.nn.functional import interpolate
 import torch
-from networks.pytorch.gnn_util import NodeGNN, NodeGNNwithAttentionLayers
+from models.pytorch.gnn_util import NodeGNN, NodeGNNwithAttentionLayers
 from scipy.sparse import load_npz
 import scipy.sparse as sp
-from networks.pytorch.gnn_util import makeAdjacency, compute_ontheflyAdjacency,\
+from models.pytorch.gnn_util import makeAdjacency, compute_ontheflyAdjacency,\
     compute_ontheflyAdjacency_with_attention_layers, GenOntheflyAdjacency_NeighCandit
-from networks.pytorch.gnn_util.gnn_utilities import sparse_mx_to_torch_sparse_tensor
+from models.pytorch.gnn_util.gnn_utilities import sparse_mx_to_torch_sparse_tensor
 torch.manual_seed(2017)
 
 from common.functionutil import join_path_names

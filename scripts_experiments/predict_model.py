@@ -4,9 +4,8 @@ from common.functionutil import *
 from common.workdirmanager import TrainDirManager
 from dataloaders.dataloader_manager import get_train_imagedataloader_1image
 from dataloaders.imagefilereader import ImageFileReader
-from models.modeltrainer import ModelTrainer
-from models.visualmodelparams import VisualModelParams
-from postprocessing.imagereconstructor_manager import get_images_reconstructor
+from models.model_manager import ModelTrainer, VisualModelParams
+from postprocessing.postprocessing_manager import get_images_reconstructor
 from collections import OrderedDict
 import argparse
 

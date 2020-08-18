@@ -6,6 +6,7 @@ import torch.nn as nn
 import torch
 
 from common.exceptionmanager import catch_error_exception
+from common.functionutil import ImagesUtil
 from models.visualmodelparams import VisualModelParamsBase
 from preprocessing.imagegenerator import ImageGenerator
 
@@ -60,5 +61,4 @@ class VisualModelParams(VisualModelParamsBase):
             self._network(x_batch)
             out_featmaps[i_batch] = out_featmaps_patch  # 'out_featmaps_patch' store inside the function 'hook' above
 
-        ndims_out = len(out_featmaps.shape)
-        return np.rollaxis(out_featmaps, 1, ndims_out)   # place feature maps as the last dim of output array
+        return ImagesUtil.reshape_channels_last(out_featmaps)   # output format "channels_last"

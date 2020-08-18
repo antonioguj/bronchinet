@@ -2,7 +2,7 @@
 from typing import List, Tuple, Union
 import numpy as np
 
-from common.constant import TYPE_DNNLIB_USED, IS_MODEL_IN_GPU, IS_MODEL_HALFPRECISION
+from common.constant import TYPE_DNNLIB_USED, IS_MODEL_IN_GPU, IS_MODEL_HALF_PRECISION
 from common.exceptionmanager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
     from dataloaders.pytorch.batchdatagenerator import Wrapper_TrainBatchImageDataGenerator_1Image as TrainBatchImageDataGenerator_1Image, \
@@ -12,7 +12,7 @@ elif TYPE_DNNLIB_USED == 'Keras':
                                                      TrainBatchImageDataGenerator_2Images
 from dataloaders.batchdatagenerator import BatchImageDataGenerator_1Image, BatchImageDataGenerator_2Images
 from dataloaders.imagedataloader import ImageDataLoader, ImageDataInBatchesLoader
-from preprocessing.imagegenerator_manager import get_images_generator
+from preprocessing.preprocessing_manager import get_images_generator
 
 
 def get_imagedataloader_1image(list_filenames_1: List[str],
@@ -134,7 +134,7 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
         list_Xdata = ImageDataLoader.load_1list_files(list_filenames_1)
 
         size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
-        num_channels_in = list_Xdata[0].shape[-1]
+        num_channels_in = 1
 
         images_generator = get_images_generator(size_images,
                                                 use_sliding_window_images,
@@ -152,7 +152,7 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                                    shuffle=shuffle,
                                                    seed=seed,
                                                    is_datagen_gpu=IS_MODEL_IN_GPU,
-                                                   is_datagen_halfPrec=IS_MODEL_HALFPRECISION)
+                                                   is_datagen_halfPrec=IS_MODEL_HALF_PRECISION)
     else:
         print("Load Data directly from stored Batches...")
 
@@ -184,8 +184,8 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
         (list_Xdata, list_Ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
 
         size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
-        num_channels_in = list_Xdata[0].shape[-1]
-        num_classes_out = list_Ydata[0].shape[-1]
+        num_channels_in = 1
+        num_classes_out = 1
 
         images_generator = get_images_generator(size_images,
                                                 use_sliding_window_images,
@@ -207,7 +207,7 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                                     shuffle=shuffle,
                                                     seed=seed,
                                                     is_datagen_gpu=IS_MODEL_IN_GPU,
-                                                    is_datagen_halfPrec=IS_MODEL_HALFPRECISION)
+                                                    is_datagen_halfPrec=IS_MODEL_HALF_PRECISION)
     else:
         print("Load Data directly from stored Batches...")
 

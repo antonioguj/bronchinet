@@ -18,7 +18,11 @@ class ModelTrainer(ModelTrainerBase):
         super(ModelTrainer, self).__init__()
         self._list_callbacks = None
 
-    def compile_model(self) -> None:
+    def compile_model(self, is_model_half_precision: bool = False) -> None:
+        if is_model_half_precision:
+            message = 'Networks implementation in Keras not available in Half Precision'
+            catch_error_exception(message)
+
         list_metrics_funs = [imetric.renamed_compute() for imetric in self._list_metrics]
         self._network.compile(optimizer=self._optimizer,
                               loss=self._loss.lossfun,
@@ -28,7 +32,7 @@ class ModelTrainer(ModelTrainerBase):
         self._list_callbacks = []
 
         losshist_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
-        new_callback = RecordLossHistory(losshist_filename, self._list_metrics),
+        new_callback = RecordLossHistory(losshist_filename, self._list_metrics)
         self._list_callbacks.append(new_callback)
 
         freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
@@ -57,6 +61,9 @@ class ModelTrainer(ModelTrainerBase):
 
     def save_model_full(self, model_filename: str) -> None:
         pass
+
+    def get_size_output_image_model(self):
+        return self._network.get_size_output()[:-1]
 
     def train(self,
               train_data_loader: BatchDataGenerator,

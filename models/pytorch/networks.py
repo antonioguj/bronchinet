@@ -7,6 +7,7 @@ import torch.nn.functional as F
 import torch
 
 from common.exceptionmanager import catch_error_exception
+from common.functionutil import ImagesUtil
 from models.networks import UNetBase
 
 LIST_AVAIL_NETWORKS = ['UNet3D_Original',
@@ -25,8 +26,15 @@ class UNet(UNetBase, nn.Module):
                  num_classes_out: int,
                  is_use_valid_convols: bool = False
                  ) -> None:
-        super(UNet, self).__init__(size_image_in, num_levels, num_channels_in, num_classes_out, num_featmaps_in,
+        super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in, num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols)
+        nn.Module.__init__(self)    # Only way to call constructor from second inherited class
+
+        self._size_input  = ImagesUtil.get_shape_channels_first(self._size_input)
+        self._size_output = ImagesUtil.get_shape_channels_first(self._size_output)
+
+    def preprocess(self, *args, **kwargs) -> None:
+        pass
 
     def _build_list_info_crop_where_merge(self) -> None:
         indexes_output_where_merge = [i for i, el in enumerate(self._list_opers_names_layers_all) if el == 'upsample']
@@ -59,16 +67,16 @@ class UNet3D_Original(UNet):
                                               is_use_valid_convols=False)
         self._build_model()
 
-    def get_network_input_args(self) -> List[str, Dict[str, Any]]:
-        return ['UNet3D_Original', {'size_image': self._size_image_in,
+    def get_network_input_args(self) -> Tuple[str, Dict[str, Any]]:
+        return ('UNet3D_Original', {'size_image': self._size_image_in,
                                     'num_featmaps_in': self._num_featmaps_in,
                                     'num_channels_in': self._num_channels_in,
-                                    'num_classes_out': self._num_classes_out}]
+                                    'num_classes_out': self._num_classes_out})
 
     def _build_model(self) -> None:
 
         num_featmaps_lev1 = self._num_featmaps_in
-        self._convolution_down_lev1_1 = Conv3d(self.num_channels_in, num_featmaps_lev1, kernel_size=3, padding=1)
+        self._convolution_down_lev1_1 = Conv3d(self._num_channels_in, num_featmaps_lev1, kernel_size=3, padding=1)
         self._convolution_down_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=1)
         self._pooling_down_lev1 = MaxPool3d(kernel_size=2, padding=0)
 
@@ -111,7 +119,7 @@ class UNet3D_Original(UNet):
         self._convolution_up_lev1_1 = Conv3d(num_featmaps_lev1pl2, num_featmaps_lev1, kernel_size=3, padding=1)
         self._convolution_up_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=1)
 
-        self._classification_last = Conv3d(num_featmaps_lev1, self.num_classes_out, kernel_size=1, padding=0)
+        self._classification_last = Conv3d(num_featmaps_lev1, self._num_classes_out, kernel_size=1, padding=0)
         self._activation_last = Sigmoid()
 
     def forward(self, input: torch.FloatTensor) -> torch.FloatTensor:
@@ -202,7 +210,7 @@ class UNet3D_General(UNet):
                  is_use_batchnormalize_levels_down: Union[bool, List[bool]] = True,
                  is_use_batchnormalize_levels_up: Union[bool, List[bool]] = True
                  ) -> None:
-        super(UNet, self).__init__(size_image_in, num_levels, num_channels_in, num_classes_out, num_featmaps_in,
+        super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in, num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols)
 
         self._type_activate_hidden = type_activate_hidden
@@ -272,13 +280,13 @@ class UNet3D_General(UNet):
 
         self._build_model()
 
-    def get_network_input_args(self) -> List[str, Dict[str, Any]]:
-        return ['UNet3D_Plugin', {'size_image_in': self._size_image_in,
+    def get_network_input_args(self) -> Tuple[str, Dict[str, Any]]:
+        return ('UNet3D_Plugin', {'size_image_in': self._size_image_in,
                                   'num_levels': self._num_levels,
                                   'num_featmaps_in': self._num_featmaps_in,
                                   'num_channels_in': self._num_channels_in,
                                   'num_classes_out': self._num_classes_out,
-                                  'is_use_valid_convols': self._is_use_valid_convols}]
+                                  'is_use_valid_convols': self._is_use_valid_convols})
 
     def _build_model(self) -> None:
         padding_value_convols = 0 if self._is_use_valid_convols else 1
@@ -292,7 +300,7 @@ class UNet3D_General(UNet):
 
         # ENCODING LAYERS
         for i_lev in range(self._num_levels):
-            num_featmaps_in_level = self.num_channels_in if i_lev == 0 else self._num_featmaps_levels[i_lev-1]
+            num_featmaps_in_level = self._num_channels_in if i_lev == 0 else self._num_featmaps_levels[i_lev-1]
             num_featmaps_out_level = self._num_featmaps_levels[i_lev]
 
             for i_con in range(self._num_convols_levels_down[i_lev]):
@@ -333,7 +341,7 @@ class UNet3D_General(UNet):
                     new_batchnormalize = BatchNorm3d(num_featmaps_out_convol)
                     self._batchnormalize_levels_up[i_lev].append(new_batchnormalize)
 
-        self._classification_last = Conv3d(self._num_featmaps_levels[0], self.num_classes_out, kernel_size=1, padding=0)
+        self._classification_last = Conv3d(self._num_featmaps_levels[0], self._num_classes_out, kernel_size=1, padding=0)
 
         if self._is_use_dropout:
             self._dropout_all_levels = Dropout3d(self._dropout_rate, inplace=True)
@@ -425,19 +433,19 @@ class UNet3D_Plugin(UNet):
 
         self._build_model()
 
-    def get_network_input_args(self) -> List[str, Dict[str, Any]]:
-        return ['UNet3D_Plugin', {'size_image_in': self._size_image_in,
+    def get_network_input_args(self) -> Tuple[str, Dict[str, Any]]:
+        return ('UNet3D_Plugin', {'size_image_in': self._size_image_in,
                                   'num_levels': self._num_levels,
                                   'num_featmaps_in': self._num_featmaps_in,
                                   'num_channels_in': self._num_channels_in,
                                   'num_classes_out': self._num_classes_out,
-                                  'is_use_valid_convols': self._is_use_valid_convols}]
+                                  'is_use_valid_convols': self._is_use_valid_convols})
 
     def _build_model(self) -> None:
         padding_value = 0 if self._is_use_valid_convols else 1
 
-        num_featmaps_lev1 = self.num_featmaps_in
-        self._convolution_down_lev1_1 = Conv3d(self.num_channels_in, num_featmaps_lev1, kernel_size=3, padding=padding_value)
+        num_featmaps_lev1 = self._num_featmaps_in
+        self._convolution_down_lev1_1 = Conv3d(self._num_channels_in, num_featmaps_lev1, kernel_size=3, padding=padding_value)
         self._convolution_down_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=padding_value)
         self._pooling_down_lev1 = MaxPool3d(kernel_size=2, padding=0)
 
@@ -480,7 +488,7 @@ class UNet3D_Plugin(UNet):
         self._convolution_up_lev1_1 = Conv3d(num_featmaps_lay1pl2, num_featmaps_lev1, kernel_size=3, padding=padding_value)
         self._convolution_up_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=padding_value)
 
-        self._classification_last = Conv3d(num_featmaps_lev1, self.num_classes_out, kernel_size=1, padding=0)
+        self._classification_last = Conv3d(num_featmaps_lev1, self._num_classes_out, kernel_size=1, padding=0)
 
         if self._type_activate_hidden == 'relu':
             self._activation_hidden = ReLU(inplace=True)

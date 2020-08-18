@@ -4,8 +4,8 @@ from common.functionutil import *
 from common.workdirmanager import GeneralDirManager
 from dataloaders.dataloader_manager import get_imagedataloader_1image
 from dataloaders.imagefilereader import ImageFileReader
-from models.networks import get_network
-from postprocessing.imagereconstructor_manager import get_images_reconstructor
+from models.model_manager import get_network
+from postprocessing.postprocessing_manager import get_images_reconstructor
 import argparse
 
 

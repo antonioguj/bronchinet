@@ -2,7 +2,7 @@
 from common.functionutil import *
 from common.workdirmanager import GeneralDirManager
 from dataloaders.imagefilereader import ImageFileReader
-from preprocessing.imagegenerator_manager import *
+from preprocessing.preprocessing_manager import *
 import argparse
 
 

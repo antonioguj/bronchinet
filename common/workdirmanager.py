@@ -64,26 +64,26 @@ class TrainDirManager(GeneralDirManager):
         super(TrainDirManager, self).__init__(base_path)
         self._basedata_relpath = basedata_rel_path
         self._basedata_path = self.get_pathdir_exist(basedata_rel_path)
-        self._traindata_path = self.get_pathdir_exist(traindata_rel_path)
-        self._validdata_path = self.get_pathdir_exist(validdata_rel_path)
-        self._testdata_path = self.get_pathdir_exist(testdata_rel_path)
 
-        if is_restart_models:
-            self._models_path = self.get_pathdir_exist(models_rel_path)
-        else:
-            self._models_path = self.get_pathdir_update(models_rel_path)
+        #self._traindata_path = self.get_pathdir_exist(traindata_rel_path)
+        #self._validdata_path = self.get_pathdir_exist(validdata_rel_path)
+        #self._testdata_path = self.get_pathdir_exist(testdata_rel_path)
+        #if is_restart_models:
+        #    self._models_path = self.get_pathdir_exist(models_rel_path)
+        #else:
+        #    self._models_path = self.get_pathdir_update(models_rel_path)
 
-    def get_trainingdata_path(self) -> str:
-        return self._traindata_path
+    #def get_trainingdata_path(self) -> str:
+    #    return self._traindata_path
 
-    def get_validationdata_path(self) -> str:
-        return self._validdata_path
+    #def get_validationdata_path(self) -> str:
+    #    return self._validdata_path
 
-    def get_testingdata_path(self) -> str:
-        return self._testdata_path
+    #def get_testingdata_path(self) -> str:
+    #    return self._testdata_path
 
-    def get_models_path(self) -> str:
-        return self._models_path
+    #def get_models_path(self) -> str:
+    #    return self._models_path
 
     def get_datadir_exist(self, rel_path: str) -> str:
         return self.get_pathdir_exist(join_path_names(self._basedata_relpath, rel_path))

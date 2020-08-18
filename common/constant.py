@@ -3,7 +3,7 @@ import numpy as np
 np.random.seed(2017)
 
 DATADIR = '/home/antonio/Data/DLCST_Testing/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
+BASEDIR = '/home/antonio/Results/TESTS_CODE_PY3/'
 
 
 # NAMES INPUT / OUTPUT DIR
@@ -83,7 +83,7 @@ DIST_PROPDATA_TRAINVALIDTEST = (0.5, 0.12, 0.38)
 TYPE_DNNLIB_USED        = 'Pytorch'
 #TYPE_GPU_USED          = 'larger_GPU'
 IS_MODEL_IN_GPU         = True
-IS_MODEL_HALFPRECISION  = False
+IS_MODEL_HALF_PRECISION = False
 USE_MULTITHREADING      = False
 #SIZE_IN_IMAGES          = (176, 352, 240)
 #SIZE_IN_IMAGES          = (256, 256, 256) # for Non-valid convolutions
@@ -94,9 +94,9 @@ MAX_TRAIN_IMAGES        = 50
 MAX_VALID_IMAGES        = 20
 BATCH_SIZE              = 1
 NUM_EPOCHS              = 1000
-TYPE_NETWORK            = 'Unet3D_Plugin'
+TYPE_NETWORK            = 'UNet3D_Plugin'
 NET_NUM_LEVELS          = 5
-NET_NUM_FEATMAPS        = 16
+NET_NUM_FEATMAPS        = 10
 TYPE_ACTIVATE_HIDDEN    = 'relu'
 TYPE_ACTIVATE_OUTPUT    = 'sigmoid'
 IS_DISABLE_CONVOL_POOLING_LASTLAYER = False

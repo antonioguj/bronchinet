@@ -22,7 +22,7 @@ def main(args):
     prefix_pattern_input_files  = get_prefix_pattern_filename(list_input_posteriors_files[0])
 
     if (args.is_attach_coarse_airways):
-        input_coarse_airways_path       = workdir_manager.get_datafile_exist(args.name_input_coarse_airways_relpath)
+        input_coarse_airways_path       = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
 
 

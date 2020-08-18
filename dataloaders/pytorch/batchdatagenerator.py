@@ -5,6 +5,7 @@ import numpy as np
 from torch.utils import data as data_torch
 import torch
 
+from common.functionutil import ImagesUtil
 from dataloaders.batchdatagenerator import BatchImageDataGenerator_1Image, BatchImageDataGenerator_2Images
 from preprocessing.imagegenerator import ImageGenerator
 
@@ -27,6 +28,7 @@ class TrainBatchImageDataGenerator_1Image(BatchImageDataGenerator_1Image):
                                                                   list_Xdata,
                                                                   images_generator,
                                                                   num_channels_in=num_channels_in,
+                                                                  type_image_format='channels_first',
                                                                   batch_size=batch_size,
                                                                   shuffle=shuffle,
                                                                   seed=seed,
@@ -44,8 +46,9 @@ class TrainBatchImageDataGenerator_1Image(BatchImageDataGenerator_1Image):
 
     def __getitem__(self, index: int) -> np.ndarray:
         out_Xdata = self._get_data_sample(index)
-        return torch.from_numpy(out_Xdata).type(self._type_data_generated)
-        #return torch.from_numpy(out_Xdata.copy()).type(self._type_data_generated)
+        out_Xdata = ImagesUtil.reshape_channels_first(out_Xdata, is_input_sample=True)
+        return torch.from_numpy(out_Xdata.copy()).type(self._type_data_generated)
+        #return torch.from_numpy(out_Xdata).type(self._type_data_generated)
 
 
 class TrainBatchImageDataGenerator_2Images(BatchImageDataGenerator_2Images):
@@ -72,6 +75,7 @@ class TrainBatchImageDataGenerator_2Images(BatchImageDataGenerator_2Images):
                                                                    images_generator,
                                                                    num_channels_in=num_channels_in,
                                                                    num_classes_out=num_classes_out,
+                                                                   type_image_format='channels_first',
                                                                    is_output_nnet_validconvs=is_output_nnet_validconvs,
                                                                    size_output_image=size_output_image,
                                                                    batch_size=batch_size,
@@ -91,11 +95,12 @@ class TrainBatchImageDataGenerator_2Images(BatchImageDataGenerator_2Images):
 
     def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
         (out_Xdata, out_Ydata) = self._get_data_sample(index)
-        return (torch.from_numpy(out_Xdata).type(self._type_data_generated),
-                torch.from_numpy(out_Ydata).type(self._type_data_generated))
-        #return (torch.from_numpy(out_Xdata.copy()).type(self._type_data_generated),
-        #        torch.from_numpy(out_Ydata.copy()).type(self._type_data_generated))
-
+        out_Xdata = ImagesUtil.reshape_channels_first(out_Xdata, is_input_sample=True)
+        out_Ydata = ImagesUtil.reshape_channels_first(out_Ydata, is_input_sample=True)
+        return (torch.from_numpy(out_Xdata.copy()).type(self._type_data_generated),
+                torch.from_numpy(out_Ydata.copy()).type(self._type_data_generated))
+        #return (torch.from_numpy(out_Xdata).type(self._type_data_generated),
+        #        torch.from_numpy(out_Ydata).type(self._type_data_generated))
 
 
 class Wrapper_TrainBatchImageDataGenerator_1Image(data_torch.DataLoader):
@@ -138,7 +143,7 @@ class Wrapper_TrainBatchImageDataGenerator_2Images(data_torch.DataLoader):
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
                  num_classes_out: int = 1,
-                 is_outputUnet_validconvs: bool = False,
+                 is_output_nnet_validconvs: bool = False,
                  size_output_image: Tuple[int, ...] = None,
                  batch_size: int = 1,
                  shuffle: bool = True,
@@ -153,7 +158,7 @@ class Wrapper_TrainBatchImageDataGenerator_2Images(data_torch.DataLoader):
                                                                          images_generator,
                                                                          num_channels_in=num_channels_in,
                                                                          num_classes_out=num_classes_out,
-                                                                         is_output_nnet_validconvs=is_outputUnet_validconvs,
+                                                                         is_output_nnet_validconvs=is_output_nnet_validconvs,
                                                                          size_output_image=size_output_image,
                                                                          batch_size=batch_size,
                                                                          shuffle=shuffle,
@@ -162,7 +167,7 @@ class Wrapper_TrainBatchImageDataGenerator_2Images(data_torch.DataLoader):
                                                                          is_datagen_gpu=is_datagen_gpu,
                                                                          is_datagen_halfPrec=is_datagen_halfPrec)
         super(Wrapper_TrainBatchImageDataGenerator_2Images, self).__init__(self._batchdata_generator,
-                                                                           batch_size= batch_size,
-                                                                           shuffle= shuffle)
+                                                                           batch_size=batch_size,
+                                                                           shuffle=shuffle)
     def get_full_data(self) -> Tuple[np.ndarray, np.ndarray]:
         return self._batchdata_generator.get_full_data()

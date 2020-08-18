@@ -5,6 +5,14 @@ from tensorflow.keras.optimizers import SGD as SGD_keras, \
                                         Adadelta as Adadelta_keras, \
                                         Adam as Adam_keras
 
+LIST_AVAIL_OPTIMIZERS = ['SGD',
+                         'SGD_mom',
+                         'Adagrad',
+                         'RMSprop',
+                         'Adadelta',
+                         'Adam',
+                         ]
+
 def SGD(learn_rate: float, **kwargs):
     return SGD_keras(lr=learn_rate)
 

@@ -7,8 +7,7 @@ from torchsummary import summary
 from tqdm import tqdm
 
 from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_EPOCH_TORCH, NAME_SAVEDMODEL_LAST_TORCH
-from common.exceptionmanager import catch_error_exception
-from common.functionutil import join_path_names
+from common.functionutil import ImagesUtil, join_path_names
 from dataloaders.batchdatagenerator import BatchDataGenerator
 from models.modeltrainer import ModelTrainerBase
 from models.pytorch.callbacks import RecordLossHistory, ModelCheckpoint
@@ -21,14 +20,17 @@ class ModelTrainer(ModelTrainerBase):
         #self._device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self._device = 'cuda:0'
 
-    def compile_model(self) -> None:
-        pass
+    def compile_model(self, is_model_half_precision: bool = False) -> None:
+        if is_model_half_precision:
+            self._network.half()
+
+        self._network.to(self._device)     # if 'cuda:0', dispatch model to 'gpu'
 
     def create_callbacks(self, models_path: str, **kwargs) -> None:
         self._list_callbacks = []
 
         losshist_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
-        new_callback = RecordLossHistory(losshist_filename, self._list_metrics),
+        new_callback = RecordLossHistory(losshist_filename, self._list_metrics)
         self._list_callbacks.append(new_callback)
 
         freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
@@ -49,7 +51,7 @@ class ModelTrainer(ModelTrainerBase):
         self.freq_validate_model = freq_validate_model
 
     def summary_model(self) -> None:
-        summary(self._network, tuple(self._network.get_size_input()))
+        summary(self._network, self._network.get_size_input())
 
     def load_model_only_weights(self, model_filename: str) -> None:
         model_full = torch.load(model_filename, map_location=self._device)
@@ -114,6 +116,9 @@ class ModelTrainer(ModelTrainerBase):
         for icallback in self._list_callbacks:
             icallback.on_epoch_end(self._epoch_count, self._data_output)
 
+    def get_size_output_image_model(self):
+        return self._network.get_size_output()[1:]
+
 
     def train(self,
               train_data_loader: BatchDataGenerator,
@@ -135,8 +140,6 @@ class ModelTrainer(ModelTrainerBase):
         self._train_metrics = [0] * self._num_epochs
         self._valid_metrics = [0] * self._num_epochs
 
-        self._networks.to(self._device)     # if 'cuda:0', dispatch model to 'gpu'
-
         for i_epoch in range(initial_epoch, num_epochs):
             self._run_epoch()
             self._epoch_count += 1
@@ -146,10 +149,8 @@ class ModelTrainer(ModelTrainerBase):
     def predict(self, test_data_loader: BatchDataGenerator) -> np.ndarray:
         self._test_data_loader = test_data_loader
 
-        self._networks.to(self._device)     # if 'cuda:0', dispatch model to 'gpu'
-
-        self._networks = self._networks.eval()  # switch to evaluate mode
-        self._networks.preprocess(-1)
+        self._network = self._network.eval()  # switch to evaluate mode
+        self._network.preprocess(-1)
 
         output_prediction = self._run_prediction()
         return output_prediction
@@ -158,11 +159,11 @@ class ModelTrainer(ModelTrainerBase):
     def _run_epoch(self) -> None:
         # Run a train and validation pass on the current epoch
 
-        self._networks = self._networks.train()     # switch to train mode
-        self._networks.preprocess(self._epoch_count)
+        self._network = self._network.train()     # switch to train mode
+        self._network.preprocess(self._epoch_count)
 
         if self._epoch_count == 0:
-            self._run_callbacks_on_epoch_end()
+            self._run_callbacks_on_train_begin()
 
         if self._num_metrics > 0:
             (self._train_loss, self._train_metrics) = self._train_epoch()
@@ -172,7 +173,7 @@ class ModelTrainer(ModelTrainerBase):
         if self._valid_data_loader and \
             (self._epoch_count % self.freq_validate_model == 0 or self._epoch_start_count == 0):
 
-            self._networks = self._networks.eval()  # switch to evaluate mode
+            self._network = self._network.eval()  # switch to evaluate mode
 
             if self._num_metrics > 0:
                 (self._valid_loss, self._valid_metrics) = self._validation_epoch()
@@ -215,7 +216,7 @@ class ModelTrainer(ModelTrainerBase):
             #time_ini = dt.now()
 
             self._optimizer.zero_grad()
-            batch_prediction = self._networks(in_batch_Xdata)
+            batch_prediction = self._network(in_batch_Xdata)
             loss = self._criterion(batch_prediction, in_batch_Ydata)
             loss.backward()             # run backprop
             self._optimizer.step()      # optimize grads one step
@@ -272,7 +273,7 @@ class ModelTrainer(ModelTrainerBase):
             #time_ini = dt.now()
 
             with torch.no_grad():
-                batch_prediction = self._networks(in_batch_Xdata)
+                batch_prediction = self._network(in_batch_Xdata)
                 loss = self._criterion(batch_prediction, in_batch_Ydata)
                 loss.detach()
             sumrun_loss += loss.item()
@@ -306,10 +307,8 @@ class ModelTrainer(ModelTrainerBase):
 
     def _run_prediction(self) -> np.ndarray:
         num_batches = len(self._test_data_loader)
-        size_output_batch = self._networks.get_size_output()
-        num_classes_out = size_output_batch[0]
-
-        out_shape_prediction = (num_batches, num_classes_out) + size_output_batch[1:]
+        size_output_batch = self._network.get_size_output()
+        out_shape_prediction = (num_batches,) + size_output_batch
         output_prediction = np.ndarray(out_shape_prediction, dtype=np.float32)
 
         progressbar = tqdm(total= num_batches, desc='Prediction')
@@ -323,7 +322,7 @@ class ModelTrainer(ModelTrainerBase):
             #time_ini = dt.now()
 
             with torch.no_grad():
-                batch_prediction = self._networks(in_batch_Xdata)
+                batch_prediction = self._network(in_batch_Xdata)
                 batch_prediction.detach()
 
             output_prediction[i_batch] = batch_prediction.cpu()     # dispatch prediction to 'cpu'
@@ -340,8 +339,4 @@ class ModelTrainer(ModelTrainerBase):
         #print("\ntime total = {0:.3f}".format(time_total))
         #print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
-        # place output channels as last dim of output predictions
-        ndim_out = len(output_prediction.shape)
-        output_prediction = np.rollaxis(output_prediction, 1, ndim_out)
-
-        return output_prediction
+        return ImagesUtil.reshape_channels_last(output_prediction)  # output format "channels_last"

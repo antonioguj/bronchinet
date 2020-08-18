@@ -1,12 +1,8 @@
 
 from typing import List
 
-from common.constant import TYPE_DNNLIB_USED
 from models.metrics import MetricBase
-if TYPE_DNNLIB_USED == 'Pytorch':
-    from models.pytorch.callbacks import RecordLossHistory
-elif TYPE_DNNLIB_USED == 'Keras':
-    from models.keras.callbacks import RecordLossHistory, EarlyStopping, ModelCheckpoint
+
 
 class CallbackBase(object):
 

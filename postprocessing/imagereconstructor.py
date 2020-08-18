@@ -101,20 +101,20 @@ class ImageReconstructor(object):
             return None
 
     def _get_shape_output_image(self, in_shape_image: Tuple[int, ...], out_size_image: Tuple[int, ...]) -> Tuple[int, ...]:
-        if ImagesUtil.is_image_without_channels(self._size_image, in_shape_image):
+        if ImagesUtil.is_without_channels(self._size_image, in_shape_image):
             return tuple(out_size_image)
         else:
-            num_channels = ImagesUtil.get_num_channels_image(self._size_image, in_shape_image)
+            num_channels = ImagesUtil.get_num_channels(self._size_image, in_shape_image)
             return tuple(out_size_image) + (num_channels,)
 
     def _get_reshaped_input_image(self, in_image: np.ndarray) -> np.ndarray:
-        if ImagesUtil.is_image_without_channels(self._size_image, in_image.shape[1:]):
+        if ImagesUtil.is_without_channels(self._size_image, in_image.shape[1:]):
             return in_image
         else:
             return np.expand_dims(in_image, axis=-1)
 
     def _get_reshaped_output_image(self, in_image: np.ndarray) -> np.ndarray:
-        num_channels = ImagesUtil.get_num_channels_image(self._size_image, in_image.shape)
+        num_channels = ImagesUtil.get_num_channels(self._size_image, in_image.shape)
         if num_channels==1:
             return np.squeeze(in_image, axis=-1)
         else:
