@@ -13,6 +13,7 @@ class RecordLossHistory(RecordLossHistoryBase, callbacks_keras.Callback):
                  list_metrics: List[MetricBase] = None
                  ) -> None:
         super(RecordLossHistory, self).__init__(loss_filename, list_metrics)
+        callbacks_keras.Callback.__init__(self)
 
     def on_train_begin(self, logs = None) -> None:
         super(RecordLossHistory, self).on_train_begin()
@@ -29,6 +30,7 @@ class EarlyStopping(EarlyStoppingBase, callbacks_keras.Callback):
                  patience: int = 10
                  ) -> None:
         super(EarlyStoppingBase, self).__init__(delta, patience)
+        callbacks_keras.Callback.__init__(self)
 
     def on_train_begin(self, logs = None) -> None:
         super(EarlyStoppingBase, self).on_train_begin()
@@ -54,3 +56,10 @@ class ModelCheckpoint(CallbackBase, callbacks_keras.ModelCheckpoint):
                                               verbose=0,
                                               save_weights_only=(type_save_model=='only_weights'),
                                               save_freq='epoch')
+        callbacks_keras.ModelCheckpoint.__init__(self, model_filename)
+
+    def on_train_begin(self, logs = None) -> None:
+        callbacks_keras.ModelCheckpoint.on_train_begin(self, logs)
+
+    def on_epoch_end(self, epoch: int, logs = None) -> None:
+        callbacks_keras.ModelCheckpoint.on_epoch_end(self, epoch, logs)

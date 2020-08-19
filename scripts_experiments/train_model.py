@@ -109,11 +109,7 @@ def main(args):
                                   is_mask_to_region_interest=args.is_mask_region_interest)
         model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
                                           is_mask_to_region_interest=args.is_mask_region_interest)
-        model_trainer.compile_model()
-
-        model_trainer.create_callbacks(models_path=models_path,
-                                       freq_save_check_model=FREQ_SAVE_INTER_MODELS,
-                                       freq_validate_model=FREQ_VALIDATE_MODEL)
+        model_trainer.finalise_model()
 
     if args.is_restart_model:
         model_restart_file = join_path_names(models_path, args.restart_file)
@@ -126,11 +122,22 @@ def main(args):
             print("Load full model: weights, model desc, optimizer, ... to restart model...")
             if TYPE_DNNLIB_USED == 'Keras':
                 # CHECK WHETHER THIS IS NECESSARY
+                model_trainer.create_network(type_network=args.type_network,
+                                             size_image_in=args.size_in_images,
+                                             num_levels=args.net_num_levels,
+                                             num_featmaps_in=args.net_num_featmaps,
+                                             num_channels_in=1,
+                                             num_classes_out=1,
+                                             is_use_valid_convols=args.is_valid_convolutions)
                 model_trainer.create_loss(type_loss=args.type_loss,
                                           is_mask_to_region_interest=args.is_mask_region_interest)
                 model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
                                                   is_mask_to_region_interest=args.is_mask_region_interest)
             model_trainer.load_model_full(model_restart_file)
+
+    model_trainer.create_callbacks(models_path=models_path,
+                                   freq_save_check_model=FREQ_SAVE_INTER_MODELS,
+                                   freq_validate_model=FREQ_VALIDATE_MODEL)
 
     model_trainer.summary_model()
 

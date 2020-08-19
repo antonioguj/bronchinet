@@ -31,7 +31,7 @@ class TrainBatchImageDataGenerator_1Image(BatchImageDataGenerator_1Image, Sequen
                                                                   shuffle=shuffle,
                                                                   seed=seed,
                                                                   is_print_datagen_info=is_print_datagen_info)
-        Sequence_keras.__init__(self)   # Only way to call constructor from second inherited class
+        Sequence_keras.__init__(self)
         self._type_data_generated = np.float32
 
     def __len__(self) -> int:
@@ -76,7 +76,7 @@ class TrainBatchImageDataGenerator_2Images(BatchImageDataGenerator_2Images, Sequ
                                                                    shuffle=shuffle,
                                                                    seed=seed,
                                                                    is_print_datagen_info=is_print_datagen_info)
-        Sequence_keras.__init__(self)  # Only way to call constructor from second inherited class
+        Sequence_keras.__init__(self)
         self._type_data_generated = np.float32
 
     def __len__(self) -> int:

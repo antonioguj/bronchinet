@@ -17,20 +17,25 @@ class ModelTrainer(ModelTrainerBase):
 
     def __init__(self):
         super(ModelTrainer, self).__init__()
-        #self._device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        self._device = 'cuda:0'
+        self._device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    def compile_model(self, is_model_half_precision: bool = False) -> None:
+    def create_network(self, *args, **kwargs) -> None:
+        super(ModelTrainer, self).create_network(*args, **kwargs)
+
+        is_model_half_precision = kwargs['is_model_half_precision'] if 'is_model_half_precision' in kwargs.keys() else None
         if is_model_half_precision:
             self._network.half()
 
-        self._network.to(self._device)     # if 'cuda:0', dispatch model to 'gpu'
+        self._network.to(self._device)  # if 'cuda:0', dispatch model to 'gpu'
+
+    def finalise_model(self) -> None:
+        pass
 
     def create_callbacks(self, models_path: str, **kwargs) -> None:
         self._list_callbacks = []
 
-        losshist_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
-        new_callback = RecordLossHistory(losshist_filename, self._list_metrics)
+        losshistory_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
+        new_callback = RecordLossHistory(losshistory_filename, self._list_metrics)
         self._list_callbacks.append(new_callback)
 
         freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
@@ -85,13 +90,15 @@ class ModelTrainer(ModelTrainerBase):
         list_type_metrics = model_full['metrics_desc']
         self.create_list_metrics(list_type_metrics, is_mask_to_region_interest=loss_input_args['is_masks_exclude'])
 
+        self.finalise_model()
+
     def save_model_only_weights(self, model_filename: str) -> None:
         torch.save(self._network.state_dict(), model_filename)
 
     def save_model_full(self, model_filename: str) -> None:
         model_full = {'network_desc': self._network.get_network_input_args(),
                       'network_state_dict': self._network.state_dict(),
-                      'optimizer_desc': self._optimizer.__name__,
+                      'optimizer_desc': self._optimizer.__class__.__name__,
                       'optimizer_state_dict': self._optimizer.state_dict(),
                       'loss_desc': [self._loss.__class__.__name__, {'is_masks_exclude': self._loss._is_mask_exclude}],
                       'metrics_desc': [imetric.__class__.__name__ for imetric in self._list_metrics]}
@@ -137,8 +144,8 @@ class ModelTrainer(ModelTrainerBase):
 
         self._train_loss = 0.0
         self._valid_loss = 0.0
-        self._train_metrics = [0] * self._num_epochs
-        self._valid_metrics = [0] * self._num_epochs
+        self._train_metrics = [0] * self._num_metrics
+        self._valid_metrics = [0] * self._num_metrics
 
         for i_epoch in range(initial_epoch, num_epochs):
             self._run_epoch()
@@ -149,7 +156,7 @@ class ModelTrainer(ModelTrainerBase):
     def predict(self, test_data_loader: BatchDataGenerator) -> np.ndarray:
         self._test_data_loader = test_data_loader
 
-        self._network = self._network.eval()  # switch to evaluate mode
+        self._network.eval()  # switch to evaluate mode
         self._network.preprocess(-1)
 
         output_prediction = self._run_prediction()
@@ -159,7 +166,7 @@ class ModelTrainer(ModelTrainerBase):
     def _run_epoch(self) -> None:
         # Run a train and validation pass on the current epoch
 
-        self._network = self._network.train()     # switch to train mode
+        self._network.train()     # switch to train mode
         self._network.preprocess(self._epoch_count)
 
         if self._epoch_count == 0:
@@ -173,7 +180,7 @@ class ModelTrainer(ModelTrainerBase):
         if self._valid_data_loader and \
             (self._epoch_count % self.freq_validate_model == 0 or self._epoch_start_count == 0):
 
-            self._network = self._network.eval()  # switch to evaluate mode
+            self._network.eval()  # switch to evaluate mode
 
             if self._num_metrics > 0:
                 (self._valid_loss, self._valid_metrics) = self._validation_epoch()
@@ -200,7 +207,7 @@ class ModelTrainer(ModelTrainerBase):
             num_batches = len(self._train_data_loader)
 
         progressbar = tqdm(total= num_batches,
-                           desc= 'Epochs {}/{}'.format(self._epoch_count, self._num_epochs),
+                           desc= 'Epochs {}/{}'.format(self._epoch_count+1, self._num_epochs),
                            bar_format= '{l_bar}{bar}| {n_fmt}/{total_fmt} [{remaining}{postfix}]')
 
         #time_compute = 0.0
@@ -210,8 +217,8 @@ class ModelTrainer(ModelTrainerBase):
 
         i_batch = 0
         for (in_batch_Xdata, in_batch_Ydata) in self._train_data_loader:
-            in_batch_Xdata = in_batch_Xdata.to(self._device)
-            in_batch_Ydata = in_batch_Ydata.to(self._device)
+            in_batch_Xdata.to(self._device)
+            in_batch_Ydata.to(self._device)
 
             #time_ini = dt.now()
 
@@ -267,8 +274,8 @@ class ModelTrainer(ModelTrainerBase):
 
         i_batch = 0
         for (in_batch_Xdata, in_batch_Ydata) in self._valid_data_loader:
-            in_batch_Xdata = in_batch_Xdata.to(self._device)
-            in_batch_Ydata = in_batch_Ydata.to(self._device)
+            in_batch_Xdata.to(self._device)
+            in_batch_Ydata.to(self._device)
 
             #time_ini = dt.now()
 
@@ -317,7 +324,7 @@ class ModelTrainer(ModelTrainerBase):
         #time_total_ini = dt.now()
 
         for i_batch, (in_batch_Xdata, in_batch_Ydata) in enumerate(self._test_data_loader):
-            in_batch_Xdata = in_batch_Xdata.to(self._device)
+            in_batch_Xdata.to(self._device)
 
             #time_ini = dt.now()
 

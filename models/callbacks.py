@@ -40,7 +40,7 @@ class RecordLossHistoryBase(CallbackBase):
         fout.close()
 
     def on_epoch_end(self, epoch: int, data_output: List[float]) -> None:
-        list_data_line = ['%0.3d' % (epoch)] + ['%0.6f' % (elem) for elem in data_output]
+        list_data_line = ['%d' % (epoch+1)] + ['%0.6f' % (elem) for elem in data_output]
         str_data_line = ' '.join(list_data_line) + '\n'
 
         fout = open(self._loss_filename, 'a')

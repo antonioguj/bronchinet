@@ -61,7 +61,7 @@ class ModelTrainerBase(object):
 
         self._num_metrics = len(self._list_metrics)
 
-    def compile_model(self, is_model_half_precision: bool = False) -> None:
+    def finalise_model(self) -> None:
         raise NotImplementedError
 
     def create_callbacks(self, models_path: str, **kwargs) -> None:

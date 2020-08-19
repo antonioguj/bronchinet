@@ -24,9 +24,6 @@ class NeuralNetwork(object):
     def count_model_params(self) -> int:
         raise NotImplementedError
 
-    def preprocess(self, *args, **kwargs) -> None:
-        raise NotImplementedError
-
     def _build_model(self) -> None:
         raise NotImplementedError
 

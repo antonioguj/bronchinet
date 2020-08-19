@@ -31,6 +31,7 @@ class Metric(MetricBase, nn.Module):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(Metric, self).__init__(is_mask_exclude)
+        nn.Module.__init__(self)
 
     def compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         if self._is_mask_exclude:
