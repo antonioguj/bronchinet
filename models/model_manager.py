@@ -91,7 +91,7 @@ def get_metric(type_metric: str,
     elif type_metric == 'AirwayCentrelineDistanceFalseNegativeError':
         return AirwayCentrelineDistanceFalseNegativeError(is_mask_exclude=is_mask_exclude)
     else:
-        message = 'Choice Metric not found. Metrics available: %s' % (', '.join(LIST_AVAIL_METRICS))
+        message = 'Choice Metric not found: %s. Metrics available: %s' % (type_metric, ', '.join(LIST_AVAIL_METRICS))
         catch_error_exception(message)
 
 
@@ -135,7 +135,7 @@ def get_metric_train(type_metric: str,
         elif type_metric == 'AirwayCentrelineLeakage':
             return AirwayCentrelineLeakage_train(is_mask_exclude=is_mask_exclude)
         else:
-            message = 'Choice Metric for Training not found. Metrics available: %s' % (', '.join(LIST_AVAIL_METRICS_TRAIN))
+            message = 'Choice Metric for Training not found: %s. Metrics available: %s' % (type_metric, ', '.join(LIST_AVAIL_METRICS_TRAIN))
             catch_error_exception(message)
 
 
@@ -182,7 +182,7 @@ def get_network(type_network: str,
                              num_classes_out=num_classes_out,
                              is_use_valid_convols=is_use_valid_convols)
     else:
-        message = 'Choice Network not found. Networks available: %s' % (', '.join(LIST_AVAIL_NETWORKS))
+        message = 'Choice Network not found: %s. Networks available: %s' % (type_network, ', '.join(LIST_AVAIL_NETWORKS))
         catch_error_exception(message)
 
 
@@ -200,7 +200,7 @@ def get_optimizer(type_optimizer: str, learn_rate: float, **kwargs):
     elif type_optimizer == 'Adam':
         return Adam(learn_rate, **kwargs)
     else:
-        message = 'Choice Optimizer not found. Optimizers available: %s' % (', '.join(LIST_AVAIL_OPTIMIZERS))
+        message = 'Choice Optimizer not found: %s. Optimizers available: %s' % (type_optimizer, ', '.join(LIST_AVAIL_OPTIMIZERS))
         catch_error_exception(message)
 
 

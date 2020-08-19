@@ -1,5 +1,5 @@
 
-from typing import Tuple, List, Dict, Any
+from typing import Tuple, List
 
 BoundBoxNDType = Tuple[Tuple[int, int], ...]
 
@@ -53,9 +53,6 @@ class ConvNetBase(NeuralNetwork):
         size_output = self._get_size_output_last_layer() + (self._num_classes_out,)
 
         super(ConvNetBase, self).__init__(size_input, size_output)
-
-    def get_network_input_args(self) -> Tuple[str, Dict[str, Any]]:
-        raise NotImplementedError
 
     def _build_list_opers_names_layers(self) -> None:
         raise NotImplementedError

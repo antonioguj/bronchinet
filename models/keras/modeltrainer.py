@@ -29,11 +29,13 @@ class ModelTrainer(ModelTrainerBase):
     def create_callbacks(self, models_path: str, **kwargs) -> None:
         self._list_callbacks = []
 
-        losshistory_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
-        new_callback = RecordLossHistory(losshistory_filename, self._list_metrics)
-        self._list_callbacks.append(new_callback)
-
+        is_restart_model = kwargs['is_restart_model'] if 'is_restart_model' in kwargs.keys() else False
         freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
+
+        losshistory_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
+        new_callback = RecordLossHistory(losshistory_filename, self._list_metrics,
+                                         is_restart_model=is_restart_model)
+        self._list_callbacks.append(new_callback)
 
         model_filename = join_path_names(models_path, NAME_SAVEDMODEL_INTER_KERAS)
         new_callback = ModelCheckpoint(model_filename)
@@ -61,7 +63,8 @@ class ModelTrainer(ModelTrainerBase):
         pass
 
     def get_size_output_image_model(self):
-        return self._network.get_size_output()[:-1]
+        return self._compiled_model.outputs[0].shape[1:-1]
+        #return self._network.get_size_output()[:-1]
 
     def train(self,
               train_data_loader: BatchDataGenerator,

@@ -36,6 +36,9 @@ class UNet(UNetBase, nn.Module):
     def preprocess(self, *args, **kwargs) -> None:
         pass
 
+    def get_network_input_args(self) -> Dict[str, Any]:
+        raise NotImplementedError
+
     def _build_list_info_crop_where_merge(self) -> None:
         indexes_output_where_merge = [i for i, el in enumerate(self._list_opers_names_layers_all) if el == 'upsample']
         self._list_sizes_crop_where_merge = [self._list_sizes_output_all_layers[i] for i in indexes_output_where_merge][::-1]
@@ -67,11 +70,11 @@ class UNet3D_Original(UNet):
                                               is_use_valid_convols=False)
         self._build_model()
 
-    def get_network_input_args(self) -> Tuple[str, Dict[str, Any]]:
-        return ('UNet3D_Original', {'size_image': self._size_image_in,
-                                    'num_featmaps_in': self._num_featmaps_in,
-                                    'num_channels_in': self._num_channels_in,
-                                    'num_classes_out': self._num_classes_out})
+    def get_network_input_args(self) -> Dict[str, Any]:
+        return {'size_image': self._size_image_in,
+                'num_featmaps_in': self._num_featmaps_in,
+                'num_channels_in': self._num_channels_in,
+                'num_classes_out': self._num_classes_out}
 
     def _build_model(self) -> None:
 
@@ -280,13 +283,13 @@ class UNet3D_General(UNet):
 
         self._build_model()
 
-    def get_network_input_args(self) -> Tuple[str, Dict[str, Any]]:
-        return ('UNet3D_Plugin', {'size_image_in': self._size_image_in,
-                                  'num_levels': self._num_levels,
-                                  'num_featmaps_in': self._num_featmaps_in,
-                                  'num_channels_in': self._num_channels_in,
-                                  'num_classes_out': self._num_classes_out,
-                                  'is_use_valid_convols': self._is_use_valid_convols})
+    def get_network_input_args(self) -> Dict[str, Any]:
+        return {'size_image_in': self._size_image_in,
+                'num_levels': self._num_levels,
+                'num_featmaps_in': self._num_featmaps_in,
+                'num_channels_in': self._num_channels_in,
+                'num_classes_out': self._num_classes_out,
+                'is_use_valid_convols': self._is_use_valid_convols}
 
     def _build_model(self) -> None:
         padding_value_convols = 0 if self._is_use_valid_convols else 1
@@ -433,13 +436,13 @@ class UNet3D_Plugin(UNet):
 
         self._build_model()
 
-    def get_network_input_args(self) -> Tuple[str, Dict[str, Any]]:
-        return ('UNet3D_Plugin', {'size_image_in': self._size_image_in,
-                                  'num_levels': self._num_levels,
-                                  'num_featmaps_in': self._num_featmaps_in,
-                                  'num_channels_in': self._num_channels_in,
-                                  'num_classes_out': self._num_classes_out,
-                                  'is_use_valid_convols': self._is_use_valid_convols})
+    def get_network_input_args(self) -> Dict[str, Any]:
+        return {'size_image_in': self._size_image_in,
+                'num_levels': self._num_levels,
+                'num_featmaps_in': self._num_featmaps_in,
+                'num_channels_in': self._num_channels_in,
+                'num_classes_out': self._num_classes_out,
+                'is_use_valid_convols': self._is_use_valid_convols}
 
     def _build_model(self) -> None:
         padding_value = 0 if self._is_use_valid_convols else 1

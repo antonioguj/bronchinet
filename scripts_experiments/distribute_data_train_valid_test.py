@@ -86,7 +86,7 @@ def main(args):
         args.infile_test_order  = args.infile_train_order.replace('train', 'test')
 
         indict_reference_keys    = read_dictionary(in_reference_keys_file)
-        list_in_reference_keys   = indict_reference_keys.values()
+        list_in_reference_keys   = list(indict_reference_keys.values())
 
         indexes_training_files   = search_indexes_input_files_from_reference_keys_in_file(args.infile_train_order, list_in_reference_keys)
         indexes_validation_files = search_indexes_input_files_from_reference_keys_in_file(args.infile_valid_order, list_in_reference_keys)

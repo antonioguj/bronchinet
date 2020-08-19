@@ -76,7 +76,7 @@ def main(args):
                                                     prop_filter_output_nnet=PROP_VALID_OUTPUT_NNET)
 
 
-    print("\Compute Predictiions, from \'%s\' files..." % (len(list_test_images_files)))
+    print("\nCompute Predictiions, from \'%s\' files..." % (len(list_test_images_files)))
     print("-" * 30)
 
     outdict_reference_keys = OrderedDict()

@@ -92,7 +92,7 @@ def main(args):
             indexes_merge_input_files = [indexes_merge_input_files[index] for index in random_indexes_size_total]
 
     elif args.type_distribute == 'orderfile':
-        list_in_reference_keys_all_data = [elem.values() for elem in list_dict_in_reference_keys_all_data]
+        list_in_reference_keys_all_data = [list(elem.values()) for elem in list_dict_in_reference_keys_all_data]
         indexes_merge_input_files = search_indexes_input_files_from_reference_keys_in_file(args.infile_order, list_in_reference_keys_all_data)
 
 

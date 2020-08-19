@@ -122,13 +122,6 @@ def main(args):
             print("Load full model: weights, model desc, optimizer, ... to restart model...")
             if TYPE_DNNLIB_USED == 'Keras':
                 # CHECK WHETHER THIS IS NECESSARY
-                model_trainer.create_network(type_network=args.type_network,
-                                             size_image_in=args.size_in_images,
-                                             num_levels=args.net_num_levels,
-                                             num_featmaps_in=args.net_num_featmaps,
-                                             num_channels_in=1,
-                                             num_classes_out=1,
-                                             is_use_valid_convols=args.is_valid_convolutions)
                 model_trainer.create_loss(type_loss=args.type_loss,
                                           is_mask_to_region_interest=args.is_mask_region_interest)
                 model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
@@ -136,6 +129,7 @@ def main(args):
             model_trainer.load_model_full(model_restart_file)
 
     model_trainer.create_callbacks(models_path=models_path,
+                                   is_restart_model=args.is_restart_model,
                                    freq_save_check_model=FREQ_SAVE_INTER_MODELS,
                                    freq_validate_model=FREQ_VALIDATE_MODEL)
 
@@ -211,6 +205,7 @@ def main(args):
         else:
             restart_epoch = get_restart_epoch_from_model_filename(model_restart_file)
 
+        print('Restarting training from epoch \'%s\'...' %(restart_epoch))
         initial_epoch = restart_epoch
         args.num_epochs += initial_epoch
     else:

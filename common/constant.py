@@ -3,7 +3,7 @@ import numpy as np
 np.random.seed(2017)
 
 DATADIR = '/home/antonio/Data/DLCST_Testing/'
-BASEDIR = '/home/antonio/Results/TESTS_CODE_PY3/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
 
 
 # NAMES INPUT / OUTPUT DIR
@@ -90,8 +90,8 @@ USE_MULTITHREADING      = False
 SIZE_IN_IMAGES          = (252, 252, 252) # for Valid convolutions
 #SIZE_IN_IMAGES          = (332, 316, 236) # for DLCST and full size lungs
 #SIZE_IN_IMAGES          = (508, 332, 236) # for EXACT and full size lungs
-MAX_TRAIN_IMAGES        = 1
-MAX_VALID_IMAGES        = 1
+MAX_TRAIN_IMAGES        = 50
+MAX_VALID_IMAGES        = 20
 BATCH_SIZE              = 1
 NUM_EPOCHS              = 1000
 TYPE_NETWORK            = 'UNet3D_Plugin'
@@ -120,6 +120,7 @@ USE_MODELS_WITH_GNN     = False
 ADJACENCY_GNN_STOREDIR  = 'StoredAdjacencyMatrix/'
 IS_GNN_WITH_ATTENTION   = False
 
+
 # PREDICTIONS / POST-PROCESSING PARAMETERS
 PROP_OVERLAP_SLIDING_WINDOW_TESTING = (0.5, 0.5, 0.5)
 IS_FILTER_PRED_PROBMAPS     = False
@@ -131,13 +132,13 @@ LIST_TYPE_METRICS_RESULT    = ['DiceCoefficient',
                                'AirwayCompleteness',
                                'AirwayVolumeLeakage',
                                'AirwayCentrelineLeakage',
-                               'AirwayCentrelineFalsePositiveDistanceError',
-                               'AirwayCentrelineFalseNegativeDistanceError']
+                               'AirwayCentrelineDistanceFalsePositiveError',
+                               'AirwayCentrelineDistanceFalseNegativeError']
 LIST_TYPE_METRICS_ROC_CURVE = ['DiceCoefficient',
                                'AirwayCompleteness',
                                'AirwayVolumeLeakage',
-                               'AirwayCentrelineFalsePositiveDistanceError',
-                               'AirwayCentrelineFalseNegativeDistanceError']
+                               'AirwayCentrelineDistanceFalsePositiveError',
+                               'AirwayCentrelineDistanceFalseNegativeError']
 METRIC_EVALUATE_THRESHOLD   = 'AirwayVolumeLeakage'
 IS_SAVE_FEATMAPS_LAYERS     = False
 NAME_SAVE_FEATS_MODEL_LAYER = 'convU12'

@@ -34,12 +34,12 @@ class ModelTrainer(ModelTrainerBase):
     def create_callbacks(self, models_path: str, **kwargs) -> None:
         self._list_callbacks = []
 
+        freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
+        freq_validate_model = kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() else 1
+        
         losshistory_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
         new_callback = RecordLossHistory(losshistory_filename, self._list_metrics)
         self._list_callbacks.append(new_callback)
-
-        freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
-        freq_validate_model = kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() else 1
 
         model_filename = join_path_names(models_path, NAME_SAVEDMODEL_EPOCH_TORCH)
         new_callback = ModelCheckpoint(model_filename, self,
@@ -96,7 +96,7 @@ class ModelTrainer(ModelTrainerBase):
         torch.save(self._network.state_dict(), model_filename)
 
     def save_model_full(self, model_filename: str) -> None:
-        model_full = {'network_desc': self._network.get_network_input_args(),
+        model_full = {'network_desc': [self._network.__class__.__name__, self._network.get_network_input_args()],
                       'network_state_dict': self._network.state_dict(),
                       'optimizer_desc': self._optimizer.__class__.__name__,
                       'optimizer_state_dict': self._optimizer.state_dict(),
@@ -323,7 +323,7 @@ class ModelTrainer(ModelTrainerBase):
         #time_compute = 0.0
         #time_total_ini = dt.now()
 
-        for i_batch, (in_batch_Xdata, in_batch_Ydata) in enumerate(self._test_data_loader):
+        for i_batch, in_batch_Xdata in enumerate(self._test_data_loader):
             in_batch_Xdata.to(self._device)
 
             #time_ini = dt.now()

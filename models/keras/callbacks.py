@@ -10,13 +10,17 @@ class RecordLossHistory(RecordLossHistoryBase, callbacks_keras.Callback):
 
     def __init__(self,
                  loss_filename: str,
-                 list_metrics: List[MetricBase] = None
+                 list_metrics: List[MetricBase] = None,
+                 is_restart_model: bool = False,
                  ) -> None:
         super(RecordLossHistory, self).__init__(loss_filename, list_metrics)
         callbacks_keras.Callback.__init__(self)
 
+        self._is_restart_model = is_restart_model
+
     def on_train_begin(self, logs = None) -> None:
-        super(RecordLossHistory, self).on_train_begin()
+        if not self._is_restart_model:
+            super(RecordLossHistory, self).on_train_begin()
 
     def on_epoch_end(self, epoch: int, logs = None) -> None:
         data_output = [logs.get('loss'), logs.get('val_loss')] + [logs.get(iname) for iname in self._names_metrics_funs]

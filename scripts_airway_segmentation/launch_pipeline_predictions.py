@@ -126,7 +126,7 @@ def main(args):
                 '--basedir', basedir,
                 '--input_centrelines_dir', output_predict_centrelines_path,
                 '--output_file', name_output_results_metrics_file,
-                '--list_type_metrics_result', ' '.join([el for el in args.list_type_metrics_result]),
+                #'--list_type_metrics_result', ' '.join([el for el in args.list_type_metrics_result]),
                 '--is_remove_trachea_calc_metrics', str(IS_REMOVE_TRACHEA_CALC_METRICS)]
     list_calls_all.append(new_call)
 
