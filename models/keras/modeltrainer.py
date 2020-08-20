@@ -30,11 +30,13 @@ class ModelTrainer(ModelTrainerBase):
         self._list_callbacks = []
 
         is_restart_model = kwargs['is_restart_model'] if 'is_restart_model' in kwargs.keys() else False
+        is_validation_data = kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() else True
         freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
 
         losshistory_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
         new_callback = RecordLossHistory(losshistory_filename, self._list_metrics,
-                                         is_restart_model=is_restart_model)
+                                         is_restart_model=is_restart_model,
+                                         is_hist_validation=is_validation_data)
         self._list_callbacks.append(new_callback)
 
         model_filename = join_path_names(models_path, NAME_SAVEDMODEL_INTER_KERAS)
@@ -55,6 +57,9 @@ class ModelTrainer(ModelTrainerBase):
         list_metrics_funs = [imetric.renamed_compute() for imetric in self._list_metrics]
         custom_objects = dict(map(lambda fun: (fun.__name__, fun), [self._loss.lossfun] + list_metrics_funs))
         self._compiled_model = load_model(model_filename, custom_objects=custom_objects)
+
+    def load_model_full_backward_compat(self, model_filename: str, **kwargs) -> None:
+        self.load_model_full(model_filename, **kwargs)
 
     def save_model_only_weights(self, model_filename: str) -> None:
         pass

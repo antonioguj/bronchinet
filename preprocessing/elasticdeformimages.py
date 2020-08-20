@@ -130,6 +130,6 @@ class ElasticDeformGridwiseImages(ElasticDeformImages):
             y = map_coordinates(yi, xi, order=3).reshape(self._size_image)
             # adding the displacement
             coordinates[i] = np.add(coordinates[i], y)
-        #endfor
+        # endfor
 
         return np.asarray(coordinates)

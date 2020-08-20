@@ -130,6 +130,7 @@ def main(args):
 
     model_trainer.create_callbacks(models_path=models_path,
                                    is_restart_model=args.is_restart_model,
+                                   is_validation_data=use_validation_data,
                                    freq_save_check_model=FREQ_SAVE_INTER_MODELS,
                                    freq_validate_model=FREQ_VALIDATE_MODEL)
 

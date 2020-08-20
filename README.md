@@ -30,38 +30,38 @@ And the following libraries to run deep learning on GPUs:
 - ln -s <directory_where_your_data_is> BaseData
 - ln -s <directory_where_you_store_this_framework> Code
 
-(The settings for scripts below are input in the file ./Code/Common/Constants.py)
+(The settings for scripts below are input in the file ./Code/common/constants.py)
 (if needed, indicate "export PYTHONPATH=./Code" in the "~/.bashrc" file)
 
 # Preprocessing data
 2) Preprocess data: apply various preprocessing techniques to input data / masks, if needed: rescaling, binarise masks
-- python ./Code/Scripts_ImageOperations/ApplyOperationImages.py <dir_input_data> <dir_output_data> --type=[different options]
+- python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[different options]
 
 3) Compute Bounding-boxes of input images:
-- python ./Code/Scripts_ImageOperations/ComputeBoundingBoxImages.py
+- python ./Code/scripts_airway_segmentation/compute_boundingbox_images.py
 
 4) Prepare working data: including cropping images / masking ground-truth to lung region...
-- python ./Code/Scripts_Experiments/PrepareData.py
+- python ./Code/scripts_experiments/prepare_data.py
 
 5) Distribute data in training / validation / testing:
-- python ./Code/Scripts_Experiments/DistributeTrainTestData.py
+- python ./Code/scripts_experiments/distribute_data_train_valid_test.py
  
 # Training models
 6) Train models:
-- python ./Code/Scripts_Experiments/TrainingModel.py --modelsdir=<dir_output_models> [if restart model: --cfgfromfile=<file_config_params> --restart_model=True --restart_epoch=<last_epoch_hist_file>]
+- python ./Code/scripts_experiments/train_model.py --modelsdir=<dir_output_models> [if restart model: --is_config_fromfile=<file_config> --is_restart_model=True]
 
 # Predictions / Postprocessing
 7) Compute predictions form trained model:
-- python ./Code/Scripts_Experiments/PredictionModel.py <file_trained_model> <dir_output_predictions> --cfgfromfile=<file_config_params>
+- python ./Code/scripts_experiments/predict_model.py <file_trained_model> <dir_output_predictions> --is_config_fromfile=<file_config>
 
 8) Compute predicted binary masks from probability maps:
-- python ./Code/Scripts_ImageOperations/PostprocessPredictions.py <dir_input_pred_probable_maps> <dir_output_pred_binary_masks>
+- python ./Code/scripts_airway_segmentation/postprocess_predictions.py <dir_input_pred_probable_maps> <dir_output_pred_binary_masks>
 
 9) Compute predicted centrelines from binary masks:
-- python ./Code/Scripts_ImageOperations/ApplyOperationImages.py <dir_input_pred_binary_masks> <dir_output_pred_centrelines> --type=thinning
+- python ./Code/scripts_util/apply_operation_images.py <dir_input_pred_binary_masks> <dir_output_pred_centrelines> --type=thinning
 
 10) Compute results metrics / accuracy:
-- python ./Code/Scripts_ImageOperations/ComputeResultMetrics.py <dir_input_predictions> --inputcentrelinesdir=<dir_input_pred_centrelines>
+- python ./Code/scripts_airway_segmentation/compute_result_metrics.py <dir_input_predictions> --inputcentrelinesdir=<dir_input_pred_centrelines>
 
 (7-8-9-10) Do steps 7-8-9-10 at once:)
-- python ./Code/Scripts_Experiments/LaunchPredictionsComplete.py <file_trained_model> <dir_output_predictions>
+- python ./Code/scripts_airway_segmentation/launch_pipeline_predictions.py <file_trained_model> <dir_output_predictions>

@@ -34,15 +34,6 @@ def create_task_replace_dirs(input_dir, input_dir_to_replace):
 
 
 def main(args):
-    # ---------- SETTINGS ----------
-    name_tempo_posteriors_relpath    = 'PosteriorsWorkData/'
-    name_posteriors_relpath          = 'Posteriors/'
-    name_predict_binary_masks_relpath= 'BinaryMasks/'
-    name_predict_centrelines_relpath = 'Centrelines/'
-    name_predict_reference_keys_file = 'referenceKeys_posteriors.npy'
-    name_output_results_metrics_file = 'result_metrics.csv'
-    # ---------- SETTINGS ----------
-
 
     inputdir = dirname(args.input_model_file)
     in_config_params_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
@@ -56,16 +47,24 @@ def main(args):
     #basedir = str(input_args_file['basedir'])
     basedir = currentdir()
 
-
     # output_basedir = update_dirname(args.output_basedir)
     output_basedir = args.output_basedir
     makedir(output_basedir)
+
+
+    name_tempo_posteriors_relpath    = basename_dir(NAME_TEMPO_POSTERIORS_RELPATH)
+    name_posteriors_relpath          = basename_dir(NAME_POSTERIORS_RELPATH)
+    name_predict_binary_masks_relpath= basename_dir(NAME_PRED_BINARYMASKS_RELPATH)
+    name_predict_centrelines_relpath = basename_dir(NAME_PRED_CENTRELINES_RELPATH)
+    name_predict_reference_keys_file = basename_dir(NAME_REFERENCE_KEYS_POSTERIORS_FILE)
+    name_output_result_metrics_file  = basename_dir(NAME_PRED_RESULT_METRICS_FILE)
 
     inout_tempo_posteriors_path      = join_path_names(output_basedir, name_tempo_posteriors_relpath)
     inout_predict_reference_keys_file= join_path_names(output_basedir, name_predict_reference_keys_file)
     output_posteriors_path           = join_path_names(output_basedir, name_posteriors_relpath)
     output_predict_binary_masks_path = join_path_names(output_basedir, name_predict_binary_masks_relpath)
     output_predict_centrelines_path  = join_path_names(output_basedir, name_predict_centrelines_relpath)
+    output_result_metrics_file       = join_path_names(output_basedir, name_output_result_metrics_file)
 
 
 
@@ -77,7 +76,8 @@ def main(args):
                 '--is_config_fromfile', in_config_params_file,
                 '--name_output_predictions_relpath', inout_tempo_posteriors_path,
                 '--name_output_reference_keys_file', inout_predict_reference_keys_file,
-                '--testing_datadir', args.testing_datadir]
+                '--testing_datadir', args.testing_datadir,
+                '--is_backward_compat', str(args.is_backward_compat)]
     list_calls_all.append(new_call)
 
 
@@ -125,7 +125,7 @@ def main(args):
     new_call = ['python3', SCRIPT_COMPUTE_RESULT_METRICS, output_predict_binary_masks_path,
                 '--basedir', basedir,
                 '--input_centrelines_dir', output_predict_centrelines_path,
-                '--output_file', name_output_results_metrics_file,
+                '--output_file', output_result_metrics_file,
                 #'--list_type_metrics_result', ' '.join([el for el in args.list_type_metrics_result]),
                 '--is_remove_trachea_calc_metrics', str(IS_REMOVE_TRACHEA_CALC_METRICS)]
     list_calls_all.append(new_call)
@@ -135,14 +135,6 @@ def main(args):
     new_call = ['rm', '-r', inout_tempo_posteriors_path]
     list_calls_all.append(new_call)
     new_call = ['rm', inout_predict_reference_keys_file, inout_predict_reference_keys_file.replace('.npy', '.csv')]
-    list_calls_all.append(new_call)
-
-
-    # Move results file one basedir down
-    in_results_file  = join_path_names(output_predict_binary_masks_path, name_output_results_metrics_file)
-    out_results_file = join_path_names(output_basedir, name_output_results_metrics_file)
-
-    new_call = ['mv', in_results_file, out_results_file]
     list_calls_all.append(new_call)
 
 
@@ -170,6 +162,7 @@ if __name__ == "__main__":
     parser.add_argument('--list_type_metrics_result', type=str2list_string, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)
+    parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 
     print("Print input arguments...")

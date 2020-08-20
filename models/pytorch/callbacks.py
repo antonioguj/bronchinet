@@ -10,9 +10,11 @@ class RecordLossHistory(RecordLossHistoryBase):
 
     def __init__(self,
                  loss_filename: str,
-                 list_metrics: List[MetricBase] = None
+                 list_metrics: List[MetricBase] = None,
+                 is_hist_validation: bool = True
                  ) -> None:
-        super(RecordLossHistory, self).__init__(loss_filename, list_metrics)
+        super(RecordLossHistory, self).__init__(loss_filename, list_metrics,
+                                                is_hist_validation=is_hist_validation)
 
     def on_train_begin(self, *args, **kwargs) -> None:
         super(RecordLossHistory, self).on_train_begin()

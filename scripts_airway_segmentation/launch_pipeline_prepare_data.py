@@ -14,7 +14,7 @@ SCRIPT_GET_TRACHEA_MAIN_BRONCHI = join_path_names(CODEDIR, 'scripts_util/apply_o
 SCRIPT_COMPUTE_CENTRELINES      = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
 SCRIPT_RESCALE_ROI_MASKS        = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
 SCRIPT_EXTEND_CROPPED_IMAGES    = join_path_names(CODEDIR, 'scripts_util/specific_DLCST/extend_cropped_images_fullsize.py')
-SCRIPT_CALC_RESCALE_FACTOR_IMAGES= join_path_names(CODEDIR, 'scripts_airway_segmentation/compute_rescalefactor_images.py')
+SCRIPT_CALC_RESCALE_FACTOR_IMAGES=join_path_names(CODEDIR, 'scripts_airway_segmentation/compute_rescalefactor_images.py')
 SCRIPT_CALC_BOUNDING_BOX_IMAGES = join_path_names(CODEDIR, 'scripts_airway_segmentation/compute_boundingbox_images.py')
 SCRIPT_PREPARE_DATA             = join_path_names(CODEDIR, 'scripts_experiments/prepare_data.py')
 
@@ -63,6 +63,11 @@ def create_task_decompress_data(input_data_dir: str, is_keep_files: bool):
 
 def main(args):
 
+    #output_datadir = update_dirname(args.output_datadir)
+    output_datadir = args.output_datadir
+    makedir(output_datadir)
+
+
     source_cluster_data_dir   = join_path_names(CLUSTER_ARCHIVE_DIR, args.in_cluster_casedir)
 
     name_source_raw_images_path   = join_path_names(source_cluster_data_dir, 'CTs/')
@@ -72,11 +77,6 @@ def main(args):
         name_source_raw_coarse_airways_path = join_path_names(source_cluster_data_dir, 'CoarseAirways/')
     if args.in_cluster_casedir in ['DLCST', 'DLCST/']:
         name_source_found_bound_boxes_file  = join_path_names(source_cluster_data_dir, 'Others/found_boundingBox_croppedCTinFull.npy')
-
-
-    #output_datadir = update_dirname(args.output_datadir)
-    output_datadir = args.output_datadir
-    makedir(output_datadir)
 
     output_datadir                  = join_path_names(currentdir(), output_datadir)
     name_input_raw_images_path      = join_path_names(output_datadir, NAME_RAW_IMAGES_RELPATH)

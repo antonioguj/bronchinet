@@ -76,6 +76,9 @@ class ModelTrainerBase(object):
     def load_model_full(self, model_filename: str, **kwargs) -> None:
         raise NotImplementedError
 
+    def load_model_full_backward_compat(self, model_filename: str, **kwargs) -> None:
+        raise NotImplementedError
+
     def save_model_only_weights(self, model_filename: str) -> None:
         raise NotImplementedError
 

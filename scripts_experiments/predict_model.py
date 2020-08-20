@@ -37,7 +37,7 @@ def main(args):
 
 
     # LOADING MODEL
-    print("\Load Saved model...")
+    print("\nLoad Saved model...")
     print("-" * 30)
 
     print("Compute Predictions from file: \'%s\'..." % (args.preds_model_file))
@@ -50,7 +50,10 @@ def main(args):
                                   is_mask_to_region_interest=args.is_mask_region_interest)
         model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
                                           is_mask_to_region_interest=args.is_mask_region_interest)
-    model_trainer.load_model_full(args.preds_model_file)
+    if args.is_backward_compat:
+        model_trainer.load_model_full_backward_compat(args.preds_model_file)
+    else:
+        model_trainer.load_model_full(args.preds_model_file)
 
     model_trainer.summary_model()
 
@@ -164,6 +167,7 @@ if __name__ == "__main__":
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--list_type_metrics', type=str2list_string, default=LIST_TYPE_METRICS)
+    parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 
     if args.is_config_fromfile:

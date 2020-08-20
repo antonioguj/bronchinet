@@ -1,5 +1,5 @@
 
-from typing import Union, Tuple, List
+from typing import Tuple, List
 import numpy as np
 
 import torch
@@ -34,11 +34,13 @@ class ModelTrainer(ModelTrainerBase):
     def create_callbacks(self, models_path: str, **kwargs) -> None:
         self._list_callbacks = []
 
+        is_validation_data = kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() else True
         freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
         freq_validate_model = kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() else 1
         
         losshistory_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
-        new_callback = RecordLossHistory(losshistory_filename, self._list_metrics)
+        new_callback = RecordLossHistory(losshistory_filename, self._list_metrics,
+                                         is_hist_validation=is_validation_data)
         self._list_callbacks.append(new_callback)
 
         model_filename = join_path_names(models_path, NAME_SAVEDMODEL_EPOCH_TORCH)
@@ -59,8 +61,8 @@ class ModelTrainer(ModelTrainerBase):
         summary(self._network, self._network.get_size_input())
 
     def load_model_only_weights(self, model_filename: str) -> None:
-        model_full = torch.load(model_filename, map_location=self._device)
-        self._network.load_state_dict(model_full)
+        model_state_dict = torch.load(model_filename, map_location=self._device)
+        self._network.load_state_dict(model_state_dict)
 
     def load_model_full(self, model_filename: str, **kwargs) -> None:
         model_full = torch.load(model_filename, map_location=self._device)
@@ -92,6 +94,50 @@ class ModelTrainer(ModelTrainerBase):
 
         self.finalise_model()
 
+    def load_model_full_backward_compat(self, model_filename: str, **kwargs) -> None:
+        model_full = torch.load(model_filename, map_location=self._device)
+
+        # create network
+        type_network = 'UNet3D_Plugin'
+        network_input_args_orig = model_full['model_desc'][1]
+        # replace the network arguments that were renamed in the new version
+        network_input_args = {}
+        network_input_args['size_image_in'] = network_input_args_orig['size_image']
+        network_input_args['num_levels'] = network_input_args_orig['num_levels'] if 'num_levels' in network_input_args_orig.keys() else 5
+        network_input_args['num_featmaps_in'] = network_input_args_orig['num_featmaps_in'] if 'num_featmaps_in' in network_input_args_orig.keys() else 16
+        network_input_args['num_channels_in'] = network_input_args_orig['num_channels_in'] if 'num_channels_in' in network_input_args_orig.keys() else 1
+        network_input_args['num_classes_out'] = network_input_args_orig['num_classes_out'] if 'num_classes_out' in network_input_args_orig.keys() else 1
+        network_input_args['is_use_valid_convols'] = network_input_args_orig['isUse_valid_convols'] if 'isUse_valid_convols' in network_input_args_orig.keys() else False
+
+        update_net_input_args = kwargs['update_net_input_args'] if 'update_net_input_args' in kwargs.keys() else None
+        if update_net_input_args:
+            network_input_args.update(update_net_input_args)
+
+        self.create_network(type_network, **network_input_args)
+
+        network_state_dict_orig = model_full['model_state_dict']
+        # replace the network state class variables that were renamed in the new version
+        network_state_dict = {}
+        for (key, value) in network_state_dict_orig.items():
+            new_key = key.replace('convolution_downlay', '_convolution_down_lev')
+            new_key = new_key.replace('convolution_uplay', '_convolution_up_lev')
+            new_key = new_key.replace('classification_layer', '_classification_last')
+            network_state_dict[new_key] = value
+
+        self._network.load_state_dict(network_state_dict)
+
+        # create optimizer
+        type_optimizer = model_full['optimizer_desc']
+        self.create_optimizer(type_optimizer, learn_rate=0.0)
+        self._optimizer.load_state_dict(model_full['optimizer_state_dict'])
+
+        # create loss
+        type_loss = model_full['loss_fun_desc'][0]
+        loss_input_args = model_full['loss_fun_desc'][1]
+        self.create_loss(type_loss, is_mask_to_region_interest=loss_input_args['is_masks_exclude'])
+
+        self.finalise_model()
+
     def save_model_only_weights(self, model_filename: str) -> None:
         torch.save(self._network.state_dict(), model_filename)
 
@@ -119,9 +165,9 @@ class ModelTrainer(ModelTrainerBase):
         for icallback in self._list_callbacks:
             icallback.on_train_begin()
 
-    def _run_callbacks_on_epoch_end(self) -> None:
+    def _run_callbacks_on_epoch_end(self, epoch: int, data_output: List[float]) -> None:
         for icallback in self._list_callbacks:
-            icallback.on_epoch_end(self._epoch_count, self._data_output)
+            icallback.on_epoch_end(epoch, data_output)
 
     def get_size_output_image_model(self):
         return self._network.get_size_output()[1:]
@@ -141,11 +187,6 @@ class ModelTrainer(ModelTrainerBase):
 
         self._epoch_count = initial_epoch
         self._epoch_start_count = 0
-
-        self._train_loss = 0.0
-        self._valid_loss = 0.0
-        self._train_metrics = [0] * self._num_metrics
-        self._valid_metrics = [0] * self._num_metrics
 
         for i_epoch in range(initial_epoch, num_epochs):
             self._run_epoch()
@@ -172,27 +213,24 @@ class ModelTrainer(ModelTrainerBase):
         if self._epoch_count == 0:
             self._run_callbacks_on_train_begin()
 
-        if self._num_metrics > 0:
-            (self._train_loss, self._train_metrics) = self._train_epoch()
-        else:
-            self._train_loss = self._train_epoch()
+        (train_loss, train_metrics) = self._train_epoch()
 
         if self._valid_data_loader and \
             (self._epoch_count % self.freq_validate_model == 0 or self._epoch_start_count == 0):
 
             self._network.eval()  # switch to evaluate mode
 
-            if self._num_metrics > 0:
-                (self._valid_loss, self._valid_metrics) = self._validation_epoch()
-            else:
-                self._valid_loss = self._validation_epoch()
+            (valid_loss, valid_metrics) = self._validation_epoch()
+        else:
+            valid_loss = 0.0
+            valid_metrics = [0.0] * self._num_metrics
 
         if self._valid_data_loader:
-            self._data_output = [self._train_loss, self._valid_loss] + self._train_metrics + self._valid_metrics
+            data_output = [train_loss, valid_loss] + train_metrics + valid_metrics
         else:
-            self._data_output = [self._train_loss] + self._train_metrics
+            data_output = [train_loss] + train_metrics
 
-        self._run_callbacks_on_epoch_end()
+        self._run_callbacks_on_epoch_end(self._epoch_count, data_output)
 
         # write loss history
         # print("\ntrain loss = {0:.3f}".format(self.train_loss))
@@ -200,7 +238,7 @@ class ModelTrainer(ModelTrainerBase):
         # print("valid loss = {0:.3f}".format(self.valid_loss))
 
 
-    def _train_epoch(self) -> Union[float, Tuple[float, List[float]]]:
+    def _train_epoch(self) -> Tuple[float, List[float]]:
         if self._max_steps_epoch and self._max_steps_epoch < len(self._train_data_loader):
             num_batches = self._max_steps_epoch
         else:
@@ -231,7 +269,7 @@ class ModelTrainer(ModelTrainerBase):
             sumrun_loss += loss.item()
 
             metrics_this = self._compute_list_metrics(batch_prediction, in_batch_Ydata)
-            sumrun_metrics = [value1 + value2 for (value1, value2) in zip(sumrun_metrics, metrics_this)]
+            sumrun_metrics = [val1 + val2 for (val1, val2) in zip(sumrun_metrics, metrics_this)]
 
             #time_now = dt.now()
             #time_compute += (time_now - time_ini).seconds
@@ -251,15 +289,12 @@ class ModelTrainer(ModelTrainerBase):
         #print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
         total_loss = sumrun_loss / num_batches
+        total_metrics = [value / float(num_batches) for value in sumrun_metrics]
 
-        if self._num_metrics > 0:
-            total_metrics = [value / num_batches for value in sumrun_metrics]
-            return (total_loss, total_metrics)
-        else:
-            return total_loss
+        return (total_loss, total_metrics)
 
 
-    def _validation_epoch(self) -> Union[float, Tuple[float, List[float]]]:
+    def _validation_epoch(self) -> Tuple[float, List[float]]:
         if self._max_steps_epoch and self._max_steps_epoch < len(self._valid_data_loader):
             num_batches = self._max_steps_epoch
         else:
@@ -286,7 +321,7 @@ class ModelTrainer(ModelTrainerBase):
             sumrun_loss += loss.item()
 
             metrics_this = self._compute_list_metrics(batch_prediction, in_batch_Ydata)
-            sumrun_metrics = [value1 + value2 for (value1, value2) in zip(sumrun_metrics, metrics_this)]
+            sumrun_metrics = [val1 + val2 for (val1, val2) in zip(sumrun_metrics, metrics_this)]
 
             #time_now = dt.now()
             #time_compute += (time_now - time_ini).seconds
@@ -304,12 +339,9 @@ class ModelTrainer(ModelTrainerBase):
         #print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
         total_loss = sumrun_loss / num_batches
+        total_metrics = [value / num_batches for value in sumrun_metrics]
 
-        if self._num_metrics > 0:
-            total_metrics = [value / num_batches for value in sumrun_metrics]
-            return (total_loss, total_metrics)
-        else:
-            return total_loss
+        return (total_loss, total_metrics)
 
 
     def _run_prediction(self) -> np.ndarray:

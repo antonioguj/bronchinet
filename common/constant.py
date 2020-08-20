@@ -35,7 +35,9 @@ NAME_SAVEDMODEL_LAST_TORCH      = 'model_last.pt'
 NAME_TEMPO_POSTERIORS_RELPATH   = 'Predictions/PosteriorsWorkData/'
 NAME_POSTERIORS_RELPATH         = 'Predictions/Posteriors/'
 NAME_PRED_BINARYMASKS_RELPATH   = 'Predictions/BinaryMasks/'
+NAME_PRED_CENTRELINES_RELPATH   = 'Predictions/Centrelines/'
 NAME_REFERENCE_KEYS_POSTERIORS_FILE = 'Predictions/referenceKeys_posteriors.npy'
+NAME_PRED_RESULT_METRICS_FILE   = 'Predictions/result_metrics.csv'
 
 
 # PREPROCESSING
@@ -106,7 +108,7 @@ TYPE_OPTIMIZER          = 'Adam'
 LEARN_RATE              = 1.0e-04
 TYPE_LOSS               = 'DiceCoefficient'
 LIST_TYPE_METRICS       = []
-#LIST_TYPE_METRICS      = ['DiceCoefficient', 'TruePositiveRate', 'FalsePositiveRate', 'TrueNegativeRate', 'FalseNegativeRate']
+#LIST_TYPE_METRICS      = ['TruePositiveRate', 'FalsePositiveRate', 'TrueNegativeRate', 'FalseNegativeRate']
 IS_VALID_CONVOLUTIONS   = True
 USE_VALIDATION_DATA     = True
 FREQ_VALIDATE_MODEL     = 3

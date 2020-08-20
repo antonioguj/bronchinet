@@ -223,7 +223,7 @@ class TruePositiveRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TruePositiveRate, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'tpr'
+        self._name_fun_out = 'tp_rate'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum(y_true * y_pred) / (torch.sum(y_true) + _SMOOTH)
@@ -236,7 +236,7 @@ class TrueNegativeRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TrueNegativeRate, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'tnr'
+        self._name_fun_out = 'tn_rate'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum((1.0 - y_true) * (1.0 - y_pred)) / (torch.sum((1.0 - y_true)) + _SMOOTH)
@@ -249,7 +249,7 @@ class FalsePositiveRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalsePositiveRate, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'fpr'
+        self._name_fun_out = 'fp_rate'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum((1.0 - y_true) * y_pred) / (torch.sum((1.0 - y_true)) + _SMOOTH)
@@ -259,7 +259,7 @@ class FalseNegativeRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalseNegativeRate, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'fnr'
+        self._name_fun_out = 'fn_rate'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum(y_true * (1.0 - y_pred)) / (torch.sum(y_true) + _SMOOTH)
@@ -284,7 +284,7 @@ class AirwayVolumeLeakage(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayVolumeLeakage, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'vol_leakage'
+        self._name_fun_out = 'volume_leakage'
 
     def _compute(self, y_true: torch.FloatTensor, y_pred: torch.FloatTensor) -> torch.FloatTensor:
         return torch.sum((1.0 - y_true) * y_pred) / (torch.sum(y_pred) + _SMOOTH)

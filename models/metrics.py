@@ -208,7 +208,7 @@ class TruePositiveRate(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TruePositiveRate, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'tpr'
+        self._name_fun_out = 'tp_rate'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.sum(y_true * y_pred) / (np.sum(y_true) + _SMOOTH)
@@ -218,7 +218,7 @@ class TrueNegativeRate(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TrueNegativeRate, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'tnr'
+        self._name_fun_out = 'tn_rate'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.sum((1.0 - y_true) * (1.0 - y_pred)) / (np.sum((1.0 - y_true)) + _SMOOTH)
@@ -228,7 +228,7 @@ class FalsePositiveRate(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalsePositiveRate, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'fpr'
+        self._name_fun_out = 'fp_rate'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.sum((1.0 - y_true) * y_pred) / (np.sum((1.0 - y_true)) + _SMOOTH)
@@ -238,7 +238,7 @@ class FalseNegativeRate(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalseNegativeRate, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'fnr'
+        self._name_fun_out = 'fn_rate'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.sum(y_true * (1.0 - y_pred)) / (np.sum(y_true) + _SMOOTH)
@@ -260,7 +260,7 @@ class AirwayVolumeLeakage(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayVolumeLeakage, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'vol_leakage'
+        self._name_fun_out = 'volume_leakage'
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         return np.sum((1.0 - y_true) * y_pred) / (np.sum(y_pred) + _SMOOTH)
@@ -284,7 +284,7 @@ class AirwayCentrelineDistanceFalsePositiveError(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayCentrelineDistanceFalsePositiveError, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'centreline_dist_FP_error'
+        self._name_fun_out = 'cenline_dist_fp_err'
 
     @staticmethod
     def _get_voxel_scaling(y_input: np.ndarray) -> np.ndarray:
@@ -308,7 +308,7 @@ class AirwayCentrelineDistanceFalseNegativeError(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayCentrelineDistanceFalseNegativeError, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'centreline_dist_FN_error'
+        self._name_fun_out = 'cenline_dist_fn_err'
 
     @staticmethod
     def _get_voxel_scaling(y_input: np.ndarray) -> np.ndarray:

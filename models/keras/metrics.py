@@ -56,7 +56,12 @@ class Metric(MetricBase):
 
     def renamed_compute(self) -> Callable:
         if self._name_fun_out:
-            return getattr(self, self._name_fun_out)
+            setattr(self, self._name_fun_out, self.compute)
+            out_fun_renamed = getattr(self, self._name_fun_out)
+            out_fun_renamed.__func__.__name__ = self._name_fun_out
+            return out_fun_renamed
+        else:
+            None
 
 
 class MetricWithUncertainty(Metric):
@@ -225,7 +230,7 @@ class TruePositiveRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TruePositiveRate, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'tpr'
+        self._name_fun_out = 'tp_rate'
 
     def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
         return K.sum(y_true * y_pred) / (K.sum(y_true) + _SMOOTH)
@@ -238,7 +243,7 @@ class TrueNegativeRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(TrueNegativeRate, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'tnr'
+        self._name_fun_out = 'tn_rate'
 
     def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
         return K.sum((1.0 - y_true) * (1.0 - y_pred)) / (K.sum((1.0 - y_true)) + _SMOOTH)
@@ -251,7 +256,7 @@ class FalsePositiveRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalsePositiveRate, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'fpr'
+        self._name_fun_out = 'fp_rate'
 
     def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
         return K.sum((1.0 - y_true) * y_pred) / (K.sum((1.0 - y_true)) + _SMOOTH)
@@ -261,7 +266,7 @@ class FalseNegativeRate(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(FalseNegativeRate, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'fnr'
+        self._name_fun_out = 'fn_rate'
 
     def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
         return K.sum(y_true * (1.0 - y_pred)) / (K.sum(y_true) + _SMOOTH)
@@ -283,7 +288,7 @@ class AirwayVolumeLeakage(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayVolumeLeakage, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'vol_leakage'
+        self._name_fun_out = 'volume_leakage'
 
     def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
         return K.sum((1.0 - y_true) * y_pred) / (K.sum(y_pred) + _SMOOTH)

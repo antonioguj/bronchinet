@@ -20,20 +20,23 @@ class RecordLossHistoryBase(CallbackBase):
 
     def __init__(self,
                  loss_filename: str,
-                 list_metrics: List[MetricBase] = None
+                 list_metrics: List[MetricBase] = None,
+                 is_hist_validation: bool = True
                  ) -> None:
         self._loss_filename = loss_filename
-        self._names_metrics_funs = []
+        self._names_hist_fields = ['loss']
         if list_metrics:
-            for imetric in list_metrics:
-                new_names_metrics_funs = ['%s' % (imetric._name_fun_out), 'val_%s' % (imetric._name_fun_out)]
-                self._names_metrics_funs += new_names_metrics_funs
+            self._names_hist_fields += [imetric._name_fun_out for imetric in list_metrics]
+
+        if is_hist_validation:
+            names_hist_fields_new = []
+            for iname in self._names_hist_fields:
+                names_hist_fields_new += [iname, 'val_%s' % (iname)]
+            self._names_hist_fields = names_hist_fields_new
 
     def on_train_begin(self) -> None:
-        list_header = ['/epoch/', '/loss/', '/val_loss/']
-        if self._names_metrics_funs:
-            list_header += ['/%s/' % (iname) for iname in self._names_metrics_funs]
-        str_header = ' '.join(list_header) + '\n'
+        list_names_header = ['/epoch/'] + ['/%s/' % (elem) for elem in self._names_hist_fields]
+        str_header = ' '.join(list_names_header) + '\n'
 
         fout = open(self._loss_filename, 'w')
         fout.write(str_header)

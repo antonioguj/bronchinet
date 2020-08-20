@@ -132,10 +132,8 @@ def main(args):
 
 
     # write out computed metrics in file
-    out_results_filename = join_path_names(args.input_predicted_masks_dir, args.output_file)
-    fout = open(out_results_filename, 'w')
-
-    strheader = ', '.join(['/case/'] + ['/%s/'%(key) for key in list_metrics_compute.keys()]) + '\n'
+    fout = open(args.output_file, 'w')
+    strheader = ', '.join(['/case/'] + ['/%s/' % (key) for key in list_metrics_compute.keys()]) + '\n'
     fout.write(strheader)
 
     for (in_casename, outlist_computed_metrics) in outdict_computed_metrics.items():
@@ -152,7 +150,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_predicted_masks_dir', type=str)
     parser.add_argument('--input_centrelines_dir', type=str, default=None)
-    parser.add_argument('--output_file', type=str, default='result_metrics.txt')
+    parser.add_argument('--output_file', type=str, default=NAME_PRED_RESULT_METRICS_FILE)
     parser.add_argument('--list_type_metrics_result', type=str2list_string, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
