@@ -13,6 +13,7 @@ LIST_AVAIL_OPTIMIZERS = ['SGD',
                          'Adam',
                          ]
 
+
 def SGD(learn_rate: float, **kwargs):
     model_params = kwargs['model_params']
     return SGD_torch(model_params, lr=learn_rate)

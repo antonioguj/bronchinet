@@ -13,6 +13,7 @@ LIST_AVAIL_OPTIMIZERS = ['SGD',
                          'Adam',
                          ]
 
+
 def SGD(learn_rate: float, **kwargs):
     return SGD_keras(lr=learn_rate)
 

@@ -288,7 +288,7 @@ class ModelTrainer(ModelTrainerBase):
         #print("\ntime total = {0:.3f}".format(time_total))
         #print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
-        total_loss = sumrun_loss / num_batches
+        total_loss = sumrun_loss / float(num_batches)
         total_metrics = [value / float(num_batches) for value in sumrun_metrics]
 
         return (total_loss, total_metrics)
@@ -338,8 +338,8 @@ class ModelTrainer(ModelTrainerBase):
         #print("\ntime total = {0:.3f}".format(time_total))
         #print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
-        total_loss = sumrun_loss / num_batches
-        total_metrics = [value / num_batches for value in sumrun_metrics]
+        total_loss = sumrun_loss / float(num_batches)
+        total_metrics = [value / float(num_batches) for value in sumrun_metrics]
 
         return (total_loss, total_metrics)
 
