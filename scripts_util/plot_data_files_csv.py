@@ -93,7 +93,8 @@ def main(args):
             # endfor
         # endfor
 
-    print("Found fields to plot data from: %s..." % (dict_data_fields_files.keys()))
+    list_fields_plot_data = list(dict_data_fields_files.keys())
+    print("Found fields to plot data from: %s..." % (list_fields_plot_data))
 
 
 

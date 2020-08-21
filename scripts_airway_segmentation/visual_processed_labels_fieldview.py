@@ -2,7 +2,7 @@
 from common.constant import *
 from common.functionutil import *
 from common.workdirmanager import GeneralDirManager
-from dataloaders.dataloader_manager import get_imagedataloader_1image
+from dataloaders.dataloader_manager import get_imagedataloader_2images
 from dataloaders.imagefilereader import ImageFileReader
 from models.model_manager import get_network
 from postprocessing.postprocessing_manager import get_images_reconstructor
@@ -17,7 +17,7 @@ def main(args):
 
     def name_output_files(in_name, in_size_image):
         suffix = 'outsize-%s' %('x'.join([str(s) for s in in_size_image]))
-        return 'fieldOfView_' + basename_file_noext(in_name) + '_' + suffix + '.nii.gz'
+        return 'fieldview_' + basename_file_noext(in_name) + '_' + suffix + '.nii.gz'
     # ---------- SETTINGS ----------
 
 
@@ -30,27 +30,30 @@ def main(args):
 
 
     # Build model to calculate the output size
-    model_network = get_network('Unet3D_Original',
+    model_network = get_network('UNet3D_Plugin',
                                 args.size_in_images,
-                                num_levels=args.num_levels,
+                                num_levels=args.net_num_levels,
                                 num_featmaps_in=1,
                                 is_use_valid_convols=args.is_valid_convolutions)
 
-    size_out_image_net = model_network.get_size_output()[:-1]
+    size_out_image_network = model_network.get_size_output()[1:]
+
     if args.is_valid_convolutions:
         print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
-                                                                                               str(size_out_image_net)))
+                                                                                               str(size_out_image_network)))
     # Create Image Reconstructor
     images_reconstructor = get_images_reconstructor(args.size_in_images,
-                                                    args.use_sliding_window_images,
-                                                    args.prop_overlap_sliding_window,
+                                                    use_sliding_window_images=args.use_sliding_window_images,
+                                                    prop_overlap_slide_window=args.prop_overlap_sliding_window,
                                                     use_random_window_images=False,
                                                     num_random_patches_epoch=0,
                                                     use_transform_rigid_images=False,
+                                                    use_transform_elasticdeform_images=False,
                                                     is_output_nnet_validconvs=args.is_valid_convolutions,
-                                                    size_output_image=size_out_image_net,
+                                                    size_output_image=size_out_image_network,
                                                     is_filter_output_nnet=IS_FILTER_PRED_PROBMAPS,
                                                     prop_filter_output_nnet=PROP_VALID_OUTPUT_NNET)
+
 
     names_files_different = []
 
@@ -58,17 +61,20 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_label_file)))
 
         print("Loading data...")
-        label_data_loader = get_imagedataloader_1image([in_label_file],
-                                                       args.size_in_images,
-                                                       args.use_sliding_window_images,
-                                                       args.prop_overlap_sliding_window,
-                                                       use_transform_rigid_images=False,
-                                                       use_transform_elasticdeform_images=False,
-                                                       use_random_window_images=False,
-                                                       num_random_patches_epoch=0,
-                                                       batch_size=1,
-                                                       shuffle=False)
-        label_data_batches = label_data_loader.get_full_data()
+        label_data_loader = get_imagedataloader_2images([in_label_file],
+                                                        [in_label_file],
+                                                        args.size_in_images,
+                                                        use_sliding_window_images=args.use_sliding_window_images,
+                                                        prop_overlap_slide_window=args.prop_overlap_sliding_window,
+                                                        use_transform_rigid_images=False,
+                                                        use_transform_elasticdeform_images=False,
+                                                        use_random_window_images=False,
+                                                        num_random_patches_epoch=0,
+                                                        is_output_nnet_validconvs=args.is_valid_convolutions,
+                                                        size_output_images=size_out_image_network,
+                                                        batch_size=1,
+                                                        shuffle=False)
+        (_, label_data_batches) = label_data_loader.get_full_data()
         print("Loaded \'%s\' files. Total batches generated: %s..." % (1, len(label_data_batches)))
 
 
@@ -99,7 +105,7 @@ def main(args):
 
 
         # Output computed field of view
-        out_filename = join_path_names(output_files_path, name_output_files(in_label_file, size_out_image_net))
+        out_filename = join_path_names(output_files_path, name_output_files(in_label_file, size_out_image_network))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), out_fieldview_reconstructed.shape))
 
         ImageFileReader.write_image(out_filename, out_fieldview_reconstructed)
@@ -116,12 +122,11 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
-    parser.add_argument('output_dir', type=str, default='CheckFieldOfViewNetworks/')
+    parser.add_argument('--output_dir', type=str, default='Visual_FieldViewNetwork/')
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
     parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
-    parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
     parser.add_argument('--net_num_levels', type=int, default=NET_NUM_LEVELS)
     parser.add_argument('--use_sliding_window_images', type=str2bool, default=True)

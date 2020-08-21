@@ -88,7 +88,7 @@ def main(args):
 
     outdict_reference_keys = OrderedDict()
 
-    for i, in_image_file in enumerate(list_input_images_files):
+    for ifile, in_image_file in enumerate(list_input_images_files):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
         inout_image = ImageFileReader.get_image(in_image_file)
@@ -100,7 +100,7 @@ def main(args):
 
         # *******************************************************************************
         if (args.is_prepare_labels):
-            in_label_file = list_input_labels_files[i]
+            in_label_file = list_input_labels_files[ifile]
             print("And Labels: \'%s\'..." % (basename(in_label_file)))
 
             inout_label = ImageFileReader.get_image(in_label_file)
@@ -116,7 +116,7 @@ def main(args):
 
 
         if (args.is_mask_region_interest):
-            in_roimask_file = list_input_RoImasks_files[i]
+            in_roimask_file = list_input_RoImasks_files[ifile]
             print("And ROI Mask for labels: \'%s\'..." %(basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)
@@ -134,7 +134,7 @@ def main(args):
 
 
         if (args.is_input_extra_labels):
-            in_extralabel_file = list_input_extra_labels_files[i]
+            in_extralabel_file = list_input_extra_labels_files[ifile]
             print("And extra labels: \'%s\'..." %(basename(in_extralabel_file)))
 
             inout_extralabel = ImageFileReader.get_image(in_extralabel_file)
@@ -151,7 +151,7 @@ def main(args):
 
         #*******************************************************************************
         if (args.is_rescale_images):
-            in_reference_key = list_in_reference_files[i]
+            in_reference_key = list_in_reference_files[ifile]
             in_rescale_factor = indict_rescale_factors[basename_file_noext(in_reference_key)]
             print("Rescale image with a factor: \'%s\'..." %(str(in_rescale_factor)))
 
@@ -194,7 +194,7 @@ def main(args):
 
         # *******************************************************************************
         if (args.is_crop_images):
-            in_reference_key = list_in_reference_files[i]
+            in_reference_key = list_in_reference_files[ifile]
             list_in_crop_bounding_boxes = indict_crop_bounding_boxes[basename_file_noext(in_reference_key)]
             num_crop_bounding_boxes = len(list_in_crop_bounding_boxes)
             print("Compute \'%s\' cropped images for this raw image:" %(num_crop_bounding_boxes))
@@ -210,7 +210,7 @@ def main(args):
                 # Insert input image in the right place: before each set of ROI-masked labels
                 in_image = list_inout_data[0]
                 for j in range(1,num_crop_bounding_boxes):
-                    pos_insert = j*(num_init_labels+1)
+                    pos_insert = j * (num_init_labels + 1)
                     list_inout_data.insert(pos_insert, in_image)
                     list_type_inout_data.insert(pos_insert, 'image')
                 # endfor
@@ -264,11 +264,11 @@ def main(args):
             num_output_files_per_image = 1
 
         icount = 0
-        for j in range(num_output_files_per_image):
+        for isubfile in range(num_output_files_per_image):
             if is_output_multiple_files_per_image:
-                output_image_file = join_path_names(output_images_path, name_template_output_images_files % (i + 1, j + 1))
+                output_image_file = join_path_names(output_images_path, name_template_output_images_files % (ifile+1, isubfile+1))
             else:
-                output_image_file = join_path_names(output_images_path, name_template_output_images_files % (i + 1))
+                output_image_file = join_path_names(output_images_path, name_template_output_images_files % (ifile+1))
             print("Output \'%s\' image, of type \'%s\': \'%s\'..." % (icount, list_type_inout_data[icount],
                                                                       basename(output_image_file)))
 
@@ -279,9 +279,9 @@ def main(args):
 
             if (args.is_prepare_labels):
                 if is_output_multiple_files_per_image:
-                    output_label_file = join_path_names(output_labels_path, name_template_output_labels_files % (i + 1, j + 1))
+                    output_label_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1, isubfile+1))
                 else:
-                    output_label_file = join_path_names(output_labels_path, name_template_output_labels_files % (i + 1))
+                    output_label_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1))
                 print("Output \'%s\' label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_data[icount],
                                                                           basename(output_label_file)))
 
@@ -290,9 +290,9 @@ def main(args):
 
             if (args.is_input_extra_labels):
                 if is_output_multiple_files_per_image:
-                    output_extralabel_file = join_path_names(output_labels_path, name_template_output_labels_files % (i + 1, j + 1))
+                    output_extralabel_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1, isubfile+1))
                 else:
-                    output_extralabel_file = join_path_names(output_labels_path, name_template_output_labels_files % (i + 1))
+                    output_extralabel_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1))
                 print("Output \'%s\' extra label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_data[icount],
                                                                                 basename(output_extralabel_file)))
 

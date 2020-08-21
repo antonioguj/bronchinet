@@ -215,12 +215,18 @@ class ModelTrainer(ModelTrainerBase):
 
         (train_loss, train_metrics) = self._train_epoch()
 
-        if self._valid_data_loader and \
-            (self._epoch_count % self.freq_validate_model == 0 or self._epoch_start_count == 0):
+        if self._valid_data_loader:
+            if (self._epoch_count % self.freq_validate_model == 0) or (self._epoch_start_count == 0):
 
-            self._network.eval()  # switch to evaluate mode
+                self._network.eval()  # switch to evaluate mode
 
-            (valid_loss, valid_metrics) = self._validation_epoch()
+                (valid_loss, valid_metrics) = self._validation_epoch()
+
+                self._valid_loss_hold = valid_loss
+                self._valid_metrics_hold = valid_metrics
+            else:
+                valid_loss = self._valid_loss_hold
+                valid_metrics = self._valid_metrics_hold
         else:
             valid_loss = 0.0
             valid_metrics = [0.0] * self._num_metrics

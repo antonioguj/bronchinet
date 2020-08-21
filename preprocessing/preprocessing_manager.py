@@ -14,11 +14,11 @@ from preprocessing.elasticdeformimages import ElasticDeformGridwiseImages, Elast
 
 def get_images_generator(size_images: Tuple[int, ...],
                          use_sliding_window_images: bool,
-                         slide_window_prop_overlap: Tuple[int, ...],
+                         prop_overlap_slide_window: Tuple[int, ...],
                          use_random_window_images: bool,
                          num_random_patches_epoch: int,
                          use_transform_rigid_images: bool,
-                         use_elasticdeform_images: bool,
+                         use_transform_elasticdeform_images: bool,
                          size_volume_image: Tuple[int, ...] = (0,)
                          ) -> ImageGenerator:
     list_images_generators = []
@@ -26,7 +26,7 @@ def get_images_generator(size_images: Tuple[int, ...],
     if (use_sliding_window_images):
         # generator of image patches by sliding-window...
         new_images_generator = SlidingWindowImages(size_images,
-                                                   slide_window_prop_overlap,
+                                                   prop_overlap_slide_window,
                                                    size_volume_image)
         list_images_generators.append(new_images_generator)
 
@@ -69,7 +69,7 @@ def get_images_generator(size_images: Tuple[int, ...],
             message = 'Wrong value of \'ndims\': %s' % (ndims)
             catch_error_exception(message)
 
-    if use_elasticdeform_images:
+    if use_transform_elasticdeform_images:
         if TYPE_TRANSFORM_ELASTICDEFORM_IMAGES == 'pixelwise':
             new_images_generator = ElasticDeformPixelwiseImages(size_images)
             list_images_generators.append(new_images_generator)

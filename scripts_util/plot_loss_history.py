@@ -87,7 +87,8 @@ def main(args):
     # endfor
 
     epochs_files = dict_data_losses_fields_files.pop('epoch')
-    print("Found fields to plot loss history: %s..." %(dict_data_losses_fields_files.keys()))
+    list_fields_plot_history = list(dict_data_losses_fields_files.keys())
+    print("Found fields to plot loss history: %s..." % (list_fields_plot_history))
 
 
 
