@@ -54,6 +54,12 @@ class Metric(MetricBase):
     def _get_masked_input(self, y_input: tf.Tensor, y_true: tf.Tensor) -> tf.Tensor:
         return tf.where(K.equal(y_true, self._value_mask_exclude), K.zeros_like(y_input), y_input)
 
+    def renamed_lossfun_backward_compat(self) -> Callable:
+        setattr(self, 'loss', self.lossfun)
+        out_fun_renamed = getattr(self, 'loss')
+        out_fun_renamed.__func__.__name__ = 'loss'
+        return out_fun_renamed
+
     def renamed_compute(self) -> Callable:
         if self._name_fun_out:
             setattr(self, self._name_fun_out, self.compute)

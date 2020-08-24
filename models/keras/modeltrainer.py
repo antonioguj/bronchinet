@@ -54,12 +54,16 @@ class ModelTrainer(ModelTrainerBase):
         self._compiled_model.load_weights(model_filename)
 
     def load_model_full(self, model_filename: str, **kwargs) -> None:
-        list_metrics_funs = [imetric.renamed_compute() for imetric in self._list_metrics]
-        custom_objects = dict(map(lambda fun: (fun.__name__, fun), [self._loss.lossfun] + list_metrics_funs))
+        custom_loss = self._loss.lossfun
+        custom_metrics = [imetric.renamed_compute() for imetric in self._list_metrics]
+        custom_objects = dict(map(lambda fun: (fun.__name__, fun), [custom_loss] + custom_metrics))
         self._compiled_model = load_model(model_filename, custom_objects=custom_objects)
 
     def load_model_full_backward_compat(self, model_filename: str, **kwargs) -> None:
-        self.load_model_full(model_filename, **kwargs)
+        custom_loss = self._loss.renamed_lossfun_backward_compat()
+        custom_metrics = [imetric.renamed_compute() for imetric in self._list_metrics]
+        custom_objects = dict(map(lambda fun: (fun.__name__, fun), [custom_loss] + custom_metrics))
+        self._compiled_model = load_model(model_filename, custom_objects=custom_objects)
 
     def save_model_only_weights(self, model_filename: str) -> None:
         pass
