@@ -43,7 +43,7 @@ def main(args):
     print("Compute Predictions from file: \'%s\'..." % (args.preds_model_file))
     model_trainer = ModelTrainer()
 
-    print("Load full model: weights, model desc, optimizer, ... to restart model...")
+    print("Load full model (model weights and description, optimizer, loss and metrics) to restart model...")
     if TYPE_DNNLIB_USED == 'Keras':
         # CHECK WHETHER THIS IS NECESSARY
         model_trainer.create_loss(type_loss=args.type_loss,
@@ -55,7 +55,7 @@ def main(args):
     else:
         model_trainer.load_model_full(args.preds_model_file)
 
-    model_trainer.summary_model()
+    #model_trainer.summary_model()
 
     if (args.is_save_featmaps_layers):
         print("Compute and store Feature Maps from the Model layer \'%s\'..." %(args.name_save_feats_model_layer))
@@ -110,7 +110,7 @@ def main(args):
             out_prediction_batches = model_trainer.predict(image_data_loader)
 
 
-        print("Reconstruct full size prediction from batches...")
+        print("\nReconstruct full size prediction from batches...")
         out_shape_reconstructed_image = ImageFileReader.get_image_size(in_image_file)
         images_reconstructor.update_image_data(out_shape_reconstructed_image)
 
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('preds_model_file', type=str)
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('--is_config_fromfile', type=str, default=None)
+    parser.add_argument('--in_config_file', type=str, default=None)
     parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--name_output_predictions_relpath', type=str, default=NAME_TEMPO_POSTERIORS_RELPATH)
@@ -171,13 +171,13 @@ if __name__ == "__main__":
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 
-    if args.is_config_fromfile:
-        if not is_exist_file(args.is_config_fromfile):
-            message = "Config params file not found: \'%s\'..." % (args.is_config_fromfile)
+    if args.in_config_file:
+        if not is_exist_file(args.in_config_file):
+            message = "Config params file not found: \'%s\'" % (args.in_config_file)
             catch_error_exception(message)
         else:
-            input_args_file = read_dictionary_configparams(args.is_config_fromfile)
-        print("Set up experiments with parameters from file: \'%s\'" %(args.is_config_fromfile))
+            input_args_file = read_dictionary_configparams(args.in_config_file)
+        print("Set up experiments with parameters from file: \'%s\'" %(args.in_config_file))
         #args.basedir                = str(input_args_file['workdir'])
         args.size_in_images         = str2tuple_int(input_args_file['size_in_images'])
         args.is_mask_region_interest= str2bool(input_args_file['is_mask_region_interest'])

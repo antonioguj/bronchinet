@@ -136,6 +136,10 @@ class ModelTrainer(ModelTrainerBase):
         loss_input_args = model_full['loss_fun_desc'][1]
         self.create_loss(type_loss, is_mask_to_region_interest=loss_input_args['is_masks_exclude'])
 
+        # create 'dummy' empty list of metrics
+        list_type_metrics = []
+        self.create_list_metrics(list_type_metrics, is_mask_to_region_interest=loss_input_args['is_masks_exclude'])
+
         self.finalise_model()
 
     def save_model_only_weights(self, model_filename: str) -> None:

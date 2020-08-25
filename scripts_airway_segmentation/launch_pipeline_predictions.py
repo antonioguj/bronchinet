@@ -73,7 +73,7 @@ def main(args):
     # 1st: Compute model predictions, and posteriors for testing work data
     new_call = ['python3', SCRIPT_PREDICT_MODEL, args.input_model_file,
                 '--basedir', basedir,
-                '--is_config_fromfile', in_config_params_file,
+                '--in_config_file', in_config_params_file,
                 '--name_output_predictions_relpath', inout_tempo_posteriors_path,
                 '--name_output_reference_keys_file', inout_predict_reference_keys_file,
                 '--testing_datadir', args.testing_datadir,

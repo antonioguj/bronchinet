@@ -155,7 +155,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('--is_config_fromfile', type=str, default=None)
+    parser.add_argument('--in_config_file', type=str, default=None)
     parser.add_argument('--name_input_predictions_relpath', type=str, default=NAME_TEMPO_POSTERIORS_RELPATH)
     parser.add_argument('--name_input_RoImasks_relpath', type=str, default=NAME_RAW_ROIMASKS_RELPATH)
     parser.add_argument('--name_input_reference_files_relpath', type=str, default=NAME_REFERENCE_FILES_RELPATH)
@@ -168,13 +168,13 @@ if __name__ == "__main__":
     parser.add_argument('--name_rescale_factors_file', type=str, default=NAME_RESCALE_FACTOR_FILE)
     args = parser.parse_args()
 
-    if args.is_config_fromfile:
-        if not is_exist_file(args.is_config_fromfile):
-            message = "Config params file not found: \'%s\'..." % (args.is_config_fromfile)
+    if args.in_config_file:
+        if not is_exist_file(args.in_config_file):
+            message = "Config params file not found: \'%s\'..." % (args.in_config_file)
             catch_error_exception(message)
         else:
-            input_args_file = read_dictionary_configparams(args.is_config_fromfile)
-        print("Set up experiments with parameters from file: \'%s\'" %(args.is_config_fromfile))
+            input_args_file = read_dictionary_configparams(args.in_config_file)
+        print("Set up experiments with parameters from file: \'%s\'" %(args.in_config_file))
         args.basedir                        = str(input_args_file['basedir'])
         args.is_mask_region_interest        = str2bool(input_args_file['is_mask_region_interest'])
         #args.is_crop_images                 = str2bool(input_args_file['is_crop_images'])

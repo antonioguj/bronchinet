@@ -119,14 +119,17 @@ def main(args):
             print("Load only saved weights to restart model...")
             model_trainer.load_model_only_weights(model_restart_file)
         else:
-            print("Load full model: weights, model desc, optimizer, ... to restart model...")
+            print("Load full model (model weights and description, optimizer, loss and metrics) to restart model...")
             if TYPE_DNNLIB_USED == 'Keras':
                 # CHECK WHETHER THIS IS NECESSARY
                 model_trainer.create_loss(type_loss=args.type_loss,
                                           is_mask_to_region_interest=args.is_mask_region_interest)
                 model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
                                                   is_mask_to_region_interest=args.is_mask_region_interest)
-            model_trainer.load_model_full(model_restart_file)
+            if args.is_backward_compat:
+                model_trainer.load_model_full_backward_compat(model_restart_file)
+            else:
+                model_trainer.load_model_full(model_restart_file)
 
     model_trainer.create_callbacks(models_path=models_path,
                                    is_restart_model=args.is_restart_model,
@@ -154,7 +157,7 @@ def main(args):
     if args.is_valid_convolutions:
         print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
                                                                                                str(size_out_image_model)))
-    print("Load Validation data...")
+    print("Loading Training data...")
     training_data_loader = get_train_imagedataloader_2images(list_train_images_files,
                                                              list_train_labels_files,
                                                              args.size_in_images,
@@ -172,7 +175,7 @@ def main(args):
                                                                    len(training_data_loader)))
 
     if use_validation_data:
-        print("Load Validation data...")
+        print("\nLoading Validation data...")
         args.use_transform_rigid_images = args.use_transform_rigid_images and USE_TRANSFORM_VALIDATION_DATA
         args.use_transform_elasticdeform_images = args.use_transform_elasticdeform_images and USE_TRANSFORM_VALIDATION_DATA
 
@@ -224,7 +227,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--modelsdir', type=str, default='Models')
-    parser.add_argument('--is_config_fromfile', type=str, default=None)
+    parser.add_argument('--in_config_file', type=str, default=None)
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--traininig_datadir', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--validation_datadir', type=str, default=NAME_VALIDATIONDATA_RELPATH)
@@ -251,19 +254,24 @@ if __name__ == "__main__":
     parser.add_argument('--use_transform_elasticdeform_images', type=str2bool, default=USE_TRANSFORM_ELASTICDEFORM_IMAGES)
     parser.add_argument('--is_restart_model', type=str2bool, default=IS_RESTART_MODEL)
     parser.add_argument('--restart_file', type=str, default=NAME_SAVEDMODEL_LAST)
+    parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 
-    if args.is_config_fromfile:
-        if not is_exist_file(args.is_config_fromfile):
-            message = "Config params file not found: \'%s\'..." %(args.is_config_fromfile)
+    if args.is_restart_model and not args.in_config_file:
+        args.in_config_file = join_path_names(args.modelsdir, NAME_CONFIG_PARAMS_FILE)
+        print("Restarting model: input config file is not given. Use the default path: %s" %(args.in_config_file))
+
+    if args.in_config_file:
+        if not is_exist_file(args.in_config_file):
+            message = "Config params file not found: \'%s\'..." %(args.in_config_file)
             catch_error_exception(message)
         else:
-            input_args_file = read_dictionary_configparams(args.is_config_fromfile)
-        print("Set up experiments with parameters from file: \'%s\'" %(args.is_config_fromfile))
-        args.basedir           = str(input_args_file['workdir'])
+            input_args_file = read_dictionary_configparams(args.in_config_file)
+        print("Set up experiments with parameters from file: \'%s\'" %(args.in_config_file))
+        #args.basedir            = str(input_args_file['basedir'])
         args.size_in_images     = str2tuple_int(input_args_file['size_in_images'])
-        args.traininig_datadir  = str(input_args_file['traininig_datadir'])
-        args.validation_datadir = str(input_args_file['validation_datadir'])
+        args.traininig_datadir  = str(input_args_file['traindatadir'])
+        args.validation_datadir = str(input_args_file['validdatadir'])
         args.max_train_images   = int(input_args_file['max_train_images'])
         args.max_valid_images   = int(input_args_file['max_valid_images'])
         args.batch_size         = int(input_args_file['batch_size'])

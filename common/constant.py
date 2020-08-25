@@ -3,7 +3,7 @@ import numpy as np
 np.random.seed(2017)
 
 DATADIR = '/home/antonio/Data/DLCST_Testing/'
-BASEDIR = '/home/antonio/Results/AirwaySegmentation_DLCST/'
+BASEDIR = '/home/antonio/Results/TESTS_PREDICT_EXACT/'
 
 
 # NAMES INPUT / OUTPUT DIR

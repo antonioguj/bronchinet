@@ -48,11 +48,11 @@ And the following libraries to run deep learning on GPUs:
  
 # Training models
 6) Train models:
-- python ./Code/scripts_experiments/train_model.py --modelsdir=<dir_output_models> [if restart model: --is_config_fromfile=<file_config> --is_restart_model=True]
+- python ./Code/scripts_experiments/train_model.py --modelsdir=<dir_output_models> [if restart model: --in_config_file=<file_config> --is_restart_model=True]
 
 # Predictions / Postprocessing
 7) Compute predictions form trained model:
-- python ./Code/scripts_experiments/predict_model.py <file_trained_model> <dir_output_predictions> --is_config_fromfile=<file_config>
+- python ./Code/scripts_experiments/predict_model.py <file_trained_model> <dir_output_predictions> --in_config_file=<file_config>
 
 8) Compute predicted binary masks from probability maps:
 - python ./Code/scripts_airway_segmentation/postprocess_predictions.py <dir_input_pred_probable_maps> <dir_output_pred_binary_masks>

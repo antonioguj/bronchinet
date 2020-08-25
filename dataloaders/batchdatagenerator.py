@@ -86,7 +86,7 @@ class BatchImageDataGenerator_1Image(BatchDataGenerator):
             if is_print_datagen_info:
                 message = self._images_generator.get_text_description()
                 print("Image file: \'%s\'..." % (ifile))
-                print(message)
+                print(message[:-1])   # remove trailing '\n'
 
         num_images = len(self._list_indexes_imagefile)
         return num_images
