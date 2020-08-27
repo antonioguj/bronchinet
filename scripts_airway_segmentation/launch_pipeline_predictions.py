@@ -99,7 +99,7 @@ def main(args):
                 '--name_input_posteriors_relpath', output_posteriors_path,
                 '--name_output_binary_masks_relpath', output_predict_binary_masks_path,
                 '--post_threshold_values', ' '.join([str(el) for el in args.post_thresholds_values]),
-                '--is_attach_coarse_airways', 'True']
+                '--is_attach_coarse_airways', str(args.is_attach_coarse_airways)]
     list_calls_all.append(new_call)
 
 
@@ -159,6 +159,7 @@ if __name__ == "__main__":
     parser.add_argument('output_basedir', type=str)
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--post_thresholds_values', type=str, nargs='*', default=[POST_THRESHOLD_VALUE])
+    parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
     parser.add_argument('--list_type_metrics_result', type=str2list_string, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)

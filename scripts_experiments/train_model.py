@@ -137,7 +137,7 @@ def main(args):
                                    freq_save_check_model=FREQ_SAVE_INTER_MODELS,
                                    freq_validate_model=FREQ_VALIDATE_MODEL)
 
-    model_trainer.summary_model()
+    #model_trainer.summary_model()
 
     if (WRITE_OUT_DESC_MODEL_TEXT):
         out_descript_model_logfile = join_path_names(models_path, NAME_DESCRIPT_MODEL_LOGFILE)
