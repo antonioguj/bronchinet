@@ -3,7 +3,7 @@ import numpy as np
 np.random.seed(2017)
 
 DATADIR = '/home/antonio/Data/DLCST_Testing/'
-BASEDIR = '/home/antonio/Results/TESTS_PREDICT_EXACT/'
+BASEDIR = '/home/antonio/Results/TESTS_CODE_PY3/'
 
 
 # NAMES INPUT / OUTPUT DIR
@@ -98,7 +98,7 @@ BATCH_SIZE              = 1
 NUM_EPOCHS              = 1000
 TYPE_NETWORK            = 'UNet3D_Plugin'
 NET_NUM_LEVELS          = 5
-NET_NUM_FEATMAPS        = 16
+NET_NUM_FEATMAPS        = 10
 TYPE_ACTIVATE_HIDDEN    = 'relu'
 TYPE_ACTIVATE_OUTPUT    = 'sigmoid'
 IS_DISABLE_CONVOL_POOLING_LASTLAYER = False

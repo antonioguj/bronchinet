@@ -49,7 +49,7 @@ def main(args):
 
 
     workdir_manager         = TrainDirManager(args.basedir)
-    training_data_path      = workdir_manager.get_pathdir_exist(args.traininig_datadir)
+    training_data_path      = workdir_manager.get_pathdir_exist(args.training_datadir)
     in_reference_keys_file  = workdir_manager.get_datafile_exist(args.name_reference_keys_file)
     list_train_images_files = list_files_dir(training_data_path, name_input_images_files)[0:args.max_train_images]
     list_train_labels_files = list_files_dir(training_data_path, name_input_labels_files)[0:args.max_train_images]
@@ -229,7 +229,7 @@ if __name__ == "__main__":
     parser.add_argument('--modelsdir', type=str, default='Models')
     parser.add_argument('--in_config_file', type=str, default=None)
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
-    parser.add_argument('--traininig_datadir', type=str, default=NAME_TRAININGDATA_RELPATH)
+    parser.add_argument('--training_datadir', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--validation_datadir', type=str, default=NAME_VALIDATIONDATA_RELPATH)
     parser.add_argument('--name_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--max_train_images', type=int, default=MAX_TRAIN_IMAGES)
@@ -270,8 +270,8 @@ if __name__ == "__main__":
         print("Set up experiments with parameters from file: \'%s\'" %(args.in_config_file))
         #args.basedir            = str(input_args_file['basedir'])
         args.size_in_images     = str2tuple_int(input_args_file['size_in_images'])
-        args.traininig_datadir  = str(input_args_file['traindatadir'])
-        args.validation_datadir = str(input_args_file['validdatadir'])
+        args.training_datadir   = str(input_args_file['training_datadir'])
+        args.validation_datadir = str(input_args_file['validation_datadir'])
         args.max_train_images   = int(input_args_file['max_train_images'])
         args.max_valid_images   = int(input_args_file['max_valid_images'])
         args.batch_size         = int(input_args_file['batch_size'])
