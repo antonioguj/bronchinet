@@ -195,8 +195,11 @@ class DicomReader(ImageFileReader):
 
     @classmethod
     def update_image_metadata_info(cls, in_metadata: Any, **kwargs) -> Any:
-        print('\'update_image_metadata_info\' not implemented for DicomReader...')
-        raise NotImplementedError
+        if 'target_metadata' in kwargs.keys():
+            target_metadata = kwargs['target_metadata']
+            return cls._update_headertags_physical_info(in_metadata, target_metadata)
+        else:
+            return None
 
     @classmethod
     def get_image(cls, filename: str) -> np.ndarray:
@@ -230,6 +233,20 @@ class DicomReader(ImageFileReader):
         in_image = in_image.astype(np.int32) - max_val_uint16 - 1
         in_image[ind_pos_0] = 0
         return in_image
+
+    @staticmethod
+    def _update_headertags_physical_info(inout_metadata: Any,
+                                         target_metadata: Any
+                                         ) -> Any:
+        # Dicom header tags for info of i) world coordinates and ii) voxel size
+        tag_image_position = '0020|0032'
+        tag_image_orientation = '0020|0037'
+        tag_spacing_slices = '0018|0088'
+        tag_pixel_spacing = '0028|0030'
+        list_tags_update = [tag_image_position, tag_image_orientation, tag_spacing_slices, tag_pixel_spacing]
+        for itag in list_tags_update:
+            inout_metadata[itag] = target_metadata[itag]
+        return inout_metadata
 
 
 class MHDRawReader(ImageFileReader):

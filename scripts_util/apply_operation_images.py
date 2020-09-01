@@ -300,7 +300,7 @@ def prepare_exponential_operation(args):
 
 def main(args):
 
-    listInputFiles  = list_files_dir(args.input_dir)
+    list_input_files  = list_files_dir(args.input_dir)
     list_names_operations = args.type
     makedir(args.output_dir)
 
@@ -377,7 +377,7 @@ def main(args):
     if args.out_nifti:
         in_file_extension = '.nii'
     else:
-        in_file_extension = fileextension(listInputFiles[0])
+        in_file_extension = fileextension(list_input_files[0])
 
     if args.no_suffix_outname:
         nameOutputFiles = lambda in_name: basename_file_noext(in_name) + in_file_extension
@@ -386,7 +386,7 @@ def main(args):
 
 
 
-    for i, in_file in enumerate(listInputFiles):
+    for i, in_file in enumerate(list_input_files):
         print("\nInput: \'%s\'..." % (basename(in_file)))
 
         inout_data = ImageFileReader.get_image(in_file)
