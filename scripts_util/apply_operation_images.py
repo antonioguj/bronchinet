@@ -389,7 +389,7 @@ def main(args):
     for i, in_file in enumerate(list_input_files):
         print("\nInput: \'%s\'..." % (basename(in_file)))
 
-        inout_data = ImageFileReader.get_image(in_file)
+        inout_image = ImageFileReader.get_image(in_file)
 
         if is_update_metadata_file:
             inout_metadata = func_updatemetadata(in_file, i)
@@ -398,14 +398,14 @@ def main(args):
 
 
         for func_name, func_operation in dict_func_operations.items():
-            inout_data = func_operation(inout_data, i)  # perform whichever operation
+            inout_image = func_operation(inout_image, i)  # perform whichever operation
         #endfor
 
 
         out_filename = join_path_names(args.output_dir, nameOutputFiles(basename(in_file)))
-        print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), str(inout_data.shape)))
+        print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), str(inout_image.shape)))
 
-        ImageFileReader.write_image(out_filename, inout_data, metadata=inout_metadata)
+        ImageFileReader.write_image(out_filename, inout_image, metadata=inout_metadata)
     #endfor
 
 

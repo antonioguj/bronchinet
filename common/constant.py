@@ -2,8 +2,8 @@
 import numpy as np
 np.random.seed(2017)
 
-DATADIR = '/home/antonio/Data/DLCST_Testing/'
-BASEDIR = '/home/antonio/Results/TESTS_CODE_PY3/'
+DATADIR = '/home/antonio/Data/EXACT_Testing/'
+BASEDIR = '//home/antonio/Results/AirwaySegmentation_EXACT/'
 
 
 # NAMES INPUT / OUTPUT DIR
