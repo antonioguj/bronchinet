@@ -160,7 +160,7 @@ def main(args):
     print("Loading Training data...")
     training_data_loader = get_train_imagedataloader_2images(list_train_images_files,
                                                              list_train_labels_files,
-                                                             args.size_in_images,
+                                                             size_in_images=args.size_in_images,
                                                              use_sliding_window_images=args.use_sliding_window_images,
                                                              prop_overlap_slide_window=args.prop_overlap_sliding_window,
                                                              use_transform_rigid_images=args.use_transform_rigid_images,
@@ -181,7 +181,7 @@ def main(args):
 
         validation_data_loader = get_train_imagedataloader_2images(list_valid_images_files,
                                                                    list_valid_labels_files,
-                                                                   args.size_in_images,
+                                                                   size_in_images=args.size_in_images,
                                                                    use_sliding_window_images=args.use_sliding_window_images,
                                                                    prop_overlap_slide_window=args.prop_overlap_sliding_window,
                                                                    use_transform_rigid_images=args.use_transform_rigid_images,

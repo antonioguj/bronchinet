@@ -39,7 +39,7 @@ def main(args):
         print("Loading data...")
         image_label_data_loader = get_imagedataloader_2images([in_image_file],
                                                               [in_label_file],
-                                                              args.size_in_images,
+                                                              size_in_images=args.size_in_images,
                                                               use_sliding_window_images=args.use_sliding_window_images,
                                                               prop_overlap_slide_window=args.prop_overlap_sliding_window,
                                                               use_transform_rigid_images=args.use_transform_rigid_images,
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--use_sliding_window_images', type=str2bool, default=USE_SLIDING_WINDOW_IMAGES)
-    parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW_TESTING)
+    parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW)
     parser.add_argument('--use_transform_rigid_images', type=str2bool, default=USE_TRANSFORM_RIGID_IMAGES)
     parser.add_argument('--use_transform_elasticdeform_images', type=str2bool, default=USE_TRANSFORM_ELASTICDEFORM_IMAGES)
     parser.add_argument('--use_random_window_images', type=str2tuple_float, default=USE_RANDOM_WINDOW_IMAGES)

@@ -1,19 +1,35 @@
 
-from typing import Tuple
+from typing import Tuple, List
 import numpy as np
 np.random.seed(2017)
 
 from scipy.ndimage import map_coordinates, gaussian_filter
+from elasticdeform import deform_random_grid
 
 from common.exceptionmanager import catch_error_exception
-from preprocessing.transformrigidimages import TransformRigidImages
+from preprocessing.imagegenerator import ImageGenerator
 
 
-class ElasticDeformImages(TransformRigidImages):
+class ElasticDeformImages(ImageGenerator):
+    _order_inter_image = 3
+    _order_inter_mask = 0
 
-    def __init__(self, size_image: Tuple[int, ...]) -> None:
-        super(ElasticDeformImages, self).__init__(size_image)
+    def __init__(self,
+                 size_image: Tuple[int, ...],
+                 fill_mode: str = 'nearest',
+                 cval: float = 0.0
+                 ) -> None:
+        self._fill_mode = fill_mode
+        self._cval = cval
+
+        super(ElasticDeformImages, self).__init__(size_image, num_images=1)
+
         self._ndims = len(self._size_image)
+        self._initialize_gendata()
+
+    def update_image_data(self, in_shape_image: Tuple[int, ...]) -> None:
+        # self._num_images = in_shape_image[0]
+        pass
 
     def _compute_gendata(self, **kwargs) -> None:
         seed = kwargs['seed']
@@ -22,13 +38,21 @@ class ElasticDeformImages(TransformRigidImages):
 
     def _initialize_gendata(self) -> None:
         self._is_compute_gendata = True
-        self._transformation_matrix = None
+        self._gendata_elastic_deform = None
+        self._count_trans_in_images = 0
 
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:
-        return self._get_transformed_image(in_image)
+        is_type_input_image = (self._count_trans_in_images == 0)
+        self._count_trans_in_images += 1
+        return self._get_transformed_image(in_image, is_type_input_image)
 
     def _get_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
-        return map_coordinates(in_image, self._gendata_elastic_deform, order=3).reshape(self._size_image)
+        if is_type_input_image:
+            return map_coordinates(in_image, self._gendata_elastic_deform, order=self._order_inter_image,
+                                   mode=self._fill_mode, cval=self._cval).reshape(self._size_image)
+        else:
+            return map_coordinates(in_image, self._gendata_elastic_deform, order=self._order_inter_mask,
+                                   mode=self._fill_mode, cval=self._cval).reshape(self._size_image)
 
     def _get_inverse_transformed_image(self, in_image: np.ndarray, is_type_input_image= False) -> np.ndarray:
         message = 'Inverse transformation not implemented for Elastic Deformations'
@@ -38,61 +62,25 @@ class ElasticDeformImages(TransformRigidImages):
         raise NotImplementedError
 
     def get_text_description(self) -> str:
-        return 'Elastic Deformations of images...\n'
-
-
-class ElasticDeformPixelwiseImages(ElasticDeformImages):
-    # implemented by Florian Calvet: florian.calvet@centrale-marseille.fr
-    _alpha_default = 15
-    _sigma_default = 3
-
-    def __init__(self,
-                 size_image: Tuple[int, ...],
-                 alpha: int = _alpha_default,
-                 sigma: int = _sigma_default
-                 ) -> None:
-        self._alpha = alpha
-        self._sigma = sigma
-        super(ElasticDeformPixelwiseImages, self).__init__(size_image)
-
-    def _get_compute_gendata_elastic_deform(self, seed: int = None) -> np.ndarray:
-        if seed is not None:
-            np.random.seed(seed)
-
-        if self._ndims == 2:
-            xi_dirs = np.meshgrid(np.arange(self._size_image[0]),
-                                  np.arange(self._size_image[1]), indexing='ij')
-        elif self._ndims == 3:
-            xi_dirs = np.meshgrid(np.arange(self._size_image[0]),
-                                  np.arange(self._size_image[1]),
-                                  np.arange(self._size_image[2]), indexing='ij')
-        else:
-            message = 'ElasticDeformPixelwiseImages:_get_compute_gendata_elastic_deform: wrong \'ndims\': %s...' % (self._ndims)
-            catch_error_exception(message)
-
-        indices = []
-        for i in range(self._ndims):
-            # originally with random_state.rand * 2 - 1
-            dx_i = gaussian_filter(np.random.randn(*self._size_image), self._sigma, mode="constant", cval=0) * self._alpha
-            indices.append(xi_dirs[i] + dx_i)
-        # endfor
-
-        return np.asarray(indices)
+        return 'Elastic Deformations of Image patches...\n'
 
 
 class ElasticDeformGridwiseImages(ElasticDeformImages):
-    # implemented by Florian Calvet: florian.calvet@centrale-marseille.fr
+    # Taken from by Florian Calvet: florian.calvet@centrale-marseille.fr
     _sigma_default = 25
     _points_default = 3
 
     def __init__(self,
                  size_image: Tuple[int, ...],
                  sigma: int = _sigma_default,
-                 points: int = _points_default
+                 points: int = _points_default,
+                 fill_mode: str = 'nearest',
+                 cval: float = 0.0,
                  ) -> None:
         self._sigma = sigma
         self._points = points
-        super(ElasticDeformGridwiseImages, self).__init__(size_image)
+
+        super(ElasticDeformGridwiseImages, self).__init__(size_image, fill_mode=fill_mode, cval=cval)
 
     def _get_compute_gendata_elastic_deform(self, seed: int = None) -> np.ndarray:
         if seed is not None:
@@ -133,3 +121,83 @@ class ElasticDeformGridwiseImages(ElasticDeformImages):
         # endfor
 
         return np.asarray(coordinates)
+
+
+class ElasticDeformPixelwiseImages(ElasticDeformImages):
+    # Take from Florian Calvet: florian.calvet@centrale-marseille.fr
+    _alpha_default = 15
+    _sigma_default = 3
+
+    def __init__(self,
+                 size_image: Tuple[int, ...],
+                 alpha: int = _alpha_default,
+                 sigma: int = _sigma_default,
+                 fill_mode: str = 'nearest',
+                 cval: float = 0.0,
+                 ) -> None:
+        self._alpha = alpha
+        self._sigma = sigma
+
+        super(ElasticDeformPixelwiseImages, self).__init__(size_image, fill_mode=fill_mode, cval=cval)
+
+    def _get_compute_gendata_elastic_deform(self, seed: int = None) -> np.ndarray:
+        if seed is not None:
+            np.random.seed(seed)
+
+        if self._ndims == 2:
+            xi_dirs = np.meshgrid(np.arange(self._size_image[0]),
+                                  np.arange(self._size_image[1]), indexing='ij')
+        elif self._ndims == 3:
+            xi_dirs = np.meshgrid(np.arange(self._size_image[0]),
+                                  np.arange(self._size_image[1]),
+                                  np.arange(self._size_image[2]), indexing='ij')
+        else:
+            message = 'ElasticDeformPixelwiseImages:_get_compute_gendata_elastic_deform: wrong \'ndims\': %s...' % (self._ndims)
+            catch_error_exception(message)
+
+        indices = []
+        for i in range(self._ndims):
+            # originally with random_state.rand * 2 - 1
+            dx_i = gaussian_filter(np.random.randn(*self._size_image), self._sigma, mode='constant', cval=0) * self._alpha
+            indices.append(xi_dirs[i] + dx_i)
+        # endfor
+
+        return np.asarray(indices)
+
+
+class ElasticDeformGridwiseImagesGijs(ElasticDeformImages):
+    # Wrapper around tool from Gijs van Tulder: gijs@vantulder.net
+    _sigma_default = 25
+    _points_default = 3
+
+    def __init__(self,
+                 size_image: Tuple[int, ...],
+                 sigma: int = _sigma_default,
+                 points: int = _points_default,
+                 fill_mode: str = 'nearest',
+                 cval: float = 0.0,
+                 ) -> None:
+        self._sigma = sigma
+        self._points = points
+
+        super(ElasticDeformGridwiseImagesGijs, self).__init__(size_image, fill_mode=fill_mode, cval=cval)
+
+    def _get_compute_gendata_elastic_deform(self, seed: int = None) -> np.ndarray:
+        pass
+
+    def _get_image(self, in_image: np.ndarray) -> np.ndarray:
+        out_image = deform_random_grid(in_image, sigma=self._sigma, points=self._points, order=self._order_inter_image,
+                                       mode=self._fill_mode, cval=self._cval)
+        return out_image
+
+    def get_2images(self, in_image_1: np.ndarray, in_image_2: np.ndarray, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
+        (out_image_1, out_image_2) = deform_random_grid([in_image_1, in_image_2], sigma=self._sigma, points=self._points,
+                                                        order=[self._order_inter_image, self._order_inter_mask],
+                                                        mode=self._fill_mode, cval=self._cval)
+        return (out_image_1, out_image_2)
+
+    def get_many_images(self, in_list_images: List[np.ndarray], **kwargs) -> List[np.ndarray]:
+        out_list_images = deform_random_grid(in_list_images, sigma=self._sigma, points=self._points,
+                                             order=[self._order_inter_image] + [self._order_inter_mask]*(len(in_list_images)-1),
+                                             mode=self._fill_mode, cval=self._cval)
+        return out_list_images

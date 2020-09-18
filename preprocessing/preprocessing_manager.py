@@ -9,7 +9,7 @@ from preprocessing.imagegenerator import ImageGenerator, NullGenerator, Combined
 from preprocessing.randomwindowimages import RandomWindowImages
 from preprocessing.slidingwindowimages import SlidingWindowImages
 from preprocessing.transformrigidimages import TransformRigidImages2D, TransformRigidImages3D
-from preprocessing.elasticdeformimages import ElasticDeformGridwiseImages, ElasticDeformPixelwiseImages
+from preprocessing.elasticdeformimages import ElasticDeformGridwiseImages, ElasticDeformPixelwiseImages, ElasticDeformGridwiseImagesGijs
 
 
 def get_images_generator(size_images: Tuple[int, ...],
@@ -70,13 +70,24 @@ def get_images_generator(size_images: Tuple[int, ...],
             catch_error_exception(message)
 
     if use_transform_elasticdeform_images:
-        if TYPE_TRANSFORM_ELASTICDEFORM_IMAGES == 'pixelwise':
-            new_images_generator = ElasticDeformPixelwiseImages(size_images)
+        if TYPE_TRANSFORM_ELASTICDEFORM_IMAGES == 'gridwise':
+            new_images_generator = ElasticDeformGridwiseImages(size_images,
+                                                               fill_mode=TRANS_FILL_MODE_TRANSFORM)
             list_images_generators.append(new_images_generator)
 
-        else: #TYPETRANSFORMELASTICDEFORMATION == 'gridwise'
-            new_images_generator = ElasticDeformGridwiseImages(size_images)
+        elif TYPE_TRANSFORM_ELASTICDEFORM_IMAGES == 'pixelwise':
+            new_images_generator = ElasticDeformPixelwiseImages(size_images,
+                                                                fill_mode=TRANS_FILL_MODE_TRANSFORM)
             list_images_generators.append(new_images_generator)
+
+        elif TYPE_TRANSFORM_ELASTICDEFORM_IMAGES == 'gridwiseGijs':
+            new_images_generator = ElasticDeformGridwiseImagesGijs(size_images,
+                                                                   fill_mode=TRANS_FILL_MODE_TRANSFORM)
+            list_images_generators.append(new_images_generator)
+
+        else:
+            message = 'Wrong value for type of Elastic Deformations: %s' % (TYPE_TRANSFORM_ELASTICDEFORM_IMAGES)
+            catch_error_exception(message)
 
 
     num_created_images_generators = len(list_images_generators)

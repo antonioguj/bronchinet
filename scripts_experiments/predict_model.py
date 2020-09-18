@@ -90,7 +90,7 @@ def main(args):
 
         print("Loading data...")
         image_data_loader = get_train_imagedataloader_1image([in_image_file],
-                                                             args.size_in_images,
+                                                             size_in_images=args.size_in_images,
                                                              use_sliding_window_images=args.use_sliding_window_images,
                                                              prop_overlap_slide_window=args.prop_overlap_sliding_window,
                                                              use_transform_rigid_images=args.use_transform_rigid_images,

@@ -185,6 +185,7 @@ def main(args):
             names_files_different.append(basename(in_file_1))
 
             Histogram.plot_compare_histograms([in_image_1, in_image_2],
+                                              num_bins=100,
                                               density_range=True,
                                               is_save_outfiles=True,
                                               outfilename=out_histo_filename)

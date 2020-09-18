@@ -41,86 +41,92 @@ NAME_PRED_RESULT_METRICS_FILE   = 'Predictions/result_metrics.csv'
 
 
 # PREPROCESSING
-IS_SHUFFLE_TRAINDATA        = True
-IS_NORMALIZE_DATA           = False
-IS_BINARY_TRAIN_MASKS       = True
-IS_MASK_REGION_INTEREST     = True
-IS_RESCALE_IMAGES           = False
-#FIXED_RESCALE_RESOL         = (0.6, 0.55, 0.55)   # for LUVAR
-FIXED_RESCALE_RESOL         = (0.8, 0.69, 0.69)   # for EXACT
-#FIXED_RESCALE_RESOL         = None
-IS_CROP_IMAGES              = True
-IS_TWO_BOUNDBOXES_EACH_LUNGS = False
-SIZE_BUFFER_BOUNDBOX_BORDERS = (20, 20, 20)
-IS_SAME_SIZE_BOUNDBOX_ALL_IMAGES = False
-IS_CALC_BOUNDINGBOX_IN_SLICES = False
-FIXED_SIZE_BOUNDING_BOX     = None
-#FIXED_SIZE_BOUNDING_BOX     = (352, 480)
-#FIXED_SIZE_BOUNDING_BOX     = (332, 316, 236) # for DLCST and full size lungs
-#FIXED_SIZE_BOUNDING_BOX     = (508, 332, 236) # for EXACT and full size lungs
-USE_SLIDING_WINDOW_IMAGES   = False
-PROP_OVERLAP_SLIDING_WINDOW = (0.25, 0.0, 0.0)
-USE_RANDOM_WINDOW_IMAGES    = True
-NUM_RANDOM_PATCHES_EPOCH    = 8
-USE_TRANSFORM_RIGID_IMAGES  = True
-TRANS_ROTATION_XY_RANGE     = 10
-TRANS_ROTATION_XZ_RANGE     = 5
-TRANS_ROTATION_YZ_RANGE     = 5
-TRANS_HEIGHT_SHIFT_RANGE    = 24
-TRANS_WIDTH_SHIFT_RANGE     = 35
-TRANS_DEPTH_SHIFT_RANGE     = 7
-TRANS_HORIZONTAL_FLIP       = True
-TRANS_VERTICAL_FLIP         = True
-TRANS_AXIALDIR_FLIP         = True
-TRANS_ZOOM_RANGE            = 0.25
-TRANS_FILL_MODE_TRANSFORM   = 'reflect'
-USE_TRANSFORM_ELASTICDEFORM_IMAGES = False
+IS_SHUFFLE_TRAINDATA            = True
+IS_NORMALIZE_DATA               = False
+IS_BINARY_TRAIN_MASKS           = True
+IS_MASK_REGION_INTEREST         = True
+IS_RESCALE_IMAGES               = False
+#FIXED_RESCALE_RESOL             = (0.6, 0.55, 0.55)   # for LUVAR
+FIXED_RESCALE_RESOL             = (0.8, 0.69, 0.69)   # for EXACT
+#FIXED_RESCALE_RESOL             = None
+IS_CROP_IMAGES                  = True
+IS_TWO_BOUNDBOXES_EACH_LUNGS    = False
+SIZE_BUFFER_BOUNDBOX_BORDERS    = (20, 20, 20)
+IS_SAME_SIZE_BOUNDBOX_ALL_IMAGES= False
+IS_CALC_BOUNDINGBOX_IN_SLICES   = False
+FIXED_SIZE_BOUNDING_BOX         = None
+#FIXED_SIZE_BOUNDING_BOX         = (352, 480)
+#FIXED_SIZE_BOUNDING_BOX         = (332, 316, 236) # for DLCST and full size lungs
+#FIXED_SIZE_BOUNDING_BOX         = (508, 332, 236) # for EXACT and full size lungs
+
+
+# DATA AUGMENTATION IN TRAINING
+USE_SLIDING_WINDOW_IMAGES       = False
+PROP_OVERLAP_SLIDING_WINDOW     = (0.25, 0.0, 0.0)
+USE_RANDOM_WINDOW_IMAGES        = True
+NUM_RANDOM_PATCHES_EPOCH        = 8
+USE_TRANSFORM_RIGID_IMAGES      = True
+USE_TRANSFORM_ELASTICDEFORM_IMAGES = True
+TRANS_ROTATION_XY_RANGE         = 0 # 10
+TRANS_ROTATION_XZ_RANGE         = 0 # 5
+TRANS_ROTATION_YZ_RANGE         = 0 # 5
+TRANS_HEIGHT_SHIFT_RANGE        = 0 # 24
+TRANS_WIDTH_SHIFT_RANGE         = 0 # 35
+TRANS_DEPTH_SHIFT_RANGE         = 0 # 7
+TRANS_HORIZONTAL_FLIP           = True
+TRANS_VERTICAL_FLIP             = True
+TRANS_AXIALDIR_FLIP             = True
+TRANS_ZOOM_RANGE                = 0.25
+TRANS_FILL_MODE_TRANSFORM       = 'reflect'
 TYPE_TRANSFORM_ELASTICDEFORM_IMAGES = 'gridwise'
-DIST_PROPDATA_TRAINVALIDTEST = (0.5, 0.12, 0.38)
-#DIST_PROPDATA_TRAINVALIDTEST = (0.84, 0.16, 0.0) # for EXACT
-#DIST_PROPDATA_TRAINVALIDTEST = (0.5, 0.13, 0.37) # for DLCST+LUVAR
+
+
+# DISTRIBUTE DATA TRAIN / VALID / TEST
+DIST_PROPDATA_TRAINVALIDTEST    = (0.5, 0.12, 0.38)
+#DIST_PROPDATA_TRAINVALIDTEST    = (0.84, 0.16, 0.0) # for EXACT
+#DIST_PROPDATA_TRAINVALIDTEST    = (0.5, 0.13, 0.37) # for DLCST+LUVAR
 
 
 # TRAINING MODELS
-TYPE_DNNLIB_USED        = 'Pytorch'
-#TYPE_GPU_USED          = 'larger_GPU'
-IS_MODEL_IN_GPU         = True
-IS_MODEL_HALF_PRECISION = False
-USE_MULTITHREADING      = False
-#SIZE_IN_IMAGES          = (176, 352, 240)
-#SIZE_IN_IMAGES          = (256, 256, 256) # for Non-valid convolutions
-SIZE_IN_IMAGES          = (252, 252, 252) # for Valid convolutions
-#SIZE_IN_IMAGES          = (332, 316, 236) # for DLCST and full size lungs
-#SIZE_IN_IMAGES          = (508, 332, 236) # for EXACT and full size lungs
-MAX_TRAIN_IMAGES        = 50
-MAX_VALID_IMAGES        = 20
-BATCH_SIZE              = 1
-NUM_EPOCHS              = 1000
-TYPE_NETWORK            = 'UNet3D_Plugin'
-NET_NUM_LEVELS          = 5
-NET_NUM_FEATMAPS        = 10
-TYPE_ACTIVATE_HIDDEN    = 'relu'
-TYPE_ACTIVATE_OUTPUT    = 'sigmoid'
+TYPE_DNNLIB_USED            = 'Pytorch'
+#TYPE_GPU_USED               = 'larger_GPU'
+IS_MODEL_IN_GPU             = True
+IS_MODEL_HALF_PRECISION     = False
+USE_MULTITHREADING          = False
+#SIZE_IN_IMAGES              = (176, 352, 240)
+#SIZE_IN_IMAGES              = (256, 256, 256) # for Non-valid convolutions
+SIZE_IN_IMAGES              = (252, 252, 252) # for Valid convolutions
+#SIZE_IN_IMAGES              = (332, 316, 236) # for DLCST and full size lungs
+#SIZE_IN_IMAGES              = (508, 332, 236) # for EXACT and full size lungs
+MAX_TRAIN_IMAGES            = 50
+MAX_VALID_IMAGES            = 20
+BATCH_SIZE                  = 1
+NUM_EPOCHS                  = 1000
+TYPE_NETWORK                = 'UNet3D_Plugin'
+NET_NUM_LEVELS              = 5
+NET_NUM_FEATMAPS            = 10
+TYPE_ACTIVATE_HIDDEN        = 'relu'
+TYPE_ACTIVATE_OUTPUT        = 'sigmoid'
 IS_DISABLE_CONVOL_POOLING_LASTLAYER = False
-NET_USE_DROPOUT         = False
-NET_USE_BATCHNORMALIZE  = False
-TYPE_OPTIMIZER          = 'Adam'
-LEARN_RATE              = 1.0e-04
-TYPE_LOSS               = 'DiceCoefficient'
-LIST_TYPE_METRICS       = []
-#LIST_TYPE_METRICS      = ['TruePositiveRate', 'FalsePositiveRate', 'TrueNegativeRate', 'FalseNegativeRate']
-IS_VALID_CONVOLUTIONS   = True
-USE_VALIDATION_DATA     = True
-FREQ_VALIDATE_MODEL     = 3
-FREQ_SAVE_INTER_MODELS  = 5
+NET_USE_DROPOUT             = False
+NET_USE_BATCHNORMALIZE      = False
+TYPE_OPTIMIZER              = 'Adam'
+LEARN_RATE                  = 1.0e-04
+TYPE_LOSS                   = 'DiceCoefficient'
+LIST_TYPE_METRICS           = []
+#LIST_TYPE_METRICS           = ['TruePositiveRate', 'FalsePositiveRate', 'TrueNegativeRate', 'FalseNegativeRate']
+IS_VALID_CONVOLUTIONS       = True
+USE_VALIDATION_DATA         = True
+FREQ_VALIDATE_MODEL         = 3
+FREQ_SAVE_INTER_MODELS      = 5
 USE_TRANSFORM_VALIDATION_DATA = True
-WRITE_OUT_DESC_MODEL_TEXT = False
-IS_RESTART_MODEL        = False
-IS_RESTART_ONLY_WEIGHTS = False
+WRITE_OUT_DESC_MODEL_TEXT   = False
+IS_RESTART_MODEL            = False
+IS_RESTART_ONLY_WEIGHTS     = False
 # GNN-module parameters
-USE_MODELS_WITH_GNN     = False
-ADJACENCY_GNN_STOREDIR  = 'StoredAdjacencyMatrix/'
-IS_GNN_WITH_ATTENTION   = False
+USE_MODELS_WITH_GNN         = False
+ADJACENCY_GNN_STOREDIR      = 'StoredAdjacencyMatrix/'
+IS_GNN_WITH_ATTENTION       = False
 
 
 # PREDICTIONS / POST-PROCESSING PARAMETERS

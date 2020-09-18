@@ -16,7 +16,7 @@ from preprocessing.preprocessing_manager import get_images_generator
 
 
 def get_imagedataloader_1image(list_filenames_1: List[str],
-                               size_images: Tuple[int, ...],
+                               size_in_images: Tuple[int, ...],
                                use_sliding_window_images: bool,
                                prop_overlap_slide_window: Tuple[int, ...],
                                use_transform_rigid_images: bool,
@@ -35,10 +35,13 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
 
         list_Xdata = ImageDataLoader.load_1list_files(list_filenames_1)
 
+        if not (use_sliding_window_images or use_random_window_images) and (len(list_Xdata) == 1):
+            size_in_images = list_Xdata[0].shape
+
         size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
         num_channels_in = 1
 
-        images_generator = get_images_generator(size_images,
+        images_generator = get_images_generator(size_in_images,
                                                 use_sliding_window_images=use_sliding_window_images,
                                                 prop_overlap_slide_window=prop_overlap_slide_window,
                                                 use_random_window_images=use_random_window_images,
@@ -46,7 +49,7 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
                                                 use_transform_rigid_images=use_transform_rigid_images,
                                                 use_transform_elasticdeform_images=use_transform_elasticdeform_images,
                                                 size_volume_image=size_full_image)
-        return BatchImageDataGenerator_1Image(size_images,
+        return BatchImageDataGenerator_1Image(size_in_images,
                                               list_Xdata,
                                               images_generator,
                                               num_channels_in=num_channels_in,
@@ -56,13 +59,13 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
     else:
         print("Load Data directly from stored Batches...")
 
-        batches_Xdata = ImageDataInBatchesLoader(size_images).load_1list_files(list_filenames_1)
+        batches_Xdata = ImageDataInBatchesLoader(size_in_images).load_1list_files(list_filenames_1)
         return batches_Xdata
 
 
 def get_imagedataloader_2images(list_filenames_1: List[str],
                                 list_filenames_2: List[str],
-                                size_images: Tuple[int, ...],
+                                size_in_images: Tuple[int, ...],
                                 use_sliding_window_images: bool,
                                 prop_overlap_slide_window: Tuple[int, ...],
                                 use_transform_rigid_images: bool,
@@ -83,11 +86,14 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
 
         (list_Xdata, list_Ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
 
+        if not (use_sliding_window_images or use_random_window_images) and (len(list_Xdata) == 1):
+            size_in_images = list_Xdata[0].shape
+
         size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
         num_channels_in = 1
         num_classes_out = 1
 
-        images_generator = get_images_generator(size_images,
+        images_generator = get_images_generator(size_in_images,
                                                 use_sliding_window_images=use_sliding_window_images,
                                                 prop_overlap_slide_window=prop_overlap_slide_window,
                                                 use_random_window_images=use_random_window_images,
@@ -95,7 +101,7 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
                                                 use_transform_rigid_images=use_transform_rigid_images,
                                                 use_transform_elasticdeform_images=use_transform_elasticdeform_images,
                                                 size_volume_image=size_full_image)
-        return BatchImageDataGenerator_2Images(size_images,
+        return BatchImageDataGenerator_2Images(size_in_images,
                                                list_Xdata,
                                                list_Ydata,
                                                images_generator,
@@ -109,12 +115,12 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
     else:
         print("Load Data directly from stored Batches...")
 
-        (batches_Xdata, batches_Ydata) = ImageDataInBatchesLoader(size_images).load_2list_files(list_filenames_1, list_filenames_2)
+        (batches_Xdata, batches_Ydata) = ImageDataInBatchesLoader(size_in_images).load_2list_files(list_filenames_1, list_filenames_2)
         return (batches_Xdata, batches_Ydata)
 
 
 def get_train_imagedataloader_1image(list_filenames_1: List[str],
-                                     size_images: Tuple[int, ...],
+                                     size_in_images: Tuple[int, ...],
                                      use_sliding_window_images: bool,
                                      prop_overlap_slide_window: Tuple[int, ...],
                                      use_transform_rigid_images: bool,
@@ -136,7 +142,7 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
         size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
         num_channels_in = 1
 
-        images_generator = get_images_generator(size_images,
+        images_generator = get_images_generator(size_in_images,
                                                 use_sliding_window_images=use_sliding_window_images,
                                                 prop_overlap_slide_window=prop_overlap_slide_window,
                                                 use_random_window_images=use_random_window_images,
@@ -144,7 +150,7 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                                 use_transform_rigid_images=use_transform_rigid_images,
                                                 use_transform_elasticdeform_images=use_transform_elasticdeform_images,
                                                 size_volume_image=size_full_image)
-        return TrainBatchImageDataGenerator_1Image(size_images,
+        return TrainBatchImageDataGenerator_1Image(size_in_images,
                                                    list_Xdata,
                                                    images_generator,
                                                    num_channels_in=num_channels_in,
@@ -156,13 +162,13 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
     else:
         print("Load Data directly from stored Batches...")
 
-        batches_Xdata = ImageDataInBatchesLoader(size_images).load_1list_files(list_filenames_1)
+        batches_Xdata = ImageDataInBatchesLoader(size_in_images).load_1list_files(list_filenames_1)
         return batches_Xdata
 
 
 def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                       list_filenames_2: List[str],
-                                      size_images: Tuple[int, ...],
+                                      size_in_images: Tuple[int, ...],
                                       use_sliding_window_images: bool,
                                       prop_overlap_slide_window: Tuple[int, ...],
                                       use_transform_rigid_images: bool,
@@ -187,7 +193,7 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
         num_channels_in = 1
         num_classes_out = 1
 
-        images_generator = get_images_generator(size_images,
+        images_generator = get_images_generator(size_in_images,
                                                 use_sliding_window_images=use_sliding_window_images,
                                                 prop_overlap_slide_window=prop_overlap_slide_window,
                                                 use_random_window_images=use_random_window_images,
@@ -195,7 +201,7 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                                 use_transform_rigid_images=use_transform_rigid_images,
                                                 use_transform_elasticdeform_images=use_transform_elasticdeform_images,
                                                 size_volume_image=size_full_image)
-        return TrainBatchImageDataGenerator_2Images(size_images,
+        return TrainBatchImageDataGenerator_2Images(size_in_images,
                                                     list_Xdata,
                                                     list_Ydata,
                                                     images_generator,
@@ -211,5 +217,5 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
     else:
         print("Load Data directly from stored Batches...")
 
-        (batches_Xdata, batches_Ydata) = ImageDataInBatchesLoader(size_images).load_2list_files(list_filenames_1, list_filenames_2)
+        (batches_Xdata, batches_Ydata) = ImageDataInBatchesLoader(size_in_images).load_2list_files(list_filenames_1, list_filenames_2)
         return (batches_Xdata, batches_Ydata)
