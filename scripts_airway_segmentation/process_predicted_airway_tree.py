@@ -17,9 +17,11 @@ def main(args):
 
     workdir_manager             = TrainDirManager(args.basedir)
     input_posteriors_path       = workdir_manager.get_pathdir_exist(args.name_input_posteriors_relpath)
+    in_reference_keys_file      = workdir_manager.get_datafile_exist(args.name_input_reference_keys_file)
     output_binary_masks_path    = workdir_manager.get_pathdir_new(args.name_output_binary_masks_relpath)
     list_input_posteriors_files = list_files_dir(input_posteriors_path)
-    prefix_pattern_input_files  = get_prefix_pattern_filename(list_input_posteriors_files[0])
+    indict_reference_keys       = read_dictionary(in_reference_keys_file)
+    pattern_search_input_files  = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
 
     if (args.is_attach_coarse_airways):
         input_coarse_airways_path       = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
@@ -41,7 +43,7 @@ def main(args):
         if (args.is_attach_coarse_airways):
             print("Attach Trachea and Main Bronchi mask to complete the computed Binary Masks...")
             in_coarse_airways_file = find_file_inlist_same_prefix(basename(in_posterior_file), list_input_coarse_airways_files,
-                                                                  prefix_pattern=prefix_pattern_input_files)
+                                                                  pattern_prefix=pattern_search_input_files)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarse_airways_file)))
 
             in_coarse_airways = ImageFileReader.get_image(in_coarse_airways_file)
@@ -71,6 +73,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--name_input_posteriors_relpath', type=str, default=NAME_POSTERIORS_RELPATH)
     parser.add_argument('--name_input_coarse_airways_relpath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)
+    parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--name_output_binary_masks_relpath', type=str, default=NAME_PRED_BINARYMASKS_RELPATH)
     parser.add_argument('--post_threshold_values', type=float, default=POST_THRESHOLD_VALUE)
     parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)

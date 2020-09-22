@@ -16,25 +16,25 @@ def main(args):
     # ---------- SETTINGS ----------
 
 
-    workDirsManager             = TrainDirManager(args.basedir)
-    input_predictions_path      = workDirsManager.get_pathdir_exist(args.name_input_predictions_relpath)
-    in_reference_files_path     = workDirsManager.get_datadir_exist(args.name_input_reference_files_relpath)
-    in_reference_keys_file      = workDirsManager.get_pathfile_exist(args.name_input_reference_keys_file)
-    output_posteriors_path      = workDirsManager.get_pathdir_new(args.name_output_posteriors_relpath)
+    workdir_manager             = TrainDirManager(args.basedir)
+    input_predictions_path      = workdir_manager.get_pathdir_exist(args.name_input_predictions_relpath)
+    in_reference_files_path     = workdir_manager.get_datadir_exist(args.name_input_reference_files_relpath)
+    in_reference_keys_file      = workdir_manager.get_pathfile_exist(args.name_input_reference_keys_file)
+    output_posteriors_path      = workdir_manager.get_pathdir_new(args.name_output_posteriors_relpath)
     list_input_predictions_files= list_files_dir(input_predictions_path)
     indict_reference_keys       = read_dictionary(in_reference_keys_file)
-    prefix_pattern_input_files  = get_prefix_pattern_filename(list(indict_reference_keys.values())[0])
+    pattern_search_input_files  = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
 
     if (args.is_mask_region_interest):
-        input_RoImasks_path       = workDirsManager.get_datadir_exist(args.name_input_RoImasks_relpath)
+        input_RoImasks_path       = workdir_manager.get_datadir_exist(args.name_input_RoImasks_relpath)
         list_input_RoImasks_files = list_files_dir(input_RoImasks_path)
 
     if (args.is_crop_images):
-        input_crop_bounding_boxes_file= workDirsManager.get_datafile_exist(args.name_crop_bounding_boxes_file)
+        input_crop_bounding_boxes_file= workdir_manager.get_datafile_exist(args.name_crop_bounding_boxes_file)
         indict_crop_bounding_boxes    = read_dictionary(input_crop_bounding_boxes_file)
 
     if (args.is_rescale_images):
-        input_rescale_factors_file = workDirsManager.get_datafile_exist(args.name_rescale_factors_file)
+        input_rescale_factors_file = workdir_manager.get_datafile_exist(args.name_rescale_factors_file)
         indict_rescale_factors     = read_dictionary(input_rescale_factors_file)
 
     if (args.is_crop_images):
@@ -135,7 +135,7 @@ def main(args):
         if (args.is_mask_region_interest):
             print("Reverse Mask to RoI (lungs) in predictions...")
             in_roimask_file = find_file_inlist_same_prefix(basename(in_reference_file), list_input_RoImasks_files,
-                                                           prefix_pattern=prefix_pattern_input_files)
+                                                           pattern_prefix=pattern_search_input_files)
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)

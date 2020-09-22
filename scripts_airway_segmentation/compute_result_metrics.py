@@ -16,9 +16,11 @@ def main(args):
     workdir_manager                 = TrainDirManager(args.basedir)
     input_predicted_masks_path      = workdir_manager.get_pathdir_exist(args.input_predicted_masks_dir)
     input_reference_masks_path      = workdir_manager.get_datadir_exist(args.name_input_reference_masks_relpath)
+    in_reference_keys_file          = workdir_manager.get_datafile_exist(args.name_input_reference_keys_file)
     list_input_predicted_masks_files= list_files_dir(input_predicted_masks_path)
     list_input_reference_masks_files= list_files_dir(input_reference_masks_path)
-    prefix_pattern_input_files      = get_prefix_pattern_filename(list_input_reference_masks_files[0])
+    indict_reference_keys           = read_dictionary(in_reference_keys_file)
+    pattern_search_input_files      = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
 
     if (args.is_remove_trachea_calc_metrics):
         input_coarse_airways_path       = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
@@ -61,7 +63,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_predicted_mask_file)))
 
         in_reference_mask_file = find_file_inlist_same_prefix(basename(in_predicted_mask_file), list_input_reference_masks_files,
-                                                              prefix_pattern=prefix_pattern_input_files)
+                                                              pattern_prefix=pattern_search_input_files)
         print("Reference mask file: \'%s\'..." % (basename(in_reference_mask_file)))
 
         in_predicted_mask = ImageFileReader.get_image(in_predicted_mask_file)
@@ -70,13 +72,13 @@ def main(args):
 
         if (is_load_reference_cenlines_files):
             in_reference_cenline_file = find_file_inlist_same_prefix(basename(in_predicted_mask_file), list_input_reference_cenlines_files,
-                                                                     prefix_pattern=prefix_pattern_input_files)
+                                                                     pattern_prefix=pattern_search_input_files)
             print("Reference centrelines file: \'%s\'..." % (basename(in_reference_cenline_file)))
             in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
 
         if (is_load_predicted_cenlines_files):
             in_predicted_cenline_file = find_file_inlist_same_prefix(basename(in_predicted_mask_file), list_input_predicted_cenlines_files,
-                                                                     prefix_pattern=prefix_pattern_input_files)
+                                                                     pattern_prefix=pattern_search_input_files)
             print("Predicted centrelines file: \'%s\'..." % (basename(in_predicted_cenline_file)))
             in_predicted_cenline = ImageFileReader.get_image(in_predicted_cenline_file)
 
@@ -84,7 +86,7 @@ def main(args):
         if (args.is_remove_trachea_calc_metrics):
             print("Remove trachea and main bronchii masks in computed metrics...")
             in_coarse_airways_file = find_file_inlist_same_prefix(basename(in_predicted_mask_file), list_input_coarse_airways_files,
-                                                                  prefix_pattern=prefix_pattern_input_files)
+                                                                  pattern_prefix=pattern_search_input_files)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarse_airways_file)))
 
             in_coarse_airways = ImageFileReader.get_image(in_coarse_airways_file)
@@ -105,7 +107,7 @@ def main(args):
         # *******************************************************************************
         # Compute and store Metrics
         print("\nCompute the Metrics:")
-        key_casename = get_substring_filename(basename(in_predicted_mask_file), substr_pattern=prefix_pattern_input_files)[:-1]
+        key_casename = get_substring_filename(basename(in_predicted_mask_file), substr_pattern=pattern_search_input_files)[:-1]
         outdict_computed_metrics[key_casename] = []
 
         for j, (imetric_name, imetric_compute) in enumerate(list_metrics_compute.items()):
@@ -156,6 +158,7 @@ if __name__ == "__main__":
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     parser.add_argument('--name_input_coarse_airways_relpath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)
     parser.add_argument('--name_input_reference_centrelines_relpath', type=str, default=NAME_RAW_CENTRELINES_RELPATH)
+    parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     args = parser.parse_args()
 
     if not args.input_centrelines_dir:

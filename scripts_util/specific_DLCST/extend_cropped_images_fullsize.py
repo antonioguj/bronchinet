@@ -15,7 +15,7 @@ def main(args):
     list_input_images_files    = list_files_dir(args.inputdir)
     list_input_reference_files = list_files_dir(args.reference_dir)
     dict_input_bounding_boxes  = read_dictionary(args.boundingbox_file)
-    prefix_pattern_input_files = get_prefix_pattern_filename(list_input_reference_files[0])
+    pattern_search_input_files = get_pattern_refer_filename(list_input_reference_files[0])
 
     makedir(args.outputdir)
 
@@ -33,7 +33,7 @@ def main(args):
             inout_metadata = None
 
         in_reference_file = find_file_inlist_same_prefix(basename(in_image_file), list_input_reference_files,
-                                                         prefix_pattern=prefix_pattern_input_files)
+                                                         pattern_prefix=pattern_search_input_files)
         print("Reference file: \'%s\'..." % (basename(in_reference_file)))
 
 

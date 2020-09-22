@@ -37,13 +37,13 @@ def main(args):
 
     elif files_extension == '.mhd':
         files_type = 'mhd'
-        if not args.inputRefdir:
-            message = 'need to set argument \'inputRefdir\''
+        if not args.input_refdir:
+            message = 'need to set argument \'input_refdir\''
             catch_error_exception(message)
 
         list_input_files = list_files_dir(args.input_dir, '*.mhd')
-        list_reference_files = list_files_dir(args.inputRefdir)
-        prefix_pattern_input_files = get_prefix_pattern_filename(list_reference_files[0])
+        list_reference_files = list_files_dir(args.input_refdir)
+        pattern_search_input_files = get_pattern_refer_filename(list_reference_files[0])
 
         if not is_exist_exec(bin_hr22nifti):
             message = 'Executable to convert hr2 to nifti not found in: %s' %(bin_hr22nifti)
@@ -102,7 +102,7 @@ def main(args):
             inout_image = ImageFileReader.get_image(in_file)
 
             in_reference_file = find_file_inlist_same_prefix(basename(in_file), list_reference_files,
-                                                             prefix_pattern=prefix_pattern_input_files)
+                                                             pattern_prefix=pattern_search_input_files)
             in_metadata   = ImageFileReader.get_image_metadata_info(in_reference_file)
             print("Metadata from file: \'%s\'..." % (basename(in_reference_file)))
 

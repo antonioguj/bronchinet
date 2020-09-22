@@ -71,14 +71,14 @@ def main(args):
     list_calls_all = []
 
     # 1st: Compute model predictions, and posteriors for testing work data
-    new_call = ['python3', SCRIPT_PREDICT_MODEL, args.input_model_file,
-                '--basedir', basedir,
-                '--in_config_file', in_config_params_file,
-                '--name_output_predictions_relpath', inout_tempo_posteriors_path,
-                '--name_output_reference_keys_file', inout_predict_reference_keys_file,
-                '--testing_datadir', args.testing_datadir,
-                '--is_backward_compat', str(args.is_backward_compat)]
-    list_calls_all.append(new_call)
+    #new_call = ['python3', SCRIPT_PREDICT_MODEL, args.input_model_file,
+    #            '--basedir', basedir,
+    #            '--in_config_file', in_config_params_file,
+    #            '--name_output_predictions_relpath', inout_tempo_posteriors_path,
+    #            '--name_output_reference_keys_file', inout_predict_reference_keys_file,
+    #            '--testing_datadir', args.testing_datadir,
+    #            '--is_backward_compat', str(args.is_backward_compat)]
+    #list_calls_all.append(new_call)
 
 
     # 2nd: Compute post-processed posteriors from work predictions
@@ -132,10 +132,10 @@ def main(args):
 
 
     # Remove temporary data for posteriors not needed
-    new_call = ['rm', '-r', inout_tempo_posteriors_path]
-    list_calls_all.append(new_call)
-    new_call = ['rm', inout_predict_reference_keys_file, inout_predict_reference_keys_file.replace('.npy', '.csv')]
-    list_calls_all.append(new_call)
+    #new_call = ['rm', '-r', inout_tempo_posteriors_path]
+    #list_calls_all.append(new_call)
+    #new_call = ['rm', inout_predict_reference_keys_file, inout_predict_reference_keys_file.replace('.npy', '.csv')]
+    #list_calls_all.append(new_call)
 
 
 

@@ -35,9 +35,11 @@ def main(args):
     workdir_manager                 = TrainDirManager(args.basedir)
     input_posteriors_path           = workdir_manager.get_pathdir_exist(args.input_posteriors_dir)
     input_reference_masks_path      = workdir_manager.get_datadir_exist(args.name_input_reference_masks_relpath)
+    in_reference_keys_file          = workdir_manager.get_datafile_exist(args.name_input_reference_keys_file)
     list_input_posteriors_files     = list_files_dir(input_posteriors_path)
     list_input_reference_masks_files= list_files_dir(input_reference_masks_path)
-    prefix_pattern_input_files      = get_prefix_pattern_filename(list_input_reference_masks_files[0])
+    indict_reference_keys           = read_dictionary(in_reference_keys_file)
+    pattern_search_input_files      = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
 
     if (args.is_remove_trachea_calc_metrics):
         input_coarse_airways_path       = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
@@ -74,18 +76,18 @@ def main(args):
 
             if (is_load_reference_cenlines_files):
                 in_reference_cenline_file = find_file_inlist_same_prefix(basename(in_posterior_file), list_input_reference_centrelines_files,
-                                                                         prefix_pattern=prefix_pattern_input_files)
+                                                                         pattern_prefix=pattern_search_input_files)
                 in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
                 in_reference_data = in_reference_cenline
             else:
                 in_reference_mask = find_file_inlist_same_prefix(basename(in_posterior_file), list_input_reference_masks_files,
-                                                                 prefix_pattern=prefix_pattern_input_files)
+                                                                 pattern_prefix=pattern_search_input_files)
                 in_reference_mask = ImageFileReader.get_image(in_reference_mask)
                 in_reference_data = in_reference_mask
 
             if (args.is_remove_trachea_calc_metrics):
                 in_coarse_airways_file = find_file_inlist_same_prefix(basename(in_posterior_file), list_input_coarse_airways_files,
-                                                                      prefix_pattern=prefix_pattern_input_files)
+                                                                      pattern_prefix=pattern_search_input_files)
                 in_coarse_airways = ImageFileReader.get_image(in_coarse_airways_file)
 
                 in_coarse_airways = MorphoDilateMask.compute(in_coarse_airways, num_iters=4)
@@ -172,6 +174,7 @@ if __name__ == "__main__":
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     parser.add_argument('--name_input_coarse_airways_relpath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)
     parser.add_argument('--name_input_reference_centrelines_relpath', type=str, default=NAME_RAW_CENTRELINES_RELPATH)
+    parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--num_iter_evaluate_max', type=int, default=20)
     parser.add_argument('--rel_error_eval_max', type=float, default=1.0e-04)
     parser.add_argument('--init_threshold_value', type=float, default=0.5)

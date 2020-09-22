@@ -167,22 +167,27 @@ def list_links_dir(dirname: str) -> List[str]:
 def get_substring_filename(filename: str, substr_pattern: str) -> str:
     return re.search(substr_pattern, filename).group(0)
 
-def get_prefix_pattern_filename(filename: str, char_split_name: str='_') -> str:
+def get_pattern_refer_filename(filename: str) -> str:
     basefilename_noext = basename_file_noext(filename)
-    prefix_file = basefilename_noext.split(char_split_name)[0]
-    prefix_pattern = ''.join(['[0-9]' if s.isdigit() else s for s in prefix_file])
+    pattern_filename = ''.join(['[0-9]' if s.isdigit() else s for s in basefilename_noext])
+    return pattern_filename
 
-    if prefix_file != basefilename_noext:
-        prefix_pattern += char_split_name
-    return prefix_pattern
+def get_pattern_prefix_filename(filename: str, char_split_name: str= '_') -> str:
+    basefilename_noext = basename_file_noext(filename)
+    prefix_filename = basefilename_noext.split(char_split_name)[0]
+    pattern_prefix = ''.join(['[0-9]' if s.isdigit() else s for s in prefix_filename])
+
+    if prefix_filename != basefilename_noext:
+        pattern_prefix += char_split_name
+    return pattern_prefix
 
 def find_file_inlist_same_prefix(in_filename: str,
                                  list_files: List[str],
-                                 prefix_pattern: str=None) -> str:
-    if not prefix_pattern:
+                                 pattern_prefix: str=None) -> str:
+    if not pattern_prefix:
         # if not input pattern, get it from the first file in list
-        prefix_pattern = get_prefix_pattern_filename(list_files[0])
-    prefix_filename = get_substring_filename(in_filename, prefix_pattern)
+        pattern_prefix = get_pattern_prefix_filename(list_files[0])
+    prefix_filename = get_substring_filename(in_filename, pattern_prefix)
 
     for it_file in list_files:
         if prefix_filename in it_file:
@@ -193,11 +198,11 @@ def find_file_inlist_same_prefix(in_filename: str,
 
 def find_listfiles_inlist_same_prefix(in_filename: str,
                                       list_files: List[str],
-                                      prefix_pattern: str=None) -> List[str]:
-    if not prefix_pattern:
+                                      pattern_prefix: str=None) -> List[str]:
+    if not pattern_prefix:
         # if not input pattern, get it from the first file in list
-        prefix_pattern = get_prefix_pattern_filename(list_files[0])
-    prefix_filename = get_substring_filename(in_filename, prefix_pattern)
+        pattern_prefix = get_pattern_prefix_filename(list_files[0])
+    prefix_filename = get_substring_filename(in_filename, pattern_prefix)
 
     list_out_files = []
     for it_file in list_files:

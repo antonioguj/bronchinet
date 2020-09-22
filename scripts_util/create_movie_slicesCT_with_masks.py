@@ -26,7 +26,7 @@ def main(args):
     list_input_images_files      = list_files_dir(args.input_images_dir)
     list_input_predictions_files = list_files_dir(args.input_predictions_dir)
     list_input_reference_files   = list_files_dir(args.inputrefermasksdir)
-    prefix_pattern_input_files   = get_prefix_pattern_filename(list_input_predictions_files[0])
+    pattern_search_input_files   = get_pattern_refer_filename(list_input_images_files[0])
 
     template_outvideo_filename   = 'video_%s_preds.gif'
 
@@ -38,9 +38,9 @@ def main(args):
         print("\nInput: \'%s\'..." % (in_prediction_file))
 
         in_image_file = find_file_inlist_same_prefix(basename(in_prediction_file), list_input_images_files,
-                                                     prefix_pattern=prefix_pattern_input_files)
+                                                     pattern_prefix=pattern_search_input_files)
         in_reference_file = find_file_inlist_same_prefix(basename(in_prediction_file), list_input_reference_files,
-                                                         prefix_pattern=prefix_pattern_input_files)
+                                                         pattern_prefix=pattern_search_input_files)
         #endfor
         print("Assigned to \'%s\' and \'%s\'..." %(basename(in_image_file), basename(in_reference_file)))
 
@@ -99,7 +99,7 @@ def main(args):
         if len(out_list_frames) > 0:
             print("Create movie containing \'%s\' frames..." % (len(out_list_frames)))
             suffix_casename = get_substring_filename(basename(in_prediction_file),
-                                                     substr_pattern=prefix_pattern_input_files)
+                                                     substr_pattern=pattern_search_input_files)
 
             out_filename = template_outvideo_filename % (suffix_casename)
             out_filename = join_path_names(args.output_dir, out_filename)

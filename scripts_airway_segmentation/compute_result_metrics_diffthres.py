@@ -38,10 +38,12 @@ def main(args):
     workdir_manager                 = TrainDirManager(args.basedir)
     input_posteriors_path           = workdir_manager.get_pathdir_exist(args.input_posteriors_dir)
     input_reference_masks_path      = workdir_manager.get_datadir_exist(args.name_input_reference_masks_relpath)
+    in_reference_keys_file          = workdir_manager.get_datafile_exist(args.name_input_reference_keys_file)
     output_files_path               = workdir_manager.get_pathdir_new(args.output_dir)
     list_input_posteriors_files     = list_files_dir(input_posteriors_path)
     list_input_reference_masks_files= list_files_dir(input_reference_masks_path)
-    prefix_pattern_input_files      = get_prefix_pattern_filename(list_input_reference_masks_files[0])
+    indict_reference_keys           = read_dictionary(in_reference_keys_file)
+    pattern_search_input_files      = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
 
     if (args.is_remove_trachea_calc_metrics):
         input_coarse_airways_path       = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
@@ -78,7 +80,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_posterior_file)))
 
         in_reference_mask_file = find_file_inlist_same_prefix(basename(in_posterior_file), list_input_reference_masks_files,
-                                                              prefix_pattern=prefix_pattern_input_files)
+                                                              pattern_prefix=pattern_search_input_files)
         print("Reference mask file: \'%s\'..." % (basename(in_reference_mask_file)))
 
         in_posterior = ImageFileReader.get_image(in_posterior_file)
@@ -87,7 +89,7 @@ def main(args):
 
         if (is_load_reference_cenlines_files):
             in_reference_cenline_file = find_file_inlist_same_prefix(basename(in_posterior_file), list_input_reference_cenlines_files,
-                                                                     prefix_pattern=prefix_pattern_input_files)
+                                                                     pattern_prefix=pattern_search_input_files)
             print("Reference centrelines file: \'%s\'..." % (basename(in_reference_cenline_file)))
             in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
 
@@ -95,7 +97,7 @@ def main(args):
         if (args.is_remove_trachea_calc_metrics):
             print("Remove trachea and main bronchii masks in computed metrics...")
             in_coarse_airways_file = find_file_inlist_same_prefix(basename(in_posterior_file), list_input_coarse_airways_files,
-                                                                  prefix_pattern=prefix_pattern_input_files)
+                                                                  pattern_prefix=pattern_search_input_files)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarse_airways_file)))
 
             in_coarse_airways = ImageFileReader.get_image(in_coarse_airways_file)
@@ -121,7 +123,7 @@ def main(args):
             print("- Compute the centrelines by thinning the binary masks...")
         print("- Compute the Metrics:")
 
-        key_casename = get_substring_filename(basename(in_posterior_file), substr_pattern=prefix_pattern_input_files)[:-1]
+        key_casename = get_substring_filename(basename(in_posterior_file), substr_pattern=pattern_search_input_files)[:-1]
         outdict_computed_metrics = OrderedDict()
 
         with tqdm(total=num_thresholds) as progressbar:
@@ -231,6 +233,7 @@ if __name__ == "__main__":
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     parser.add_argument('--name_input_coarse_airways_relpath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)
     parser.add_argument('--name_input_reference_centrelines_relpath', type=str, default=NAME_RAW_CENTRELINES_RELPATH)
+    parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     args = parser.parse_args()
 
     if not args.output_dir:
