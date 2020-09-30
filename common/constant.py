@@ -3,7 +3,7 @@ import numpy as np
 np.random.seed(2017)
 
 DATADIR = '/home/antonio/Data/EXACT_Testing/'
-BASEDIR = '//home/antonio/Results/AirwaySegmentation_EXACT/'
+BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
 
 
 # NAMES INPUT / OUTPUT DIR
