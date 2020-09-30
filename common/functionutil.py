@@ -358,14 +358,13 @@ def read_dictionary_numpy(filename: str) -> Dict[str, Any]:
 def read_dictionary_csv(filename: str) -> Dict[str, Any]:
     with open(filename, 'r') as fin:
         reader = csv.reader(fin)
-        raw_out_dict = dict(reader)
-        example_value = (raw_out_dict.values())[0]
+        dict_reader = dict(reader)
+        example_value = (dict_reader.values())[0]
         value_datatype = get_string_datatype(example_value)
         func_convert_values = get_func_convert_string_to_datatype(value_datatype)
         out_dict = {}
-        for key, val in raw_out_dict.items():
+        for key, val in dict_reader.items():
             out_dict[key] = func_convert_values(val)
-
     return out_dict
 
 def read_dictionary_configparams(filename: str) -> Dict[str, str]:
@@ -374,7 +373,6 @@ def read_dictionary_configparams(filename: str) -> Dict[str, str]:
         for line in fin:
             key, value = line.replace('\n','').split(' = ')
             out_dict[key] = value
-
     return out_dict
 
 def save_dictionary(filename: str, in_dict: Dict[str, Any]) -> None:

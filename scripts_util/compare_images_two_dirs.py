@@ -2,6 +2,7 @@
 from common.functionutil import *
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.imageoperator import MorphoOpenMask
+from imageoperators.maskoperator import MaskOperator
 from plotting.histogram import Histogram
 from collections import OrderedDict
 import argparse
@@ -106,18 +107,8 @@ def main(args):
         in_image_1 = ImageFileReader.get_image(in_file_1)
         in_image_2 = ImageFileReader.get_image(in_file_2)
 
-        #in_image_1 = OperationMasks.binarise(in_image_1)
-        #in_image_2 = OperationMasks.binarise(in_image_2)
-
-        # # Compare files metadata (header info)
-        # if (filenameextension(in_file_1) == filenameextension(in_file_2)):
-        #     in_img1_metadata = FileReader.getImageMetadataInfo(in_file_1)
-        #     in_img2_metadata = FileReader.getImageMetadataInfo(in_file_2)
-        #
-        #     if (in_img1_metadata == in_img2_metadata):
-        #         print("GOOD: Images have equal metadata (header info)...")
-        #     else:
-        #         print("WARNING: Images have different metadata (header info)...")
+        #in_image_1 = MaskOperator.binarise(in_image_1)
+        #in_image_2 = MaskOperator.binarise(in_image_2)
 
 
         if (in_image_1.shape == in_image_2.shape):
@@ -164,8 +155,6 @@ def main(args):
 
                         out_diffimages_filename = join_path_names(args.tempdir, name_output_diff_image_files_name % (i + 1))
                         print("Output difference between images maps: \'%s\'..." %(basename(out_diffimages_filename)))
-
-                        #FileReader.writeImageArray(out_diffimages_filename, out_diffimages)
 
                         out_histo_filename = join_path_names(args.tempdir, name_output_histo_files_name % (i + 1))
                         print("Compute and output the histograms of both images: \'%s\'..." %(basename(out_histo_filename)))
