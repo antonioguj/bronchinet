@@ -131,12 +131,9 @@ def main(args):
         list_indexes_cvfolds_testing_files    = []
 
         for i in range(args.num_crossval_folds):
-            # roll indexes once more to distribute evenly files for next cv-fold
-            indexes_cvfold_input_files = np.roll(indexes_input_files, i * num_testing_files)
-
-            indexes_training_files   = indexes_cvfold_input_files[0:num_training_files]
-            indexes_validation_files = indexes_cvfold_input_files[num_training_files:num_training_files + num_validation_files]
-            indexes_testing_files    = indexes_cvfold_input_files[num_training_files + num_validation_files::]
+            indexes_training_files   = indexes_input_files[0:num_training_files]
+            indexes_validation_files = indexes_input_files[num_training_files:num_training_files + num_validation_files]
+            indexes_testing_files    = indexes_input_files[num_training_files + num_validation_files::]
 
             list_indexes_cvfolds_training_files.append(indexes_training_files)
             list_indexes_cvfolds_validation_files.append(indexes_validation_files)
@@ -150,6 +147,9 @@ def main(args):
             write_file_cvfold_info(name_cvfold_info_file_training %(i+1), list_training_files)
             write_file_cvfold_info(name_cvfold_info_file_validation %(i+1), list_validation_files)
             write_file_cvfold_info(name_cvfold_info_file_testing %(i+1), list_testing_files)
+
+            # roll indexes once more to distribute evenly files for next cv-fold
+            indexes_input_files = np.roll(indexes_input_files, num_testing_files)
         # endfor
 
 
