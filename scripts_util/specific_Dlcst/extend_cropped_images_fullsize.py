@@ -15,7 +15,7 @@ def main(args):
     list_input_images_files    = list_files_dir(args.inputdir)
     list_input_reference_files = list_files_dir(args.reference_dir)
     dict_input_bounding_boxes  = read_dictionary(args.boundingbox_file)
-    pattern_search_input_files = get_pattern_refer_filename(list_input_reference_files[0])
+    pattern_search_input_files = get_pattern_prefix_filename(list_input_reference_files[0])
 
     makedir(args.outputdir)
 
