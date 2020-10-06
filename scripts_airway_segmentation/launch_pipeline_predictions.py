@@ -56,8 +56,8 @@ def main(args):
     name_posteriors_relpath          = basename_dir(NAME_POSTERIORS_RELPATH)
     name_predict_binary_masks_relpath= basename_dir(NAME_PRED_BINARYMASKS_RELPATH)
     name_predict_centrelines_relpath = basename_dir(NAME_PRED_CENTRELINES_RELPATH)
-    name_predict_reference_keys_file = basename_dir(NAME_REFERENCE_KEYS_POSTERIORS_FILE)
-    name_output_result_metrics_file  = basename_dir(NAME_PRED_RESULT_METRICS_FILE)
+    name_predict_reference_keys_file = basename(NAME_REFERENCE_KEYS_POSTERIORS_FILE)
+    name_output_result_metrics_file  = basename(NAME_PRED_RESULT_METRICS_FILE)
 
     inout_tempo_posteriors_path      = join_path_names(output_basedir, name_tempo_posteriors_relpath)
     inout_predict_reference_keys_file= join_path_names(output_basedir, name_predict_reference_keys_file)

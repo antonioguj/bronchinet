@@ -123,7 +123,7 @@ def main(args):
             print("- Compute the centrelines by thinning the binary masks...")
         print("- Compute the Metrics:")
 
-        key_casename = get_substring_filename(basename(in_posterior_file), substr_pattern=pattern_search_input_files)[:-1]
+        key_casename = get_substring_filename(basename(in_posterior_file), substr_pattern=pattern_search_input_files)
         outdict_computed_metrics = OrderedDict()
 
         with tqdm(total=num_thresholds) as progressbar:

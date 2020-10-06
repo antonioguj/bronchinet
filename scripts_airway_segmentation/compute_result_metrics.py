@@ -107,7 +107,7 @@ def main(args):
         # *******************************************************************************
         # Compute and store Metrics
         print("\nCompute the Metrics:")
-        key_casename = get_substring_filename(basename(in_predicted_mask_file), substr_pattern=pattern_search_input_files)[:-1]
+        key_casename = get_substring_filename(basename(in_predicted_mask_file), substr_pattern=pattern_search_input_files)
         outdict_computed_metrics[key_casename] = []
 
         for j, (imetric_name, imetric_compute) in enumerate(list_metrics_compute.items()):
