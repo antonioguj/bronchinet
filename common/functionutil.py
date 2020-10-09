@@ -154,6 +154,9 @@ def list_files_dir(dirname: str, filename_pattern: str='*', is_check: bool=True)
             catch_error_exception(message)
     return listfiles
 
+def list_dirs_dir(dirname: str, dirname_pattern: str='*', is_check: bool=True) -> List[str]:
+    return list_files_dir(dirname, dirname_pattern, is_check=is_check)
+
 def list_files_dir_old(dirname: str) -> List[str]:
     listfiles = os.listdir(dirname)
     return [join_path_names(dirname, file) for file in listfiles]
