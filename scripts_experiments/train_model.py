@@ -25,7 +25,7 @@ def write_train_valid_data_logfile(out_filename: str,
         fout.write('Total of %s %s files\n' %(len(list_data_files), type_data))
         fout.write('---------------------------------\n')
         for in_file in list_data_files:
-            fout.write('%s -> (%s)\n' % (basename(in_file), dict_reference_keys[basename_file_noext(in_file)]))
+            fout.write('%s -> (%s)\n' % (basename(in_file), dict_reference_keys[basename_filenoext(in_file)]))
 
 def get_restart_epoch_from_loss_history_file(loss_filename: str) -> int:
     data_file = np.genfromtxt(loss_filename, dtype=str, delimiter=' ')

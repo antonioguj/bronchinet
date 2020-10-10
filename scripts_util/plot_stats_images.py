@@ -25,7 +25,7 @@ def main(args):
     for i, in_file in enumerate(list_input_files):
         print("\nInput: \'%s\'..." % (in_file))
 
-        case_name = basename_file_noext(in_file).split()[0]
+        case_name = basename_filenoext(in_file).split()[0]
 
         in_image = ImageFileReader.get_image(in_file)
 

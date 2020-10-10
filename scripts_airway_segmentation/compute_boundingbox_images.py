@@ -54,7 +54,7 @@ def main(args):
             print("Bounding-box around ROI: right lung: \'%s\', of size: \'%s\'" % (bounding_box_right, size_bounding_box))
 
             in_reference_key = list_input_reference_files[i]
-            outdict_crop_bounding_boxes[basename_file_noext(in_reference_key)] = [bounding_box_left, bounding_box_right]
+            outdict_crop_bounding_boxes[basename_filenoext(in_reference_key)] = [bounding_box_left, bounding_box_right]
         # endfor
     else:
         # compute bounding-box including for both left and right lungs
@@ -76,7 +76,7 @@ def main(args):
             min_size_bounding_box = BoundingBoxes.get_min_size_bounding_box(size_bounding_box, min_size_bounding_box)
 
             in_reference_key = list_input_reference_files[i]
-            outdict_crop_bounding_boxes[basename_file_noext(in_reference_key)] = bounding_box
+            outdict_crop_bounding_boxes[basename_filenoext(in_reference_key)] = bounding_box
     # endfor
 
     print("\nMax size bounding-box found: \'%s\'..." % (str(max_size_bounding_box)))

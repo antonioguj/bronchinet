@@ -7,7 +7,7 @@ import argparse
 
 def main(args):
 
-    names_output_files = lambda in_name: basename_file_noext(in_name) + '.mhd'
+    names_output_files = lambda in_name: basename_filenoext(in_name) + '.mhd'
 
     list_input_files = list_files_dir(args.input_dir)
     makedir(args.output_dir)
@@ -21,7 +21,7 @@ def main(args):
 
         ndims = len(out_image_size)
         str_out_image_size = ' '.join([str(elem) for elem in out_image_size])
-        name_raw_file = basename_file_noext(in_file) + '.raw'
+        name_raw_file = basename_filenoext(in_file) + '.raw'
 
         #contruct mhd header file
         str_info  = 'ObjectType = Image\n'

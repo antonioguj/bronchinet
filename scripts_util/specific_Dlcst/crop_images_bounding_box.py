@@ -8,7 +8,7 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    name_output_images_files = lambda in_name: basename_file_noext(in_name) + '.nii.gz'
+    name_output_images_files = lambda in_name: basename_filenoext(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
 
@@ -38,7 +38,7 @@ def main(args):
 
 
         # 1 step: crop image
-        in_bounding_box = dict_input_bounding_boxes[basename_file_noext(in_reference_file)]
+        in_bounding_box = dict_input_bounding_boxes[basename_filenoext(in_reference_file)]
         out_crop_image  = CropImage._compute3D(in_full_image, in_bounding_box)
         # 2 step: invert image
         out_crop_image  = FlipImage.compute(out_crop_image, axis=0)

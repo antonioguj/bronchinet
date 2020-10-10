@@ -125,13 +125,13 @@ def main(args):
 
         if flag_found_boundbox:
             print("SUCCESS: found perfect bounding-box: \'%s\', with null error: \'%s\'..." % (str(found_boundbox), sum_test_res))
-            root_cropimage_name = basename_file_noext(in_crop_image_file)
+            root_cropimage_name = basename_filenoext(in_crop_image_file)
             dict_found_bounding_boxes[root_cropimage_name] = found_boundbox
             message = "%s,\"%s\"\n" %(root_cropimage_name, str(found_boundbox))
             fout.write(message)
         else:
             print("ERROR: not found perfect bounding-box. Closest found is: \'%s\', with error: \'%s\'..." % (str(found_boundbox), min_sum_test_res))
-            root_cropimage_name = basename_file_noext(in_crop_image_file)
+            root_cropimage_name = basename_filenoext(in_crop_image_file)
             dict_found_bounding_boxes[root_cropimage_name] = found_boundbox
             message = "%s,\"%s\" ...NOT PERFECT...\n" % (root_cropimage_name, str(found_boundbox))
             fout.write(message)

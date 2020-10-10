@@ -98,8 +98,8 @@ def main(args):
 
 
     # Create new base dir with merged data
-    Homedir = dirname_dir(args.list_merge_data_paths[0])
-    datadir = '+'.join(basename_dir(idir).split('_')[0] for idir in args.list_merge_data_paths) + '_Processed'
+    Homedir = dirnamedir(args.list_merge_data_paths[0])
+    datadir = '+'.join(basenamedir(idir).split('_')[0] for idir in args.list_merge_data_paths) + '_Processed'
     datadir = join_path_names(Homedir, datadir)
 
     output_datadir = update_dirname(datadir)
@@ -123,7 +123,7 @@ def main(args):
     for icount, (index_data, index_image_file) in enumerate(indexes_merge_input_files):
 
         input_image_file  = list_input_images_files_all_data[index_data][index_image_file]
-        in_reference_file = list_dict_in_reference_keys_all_data[index_data][basename_file_noext(input_image_file)]
+        in_reference_file = list_dict_in_reference_keys_all_data[index_data][basename_filenoext(input_image_file)]
         output_image_file = join_path_names(output_images_data_path, name_template_output_images_files % (icount + 1))
         print("%s --> %s (%s)" % (basename(output_image_file), input_image_file, basename(in_reference_file)))
         if args.is_link_merged_files:
@@ -131,7 +131,7 @@ def main(args):
         else:
             copyfile(input_image_file, output_image_file)
 
-        outdict_reference_keys[basename_file_noext(output_image_file)] = basename(in_reference_file)
+        outdict_reference_keys[basename_filenoext(output_image_file)] = basename(in_reference_file)
 
         if args.is_prepare_labels:
             input_label_file  = list_input_labels_files_all_data[index_data][index_image_file]

@@ -8,7 +8,7 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    name_output_images_files = lambda in_name: basename_file_noext(in_name) + '.nii.gz'
+    name_output_images_files = lambda in_name: basename_filenoext(in_name) + '.nii.gz'
     # ---------- SETTINGS ----------
 
 
@@ -40,7 +40,7 @@ def main(args):
         # 1 step: invert image
         in_crop_image = FlipImage.compute(in_crop_image, axis=0)
         # 2 step: extend image
-        in_bounding_box     = dict_input_bounding_boxes[basename_file_noext(in_reference_file)]
+        in_bounding_box     = dict_input_bounding_boxes[basename_filenoext(in_reference_file)]
         out_shape_fullimage = ImageFileReader.get_image_size(in_reference_file)
         out_full_image      = ExtendImage._compute3D(in_crop_image, in_bounding_box, out_shape_fullimage)
 

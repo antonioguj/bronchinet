@@ -18,7 +18,7 @@ SCRIPT_COMPUTE_RESULT_METRICS       = join_path_names(CODEDIR, 'scripts_airway_s
 
 def print_call(new_call):
     message = ' '.join(new_call)
-    print("*" * 100)
+    print("\n"+ "*" * 100)
     print("<<< Launch: %s >>>" %(message))
     print("*" * 100 +"\n")
 
@@ -30,6 +30,13 @@ def create_task_replace_dirs(input_dir, input_dir_to_replace):
     new_call_1 = ['rm', '-r', input_dir]
     new_call_2 = ['mv', input_dir_to_replace, input_dir]
     return [new_call_1, new_call_2]
+
+def merge_dictionaries_csv(list_input_dict_files: List[str], output_dict_file: str):
+    list_new_calls = []
+    for input_dict_file in list_input_dict_files:
+        new_call = ['cat %s >> %s' %(input_dict_file, output_dict_file)]
+        list_new_calls.append(new_call)
+    return list_new_calls
 
 
 
@@ -43,10 +50,10 @@ def main(args):
     makedir(output_basedir)
 
 
-    name_tempo_posteriors_relpath    = basename_dir(NAME_TEMPO_POSTERIORS_RELPATH)
-    name_posteriors_relpath          = basename_dir(NAME_POSTERIORS_RELPATH)
-    name_predict_binary_masks_relpath= basename_dir(NAME_PRED_BINARYMASKS_RELPATH)
-    name_predict_centrelines_relpath = basename_dir(NAME_PRED_CENTRELINES_RELPATH)
+    name_tempo_posteriors_relpath    = basenamedir(NAME_TEMPO_POSTERIORS_RELPATH)
+    name_posteriors_relpath          = basenamedir(NAME_POSTERIORS_RELPATH)
+    name_predict_binary_masks_relpath= basenamedir(NAME_PRED_BINARYMASKS_RELPATH)
+    name_predict_centrelines_relpath = basenamedir(NAME_PRED_CENTRELINES_RELPATH)
     name_predict_reference_keys_file = basename(NAME_REFERENCE_KEYS_POSTERIORS_FILE)
     name_output_result_metrics_file  = basename(NAME_PRED_RESULT_METRICS_FILE)
 
@@ -57,25 +64,76 @@ def main(args):
     output_predict_centrelines_path  = join_path_names(output_basedir, name_predict_centrelines_relpath)
     output_result_metrics_file       = join_path_names(output_basedir, name_output_result_metrics_file)
 
-    in_config_params_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
-
-    if not is_exist_file(in_config_params_file):
-        message = "Config params file not found: \'%s\'..." % (in_config_params_file)
-        catch_error_exception(message)
-
 
 
     list_calls_all = []
 
-    # 1st: Compute model predictions, and posteriors for testing work data
-    new_call = ['python3', SCRIPT_PREDICT_MODEL, args.input_model_file,
-                '--basedir', basedir,
-                '--in_config_file', in_config_params_file,
-                '--name_output_predictions_relpath', inout_tempo_posteriors_path,
-                '--name_output_reference_keys_file', inout_predict_reference_keys_file,
-                '--testing_datadir', args.testing_datadir,
-                '--is_backward_compat', str(args.is_backward_compat)]
-    list_calls_all.append(new_call)
+    if args.is_preds_crossval:
+        input_basedir = dirname(dirname(args.input_model_file))
+        input_modeldir = basenamedir(dirname(args.input_model_file))
+        input_model_relfile = basename(args.input_model_file)
+
+        in_template_modeldir = '_'.join(input_modeldir.split('_')[:-1]) + '*'
+        in_template_testdatadir = basenamedir(args.testing_datadir)[:-1] + '*'
+
+        list_input_modeldirs = list_dirs_dir(input_basedir, in_template_modeldir)
+        list_testing_datadirs = list_dirs_dir(basedir, in_template_testdatadir)
+
+        if len(list_input_modeldirs) != len(list_testing_datadirs):
+            message = 'For Cross-Val setting: num. input model dirs \'%s\' not equal to num. testing dirs \'%s\'' \
+                      %(len(list_input_modeldirs), len(list_testing_datadirs))
+            catch_error_exception(message)
+
+
+        print('\nCompute Predictions from \'%s\' models dirs in a Cross-Val setting...' %(len(list_input_modeldirs)))
+
+        inout_predict_reference_keys_file = inout_predict_reference_keys_file.replace('.npy', '.csv')
+        list_predict_reference_keys_files_cvfolds = []
+
+        for i, inputdir in enumerate(list_input_modeldirs):
+            input_model_file = join_path_names(inputdir, input_model_relfile)
+            in_config_params_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
+            print('For CV-fold %s: load model file: %s' %(i+1, input_model_file))
+
+            inout_predict_reference_keys_file_cvfold = set_filename_suffix(inout_predict_reference_keys_file, 'CV%0.2i'%(i+1))
+            list_predict_reference_keys_files_cvfolds.append(inout_predict_reference_keys_file_cvfold)
+
+            if not is_exist_file(in_config_params_file):
+                message = "Config params file not found: \'%s\'..." %(in_config_params_file)
+                catch_error_exception(message)
+
+            # 1st: Compute model predictions, and posteriors for testing work data
+            new_call = ['python3', SCRIPT_PREDICT_MODEL, input_model_file,
+                        '--basedir', basedir,
+                        '--in_config_file', in_config_params_file,
+                        '--testing_datadir', list_testing_datadirs[i],
+                        '--name_output_predictions_relpath', inout_tempo_posteriors_path,
+                        '--name_output_reference_keys_file', inout_predict_reference_keys_file_cvfold,
+                        '--is_backward_compat', str(args.is_backward_compat)]
+            list_calls_all.append(new_call)
+        # endfor
+
+        # merge all created 'predict_reference_keys_files' for each cv-fold into one
+        sublist_calls = merge_dictionaries_csv(list_predict_reference_keys_files_cvfolds, inout_predict_reference_keys_file)
+        list_calls_all += sublist_calls
+
+    else:
+        in_config_params_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
+
+        if not is_exist_file(in_config_params_file):
+            message = "Config params file not found: \'%s\'..." %(in_config_params_file)
+            catch_error_exception(message)
+
+        # 1st: Compute model predictions, and posteriors for testing work data
+        new_call = ['python3', SCRIPT_PREDICT_MODEL, args.input_model_file,
+                    '--basedir', basedir,
+                    '--in_config_file', in_config_params_file,
+                    '--testing_datadir', args.testing_datadir,
+                    '--name_output_predictions_relpath', inout_tempo_posteriors_path,
+                    '--name_output_reference_keys_file', inout_predict_reference_keys_file,
+                    '--is_backward_compat', str(args.is_backward_compat)]
+        list_calls_all.append(new_call)
+
 
 
     # 2nd: Compute post-processed posteriors from work predictions
@@ -133,6 +191,9 @@ def main(args):
     list_calls_all.append(new_call)
     new_call = ['rm', inout_predict_reference_keys_file, inout_predict_reference_keys_file.replace('.npy', '.csv')]
     list_calls_all.append(new_call)
+    if args.is_preds_crossval:
+        new_call = ['rm', *list_predict_reference_keys_files_cvfolds]
+        list_calls_all.append(new_call)
 
 
 
@@ -155,10 +216,11 @@ if __name__ == "__main__":
     parser.add_argument('input_model_file', type=str)
     parser.add_argument('output_basedir', type=str)
     parser.add_argument('--basedir', type=str, default=BASEDIR)
+    parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
+    parser.add_argument('--is_preds_crossval', type=str2bool, default=False)
     parser.add_argument('--post_thresholds_values', type=str, nargs='*', default=[POST_THRESHOLD_VALUE])
     parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
     parser.add_argument('--list_type_metrics_result', type=str2list_string, default=LIST_TYPE_METRICS_RESULT)
-    parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()

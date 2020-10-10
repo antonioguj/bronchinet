@@ -11,7 +11,7 @@ bin_hr22nifti   = '/home/antonio/Codes/Silas_repository/image-feature-extraction
 
 def main(args):
 
-    names_output_files = lambda in_name: basename_file_noext(in_name) + '.nii.gz'
+    names_output_files = lambda in_name: basename_filenoext(in_name) + '.nii.gz'
 
     list_input_files = list_files_dir(args.input_dir)
     makedir(args.output_dir)
@@ -20,7 +20,7 @@ def main(args):
     files_extension = fileextension(list_input_files[0])
     if files_extension == '.dcm':
         files_type       = 'dicom'
-        tmpfile_template = lambda in_name: basename_file_noext(in_name) + '_dec.dcm'
+        tmpfile_template = lambda in_name: basename_filenoext(in_name) + '_dec.dcm'
         tmpsubdir        = join_path_names(args.input_dir, 'tmp')
         makedir(tmpsubdir)
 
@@ -75,7 +75,7 @@ def main(args):
             os.system(command_string)
 
             # remove tmp input file and aux. .json file
-            out_json_file = join_path_names(args.output_dir, basename_file_noext(out_file) + '.json')
+            out_json_file = join_path_names(args.output_dir, basename_filenoext(out_file) + '.json')
             removefile(in_tmp_file)
             removefile(out_json_file)
 

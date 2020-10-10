@@ -11,7 +11,7 @@ import argparse
 
 
 def func_extract_caseprocname_filename(in_filename: str) -> str:
-    return basename_file_noext(in_filename).replace('images_proc', '')
+    return basename_filenoext(in_filename).replace('images_proc', '')
 
 
 
@@ -118,7 +118,7 @@ def main(args):
 
 
         # Output predictions
-        in_reference_key = indict_reference_keys[basename_file_noext(in_image_file)]
+        in_reference_key = indict_reference_keys[basename_filenoext(in_image_file)]
         in_caseprocname_file = func_extract_caseprocname_filename(in_image_file)
 
         if (args.is_save_featmaps_layers):
@@ -131,7 +131,7 @@ def main(args):
 
                 ImageFileReader.write_image(output_prediction_file, out_prediction_reconstructed[..., ifeatmap])
 
-                outdict_reference_keys[basename_file_noext(output_prediction_file)] = basename(in_reference_key)
+                outdict_reference_keys[basename_filenoext(output_prediction_file)] = basename(in_reference_key)
             # endfor
         else:
             output_prediction_file = join_path_names(output_predictions_path, name_output_prediction_files % (in_caseprocname_file))
@@ -139,7 +139,7 @@ def main(args):
 
             ImageFileReader.write_image(output_prediction_file, out_prediction_reconstructed)
 
-            outdict_reference_keys[basename_file_noext(output_prediction_file)] = basename(in_reference_key)
+            outdict_reference_keys[basename_filenoext(output_prediction_file)] = basename(in_reference_key)
     # endfor
 
     # Save reference keys for predictions

@@ -25,7 +25,7 @@ LIST_TYPE_DATA_AVAIL = ['training', 'testing']
 
 def print_call(new_call):
     message = ' '.join(new_call)
-    print("*" * 100)
+    print("\n"+ "*" * 100)
     print("<<< Launch: %s >>>" %(message))
     print("*" * 100 +"\n")
 

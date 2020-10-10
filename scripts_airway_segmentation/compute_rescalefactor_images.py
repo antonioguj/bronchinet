@@ -29,7 +29,7 @@ def main(args):
         print("Voxel Size: \'%s\'..." %(str(in_voxel_size)))
 
         in_reference_file = list_input_reference_files[i]
-        outdict_voxel_sizes[basename_file_noext(in_reference_file)] = in_voxel_size
+        outdict_voxel_sizes[basename_filenoext(in_reference_file)] = in_voxel_size
     # endfor
 
     # Save computed original voxel sizes

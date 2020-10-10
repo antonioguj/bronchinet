@@ -103,7 +103,7 @@ class ImageGenerator(object):
 class NullGenerator(ImageGenerator):
 
     def __init__(self) -> None:
-        super(NullGenerator, self).__init__((0,), 0)
+        super(NullGenerator, self).__init__((0,), 1)
 
     def update_image_data(self, in_shape_image: Tuple[int, ...]) -> None:
         pass

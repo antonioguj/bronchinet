@@ -99,7 +99,7 @@ def prepare_crop_operation(args):
 
     def wrapfun_crop_image(in_data, i):
         in_reference_key = list_reference_files[i]
-        crop_bounding_box = dict_crop_bounding_boxes[basename_file_noext(in_reference_key)]
+        crop_bounding_box = dict_crop_bounding_boxes[basename_filenoext(in_reference_key)]
         print("Crop to bounding-box: \'%s\'..." % (str(crop_bounding_box)))
 
         return CropImage._compute3D(in_data, crop_bounding_box)
@@ -115,7 +115,7 @@ def prepare_rescale_updatemetadata(args):
 
     def wrapfun_updatemetadata_rescale(in_file, i):
         in_reference_key = list_reference_files[i]
-        rescale_factor = dict_rescale_factors[basename_file_noext(in_reference_key)]
+        rescale_factor = dict_rescale_factors[basename_filenoext(in_reference_key)]
         print("Update metadata for a rescaling factor: \'%s\'..." % (str(rescale_factor)))
 
         return ImageFileReader.update_image_metadata_info(in_file, rescale_factor=rescale_factor)
@@ -130,7 +130,7 @@ def prepare_rescale_operation(args, is_rescale_mask= False):
 
     def wrapfun_rescale_image(in_data, i):
         in_reference_key = list_reference_files[i]
-        rescale_factor = dict_rescale_factors[basename_file_noext(in_reference_key)]
+        rescale_factor = dict_rescale_factors[basename_filenoext(in_reference_key)]
 
         if rescale_factor != (1.0, 1.0, 1.0):
             print("Rescale with a factor: \'%s\'..." % (str(rescale_factor)))
@@ -380,9 +380,9 @@ def main(args):
         in_file_extension = fileextension(list_input_files[0])
 
     if args.no_suffix_outname:
-        nameOutputFiles = lambda in_name: basename_file_noext(in_name) + in_file_extension
+        nameOutputFiles = lambda in_name: basename_filenoext(in_name) + in_file_extension
     else:
-        nameOutputFiles = lambda in_name: basename_file_noext(in_name) + suffix_output_names + in_file_extension
+        nameOutputFiles = lambda in_name: basename_filenoext(in_name) + suffix_output_names + in_file_extension
 
 
 

@@ -115,7 +115,7 @@ def join_path_names(pathname_1: str, pathname_2: str) -> str:
 def basename(pathname: str) -> str:
     return os.path.basename(pathname)
 
-def basename_dir(pathname: str) -> str:
+def basenamedir(pathname: str) -> str:
     if pathname.endswith('/'):
         pathname = pathname[:-1]
     return basename(pathname)
@@ -123,7 +123,7 @@ def basename_dir(pathname: str) -> str:
 def dirname(pathname: str) -> str:
     return os.path.dirname(pathname)
 
-def dirname_dir(pathname: str) -> str:
+def dirnamedir(pathname: str) -> str:
     if pathname.endswith('/'):
         pathname = pathname[:-1]
     return dirname(pathname)
@@ -143,7 +143,7 @@ def fileextension(filename: str, is_split_recursive: bool=True) -> str:
     else:
         return split_filename_extension(filename)[1]
 
-def basename_file_noext(filename: str, is_split_recursive: bool=True) -> str:
+def basename_filenoext(filename: str, is_split_recursive: bool=True) -> str:
     return filename_noext(basename(filename), is_split_recursive)
 
 def list_files_dir(dirname: str, filename_pattern: str='*', is_check: bool=True) -> List[str]:
@@ -171,12 +171,12 @@ def get_substring_filename(filename: str, substr_pattern: str) -> str:
     return re.search(substr_pattern, filename).group(0)
 
 def get_pattern_refer_filename(filename: str) -> str:
-    basefilename_noext = basename_file_noext(filename)
+    basefilename_noext = basename_filenoext(filename)
     pattern_filename = ''.join(['[0-9]' if s.isdigit() else s for s in basefilename_noext])
     return pattern_filename
 
 def get_pattern_prefix_filename(filename: str, char_split_name: str= '_') -> str:
-    basefilename_noext = basename_file_noext(filename)
+    basefilename_noext = basename_filenoext(filename)
     prefix_filename = basefilename_noext.split(char_split_name)[0]
     pattern_prefix = ''.join(['[0-9]' if s.isdigit() else s for s in prefix_filename])
 
@@ -322,8 +322,9 @@ def get_string_datatype(in_str: str) -> str:
         out_elem_datatype = get_string_datatype(list_elems_tuple[0])
         out_datatype += '_' + out_elem_datatype
     else:
-        message = 'not found datatype from string: \'%s\'' % (in_str)
-        catch_error_exception(message)
+        out_datatype = 'string'
+        #message = 'not found datatype from string: \'%s\'' % (in_str)
+        #catch_error_exception(message)
     return out_datatype
 
 def get_func_convert_string_to_datatype(elem_type: str) -> Callable[[str], Any]:
@@ -331,6 +332,10 @@ def get_func_convert_string_to_datatype(elem_type: str) -> Callable[[str], Any]:
         return str2int
     elif elem_type == 'float':
         return str2float
+    elif elem_type == 'string':
+        def func_dummy(in_str: str) -> str:
+            return in_str
+        return func_dummy
     elif 'list' in elem_type and (elem_type[0:5] == 'list_'):
         def func_convert_elem(in_str: str) -> List[Any]:
             return str2list_datatype(in_str, elem_type[5:])
@@ -362,7 +367,7 @@ def read_dictionary_csv(filename: str) -> Dict[str, Any]:
     with open(filename, 'r') as fin:
         reader = csv.reader(fin)
         dict_reader = dict(reader)
-        example_value = (dict_reader.values())[0]
+        example_value = list(dict_reader.values())[0]
         value_datatype = get_string_datatype(example_value)
         func_convert_values = get_func_convert_string_to_datatype(value_datatype)
         out_dict = {}

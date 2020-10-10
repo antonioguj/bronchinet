@@ -17,7 +17,7 @@ def main(args):
 
     def name_output_files(in_name, in_size_image):
         suffix = 'outsize-%s' %('x'.join([str(s) for s in in_size_image]))
-        return 'fieldview_' + basename_file_noext(in_name) + '_' + suffix + '.nii.gz'
+        return 'fieldview_' + basename_filenoext(in_name) + '_' + suffix + '.nii.gz'
     # ---------- SETTINGS ----------
 
 

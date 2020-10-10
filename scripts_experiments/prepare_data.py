@@ -152,7 +152,7 @@ def main(args):
         #*******************************************************************************
         if (args.is_rescale_images):
             in_reference_key = list_in_reference_files[ifile]
-            in_rescale_factor = indict_rescale_factors[basename_file_noext(in_reference_key)]
+            in_rescale_factor = indict_rescale_factors[basename_filenoext(in_reference_key)]
             print("Rescale image with a factor: \'%s\'..." %(str(in_rescale_factor)))
 
             if in_rescale_factor != (1.0, 1.0, 1.0):
@@ -195,7 +195,7 @@ def main(args):
         # *******************************************************************************
         if (args.is_crop_images):
             in_reference_key = list_in_reference_files[ifile]
-            list_in_crop_bounding_boxes = indict_crop_bounding_boxes[basename_file_noext(in_reference_key)]
+            list_in_crop_bounding_boxes = indict_crop_bounding_boxes[basename_filenoext(in_reference_key)]
             num_crop_bounding_boxes = len(list_in_crop_bounding_boxes)
             print("Compute \'%s\' cropped images for this raw image:" %(num_crop_bounding_boxes))
 
@@ -275,7 +275,7 @@ def main(args):
             ImageFileReader.write_image(output_image_file, list_inout_data[icount])
             icount += 1
 
-            outdict_reference_keys[basename_file_noext(output_image_file)] = basename(in_image_file)
+            outdict_reference_keys[basename_filenoext(output_image_file)] = basename(in_image_file)
 
             if (args.is_prepare_labels):
                 if is_output_multiple_files_per_image:

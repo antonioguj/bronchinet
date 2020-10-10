@@ -93,25 +93,25 @@ def main(args):
         # Check whether there are files assigned to more than one set (Training / Validation / Testing)
         intersection_check = find_intersection_3lists(indexes_training_files, indexes_validation_files, indexes_testing_files)
         if intersection_check != []:
-            list_intersect_files = [indict_reference_keys[basename_file_noext(list_input_images_files[ind])] for ind in intersection_check]
+            list_intersect_files = [indict_reference_keys[basename_filenoext(list_input_images_files[ind])] for ind in intersection_check]
             message = 'Found files assigned to more than one set (Training / Validation / Testing): %s...' %(list_intersect_files)
             catch_error_exception(message)
 
     elif args.type_distribute == 'crossval' or \
          args.type_distribute == 'crossval_random':
         cvfolds_info_path = workdir_manager.get_pathdir_new(args.name_cvfolds_info_relpath)
-        name_cvfold_info_file_training   = join_path_names(cvfolds_info_path, 'train%s.txt')
-        name_cvfold_info_file_validation = join_path_names(cvfolds_info_path, 'valid%s.txt')
-        name_cvfold_info_file_testing    = join_path_names(cvfolds_info_path, 'test%s.txt')
+        name_cvfold_info_file_training   = join_path_names(cvfolds_info_path, 'train%0.2i.txt')
+        name_cvfold_info_file_validation = join_path_names(cvfolds_info_path, 'valid%0.2i.txt')
+        name_cvfold_info_file_testing    = join_path_names(cvfolds_info_path, 'test%0.2i.txt')
 
         indict_reference_keys = read_dictionary(in_reference_keys_file)
 
         num_total_files      = len(list_input_images_files)
-        if (num_total_files % args.num_crossval_folds != 0):
-            message = "Splitting \'%s\' total files in \'%s\' CV-folds does not result in even distribution..." %(num_total_files, args.num_crossval_folds)
+        if (num_total_files % args.num_folds_crossval != 0):
+            message = "Splitting \'%s\' total files in \'%s\' CV-folds does not result in even distribution..." %(num_total_files, args.num_folds_crossval)
             catch_error_exception(message)
 
-        num_testing_files    = num_total_files // args.num_crossval_folds
+        num_testing_files    = num_total_files // args.num_folds_crossval
         num_trainvalid_files = num_total_files - num_testing_files
         propdata_valid_intrainvalid_files = args.dist_propdata_train_valid_test[1] * (num_total_files / (num_trainvalid_files + 1.0e-06))
         num_validation_files = int(math.ceil(propdata_valid_intrainvalid_files * num_trainvalid_files))
@@ -130,7 +130,7 @@ def main(args):
         list_indexes_cvfolds_validation_files = []
         list_indexes_cvfolds_testing_files    = []
 
-        for i in range(args.num_crossval_folds):
+        for i in range(args.num_folds_crossval):
             indexes_training_files   = indexes_input_files[0:num_training_files]
             indexes_validation_files = indexes_input_files[num_training_files:num_training_files + num_validation_files]
             indexes_testing_files    = indexes_input_files[num_training_files + num_validation_files::]
@@ -140,9 +140,9 @@ def main(args):
             list_indexes_cvfolds_testing_files.append(indexes_testing_files)
 
             # save assigned files for training / validation / testing in text files
-            list_training_files   = [indict_reference_keys[basename_file_noext(list_input_images_files[ind])] for ind in indexes_training_files]
-            list_validation_files = [indict_reference_keys[basename_file_noext(list_input_images_files[ind])] for ind in indexes_validation_files]
-            list_testing_files    = [indict_reference_keys[basename_file_noext(list_input_images_files[ind])] for ind in indexes_testing_files]
+            list_training_files   = [indict_reference_keys[basename_filenoext(list_input_images_files[ind])] for ind in indexes_training_files]
+            list_validation_files = [indict_reference_keys[basename_filenoext(list_input_images_files[ind])] for ind in indexes_validation_files]
+            list_testing_files    = [indict_reference_keys[basename_filenoext(list_input_images_files[ind])] for ind in indexes_testing_files]
 
             write_file_cvfold_info(name_cvfold_info_file_training %(i+1), list_training_files)
             write_file_cvfold_info(name_cvfold_info_file_validation %(i+1), list_validation_files)
@@ -178,7 +178,7 @@ def main(args):
 
     if args.type_distribute == 'crossval' or \
        args.type_distribute == 'crossval_random':
-        for i in range(args.num_crossval_folds):
+        for i in range(args.num_folds_crossval):
             print("\nFor CV-fold %s: Files assigned to Training Data:" %(i+1))
             training_data_path = workdir_manager.get_pathdir_new(args.name_training_data_relpath %(i+1))
 
@@ -226,7 +226,7 @@ if __name__ == "__main__":
     parser.add_argument('--type_distribute', type=str, default='original')
     parser.add_argument('--dist_propdata_train_valid_test', type=str2tuple_float, default=DIST_PROPDATA_TRAINVALIDTEST)
     parser.add_argument('--infile_train_order', type=str, default=None)
-    parser.add_argument('--num_crossval_folds', type=int, default=None)
+    parser.add_argument('--num_folds_crossval', type=int, default=None)
     args = parser.parse_args()
 
     if args.type_data == 'training':
@@ -268,13 +268,13 @@ if __name__ == "__main__":
 
     if args.type_distribute == 'crossval' or \
        args.type_distribute == 'crossval_random':
-        if not args.num_crossval_folds:
-            message = 'Input \'num_crossval_folds\' for \'crossval\' data distribution is needed...'
+        if not args.num_folds_crossval:
+            message = 'Input \'num_folds_crossval\' for \'crossval\' data distribution is needed...'
             catch_error_exception(message)
         else:
-            args.name_training_data_relpath   = set_dirname_suffix(args.name_training_data_relpath, 'CV%s')
-            args.name_validation_data_relpath = set_dirname_suffix(args.name_validation_data_relpath, 'CV%s')
-            args.name_testing_data_relpath    = set_dirname_suffix(args.name_testing_data_relpath, 'CV%s')
+            args.name_training_data_relpath   = set_dirname_suffix(args.name_training_data_relpath, 'CV%0.2i')
+            args.name_validation_data_relpath = set_dirname_suffix(args.name_validation_data_relpath, 'CV%0.2i')
+            args.name_testing_data_relpath    = set_dirname_suffix(args.name_testing_data_relpath, 'CV%0.2i')
             args.name_cvfolds_info_relpath    = 'CVfoldsInfo/'
 
 

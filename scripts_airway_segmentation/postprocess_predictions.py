@@ -12,7 +12,7 @@ import argparse
 
 def main(args):
     # ---------- SETTINGS ----------
-    name_output_posteriors_files = lambda in_name: basename_file_noext(in_name) + '_probmap.nii.gz'
+    name_output_posteriors_files = lambda in_name: basename_filenoext(in_name) + '_probmap.nii.gz'
     # ---------- SETTINGS ----------
 
 
@@ -55,7 +55,7 @@ def main(args):
         inout_prediction = ImageFileReader.get_image(in_prediction_file)
         print("Original dims : \'%s\'..." % (str(inout_prediction.shape)))
 
-        in_reference_key = indict_reference_keys[basename_file_noext(in_prediction_file)]
+        in_reference_key = indict_reference_keys[basename_filenoext(in_prediction_file)]
         in_reference_file = join_path_names(in_reference_files_path, in_reference_key)
 
         print("Assigned to Reference file: \'%s\'..." % (basename(in_reference_file)))
@@ -68,7 +68,7 @@ def main(args):
 
             out_shape_fullimage = ImageFileReader.get_image_size(in_reference_file)
 
-            list_in_crop_bounding_boxes = indict_crop_bounding_boxes[basename_file_noext(in_reference_key)]
+            list_in_crop_bounding_boxes = indict_crop_bounding_boxes[basename_filenoext(in_reference_key)]
             num_crop_bounding_boxes = len(list_in_crop_bounding_boxes)
 
             if num_crop_bounding_boxes > 1:

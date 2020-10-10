@@ -23,7 +23,7 @@ def main(args):
         in_full_image = ImageFileReader.get_image(in_fullimage_file)
 
         # 1 step: crop image
-        in_bounding_box = dict_input_bounding_boxes[basename_file_noext(in_cropimage_file)]
+        in_bounding_box = dict_input_bounding_boxes[basename_filenoext(in_cropimage_file)]
         new_crop_image  = CropImage.compute(in_full_image, in_bounding_box)
         # 2 step: invert image
         new_crop_image  = FlipImage.compute(new_crop_image, axis=0)
