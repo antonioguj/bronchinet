@@ -9,10 +9,11 @@ import argparse
 
 CODEDIR                             = join_path_names(BASEDIR, 'Code/')
 SCRIPT_PREDICT_MODEL                = join_path_names(CODEDIR, 'scripts_experiments/predict_model.py')
+SCRIPT_MERGE_DICTIONARIES_PREDS     = join_path_names(CODEDIR, 'scripts_util/merge_pydictionaries_preds.py')
 SCRIPT_POSTPROCESS_PREDICTIONS      = join_path_names(CODEDIR, 'scripts_airway_segmentation/postprocess_predictions.py')
 SCRIPT_PROCESS_PREDICT_AIRWAY_TREE  = join_path_names(CODEDIR, 'scripts_airway_segmentation/process_predicted_airway_tree.py')
 SCRIPT_CALC_CENTRELINES_FROM_MASK   = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
-SCRIPT_CALC_FIRST_CONNREGION_FROM_MASK= join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
+SCRIPT_CALC_FIRSTCONNREGION_FROM_MASK=join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
 SCRIPT_COMPUTE_RESULT_METRICS       = join_path_names(CODEDIR, 'scripts_airway_segmentation/compute_result_metrics.py')
 
 
@@ -30,13 +31,6 @@ def create_task_replace_dirs(input_dir, input_dir_to_replace):
     new_call_1 = ['rm', '-r', input_dir]
     new_call_2 = ['mv', input_dir_to_replace, input_dir]
     return [new_call_1, new_call_2]
-
-def merge_dictionaries_csv(list_input_dict_files: List[str], output_dict_file: str):
-    list_new_calls = []
-    for input_dict_file in list_input_dict_files:
-        new_call = ['cat %s >> %s' %(input_dict_file, output_dict_file)]
-        list_new_calls.append(new_call)
-    return list_new_calls
 
 
 
@@ -87,7 +81,6 @@ def main(args):
 
         print('\nCompute Predictions from \'%s\' models dirs in a Cross-Val setting...' %(len(list_input_modeldirs)))
 
-        inout_predict_reference_keys_file = inout_predict_reference_keys_file.replace('.npy', '.csv')
         list_predict_reference_keys_files_cvfolds = []
 
         for i, inputdir in enumerate(list_input_modeldirs):
@@ -95,8 +88,8 @@ def main(args):
             in_config_params_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
             print('For CV-fold %s: load model file: %s' %(i+1, input_model_file))
 
-            inout_predict_reference_keys_file_cvfold = set_filename_suffix(inout_predict_reference_keys_file, 'CV%0.2i'%(i+1))
-            list_predict_reference_keys_files_cvfolds.append(inout_predict_reference_keys_file_cvfold)
+            inout_predict_reference_keys_file_this = set_filename_suffix(inout_predict_reference_keys_file, 'CV%0.2i'%(i+1))
+            list_predict_reference_keys_files_cvfolds.append(inout_predict_reference_keys_file_this)
 
             if not is_exist_file(in_config_params_file):
                 message = "Config params file not found: \'%s\'..." %(in_config_params_file)
@@ -108,14 +101,14 @@ def main(args):
                         '--in_config_file', in_config_params_file,
                         '--testing_datadir', list_testing_datadirs[i],
                         '--name_output_predictions_relpath', inout_tempo_posteriors_path,
-                        '--name_output_reference_keys_file', inout_predict_reference_keys_file_cvfold,
+                        '--name_output_reference_keys_file', inout_predict_reference_keys_file_this,
                         '--is_backward_compat', str(args.is_backward_compat)]
             list_calls_all.append(new_call)
         # endfor
 
         # merge all created 'predict_reference_keys_files' for each cv-fold into one
-        sublist_calls = merge_dictionaries_csv(list_predict_reference_keys_files_cvfolds, inout_predict_reference_keys_file)
-        list_calls_all += sublist_calls
+        new_call = ['python3', SCRIPT_MERGE_DICTIONARIES_PREDS, *list_predict_reference_keys_files_cvfolds, inout_predict_reference_keys_file]
+        list_calls_all.append(new_call)
 
     else:
         in_config_params_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
@@ -162,7 +155,7 @@ def main(args):
         output_tempo_predict_binary_masks_path = set_dirname_suffix(output_predict_binary_masks_path, 'Tempo')
 
         # Compute the first connected component from the predicted binary masks
-        new_call = ['python3', SCRIPT_CALC_FIRST_CONNREGION_FROM_MASK, output_predict_binary_masks_path, output_tempo_predict_binary_masks_path,
+        new_call = ['python3', SCRIPT_CALC_FIRSTCONNREGION_FROM_MASK, output_predict_binary_masks_path, output_tempo_predict_binary_masks_path,
                     '--type', 'firstconreg']
         list_calls_all.append(new_call)
 
@@ -192,7 +185,8 @@ def main(args):
     new_call = ['rm', inout_predict_reference_keys_file, inout_predict_reference_keys_file.replace('.npy', '.csv')]
     list_calls_all.append(new_call)
     if args.is_preds_crossval:
-        new_call = ['rm', *list_predict_reference_keys_files_cvfolds]
+        list_predict_reference_keys_files_cvfolds_csvs = [elem.replace('.npy', '.csv') for elem in list_predict_reference_keys_files_cvfolds]
+        new_call = ['rm', *list_predict_reference_keys_files_cvfolds, *list_predict_reference_keys_files_cvfolds_csvs]
         list_calls_all.append(new_call)
 
 
