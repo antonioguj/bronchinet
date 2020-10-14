@@ -48,7 +48,7 @@ class ModelCheckpoint(CallbackBase):
         epoch = args[0]
         if (epoch % self._freq_save_model == 0):
             if self._update_filename_epoch:
-                model_filename_this = self._model_filename % (epoch)
+                model_filename_this = self._model_filename % (epoch+1)
             else:
                 model_filename_this = self._model_filename
 
