@@ -156,7 +156,8 @@ def main(args):
 
         # Compute the first connected component from the predicted binary masks
         new_call = ['python3', SCRIPT_CALC_FIRSTCONNREGION_FROM_MASK, output_predict_binary_masks_path, output_tempo_predict_binary_masks_path,
-                    '--type', 'firstconreg']
+                    '--type', 'firstconreg',
+                    '--in_conreg_dim', str(args.in_connregions_dim)]
         list_calls_all.append(new_call)
 
         new_sublist_calls = create_task_replace_dirs(output_predict_binary_masks_path, output_tempo_predict_binary_masks_path)
@@ -216,6 +217,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
     parser.add_argument('--list_type_metrics_result', type=str2list_string, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)
+    parser.add_argument('--in_connregions_dim', type=int, default=1)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 

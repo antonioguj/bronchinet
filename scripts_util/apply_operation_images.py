@@ -11,7 +11,7 @@ import argparse
 
 
 LIST_OPERATIONS = ['mask', 'binarise', 'merge', 'substract', 'crop', 'rescale', 'rescalemask',
-                   'fillholes', 'erode', 'dilate', 'moropen', 'morclose', 'connregs', 'firstconreg',
+                   'fillholes', 'erode', 'dilate', 'moropen', 'morclose', 'conregs', 'firstconreg',
                    'thinning', 'threshold', 'masklabels', 'normalise', 'power', 'exponential']
 DICT_OPERS_SUFFIX = {'mask': 'masked',
                      'binarise': None,
@@ -25,11 +25,11 @@ DICT_OPERS_SUFFIX = {'mask': 'masked',
                      'dilate': 'dilated',
                      'moropen': 'moropen',
                      'morclose': 'morclose',
-                     'connregs': 'connregs',
-                     'firstconreg': 'firstreg',
+                     'conregs': 'conregs%s',
+                     'firstconreg': 'firstreg%s',
                      'thinning': 'cenlines',
                      'threshold': 'binmask',
-                     'masklabels': 'lab%s',
+                     'masklabels': 'labs%s',
                      'normalise': 'normal',
                      'power': 'power',
                      'exponential': 'expon'}
@@ -202,12 +202,11 @@ def prepare_morclose_operation(args):
 
 # ------------------------------------------------
 def prepare_connregions_operation(args):
-    print("Operation: Compute connected regions...")
+    print("Operation: Compute connected regions, with connectivity dim \'%s\'..." %(args.in_conreg_dim))
 
     def wrapfun_connregions_image(in_data, i):
-        print("Compute connected regions...")
-        #out_data, num_regions = ConnectedRegionsMasks.compute_get_num_regs(in_data)
-        out_data, num_regions = ConnectedRegionsMask.compute_get_num_regs(in_data, connectivity_dim=1)
+        print("Compute connected regions, with connectivity dim \'%s\'..." %(args.in_conreg_dim))
+        out_data, num_regions = ConnectedRegionsMask.compute_get_num_regs(in_data, connectivity_dim=args.in_conreg_dim)
         print("Number connected regions: \'%s\'..." %(num_regions))
         return out_data
 
@@ -216,12 +215,11 @@ def prepare_connregions_operation(args):
 
 # ------------------------------------------------
 def prepare_firstconnregion_operation(args):
-    print("Operation: Compute the first connected region (with largest volume)...")
+    print("Operation: Compute the first connected region (with largest volume), with connectivity dim \'%s\'..." %(args.in_conreg_dim))
 
     def wrapfun_firstconnregion_image(in_data, i):
-        print("Compute the first connected region...")
-        #out_data = FirstConnectedRegionMasks.compute(in_data)
-        out_data = FirstConnectedRegionMask.compute(in_data, connectivity_dim=1)
+        print("Compute the first connected region, with connectivity dim \'%s\'..." %(args.in_conreg_dim))
+        out_data = FirstConnectedRegionMask.compute(in_data, connectivity_dim=args.in_conreg_dim)
         return out_data
 
     return wrapfun_firstconnregion_image
@@ -344,17 +342,19 @@ def main(args):
                 new_func_operation = prepare_moropen_operation(args)
             elif name_operation == 'morclose':
                 new_func_operation = prepare_morclose_operation(args)
-            elif name_operation == 'connregs':
+            elif name_operation == 'conregs':
                 new_func_operation = prepare_connregions_operation(args)
+                DICT_OPERS_SUFFIX['conregs'] = DICT_OPERS_SUFFIX['conregs'] % ('-d%s' % (args.in_conreg_dim))
             elif name_operation == 'firstconreg':
                 new_func_operation = prepare_firstconnregion_operation(args)
+                DICT_OPERS_SUFFIX['firstconreg'] = DICT_OPERS_SUFFIX['firstconreg'] % ('-d%s' % (args.in_conreg_dim))
             elif name_operation == 'thinning':
                 new_func_operation = prepare_thinning_operation(args)
             elif name_operation == 'threshold':
                 new_func_operation = prepare_threshold_operation(args)
             elif name_operation == 'masklabels':
                 new_func_operation = prepare_maskwithlabels_operation(args)
-                DICT_OPERS_SUFFIX['masklabels'] = DICT_OPERS_SUFFIX['masklabels'] %('-'.join([str(el) for el in args.in_mask_labels]))
+                DICT_OPERS_SUFFIX['masklabels'] = DICT_OPERS_SUFFIX['masklabels'] % ('-'.join([str(el) for el in args.in_mask_labels]))
             elif name_operation == 'normalise':
                 new_func_operation = prepare_normalise_operation(args)
             elif name_operation == 'power':
@@ -423,7 +423,7 @@ if __name__ == "__main__":
                        'dilate': 'apply a morphological dilation to mask (1 layer voxels)',
                        'moropen': 'apply a morphological opening to mask (1 layer voxels)',
                        'morclose': 'apply a morphological closing to mask (1 layer voxels)',
-                       'connregs': 'split mask in connected components. Get each component with different label',
+                       'conregs': 'split mask in connected components. Get each component with different label',
                        'firstconreg': 'split mask in connected components and get the one with largest volume',
                        'thinning': 'apply morphological thinning to mask and obtain centrelines',
                        'threshold': 'apply threshold of probability image and obtain binary mask',
@@ -444,6 +444,7 @@ if __name__ == "__main__":
     parser.add_argument('--boundingbox_file', type=str, default=None)
     parser.add_argument('--rescalefactor_file', type=str, default=None)
     parser.add_argument('--in_mask_labels', nargs='+', type=int, default=None)
+    parser.add_argument('--in_conreg_dim', type=int, default=None)
     parser.add_argument('--out_nifti', type=str2bool, default=False)
     parser.add_argument('--no_suffix_outname', type=str2bool, default=None)
     args = parser.parse_args()
@@ -461,17 +462,23 @@ if __name__ == "__main__":
         if not args.in_2ndmask_dir:
             message = 'need to set argument \'in_2ndmask_dir\''
             catch_error_exception(message)
-    elif 'crop' in args.type:
+    if 'crop' in args.type:
         if not args.reference_dir or not args.boundingbox_file:
             message = 'need to set arguments \'reference_dir\' and \'boundingbox_file\''
             catch_error_exception(message)
-    elif 'rescale' in args.type or \
-        'rescale_mask' in args.type:
+    if 'rescale' in args.type or 'rescale_mask' in args.type:
         if not args.reference_dir or not args.rescalefactor_file:
             message = 'need to set arguments \'reference_dir\' and \'rescalefactor_file\''
             catch_error_exception(message)
-    elif 'masklabels' in args.type:
-        if not args.in_mask_labels:
+    if 'conregs' in args.type or 'firstconreg' in args.type:
+        if args.in_conreg_dim is None:
+            message = 'need to set arguments \'in_conreg_dim\''
+            catch_error_exception(message)
+        if args.in_conreg_dim not in [1, 2, 3]:
+            message = 'the connectivity \'in_conreg_dim\' must be 1, 2 or 3'
+            catch_error_exception(message)
+    if 'masklabels' in args.type:
+        if args.in_mask_labels is None:
             message = 'need to set arguments \'in_mask_labels\''
             catch_error_exception(message)
 
