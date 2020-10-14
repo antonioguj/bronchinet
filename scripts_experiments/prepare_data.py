@@ -142,7 +142,7 @@ def main(args):
             list_inout_data.append(inout_extralabel)
             list_type_inout_data.append('label')
 
-            if check_same_number_files_in_list(inout_extralabel, inout_image):
+            if check_same_size_images(inout_extralabel, inout_image):
                 continue
 
         num_init_labels = list_type_inout_data.count('label')
