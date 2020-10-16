@@ -30,6 +30,11 @@ def write_file_cvfold_info(in_filename: str, list_in_files) -> None:
         for ifile in list_in_files:
             fout.write('%s\n' %(ifile))
 
+def check_same_number_files_in_list(list_files_1: List[str], list_files_2: List[str]):
+    if (len(list_files_1) != len(list_files_2)):
+        message = 'num files in two lists not equal: \'%s\' != \'%s\'...' %(len(list_files_1), len(list_files_2))
+        catch_error_exception(message)
+
 LIST_TYPE_DATA_AVAIL  = ['training', 'testing']
 LIST_TYPE_DISTRIBUTE_AVAIL = ['original', 'random', 'orderfile', 'crossval', 'crossval_random']
 
@@ -45,16 +50,12 @@ def main(args):
     if (args.is_prepare_labels):
         input_labels_data_path  = workdir_manager.get_datadir_exist(args.name_input_labels_relpath)
         list_input_labels_files = list_files_dir(input_labels_data_path)
-        if (len(list_input_images_files) != len(list_input_labels_files)):
-            message = 'num Images \'%s\' and Labels \'%s\' not equal...' %(len(list_input_images_files), len(list_input_labels_files))
-            catch_error_exception(message)
+        check_same_number_files_in_list(list_input_images_files, list_input_labels_files)
 
     if (args.is_input_extra_labels):
         input_extra_labels_data_path  = workdir_manager.get_datadir_exist(args.name_input_extra_labels_relpath)
         list_input_extra_labels_files = list_files_dir(input_extra_labels_data_path)
-        if (len(list_input_images_files) != len(list_input_extra_labels_files)):
-            message = 'num Images \'%s\' and Extra Labels \'%s\' not equal...' %(len(list_input_images_files), len(list_input_extra_labels_files))
-            catch_error_exception(message)
+        check_same_number_files_in_list(list_input_images_files, list_input_extra_labels_files)
 
 
 
@@ -154,25 +155,26 @@ def main(args):
 
 
 
-    def create_links_images_files_assigned_group(in_list_indexes_files: List[int], out_name_path: str) -> None:
+    def create_links_images_files_assigned_group(in_list_indexes_files: List[int], out_path_dirname: str) -> None:
         if len(in_list_indexes_files) == 0:
             print("No files assigned...")
         else:
             for index in in_list_indexes_files:
                 input_image_file = list_input_images_files[index]
-                output_image_file = join_path_names(out_name_path, basename(input_image_file))
+                output_image_file = join_path_names(out_path_dirname, basename(input_image_file))
                 print("%s --> %s" % (basename(output_image_file), input_image_file))
                 makelink(input_image_file, output_image_file)
 
                 if args.is_prepare_labels:
                     input_label_file = list_input_labels_files[index]
-                    output_label_file = join_path_names(out_name_path, basename(input_label_file))
+                    output_label_file = join_path_names(out_path_dirname, basename(input_label_file))
                     makelink(input_label_file, output_label_file)
+                    print("%s --> %s" % (basename(output_label_file), input_label_file))
 
                 if args.is_input_extra_labels:
-                    input_extralabel_file = list_input_extra_labels_files[index]
-                    output_extralabel_file = join_path_names(out_name_path, basename(input_extralabel_file))
-                    makelink(input_extralabel_file, output_extralabel_file)
+                    input_extra_label_file = list_input_extra_labels_files[index]
+                    output_extra_label_file = join_path_names(out_path_dirname, basename(input_extra_label_file))
+                    makelink(input_extra_label_file, output_extra_label_file)
             # endfor
 
 
@@ -218,7 +220,7 @@ if __name__ == "__main__":
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
     parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
-    parser.add_argument('--name_input_extra_labels_relpath', type=str, default=NAME_PROC_EXTRA_LABELS_RELPATH)
+    parser.add_argument('--name_input_extra_labels_relpath', type=str, default=NAME_PROC_EXTRALABELS_RELPATH)
     parser.add_argument('--name_training_data_relpath', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--name_validation_data_relpath', type=str, default=NAME_VALIDATIONDATA_RELPATH)
     parser.add_argument('--name_testing_data_relpath', type=str, default=NAME_TESTINGDATA_RELPATH)

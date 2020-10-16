@@ -83,6 +83,7 @@ def main(args):
             is_output_multiple_files_per_image = False
     else:
         is_output_multiple_files_per_image = False
+    is_output_multiple_files_per_label = is_output_multiple_files_per_image
 
 
 
@@ -134,15 +135,15 @@ def main(args):
 
 
         if (args.is_input_extra_labels):
-            in_extralabel_file = list_input_extra_labels_files[ifile]
-            print("And extra labels: \'%s\'..." %(basename(in_extralabel_file)))
+            in_extra_label_file = list_input_extra_labels_files[ifile]
+            print("And extra labels: \'%s\'..." %(basename(in_extra_label_file)))
 
-            inout_extralabel = ImageFileReader.get_image(in_extralabel_file)
-            inout_extralabel = MaskOperator.binarise(inout_extralabel)
-            list_inout_data.append(inout_extralabel)
+            inout_extra_label = ImageFileReader.get_image(in_extra_label_file)
+            inout_extra_label = MaskOperator.binarise(inout_extra_label)
+            list_inout_data.append(inout_extra_label)
             list_type_inout_data.append('label')
 
-            if check_same_size_images(inout_extralabel, inout_image):
+            if check_same_size_images(inout_extra_label, inout_image):
                 continue
 
         num_init_labels = list_type_inout_data.count('label')
@@ -262,6 +263,7 @@ def main(args):
             num_output_files_per_image = num_crop_bounding_boxes
         else:
             num_output_files_per_image = 1
+        num_output_files_per_label = num_output_files_per_image
 
         icount = 0
         for isubfile in range(num_output_files_per_image):
@@ -269,34 +271,33 @@ def main(args):
                 output_image_file = join_path_names(output_images_path, name_template_output_images_files % (ifile+1, isubfile+1))
             else:
                 output_image_file = join_path_names(output_images_path, name_template_output_images_files % (ifile+1))
-            print("Output \'%s\' image, of type \'%s\': \'%s\'..." % (icount, list_type_inout_data[icount],
-                                                                      basename(output_image_file)))
+            print("Output \'%s\' image, of type \'%s\': \'%s\'..." % (icount, list_type_inout_data[icount], basename(output_image_file)))
 
             ImageFileReader.write_image(output_image_file, list_inout_data[icount])
             icount += 1
 
             outdict_reference_keys[basename_filenoext(output_image_file)] = basename(in_image_file)
+        # endfor
 
+        for isubfile in range(num_output_files_per_label):
             if (args.is_prepare_labels):
-                if is_output_multiple_files_per_image:
+                if is_output_multiple_files_per_label:
                     output_label_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1, isubfile+1))
                 else:
                     output_label_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1))
-                print("Output \'%s\' label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_data[icount],
-                                                                          basename(output_label_file)))
+                print("Output \'%s\' label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_data[icount], basename(output_label_file)))
 
                 ImageFileReader.write_image(output_label_file, list_inout_data[icount])
                 icount += 1
 
             if (args.is_input_extra_labels):
-                if is_output_multiple_files_per_image:
-                    output_extralabel_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1, isubfile+1))
+                if is_output_multiple_files_per_label:
+                    output_extra_label_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1, isubfile+1))
                 else:
-                    output_extralabel_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1))
-                print("Output \'%s\' extra label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_data[icount],
-                                                                                basename(output_extralabel_file)))
+                    output_extra_label_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1))
+                print("Output \'%s\' extra label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_data[icount], basename(output_extra_label_file)))
 
-                ImageFileReader.write_image(output_extralabel_file, list_inout_data[icount])
+                ImageFileReader.write_image(output_extra_label_file, list_inout_data[icount])
                 icount += 1
         # endfor
         # *******************************************************************************
@@ -318,7 +319,7 @@ if __name__ == "__main__":
     parser.add_argument('--name_input_extra_labels_relpath', type=str, default=NAME_RAW_EXTRALABELS_RELPATH)
     parser.add_argument('--name_output_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
     parser.add_argument('--name_output_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
-    parser.add_argument('--name_output_extra_labels_relpath', type=str, default=NAME_PROC_EXTRA_LABELS_RELPATH)
+    parser.add_argument('--name_output_extra_labels_relpath', type=str, default=NAME_PROC_EXTRALABELS_RELPATH)
     parser.add_argument('--name_output_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--is_prepare_labels', type=str2bool, default=True)
     parser.add_argument('--is_input_extra_labels', type=str2bool, default=False)

@@ -142,12 +142,12 @@ def main(args):
                 copyfile(input_label_file, output_label_file)
 
         if args.is_input_extra_labels:
-            input_extralabel_file  = list_input_extra_labels_files_all_data[index_data][index_image_file]
-            output_extralabel_file = join_path_names(output_extra_labels_data_path, name_template_output_extra_labels_files % (icount + 1))
+            input_extra_label_file  = list_input_extra_labels_files_all_data[index_data][index_image_file]
+            output_extra_label_file = join_path_names(output_extra_labels_data_path, name_template_output_extra_labels_files % (icount + 1))
             if args.is_link_merged_files:
-                makelink(input_extralabel_file, output_extralabel_file)
+                makelink(input_extra_label_file, output_extra_label_file)
             else:
-                copyfile(input_extralabel_file, output_extralabel_file)
+                copyfile(input_extra_label_file, output_extra_label_file)
     # endfor
 
     # Save reference keys for merged data
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     parser.add_argument('list_merge_data_paths', nargs='+', type=str, default=None)
     parser.add_argument('--name_inout_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
     parser.add_argument('--name_inout_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
-    parser.add_argument('--name_inout_extra_labels_relpath', type=str, default=NAME_PROC_EXTRA_LABELS_RELPATH)
+    parser.add_argument('--name_inout_extra_labels_relpath', type=str, default=NAME_PROC_EXTRALABELS_RELPATH)
     parser.add_argument('--name_inout_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--type_data', type=str, default='training')
     parser.add_argument('--type_distribute', type=str, default='original')

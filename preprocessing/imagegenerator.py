@@ -109,10 +109,10 @@ class NullGenerator(ImageGenerator):
         pass
 
     def _compute_gendata(self, **kwargs) -> None:
-        raise NotImplementedError
+        pass
 
     def _initialize_gendata(self) -> None:
-        raise NotImplementedError
+        pass
 
     def get_text_description(self) -> str:
         return ''

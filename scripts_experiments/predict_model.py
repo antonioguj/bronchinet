@@ -66,19 +66,20 @@ def main(args):
     if args.is_valid_convolutions:
         print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
                                                                                                str(size_out_image_model)))
-    # Create Image Reconstructor
-    images_reconstructor = get_images_reconstructor(args.size_in_images,
-                                                    use_sliding_window_images=args.use_sliding_window_images,
-                                                    prop_overlap_slide_window=args.prop_overlap_sliding_window,
-                                                    use_random_window_images=False,
-                                                    num_random_patches_epoch=0,
-                                                    use_transform_rigid_images=args.use_transform_rigid_images,
-                                                    use_transform_elasticdeform_images=args.use_transform_elasticdeform_images,
-                                                    is_output_nnet_validconvs=args.is_valid_convolutions,
-                                                    size_output_image=size_out_image_model,
-                                                    is_filter_output_nnet=IS_FILTER_PRED_PROBMAPS,
-                                                    prop_filter_output_nnet=PROP_VALID_OUTPUT_NNET)
 
+    if args.is_reconstruct_preds_from_patches:
+        # Create Image Reconstructor
+        images_reconstructor = get_images_reconstructor(args.size_in_images,
+                                                        use_sliding_window_images=args.use_sliding_window_images,
+                                                        prop_overlap_slide_window=args.prop_overlap_sliding_window,
+                                                        use_random_window_images=False,
+                                                        num_random_patches_epoch=0,
+                                                        use_transform_rigid_images=args.use_transform_rigid_images,
+                                                        use_transform_elasticdeform_images=args.use_transform_elasticdeform_images,
+                                                        is_output_nnet_validconvs=args.is_valid_convolutions,
+                                                        size_output_image=size_out_image_model,
+                                                        is_filter_output_nnet=IS_FILTER_PRED_PROBMAPS,
+                                                        prop_filter_output_nnet=PROP_VALID_OUTPUT_NNET)
 
     print("\nCompute Predictiions, from \'%s\' files..." % (len(list_test_images_files)))
     print("-" * 30)
@@ -110,11 +111,14 @@ def main(args):
             out_prediction_batches = model_trainer.predict(image_data_loader)
 
 
-        print("\nReconstruct full size prediction from batches...")
-        out_shape_reconstructed_image = ImageFileReader.get_image_size(in_image_file)
-        images_reconstructor.update_image_data(out_shape_reconstructed_image)
+        if args.is_reconstruct_preds_from_patches:
+            print("\nReconstruct full size Prediction from image patches...")
+            out_shape_reconstructed_image = ImageFileReader.get_image_size(in_image_file)
+            images_reconstructor.update_image_data(out_shape_reconstructed_image)
 
-        out_prediction_reconstructed = images_reconstructor.compute(out_prediction_batches)
+            out_prediction_reconstructed = images_reconstructor.compute(out_prediction_batches)
+        else:
+            out_prediction_reconstructed = np.squeeze(out_prediction_batches, axis=(0, -1))
 
 
         # Output predictions
@@ -159,7 +163,8 @@ if __name__ == "__main__":
     parser.add_argument('--name_output_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_POSTERIORS_FILE)
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
-    parser.add_argument('--use_sliding_window_images', type=str2bool, default=True)
+    parser.add_argument('--is_reconstruct_preds_from_patches', type=str2bool, default=USE_SLIDING_WINDOW_IMAGES)
+    parser.add_argument('--use_sliding_window_images', type=str2bool, default=USE_SLIDING_WINDOW_IMAGES)
     parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW_TESTING)
     parser.add_argument('--use_transform_rigid_images', type=str2bool, default=False)
     parser.add_argument('--use_transform_elasticdeform_images', type=str2bool, default=False)
