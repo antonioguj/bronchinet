@@ -1,6 +1,7 @@
 
 from common.constant import *
 from common.functionutil import *
+from common.workdirmanager import TrainDirManager
 import subprocess
 import traceback
 import sys
@@ -174,7 +175,7 @@ def main(args):
     if args.is_conservative_remove_trachea_calc_metrics:
         # Compute a more conversative coarse airways masks to remove trachea and main bronchii in the computation of metrics
 
-        workdir_manager            = TrainDirManager(args.basedir)
+        workdir_manager            = TrainDirManager(basedir)
         input_reference_masks_path = workdir_manager.get_datadir_exist(NAME_RAW_LABELS_RELPATH)
         input_RoImasks_path        = workdir_manager.get_datadir_exist(NAME_RAW_ROIMASKS_RELPATH)
         input_coarse_airways_path  = workdir_manager.get_datadir_exist(NAME_RAW_COARSEAIRWAYS_RELPATH)
@@ -255,7 +256,7 @@ if __name__ == "__main__":
     parser.add_argument('--list_type_metrics_result', type=str2list_string, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)
     parser.add_argument('--in_connregions_dim', type=int, default=1)
-    parser.add_argument('--is_conservative_remove_trachea_calc_metrics', type=str2bool, default=False)
+    parser.add_argument('--is_conservative_remove_trachea_calc_metrics', type=str2bool, default=True)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 
