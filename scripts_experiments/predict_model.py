@@ -70,12 +70,12 @@ def main(args):
     if args.is_reconstruct_preds_from_patches:
         # Create Image Reconstructor
         images_reconstructor = get_images_reconstructor(args.size_in_images,
-                                                        use_sliding_window_images=args.use_sliding_window_images,
-                                                        prop_overlap_slide_window=args.prop_overlap_sliding_window,
+                                                        use_sliding_window_images=True,
+                                                        prop_overlap_slide_window=PROP_OVERLAP_SLIDING_WINDOW_TESTING,
                                                         use_random_window_images=False,
                                                         num_random_patches_epoch=0,
-                                                        use_transform_rigid_images=args.use_transform_rigid_images,
-                                                        use_transform_elasticdeform_images=args.use_transform_elasticdeform_images,
+                                                        use_transform_rigid_images=False,
+                                                        use_transform_elasticdeform_images=False,
                                                         is_output_nnet_validconvs=args.is_valid_convolutions,
                                                         size_output_image=size_out_image_model,
                                                         is_filter_output_nnet=IS_FILTER_PRED_PROBMAPS,
@@ -92,10 +92,10 @@ def main(args):
         print("Loading data...")
         image_data_loader = get_train_imagedataloader_1image([in_image_file],
                                                              size_in_images=args.size_in_images,
-                                                             use_sliding_window_images=args.use_sliding_window_images,
-                                                             prop_overlap_slide_window=args.prop_overlap_sliding_window,
-                                                             use_transform_rigid_images=args.use_transform_rigid_images,
-                                                             use_transform_elasticdeform_images=args.use_transform_elasticdeform_images,
+                                                             use_sliding_window_images=args.is_reconstruct_preds_from_patches,
+                                                             prop_overlap_slide_window=PROP_OVERLAP_SLIDING_WINDOW_TESTING,
+                                                             use_transform_rigid_images=False,
+                                                             use_transform_elasticdeform_images=False,
                                                              use_random_window_images=False,
                                                              num_random_patches_epoch=0,
                                                              batch_size=1,
@@ -163,11 +163,7 @@ if __name__ == "__main__":
     parser.add_argument('--name_output_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_POSTERIORS_FILE)
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
-    parser.add_argument('--is_reconstruct_preds_from_patches', type=str2bool, default=USE_SLIDING_WINDOW_IMAGES)
-    parser.add_argument('--use_sliding_window_images', type=str2bool, default=USE_SLIDING_WINDOW_IMAGES)
-    parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW_TESTING)
-    parser.add_argument('--use_transform_rigid_images', type=str2bool, default=False)
-    parser.add_argument('--use_transform_elasticdeform_images', type=str2bool, default=False)
+    parser.add_argument('--is_reconstruct_preds_from_patches', type=str2bool, default=(USE_SLIDING_WINDOW_IMAGES or USE_RANDOM_WINDOW_IMAGES))
     parser.add_argument('--is_save_featmaps_layers', type=str2bool, default=IS_SAVE_FEATMAPS_LAYERS)
     parser.add_argument('--name_save_feats_model_layer', type=str, default=NAME_SAVE_FEATS_MODEL_LAYER)
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
@@ -183,10 +179,11 @@ if __name__ == "__main__":
         else:
             input_args_file = read_dictionary_configparams(args.in_config_file)
         print("Set up experiments with parameters from file: \'%s\'" %(args.in_config_file))
-        #args.basedir                = str(input_args_file['workdir'])
-        args.size_in_images         = str2tuple_int(input_args_file['size_in_images'])
-        args.is_mask_region_interest= str2bool(input_args_file['is_mask_region_interest'])
-        args.is_valid_convolutions  = str2bool(input_args_file['is_valid_convolutions'])
+        #args.basedir                   = str(input_args_file['workdir'])
+        args.size_in_images            = str2tuple_int(input_args_file['size_in_images'])
+        args.is_valid_convolutions     = str2bool(input_args_file['is_valid_convolutions'])
+        args.is_reconstruct_preds_from_patches = str2bool(input_args_file['use_sliding_window_images']) or str2bool(input_args_file['use_random_window_images'])
+        args.is_mask_region_interest   = str2bool(input_args_file['is_mask_region_interest'])
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).items()):
