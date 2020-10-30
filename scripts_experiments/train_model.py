@@ -102,7 +102,8 @@ def main(args):
                                      num_featmaps_in=args.net_num_featmaps,
                                      num_channels_in=1,
                                      num_classes_out=1,
-                                     is_use_valid_convols=args.is_valid_convolutions)
+                                     is_use_valid_convols=args.is_valid_convolutions,
+                                     manual_seed=args.manual_seed_train)
         model_trainer.create_optimizer(type_optimizer=args.type_optimizer,
                                        learn_rate=args.learn_rate)
         model_trainer.create_loss(type_loss=args.type_loss,
@@ -170,7 +171,8 @@ def main(args):
                                                              is_output_nnet_validconvs=args.is_valid_convolutions,
                                                              size_output_images=size_out_image_model,
                                                              batch_size=args.batch_size,
-                                                             shuffle=IS_SHUFFLE_TRAINDATA)
+                                                             is_shuffle=IS_SHUFFLE_TRAINDATA,
+                                                             manual_seed=args.manual_seed_train)
     print("Loaded \'%s\' files. Total batches generated: %s..." % (len(list_train_images_files),
                                                                    len(training_data_loader)))
 
@@ -191,7 +193,8 @@ def main(args):
                                                                    is_output_nnet_validconvs=args.is_valid_convolutions,
                                                                    size_output_images=size_out_image_model,
                                                                    batch_size=args.batch_size,
-                                                                   shuffle=IS_SHUFFLE_TRAINDATA)
+                                                                   is_shuffle=IS_SHUFFLE_TRAINDATA,
+                                                                   manual_seed=args.manual_seed_train)
         print("Loaded \'%s\' files. Total batches generated: %s..." % (len(list_valid_images_files),
                                                                        len(validation_data_loader)))
     else:
@@ -243,9 +246,10 @@ if __name__ == "__main__":
     parser.add_argument('--type_optimizer', type=str, default=TYPE_OPTIMIZER)
     parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
-    parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--list_type_metrics', type=str2list_string, default=LIST_TYPE_METRICS)
+    parser.add_argument('--manual_seed_train', type=int, default=MANUAL_SEED_TRAIN)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
+    parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--use_sliding_window_images', type=str2bool, default=USE_SLIDING_WINDOW_IMAGES)
     parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW)
     parser.add_argument('--use_random_window_images', type=str2tuple_float, default=USE_RANDOM_WINDOW_IMAGES)

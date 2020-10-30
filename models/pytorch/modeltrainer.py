@@ -19,6 +19,14 @@ class ModelTrainer(ModelTrainerBase):
         super(ModelTrainer, self).__init__()
         self._device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
+    def _set_manual_seed(self, seed: int) -> None:
+        import random
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+
     def create_network(self, *args, **kwargs) -> None:
         super(ModelTrainer, self).create_network(*args, **kwargs)
 

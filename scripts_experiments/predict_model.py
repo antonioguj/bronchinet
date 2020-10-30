@@ -99,7 +99,7 @@ def main(args):
                                                              use_random_window_images=False,
                                                              num_random_patches_epoch=0,
                                                              batch_size=1,
-                                                             shuffle=False)
+                                                             is_shuffle=False)
         print("Loaded \'%s\' files. Total batches generated: %s..." % (1, len(image_data_loader)))
 
 
@@ -162,13 +162,13 @@ if __name__ == "__main__":
     parser.add_argument('--name_output_predictions_relpath', type=str, default=NAME_TEMPO_POSTERIORS_RELPATH)
     parser.add_argument('--name_output_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_POSTERIORS_FILE)
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
-    parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
     parser.add_argument('--is_reconstruct_preds_from_patches', type=str2bool, default=(USE_SLIDING_WINDOW_IMAGES or USE_RANDOM_WINDOW_IMAGES))
+    parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
+    parser.add_argument('--list_type_metrics', type=str2list_string, default=LIST_TYPE_METRICS)
+    parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
+    parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_save_featmaps_layers', type=str2bool, default=IS_SAVE_FEATMAPS_LAYERS)
     parser.add_argument('--name_save_feats_model_layer', type=str, default=NAME_SAVE_FEATS_MODEL_LAYER)
-    parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
-    parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
-    parser.add_argument('--list_type_metrics', type=str2list_string, default=LIST_TYPE_METRICS)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 

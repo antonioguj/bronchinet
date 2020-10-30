@@ -15,6 +15,9 @@ class ModelTrainerBase(object):
         self._optimizer = None
         self._list_metrics = None
 
+    def _set_manual_seed(self, seed: int) -> None:
+        raise NotImplementedError
+
     def create_network(self,
                        type_network: str,
                        size_image_in: Tuple[int, ...],
@@ -27,8 +30,12 @@ class ModelTrainerBase(object):
                        type_activate_output: str = 'sigmoid',
                        is_use_dropout: bool = False,
                        dropout_rate: float = 0.2,
-                       is_use_batchnormalize: bool = False
+                       is_use_batchnormalize: bool = False,
+                       manual_seed: int = None
                        ) -> None:
+        if manual_seed is not None:
+            self._set_manual_seed(manual_seed)
+
         self._network = get_network(type_network=type_network,
                                     size_image_in=size_image_in,
                                     num_levels=num_levels,

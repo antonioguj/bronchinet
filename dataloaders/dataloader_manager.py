@@ -24,8 +24,8 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
                                use_random_window_images: bool = False,
                                num_random_patches_epoch: int = 0,
                                batch_size: int = 1,
-                               shuffle: bool = True,
-                               seed: int = None
+                               is_shuffle: bool = True,
+                               manual_seed: int = None
                                ) -> Union[BatchImageDataGenerator_1Image, List[np.ndarray]]:
     if use_sliding_window_images or \
         use_random_window_images or \
@@ -54,8 +54,8 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
                                               images_generator,
                                               num_channels_in=num_channels_in,
                                               batch_size=batch_size,
-                                              shuffle=shuffle,
-                                              seed=seed)
+                                              shuffle=is_shuffle,
+                                              seed=manual_seed)
     else:
         print("Load Data directly from stored Batches...")
 
@@ -75,8 +75,8 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
                                 is_output_nnet_validconvs: bool = False,
                                 size_output_images: Tuple[int, ...] = None,
                                 batch_size: int = 1,
-                                shuffle: bool = True,
-                                seed: int = None
+                                is_shuffle: bool = True,
+                                manual_seed: int = None
                                 ) -> Union[BatchImageDataGenerator_2Images, Tuple[List[np.ndarray], List[np.ndarray]]]:
     if use_sliding_window_images or \
         use_random_window_images or \
@@ -110,8 +110,8 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
                                                is_output_nnet_validconvs=is_output_nnet_validconvs,
                                                size_output_image=size_output_images,
                                                batch_size=batch_size,
-                                               shuffle=shuffle,
-                                               seed=seed)
+                                               shuffle=is_shuffle,
+                                               seed=manual_seed)
     else:
         print("Load Data directly from stored Batches...")
 
@@ -128,8 +128,8 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                      use_random_window_images: bool = False,
                                      num_random_patches_epoch: int = 0,
                                      batch_size: int = 1,
-                                     shuffle: bool = True,
-                                     seed: int = None,
+                                     is_shuffle: bool = True,
+                                     manual_seed: int = None
                                      ) -> Union[TrainBatchImageDataGenerator_1Image, List[np.ndarray]]:
     if use_sliding_window_images or \
         use_random_window_images or \
@@ -155,8 +155,8 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                                    images_generator,
                                                    num_channels_in=num_channels_in,
                                                    batch_size=batch_size,
-                                                   shuffle=shuffle,
-                                                   seed=seed,
+                                                   shuffle=is_shuffle,
+                                                   seed=manual_seed,
                                                    is_datagen_gpu=IS_MODEL_IN_GPU,
                                                    is_datagen_halfPrec=IS_MODEL_HALF_PRECISION)
     else:
@@ -178,8 +178,8 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                       is_output_nnet_validconvs: bool = False,
                                       size_output_images: Tuple[int, ...] = None,
                                       batch_size: int = 1,
-                                      shuffle: bool = True,
-                                      seed: int = None,
+                                      is_shuffle: bool = True,
+                                      manual_seed: int = None
                                       ) -> Union[TrainBatchImageDataGenerator_2Images, Tuple[List[np.ndarray], List[np.ndarray]]]:
     if use_sliding_window_images or \
         use_random_window_images or \
@@ -210,8 +210,8 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                                     is_output_nnet_validconvs=is_output_nnet_validconvs,
                                                     size_output_image=size_output_images,
                                                     batch_size=batch_size,
-                                                    shuffle=shuffle,
-                                                    seed=seed,
+                                                    shuffle=is_shuffle,
+                                                    seed=manual_seed,
                                                     is_datagen_gpu=IS_MODEL_IN_GPU,
                                                     is_datagen_halfPrec=IS_MODEL_HALF_PRECISION)
     else:

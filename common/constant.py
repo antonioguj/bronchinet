@@ -83,7 +83,7 @@ TYPE_TRANSFORM_ELASTICDEFORM_IMAGES = 'gridwise'
 
 
 # DISTRIBUTE DATA TRAIN / VALID / TEST
-DIST_PROPDATA_TRAINVALIDTEST    = (0.5, 0.0, 0.5)
+DIST_PROPDATA_TRAINVALIDTEST    = (0.5, 0.15, 0.35)
 #DIST_PROPDATA_TRAINVALIDTEST    = (0.84, 0.16, 0.0) # for EXACT
 #DIST_PROPDATA_TRAINVALIDTEST    = (0.5, 0.13, 0.37) # for DLCST+LUVAR
 
@@ -116,6 +116,7 @@ LEARN_RATE                  = 1.0e-04
 TYPE_LOSS                   = 'DiceCoefficient'
 LIST_TYPE_METRICS           = []
 #LIST_TYPE_METRICS           = ['TruePositiveRate', 'FalsePositiveRate', 'TrueNegativeRate', 'FalseNegativeRate']
+MANUAL_SEED_TRAIN           = None
 IS_VALID_CONVOLUTIONS       = True
 USE_VALIDATION_DATA         = True
 FREQ_VALIDATE_MODEL         = 2

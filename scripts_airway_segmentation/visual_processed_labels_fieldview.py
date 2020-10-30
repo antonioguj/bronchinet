@@ -73,7 +73,7 @@ def main(args):
                                                         is_output_nnet_validconvs=args.is_valid_convolutions,
                                                         size_output_images=size_out_image_network,
                                                         batch_size=1,
-                                                        shuffle=False)
+                                                        is_shuffle=False)
         (_, label_data_batches) = label_data_loader.get_full_data()
         print("Loaded \'%s\' files. Total batches generated: %s..." % (1, len(label_data_batches)))
 

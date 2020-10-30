@@ -3,6 +3,7 @@ from typing import Dict, Any
 import numpy as np
 
 from tensorflow.keras.models import load_model
+import tensorflow as tf
 
 from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_INTER_KERAS, NAME_SAVEDMODEL_LAST_KERAS, IS_SHUFFLE_TRAINDATA
 from common.exceptionmanager import catch_error_exception
@@ -17,6 +18,12 @@ class ModelTrainer(ModelTrainerBase):
     def __init__(self):
         super(ModelTrainer, self).__init__()
         self._list_callbacks = None
+
+    def _set_manual_seed(self, seed: int) -> None:
+        import random
+        random.seed(seed)
+        np.random.seed(seed)
+        tf.random.set_seed(seed)
 
     def finalise_model(self) -> None:
         self._compiled_model = self._network.get_compiled_model()

@@ -47,7 +47,7 @@ def main(args):
                                                               use_random_window_images=args.use_random_window_images,
                                                               num_random_patches_epoch=args.num_random_patches_epoch,
                                                               batch_size=1,
-                                                              shuffle=False)
+                                                              is_shuffle=False)
         (image_data_batches, label_data_batches) = image_label_data_loader.get_full_data()
 
 
