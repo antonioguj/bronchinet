@@ -15,7 +15,7 @@ class ModelTrainerBase(object):
         self._optimizer = None
         self._list_metrics = None
 
-    def _set_manual_seed(self, seed: int) -> None:
+    def _set_manual_random_seed(self, seed: int) -> None:
         raise NotImplementedError
 
     def create_network(self,
@@ -34,7 +34,7 @@ class ModelTrainerBase(object):
                        manual_seed: int = None
                        ) -> None:
         if manual_seed is not None:
-            self._set_manual_seed(manual_seed)
+            self._set_manual_random_seed(manual_seed)
 
         self._network = get_network(type_network=type_network,
                                     size_image_in=size_image_in,

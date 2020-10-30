@@ -19,7 +19,9 @@ class ModelTrainer(ModelTrainerBase):
         super(ModelTrainer, self).__init__()
         self._list_callbacks = None
 
-    def _set_manual_seed(self, seed: int) -> None:
+    def _set_manual_random_seed(self, seed: int) -> None:
+        import os
+        os.environ['PYTHONHASHSEED'] = str(seed)
         import random
         random.seed(seed)
         np.random.seed(seed)

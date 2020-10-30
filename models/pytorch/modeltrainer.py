@@ -19,7 +19,7 @@ class ModelTrainer(ModelTrainerBase):
         super(ModelTrainer, self).__init__()
         self._device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
-    def _set_manual_seed(self, seed: int) -> None:
+    def _set_manual_random_seed(self, seed: int) -> None:
         import random
         random.seed(seed)
         np.random.seed(seed)
