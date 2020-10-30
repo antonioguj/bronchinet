@@ -166,9 +166,13 @@ def list_links_dir(dirname: str) -> List[str]:
     return [file for file in listfiles if os.path.islink(file)]
 
 
-# to manipulate strings in filename:
+# to manipulate substrings in a filename:
 def get_substring_filename(filename: str, substr_pattern: str) -> str:
-    return re.search(substr_pattern, filename).group(0)
+    sreobj_substring_filename = re.search(substr_pattern, filename)
+    if sreobj_substring_filename:
+        return sreobj_substring_filename.group(0)
+    else:
+        return None
 
 def get_pattern_refer_filename(filename: str) -> str:
     basefilename_noext = basename_filenoext(filename)
@@ -186,26 +190,39 @@ def get_pattern_prefix_filename(filename: str, char_split_name: str= '_') -> str
 
 def find_file_inlist_same_prefix(in_filename: str,
                                  list_files: List[str],
-                                 pattern_prefix: str=None) -> str:
+                                 pattern_prefix: str = None) -> str:
     if not pattern_prefix:
         # if not input pattern, get it from the first file in list
         pattern_prefix = get_pattern_prefix_filename(list_files[0])
-    prefix_filename = get_substring_filename(in_filename, pattern_prefix)
 
+    prefix_filename = get_substring_filename(in_filename, pattern_prefix)
+    if not prefix_filename:
+        message = 'Cannot find the prefix with pattern (\'%s\') of the file \'%s\'' % (pattern_prefix, in_filename)
+        catch_error_exception(message)
+
+    if_file_found = False
     for it_file in list_files:
         if prefix_filename in it_file:
             return it_file
 
-    message = 'No file found with prefix of \'%s\', computed as \'%s\', in list of files: \'%s\'' % (in_filename, prefix_filename, list_files)
-    catch_error_exception(message)
+    if not if_file_found:
+        dir_files_list = dirname(list_files[0])
+        list_basefiles = [basename(elem) for elem in list_files]
+        message = 'Cannot find a file with the same prefix (\'%s\') as file \'%s\', in the list of files from dir \'%s\': \'%s\''\
+                  % (prefix_filename, in_filename, dir_files_list, list_basefiles)
+        catch_error_exception(message)
 
 def find_listfiles_inlist_same_prefix(in_filename: str,
                                       list_files: List[str],
-                                      pattern_prefix: str=None) -> List[str]:
+                                      pattern_prefix: str = None) -> List[str]:
     if not pattern_prefix:
         # if not input pattern, get it from the first file in list
         pattern_prefix = get_pattern_prefix_filename(list_files[0])
+
     prefix_filename = get_substring_filename(in_filename, pattern_prefix)
+    if not prefix_filename:
+        message = 'Cannot find the prefix with pattern (\'%s\') of the file \'%s\'' % (pattern_prefix, in_filename)
+        catch_error_exception(message)
 
     list_out_files = []
     for it_file in list_files:
@@ -213,7 +230,10 @@ def find_listfiles_inlist_same_prefix(in_filename: str,
             list_out_files.append(it_file)
 
     if len(list_out_files) == 0:
-        message = 'No files found with prefix of \'%s\', computed as \'%s\', in list of files: \'%s\'' % (in_filename, prefix_filename, list_files)
+        dir_files_list = dirname(list_files[0])
+        list_basefiles = [basename(elem) for elem in list_files]
+        message = 'Cannot find any file with the same prefix (\'%s\') as file \'%s\', in the list of files from dir \'%s\': \'%s\''\
+                  % (prefix_filename, in_filename, dir_files_list, list_basefiles)
         catch_error_exception(message)
     else:
         return list_out_files

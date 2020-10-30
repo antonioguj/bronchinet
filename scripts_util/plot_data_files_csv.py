@@ -29,11 +29,9 @@ def main(args):
 
 
     # ---------- SETTINGS ----------
-    labels = ['model_%i'%(i+1) for i in range(num_input_files)]
-    #labels = ['Refer_KNN+RG+VB',
-    #          'Unet_LUVAR',
-    #          'Unet_DLCST+LUVAR']
-    titles = ['Distance False Positives', 'Distance False Negatives']
+    #labels = ['model_%i'%(i+1) for i in range(num_input_files)]
+    labels = ['5 images', '8 images', '18 images', '28 images']
+    titles = ['Dice', 'Tree Length', 'Volume Leakage', 'Centreline Leakage']
     save_plot_figures = False
     template_outfigname = 'fig_%s' %(args.type) + '_%s.png'
     # ---------- SETTINGS ----------
@@ -98,7 +96,10 @@ def main(args):
 
 
 
-    for (ifield, data_files) in dict_data_fields_files.items():
+    for i, (ifield, data_files) in enumerate(dict_data_fields_files.items()):
+
+        #if ifield in ['completeness', 'volume_leakage', 'cenline_leakage']:
+        #    data_files = [elem*100 for elem in data_files]
 
         if args.type == 'plot':
             for i, idata in enumerate(data_files):

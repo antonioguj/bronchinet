@@ -118,7 +118,7 @@ def main(args):
 
         if (args.is_mask_region_interest):
             in_roimask_file = list_input_RoImasks_files[ifile]
-            print("And ROI Mask for labels: \'%s\'..." %(basename(in_roimask_file)))
+            print("And ROI Mask for labels: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)
             if args.is_RoIlabels_multi_RoImasks:
@@ -136,7 +136,7 @@ def main(args):
 
         if (args.is_input_extra_labels):
             in_extra_label_file = list_input_extra_labels_files[ifile]
-            print("And extra labels: \'%s\'..." %(basename(in_extra_label_file)))
+            print("And extra labels: \'%s\'..." % (basename(in_extra_label_file)))
 
             inout_extra_label = ImageFileReader.get_image(in_extra_label_file)
             inout_extra_label = MaskOperator.binarise(inout_extra_label)
@@ -176,20 +176,21 @@ def main(args):
 
         # *******************************************************************************
         if (args.is_mask_region_interest):
-            list_in_calc_data = [list_inout_data[j] for j, type_data in enumerate(list_type_inout_data) if type_data == 'label']
-            list_in_roimasks  = [list_inout_data[j] for j, type_data in enumerate(list_type_inout_data) if type_data == 'roimask']
+            list_indexes_labels   = [j for j, type_data in enumerate(list_type_inout_data) if type_data == 'label']
+            list_indexes_roimasks = [j for j, type_data in enumerate(list_type_inout_data) if type_data == 'roimask']
 
-            list_inout_data = [list_inout_data[0]]
-            list_type_inout_data = ['image']
-
-            for j, in_roimask in enumerate(list_in_roimasks):
-                for k, in_data in enumerate(list_in_calc_data):
+            for j, index_roimask in enumerate(list_indexes_roimasks):
+                for k, index_label in enumerate(list_indexes_labels):
                     print('Masks input labels \'%s\' to ROI masks \'%s\'...' % (k, j))
-                    out_data = MaskOperator.mask_exclude_regions(in_data, in_roimask)
-                    list_inout_data.append(out_data)
-                    list_type_inout_data.append('label')
+                    out_data = MaskOperator.mask_exclude_regions(list_inout_data[index_label], list_inout_data[index_roimask])
+                    list_inout_data[index_label] = out_data
                 # endfor
             # endfor
+
+            # remove the roimasks from the list of processing data
+            for index_roimask in list_indexes_roimasks[::-1]:
+                list_type_inout_data.pop(index_roimask)
+                list_inout_data.pop(index_roimask)
         # *******************************************************************************
 
 
@@ -267,11 +268,15 @@ def main(args):
 
         icount = 0
         for isubfile in range(num_output_files_per_image):
+            if list_type_inout_data[icount] != 'image':
+                message = 'Expected to output an image, but found data of type %s' %(list_type_inout_data[icount])
+                catch_error_exception(message)
+
             if is_output_multiple_files_per_image:
                 output_image_file = join_path_names(output_images_path, name_template_output_images_files % (ifile+1, isubfile+1))
             else:
                 output_image_file = join_path_names(output_images_path, name_template_output_images_files % (ifile+1))
-            print("Output \'%s\' image, of type \'%s\': \'%s\'..." % (icount, list_type_inout_data[icount], basename(output_image_file)))
+            print("Output \'%s\' image, of type \'%s\': \'%s\'..." % (icount+1, list_type_inout_data[icount], basename(output_image_file)))
 
             ImageFileReader.write_image(output_image_file, list_inout_data[icount])
             icount += 1
@@ -281,21 +286,29 @@ def main(args):
 
         for isubfile in range(num_output_files_per_label):
             if (args.is_prepare_labels):
+                if list_type_inout_data[icount] != 'label':
+                    message = 'Expected to output an image, but found data of type %s' % (list_type_inout_data[icount])
+                    catch_error_exception(message)
+
                 if is_output_multiple_files_per_label:
                     output_label_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1, isubfile+1))
                 else:
                     output_label_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1))
-                print("Output \'%s\' label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_data[icount], basename(output_label_file)))
+                print("Output \'%s\' label, of type \'%s\': \'%s\'..." % (icount+1, list_type_inout_data[icount], basename(output_label_file)))
 
                 ImageFileReader.write_image(output_label_file, list_inout_data[icount])
                 icount += 1
 
             if (args.is_input_extra_labels):
+                if list_type_inout_data[icount] != 'label':
+                    message = 'Expected to output an image, but found data of type %s' % (list_type_inout_data[icount])
+                    catch_error_exception(message)
+
                 if is_output_multiple_files_per_label:
                     output_extra_label_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1, isubfile+1))
                 else:
                     output_extra_label_file = join_path_names(output_labels_path, name_template_output_labels_files % (ifile+1))
-                print("Output \'%s\' extra label, of type \'%s\': \'%s\'..." % (icount, list_type_inout_data[icount], basename(output_extra_label_file)))
+                print("Output \'%s\' extra label, of type \'%s\': \'%s\'..." % (icount+1, list_type_inout_data[icount], basename(output_extra_label_file)))
 
                 ImageFileReader.write_image(output_extra_label_file, list_inout_data[icount])
                 icount += 1
