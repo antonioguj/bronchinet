@@ -139,7 +139,7 @@ def main(args):
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)
-            inout_prediction = MaskOperator.mask_exclude_regions_fillzero(inout_prediction, in_roimask)
+            inout_prediction = MaskOperator.mask_image(inout_prediction, in_roimask, is_image_mask=args.is_binary_predictions)
         # *******************************************************************************
 
 
@@ -166,6 +166,7 @@ if __name__ == "__main__":
     parser.add_argument('--name_crop_bounding_boxes_file', type=str, default=NAME_CROP_BOUNDINGBOX_FILE)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
     parser.add_argument('--name_rescale_factors_file', type=str, default=NAME_RESCALE_FACTOR_FILE)
+    parser.add_argument('--is_binary_predictions', type=str2bool, default=IS_BINARY_TRAIN_MASKS)
     args = parser.parse_args()
 
     if args.in_config_file:

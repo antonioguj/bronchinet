@@ -182,7 +182,7 @@ def main(args):
             for j, index_roimask in enumerate(list_indexes_roimasks):
                 for k, index_label in enumerate(list_indexes_labels):
                     print('Masks input labels \'%s\' to ROI masks \'%s\'...' % (k, j))
-                    out_data = MaskOperator.mask_exclude_regions(list_inout_data[index_label], list_inout_data[index_roimask])
+                    out_data = MaskOperator.mask_image_exclude_regions(list_inout_data[index_label], list_inout_data[index_roimask])
                     list_inout_data[index_label] = out_data
                 # endfor
             # endfor

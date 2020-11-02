@@ -45,7 +45,7 @@ def prepare_mask_operation(args):
         in_roimask = ImageFileReader.get_image(in_roimask_file)
         print("Mask to RoI: lungs: \'%s\'..." % (basename(in_roimask_file)))
 
-        return MaskOperator.mask_exclude_regions_fillzero(in_data, in_roimask)
+        return MaskOperator.mask_image(in_data, in_roimask)
 
     return wrapfun_mask_image
 

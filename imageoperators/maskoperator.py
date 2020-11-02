@@ -25,26 +25,18 @@ class MaskOperator(object):
             return False
 
     @classmethod
-    def mask_exclude_regions(cls,
-                             in_image: np.ndarray,
-                             in_mask_image: np.ndarray,
-                             value_mask_exclude: int = -1
-                             ) -> np.ndarray:
-        return np.where(in_mask_image == cls._value_background, value_mask_exclude, in_image)
+    def mask_image(cls, in_image: np.ndarray, in_mask: np.ndarray, is_image_mask: bool = True) -> np.ndarray:
+        if is_image_mask:
+            return cls.multiply_two_masks(in_image, in_mask)
+        else:
+            return np.multiply(in_image, in_mask)
 
     @classmethod
-    def mask_exclude_regions_fillzero(cls,
-                                      in_image: np.ndarray,
-                                      in_mask_image: np.ndarray
-                                      ) -> np.ndarray:
-        return cls.multiply_two_masks(in_image, in_mask_image)
+    def mask_image_exclude_regions(cls, in_image: np.ndarray, in_mask: np.ndarray, value_mask_exclude: int = -1) -> np.ndarray:
+        return np.where(in_mask == cls._value_background, value_mask_exclude, in_image)
 
     @classmethod
-    def merge_two_masks(cls,
-                        in_image_1: np.ndarray,
-                        in_image_2: np.ndarray,
-                        isnot_intersect_masks: bool = False
-                        ) -> np.ndarray:
+    def merge_two_masks(cls, in_image_1: np.ndarray, in_image_2: np.ndarray, isnot_intersect_masks: bool = False) -> np.ndarray:
         if isnot_intersect_masks:
             # check there is no overlap between the two masks
             intersect_masks = np.multiply(in_image_1, in_image_2)
