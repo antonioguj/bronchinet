@@ -184,8 +184,12 @@ class DicomReader(ImageFileReader):
                 float(ds.PixelSpacing[1]))
 
     @staticmethod
-    def get_dicom_header(filename: str) -> Any:
-        return pydicom.read_file(filename)
+    def get_dicom_header(filename: str, is_return_tags_description: bool = False) -> Any:
+        header_read = pydicom.read_file(filename)
+        if is_return_tags_description:
+            return {key: (header_read[key].repval, header_read[key].name) for key in header_read.keys()}
+        else:
+            return {key: header_read[key].repval for key in header_read.keys()}
 
     @classmethod
     def get_image_metadata_info(cls, filename: str) -> Any:

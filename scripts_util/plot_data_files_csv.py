@@ -30,8 +30,9 @@ def main(args):
 
     # ---------- SETTINGS ----------
     #labels = ['model_%i'%(i+1) for i in range(num_input_files)]
-    labels = ['5 images', '8 images', '18 images', '28 images']
-    titles = ['Dice', 'Tree Length', 'Volume Leakage', 'Centreline Leakage']
+    #labels = ['5 images', '8 images', '18 images', '28 images']
+    labels = ['U-Net', 'KNN', 'LOP']
+    titles = ['Dice Coefficient', 'Tree Length', 'Volume Leakage', 'Centreline Leakage', 'Branch Count']
     save_plot_figures = False
     template_outfigname = 'fig_%s' %(args.type) + '_%s.png'
     # ---------- SETTINGS ----------
@@ -98,38 +99,37 @@ def main(args):
 
     for i, (ifield, data_files) in enumerate(dict_data_fields_files.items()):
 
-        #if ifield in ['completeness', 'volume_leakage', 'cenline_leakage']:
-        #    data_files = [elem*100 for elem in data_files]
+        if ifield in ['completeness', 'volume_leakage', 'cenline_leakage']:
+            data_files = [elem*100 for elem in data_files]
 
         if args.type == 'plot':
             for i, idata in enumerate(data_files):
                 xrange = range(1, len(idata)+1)
                 plt.plot(xrange, idata, label=labels[i])
-            # endfor
-            plt.xlabel('Num cases', size=10)
-            plt.ylabel(ifield.title(), size=15)
-            plt.legend(loc='best')
 
         elif args.type == 'scatter':
             for i, idata in enumerate(data_files):
                 xrange = range(1, len(idata)+1)
                 plt.scatter(xrange, idata, label=labels[i])
-            # endfor
-            plt.xlabel('Num cases', size=10)
-            plt.ylabel(ifield.title(), size=15)
-            plt.legend(loc='best')
 
         elif args.type == 'boxplot':
             # plt.boxplot(data_files, labels=labels)
             sns.boxplot  (data=data_files, palette='Set2', width=0.8)
             sns.swarmplot(data=data_files, color=".25")
-            plt.xticks(plt.xticks()[0], labels, size=10)
-            plt.yticks(plt.yticks()[0], size=15)
-            plt.ylabel(ifield.title(), size=15)
 
         else:
             message = 'type plot \'%s\' not available' % (args.type)
             catch_error_exception(message)
+
+
+        if args.type == 'boxplot':
+            plt.xticks(plt.xticks()[0], labels, size=15)
+            plt.yticks(plt.yticks()[0], size=15)
+        else:
+            plt.xlabel('Num cases', size=15)
+            plt.legend(loc='best')
+        #plt.ylabel(ifield.title(), size=18)
+        plt.title(titles[i], size=18)
 
         if save_plot_figures:
             outfigname = template_outfigname % (ifield)
