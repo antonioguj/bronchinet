@@ -227,7 +227,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_posteriors_dir', type=str)
     parser.add_argument('--output_dir', type=str, default=None)
-    parser.add_argument('--list_type_metrics_ROC_curve', type=str2list_string, default=LIST_TYPE_METRICS_ROC_CURVE)
+    parser.add_argument('--list_type_metrics_ROC_curve', nargs='+', type=str, default=LIST_TYPE_METRICS_ROC_CURVE)
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)

@@ -246,7 +246,7 @@ if __name__ == "__main__":
     parser.add_argument('--type_optimizer', type=str, default=TYPE_OPTIMIZER)
     parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
-    parser.add_argument('--list_type_metrics', type=str2list_string, default=LIST_TYPE_METRICS)
+    parser.add_argument('--list_type_metrics', nargs='+', type=str, default=LIST_TYPE_METRICS)
     parser.add_argument('--manual_seed_train', type=int, default=MANUAL_SEED_TRAIN)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)

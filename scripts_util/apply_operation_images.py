@@ -437,7 +437,7 @@ if __name__ == "__main__":
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('input_dir', type=str)
     parser.add_argument('output_dir', type=str)
-    parser.add_argument('--type', nargs='+', default=['None'], help=string_opers_help)
+    parser.add_argument('--type', nargs='+', type=str, default=['None'], help=string_opers_help)
     parser.add_argument('--in_roimask_dir', type=str, default=None)
     parser.add_argument('--in_2ndmask_dir', type=str, default=None)
     parser.add_argument('--reference_dir', type=str, default=None)

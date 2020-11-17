@@ -63,10 +63,11 @@ def main(args):
 
 
     # Create image
-    out_shape_image = (288, 288, 96)
+    out_shape_image = (256, 256, 256)
 
     out_image_1 = np.zeros(out_shape_image)
-    out_image_1 = create_cuboid_image(out_image_1, halfsides=(72, 72, 24))
+    out_image_1 = create_sphere_in_image(out_image_1, radius=50)
+    #out_image_1 = create_cuboid_in_image(out_image_1, halfsides=(50, 50, 50))
 
     out_image = out_image_1
 
