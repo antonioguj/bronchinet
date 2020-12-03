@@ -32,7 +32,7 @@ def main(args):
     #labels = ['model_%i'%(i+1) for i in range(num_input_files)]
     #labels = ['5 images', '8 images', '18 images', '28 images']
     labels = ['U-Net', 'KNN', 'LOP']
-    titles = ['Dice Coefficient', 'Tree Length', 'Volume Leakage', 'Centreline Leakage', 'Branch Count']
+    titles = ['Dice Coefficient', 'Tree Length', 'Volume Leakage', 'Centerline Leakage', 'Branch Count']
     save_plot_figures = False
     template_outfigname = 'fig_%s' %(args.type) + '_%s.png'
     # ---------- SETTINGS ----------
@@ -128,7 +128,7 @@ def main(args):
         else:
             plt.xlabel('Num cases', size=15)
             plt.legend(loc='best')
-        #plt.ylabel(ifield.title(), size=18)
+        #plt.title(ifield.title(), size=18)
         plt.title(titles[i], size=18)
 
         if save_plot_figures:

@@ -31,7 +31,7 @@ def main(args):
     #labels_train = ['loss', 'loss_avrg20ep', 'loss_avrg50ep']
     #labels_valid = labels_train
 
-    #cmap = plt.get_cmap('rainbow')
+    cmap = plt.get_cmap('rainbow')
     #colors = [cmap(float(i)/(num_input_files-1)) for i in range(num_input_files)]
     colors = ['blue', 'red', 'green', 'yellow', 'orange']
     # ---------- SETTINGS ----------

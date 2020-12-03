@@ -248,8 +248,8 @@ def main(args):
                     '--is_two_bounding_box_each_lungs', str(args.is_two_bounding_box_each_lungs),
                     '--size_buffer_in_borders', str(args.size_buffer_in_borders),
                     '--size_train_images', str(args.size_train_images),
-                    '--is_same_size_boundbox_all_images', str(args.is_same_size_boundbox_all_images),
-                    '--fixed_size_bounding_box', str(args.fixed_size_bounding_box)]
+                    '--is_same_size_boundbox_all_images', str(args.is_same_size_boundbox_all_images)]
+                    #'--fixed_size_bounding_box', str(args.fixed_size_bounding_box)]
         list_calls_all.append(new_call)
 
 
