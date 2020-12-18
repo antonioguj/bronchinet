@@ -185,10 +185,10 @@ class ModelTrainer(ModelTrainerBase):
         for icallback in self._list_callbacks:
             icallback.on_epoch_end(epoch, data_output)
 
-    def get_size_output_model(self):
+    def get_size_output_model(self) -> Tuple[int, ...]:
         return self._network.get_size_output()
 
-    def get_size_output_image_model(self):
+    def get_size_output_image_model(self) -> Tuple[int, ...]:
         return self.get_size_output_model()[1:]
 
 

@@ -93,10 +93,10 @@ class ModelTrainerBase(object):
     def save_model_full(self, model_filename: str) -> None:
         raise NotImplementedError
 
-    def get_size_output_model(self):
+    def get_size_output_model(self) -> Tuple[int, ...]:
         raise NotImplementedError
 
-    def get_size_output_image_model(self):
+    def get_size_output_image_model(self) -> Tuple[int, ...]:
         raise NotImplementedError
 
     def train(self,
