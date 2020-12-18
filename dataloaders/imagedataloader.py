@@ -67,7 +67,7 @@ class ImageDataLoader(object):
 
 
 class ImageDataInBatchesLoader(ImageDataLoader):
-    _max_num_images_batch_default = None
+    _max_load_images_default = None
 
     def __init__(self, size_image: Tuple[int, ...]) -> None:
         self._size_image = size_image
@@ -85,8 +85,8 @@ class ImageDataInBatchesLoader(ImageDataLoader):
 
     def load_1file(self,
                    filename: str,
-                   max_num_images_batch: int = _max_num_images_batch_default,
-                   is_shuffle_data: bool = True
+                   max_load_images: int = _max_load_images_default,
+                   is_shuffle: bool = False
                    ) -> np.ndarray:
         in_stack_images = super(ImageDataInBatchesLoader, self).load_1file(filename)
         num_images_stack = in_stack_images.shape[0]
@@ -96,12 +96,12 @@ class ImageDataInBatchesLoader(ImageDataLoader):
                       'change the image size in class to be equal to the first' % (in_stack_images[0].shape, self._size_image)
             catch_error_exception(message)
 
-        if max_num_images_batch and (num_images_stack > max_num_images_batch):
-            out_batch_images = in_stack_images[0:max_num_images_batch]
+        if max_load_images and (num_images_stack > max_load_images):
+            out_batch_images = in_stack_images[0:max_load_images]
         else:
             out_batch_images = in_stack_images
 
-        if (is_shuffle_data):
+        if (is_shuffle):
             (out_batch_images, _) = self._shuffle_data(out_batch_images)
 
         return out_batch_images
@@ -109,8 +109,8 @@ class ImageDataInBatchesLoader(ImageDataLoader):
     def load_2files(self,
                     filename_1: str,
                     filename_2: str,
-                    max_num_images_batch: int = _max_num_images_batch_default,
-                    is_shuffle_data: bool = True
+                    max_load_images: int = _max_load_images_default,
+                    is_shuffle: bool = False
                     ) -> Tuple[np.ndarray, np.ndarray]:
         (in_stack_images_1, in_stack_images_2) = super(ImageDataInBatchesLoader, self).load_2files(filename_1, filename_2)
         num_images_stack = in_stack_images_1.shape[0]
@@ -120,39 +120,39 @@ class ImageDataInBatchesLoader(ImageDataLoader):
                       'change the image size in class to be equal to the first' % (in_stack_images_1[0].shape, self._size_image)
             catch_error_exception(message)
 
-        if max_num_images_batch and (num_images_stack > max_num_images_batch):
-            out_batch_images_1 = in_stack_images_1[0:max_num_images_batch]
-            out_batch_images_2 = in_stack_images_2[0:max_num_images_batch]
+        if max_load_images and (num_images_stack > max_load_images):
+            out_batch_images_1 = in_stack_images_1[0:max_load_images]
+            out_batch_images_2 = in_stack_images_2[0:max_load_images]
         else:
             out_batch_images_1 = in_stack_images_1
             out_batch_images_2 = in_stack_images_2
 
-        if (is_shuffle_data):
+        if (is_shuffle):
             (out_batch_images_1, out_batch_images_2) = self._shuffle_data(out_batch_images_1, out_batch_images_2)
 
         return (out_batch_images_1, out_batch_images_2)
 
     def load_1list_files(self,
                          list_filenames: List[str],
-                         max_num_images_batch: int = _max_num_images_batch_default,
-                         is_shuffle_data: bool = True
+                         max_load_images: int = _max_load_images_default,
+                         is_shuffle: bool = False
                          ) -> List[np.ndarray]:
         out_dtype = super(ImageDataInBatchesLoader, self).load_1file(list_filenames[0]).dtype
         out_batch_images = np.array([], dtype=out_dtype).reshape((0,) + self._size_image)
         sumrun_out_images = 0
 
         for in_file in list_filenames:
-            out_stack_images = super(ImageDataInBatchesLoader, self).load_1file(in_file)
-            num_images_stack = out_stack_images.shape[0]
+            in_stack_images = super(ImageDataInBatchesLoader, self).load_1file(in_file)
+            num_images_stack = in_stack_images.shape[0]
             sumrun_out_images = sumrun_out_images + num_images_stack
 
-            if max_num_images_batch and (sumrun_out_images > max_num_images_batch):
-                num_images_rest_batch = num_images_stack - (sumrun_out_images - max_num_images_batch)
-                out_stack_images = out_stack_images[0:num_images_rest_batch]
+            if max_load_images and (sumrun_out_images > max_load_images):
+                num_images_rest_batch = num_images_stack - (sumrun_out_images - max_load_images)
+                in_stack_images = in_stack_images[0:num_images_rest_batch]
 
-            out_batch_images = np.concatenate((out_batch_images, out_stack_images), axis=0)
+            out_batch_images = np.concatenate((out_batch_images, in_stack_images), axis=0)
 
-        if (is_shuffle_data):
+        if (is_shuffle):
             (out_batch_images, _) = self._shuffle_data(out_batch_images)
 
         return out_batch_images
@@ -160,8 +160,8 @@ class ImageDataInBatchesLoader(ImageDataLoader):
     def load_2list_files(self,
                          list_filenames_1: List[str],
                          list_filenames_2: List[str],
-                         max_num_images_batch: int = _max_num_images_batch_default,
-                         is_shuffle_data: bool = True
+                         max_load_images: int = _max_load_images_default,
+                         is_shuffle: bool = False
                          ) -> Tuple[List[np.ndarray], List[np.ndarray]]:
         if len(list_filenames_1) != len(list_filenames_2):
             message = 'number files in list1 (%s) and list2 (%s) are not equal' % (len(list_filenames_1), len(list_filenames_2))
@@ -174,19 +174,19 @@ class ImageDataInBatchesLoader(ImageDataLoader):
         sumrun_out_images = 0
 
         for in_file_1, in_file_2 in zip(list_filenames_1, list_filenames_2):
-            (out_stack_images_1, out_stack_images_2) = super(ImageDataInBatchesLoader, self).load_2files(in_file_1, in_file_2)
-            num_images_stack = out_stack_images_1.shape[0]
+            (in_stack_images_1, in_stack_images_2) = super(ImageDataInBatchesLoader, self).load_2files(in_file_1, in_file_2)
+            num_images_stack = in_stack_images_1.shape[0]
             sumrun_out_images = sumrun_out_images + num_images_stack
 
-            if max_num_images_batch and (sumrun_out_images > max_num_images_batch):
-                num_images_rest_batch = num_images_stack - (sumrun_out_images - max_num_images_batch)
-                out_stack_images_1  = out_stack_images_1[0:num_images_rest_batch]
-                out_stack_images_2  = out_stack_images_2[0:num_images_rest_batch]
+            if max_load_images and (sumrun_out_images > max_load_images):
+                num_images_rest_batch = num_images_stack - (sumrun_out_images - max_load_images)
+                in_stack_images_1  = in_stack_images_1[0:num_images_rest_batch]
+                in_stack_images_2  = in_stack_images_2[0:num_images_rest_batch]
 
-            out_batch_images_1 = np.concatenate((out_batch_images_1, out_stack_images_1), axis=0)
-            out_batch_images_2 = np.concatenate((out_batch_images_2, out_stack_images_2), axis=0)
+            out_batch_images_1 = np.concatenate((out_batch_images_1, in_stack_images_1), axis=0)
+            out_batch_images_2 = np.concatenate((out_batch_images_2, in_stack_images_2), axis=0)
 
-        if (is_shuffle_data):
+        if (is_shuffle):
             (out_batch_images_1, out_batch_images_2) = self._shuffle_data(out_batch_images_1, out_batch_images_2)
 
         return (out_batch_images_1, out_batch_images_2)

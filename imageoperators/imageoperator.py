@@ -33,7 +33,7 @@ class NormaliseImage(ImageOperator):
         for i in range(num_channels):
             max_value = np.max(in_image[..., i])
             min_value = np.min(in_image[..., i])
-            in_image[..., i] = (in_image[..., i] - min_value) / (max_value - min_value)
+            in_image[..., i] = (in_image[..., i] - min_value) / float(max_value - min_value)
         return in_image
 
     @classmethod

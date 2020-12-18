@@ -98,13 +98,20 @@ def get_metric(type_metric: str,
 def get_metric_train(type_metric: str,
                      is_mask_exclude: bool = False,
                      **kwargs) -> Metric_train:
-    is_combine_metrics = kwargs['is_combine_metrics'] if 'is_combine_metrics' in kwargs.keys() else False
-    if is_combine_metrics:
-        type_metrics_1, type_metrics_2 = type_metric.split('_')
-        weights_metrics = kwargs['weights_metrics'] if 'weights_metrics' in kwargs.keys() else (1.0, 1.0)
-        metrics_1 = get_metric_train(type_metrics_1, is_mask_exclude)
-        metrics_2 = get_metric_train(type_metrics_2, is_mask_exclude)
-        return CombineTwoMetrics_train(metrics_1, metrics_2, weights_metrics)
+    if 'Combined_' in type_metric:
+        splitels_type_metric = type_metric.split('_')
+        if len(splitels_type_metric) != 3:
+            message = 'For combined Loss, set metric name as \'Combi_<name_metric1>_<name_metric2>\'. Wrong name now: %s' %(type_metric)
+            catch_error_exception(message)
+        type_metric_1 = splitels_type_metric[1]
+        type_metric_2 = splitels_type_metric[2]
+        weight_combined_loss = kwargs['weight_combined_loss']
+        print('Chosen combined Loss with metrics \'%s\' and \'%s\', and weighting between 2nd and 1st metric: \'%s\'...'
+              %(type_metric_1, type_metric_2, weight_combined_loss))
+
+        metrics_1 = get_metric_train(type_metric_1, is_mask_exclude)
+        metrics_2 = get_metric_train(type_metric_2, is_mask_exclude)
+        return CombineTwoMetrics_train(metrics_1, metrics_2, weight_metric2over1=weight_combined_loss)
     else:
         if type_metric == 'MeanSquaredError':
             return MeanSquaredError_train(is_mask_exclude=is_mask_exclude)

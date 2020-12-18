@@ -32,6 +32,10 @@ class BatchDataGenerator(object):
     def _on_epoch_end(self) -> None:
         "Updates indexes after each epoch"
         self._indexes = np.arange(self._size_data)
+        if (self._size_data % self._batch_size != 0):
+            extra_indexes = np.random.randint(self._size_data, size=self._batch_size)
+            self._indexes = np.concatenate([self._indexes, extra_indexes])
+
         if self._shuffle == True:
             if self._seed is not None:
                 np.random.seed(self._seed)

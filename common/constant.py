@@ -42,10 +42,9 @@ NAME_PRED_RESULT_METRICS_FILE   = 'Predictions/result_metrics.csv'
 
 
 # PREPROCESSING
-IS_SHUFFLE_TRAINDATA            = True
-IS_NORMALIZE_DATA               = False
 IS_BINARY_TRAIN_MASKS           = True
 IS_MASK_REGION_INTEREST         = True
+IS_NORMALIZE_DATA               = False
 IS_RESCALE_IMAGES               = False
 FIXED_RESCALE_RESOL             = None
 #FIXED_RESCALE_RESOL             = (0.6, 0.55, 0.55)   # for LUVAR
@@ -59,6 +58,7 @@ FIXED_SIZE_BOUNDING_BOX         = None
 #FIXED_SIZE_BOUNDING_BOX         = (352, 480)
 #FIXED_SIZE_BOUNDING_BOX         = (332, 316, 236) # for DLCST and full size lungs
 #FIXED_SIZE_BOUNDING_BOX         = (508, 332, 236) # for EXACT and full size lungs
+IS_SHUFFLE_TRAINDATA            = True
 
 
 # DATA AUGMENTATION IN TRAINING
@@ -99,7 +99,7 @@ USE_MULTITHREADING          = False
 SIZE_IN_IMAGES              = (252, 252, 252) # for Valid convolutions
 #SIZE_IN_IMAGES              = (332, 316, 236) # for DLCST and full size lungs
 #SIZE_IN_IMAGES              = (508, 332, 236) # for EXACT and full size lungs
-MAX_TRAIN_IMAGES            = 50
+MAX_TRAIN_IMAGES            = 100
 MAX_VALID_IMAGES            = 20
 BATCH_SIZE                  = 1
 NUM_EPOCHS                  = 1000
@@ -114,6 +114,7 @@ NET_USE_BATCHNORMALIZE      = False
 TYPE_OPTIMIZER              = 'Adam'
 LEARN_RATE                  = 1.0e-04
 TYPE_LOSS                   = 'DiceCoefficient'
+WEIGHT_COMBINED_LOSS        = 1000.0
 LIST_TYPE_METRICS           = []
 #LIST_TYPE_METRICS           = ['TruePositiveRate', 'FalsePositiveRate', 'TrueNegativeRate', 'FalseNegativeRate']
 MANUAL_SEED_TRAIN           = None

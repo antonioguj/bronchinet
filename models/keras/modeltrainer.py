@@ -80,9 +80,12 @@ class ModelTrainer(ModelTrainerBase):
     def save_model_full(self, model_filename: str) -> None:
         pass
 
+    def get_size_output_model(self):
+        return self._compiled_model.outputs[0].shape[1:]
+        #return self._network.get_size_output()
+
     def get_size_output_image_model(self):
-        return self._compiled_model.outputs[0].shape[1:-1]
-        #return self._network.get_size_output()[:-1]
+        return self.get_size_output_model()[:-1]
 
     def train(self,
               train_data_loader: BatchDataGenerator,

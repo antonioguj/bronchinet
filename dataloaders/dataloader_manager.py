@@ -27,40 +27,31 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
                                is_shuffle: bool = True,
                                manual_seed: int = None
                                ) -> Union[BatchImageDataGenerator_1Image, List[np.ndarray]]:
-    if use_sliding_window_images or \
-        use_random_window_images or \
-        use_transform_rigid_images or \
-        use_transform_elasticdeform_images:
-        print("Generate Data Loader with Batch Generator...")
+    print("Generate Data Loader with Batch Generator...")
 
-        list_Xdata = ImageDataLoader.load_1list_files(list_filenames_1)
+    list_Xdata = ImageDataLoader.load_1list_files(list_filenames_1)
 
-        if not (use_sliding_window_images or use_random_window_images) and (len(list_Xdata) == 1):
-            size_in_images = list_Xdata[0].shape
+    if not (use_sliding_window_images or use_random_window_images) and (len(list_Xdata) == 1):
+        size_in_images = list_Xdata[0].shape
 
-        size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
-        num_channels_in = 1
+    size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
+    num_channels_in = 1
 
-        images_generator = get_images_generator(size_in_images,
-                                                use_sliding_window_images=use_sliding_window_images,
-                                                prop_overlap_slide_window=prop_overlap_slide_window,
-                                                use_random_window_images=use_random_window_images,
-                                                num_random_patches_epoch=num_random_patches_epoch,
-                                                use_transform_rigid_images=use_transform_rigid_images,
-                                                use_transform_elasticdeform_images=use_transform_elasticdeform_images,
-                                                size_volume_image=size_full_image)
-        return BatchImageDataGenerator_1Image(size_in_images,
-                                              list_Xdata,
-                                              images_generator,
-                                              num_channels_in=num_channels_in,
-                                              batch_size=batch_size,
-                                              shuffle=is_shuffle,
-                                              seed=manual_seed)
-    else:
-        print("Load Data directly from stored Batches...")
-
-        batches_Xdata = ImageDataInBatchesLoader(size_in_images).load_1list_files(list_filenames_1)
-        return batches_Xdata
+    images_generator = get_images_generator(size_in_images,
+                                            use_sliding_window_images=use_sliding_window_images,
+                                            prop_overlap_slide_window=prop_overlap_slide_window,
+                                            use_random_window_images=use_random_window_images,
+                                            num_random_patches_epoch=num_random_patches_epoch,
+                                            use_transform_rigid_images=use_transform_rigid_images,
+                                            use_transform_elasticdeform_images=use_transform_elasticdeform_images,
+                                            size_volume_image=size_full_image)
+    return BatchImageDataGenerator_1Image(size_in_images,
+                                          list_Xdata,
+                                          images_generator,
+                                          num_channels_in=num_channels_in,
+                                          batch_size=batch_size,
+                                          shuffle=is_shuffle,
+                                          seed=manual_seed)
 
 
 def get_imagedataloader_2images(list_filenames_1: List[str],
@@ -78,45 +69,36 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
                                 is_shuffle: bool = True,
                                 manual_seed: int = None
                                 ) -> Union[BatchImageDataGenerator_2Images, Tuple[List[np.ndarray], List[np.ndarray]]]:
-    if use_sliding_window_images or \
-        use_random_window_images or \
-        use_transform_rigid_images or \
-        use_transform_elasticdeform_images:
-        print("Generate Data Loader with Batch Generator...")
+    print("Generate Data Loader with Batch Generator...")
 
-        (list_Xdata, list_Ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
+    (list_Xdata, list_Ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
 
-        if not (use_sliding_window_images or use_random_window_images) and (len(list_Xdata) == 1):
-            size_in_images = list_Xdata[0].shape
+    if not (use_sliding_window_images or use_random_window_images) and (len(list_Xdata) == 1):
+        size_in_images = list_Xdata[0].shape
 
-        size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
-        num_channels_in = 1
-        num_classes_out = 1
+    size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
+    num_channels_in = 1
+    num_classes_out = 1
 
-        images_generator = get_images_generator(size_in_images,
-                                                use_sliding_window_images=use_sliding_window_images,
-                                                prop_overlap_slide_window=prop_overlap_slide_window,
-                                                use_random_window_images=use_random_window_images,
-                                                num_random_patches_epoch=num_random_patches_epoch,
-                                                use_transform_rigid_images=use_transform_rigid_images,
-                                                use_transform_elasticdeform_images=use_transform_elasticdeform_images,
-                                                size_volume_image=size_full_image)
-        return BatchImageDataGenerator_2Images(size_in_images,
-                                               list_Xdata,
-                                               list_Ydata,
-                                               images_generator,
-                                               num_channels_in=num_channels_in,
-                                               num_classes_out=num_classes_out,
-                                               is_output_nnet_validconvs=is_output_nnet_validconvs,
-                                               size_output_image=size_output_images,
-                                               batch_size=batch_size,
-                                               shuffle=is_shuffle,
-                                               seed=manual_seed)
-    else:
-        print("Load Data directly from stored Batches...")
-
-        (batches_Xdata, batches_Ydata) = ImageDataInBatchesLoader(size_in_images).load_2list_files(list_filenames_1, list_filenames_2)
-        return (batches_Xdata, batches_Ydata)
+    images_generator = get_images_generator(size_in_images,
+                                            use_sliding_window_images=use_sliding_window_images,
+                                            prop_overlap_slide_window=prop_overlap_slide_window,
+                                            use_random_window_images=use_random_window_images,
+                                            num_random_patches_epoch=num_random_patches_epoch,
+                                            use_transform_rigid_images=use_transform_rigid_images,
+                                            use_transform_elasticdeform_images=use_transform_elasticdeform_images,
+                                            size_volume_image=size_full_image)
+    return BatchImageDataGenerator_2Images(size_in_images,
+                                           list_Xdata,
+                                           list_Ydata,
+                                           images_generator,
+                                           num_channels_in=num_channels_in,
+                                           num_classes_out=num_classes_out,
+                                           is_output_nnet_validconvs=is_output_nnet_validconvs,
+                                           size_output_image=size_output_images,
+                                           batch_size=batch_size,
+                                           shuffle=is_shuffle,
+                                           seed=manual_seed)
 
 
 def get_train_imagedataloader_1image(list_filenames_1: List[str],
@@ -131,39 +113,30 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                      is_shuffle: bool = True,
                                      manual_seed: int = None
                                      ) -> Union[TrainBatchImageDataGenerator_1Image, List[np.ndarray]]:
-    if use_sliding_window_images or \
-        use_random_window_images or \
-        use_transform_rigid_images or \
-        use_transform_elasticdeform_images:
-        print("Generate Data Loader with Batch Generator...")
+    print("Generate Data Loader with Batch Generator...")
 
-        list_Xdata = ImageDataLoader.load_1list_files(list_filenames_1)
+    list_Xdata = ImageDataLoader.load_1list_files(list_filenames_1)
 
-        size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
-        num_channels_in = 1
+    size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
+    num_channels_in = 1
 
-        images_generator = get_images_generator(size_in_images,
-                                                use_sliding_window_images=use_sliding_window_images,
-                                                prop_overlap_slide_window=prop_overlap_slide_window,
-                                                use_random_window_images=use_random_window_images,
-                                                num_random_patches_epoch=num_random_patches_epoch,
-                                                use_transform_rigid_images=use_transform_rigid_images,
-                                                use_transform_elasticdeform_images=use_transform_elasticdeform_images,
-                                                size_volume_image=size_full_image)
-        return TrainBatchImageDataGenerator_1Image(size_in_images,
-                                                   list_Xdata,
-                                                   images_generator,
-                                                   num_channels_in=num_channels_in,
-                                                   batch_size=batch_size,
-                                                   shuffle=is_shuffle,
-                                                   seed=manual_seed,
-                                                   is_datagen_gpu=IS_MODEL_IN_GPU,
-                                                   is_datagen_halfPrec=IS_MODEL_HALF_PRECISION)
-    else:
-        print("Load Data directly from stored Batches...")
-
-        batches_Xdata = ImageDataInBatchesLoader(size_in_images).load_1list_files(list_filenames_1)
-        return batches_Xdata
+    images_generator = get_images_generator(size_in_images,
+                                            use_sliding_window_images=use_sliding_window_images,
+                                            prop_overlap_slide_window=prop_overlap_slide_window,
+                                            use_random_window_images=use_random_window_images,
+                                            num_random_patches_epoch=num_random_patches_epoch,
+                                            use_transform_rigid_images=use_transform_rigid_images,
+                                            use_transform_elasticdeform_images=use_transform_elasticdeform_images,
+                                            size_volume_image=size_full_image)
+    return TrainBatchImageDataGenerator_1Image(size_in_images,
+                                               list_Xdata,
+                                               images_generator,
+                                               num_channels_in=num_channels_in,
+                                               batch_size=batch_size,
+                                               shuffle=is_shuffle,
+                                               seed=manual_seed,
+                                               is_datagen_gpu=IS_MODEL_IN_GPU,
+                                               is_datagen_halfPrec=IS_MODEL_HALF_PRECISION)
 
 
 def get_train_imagedataloader_2images(list_filenames_1: List[str],
@@ -181,41 +154,32 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                       is_shuffle: bool = True,
                                       manual_seed: int = None
                                       ) -> Union[TrainBatchImageDataGenerator_2Images, Tuple[List[np.ndarray], List[np.ndarray]]]:
-    if use_sliding_window_images or \
-        use_random_window_images or \
-        use_transform_rigid_images or \
-        use_transform_elasticdeform_images:
-        print("Generate Data Loader with Batch Generator...")
+    print("Generate Data Loader with Batch Generator...")
 
-        (list_Xdata, list_Ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
+    (list_Xdata, list_Ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
 
-        size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
-        num_channels_in = 1
-        num_classes_out = 1
+    size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
+    num_channels_in = 1
+    num_classes_out = 1
 
-        images_generator = get_images_generator(size_in_images,
-                                                use_sliding_window_images=use_sliding_window_images,
-                                                prop_overlap_slide_window=prop_overlap_slide_window,
-                                                use_random_window_images=use_random_window_images,
-                                                num_random_patches_epoch=num_random_patches_epoch,
-                                                use_transform_rigid_images=use_transform_rigid_images,
-                                                use_transform_elasticdeform_images=use_transform_elasticdeform_images,
-                                                size_volume_image=size_full_image)
-        return TrainBatchImageDataGenerator_2Images(size_in_images,
-                                                    list_Xdata,
-                                                    list_Ydata,
-                                                    images_generator,
-                                                    num_channels_in=num_channels_in,
-                                                    num_classes_out=num_classes_out,
-                                                    is_output_nnet_validconvs=is_output_nnet_validconvs,
-                                                    size_output_image=size_output_images,
-                                                    batch_size=batch_size,
-                                                    shuffle=is_shuffle,
-                                                    seed=manual_seed,
-                                                    is_datagen_gpu=IS_MODEL_IN_GPU,
-                                                    is_datagen_halfPrec=IS_MODEL_HALF_PRECISION)
-    else:
-        print("Load Data directly from stored Batches...")
-
-        (batches_Xdata, batches_Ydata) = ImageDataInBatchesLoader(size_in_images).load_2list_files(list_filenames_1, list_filenames_2)
-        return (batches_Xdata, batches_Ydata)
+    images_generator = get_images_generator(size_in_images,
+                                            use_sliding_window_images=use_sliding_window_images,
+                                            prop_overlap_slide_window=prop_overlap_slide_window,
+                                            use_random_window_images=use_random_window_images,
+                                            num_random_patches_epoch=num_random_patches_epoch,
+                                            use_transform_rigid_images=use_transform_rigid_images,
+                                            use_transform_elasticdeform_images=use_transform_elasticdeform_images,
+                                            size_volume_image=size_full_image)
+    return TrainBatchImageDataGenerator_2Images(size_in_images,
+                                                list_Xdata,
+                                                list_Ydata,
+                                                images_generator,
+                                                num_channels_in=num_channels_in,
+                                                num_classes_out=num_classes_out,
+                                                is_output_nnet_validconvs=is_output_nnet_validconvs,
+                                                size_output_image=size_output_images,
+                                                batch_size=batch_size,
+                                                shuffle=is_shuffle,
+                                                seed=manual_seed,
+                                                is_datagen_gpu=IS_MODEL_IN_GPU,
+                                                is_datagen_halfPrec=IS_MODEL_HALF_PRECISION)

@@ -94,7 +94,9 @@ class ModelTrainer(ModelTrainerBase):
         # create loss
         type_loss = model_full['loss_desc'][0]
         loss_input_args = model_full['loss_desc'][1]
-        self.create_loss(type_loss, is_mask_to_region_interest=loss_input_args['is_masks_exclude'])
+        weight_combined_loss = kwargs['weight_combined_loss'] if 'weight_combined_loss' in kwargs.keys() else 1.0
+        self.create_loss(type_loss, is_mask_to_region_interest=loss_input_args['is_masks_exclude'],
+                         weight_combined_loss=weight_combined_loss)
 
         # create list of metrics
         list_type_metrics = model_full['metrics_desc']
@@ -142,7 +144,9 @@ class ModelTrainer(ModelTrainerBase):
         # create loss
         type_loss = model_full['loss_fun_desc'][0]
         loss_input_args = model_full['loss_fun_desc'][1]
-        self.create_loss(type_loss, is_mask_to_region_interest=loss_input_args['is_masks_exclude'])
+        weight_combined_loss = kwargs['weight_combined_loss'] if 'weight_combined_loss' in kwargs.keys() else 1.0
+        self.create_loss(type_loss, is_mask_to_region_interest=loss_input_args['is_masks_exclude'],
+                         weight_combined_loss=weight_combined_loss)
 
         # create 'dummy' empty list of metrics
         list_type_metrics = []
@@ -181,8 +185,11 @@ class ModelTrainer(ModelTrainerBase):
         for icallback in self._list_callbacks:
             icallback.on_epoch_end(epoch, data_output)
 
+    def get_size_output_model(self):
+        return self._network.get_size_output()
+
     def get_size_output_image_model(self):
-        return self._network.get_size_output()[1:]
+        return self.get_size_output_model()[1:]
 
 
     def train(self,

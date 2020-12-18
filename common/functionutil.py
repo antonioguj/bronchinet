@@ -280,11 +280,15 @@ def is_string_list(in_str: str) -> bool:
     return (in_str[0] == '[') and (in_str[-1] == ']')
 
 def str2tuple_int(in_str: str) -> Tuple[Any, ...]:
+    if in_str == 'None':
+        return None
     in_str = in_str.replace('(', '').replace(')', '')
     list_elems_tuple = in_str.split(',')
     return tuple([int(elem) for elem in list_elems_tuple])
 
 def str2tuple_float(in_str: str) -> Tuple[Any, ...]:
+    if in_str == 'None':
+        return None
     in_str = in_str.replace('(', '').replace(')', '')
     list_elems_tuple = in_str.split(',')
     return tuple([float(elem) for elem in list_elems_tuple])

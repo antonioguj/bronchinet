@@ -3,7 +3,7 @@ from common.constant import *
 from common.functionutil import *
 from common.workdirmanager import GeneralDirManager
 from dataloaders.imagefilereader import ImageFileReader
-from imageoperators.imageoperator import CropImage, RescaleImage, CropAndExtendImage
+from imageoperators.imageoperator import CropImage, RescaleImage, CropAndExtendImage, NormaliseImage
 from imageoperators.boundingboxes import BoundingBoxes
 from imageoperators.maskoperator import MaskOperator
 from collections import OrderedDict
@@ -150,7 +150,19 @@ def main(args):
         # *******************************************************************************
 
 
-        #*******************************************************************************
+        # *******************************************************************************
+        if (args.is_normalize_data):
+            for j, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
+                if (type_in_data == 'image') or \
+                    (type_in_data == 'label' and not args.is_binary_train_masks):
+                    print('Normalize input data \'%s\' of type \'%s\'...' % (j, type_in_data))
+                    out_data = NormaliseImage.compute(in_data)
+                    list_inout_data[j] = out_data
+            # endfor
+        # *******************************************************************************
+
+
+        # *******************************************************************************
         if (args.is_rescale_images):
             in_reference_key = list_in_reference_files[ifile]
             in_rescale_factor = indict_rescale_factors[basename_filenoext(in_reference_key)]
@@ -338,6 +350,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_input_extra_labels', type=str2bool, default=False)
     parser.add_argument('--is_binary_train_masks', type=str2bool, default=IS_BINARY_TRAIN_MASKS)
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
+    parser.add_argument('--is_normalize_data', type=str2bool, default=IS_NORMALIZE_DATA)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
     parser.add_argument('--name_rescale_factors_file', type=str, default=NAME_RESCALE_FACTOR_FILE)
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)

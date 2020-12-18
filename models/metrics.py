@@ -68,20 +68,18 @@ class MetricBase(object):
 
 class CombineTwoMetrics(MetricBase):
 
-    def __init__(self, metrics_1: MetricBase, metrics_2: MetricBase, weights_metrics: Tuple[float, float] = (1.0, 1.0)) -> None:
+    def __init__(self, metrics_1: MetricBase, metrics_2: MetricBase, weight_metric2over1: float = 1.0) -> None:
         super(CombineTwoMetrics, self).__init__(False)
         self._metrics_1 = metrics_1
         self._metrics_2 = metrics_2
-        self._weights_metrics = weights_metrics
+        self._weight_metric2over1 = weight_metric2over1
         self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
     def compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-        return self._weights_metrics[0] * self._metrics_1.compute(y_true, y_pred) + \
-               self._weights_metrics[1] * self._metrics_2.compute(y_true, y_pred)
+        return self._metrics_1.compute(y_true, y_pred) + self._weight_metric2over1 * self._metrics_2.compute(y_true, y_pred)
 
     def compute_safememory(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-        return self._weights_metrics[0] * self._metrics_1.compute_safememory(y_true, y_pred) + \
-               self._weights_metrics[1] * self._metrics_2.compute_safememory(y_true, y_pred)
+        return self._metrics_1.compute_safememory(y_true, y_pred) + self._weight_metric2over1 * self._metrics_2.compute_safememory(y_true, y_pred)
 
 
 class MeanSquaredError(MetricBase):

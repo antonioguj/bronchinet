@@ -107,7 +107,8 @@ def main(args):
         model_trainer.create_optimizer(type_optimizer=args.type_optimizer,
                                        learn_rate=args.learn_rate)
         model_trainer.create_loss(type_loss=args.type_loss,
-                                  is_mask_to_region_interest=args.is_mask_region_interest)
+                                  is_mask_to_region_interest=args.is_mask_region_interest,
+                                  weight_combined_loss=args.weight_combined_loss)
         model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
                                           is_mask_to_region_interest=args.is_mask_region_interest)
         model_trainer.finalise_model()
@@ -124,7 +125,8 @@ def main(args):
             if TYPE_DNNLIB_USED == 'Keras':
                 # CHECK WHETHER THIS IS NECESSARY
                 model_trainer.create_loss(type_loss=args.type_loss,
-                                          is_mask_to_region_interest=args.is_mask_region_interest)
+                                          is_mask_to_region_interest=args.is_mask_region_interest,
+                                          weight_combined_loss=args.weight_combined_loss)
                 model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
                                                   is_mask_to_region_interest=args.is_mask_region_interest)
             if args.is_backward_compat:
@@ -246,6 +248,7 @@ if __name__ == "__main__":
     parser.add_argument('--type_optimizer', type=str, default=TYPE_OPTIMIZER)
     parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
+    parser.add_argument('--weight_combined_loss', type=float, default=WEIGHT_COMBINED_LOSS)
     parser.add_argument('--list_type_metrics', nargs='+', type=str, default=LIST_TYPE_METRICS)
     parser.add_argument('--manual_seed_train', type=int, default=MANUAL_SEED_TRAIN)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
