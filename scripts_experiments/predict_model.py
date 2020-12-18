@@ -179,11 +179,14 @@ if __name__ == "__main__":
         else:
             input_args_file = read_dictionary_configparams(args.in_config_file)
         print("Set up experiments with parameters from file: \'%s\'" %(args.in_config_file))
-        #args.basedir                   = str(input_args_file['workdir'])
-        args.size_in_images            = str2tuple_int(input_args_file['size_in_images'])
-        args.is_valid_convolutions     = str2bool(input_args_file['is_valid_convolutions'])
+        #args.basedir                        = str(input_args_file['workdir'])
+        args.size_in_images                 = str2tuple_int(input_args_file['size_in_images'])
+        args.type_loss                      = str(input_args_file['type_loss'])
+        args.list_type_metrics              = str2list_string(input_args_file['list_type_metrics'])
+        args.list_type_metrics.remove('')
+        args.is_mask_region_interest        = str2bool(input_args_file['is_mask_region_interest'])
+        args.is_valid_convolutions          = str2bool(input_args_file['is_valid_convolutions'])
         args.is_reconstruct_preds_from_patches = str2bool(input_args_file['use_sliding_window_images']) or str2bool(input_args_file['use_random_window_images'])
-        args.is_mask_region_interest   = str2bool(input_args_file['is_mask_region_interest'])
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).items()):
