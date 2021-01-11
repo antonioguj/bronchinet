@@ -95,7 +95,7 @@ def main(args):
 
     model_trainer = ModelTrainer()
 
-    if not args.is_restart_model or (args.is_restart_model and IS_RESTART_ONLY_WEIGHTS):
+    if not args.is_restart_model or (args.is_restart_model and args.is_restart_only_weights):
         model_trainer.create_network(type_network=args.type_network,
                                      size_image_in=args.size_in_images,
                                      num_levels=args.net_num_levels,
@@ -117,7 +117,7 @@ def main(args):
         model_restart_file = join_path_names(models_path, args.restart_file)
         print("Restart Model from file: \'%s\'..." % (model_restart_file))
 
-        if IS_RESTART_ONLY_WEIGHTS:
+        if args.is_restart_only_weights:
             print("Load only saved weights to restart model...")
             model_trainer.load_model_only_weights(model_restart_file)
         else:
@@ -207,7 +207,7 @@ def main(args):
     print("\nTraining model...")
     print("-" * 30)
 
-    if args.is_restart_model:
+    if (args.is_restart_model and not args.is_restart_only_weights):
         if 'last' in basename(model_restart_file):
             loss_history_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
             restart_epoch = get_restart_epoch_from_loss_history_file(loss_history_filename)
@@ -261,10 +261,11 @@ if __name__ == "__main__":
     parser.add_argument('--use_transform_elasticdeform_images', type=str2bool, default=USE_TRANSFORM_ELASTICDEFORM_IMAGES)
     parser.add_argument('--is_restart_model', type=str2bool, default=IS_RESTART_MODEL)
     parser.add_argument('--restart_file', type=str, default=NAME_SAVEDMODEL_LAST)
+    parser.add_argument('--is_restart_only_weights', type=str, default=IS_RESTART_ONLY_WEIGHTS)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 
-    if args.is_restart_model and not args.in_config_file:
+    if (args.is_restart_model and not args.is_restart_only_weights) and not args.in_config_file:
         args.in_config_file = join_path_names(args.modelsdir, NAME_CONFIG_PARAMS_FILE)
         print("Restarting model: input config file is not given. Use the default path: %s" %(args.in_config_file))
 
