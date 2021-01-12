@@ -5,7 +5,7 @@ import numpy as np
 from tensorflow.keras.models import load_model
 import tensorflow as tf
 
-from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_INTER_KERAS, NAME_SAVEDMODEL_LAST_KERAS, IS_SHUFFLE_TRAINDATA
+from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_EPOCH_KERAS, NAME_SAVEDMODEL_LAST_KERAS, IS_SHUFFLE_TRAINDATA
 from common.exceptionmanager import catch_error_exception
 from common.functionutil import join_path_names
 from dataloaders.batchdatagenerator import BatchDataGenerator
@@ -48,12 +48,16 @@ class ModelTrainer(ModelTrainerBase):
                                          is_hist_validation=is_validation_data)
         self._list_callbacks.append(new_callback)
 
-        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_INTER_KERAS)
-        new_callback = ModelCheckpoint(model_filename)
+        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_EPOCH_KERAS)
+        new_callback = ModelCheckpoint(model_filename, self,
+                                       freq_save_model=freq_save_check_model,
+                                       type_save_model='full_model',
+                                       update_filename_epoch=True)
         self._list_callbacks.append(new_callback)
 
         model_filename = join_path_names(models_path, NAME_SAVEDMODEL_LAST_KERAS)
-        new_callback = ModelCheckpoint(model_filename)
+        new_callback = ModelCheckpoint(model_filename, self,
+                                       type_save_model='full_model')
         self._list_callbacks.append(new_callback)
 
     def summary_model(self) -> None:
@@ -75,10 +79,10 @@ class ModelTrainer(ModelTrainerBase):
         self._compiled_model = load_model(model_filename, custom_objects=custom_objects)
 
     def save_model_only_weights(self, model_filename: str) -> None:
-        pass
+        self._compiled_model.save_weights(model_filename)
 
     def save_model_full(self, model_filename: str) -> None:
-        pass
+        self._compiled_model.save(model_filename)
 
     def get_size_output_model(self) -> Tuple[int, ...]:
         return self._compiled_model.outputs[0].shape[1:]
