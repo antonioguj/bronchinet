@@ -261,7 +261,7 @@ if __name__ == "__main__":
     parser.add_argument('--use_transform_elasticdeform_images', type=str2bool, default=USE_TRANSFORM_ELASTICDEFORM_IMAGES)
     parser.add_argument('--is_restart_model', type=str2bool, default=IS_RESTART_MODEL)
     parser.add_argument('--restart_file', type=str, default=NAME_SAVEDMODEL_LAST)
-    parser.add_argument('--is_restart_only_weights', type=str, default=IS_RESTART_ONLY_WEIGHTS)
+    parser.add_argument('--is_restart_only_weights', type=str2bool, default=IS_RESTART_ONLY_WEIGHTS)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 

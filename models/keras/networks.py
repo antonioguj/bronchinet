@@ -3,7 +3,7 @@ from typing import Tuple, List, Dict, Union, Any
 
 from tensorflow.keras.layers import Input, concatenate, Dropout, BatchNormalization
 from tensorflow.keras.layers import Convolution3D, MaxPooling3D, UpSampling3D, Cropping3D, Conv3DTranspose
-from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.models import Model
 
 from common.exceptionmanager import catch_error_exception
 from models.networks import UNetBase
