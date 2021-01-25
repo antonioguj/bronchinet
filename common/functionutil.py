@@ -273,20 +273,34 @@ def str2float(in_str: str) -> float:
 def is_string_float(in_str: str) -> bool:
     return (in_str.count('.')==1) and (in_str.replace('.', '', 1).isdigit())
 
-def str2list_string(in_str: str) -> List[str]:
+def str2list_str(in_str: str) -> List[str]:
     return in_str.replace('[','').replace(']','').split(',')
+
+def str2list_int(in_str: str) -> List[int]:
+    if in_str == 'None':
+        return None
+    in_str = in_str.replace('[', '').replace(']', '')
+    list_elems_tuple = in_str.split(',')
+    return list([int(elem) for elem in list_elems_tuple])
+
+def str2list_float(in_str: str) -> List[float]:
+    if in_str == 'None':
+        return None
+    in_str = in_str.replace('[', '').replace(']', '')
+    list_elems_tuple = in_str.split(',')
+    return list([float(elem) for elem in list_elems_tuple])
 
 def is_string_list(in_str: str) -> bool:
     return (in_str[0] == '[') and (in_str[-1] == ']')
 
-def str2tuple_int(in_str: str) -> Tuple[Any, ...]:
+def str2tuple_int(in_str: str) -> Tuple[int, ...]:
     if in_str == 'None':
         return None
     in_str = in_str.replace('(', '').replace(')', '')
     list_elems_tuple = in_str.split(',')
     return tuple([int(elem) for elem in list_elems_tuple])
 
-def str2tuple_float(in_str: str) -> Tuple[Any, ...]:
+def str2tuple_float(in_str: str) -> Tuple[float, ...]:
     if in_str == 'None':
         return None
     in_str = in_str.replace('(', '').replace(')', '')
