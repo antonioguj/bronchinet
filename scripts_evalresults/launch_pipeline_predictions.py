@@ -11,12 +11,12 @@ import argparse
 CODEDIR                             = join_path_names(BASEDIR, 'Code/')
 SCRIPT_PREDICT_MODEL                = join_path_names(CODEDIR, 'scripts_experiments/predict_model.py')
 SCRIPT_MERGE_DICTIONARIES_PREDS     = join_path_names(CODEDIR, 'scripts_util/merge_pydictionaries_preds.py')
-SCRIPT_POSTPROCESS_PREDICTIONS      = join_path_names(CODEDIR, 'scripts_airway_segmentation/postprocess_predictions.py')
-SCRIPT_PROCESS_PREDICT_AIRWAY_TREE  = join_path_names(CODEDIR, 'scripts_airway_segmentation/process_predicted_airway_tree.py')
+SCRIPT_POSTPROCESS_PREDICTIONS      = join_path_names(CODEDIR, 'scripts_evalresults/postprocess_predictions.py')
+SCRIPT_PROCESS_PREDICT_AIRWAY_TREE  = join_path_names(CODEDIR, 'scripts_evalresults/process_predicted_airway_tree.py')
 SCRIPT_CALC_CENTRELINES_FROM_MASK   = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
 SCRIPT_CALC_FIRSTCONNREGION_FROM_MASK=join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
 SCRIPT_CALC_CONSER_COARSEAIRWAYS_MASK=join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
-SCRIPT_COMPUTE_RESULT_METRICS       = join_path_names(CODEDIR, 'scripts_airway_segmentation/compute_result_metrics.py')
+SCRIPT_COMPUTE_RESULT_METRICS       = join_path_names(CODEDIR, 'scripts_evalresults/compute_result_metrics.py')
 
 
 def print_call(new_call):

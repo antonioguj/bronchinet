@@ -274,6 +274,8 @@ def is_string_float(in_str: str) -> bool:
     return (in_str.count('.')==1) and (in_str.replace('.', '', 1).isdigit())
 
 def str2list_str(in_str: str) -> List[str]:
+    if in_str == '[]':
+        return []
     return in_str.replace('[','').replace(']','').split(',')
 
 def str2list_int(in_str: str) -> List[int]:

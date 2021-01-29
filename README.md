@@ -46,7 +46,7 @@ And the following libraries to run deep learning on GPUs:
 - python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[different options]
 
 3) Compute Bounding-boxes of input images:
-- python ./Code/scripts_airway_segmentation/compute_boundingbox_images.py
+- python ./Code/scripts_evalresults/compute_boundingbox_images.py
 
 4) Prepare working data: including cropping images / masking ground-truth to lung region...
 - python ./Code/scripts_experiments/prepare_data.py
@@ -63,13 +63,13 @@ And the following libraries to run deep learning on GPUs:
 - python ./Code/scripts_experiments/predict_model.py <file_trained_model> <dir_output_predictions> --in_config_file=<file_config>
 
 8) Compute predicted binary masks from probability maps:
-- python ./Code/scripts_airway_segmentation/postprocess_predictions.py <dir_input_pred_probable_maps> <dir_output_pred_binary_masks>
+- python ./Code/scripts_evalresults/postprocess_predictions.py <dir_input_pred_probable_maps> <dir_output_pred_binary_masks>
 
 9) Compute predicted centrelines from binary masks:
 - python ./Code/scripts_util/apply_operation_images.py <dir_input_pred_binary_masks> <dir_output_pred_centrelines> --type=thinning
 
 10) Compute results metrics / accuracy:
-- python ./Code/scripts_airway_segmentation/compute_result_metrics.py <dir_input_predictions> --inputcentrelinesdir=<dir_input_pred_centrelines>
+- python ./Code/scripts_evalresults/compute_result_metrics.py <dir_input_predictions> --inputcentrelinesdir=<dir_input_pred_centrelines>
 
 (7-8-9-10) Do steps 7-8-9-10 at once:)
-- python ./Code/scripts_airway_segmentation/launch_pipeline_predictions.py <file_trained_model> <dir_output_predictions>
+- python ./Code/scripts_evalresults/launch_pipeline_predictions.py <file_trained_model> <dir_output_predictions>
