@@ -276,21 +276,23 @@ def is_string_float(in_str: str) -> bool:
 def str2list_str(in_str: str) -> List[str]:
     if in_str == '[]':
         return []
-    return in_str.replace('[','').replace(']','').split(',')
+    in_str = in_str.replace('[', '').replace(']', '').replace('\'', '').replace(', ', ',')
+    list_elems_instr = in_str.split(',')
+    return list_elems_instr
 
 def str2list_int(in_str: str) -> List[int]:
     if in_str == 'None':
         return None
     in_str = in_str.replace('[', '').replace(']', '')
-    list_elems_tuple = in_str.split(',')
-    return list([int(elem) for elem in list_elems_tuple])
+    list_elems_instr = in_str.split(',')
+    return [int(elem) for elem in list_elems_instr]
 
 def str2list_float(in_str: str) -> List[float]:
     if in_str == 'None':
         return None
     in_str = in_str.replace('[', '').replace(']', '')
-    list_elems_tuple = in_str.split(',')
-    return list([float(elem) for elem in list_elems_tuple])
+    list_elems_instr = in_str.split(',')
+    return [float(elem) for elem in list_elems_instr]
 
 def is_string_list(in_str: str) -> bool:
     return (in_str[0] == '[') and (in_str[-1] == ']')
@@ -299,15 +301,15 @@ def str2tuple_int(in_str: str) -> Tuple[int, ...]:
     if in_str == 'None':
         return None
     in_str = in_str.replace('(', '').replace(')', '')
-    list_elems_tuple = in_str.split(',')
-    return tuple([int(elem) for elem in list_elems_tuple])
+    list_elems_instr = in_str.split(',')
+    return tuple([int(elem) for elem in list_elems_instr])
 
 def str2tuple_float(in_str: str) -> Tuple[float, ...]:
     if in_str == 'None':
         return None
     in_str = in_str.replace('(', '').replace(')', '')
-    list_elems_tuple = in_str.split(',')
-    return tuple([float(elem) for elem in list_elems_tuple])
+    list_elems_instr = in_str.split(',')
+    return tuple([float(elem) for elem in list_elems_instr])
 
 def is_string_tuple(in_str: str) -> bool:
     return (in_str[0] == '(') and (in_str[-1] == ')')
@@ -321,12 +323,12 @@ def tuple2str(in_tuple: Tuple[Any, ...]) -> str:
 def str2list_datatype(in_str: str, elem_type: str) -> List[Any]:
     func_convert_elem = get_func_convert_string_to_datatype(elem_type)
     list_elems_list = split_string_list_or_tuple(in_str)
-    return list([func_convert_elem(elem) for elem in list_elems_list])
+    return [func_convert_elem(elem) for elem in list_elems_list]
 
 def str2tuple_datatype(in_str: str, elem_type: str) -> Tuple[Any, ...]:
     func_convert_elem = get_func_convert_string_to_datatype(elem_type)
-    list_elems_tuple = split_string_list_or_tuple(in_str)
-    return tuple([func_convert_elem(elem) for elem in list_elems_tuple])
+    list_elems_instr = split_string_list_or_tuple(in_str)
+    return tuple([func_convert_elem(elem) for elem in list_elems_instr])
 
 def split_string_list_or_tuple(in_str: str) -> List[str]:
     in_str_content = in_str[1:-1].replace(' ','')
