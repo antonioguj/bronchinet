@@ -29,10 +29,10 @@ def main(args):
 
 
     # ---------- SETTINGS ----------
-    #labels = ['model_%i'%(i+1) for i in range(num_input_files)]
-    #labels = ['5 images', '8 images', '18 images', '28 images']
-    labels = ['U-Net', 'KNN', 'LOP']
-    titles = ['Dice Coefficient', 'Tree Length', 'Volume Leakage', 'Centerline Leakage', 'Branch Count']
+    labels = ['model_%i'%(i+1) for i in range(num_input_files)]
+    #labels = ['U-Net', 'kNN-VS']
+    #labels = ['U-Net', 'kNN-VS', 'LOP']
+    #titles = ['Dice Coefficient (DSC)', 'Tree Length (TL) (%)', 'Volume Leakage (VL) (%)', 'Centerline Leakage (CL) (%)', 'Branch Count (BC)']
     save_plot_figures = False
     template_outfigname = 'fig_%s' %(args.type) + '_%s.png'
     # ---------- SETTINGS ----------
@@ -123,13 +123,13 @@ def main(args):
 
 
         if args.type == 'boxplot':
-            plt.xticks(plt.xticks()[0], labels, size=15)
+            plt.xticks(plt.xticks()[0], labels, size=20)
             plt.yticks(plt.yticks()[0], size=15)
         else:
-            plt.xlabel('Num cases', size=15)
+            plt.xlabel('Num cases', size=20)
             plt.legend(loc='best')
-        #plt.title(ifield.title(), size=18)
-        plt.title(titles[i], size=18)
+        plt.title(ifield.title(), size=20)
+        #plt.title(titles[i], size=20)
 
         if save_plot_figures:
             outfigname = template_outfigname % (ifield)
