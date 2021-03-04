@@ -277,8 +277,9 @@ class TransformRigidImages2D(TransformRigidImages):
     def _get_calc_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         # Apply: 1st: Rigid transformations
         #        2nd: channel shift inten. / flipping
-        in_image = self._apply_transform(in_image, self._transform_matrix,
-                                         channel_axis=self._img_channel_axis, fill_mode=self._fill_mode, cval=self._cval)
+        if self._transform_matrix is not None:
+            in_image = self._apply_transform(in_image, self._transform_matrix,
+                                             channel_axis=self._img_channel_axis, fill_mode=self._fill_mode, cval=self._cval)
 
         if is_type_input_image and (self._transform_params.get('channel_shift_intensity') is not None):
             in_image = self._apply_channel_shift(in_image, self._transform_params['channel_shift_intensity'],
@@ -311,8 +312,9 @@ class TransformRigidImages2D(TransformRigidImages):
             in_image = self._apply_channel_shift(in_image, self._transform_params['channel_shift_intensity'],
                                                  channel_axis=self._img_channel_axis)
 
-        in_image = self._apply_transform(in_image, self._transform_matrix,
-                                         channel_axis=self._img_channel_axis, fill_mode=self._fill_mode, cval=self._cval)
+        if self._transform_matrix is not None:
+            in_image = self._apply_transform(in_image, self._transform_matrix,
+                                             channel_axis=self._img_channel_axis, fill_mode=self._fill_mode, cval=self._cval)
         return in_image
 
     def _get_compute_random_transform_matrix(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
@@ -577,8 +579,9 @@ class TransformRigidImages3D(TransformRigidImages):
     def _get_calc_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         # Apply: 1st: Rigid transformations
         #        2nd: channel shift inten. / flipping
-        in_image = self._apply_transform(in_image, self._transform_matrix,
-                                         channel_axis=self._img_channel_axis, fill_mode=self._fill_mode, cval=self._cval)
+        if self._transform_matrix is not None:
+            in_image = self._apply_transform(in_image, self._transform_matrix,
+                                             channel_axis=self._img_channel_axis, fill_mode=self._fill_mode, cval=self._cval)
 
         if is_type_input_image and (self._transform_params.get('channel_shift_intensity') is not None):
             in_image = self._apply_channel_shift(in_image, self._transform_params['channel_shift_intensity'],
@@ -617,8 +620,9 @@ class TransformRigidImages3D(TransformRigidImages):
             in_image = self._apply_channel_shift(in_image, self._transform_params['channel_shift_intensity'],
                                                  channel_axis=self._img_channel_axis)
 
-        in_image = self._apply_transform(in_image, self._transform_matrix,
-                                         channel_axis=self._img_channel_axis, fill_mode=self._fill_mode, cval=self._cval)
+        if self._transform_matrix is not None:
+            in_image = self._apply_transform(in_image, self._transform_matrix,
+                                             channel_axis=self._img_channel_axis, fill_mode=self._fill_mode, cval=self._cval)
         return in_image
 
     def _get_compute_random_transform_matrix(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
