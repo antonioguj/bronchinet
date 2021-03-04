@@ -22,6 +22,7 @@ WORKDIR="${HOME}/Results/AirwaySegmentation_IBEST/"
 
 export PYTHONPATH="${PYTHONPATH}:${WORKDIR}/Code/"
 
+# Load virtual environment
 source "${HOME}/Pyvenv-v.3.7.4/bin/activate"
 
 

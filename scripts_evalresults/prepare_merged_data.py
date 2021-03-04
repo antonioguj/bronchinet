@@ -86,10 +86,8 @@ def main(args):
         # endfor
 
         if args.type_distribute == 'random':
-            print("Distribute the merged data randomly...")
-            num_input_files_total = len(indexes_merge_input_files)
-            random_indexes_size_total = np.random.choice(range(num_input_files_total), size=num_input_files_total, replace=False)
-            indexes_merge_input_files = [indexes_merge_input_files[index] for index in random_indexes_size_total]
+            print("Randomly shuffle the merged data...")
+            np.random.shuffle(indexes_merge_input_files)
 
     elif args.type_distribute == 'orderfile':
         list_in_reference_keys_all_data = [list(elem.values()) for elem in list_dict_in_reference_keys_all_data]

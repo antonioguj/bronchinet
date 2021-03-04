@@ -6,29 +6,23 @@ import math
 import argparse
 
 
-def search_indexes_input_files_from_reference_keys_in_file(in_readfile: str, list_in_reference_files: List[str]) -> List[int]:
+def search_indexes_in_files_from_reference_keys(in_readfile: str, list_in_reference_files: List[str]) -> List[int]:
     if not is_exist_file(in_readfile):
-        message = 'File to specify (Train / Valid / Test) data \'infileorder\ not found: \'%s\'...' % (in_readfile)
+        message = 'File \'infileorder\ to specify Train / Valid / Test data not found: \'%s\'...' % (in_readfile)
         catch_warning_exception(message)
-        return []
 
-    out_indexes_input_files = []
+    out_indexes_in_files = []
     with open(in_readfile, 'r') as fin:
         for in_reference_file in fin.readlines():
             in_reference_file = in_reference_file.replace('\n','').replace('\r','')
             if in_reference_file in list_in_reference_files:
                 index_pos_reference_file = [ind for (ind, it_file) in enumerate(list_in_reference_files) if it_file == in_reference_file]
-                out_indexes_input_files += index_pos_reference_file
+                out_indexes_in_files += index_pos_reference_file
             else:
-                message = '\'%s\' not found in list of Input Reference Keys: \'%s\'...' %(in_reference_file, list_in_reference_files)
+                message = '\'%s\' not found in list of input reference keys: \'%s\'...' %(in_reference_file, list_in_reference_files)
                 catch_error_exception(message)
-    # --------------------------------------
-    return out_indexes_input_files
 
-def write_file_cvfold_info(in_filename: str, list_in_files) -> None:
-    with open(in_filename, 'w') as fout:
-        for ifile in list_in_files:
-            fout.write('%s\n' %(ifile))
+    return np.array(out_indexes_in_files)
 
 def check_same_number_files_in_list(list_files_1: List[str], list_files_2: List[str]):
     if (len(list_files_1) != len(list_files_2)):
@@ -63,7 +57,7 @@ def main(args):
     if args.type_distribute == 'original' or args.type_distribute == 'random':
         sum_prop_data = sum(args.dist_propdata_train_valid_test)
         if sum_prop_data != 1.0:
-            message = 'Sum of props of Training / Validation / Testing data != 1.0 (%s)... Change input param...' %(sum_prop_data)
+            message = 'Sum of proportions of Training / Validation / Testing data != 1.0 (%s)... Change input param...' %(sum_prop_data)
             catch_error_exception(message)
 
         num_total_files      = len(list_input_images_files)
@@ -71,25 +65,26 @@ def main(args):
         num_validation_files = int(math.ceil(args.dist_propdata_train_valid_test[1] * num_total_files))
         num_testing_files    = max(0, num_total_files - num_training_files - num_validation_files)
 
-        print("Num files for Training (%s)/ Validation (%s)/ Testing (%s)..." %(num_training_files, num_validation_files, num_testing_files))
+        print("Num files assigned for Training (%s) / Validation (%s) / Testing (%s)..."
+              % (num_training_files, num_validation_files, num_testing_files))
 
+        indexes_input_files = np.arange(num_total_files)
         if args.type_distribute == 'random':
-            print("Distribute the Training / Validation / Testing data randomly...")
-            indexes_input_files = np.random.choice(range(num_total_files), size=num_total_files, replace=False)
-        else:
-            indexes_input_files = range(num_total_files)
+            print("Randomly shuffle the data before distributing...")
+            np.random.shuffle(indexes_input_files)
 
         indexes_training_files   = indexes_input_files[0:num_training_files]
         indexes_validation_files = indexes_input_files[num_training_files:num_training_files + num_validation_files]
         indexes_testing_files    = indexes_input_files[num_training_files + num_validation_files::]
 
+
     elif args.type_distribute == 'orderfile':
         indict_reference_keys    = read_dictionary(in_reference_keys_file)
         list_in_reference_keys   = list(indict_reference_keys.values())
 
-        indexes_training_files   = search_indexes_input_files_from_reference_keys_in_file(args.infile_train_order, list_in_reference_keys)
-        indexes_validation_files = search_indexes_input_files_from_reference_keys_in_file(args.infile_valid_order, list_in_reference_keys)
-        indexes_testing_files    = search_indexes_input_files_from_reference_keys_in_file(args.infile_test_order, list_in_reference_keys)
+        indexes_training_files   = search_indexes_in_files_from_reference_keys(args.infile_train_order, list_in_reference_keys)
+        indexes_validation_files = search_indexes_in_files_from_reference_keys(args.infile_valid_order, list_in_reference_keys)
+        indexes_testing_files    = search_indexes_in_files_from_reference_keys(args.infile_test_order,  list_in_reference_keys)
 
         # Check whether there are files assigned to more than one set (Training / Validation / Testing)
         intersection_check = find_intersection_3lists(indexes_training_files, indexes_validation_files, indexes_testing_files)
@@ -98,59 +93,78 @@ def main(args):
             message = 'Found files assigned to more than one set (Training / Validation / Testing): %s...' %(list_intersect_files)
             catch_error_exception(message)
 
+
     elif args.type_distribute == 'crossval' or \
          args.type_distribute == 'crossval_random':
         cvfolds_info_path = workdir_manager.get_pathdir_new(args.name_cvfolds_info_relpath)
-        name_cvfold_info_file_training   = join_path_names(cvfolds_info_path, 'train%0.2i.txt')
-        name_cvfold_info_file_validation = join_path_names(cvfolds_info_path, 'valid%0.2i.txt')
-        name_cvfold_info_file_testing    = join_path_names(cvfolds_info_path, 'test%0.2i.txt')
+        out_filename_cvfold_info_train = join_path_names(cvfolds_info_path, 'train%0.2i.txt')
+        out_filename_cvfold_info_valid = join_path_names(cvfolds_info_path, 'valid%0.2i.txt')
+        out_filename_cvfold_info_test  = join_path_names(cvfolds_info_path, 'test%0.2i.txt')
 
         indict_reference_keys = read_dictionary(in_reference_keys_file)
 
-        num_total_files      = len(list_input_images_files)
+        num_total_files = len(list_input_images_files)
+        indexes_input_files = np.arange(num_total_files)
+        if args.type_distribute == 'crossval_random':
+            print("Randomly shuffle the data before distributing, across all cv-folds...")
+            np.random.shuffle(indexes_input_files)
+
         if (num_total_files % args.num_folds_crossval != 0):
-            message = "Splitting \'%s\' total files in \'%s\' CV-folds does not result in even distribution..." %(num_total_files, args.num_folds_crossval)
+            message = "For cross-val, splitting \'%s\' files in \'%s\' folds is not evenly distributed..." %(num_total_files, args.num_folds_crossval)
             catch_error_exception(message)
 
-        num_testing_files    = num_total_files // args.num_folds_crossval
-        num_trainvalid_files = num_total_files - num_testing_files
-        propdata_valid_intrainvalid_files = args.dist_propdata_train_valid_test[1] * (num_total_files / (num_trainvalid_files + 1.0e-06))
-        num_validation_files = int(math.ceil(propdata_valid_intrainvalid_files * num_trainvalid_files))
-        num_training_files   = num_trainvalid_files - num_validation_files
+        list_indexes_files_split_cvfolds = np.array_split(indexes_input_files, args.num_folds_crossval)
 
-        print("Use proportion \'%s\' of validation files in each cv-fold, from input \'dist_propdata_train_valid_test\'..." %(args.dist_propdata_train_valid_test[1]))
-        print("For each CV-folds: num files for Training (%s)/ Validation (%s)/ Testing (%s)..." %(num_training_files, num_validation_files, num_testing_files))
+        num_testing_files_cvfolds      = len(list_indexes_files_split_cvfolds[0])
+        num_trainvalid_files_cvfolds   = num_total_files - num_testing_files_cvfolds
+        prop_valid_in_training_cvfolds = args.dist_propdata_train_valid_test[1] * (num_total_files/(num_trainvalid_files_cvfolds+1.0e-06))
+        num_validation_files_cvfolds   = int(math.ceil(prop_valid_in_training_cvfolds * num_trainvalid_files_cvfolds))
+        num_training_files_cvfolds     = num_trainvalid_files_cvfolds - num_validation_files_cvfolds
 
-        if args.type_distribute == 'crossval_random':
-            print("Before distributing files across cross-validation folds, randomize the Training / Validation / Testing data...")
-            indexes_input_files = np.random.choice(range(num_total_files), size=num_total_files, replace=False)
-        else:
-            indexes_input_files = range(num_total_files)
+        print("Use prop. of valid files in each training cv-fold \'%s\', from input \'dist_propdata_train_valid_test\'..." %(args.dist_propdata_train_valid_test[1]))
+        print("For each cv-fold, num files assigned for Training (%s) / Validation (%s) / Testing (%s)..."
+              % (num_training_files_cvfolds, num_validation_files_cvfolds, num_testing_files_cvfolds))
 
-        list_indexes_cvfolds_training_files   = []
-        list_indexes_cvfolds_validation_files = []
-        list_indexes_cvfolds_testing_files    = []
+
+        # to get ORDERED indexes for training + validation files in cv-folds
+        indexes_input_files_repeated = np.concatenate((indexes_input_files, indexes_input_files))
+
+        list_indexes_training_files_cvfolds   = []
+        list_indexes_validation_files_cvfolds = []
+        list_indexes_testing_files_cvfolds    = []
+
+        for indexes_files_split_cvfold in list_indexes_files_split_cvfolds:
+
+            pos_last_file_split_in_indexes = list(indexes_input_files).index(indexes_files_split_cvfold[-1])
+            indexes_testing_files    = indexes_files_split_cvfold
+            indexes_trainvalid_files = indexes_input_files_repeated[pos_last_file_split_in_indexes+1:
+                                                                    pos_last_file_split_in_indexes+1+num_trainvalid_files_cvfolds]
+            indexes_training_files   = indexes_trainvalid_files[:num_training_files_cvfolds]
+            indexes_validation_files = indexes_trainvalid_files[num_training_files_cvfolds:]
+
+            list_indexes_training_files_cvfolds  .append(indexes_training_files)
+            list_indexes_validation_files_cvfolds.append(indexes_validation_files)
+            list_indexes_testing_files_cvfolds   .append(indexes_testing_files)
+        # endfor
+
+
+        def write_file_cvfold_info(in_filename: str, indexes_files: List[int]) -> None:
+            with open(in_filename, 'w') as fout:
+                for index in indexes_files:
+                    in_image_file = list_input_images_files[index]
+                    in_reference_key = indict_reference_keys[basename_filenoext(in_image_file)]
+                    fout.write('%s\n' % (in_reference_key))
 
         for i in range(args.num_folds_crossval):
-            indexes_training_files   = indexes_input_files[0:num_training_files]
-            indexes_validation_files = indexes_input_files[num_training_files:num_training_files + num_validation_files]
-            indexes_testing_files    = indexes_input_files[num_training_files + num_validation_files::]
+            out_file_cvfold_info_train = out_filename_cvfold_info_train %(i+1)
+            out_file_cvfold_info_valid = out_filename_cvfold_info_valid %(i+1)
+            out_file_cvfold_info_test  = out_filename_cvfold_info_test  %(i+1)
+            print("For cv-fold %s, write distribution of files for Training / Validation / Testing in: %s, %s, %s..."
+                  % (i+1, basename(out_file_cvfold_info_train), basename(out_file_cvfold_info_valid), basename(out_file_cvfold_info_test)))
 
-            list_indexes_cvfolds_training_files.append(indexes_training_files)
-            list_indexes_cvfolds_validation_files.append(indexes_validation_files)
-            list_indexes_cvfolds_testing_files.append(indexes_testing_files)
-
-            # save assigned files for training / validation / testing in text files
-            list_training_files   = [indict_reference_keys[basename_filenoext(list_input_images_files[ind])] for ind in indexes_training_files]
-            list_validation_files = [indict_reference_keys[basename_filenoext(list_input_images_files[ind])] for ind in indexes_validation_files]
-            list_testing_files    = [indict_reference_keys[basename_filenoext(list_input_images_files[ind])] for ind in indexes_testing_files]
-
-            write_file_cvfold_info(name_cvfold_info_file_training %(i+1), list_training_files)
-            write_file_cvfold_info(name_cvfold_info_file_validation %(i+1), list_validation_files)
-            write_file_cvfold_info(name_cvfold_info_file_testing %(i+1), list_testing_files)
-
-            # roll indexes once more to distribute evenly files for next cv-fold
-            indexes_input_files = np.roll(indexes_input_files, num_testing_files)
+            write_file_cvfold_info(out_file_cvfold_info_train, list_indexes_training_files_cvfolds[i])
+            write_file_cvfold_info(out_file_cvfold_info_valid, list_indexes_validation_files_cvfolds[i])
+            write_file_cvfold_info(out_file_cvfold_info_test,  list_indexes_testing_files_cvfolds[i])
         # endfor
 
 
@@ -181,20 +195,20 @@ def main(args):
     if args.type_distribute == 'crossval' or \
        args.type_distribute == 'crossval_random':
         for i in range(args.num_folds_crossval):
-            print("\nFor CV-fold %s: Files assigned to Training Data:" %(i+1))
+            print("\nFor cv-fold %s: Files assigned to Training Data:" %(i+1))
             training_data_path = workdir_manager.get_pathdir_new(args.name_training_data_relpath %(i+1))
 
-            create_links_images_files_assigned_group(list_indexes_cvfolds_training_files[i], training_data_path)
+            create_links_images_files_assigned_group(list_indexes_training_files_cvfolds[i], training_data_path)
 
-            print("For CV-fold %s: Files assigned to Validation Data:" %(i+1))
+            print("For cv-fold %s: Files assigned to Validation Data:" %(i+1))
             validation_data_path = workdir_manager.get_pathdir_new(args.name_validation_data_relpath %(i+1))
 
-            create_links_images_files_assigned_group(list_indexes_cvfolds_validation_files[i], validation_data_path)
+            create_links_images_files_assigned_group(list_indexes_validation_files_cvfolds[i], validation_data_path)
 
-            print("For CV-fold %s: Files assigned to Testing Data:" %(i+1))
+            print("For cv-fold %s: Files assigned to Testing Data:" %(i+1))
             testing_data_path = workdir_manager.get_pathdir_new(args.name_testing_data_relpath %(i+1))
 
-            create_links_images_files_assigned_group(list_indexes_cvfolds_testing_files[i], testing_data_path)
+            create_links_images_files_assigned_group(list_indexes_testing_files_cvfolds[i], testing_data_path)
         # endfor
     else:
         print("\nFiles assigned to Training Data:")

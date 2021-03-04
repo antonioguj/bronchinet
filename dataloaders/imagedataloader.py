@@ -76,12 +76,13 @@ class ImageDataInBatchesLoader(ImageDataLoader):
     def _shuffle_data(in_imagedata_1: np.ndarray,
                       in_imagedata_2: np.ndarray = None
                       ) -> Tuple[np.ndarray, Any]:
-        # generate random indexes to shuffle the image data
-        random_indexes = np.random.choice(range(in_imagedata_1.shape[0]), size=in_imagedata_1.shape[0], replace=False)
+        # randomly shuffle the elements in image data
+        indexes_shuffled = np.arange(in_imagedata_1.shape[0])
+        np.random.shuffle(indexes_shuffled)
         if in_imagedata_2 is not None:
-            return (in_imagedata_1[random_indexes[:]], in_imagedata_2[random_indexes[:]])
+            return (in_imagedata_1[indexes_shuffled[:]], in_imagedata_2[indexes_shuffled[:]])
         else:
-            return (in_imagedata_1[random_indexes[:]], None)
+            return (in_imagedata_1[indexes_shuffled[:]], None)
 
     def load_1file(self,
                    filename: str,
