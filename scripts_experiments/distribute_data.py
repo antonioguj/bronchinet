@@ -82,7 +82,7 @@ def main(args):
         indict_reference_keys    = read_dictionary(in_reference_keys_file)
         list_in_reference_keys   = list(indict_reference_keys.values())
 
-        indexes_training_files   = search_indexes_in_files_from_reference_keys(args.infile_train_order, list_in_reference_keys)
+        indexes_training_files   = search_indexes_in_files_from_reference_keys(args.infile_order_train, list_in_reference_keys)
         indexes_validation_files = search_indexes_in_files_from_reference_keys(args.infile_valid_order, list_in_reference_keys)
         indexes_testing_files    = search_indexes_in_files_from_reference_keys(args.infile_test_order,  list_in_reference_keys)
 
@@ -241,7 +241,7 @@ if __name__ == "__main__":
     parser.add_argument('--type_data', type=str, default='training')
     parser.add_argument('--type_distribute', type=str, default='original')
     parser.add_argument('--dist_propdata_train_valid_test', type=str2tuple_float, default=DIST_PROPDATA_TRAINVALIDTEST)
-    parser.add_argument('--infile_train_order', type=str, default=None)
+    parser.add_argument('--infile_order_train', type=str, default=None)
     parser.add_argument('--num_folds_crossval', type=int, default=None)
     args = parser.parse_args()
 
@@ -265,15 +265,15 @@ if __name__ == "__main__":
         catch_error_exception(message)
 
     if args.type_distribute == 'orderfile':
-        if not args.infile_train_order:
-            message = 'Input \'infile_train_order\' file for \'orderfile\' data distribution is needed...'
+        if not args.infile_order_train:
+            message = 'Input \'infile_order_train\' file for \'orderfile\' data distribution is needed...'
             catch_error_exception(message)
         else:
-            args.infile_valid_order = args.infile_train_order.replace('train', 'valid')
-            args.infile_test_order = args.infile_train_order.replace('train', 'test')
+            args.infile_valid_order = args.infile_order_train.replace('train', 'valid')
+            args.infile_test_order = args.infile_order_train.replace('train', 'test')
 
-            if not is_exist_file(args.infile_train_order):
-                message = 'Input \'infile_train_order\' file does not exist: \'%s\'...' %(args.infile_train_order)
+            if not is_exist_file(args.infile_order_train):
+                message = 'Input \'infile_order_train\' file does not exist: \'%s\'...' %(args.infile_order_train)
                 catch_error_exception(message)
             if not is_exist_file(args.infile_valid_order):
                 message = 'Input \'infile_valid_order\' file does not exist: \'%s\'...' %(args.infile_valid_order)
@@ -288,10 +288,10 @@ if __name__ == "__main__":
             message = 'Input \'num_folds_crossval\' for \'crossval\' data distribution is needed...'
             catch_error_exception(message)
         else:
-            args.name_training_data_relpath   = set_dirname_suffix(args.name_training_data_relpath, 'CV%0.2i')
-            args.name_validation_data_relpath = set_dirname_suffix(args.name_validation_data_relpath, 'CV%0.2i')
-            args.name_testing_data_relpath    = set_dirname_suffix(args.name_testing_data_relpath, 'CV%0.2i')
-            args.name_cvfolds_info_relpath    = 'CVfoldsInfo/'
+            args.name_training_data_relpath  = set_dirname_suffix(args.name_training_data_relpath, 'CV%0.2i')
+            args.name_validation_data_relpath= set_dirname_suffix(args.name_validation_data_relpath, 'CV%0.2i')
+            args.name_testing_data_relpath   = set_dirname_suffix(args.name_testing_data_relpath, 'CV%0.2i')
+            args.name_cvfolds_info_relpath   = 'CVfoldsInfo/'
 
 
     print("Print input arguments...")

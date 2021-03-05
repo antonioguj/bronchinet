@@ -1,9 +1,9 @@
-# AirwaySegmentationFramework
-Framework to do airway segmentation from chest CTs using deep Convolutional Neural Networks.
-Implemented in Pytorch, using deep learning libraries i) Keras or ii) Pytorch.
+# AirwaySegmentation framework
+Code for airway segmentation from chest CTs using deep Convolutional Neural Networks.
+Implemented in python3, and both Pytorch and Keras.
 
 # Dependencies
-Need to intall the following python packages (recommended to use virtualenv):
+Need to intall these python packages (recommended to use virtualenv):
 - elasticdeform (>= 0.4.6) (from https://github.com/gvtulder/elasticdeform/)
 - h5py (>= 2.10.0)
 - keras (>= 2.3.1)
@@ -28,48 +28,56 @@ Need to intall the following python packages (recommended to use virtualenv):
 - torchvision (>= 0.6.0)
 - tqdm (>= 4.46.0)
 
-And the following libraries to run deep learning on GPUs:
+And these libraries to run deep learning on GPUs:
 - cuda (>= 10.2): https://developer.nvidia.com/cuda-zone
 - cuDNN (>= 7.6.5): https://developer.nvidia.com/rdp/cudnn-download
 
 # Setting up framework
-1) Create working directory and set-up the framework:
+Create working directory and set up the framework:
 - mkdir <working_dir> && cd <working_dir>
-- ln -s <directory_where_your_data_is> BaseData
-- ln -s <directory_where_you_store_this_framework> Code
+- ln -s <dir_where_data_stored> BaseData
+- ln -s <dir_where_this_framework> Code
 
-(The settings for scripts below are input in the file ./Code/common/constants.py)
-(if needed, indicate "export PYTHONPATH=./Code" in the "~/.bashrc" file)
+(All settings for the scripts below are in the file ./Code/common/constants.py)
+[IF NEEDED] (indicate "export PYTHONPATH=./Code" in the "~/.bashrc" file)
 
 # Preprocessing data
-2) Preprocess data: apply various preprocessing techniques to input data / masks, if needed: rescaling, binarise masks
-- python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[different options]
+1) [IF NEEDED] Preprocess data: apply various operations to input images / masks: rescaling, binarise masks
+- python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[various option]
 
-3) Compute Bounding-boxes of input images:
-- python ./Code/scripts_evalresults/compute_boundingbox_images.py
+2) [IF NEEDED] Compute bounding-boxes around lung masks, for input images:
+- python ./Code/scripts_prepdata/compute_boundingbox_images.py --datadir=[path_dir_dataset]
 
-4) Prepare working data: including cropping images / masking ground-truth to lung region...
-- python ./Code/scripts_experiments/prepare_data.py
+3) Prepare data: include i) crop images, ii) mask ground-truth to lung regions, iii) rescale images.
+- python ./Code/scripts_prepdata/prepare_data.py --datadir=[path_dir_dataset]
 
 # Training models
-5) Distribute data in training / validation / testing:
-- python ./Code/scripts_experiments/distribute_data_train_valid_test.py
+1) Distribute data in training / validation / testing:
+- python ./Code/scripts_experiments/distribute_data.py --basedir=[path_dir_workdir]
 
-6) Train models:
-- python ./Code/scripts_experiments/train_model.py --modelsdir=<dir_output_models> [if restart model: --in_config_file=<file_config> --is_restart_model=True]
+2) Train models:
+- python ./Code/scripts_experiments/train_model.py --basedir=[path_dir_workdir] --modelsdir=<dir_output_models> [IF RESTART: --in_config_file=<file_config> --is_restart_model=True]
 
 # Predictions / Postprocessing
-7) Compute predictions form trained model:
-- python ./Code/scripts_experiments/predict_model.py <file_trained_model> <dir_output_predictions> --in_config_file=<file_config>
+1) Compute predictions form trained model:
+- python ./Code/scripts_experiments/predict_model.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir] --in_config_file=<file_config>
 
-8) Compute predicted binary masks from probability maps:
-- python ./Code/scripts_evalresults/postprocess_predictions.py <dir_input_pred_probable_maps> <dir_output_pred_binary_masks>
+2) Compute full-size probability maps from predictions:
+- python ./Code/scripts_evalresults/postprocess_predictions.py <dir_output_predictions> <dir_output_probmaps> --basedir=[path_dir_workdir]
 
-9) Compute predicted centrelines from binary masks:
-- python ./Code/scripts_util/apply_operation_images.py <dir_input_pred_binary_masks> <dir_output_pred_centrelines> --type=thinning
+3) Compute airway binary mask from probability maps:
+- python ./Code/scripts_evalresults/process_predicted_airway_tree.py <dir_output_probmaps> <dir_output_binmasks> --basedir=[path_dir_workdir]
+- rm -r <dir_output_predictions>
 
-10) Compute results metrics / accuracy:
-- python ./Code/scripts_evalresults/compute_result_metrics.py <dir_input_predictions> --inputcentrelinesdir=<dir_input_pred_centrelines>
+4) [IF NEEDED] Compute largest connected component of airway binary masks:
+- python ./Code/scripts_util/apply_operation_images.py <dir_output_binmasks> <dir_output_conn_binmasks> --type=firstconreg
+- rm -r <dir_output_binmasks> && mv <dir_output_conn_binmasks> <dir_output_binmasks>
 
-(7-8-9-10) Do steps 7-8-9-10 at once:)
-- python ./Code/scripts_evalresults/launch_pipeline_predictions.py <file_trained_model> <dir_output_predictions>
+5) [IF NEEDED] Compute centrelines from airway binary masks:
+- python ./Code/scripts_util/apply_operation_images.py <dir_output_binmasks> <dir_output_centrelines> --type=thinning
+
+6) Compute results metrics / accuracy:
+- python ./Code/scripts_evalresults/compute_result_metrics.py <dir_output_binmasks> --basedir=[path_dir_workdir] [IF NEEDED:--inputcentrelinesdir=<dir_output_centrelines>]
+
+[ALTERNATIVE] Do steps 1-6 at once:
+- python ./Code/scripts_evalresults/launch_predictions_full.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir]

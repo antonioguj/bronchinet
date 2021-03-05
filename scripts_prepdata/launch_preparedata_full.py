@@ -13,10 +13,10 @@ SCRIPT_BINARISE_MASKS           = join_path_names(CODEDIR, 'scripts_util/apply_o
 SCRIPT_GET_TRACHEA_MAIN_BRONCHI = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
 SCRIPT_COMPUTE_CENTRELINES      = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
 SCRIPT_RESCALE_ROI_MASKS        = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
-SCRIPT_EXTEND_CROPPED_IMAGES    = join_path_names(CODEDIR, 'scripts_util/specific_Dlcst/extend_cropped_images_fullsize.py')
-SCRIPT_CALC_RESCALE_FACTOR_IMAGES=join_path_names(CODEDIR, 'scripts_evalresults/compute_rescalefactor_images.py')
-SCRIPT_CALC_BOUNDING_BOX_IMAGES = join_path_names(CODEDIR, 'scripts_evalresults/compute_boundingbox_images.py')
-SCRIPT_PREPARE_DATA             = join_path_names(CODEDIR, 'scripts_experiments/prepare_data.py')
+SCRIPT_EXTEND_CROPPED_IMAGES    = join_path_names(CODEDIR, 'scripts_prepdata/specific_Dlcst/extend_cropped_images_fullsize.py')
+SCRIPT_CALC_RESCALE_FACTOR_IMAGES=join_path_names(CODEDIR, 'scripts_prepdata/compute_rescalefactor_images.py')
+SCRIPT_CALC_BOUNDING_BOX_IMAGES = join_path_names(CODEDIR, 'scripts_prepdata/compute_boundingbox_images.py')
+SCRIPT_PREPARE_DATA             = join_path_names(CODEDIR, 'scripts_prepdata/prepare_data.py')
 
 CLUSTER_ARCHIVE_DIR = 'agarcia@bigr-app001:/scratch/agarcia/Data/'
 
