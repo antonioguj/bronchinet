@@ -81,3 +81,4 @@ Create working directory and set up the framework:
 
 [ALTERNATIVE] Do steps 1-6 at once:
 - python ./Code/scripts_evalresults/launch_predictions_full.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir]
+
