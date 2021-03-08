@@ -72,14 +72,6 @@ def main(args):
     else:
         use_validation_data = False
 
-
-    # write out experiment parameters in config file
-    out_config_params_file = join_path_names(models_path, NAME_CONFIG_PARAMS_FILE)
-    if not is_exist_file(out_config_params_file):
-        print("Write configuration parameters in file: \'%s\'..." % (out_config_params_file))
-        dict_args = OrderedDict(sorted(vars(args).items()))
-        save_dictionary_configparams(out_config_params_file, dict_args)
-
     # write out logs with the training and validation files files used
     out_traindata_logfile = join_path_names(models_path, NAME_TRAINDATA_LOGFILE)
     write_train_valid_data_logfile(out_traindata_logfile, list_train_images_files, indict_reference_keys, 'training')
@@ -87,6 +79,13 @@ def main(args):
     if use_validation_data:
         out_validdata_logfile = join_path_names(models_path, NAME_VALIDDATA_LOGFILE)
         write_train_valid_data_logfile(out_validdata_logfile, list_valid_images_files, indict_reference_keys, 'validation')
+
+    # write out experiment parameters in config file
+    out_config_params_file = join_path_names(models_path, NAME_CONFIG_PARAMS_FILE)
+    if not args.is_restart_model or (args.is_restart_model and args.is_restart_only_weights):
+        print("Write configuration parameters in file: \'%s\'..." % (out_config_params_file))
+        dict_args = OrderedDict(sorted(vars(args).items()))
+        save_dictionary_configparams(out_config_params_file, dict_args)
 
 
     # BUILDING MODEL
@@ -139,7 +138,6 @@ def main(args):
                                    is_validation_data=use_validation_data,
                                    freq_save_check_model=FREQ_SAVE_INTER_MODELS,
                                    freq_validate_model=FREQ_VALIDATE_MODEL)
-
     #model_trainer.summary_model()
 
     if (WRITE_OUT_DESC_MODEL_TEXT):
@@ -207,7 +205,7 @@ def main(args):
     print("\nTraining model...")
     print("-" * 30)
 
-    if (args.is_restart_model and not args.is_restart_only_weights):
+    if args.is_restart_model:
         if 'last' in basename(model_restart_file):
             loss_history_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
             restart_epoch = get_restart_epoch_from_loss_history_file(loss_history_filename)

@@ -10,6 +10,11 @@ TYPES_PLOT_AVAILABLE = ['plot', 'scatter', 'boxplot']
 
 
 def main(args):
+    # ---------- SETTINGS ----------
+    save_plot_figures = False
+    template_outfigname = 'fig_%s' %(args.type) + '_%s.png'
+    # ---------- SETTINGS ----------
+
 
     if args.fromfile:
         if not is_exist_file(args.list_input_files):
@@ -27,15 +32,7 @@ def main(args):
         print("%s: \'%s\'" %(i+1, ifile))
     # endfor
 
-
-    # ---------- SETTINGS ----------
-    labels = ['model_%i'%(i+1) for i in range(num_input_files)]
-    #labels = ['U-Net', 'kNN-VS']
-    #labels = ['U-Net', 'kNN-VS', 'LOP']
-    #titles = ['Dice Coefficient (DSC)', 'Tree Length (TL) (%)', 'Volume Leakage (VL) (%)', 'Centerline Leakage (CL) (%)', 'Branch Count (BC)']
-    save_plot_figures = False
-    template_outfigname = 'fig_%s' %(args.type) + '_%s.png'
-    # ---------- SETTINGS ----------
+    labels_files = ['model_%i'%(i+1) for i in range(num_input_files)]
 
 
 
@@ -52,7 +49,7 @@ def main(args):
         list_fields = [elem.replace('/', '') for elem in header_this[1:]]
         data_this   = raw_data_this_float[1:, 1:]
 
-        labels = list_fields
+        labels_files = list_fields
 
         dict_data_fields_files['All'] = []
         # store data from this file
@@ -72,7 +69,7 @@ def main(args):
 
             if i == 0:
                 header_file     = header_this
-                rows1elem_file  = rows1elem_this
+                #rows1elem_file  = rows1elem_this
                 list_fields_file= [elem.replace('/', '') for elem in header_file[1:]]
 
                 for ifield in list_fields_file:
@@ -99,22 +96,19 @@ def main(args):
 
     for i, (ifield, data_files) in enumerate(dict_data_fields_files.items()):
 
-        if ifield in ['completeness', 'volume_leakage', 'cenline_leakage']:
-            data_files = [elem*100 for elem in data_files]
-
         if args.type == 'plot':
             for i, idata in enumerate(data_files):
                 xrange = range(1, len(idata)+1)
-                plt.plot(xrange, idata, label=labels[i])
+                plt.plot(xrange, idata, label=labels_files[i])
 
         elif args.type == 'scatter':
             for i, idata in enumerate(data_files):
                 xrange = range(1, len(idata)+1)
-                plt.scatter(xrange, idata, label=labels[i])
+                plt.scatter(xrange, idata, label=labels_files[i])
 
         elif args.type == 'boxplot':
-            # plt.boxplot(data_files, labels=labels)
-            sns.boxplot  (data=data_files, palette='Set2', width=0.8)
+            #plt.boxplot(data_files, labels=labels_files)
+            sns.boxplot  (data=data_files, palette='Set2')
             sns.swarmplot(data=data_files, color=".25")
 
         else:
@@ -123,13 +117,12 @@ def main(args):
 
 
         if args.type == 'boxplot':
-            plt.xticks(plt.xticks()[0], labels, size=20)
-            plt.yticks(plt.yticks()[0], size=15)
+            plt.xticks(plt.xticks()[0], labels_files)
+            plt.yticks(plt.yticks()[0])
         else:
-            plt.xlabel('Num cases', size=20)
+            plt.xlabel('Num cases')
             plt.legend(loc='best')
-        plt.title(ifield.title(), size=20)
-        #plt.title(titles[i], size=20)
+        plt.title(ifield.title())
 
         if save_plot_figures:
             outfigname = template_outfigname % (ifield)

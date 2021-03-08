@@ -24,20 +24,8 @@ def main(args):
         print("%s: \'%s\'" %(i+1, ifile))
     # endfor
 
-
-    # ---------- SETTINGS ----------
     labels_train = ['train_%i'%(i+1) for i in range(num_input_files)]
     labels_valid = ['valid_%i'%(i+1) for i in range(num_input_files)]
-    #labels_train = ['loss', 'loss_avrg20ep', 'loss_avrg50ep']
-    #labels_valid = labels_train
-
-    if (num_input_files==1):
-        colors = ['blue']
-    else:
-        cmap = plt.get_cmap('rainbow')
-        colors = [cmap(float(i)/(num_input_files-1)) for i in range(num_input_files)]
-        #colors = ['blue', 'red', 'green', 'yellow', 'orange']
-    # ---------- SETTINGS ----------
 
 
 
@@ -108,11 +96,15 @@ def main(args):
             plt.show()
 
         else:
+            cmap = plt.get_cmap('rainbow')
+            colors = [cmap(float(i) / (num_input_files - 1)) for i in range(num_input_files)]
+
             fig, axs = plt.subplots(1, 2, figsize=(15, 5))
             for i in range(num_data_files):
                 axs[0].plot(epochs_files[i], data_files[i][0], color=colors[i], label=labels_train[i])
                 axs[1].plot(epochs_files[i], data_files[i][1], color=colors[i], label=labels_valid[i])
             #endfor
+
             axs[0].set_xlabel('Epoch')
             axs[0].set_ylabel(ifield.title())
             axs[0].set_title('Training')

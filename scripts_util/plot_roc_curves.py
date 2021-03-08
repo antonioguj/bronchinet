@@ -40,9 +40,6 @@ def main(args):
     name_metrics_Xaxis = 'Volume Leakage (%)'
     name_metrics_Yaxis = 'Completeness (%)'
     names_outfiles = 'figure_ROCcurve_detail.eps'
-
-    #labels = ['UnetLev3', 'UnetLev5', 'UGnnReg', 'UGnnDyn']
-    colors = ['green', 'orange', 'blue', 'red']
     # ---------- SETTINGS ----------
 
 
@@ -55,13 +52,14 @@ def main(args):
         print("\'input_files\' = %s" % (list_input_files))
     else:
         list_input_files = [infile.replace('\n','') for infile in args.input_files]
-    num_data_files = len(list_input_files)
+    num_input_files = len(list_input_files)
 
-    print("Files to plot ROC curves from: \'%s\'..." %(num_data_files))
+    print("Files to plot ROC curves from: \'%s\'..." %(num_input_files))
     for i, ifile in enumerate(list_input_files):
         print("%s: \'%s\'" %(i+1, ifile))
     # endfor
 
+    labels_files = ['model_%i' % (i + 1) for i in range(num_input_files)]
 
     if args.is_annotations:
         if not is_exist_file(args.input_annotate_files):
@@ -70,8 +68,8 @@ def main(args):
         list_input_annotate_files = [infile.replace('\n', '') for infile in args.input_annotate_files]
 
         num_annotate_files = len(list_input_annotate_files)
-        if num_annotate_files != num_data_files:
-            message = "Num annotation files \'%s\' not equal to num data files \'%s\'..." %(num_annotate_files, num_data_files)
+        if num_annotate_files != num_input_files:
+            message = "Num annotation files \'%s\' not equal to num data files \'%s\'..." %(num_annotate_files, num_input_files)
             catch_error_exception(message)
 
         print("Files for annotations (\'%s\')..." % (num_annotate_files))
@@ -79,7 +77,6 @@ def main(args):
             print("%s: \'%s\'" % (i+1, ifile))
         # endfor
 
-    labels = ['model_%i'%(i+1) for i in range(num_data_files)]
 
 
     threshold_list = []
@@ -118,7 +115,7 @@ def main(args):
         # endfor
 
 
-    if num_data_files == 1:
+    if num_input_files == 1:
         plt.plot(data_Xaxis_list[0], data_Yaxis_list[0], 'o-', color='b')
 
         if args.is_annotations:
@@ -127,35 +124,28 @@ def main(args):
         plt.ylabel(name_metrics_Yaxis)
         plt.show()
 
-    else: #num_data_files != 1:
-        #cmap = plt.get_cmap('rainbow')
-        #colors = [cmap(float(i)/(num_data_files-1)) for i in range(num_data_files)]
+    else: #num_input_files != 1:
+        cmap = plt.get_cmap('rainbow')
+        colors = [cmap(float(i)/(num_input_files-1)) for i in range(num_input_files)]
 
-        for i in range(num_data_files):
-            plt.plot(data_Xaxis_list[i], data_Yaxis_list[i], color=colors[i], label=labels[i])
-        #endfor
+        for i in range(num_input_files):
+            plt.plot(data_Xaxis_list[i], data_Yaxis_list[i], color=colors[i], label=labels_files[i])
+        # endfor
 
         if args.is_annotations:
             for i in range(num_annotate_files):
                 plt.scatter(annotation_Xaxis_list[i], annotation_Yaxis_list[i], marker='o', color=colors[i], s=50)
-            #endfor
+            # endfor
 
         plt.xticks(plt.xticks()[0])
         plt.yticks(plt.yticks()[0])
-        plt.xlabel(name_metrics_Xaxis, size=15)
-        plt.ylabel(name_metrics_Yaxis, size=15)
-        plt.xticks(plt.xticks()[0], size=15)
-        plt.yticks(plt.yticks()[0], size=15)
-        #plt.xlim([0,100])
-        #plt.ylim([0,100])
-        #plt.xlim([7,17])
-        #plt.ylim([65,80])
-        plt.legend(loc='best', fontsize=15)
-        plt.title('ROC curve', size=25)
+        plt.xlabel(name_metrics_Xaxis)
+        plt.ylabel(name_metrics_Yaxis)
+        plt.legend(loc='best')
+        plt.title('ROC curve')
         plt.show()
         #plt.savefig(names_outfiles, format='eps', dpi=1000)
         #plt.close()
-
 
 
 
