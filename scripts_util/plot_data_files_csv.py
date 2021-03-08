@@ -49,13 +49,13 @@ def main(args):
         list_fields = [elem.replace('/', '') for elem in header_this[1:]]
         data_this   = raw_data_this_float[1:, 1:]
 
-        labels_files = list_fields
-
         dict_data_fields_files['All'] = []
         # store data from this file
         for i, ifield in enumerate(list_fields):
             dict_data_fields_files['All'].append(data_this[:, i])
         # endfor
+
+        labels_files = list_fields
 
     else:
         for i, in_file in enumerate(list_input_files):

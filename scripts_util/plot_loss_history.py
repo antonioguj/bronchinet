@@ -51,8 +51,7 @@ def main(args):
         index_field_val_loss = list_fields.index('val_loss')
 
         dict_data_losses_fields_files['epoch'].append(data_this[:,0])
-        dict_data_losses_fields_files['loss'] .append([data_this[:,index_field_loss],
-                                                       data_this[:,index_field_val_loss]])
+        dict_data_losses_fields_files['loss'] .append([data_this[:,index_field_loss], data_this[:,index_field_val_loss]])
 
 
         # check whether there are extra fields, and that each has two columns: +1 for validation (with preffix 'val_%')
@@ -72,8 +71,7 @@ def main(args):
             index_field     = list_fields.index(i_field)
             index_field_val = list_fields.index(i_valid_field)
 
-            dict_data_losses_fields_files[i_field].append([data_this[:, index_field],
-                                                           data_this[:, index_field_val]])
+            dict_data_losses_fields_files[i_field].append([data_this[:, index_field], data_this[:, index_field_val]])
         # endfor
     # endfor
 
