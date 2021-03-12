@@ -31,7 +31,7 @@ Project Organization
     │   ├── scripts_evalresults	<- Scripts to evaluate results from models
     │   ├── scripts_experiments	<- Scripts to train and test models
     │   ├── scripts_prepdata  	<- Scripts to prepare data to train models
-    │   └── scripts_util  	<- Scripts for various utilities
+    │   └── scripts_util	<- Scripts for various utilities
     │
     └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
 
@@ -52,7 +52,7 @@ Requirements
 Instructions
 ------------
 
-# Create working directory and set up the framework:
+Create working directory and set up the framework:
 
 - mkdir <working_dir> && cd <working_dir>
 - ln -s <dir_data_stored> BaseData
@@ -62,7 +62,7 @@ Instructions
 
 [IF NEEDED] (in "~/.bashrc" file: export PYTHONPATH=<dir_this_framework>/bronchinet/")
 
-# Preprocessing data
+Preprocessing data
 
 1) [IF NEEDED] Preprocess data: apply various operations to input images / masks: rescaling, binarise masks
 - python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[various option]
@@ -73,7 +73,7 @@ Instructions
 3) Prepare data: include i) crop images, ii) mask ground-truth to lung regions, iii) rescale images.
 - python ./Code/scripts_prepdata/prepare_data.py --datadir=[path_dir_dataset]
 
-# Training models
+Training models
 
 1) Distribute data in training / validation / testing:
 - python ./Code/scripts_experiments/distribute_data.py --basedir=[path_dir_workdir]
@@ -81,7 +81,7 @@ Instructions
 2) Train models:
 - python ./Code/scripts_experiments/train_model.py --basedir=[path_dir_workdir] --modelsdir=<dir_output_models> [IF RESTART: --in_config_file=<file_config> --is_restart_model=True]
 
-# Predictions / Postprocessing
+Predictions / Postprocessing
 
 1) Compute predictions form trained model:
 - python ./Code/scripts_experiments/predict_model.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir] --in_config_file=<file_config>
