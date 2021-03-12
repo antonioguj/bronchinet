@@ -1,47 +1,69 @@
-# AirwaySegmentation framework
-Code for airway segmentation from chest CTs using deep Convolutional Neural Networks.
-Implemented in python3, and both Pytorch and Keras.
+BronchiNet
+==============================
 
-# Dependencies
-Need to intall these python packages (recommended to use virtualenv):
-- elasticdeform (>= 0.4.6) (from https://github.com/gvtulder/elasticdeform/)
-- h5py (>= 2.10.0)
-- keras (>= 2.3.1)
-- keras-applications (>= 1.0.8)
-- keras-preprocessing (>= 1.1.2)
-- matplotlib (>= 3.2.1)
-- nibabel (>= 3.1.0)
-- numpy (>= 1.18.4)
-- pandas (>= 1.0.3)
-- pillow (>= 7.1.2)
-- pydicom (>= 1.4.2)
-- scikit-image (>= 0.17.2)
-- scikit-learn (>= 0.23.1)
-- scipy (>= 1.4.1)
-- seaborn (>= 0.10.1)
-- simpleITX (>= 1.2.4)
-- tensorflow (>= 2.1.0)
-- tensorflow-gpu (>= 2.1.0)
-- tensorflow-tensorboard (>= 1.5.1)
-- torch (>= 1.5.0)
-- torchsummary (>= 1.5.1)
-- torchvision (>= 0.6.0)
-- tqdm (>= 4.46.0)
+Airway segmentation from chest CTs using deep Convolutional Neural Networks
 
-And these libraries to run deep learning on GPUs:
-- cuda (>= 10.2): https://developer.nvidia.com/cuda-zone
-- cuDNN (>= 7.6.5): https://developer.nvidia.com/rdp/cudnn-download
+Project Organization
+------------
 
-# Setting up framework
-Create working directory and set up the framework:
+    ├── LICENSE
+    ├── Makefile           <- Makefile with commands like `make data` or `make train`
+    ├── README.md          <- The top-level README for developers using this project.
+    │
+    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
+    │
+    ├── models             <- Trained and serialized models, model predictions, or model summaries
+    │
+    ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
+    │                         generated with `pip freeze > requirements.txt`
+    │
+    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
+    ├── bronchinet         <- Source code for use in this project.
+    │   │
+    │   ├── common         <- General files and utilities
+    │   ├── dataloaders    <- Modules to load data and batch generators
+    │   ├── imageoperators <- Various image operations
+    │   ├── models 	   <- All modules to define networks, metrics and optimizers
+    │   ├── plotting       <- Various plotting modules
+    │   ├── postprocessing <- Modules to postprocess the output of networks
+    │   ├── preprocessing  <- Modules to preprocess the images to feed to networks
+    │   │
+    │   ├── scripts_evalresults	<- Scripts to evaluate results from models
+    │   ├── scripts_experiments	<- Scripts to train and test models
+    │   ├── scripts_prepdata  	<- Scripts to prepare data to train models
+    │   └── scripts_util  	<- Scripts for various utilities
+    │
+    └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
+
+
+--------
+
+<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+
+Requirements
+------------
+
+(Recommended to use python virtualenv)
+- pip install -r requirements.txt
+
+- cuda >= 10.2 (https://developer.nvidia.com/cuda-zone)
+- cuDNN >= 7.6.5 (https://developer.nvidia.com/rdp/cudnn-download)
+
+Instructions
+------------
+
+# Create working directory and set up the framework:
+
 - mkdir <working_dir> && cd <working_dir>
-- ln -s <dir_where_data_stored> BaseData
-- ln -s <dir_where_this_framework> Code
+- ln -s <dir_data_stored> BaseData
+- ln -s <dir_this_framework> Code
 
-(All settings for the scripts below are in the file ./Code/common/constants.py)
-[IF NEEDED] (indicate "export PYTHONPATH=./Code" in the "~/.bashrc" file)
+(Default settings for all scripts below are in file ./bronchinet/common/constants.py)
+
+[IF NEEDED] (in "~/.bashrc" file: export PYTHONPATH=<dir_this_framework>/bronchinet/")
 
 # Preprocessing data
+
 1) [IF NEEDED] Preprocess data: apply various operations to input images / masks: rescaling, binarise masks
 - python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[various option]
 
@@ -52,6 +74,7 @@ Create working directory and set up the framework:
 - python ./Code/scripts_prepdata/prepare_data.py --datadir=[path_dir_dataset]
 
 # Training models
+
 1) Distribute data in training / validation / testing:
 - python ./Code/scripts_experiments/distribute_data.py --basedir=[path_dir_workdir]
 
@@ -59,6 +82,7 @@ Create working directory and set up the framework:
 - python ./Code/scripts_experiments/train_model.py --basedir=[path_dir_workdir] --modelsdir=<dir_output_models> [IF RESTART: --in_config_file=<file_config> --is_restart_model=True]
 
 # Predictions / Postprocessing
+
 1) Compute predictions form trained model:
 - python ./Code/scripts_experiments/predict_model.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir] --in_config_file=<file_config>
 
@@ -81,4 +105,3 @@ Create working directory and set up the framework:
 
 [ALTERNATIVE] Do steps 1-6 at once:
 - python ./Code/scripts_evalresults/launch_predictions_full.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir]
-
