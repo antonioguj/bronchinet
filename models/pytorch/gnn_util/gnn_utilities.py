@@ -18,8 +18,7 @@ def row_normalize(mx):
 def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     """Convert a scipy sparse matrix to a torch sparse tensor."""
     sparse_mx = sparse_mx.tocoo().astype(np.float32)
-    indices = torch.from_numpy(np.vstack((sparse_mx.row,
-                                          sparse_mx.col))).long()
+    indices = torch.from_numpy(np.vstack((sparse_mx.row, sparse_mx.col))).long()
     values = torch.from_numpy(sparse_mx.data)
     shape = torch.Size(sparse_mx.shape)
     return torch.sparse.FloatTensor(indices, values, shape)
@@ -39,13 +38,11 @@ def to_2d_idx(idx, num_cols):
 def dice_loss(preds, labels):
     "Return dice score. "
     preds_sq = preds**2
-    return 1 - (2. * (torch.sum(preds * labels)) + SMOOTH) / \
-            (preds_sq.sum() + labels.sum() + SMOOTH)
+    return 1 - (2. * (torch.sum(preds * labels)) + SMOOTH) / (preds_sq.sum() + labels.sum() + SMOOTH)
 
 def focalCE(preds, labels, gamma):
     "Return focal cross entropy"
-    loss = -torch.mean( ( ((1-preds)**gamma) * labels * torch.log(preds) ) \
-    + ( ((preds)**gamma) * (1-labels) * torch.log(1-preds) ) )
+    loss = -torch.mean( ( ((1-preds)**gamma) * labels * torch.log(preds) ) + ( ((preds)**gamma) * (1-labels) * torch.log(1-preds) ) )
     return loss
 
 def dice(preds, labels):

@@ -1,10 +1,10 @@
 
-import math
 from torch.autograd import Variable
 from torch.nn import init
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
+import math
 
 SIGMA = 1
 EPSILON = 1e-5
@@ -17,7 +17,6 @@ def alloc_memory_params_module(module):
         val_tensor_shape = params[1].shape
         value = nn.Parameter(torch.zeros(val_tensor_shape, device='cuda:0'), requires_grad=False)
         out_dict_params[key] = value
-    #endfor
     return out_dict_params
 
 def reset_parameters_graph_convolution(in_dict_params):
@@ -44,43 +43,38 @@ def reset_parameters_layer_norm(in_dict_params):
 
 
 class NodeGNN(nn.Module):
-    def __init__(self, nfeat, nhid, opFeat, dropout):
+    def __init__(self, nfeat, nhid, opfeat, dropout):
         super(NodeGNN, self).__init__()
-
-        self.fc1 = nn.Linear(nfeat, nhid)
-        self.fc2 = nn.Linear(nhid, nhid)
-
-        self.gc1 = GraphConvolutionFirstOrder(nhid, nhid)
-        self.gc2 = GraphConvolutionFirstOrder(nhid, nhid)
-        self.gc3 = GraphConvolutionFirstOrder(nhid, nhid)
-        self.gc4 = GraphConvolutionFirstOrder(nhid, opFeat)
-        self.ln1 = LayerNorm(nhid)
-
-        self.dropout = dropout
+        self._fc1 = nn.Linear(nfeat, nhid)
+        self._fc2 = nn.Linear(nhid, nhid)
+        self._gc1 = GraphConvolutionFirstOrder(nhid, nhid)
+        self._gc2 = GraphConvolutionFirstOrder(nhid, nhid)
+        self._gc3 = GraphConvolutionFirstOrder(nhid, nhid)
+        self._gc4 = GraphConvolutionFirstOrder(nhid, opfeat)
+        self._ln1 = LayerNorm(nhid)
+        self._dropout = dropout
 
     def _preprocess(self, in_adj):
-        self.adj = in_adj
+        self._adj = in_adj
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.ln1(x)
-
-        x = F.relu(self.gc1(x, self.adj))
-        x = F.relu(self.gc2(x, self.adj))
-        x = F.relu(self.gc3(x, self.adj))
-        x = F.relu(self.gc4(x, self.adj))
-
+        x = F.relu(self._fc1(x))
+        x = F.relu(self._fc2(x))
+        x = self._ln1(x)
+        x = F.relu(self._gc1(x, self._adj))
+        x = F.relu(self._gc2(x, self._adj))
+        x = F.relu(self._gc3(x, self._adj))
+        x = F.relu(self._gc4(x, self._adj))
         return x
 
-    def create_dict_params_module(self):
-        out_dict = {'fc1':self.fc1, 'fc2':self.fc2,
-                    'gc1':self.gc1, 'gc2':self.gc2, 'gc3':self.gc3, 'gc4':self.gc4,
-                    'ln1':self.ln1}
+    def _create_dict_params_module(self):
+        out_dict = {'fc1':self._fc1, 'fc2':self._fc2,
+                    'gc1':self._gc1, 'gc2':self._gc2, 'gc3':self._gc3, 'gc4':self._gc4,
+                    'ln1':self._ln1}
         return out_dict
 
     def alloc_state_dict_vars(self, basename_module='', reset_parameters=False):
-        dict_params_module = self.create_dict_params_module()
+        dict_params_module = self._create_dict_params_module()
 
         out_state_dict = {}
         for (key_mod, val_module) in dict_params_module.items():
@@ -104,7 +98,6 @@ class NodeGNN(nn.Module):
             for (key_par, val_params) in i_dict_params.items():
                 out_key = '.'.join([basename_module, key_mod, key_par])
                 out_state_dict[out_key] = val_params
-            #endfor
 
         return out_state_dict
 
@@ -112,29 +105,24 @@ class NodeGNN(nn.Module):
 class NodeGNNwithAttentionLayers(nn.Module):
     def __init__(self, nfeat, nhid, opFeat, dropout):
         super(NodeGNNwithAttentionLayers, self).__init__()
+        #self._fc1 = nn.Linear(nfeat, nhid)
+        #self._fc2 = nn.Linear(nhid, nhid)
+        #self._ln1 = LayerNorm(nhid)
+        self._gc1 = GraphAttentionLayer(nfeat, nhid)
+        self._gc2 = GraphAttentionLayer(nhid, opFeat)
+        #self._dropout = dropout
 
-        #self.fc1 = nn.Linear(nfeat, nhid)
-        #self.fc2 = nn.Linear(nhid, nhid)
-        #self.ln1 = LayerNorm(nhid)
-
-        self.gc1 = GraphAttentionLayer(nfeat, nhid)
-        self.gc2 = GraphAttentionLayer(nhid, opFeat)
-
-        #self.dropout = dropout
-
-    def _preprocess(self, (adj, n2e_in, n2e_out)):
-        self.adj = adj
-        self.n2e_in = n2e_in
-        self.n2e_out = n2e_out
+    def _preprocess(self, adj, n2e_in, n2e_out):
+        self._adj = adj
+        self._n2e_in = n2e_in
+        self._n2e_out = n2e_out
 
     def forward(self, x):
-        #x = F.relu(self.fc1(x))
-        #x = F.relu(self.fc2(x))
-        #x = self.ln1(x)
-
-        x = F.relu(self.gc1(x, self.adj, self.n2e_in, self.n2e_out))
-        x = F.relu(self.gc2(x, self.adj, self.n2e_in, self.n2e_out))
-
+        #x = F.relu(self._fc1(x))
+        #x = F.relu(self._fc2(x))
+        #x = self._ln1(x)
+        x = F.relu(self._gc1(x, self._adj, self._n2e_in, self._n2e_out))
+        x = F.relu(self._gc2(x, self._adj, self._n2e_in, self._n2e_out))
         return x
 
 
@@ -145,26 +133,26 @@ class GraphConvolution(nn.Module):
 
     def __init__(self, in_features, out_features, bias=True):
         super(GraphConvolution, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-        self.weight = nn.Parameter(torch.Tensor(in_features, out_features))
+        self._in_features = in_features
+        self._out_features = out_features
+        self._weight = nn.Parameter(torch.Tensor(in_features, out_features))
         if bias:
-            self.bias = nn.Parameter(torch.Tensor(out_features))
+            self._bias = nn.Parameter(torch.Tensor(out_features))
         else:
             self.register_parameter('bias', None)
-        self.reset_parameters()
+        self._reset_parameters()
 
-    def reset_parameters(self):
-        stdv = 1. / math.sqrt(self.weight.size(1))
-        self.weight.data.uniform_(-stdv, stdv)
-        if self.bias is not None:
-            self.bias.data.uniform_(-stdv, stdv)
+    def _reset_parameters(self):
+        stdv = 1. / math.sqrt(self._weight.size(1))
+        self._weight.data.uniform_(-stdv, stdv)
+        if self._bias is not None:
+            self._bias.data.uniform_(-stdv, stdv)
 
     def forward(self, input, adj):
-        support = torch.mm(input, self.weight)
+        support = torch.mm(input, self._weight)
         output = SparseMM()(adj, support)
-        if self.bias is not None:
-            return output + self.bias
+        if self._bias is not None:
+            return output + self._bias
         else:
             return output
 
@@ -177,48 +165,46 @@ class GraphAttentionLayer(nn.Module):
 
     def __init__(self, in_features, out_features, bias=True):
         super(GraphAttentionLayer, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-        self.weight_neighbor = nn.Parameter(
-            torch.Tensor(in_features, out_features))
-        self.weight_self = nn.Parameter(torch.Tensor(in_features, out_features))
-        self.a = nn.Parameter(torch.Tensor(2*out_features,1))
-        nn.init.xavier_uniform_(self.a.data, gain=1.414)
-        self.alpha = 0.2
-        self.leakyRelu = nn.LeakyReLU(self.alpha, inplace=True)
-        self.softmax = nn.Softmax(dim=1)
+        self._in_features = in_features
+        self._out_features = out_features
+        self._weight_neighbor = nn.Parameter(torch.Tensor(in_features, out_features))
+        self._weight_self = nn.Parameter(torch.Tensor(in_features, out_features))
+        self._a = nn.Parameter(torch.Tensor(2 * out_features, 1))
+        nn.init.xavier_uniform_(self._a.data, gain=1.414)
+        self._alpha = 0.2
+        self._leakyRelu = nn.LeakyReLU(self._alpha, inplace=True)
+        self._softmax = nn.Softmax(dim=1)
 
         if bias:
-            self.bias = nn.Parameter(torch.Tensor(out_features))
+            self._bias = nn.Parameter(torch.Tensor(out_features))
         else:
             self.register_parameter('bias', None)
-        self.reset_parameters()
+        self._reset_parameters()
 
-    def reset_parameters(self):
-        stdv = 1. / math.sqrt(self.weight_neighbor.size(1))
-        self.weight_neighbor.data.uniform_(-stdv, stdv)
-        self.weight_self.data.uniform_(-stdv, stdv)
-        if self.bias is not None:
-            self.bias.data.uniform_(-stdv, stdv)
+    def _reset_parameters(self):
+        stdv = 1. / math.sqrt(self._weight_neighbor.size(1))
+        self._weight_neighbor.data.uniform_(-stdv, stdv)
+        self._weight_self.data.uniform_(-stdv, stdv)
+        if self._bias is not None:
+            self._bias.data.uniform_(-stdv, stdv)
 
     def forward(self, input, adj, n2e_in, n2e_out):
         N = adj.shape[0]
 
         # Transform node activations Eq. (1)
-        h = torch.mm(input, self.weight_neighbor)
+        h = torch.mm(input, self._weight_neighbor)
 
         # Compute pairwise edge features (Terms inside Eq. (2))
         h_in = Variable(torch.mm(n2e_in, h), requires_grad=False)
         h_out = Variable(torch.mm(n2e_out,h), requires_grad=False)
-        hEdge = Variable(torch.cat([h_in, h_out],1), requires_grad=False)
+        h_edge = Variable(torch.cat([h_in, h_out],1), requires_grad=False)
 
         # Apply leakyReLU and weights for attention coefficients Eq.(2)
-        e = self.leakyRelu(torch.matmul(hEdge, self.a))
+        e = self._leakyRelu(torch.matmul(h_edge, self._a))
 
-        # Apply Softmax per node Eq.(3)
-        # Sparse implementation
-        numNgbrs = (adj.coalesce().indices()[0] == 0).sum()
-        attention = Variable(self.softmax(e.view(-1,numNgbrs)).view(-1), requires_grad=False)
+        # Apply Softmax per node Eq.(3) (Sparse implementation)
+        num_ngbrs = (adj.coalesce().indices()[0] == 0).sum()
+        attention = Variable(self._softmax(e.view(-1, num_ngbrs)).view(-1), requires_grad=False)
 
         idx = adj.coalesce().indices()
         val = adj.coalesce().values()
@@ -227,10 +213,9 @@ class GraphAttentionLayer(nn.Module):
         adj = torch.sparse.FloatTensor(idx,val*attention,(N,N))
 
         # Compute node updates with attention Eq. (4)
-
         output = SparseMM()(adj, h)
-        if self.bias is not None:
-            return output + self.bias
+        if self._bias is not None:
+            return output + self._bias
         else:
             return output
 
@@ -242,31 +227,30 @@ class GraphConvolutionFirstOrder(nn.Module):
 
     def __init__(self, in_features, out_features, bias=True):
         super(GraphConvolutionFirstOrder, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-        self.weight_neighbor = nn.Parameter(
-            torch.Tensor(in_features, out_features))
-        self.weight_self = nn.Parameter(torch.Tensor(in_features, out_features))
+        self._in_features = in_features
+        self._out_features = out_features
+        self._weight_neighbor = nn.Parameter(torch.Tensor(in_features, out_features))
+        self._weight_self = nn.Parameter(torch.Tensor(in_features, out_features))
         if bias:
-            self.bias = nn.Parameter(torch.Tensor(out_features))
+            self._bias = nn.Parameter(torch.Tensor(out_features))
         else:
             self.register_parameter('bias', None)
-        self.reset_parameters()
+        self._reset_parameters()
 
-    def reset_parameters(self):
-        stdv = 1. / math.sqrt(self.weight_neighbor.size(1))
-        self.weight_neighbor.data.uniform_(-stdv, stdv)
-        self.weight_self.data.uniform_(-stdv, stdv)
-        if self.bias is not None:
-            self.bias.data.uniform_(-stdv, stdv)
+    def _reset_parameters(self):
+        stdv = 1. / math.sqrt(self._weight_neighbor.size(1))
+        self._weight_neighbor.data.uniform_(-stdv, stdv)
+        self._weight_self.data.uniform_(-stdv, stdv)
+        if self._bias is not None:
+            self._bias.data.uniform_(-stdv, stdv)
 
     def forward(self, input, adj):
-        act_self = torch.mm(input, self.weight_self)
-        support_neighbor = torch.mm(input, self.weight_neighbor)
+        act_self = torch.mm(input, self._weight_self)
+        support_neighbor = torch.mm(input, self._weight_neighbor)
         act_neighbor = SparseMM()(adj, support_neighbor)
         output = act_self + act_neighbor
-        if self.bias is not None:
-            return output + self.bias
+        if self._bias is not None:
+            return output + self._bias
         else:
             return output
 
@@ -287,10 +271,8 @@ class SparseMM(torch.autograd.Function):
     def backward(self, grad_output):
         matrix1, matrix2 = self.saved_tensors
         grad_matrix1 = grad_matrix2 = None
-
         if self.needs_input_grad[0]:
             grad_matrix1 = torch.mm(grad_output, matrix2.t())
-
         if self.needs_input_grad[1]:
             grad_matrix2 = torch.mm(matrix1.t(), grad_output)
 
@@ -301,11 +283,11 @@ class LayerNorm(nn.Module):
 
     def __init__(self, features, eps=1e-6):
         super(LayerNorm, self).__init__()
-        self.gamma = nn.Parameter(torch.ones(features))
-        self.beta = nn.Parameter(torch.zeros(features))
-        self.eps = eps
+        self._gamma = nn.Parameter(torch.ones(features))
+        self._beta = nn.Parameter(torch.zeros(features))
+        self._eps = eps
 
     def forward(self, x):
         mean = x.mean(-1, keepdim=True)
         std = x.std(-1, keepdim=True)
-        return self.gamma * (x - mean) / (std + self.eps) + self.beta
+        return self._gamma * (x - mean) / (std + self._eps) + self._beta

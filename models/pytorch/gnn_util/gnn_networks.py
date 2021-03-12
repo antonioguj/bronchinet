@@ -16,8 +16,8 @@ torch.manual_seed(2017)
 from common.functionutil import join_path_names
 from common.exceptionmanager import catch_error_exception
 
-
 SOURCE_DIR_ADJS_DEFAULT = './Code/GNN/adj/'
+
 
 class NeuralNetwork(nn.Module):
 
@@ -575,7 +575,7 @@ class Unet3DGNN_OTF(NeuralNetwork):
                                                                          dist_neigh_max= self.dist_neigh_max_onthefly_adj)
             if self.isGNN_with_attention_lays:
                 print("Setting to load matrixes for attention layers in GNN module...")
-                self.funCalc_onthefly_adjacency = self.genOntheflyAdjacency.compute_with_attention_layers
+                self.funCalc_onthefly_adjacency = self.genOntheflyAdjacency.compute_with_attention
             else:
                 self.funCalc_onthefly_adjacency = self.genOntheflyAdjacency.compute
         else:
