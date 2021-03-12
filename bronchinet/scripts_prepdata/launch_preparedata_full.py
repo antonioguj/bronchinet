@@ -7,7 +7,7 @@ import sys
 import argparse
 
 
-CODEDIR                         = '/home/antonio/Codes/Antonio_repository/AirwaySegmentation/'
+CODEDIR                         = '/home/antonio/Codes/Antonio_repository/bronchinet/bronchinet/'
 SCRIPT_CONVERT_TO_NIFTI         = join_path_names(CODEDIR, 'scripts_util/convert_images_to_nifti.py')
 SCRIPT_BINARISE_MASKS           = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
 SCRIPT_GET_TRACHEA_MAIN_BRONCHI = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')

@@ -20,7 +20,7 @@ source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
 HOME="/trinity/home/agarcia/"
 WORKDIR="${HOME}/Results/AirwaySegmentation_IBEST/"
 
-export PYTHONPATH="${PYTHONPATH}:${WORKDIR}/Code/"
+export PYTHONPATH="${WORKDIR}/Code/:${PYTHONPATH}"
 
 # Load virtual environment
 source "${HOME}/Pyvenv-v.3.7.4/bin/activate"
