@@ -52,7 +52,8 @@ Requirements
 Instructions
 ------------
 
-Create working directory and set up the framework:
+Create working directory
+------------
 
 - mkdir <working_dir> && cd <working_dir>
 - ln -s <dir_data_stored> BaseData
@@ -62,7 +63,8 @@ Create working directory and set up the framework:
 
 [IF NEEDED] (in "~/.bashrc" file: export PYTHONPATH=<dir_this_framework>/bronchinet/")
 
-Preprocessing data
+Prepare data
+------------
 
 1) [IF NEEDED] Preprocess data: apply various operations to input images / masks: rescaling, binarise masks
 - python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[various option]
@@ -73,7 +75,8 @@ Preprocessing data
 3) Prepare data: include i) crop images, ii) mask ground-truth to lung regions, iii) rescale images.
 - python ./Code/scripts_prepdata/prepare_data.py --datadir=[path_dir_dataset]
 
-Training models
+Train models
+------------
 
 1) Distribute data in training / validation / testing:
 - python ./Code/scripts_experiments/distribute_data.py --basedir=[path_dir_workdir]
@@ -81,7 +84,8 @@ Training models
 2) Train models:
 - python ./Code/scripts_experiments/train_model.py --basedir=[path_dir_workdir] --modelsdir=<dir_output_models> [IF RESTART: --in_config_file=<file_config> --is_restart_model=True]
 
-Predictions / Postprocessing
+Test models
+------------
 
 1) Compute predictions form trained model:
 - python ./Code/scripts_experiments/predict_model.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir] --in_config_file=<file_config>
