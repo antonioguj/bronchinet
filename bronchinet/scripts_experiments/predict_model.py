@@ -47,7 +47,8 @@ def main(args):
     if TYPE_DNNLIB_USED == 'Keras':
         # CHECK WHETHER THIS IS NECESSARY
         model_trainer.create_loss(type_loss=args.type_loss,
-                                  is_mask_to_region_interest=args.is_mask_region_interest)
+                                  is_mask_to_region_interest=args.is_mask_region_interest,
+                                  size_image_in=args.size_in_images)
         model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
                                           is_mask_to_region_interest=args.is_mask_region_interest)
     if args.is_backward_compat:
@@ -99,7 +100,8 @@ def main(args):
                                                              use_random_window_images=False,
                                                              num_random_patches_epoch=0,
                                                              batch_size=1,
-                                                             is_shuffle=False)
+                                                             is_shuffle=False,
+                                                             is_load_images_from_batches=args.is_test_images_slices)
         print("Loaded \'%s\' files. Total batches generated: %s..." % (1, len(image_data_loader)))
 
 
@@ -118,7 +120,9 @@ def main(args):
 
             out_prediction_reconstructed = images_reconstructor.compute(out_prediction_batches)
         else:
-            out_prediction_reconstructed = np.squeeze(out_prediction_batches, axis=(0, -1))
+            out_prediction_reconstructed = np.squeeze(out_prediction_batches, axis=-1)
+            if out_prediction_reconstructed.shape[0] == 1:
+                out_prediction_reconstructed = np.squeeze(out_prediction_reconstructed, axis=0)
 
 
         # Output predictions
@@ -170,6 +174,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_save_featmaps_layers', type=str2bool, default=IS_SAVE_FEATMAPS_LAYERS)
     parser.add_argument('--name_save_feats_model_layer', type=str, default=NAME_SAVE_FEATS_MODEL_LAYER)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
+    parser.add_argument('--is_test_network_2D', type=str2bool, default=False)
     args = parser.parse_args()
 
     if args.in_config_file:
@@ -186,6 +191,18 @@ if __name__ == "__main__":
         args.is_mask_region_interest        = str2bool(input_args_file['is_mask_region_interest'])
         args.is_valid_convolutions          = str2bool(input_args_file['is_valid_convolutions'])
         args.is_reconstruct_preds_from_patches = str2bool(input_args_file['use_sliding_window_images']) or str2bool(input_args_file['use_random_window_images'])
+
+    if args.is_test_network_2D:
+        print("Test 2D model, with images as slices from volume scans...")
+        args.is_test_images_slices = True
+        if len(args.size_in_images) != 2:
+            message = "Wrong input \'size_in_images\': %s. To test 2D model, input size images must have 2 dims..." %(args.size_in_images)
+            catch_error_exception(message)
+    else:
+        args.is_test_images_slices = False
+        if len(args.size_in_images) != 3:
+            message = "Wrong input \'size_in_images\': %s. To test 3D model, input size images must have 3 dims..." %(args.size_in_images)
+            catch_error_exception(message)
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).items()):

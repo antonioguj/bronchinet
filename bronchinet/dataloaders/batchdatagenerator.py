@@ -87,10 +87,10 @@ class BatchImageDataGenerator_1Image(BatchDataGenerator):
             for index in range(num_images_file):
                 self._list_indexes_imagefile.append((ifile, index))
 
-            if is_print_datagen_info:
-                message = self._images_generator.get_text_description()
-                print("Image file: \'%s\'..." % (ifile))
-                print(message[:-1])   # remove trailing '\n'
+            # if is_print_datagen_info:
+            #     message = self._images_generator.get_text_description()
+            #     print("Image file: \'%s\'..." % (ifile))
+            #     print(message[:-1])   # remove trailing '\n'
 
         num_images = len(self._list_indexes_imagefile)
         return num_images
@@ -157,7 +157,8 @@ class BatchImageDataGenerator_2Images(BatchImageDataGenerator_1Image):
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_print_datagen_info: bool = True
+                 is_print_datagen_info: bool = True,
+                 is_check_2lists_same_size: bool = True
                  ) -> None:
         super(BatchImageDataGenerator_2Images, self).__init__(size_image,
                                                               list_Xdata,
@@ -173,7 +174,7 @@ class BatchImageDataGenerator_2Images(BatchImageDataGenerator_1Image):
         self._dtype_Ydata = list_Ydata[0].dtype
         self._num_classes_out = num_classes_out
 
-        if len(self._list_Xdata) != len(self._list_Ydata):
+        if is_check_2lists_same_size and len(self._list_Xdata) != len(self._list_Ydata):
             message = 'Size of list Xdata \'%s\' not equal to size of list Ydata \'%s\'' %(len(list_Xdata), len(list_Ydata))
             catch_error_exception(message)
 
@@ -245,3 +246,55 @@ class BatchImageDataGenerator_2Images(BatchImageDataGenerator_1Image):
         if self._is_output_nnet_validconvs:
             in_image = self._get_cropped_sample(in_image)
         return self._process_sample_Xdata(in_image)
+
+
+class BatchImageDataGenerator_ManyImagesPerLabel(BatchImageDataGenerator_2Images):
+
+    def __init__(self,
+                 size_image: Tuple[int, ...],
+                 num_images_per_label: int,
+                 list_Xdata: List[np.ndarray],
+                 list_Ydata: List[np.ndarray],
+                 images_generator: ImageGenerator,
+                 num_channels_in: int = 1,
+                 num_classes_out: int = 1,
+                 type_image_format: str = 'channels_last',
+                 is_output_nnet_validconvs: bool = False,
+                 size_output_image: Tuple[int, ...] = None,
+                 batch_size: int = 1,
+                 shuffle: bool = True,
+                 seed: int = None,
+                 is_print_datagen_info: bool = True
+                 ) -> None:
+        if len(list_Xdata) != num_images_per_label * len(list_Ydata):
+            message = 'Size of list Xdata \'%s\' not equal to size of list Ydata \'%s\' times the input \'num_images_per_label\' %s' \
+                      %(len(list_Xdata), len(list_Ydata), num_images_per_label)
+            catch_error_exception(message)
+
+        super(BatchImageDataGenerator_ManyImagesPerLabel, self).__init__(size_image,
+                                                                         list_Xdata,
+                                                                         list_Ydata,
+                                                                         images_generator,
+                                                                         num_channels_in=num_channels_in,
+                                                                         num_classes_out=num_classes_out,
+                                                                         type_image_format=type_image_format,
+                                                                         is_output_nnet_validconvs=is_output_nnet_validconvs,
+                                                                         size_output_image=size_output_image,
+                                                                         batch_size=batch_size,
+                                                                         shuffle=shuffle,
+                                                                         seed=seed,
+                                                                         is_print_datagen_info=is_print_datagen_info,
+                                                                         is_check_2lists_same_size=False)
+        self._num_images_per_label = num_images_per_label
+
+    def _get_data_sample(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
+        "Generate one sample of batch of data"
+        (index_file, index_image_file) = self._list_indexes_imagefile[index]
+        self._images_generator.update_image_data(self._list_Xdata[index_file].shape)
+        index_file_label = index_file // self._num_images_per_label
+
+        (out_Xdata_elem, out_Ydata_elem) = self._images_generator.get_2images(self._list_Xdata[index_file],
+                                                                              self._list_Ydata[index_file_label],
+                                                                              index=index_image_file, seed=None)
+        return (self._process_sample_Xdata(out_Xdata_elem),
+                self._process_sample_Ydata(out_Ydata_elem))

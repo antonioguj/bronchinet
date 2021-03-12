@@ -1,7 +1,7 @@
-BronchiNet
+(Derived from master BronchiNet)
 ==============================
 
-Airway segmentation from chest CTs using deep Convolutional Neural Networks
+Enhancement / reconstruction of MRI images using deep Convolutional Neural Networks
 
 Project Organization
 ------------
@@ -69,10 +69,7 @@ Prepare data
 1) [IF NEEDED] Preprocess data: apply various operations to input images / masks: rescaling, binarise masks
 - python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[various option]
 
-2) [IF NEEDED] Compute bounding-boxes around lung masks, for input images:
-- python ./Code/scripts_prepdata/compute_boundingbox_images.py --datadir=[path_dir_dataset]
-
-3) Prepare data: include i) crop images, ii) mask ground-truth to lung regions, iii) rescale images.
+3) Prepare data:
 - python ./Code/scripts_prepdata/prepare_data.py --datadir=[path_dir_dataset]
 
 Train models
@@ -88,24 +85,11 @@ Test models
 ------------
 
 1) Compute predictions form trained model:
-- python ./Code/scripts_experiments/predict_model.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir] --in_config_file=<file_config>
+- python ./Code/scripts_experiments/predict_model.py <file_trained_model> <dir_output_temp_predictions> --basedir=[path_dir_workdir] --in_config_file=<file_config>
 
 2) Compute full-size probability maps from predictions:
-- python ./Code/scripts_evalresults/postprocess_predictions.py <dir_output_predictions> <dir_output_probmaps> --basedir=[path_dir_workdir]
+- python ./Code/scripts_evalresults/postprocess_predictions.py <dir_output_temp_predictions> <dir_output_predictions> --basedir=[path_dir_workdir]
+- rm -r <dir_output_temp_predictions>
 
-3) Compute airway binary mask from probability maps:
-- python ./Code/scripts_evalresults/process_predicted_airway_tree.py <dir_output_probmaps> <dir_output_binmasks> --basedir=[path_dir_workdir]
-- rm -r <dir_output_predictions>
-
-4) [IF NEEDED] Compute largest connected component of airway binary masks:
-- python ./Code/scripts_util/apply_operation_images.py <dir_output_binmasks> <dir_output_conn_binmasks> --type=firstconreg
-- rm -r <dir_output_binmasks> && mv <dir_output_conn_binmasks> <dir_output_binmasks>
-
-5) [IF NEEDED] Compute centrelines from airway binary masks:
-- python ./Code/scripts_util/apply_operation_images.py <dir_output_binmasks> <dir_output_centrelines> --type=thinning
-
-6) Compute results metrics / accuracy:
-- python ./Code/scripts_evalresults/compute_result_metrics.py <dir_output_binmasks> --basedir=[path_dir_workdir] [IF NEEDED:--inputcentrelinesdir=<dir_output_centrelines>]
-
-[ALTERNATIVE] Do steps 1-6 at once:
-- python ./Code/scripts_evalresults/launch_predictions_full.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir]
+3) Compute results metrics / accuracy:
+- python ./Code/scripts_evalresults/compute_result_metrics.py <dir_output_predictions> --basedir=[path_dir_workdir]

@@ -72,6 +72,11 @@ def main(args):
     else:
         use_validation_data = False
 
+    if args.is_load_augmented_images_per_label:
+        if len(list_train_images_files) != args.num_augmented_images_per_label * len(list_train_labels_files):
+            message = "Num loaded augmented images (for Training) per label does not correspont to the input \'num_augmented_images_per_label\'..."
+            catch_error_exception(message)
+
     # write out logs with the training and validation files files used
     out_traindata_logfile = join_path_names(models_path, NAME_TRAINDATA_LOGFILE)
     write_train_valid_data_logfile(out_traindata_logfile, list_train_images_files, indict_reference_keys, 'training')
@@ -95,11 +100,12 @@ def main(args):
     model_trainer = ModelTrainer()
 
     if not args.is_restart_model or (args.is_restart_model and args.is_restart_only_weights):
+        num_channels_model = 2 if args.is_input_images_two_channels else 1
         model_trainer.create_network(type_network=args.type_network,
                                      size_image_in=args.size_in_images,
                                      num_levels=args.net_num_levels,
                                      num_featmaps_in=args.net_num_featmaps,
-                                     num_channels_in=1,
+                                     num_channels_in=num_channels_model,
                                      num_classes_out=1,
                                      is_use_valid_convols=args.is_valid_convolutions,
                                      manual_seed=args.manual_seed_train)
@@ -107,7 +113,11 @@ def main(args):
                                        learn_rate=args.learn_rate)
         model_trainer.create_loss(type_loss=args.type_loss,
                                   is_mask_to_region_interest=args.is_mask_region_interest,
-                                  weight_combined_loss=args.weight_combined_loss)
+                                  size_image_in=args.size_in_images,
+                                  weight_combined_loss=args.weight_combined_loss,
+                                  layers_vgg16_loss_perceptual=args.layers_vgg16_loss_perceptual,
+                                  weights_vgg16_loss_perceptual=args.weights_vgg16_loss_perceptual,
+                                  prop_reduce_insize_vgg16_loss_perceptual=args.prop_reduce_insize_vgg16_loss_perceptual)
         model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
                                           is_mask_to_region_interest=args.is_mask_region_interest)
         model_trainer.finalise_model()
@@ -117,15 +127,23 @@ def main(args):
         print("Restart Model from file: \'%s\'..." % (model_restart_file))
 
         if args.is_restart_only_weights:
-            print("Load only saved weights to restart model...")
-            model_trainer.load_model_only_weights(model_restart_file)
+            if args.is_restart_weights_diffmodel:
+                print("Load saved weights from a different model to restart model...")
+                model_trainer.load_model_weights_diff_model(model_restart_file, type_load_model='UNet_noSkipConns')
+            else:
+                print("Load only saved weights to restart model...")
+                model_trainer.load_model_only_weights(model_restart_file)
         else:
             print("Load full model (model weights and description, optimizer, loss and metrics) to restart model...")
             if TYPE_DNNLIB_USED == 'Keras':
                 # CHECK WHETHER THIS IS NECESSARY
                 model_trainer.create_loss(type_loss=args.type_loss,
                                           is_mask_to_region_interest=args.is_mask_region_interest,
-                                          weight_combined_loss=args.weight_combined_loss)
+                                          size_image_in=args.size_in_images,
+                                          weight_combined_loss=args.weight_combined_loss,
+                                          layers_vgg16_loss_perceptual=args.layers_vgg16_loss_perceptual,
+                                          weights_vgg16_loss_perceptual=args.weights_vgg16_loss_perceptual,
+                                          prop_reduce_insize_vgg16_loss_perceptual=args.prop_reduce_insize_vgg16_loss_perceptual)
                 model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
                                                   is_mask_to_region_interest=args.is_mask_region_interest)
             if args.is_backward_compat:
@@ -168,11 +186,14 @@ def main(args):
                                                              use_transform_elasticdeform_images=args.use_transform_elasticdeform_images,
                                                              use_random_window_images=args.use_random_window_images,
                                                              num_random_patches_epoch=args.num_random_patches_epoch,
+                                                             is_load_many_images_per_label=args.is_load_augmented_images_per_label,
+                                                             num_images_per_label=args.num_augmented_images_per_label,
                                                              is_output_nnet_validconvs=args.is_valid_convolutions,
                                                              size_output_images=size_out_image_model,
                                                              batch_size=args.batch_size,
                                                              is_shuffle=IS_SHUFFLE_TRAINDATA,
-                                                             manual_seed=args.manual_seed_train)
+                                                             manual_seed=args.manual_seed_train,
+                                                             is_load_images_from_batches=args.is_train_images_slices)
     print("Loaded \'%s\' files. Total batches generated: %s..." % (len(list_train_images_files),
                                                                    len(training_data_loader)))
 
@@ -194,7 +215,8 @@ def main(args):
                                                                    size_output_images=size_out_image_model,
                                                                    batch_size=args.batch_size,
                                                                    is_shuffle=IS_SHUFFLE_TRAINDATA,
-                                                                   manual_seed=args.manual_seed_train)
+                                                                   manual_seed=args.manual_seed_train,
+                                                                   is_load_images_from_batches=args.is_train_images_slices)
         print("Loaded \'%s\' files. Total batches generated: %s..." % (len(list_valid_images_files),
                                                                        len(validation_data_loader)))
     else:
@@ -261,7 +283,18 @@ if __name__ == "__main__":
     parser.add_argument('--restart_file', type=str, default=NAME_SAVEDMODEL_LAST)
     parser.add_argument('--is_restart_only_weights', type=str2bool, default=IS_RESTART_ONLY_WEIGHTS)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
+    parser.add_argument('--is_load_augmented_images_per_label', type=str2bool, default=False)
+    parser.add_argument('--num_augmented_images_per_label', type=int, default=None)
+    parser.add_argument('--is_input_images_two_channels', type=str2bool, default=IS_MERGE_TWO_IMAGES_AS_CHANNELS)
+    parser.add_argument('--is_train_network_2D', type=str2bool, default=False)
+    parser.add_argument('--is_restart_weights_diffmodel', type=str2bool, default=False)
+    parser.add_argument('--layers_vgg16_loss_perceptual', type=str2list_str, default=LAYERS_VGG16_LOSS_PERCEPTUAL)
+    parser.add_argument('--weights_vgg16_loss_perceptual', type=str2list_float, default=WEIGHTS_VGG16_LOSS_PERCEPTUAL)
+    parser.add_argument('--prop_reduce_insize_vgg16_loss_perceptual', type=float, default=PROP_REDUCE_INSIZE_VGG16_LOSS_PERCEPTUAL)
     args = parser.parse_args()
+
+    if args.is_restart_weights_diffmodel and not args.is_restart_only_weights:
+        args.is_restart_only_weights = True
 
     if (args.is_restart_model and not args.is_restart_only_weights) and not args.in_config_file:
         args.in_config_file = join_path_names(args.modelsdir, NAME_CONFIG_PARAMS_FILE)
@@ -297,6 +330,25 @@ if __name__ == "__main__":
         args.prop_overlap_sliding_window    = str2tuple_float(input_args_file['prop_overlap_sliding_window'])
         args.use_transform_rigid_images     = str2bool(input_args_file['use_transform_rigid_images'])
         args.use_transform_elasticdeform_images= str2bool(input_args_file['use_transform_elasticdeform_images'])
+        args.layers_vgg16_loss_perceptual   = str2list_str(input_args_file['layers_vgg16_loss_perceptual'])
+        args.weights_vgg16_loss_perceptual  = str2list_float(input_args_file['weights_vgg16_loss_perceptual'])
+        args.prop_reduce_insize_vgg16_loss_perceptual = float(input_args_file['prop_reduce_insize_vgg16_loss_perceptual'])
+
+    if args.is_train_network_2D:
+        print("Train 2D model, with images as slices from volume scans...")
+        args.is_train_images_slices = True
+        if len(args.size_in_images) != 2:
+            message = "Wrong input \'size_in_images\': %s. To train 2D model, input size images must have 2 dims..." %(args.size_in_images)
+            catch_error_exception(message)
+    else:
+        args.is_train_images_slices = False
+        if len(args.size_in_images) != 3:
+            message = "Wrong input \'size_in_images\': %s. To train 3D model, input size images must have 3 dims..." %(args.size_in_images)
+            catch_error_exception(message)
+
+    if args.is_load_augmented_images_per_label and not args.num_augmented_images_per_label:
+        message = "When using the option to load augmented images from disc, need to input \'num_augmented_images_per_label\'..."
+        catch_error_exception(message)
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).items()):

@@ -89,7 +89,7 @@ def main(args):
             plt.plot(epochs_files[0], data_files[0][1], color='r', label='valid')
             plt.xlabel('Epoch')
             plt.ylabel(ifield.title())
-            plt.ylim([0.0, 1.0])
+            #plt.ylim([0.0, 1.0])
             plt.legend(loc='best')
             plt.show()
 

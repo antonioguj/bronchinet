@@ -23,6 +23,21 @@ def check_same_size_images(in_image_1: np.ndarray, in_image_2: np.ndarray) -> bo
     else:
         return False
 
+def group_filenames_in_list_with_same_prefix(list_input_files: List[str]) -> List[List[str]]:
+    pattern_prefix = 'Suj[0-9][0-9]-[a-z]+_'
+    list_unique_prefixs_filenames = []
+    for ifilename in list_input_files:
+        prefix_filename = get_substring_filename(ifilename, pattern_prefix)
+        if prefix_filename not in list_unique_prefixs_filenames:
+            list_unique_prefixs_filenames.append(prefix_filename)
+
+    list_groups_input_files_all = []
+    for iprefix_filename in list_unique_prefixs_filenames:
+        list_group_files_this = [ifilename for ifilename in list_input_files if iprefix_filename in ifilename]
+        list_groups_input_files_all.append(list_group_files_this)
+
+    return list_groups_input_files_all
+
 
 
 def main(args):
@@ -41,6 +56,15 @@ def main(args):
     list_input_images_files = list_files_dir(input_images_path)
     list_in_reference_files = list_files_dir(in_reference_files_path)
 
+    if args.is_prepare_many_images_per_label:
+        list_groups_extra_images_files_all = group_filenames_in_list_with_same_prefix(list_input_images_files)
+        list_input_images_files = []
+        for list_group_files_this in list_groups_extra_images_files_all[1:]:
+            check_same_number_files_in_list(list_groups_extra_images_files_all[0], list_group_files_this)
+        for list_group_files_this in list_groups_extra_images_files_all:
+            list_input_images_files.append(list_group_files_this[0])
+            list_group_files_this.pop(0)
+
     if (args.is_prepare_labels):
         input_labels_path       = workdir_manager.get_pathdir_exist(args.name_input_labels_relpath)
         output_labels_path      = workdir_manager.get_pathdir_new(args.name_output_labels_relpath)
@@ -58,6 +82,11 @@ def main(args):
         list_input_extra_labels_files = list_files_dir(input_extra_labels_path)
         check_same_number_files_in_list(list_input_images_files, list_input_extra_labels_files)
 
+    if (args.is_merge_two_images_as_channels):
+        input_extra_images_path       = workdir_manager.get_pathdir_exist(args.name_input_extra_images_relpath)
+        list_input_extra_images_files = list_files_dir(input_extra_images_path)
+        check_same_number_files_in_list(list_input_images_files, list_input_extra_images_files)
+
     if (args.is_rescale_images):
         input_rescale_factors_file = workdir_manager.get_pathfile_exist(args.name_rescale_factors_file)
         indict_rescale_factors     = read_dictionary(input_rescale_factors_file)
@@ -71,6 +100,7 @@ def main(args):
         first_elem_dict_crop_bounding_boxes = list(indict_crop_bounding_boxes.values())[0]
         if type(first_elem_dict_crop_bounding_boxes) == list:
             is_output_multiple_files_per_image = True
+            is_output_multiple_files_per_label = True
             print("\nFound list of crop bounding-boxes per Raw image. Output several processed images...")
             name_template_output_images_files     = 'images_proc-%0.2i_crop-%0.2i.nii.gz'
             name_template_output_labels_files     = 'labels_proc-%0.2i_crop-%0.2i.nii.gz'
@@ -81,9 +111,14 @@ def main(args):
                 indict_crop_bounding_boxes[key] = [value]
             # endfor
             is_output_multiple_files_per_image = False
+            is_output_multiple_files_per_label = False
     else:
         is_output_multiple_files_per_image = False
-    is_output_multiple_files_per_label = is_output_multiple_files_per_image
+        is_output_multiple_files_per_label = False
+
+    if args.is_prepare_many_images_per_label:
+        is_output_multiple_files_per_image = True
+        name_template_output_images_files = 'images_proc-%0.2i_aug-%0.2i.nii.gz'
 
 
 
@@ -97,6 +132,36 @@ def main(args):
 
         list_inout_data = [inout_image]
         list_type_inout_data = ['image']
+
+
+        # *******************************************************************************
+        if (args.is_merge_two_images_as_channels):
+            in_extra_image_file = list_input_extra_images_files[ifile]
+            print("And extra image: \'%s\'... Merge as additional channel to the input image..." % (basename(in_extra_image_file)))
+
+            in_extraimage = ImageFileReader.get_image(in_extra_image_file)
+            if check_same_size_images(in_extraimage, inout_image):
+                message = "FATAL ERROR"
+                catch_error_exception(message)
+
+            inout_image = np.stack((inout_image, in_extraimage), axis=-1)
+
+
+        if (args.is_prepare_many_images_per_label):
+            in_list_group_extra_images_files = list_groups_extra_images_files_all[ifile]
+            num_extra_images_files = len(in_list_group_extra_images_files)
+            print("And \'%s\' extra input images:..." %(num_extra_images_files))
+
+            for i, in_extra_image_file in enumerate(in_list_group_extra_images_files):
+                print("\'%s\': \'%s\'..." % (i+1, basename(in_extra_image_file)))
+
+                inout_extra_image = ImageFileReader.get_image(in_extra_image_file)
+                list_inout_data.append(inout_extra_image)
+                list_type_inout_data.append('image')
+
+                if check_same_size_images(inout_extra_image, inout_image):
+                    continue
+        # *******************************************************************************
 
 
         # *******************************************************************************
@@ -270,13 +335,30 @@ def main(args):
         # *******************************************************************************
 
 
+        # # *******************************************************************************
+        # if args.is_prepare_data_stack_images:
+        #     print("Prepare data as stack images: roll axis to place the images index as first dimension...")
+        #     for j, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
+        #         out_data = np.rollaxis(in_data, 2, start=0)
+        #         list_inout_data[j] = out_data
+        #     # endfor
+        #
+        #     print("Final dims: %s..." % (str(list_inout_data[0].shape)))
+        # # *******************************************************************************
+
+
         # Output processed images
         # *******************************************************************************
         if (args.is_crop_images):
             num_output_files_per_image = num_crop_bounding_boxes
+            num_output_files_per_label = num_crop_bounding_boxes
         else:
             num_output_files_per_image = 1
-        num_output_files_per_label = num_output_files_per_image
+            num_output_files_per_label = 1
+
+        if (args.is_prepare_many_images_per_label):
+            num_output_files_per_image = num_extra_images_files + 1
+            num_output_files_per_label = 1
 
         icount = 0
         for isubfile in range(num_output_files_per_image):
@@ -292,6 +374,9 @@ def main(args):
 
             ImageFileReader.write_image(output_image_file, list_inout_data[icount])
             icount += 1
+
+            if (args.is_prepare_many_images_per_label) and (isubfile > 0):
+                in_image_file = list_groups_extra_images_files_all[ifile][isubfile-1]
 
             outdict_reference_keys[basename_filenoext(output_image_file)] = basename(in_image_file)
         # endfor
@@ -356,6 +441,10 @@ if __name__ == "__main__":
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--name_crop_bounding_boxes_file', type=str, default=NAME_CROP_BOUNDINGBOX_FILE)
     parser.add_argument('--is_RoIlabels_multi_RoImasks', type=str2bool, default=IS_TWO_BOUNDBOXES_EACH_LUNGS)
+    parser.add_argument('--is_prepare_many_images_per_label', type=str2bool, default=False)
+    parser.add_argument('--is_merge_two_images_as_channels', type=str2bool, default=IS_MERGE_TWO_IMAGES_AS_CHANNELS)
+    parser.add_argument('--name_input_extra_images_relpath', type=str, default=NAME_RAW_EXTRAIMAGES_RELPATH)
+    # parser.add_argument('--is_prepare_data_stack_images', type=str2bool, default=False)
     args = parser.parse_args()
 
     print("Print input arguments...")

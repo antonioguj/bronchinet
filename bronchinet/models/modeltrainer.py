@@ -49,10 +49,9 @@ class ModelTrainerBase(object):
                                     dropout_rate=dropout_rate,
                                     is_use_batchnormalize=is_use_batchnormalize)
 
-    def create_loss(self, type_loss: str, is_mask_to_region_interest: bool = False, weight_combined_loss: float = 1.0) -> None:
+    def create_loss(self, type_loss: str, is_mask_to_region_interest: bool = False, **kwargs) -> None:
         self._loss = get_metric_train(type_metric=type_loss,
-                                      is_mask_exclude=is_mask_to_region_interest,
-                                      weight_combined_loss=weight_combined_loss)
+                                      is_mask_exclude=is_mask_to_region_interest, **kwargs)
 
     def create_optimizer(self, type_optimizer: str, learn_rate: float) -> None:
         model_params = self._network.parameters() if TYPE_DNNLIB_USED == 'Pytorch' else None
@@ -79,6 +78,9 @@ class ModelTrainerBase(object):
         raise NotImplementedError
 
     def load_model_only_weights(self, model_filename: str) -> None:
+        raise NotImplementedError
+
+    def load_model_weights_diff_model(self, model_filename: str, **kwargs) -> None:
         raise NotImplementedError
 
     def load_model_full(self, model_filename: str, **kwargs) -> None:

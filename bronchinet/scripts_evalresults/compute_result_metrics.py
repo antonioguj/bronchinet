@@ -20,7 +20,8 @@ def main(args):
     list_input_predicted_masks_files= list_files_dir(input_predicted_masks_path)
     list_input_reference_masks_files= list_files_dir(input_reference_masks_path)
     indict_reference_keys           = read_dictionary(in_reference_keys_file)
-    pattern_search_input_files      = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
+    #pattern_search_input_files      = get_pattern_prefix_filename(list(indict_reference_keys.values())[0])
+    pattern_search_input_files      = 'Sujeto[0-9][0-9]-[a-z]+_'
 
     if (args.is_remove_trachea_calc_metrics):
         input_coarse_airways_path       = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)

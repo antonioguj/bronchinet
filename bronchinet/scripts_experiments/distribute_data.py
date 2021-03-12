@@ -29,6 +29,20 @@ def check_same_number_files_in_list(list_files_1: List[str], list_files_2: List[
         message = 'num files in two lists not equal: \'%s\' != \'%s\'...' %(len(list_files_1), len(list_files_2))
         catch_error_exception(message)
 
+def group_filenames_in_list_with_same_prefix(list_input_files: List[str], pattern_prefix: str) -> List[List[str]]:
+    list_unique_prefixs_filenames = []
+    for ifilename in list_input_files:
+        prefix_filename = get_substring_filename(ifilename, pattern_prefix)
+        if prefix_filename not in list_unique_prefixs_filenames:
+            list_unique_prefixs_filenames.append(prefix_filename)
+
+    list_groups_input_files_all = []
+    for iprefix_filename in list_unique_prefixs_filenames:
+        list_group_files_this = [ifilename for ifilename in list_input_files if iprefix_filename in ifilename]
+        list_groups_input_files_all.append(list_group_files_this)
+
+    return list_groups_input_files_all
+
 LIST_TYPE_DATA_AVAIL  = ['training', 'testing']
 LIST_TYPE_DISTRIBUTE_AVAIL = ['original', 'random', 'orderfile', 'crossval', 'crossval_random']
 
@@ -40,6 +54,12 @@ def main(args):
     input_images_data_path  = workdir_manager.get_datadir_exist(args.name_input_images_relpath)
     in_reference_keys_file  = workdir_manager.get_datafile_exist(args.name_input_reference_keys_file)
     list_input_images_files = list_files_dir(input_images_data_path)
+
+    if args.is_prepare_many_images_per_label:
+        list_groups_extra_images_files_all = group_filenames_in_list_with_same_prefix(list_input_images_files, 'images_proc-[0-9][0-9]_')
+        for list_group_files_this in list_groups_extra_images_files_all[1:]:
+            check_same_number_files_in_list(list_groups_extra_images_files_all[0], list_group_files_this)
+        list_input_images_files = [list_group_files_this[0] for list_group_files_this in list_groups_extra_images_files_all]
 
     if (args.is_prepare_labels):
         input_labels_data_path  = workdir_manager.get_datadir_exist(args.name_input_labels_relpath)
@@ -169,15 +189,23 @@ def main(args):
 
 
 
-    def create_links_images_files_assigned_group(in_list_indexes_files: List[int], out_path_dirname: str) -> None:
+    def create_links_images_files_assigned_group(in_list_indexes_files: List[int], out_path_dirname: str,
+                                                 is_link_many_images_per_label: bool = False) -> None:
         if len(in_list_indexes_files) == 0:
             print("No files assigned...")
         else:
             for index in in_list_indexes_files:
-                input_image_file = list_input_images_files[index]
-                output_image_file = join_path_names(out_path_dirname, basename(input_image_file))
-                print("%s --> %s" % (basename(output_image_file), input_image_file))
-                makelink(input_image_file, output_image_file)
+                if is_link_many_images_per_label:
+                    for input_image_file in list_groups_extra_images_files_all[index]:
+                        output_image_file = join_path_names(out_path_dirname, basename(input_image_file))
+                        print("%s --> %s" % (basename(output_image_file), input_image_file))
+                        makelink(input_image_file, output_image_file)
+                    # endfor
+                else:
+                    input_image_file = list_input_images_files[index]
+                    output_image_file = join_path_names(out_path_dirname, basename(input_image_file))
+                    print("%s --> %s" % (basename(output_image_file), input_image_file))
+                    makelink(input_image_file, output_image_file)
 
                 if args.is_prepare_labels:
                     input_label_file = list_input_labels_files[index]
@@ -198,7 +226,8 @@ def main(args):
             print("\nFor cv-fold %s: Files assigned to Training Data:" %(i+1))
             training_data_path = workdir_manager.get_pathdir_new(args.name_training_data_relpath %(i+1))
 
-            create_links_images_files_assigned_group(list_indexes_training_files_cvfolds[i], training_data_path)
+            create_links_images_files_assigned_group(list_indexes_training_files_cvfolds[i], training_data_path,
+                                                     is_link_many_images_per_label=args.is_prepare_many_images_per_label)
 
             print("For cv-fold %s: Files assigned to Validation Data:" %(i+1))
             validation_data_path = workdir_manager.get_pathdir_new(args.name_validation_data_relpath %(i+1))
@@ -214,7 +243,8 @@ def main(args):
         print("\nFiles assigned to Training Data:")
         training_data_path = workdir_manager.get_pathdir_new(args.name_training_data_relpath)
 
-        create_links_images_files_assigned_group(indexes_training_files, training_data_path)
+        create_links_images_files_assigned_group(indexes_training_files, training_data_path,
+                                                 is_link_many_images_per_label=args.is_prepare_many_images_per_label)
 
         print("Files assigned to Validation Data:")
         validation_data_path = workdir_manager.get_pathdir_new(args.name_validation_data_relpath)
@@ -243,6 +273,7 @@ if __name__ == "__main__":
     parser.add_argument('--dist_propdata_train_valid_test', type=str2tuple_float, default=DIST_PROPDATA_TRAINVALIDTEST)
     parser.add_argument('--infile_order_train', type=str, default=None)
     parser.add_argument('--num_folds_crossval', type=int, default=None)
+    parser.add_argument('--is_prepare_many_images_per_label', type=str2bool, default=False)
     args = parser.parse_args()
 
     if args.type_data == 'training':

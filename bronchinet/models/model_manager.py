@@ -28,7 +28,7 @@ if TYPE_DNNLIB_USED == 'Pytorch':
 elif TYPE_DNNLIB_USED == 'Keras':
     from models.keras.callbacks import RecordLossHistory, EarlyStopping, ModelCheckpoint
     from models.keras.metrics import Metric as Metric_train, \
-                                     CombineTwoMetrics as CombineTwoMetrics_train, \
+                                     CombineTwoMetricsModified as CombineTwoMetrics_train, \
                                      MeanSquaredError as MeanSquaredError_train, \
                                      MeanSquaredErrorLogarithmic as MeanSquaredErrorLogarithmic_train, \
                                      BinaryCrossEntropy as BinaryCrossEntropy_train, \
@@ -43,8 +43,18 @@ elif TYPE_DNNLIB_USED == 'Keras':
                                      AirwayCompleteness as AirwayCompleteness_train, \
                                      AirwayVolumeLeakage as AirwayVolumeLeakage_train, \
                                      AirwayCentrelineLeakage as AirwayCentrelineLeakage_train, \
+                                     L1 as L1_train, \
+                                     L2 as L2_train, \
+                                     DSSIM as DSSIM_train, \
+                                     DSSIM_TestAlex as DSSIM_TestAlex_train, \
+                                     MultiScaleSSIM as MultiScaleSSIM_train, \
+                                     Perceptual as Perceptual_train, \
                                      LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
-    from models.keras.networks import UNet3D_Original, UNet3D_General, UNet3D_Plugin, LIST_AVAIL_NETWORKS
+                                     # HI ALEX, ADD NAMES OF NEW LOSS FUNCTIONS HERE, WITH FORMAT ABOVE
+
+    from models.keras.networks import UNet3D_Original, UNet3D_General, UNet3D_Plugin, LIST_AVAIL_NETWORKS, \
+                                      UNet3D_Plugin_5levels_Alex, UNet3D_Plugin_3levels_Alex, UNet2D_Plugin_3levels_Alex, \
+                                      UNet3D_Plugin_NoSkipConn_5levels_Alex, UNet3D_Plugin_NoSkipConn_3levels_Alex
     from models.keras.optimizers import SGD, SGD_mom, RMSprop, Adagrad, Adadelta, Adam, LIST_AVAIL_OPTIMIZERS
     from models.keras.visualmodelparams import VisualModelParams
 from models.metrics import MetricBase, MeanSquaredError, MeanSquaredErrorLogarithmic, BinaryCrossEntropy, \
@@ -52,7 +62,7 @@ from models.metrics import MetricBase, MeanSquaredError, MeanSquaredErrorLogarit
                            TruePositiveRate, TrueNegativeRate, FalsePositiveRate, FalseNegativeRate, \
                            AirwayCompleteness, AirwayVolumeLeakage, AirwayCentrelineLeakage, \
                            AirwayCentrelineDistanceFalseNegativeError, AirwayCentrelineDistanceFalsePositiveError, \
-                           LIST_AVAIL_METRICS
+                           SNR, PSNR, SSIM, LIST_AVAIL_METRICS
 from models.networks import ConvNetBase
 
 
@@ -90,6 +100,12 @@ def get_metric(type_metric: str,
         return AirwayCentrelineDistanceFalsePositiveError(is_mask_exclude=is_mask_exclude)
     elif type_metric == 'AirwayCentrelineDistanceFalseNegativeError':
         return AirwayCentrelineDistanceFalseNegativeError(is_mask_exclude=is_mask_exclude)
+    elif type_metric == 'SNR':
+        return SNR(is_mask_exclude=is_mask_exclude)
+    elif type_metric == 'PSNR':
+        return PSNR(is_mask_exclude=is_mask_exclude)
+    elif type_metric == 'SSIM':
+        return SSIM(is_mask_exclude=is_mask_exclude)
     else:
         message = 'Choice Metric not found: %s. Metrics available: %s' % (type_metric, ', '.join(LIST_AVAIL_METRICS))
         catch_error_exception(message)
@@ -141,6 +157,26 @@ def get_metric_train(type_metric: str,
             return AirwayVolumeLeakage_train(is_mask_exclude=is_mask_exclude)
         elif type_metric == 'AirwayCentrelineLeakage':
             return AirwayCentrelineLeakage_train(is_mask_exclude=is_mask_exclude)
+        # HI ALEX, ADD CALLING TO NEW LOSS FUNCTIONS HERE, WITH FORMAT BELOW
+        elif type_metric == 'L1':
+            return L1_train(is_mask_exclude=is_mask_exclude)
+        elif type_metric == 'L2':
+            return L2_train(is_mask_exclude=is_mask_exclude)
+        elif type_metric == 'DSSIM':
+            return DSSIM_train(is_mask_exclude=is_mask_exclude)
+        elif type_metric == 'DSSIM_Test':
+            return DSSIM_TestAlex_train(is_mask_exclude=is_mask_exclude)
+        elif type_metric == 'MultiScaleSSIM':
+            return MultiScaleSSIM_train(is_mask_exclude=is_mask_exclude)
+        elif type_metric == 'Perceptual':
+            size_image = kwargs['size_image_in']
+            layers_vgg16_calcloss = kwargs['layers_vgg16_loss_perceptual'] if 'layers_vgg16_loss_perceptual' in kwargs.keys() else Perceptual_train._layers_vgg16_calcloss_default
+            weights_vgg16_calcloss = kwargs['weights_vgg16_loss_perceptual'] if 'weights_vgg16_loss_perceptual' in kwargs.keys() else Perceptual_train._weights_vgg16_calcloss_default
+            prop_reduce_insize_vgg16_calcloss = kwargs['prop_reduce_insize_vgg16_loss_perceptual'] if 'prop_reduce_insize_vgg16_loss_perceptual' in kwargs.keys() else 0.0
+            return Perceptual_train(is_mask_exclude=is_mask_exclude, size_image=size_image,
+                                    layers_vgg16_calcloss=layers_vgg16_calcloss,
+                                    weights_vgg16_calcloss=weights_vgg16_calcloss,
+                                    prop_reduce_insize_vgg16_calcloss=prop_reduce_insize_vgg16_calcloss)
         else:
             message = 'Choice Metric for Training not found: %s. Metrics available: %s' % (type_metric, ', '.join(LIST_AVAIL_METRICS_TRAIN))
             catch_error_exception(message)
@@ -154,7 +190,7 @@ def get_network(type_network: str,
                 num_classes_out: int = 1,
                 is_use_valid_convols: bool = False,
                 **kwargs) -> ConvNetBase:
-    if type_network == 'UNet3D_Original':
+    '''if type_network == 'UNet3D_Original':
         return UNet3D_Original(size_image_in,
                                num_featmaps_in=num_featmaps_in,
                                num_channels_in=num_channels_in,
@@ -188,6 +224,48 @@ def get_network(type_network: str,
                              num_channels_in=num_channels_in,
                              num_classes_out=num_classes_out,
                              is_use_valid_convols=is_use_valid_convols)
+    else:
+        message = 'Choice Network not found: %s. Networks available: %s' % (type_network, ', '.join(LIST_AVAIL_NETWORKS))
+        catch_error_exception(message)'''
+
+    # HI ALEX, ALWAYS USED THE TAILORED NETWORK 'UNet3D_Plugin_Alex' OR 'UNet2D_Plugin_Alex'
+    LIST_AVAIL_NETWORKS = ['UNet3D_5levels', 'UNet3D_3levels', 'UNet2D_3levels', 'UNet3D_NoSkipConn_5levels', 'UNet3D_NoSkipConn_3levels']
+
+    if type_network == 'UNet3D_5levels':
+        return UNet3D_Plugin_5levels_Alex(size_image_in,
+                                          num_levels,
+                                          num_featmaps_in=num_featmaps_in,
+                                          num_channels_in=num_channels_in,
+                                          num_classes_out=num_classes_out,
+                                          is_use_valid_convols=is_use_valid_convols)
+    elif type_network == 'UNet3D_3levels':
+        return UNet3D_Plugin_3levels_Alex(size_image_in,
+                                          num_levels,
+                                          num_featmaps_in=num_featmaps_in,
+                                          num_channels_in=num_channels_in,
+                                          num_classes_out=num_classes_out,
+                                          is_use_valid_convols=is_use_valid_convols)
+    elif type_network == 'UNet2D_3levels':
+        return UNet2D_Plugin_3levels_Alex(size_image_in,
+                                          num_levels,
+                                          num_featmaps_in=num_featmaps_in,
+                                          num_channels_in=num_channels_in,
+                                          num_classes_out=num_classes_out,
+                                          is_use_valid_convols=is_use_valid_convols)
+    elif type_network == 'UNet3D_NoSkipConn_5levels':
+        return UNet3D_Plugin_NoSkipConn_5levels_Alex(size_image_in,
+                                                     num_levels,
+                                                     num_featmaps_in=num_featmaps_in,
+                                                     num_channels_in=num_channels_in,
+                                                     num_classes_out=num_classes_out,
+                                                     is_use_valid_convols=is_use_valid_convols)
+    elif type_network == 'UNet3D_NoSkipConn_3levels':
+        return UNet3D_Plugin_NoSkipConn_3levels_Alex(size_image_in,
+                                                     num_levels,
+                                                     num_featmaps_in=num_featmaps_in,
+                                                     num_channels_in=num_channels_in,
+                                                     num_classes_out=num_classes_out,
+                                                     is_use_valid_convols=is_use_valid_convols)
     else:
         message = 'Choice Network not found: %s. Networks available: %s' % (type_network, ', '.join(LIST_AVAIL_NETWORKS))
         catch_error_exception(message)

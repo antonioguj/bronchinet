@@ -23,7 +23,8 @@ def main(args):
     output_posteriors_path      = workdir_manager.get_pathdir_new(args.name_output_posteriors_relpath)
     list_input_predictions_files= list_files_dir(input_predictions_path)
     indict_reference_keys       = read_dictionary(in_reference_keys_file)
-    pattern_search_input_files  = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
+    #pattern_search_input_files  = get_pattern_prefix_filename(list(indict_reference_keys.values())[0])
+    pattern_search_input_files  = 'Sujeto[0-9][0-9]-[a-z]+_'
 
     if (args.is_mask_region_interest):
         input_RoImasks_path       = workdir_manager.get_datadir_exist(args.name_input_RoImasks_relpath)
@@ -143,6 +144,14 @@ def main(args):
         # *******************************************************************************
 
 
+        # # *******************************************************************************
+        # if args.is_process_data_stack_images:
+        #     print("Process data from stack images: roll axis to place the images index as last dimension...")
+        #     inout_prediction = np.rollaxis(inout_prediction, 0, start=3)
+        #     print("Final dims: %s..." % (str(inout_prediction.shape)))
+        # # *******************************************************************************
+
+
         # Output processed predictions
         output_prediction_file = join_path_names(output_posteriors_path, name_output_posteriors_files(in_reference_file))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(output_prediction_file), inout_prediction.shape))
@@ -167,6 +176,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
     parser.add_argument('--name_rescale_factors_file', type=str, default=NAME_RESCALE_FACTOR_FILE)
     parser.add_argument('--is_binary_predictions', type=str2bool, default=IS_BINARY_TRAIN_MASKS)
+    # parser.add_argument('--is_process_data_stack_images', type=str2bool, default=False)
     args = parser.parse_args()
 
     if args.in_config_file:

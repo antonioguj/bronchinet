@@ -8,7 +8,7 @@ source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
 
 
 HOME="/trinity/home/agarcia/"
-WORKDIR="${HOME}/Results/AirwaySegmentation_IBEST/"
+WORKDIR="${HOME}/Results/MRIenhanceTests/"
 
 export PYTHONPATH="${PYTHONPATH}:${WORKDIR}/Code/"
 
@@ -19,12 +19,14 @@ source "${HOME}/Pyvenv-v.3.7.4/bin/activate"
 # ---------- SETTINGS ----------
 #
 IMAGESDATA_DIR="${WORKDIR}/BaseData/ImagesWorkData/"
-LABELSDATA_DIR="${WORKDIR}/BaseData/LabelsWorkData/"
-TRAINDATA_OUTDIR="${WORKDIR}/TrainingData/"
-VALIDDATA_OUTDIR="${WORKDIR}/ValidationData/"
-TESTDATA_OUTDIR="${WORKDIR}/TestingData/"
-TYPE_DISTRIBUTE="orderfile"
-DIST_PROPDATA_TRAIN_VALID_TEST="(0.65,0.15,0.20)"
+LABELSDATA_DIR="${WORKDIR}/BaseData/LabelsWorkData_Masked/"
+TRAINDATA_OUTDIR="${WORKDIR}/TrainingData_Masked/"
+VALIDDATA_OUTDIR="${WORKDIR}/ValidationData_Masked/"
+TESTDATA_OUTDIR="${WORKDIR}/TestingData_Masked/"
+TYPE_DATA="training"   	# ["training", "testing"]
+TYPE_DISTRIBUTE="random"
+DIST_PROPDATA_TRAIN_VALID_TEST="(0.65,0.15,0.20)"  # leave no spaces in between values
+IS_PREPARE_MANY_IMAGES_PER_LABEL="False"
 #
 # ---------- SETTINGS ----------
 
@@ -35,7 +37,8 @@ python "${WORKDIR}/Code/scripts_experiments/distribute_data.py" \
 	--name_training_data_relpath=${TRAINDATA_OUTDIR} \
 	--name_validation_data_relpath=${VALIDDATA_OUTDIR} \
 	--name_testing_data_relpath=${TESTDATA_OUTDIR} \
-	--type_data="training" \
+	--type_data=${TYPE_DATA} \
 	--type_distribute=${TYPE_DISTRIBUTE} \
-	--dist_propdata_train_valid_test=${DIST_PROPDATA_TRAIN_VALID_TEST}
+	--dist_propdata_train_valid_test=${DIST_PROPDATA_TRAIN_VALID_TEST} \
+	--is_prepare_many_images_per_label=${IS_PREPARE_MANY_IMAGES_PER_LABEL}
 	#--infile_train_order="${WORKDIR}/train.txt"

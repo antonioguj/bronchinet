@@ -2,6 +2,8 @@
 from typing import Tuple
 import numpy as np
 from scipy.spatial import distance
+#from scipy.stats import signaltonoise
+from skimage.metrics import structural_similarity as ssim
 
 _EPS = 1.0e-7
 _SMOOTH = 1.0
@@ -21,6 +23,9 @@ LIST_AVAIL_METRICS = ['MeanSquaredError',
                       'AirwayCentrelineLeakage',
                       'AirwayCentrelineDistanceFalsePositiveError',
                       'AirwayCentrelineDistanceFalseNegativeError',
+                      'SNR',
+                      'PSNR',
+                      'SSIM',
                       ]
 
 
@@ -322,3 +327,113 @@ class AirwayCentrelineDistanceFalseNegativeError(MetricBase):
         y_pred = self._get_centreline_coords(y_pred)
         dist_y = distance.cdist(y_pred, y_true)
         return np.mean(np.min(dist_y, axis=0))
+
+
+
+# ******************** TO IMPLEMENT BY ALEX ********************
+
+class MetricModifiedBase(MetricBase):
+
+    def __init__(self, is_mask_exclude: bool = False) -> None:
+        super(MetricModifiedBase, self).__init__(is_mask_exclude)
+
+    def compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        if self._is_mask_exclude:
+            return self._compute_masked(y_true, y_pred)
+        else:
+            return self._compute(y_true, y_pred)
+
+    def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        raise NotImplementedError
+
+    def _compute_masked(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        return self._compute(self._get_masked_input(y_true, y_true),
+                             self._get_masked_input(y_pred, y_true))
+
+    def _get_mask(self, y_true: np.ndarray) -> np.ndarray:
+        return np.where(y_true == self._value_mask_exclude, 0, 1)
+
+    def _get_masked_input(self, y_input: np.ndarray, y_true: np.ndarray) -> np.ndarray:
+        return np.where(y_true == self._value_mask_exclude, 0, y_input)
+
+
+# Signal-to-Noise ratio
+class SNR(MetricModifiedBase):
+
+    def __init__(self, is_mask_exclude: bool = False) -> None:
+        super(SNR, self).__init__(is_mask_exclude)
+        self._name_fun_out = 'snr'
+
+    def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        mean = np.mean(y_pred.flatten())
+        std = np.std(y_pred.flatten())
+        return mean / std
+        #return signaltonoise(y_pred, axis=None)
+
+
+# Peak Signal-to-Noise ratio
+class PSNR(MetricModifiedBase):
+
+    def __init__(self, is_mask_exclude: bool = False) -> None:
+        super(PSNR, self).__init__(is_mask_exclude)
+        self._name_fun_out = 'psnr'
+        self._max_value = 255.0
+
+    def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        mse = np.mean(np.square(y_pred.flatten() - y_true.flatten()))
+        if mse == 0.0:
+            return 0.0
+        else:
+            return 20.0 * np.log10(self._max_value / np.sqrt(mse))
+
+
+# SSIM: Structural Similarity Index
+class SSIM(MetricModifiedBase):
+
+    def __init__(self, is_mask_exclude: bool = False) -> None:
+        super(SSIM, self).__init__(is_mask_exclude)
+        self._name_fun_out = 'ssim'
+
+    def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        return ssim(y_true, y_pred, data_range=255.0)
+
+
+# SSIM HOMEMADE FOR TESTING
+class SSIM_Homemade(MetricModifiedBase):
+
+    def __init__(self, is_mask_exclude: bool = False) -> None:
+        super(SSIM_Homemade, self).__init__(is_mask_exclude)
+        self._name_fun_out = 'ssim_homemade'
+
+    def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        cons_K1 = 0.01
+        cons_K2 = 0.03
+        range_L = 255.0
+        cons_C1 = (cons_K1*range_L)**2
+        cons_C2 = (cons_K2*range_L)**2
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
+        mean_y_true = np.mean(y_true, axis=-1)
+        mean_y_pred = np.mean(y_pred, axis=-1)
+        std_y_true = np.sqrt(np.mean(np.square(y_true - mean_y_true), axis=-1))
+        std_y_pred = np.sqrt(np.mean(np.square(y_pred - mean_y_pred), axis=-1))
+        std_y_true_pred = np.mean((y_true - mean_y_true) * (y_pred - mean_y_pred), axis=-1)
+        return (2*mean_y_true*mean_y_pred + cons_C1) / (mean_y_true**2 + mean_y_pred**2 + cons_C1) *\
+               (2*std_y_true_pred + cons_C2) / (std_y_true**2 + std_y_pred**2 + cons_C2)
+
+    def _compute_masked(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        cons_K1 = 0.01
+        cons_K2 = 0.03
+        range_L = 255.0
+        cons_C1 = (cons_K1*range_L)**2
+        cons_C2 = (cons_K2*range_L)**2
+        y_true = y_true.flatten()
+        y_pred = y_pred.flatten()
+        mask = self._get_mask(y_true)
+        mean_y_true = np.mean(y_true * mask, axis=-1)
+        mean_y_pred = np.mean(y_pred * mask, axis=-1)
+        std_y_true = np.sqrt(np.mean(np.square(y_true - mean_y_true) * mask, axis=-1))
+        std_y_pred = np.sqrt(np.mean(np.square(y_pred - mean_y_pred) * mask, axis=-1))
+        std_y_true_pred = np.mean((y_true - mean_y_true) * (y_pred - mean_y_pred) * mask, axis=-1)
+        return (2*mean_y_true*mean_y_pred + cons_C1) / (mean_y_true**2 + mean_y_pred**2 + cons_C1) *\
+               (2*std_y_true_pred + cons_C2) / (std_y_true**2 + std_y_pred**2 + cons_C2)
