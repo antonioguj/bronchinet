@@ -18,7 +18,7 @@ source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
 
 
 HOME="/trinity/home/agarcia/"
-WORKDIR="${HOME}/Results/AirwaySegmentation_IBEST/"
+WORKDIR="${HOME}/Results/AirwaySegmentation_DLCST-LUVAR/"
 
 export PYTHONPATH="${WORKDIR}/Code/:${PYTHONPATH}"
 

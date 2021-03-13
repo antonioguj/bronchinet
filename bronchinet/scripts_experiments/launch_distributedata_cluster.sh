@@ -8,7 +8,7 @@ source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
 
 
 HOME="/trinity/home/agarcia/"
-WORKDIR="${HOME}/Results/AirwaySegmentation_IBEST/"
+WORKDIR="${HOME}/Results/AirwaySegmentation_DLCST-LUVAR/"
 
 export PYTHONPATH="${WORKDIR}/Code/:${PYTHONPATH}"
 
@@ -23,7 +23,7 @@ LABELSDATA_DIR="${WORKDIR}/BaseData/LabelsWorkData/"
 TRAINDATA_OUTDIR="${WORKDIR}/TrainingData/"
 VALIDDATA_OUTDIR="${WORKDIR}/ValidationData/"
 TESTDATA_OUTDIR="${WORKDIR}/TestingData/"
-TYPE_DISTRIBUTE="orderfile"
+TYPE_DISTRIBUTE="original"
 DIST_PROPDATA_TRAIN_VALID_TEST="(0.65,0.15,0.20)"
 #
 # ---------- SETTINGS ----------
@@ -37,5 +37,5 @@ python "${WORKDIR}/Code/scripts_experiments/distribute_data.py" \
 	--name_testing_data_relpath=${TESTDATA_OUTDIR} \
 	--type_data="training" \
 	--type_distribute=${TYPE_DISTRIBUTE} \
-	--dist_propdata_train_valid_test=${DIST_PROPDATA_TRAIN_VALID_TEST}
-	#--infile_train_order="${WORKDIR}/train.txt"
+	--dist_propdata_train_valid_test=${DIST_PROPDATA_TRAIN_VALID_TEST} \
+	--infile_order_train="${WORKDIR}/train.txt"
