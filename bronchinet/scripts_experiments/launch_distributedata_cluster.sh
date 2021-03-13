@@ -40,5 +40,5 @@ python "${WORKDIR}/Code/scripts_experiments/distribute_data.py" \
 	--type_data=${TYPE_DATA} \
 	--type_distribute=${TYPE_DISTRIBUTE} \
 	--dist_propdata_train_valid_test=${DIST_PROPDATA_TRAIN_VALID_TEST} \
+	--infile_order_train="${WORKDIR}/train.txt" \
 	--is_prepare_many_images_per_label=${IS_PREPARE_MANY_IMAGES_PER_LABEL}
-	#--infile_train_order="${WORKDIR}/train.txt"
