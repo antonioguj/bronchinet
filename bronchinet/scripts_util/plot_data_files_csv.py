@@ -63,13 +63,13 @@ def main(args):
             raw_data_this_string = np.genfromtxt(in_file, dtype=str, delimiter=', ')
             raw_data_this_float  = np.genfromtxt(in_file, dtype=float, delimiter=', ')
 
-            header_this    = list(raw_data_this_string[0, :])
-            rows1elem_this = list(raw_data_this_string[:, 0])
-            data_this      = raw_data_this_float[1:, 1:]
+            header_this = list(raw_data_this_string[0, :])
+            # rows1elem_this = list(raw_data_this_string[:, 0])
+            data_this   = raw_data_this_float[1:, 1:]
 
             if i == 0:
                 header_file     = header_this
-                #rows1elem_file  = rows1elem_this
+                # rows1elem_file  = rows1elem_this
                 list_fields_file= [elem.replace('/', '') for elem in header_file[1:]]
 
                 for ifield in list_fields_file:
@@ -100,11 +100,13 @@ def main(args):
             for i, idata in enumerate(data_files):
                 xrange = range(1, len(idata)+1)
                 plt.plot(xrange, idata, label=labels_files[i])
+            # endfor
 
         elif args.type == 'scatter':
             for i, idata in enumerate(data_files):
                 xrange = range(1, len(idata)+1)
                 plt.scatter(xrange, idata, label=labels_files[i])
+            # endfor
 
         elif args.type == 'boxplot':
             #plt.boxplot(data_files, labels=labels_files)
@@ -124,10 +126,10 @@ def main(args):
             plt.legend(loc='best')
         plt.title(ifield.title())
 
+
         if save_plot_figures:
             outfigname = template_outfigname % (ifield)
             print("Output: \'%s\'..." % (outfigname))
-
             #plt.savefig(outfigname, format='eps', dpi=1000)
             plt.savefig(outfigname, format='png')
             plt.close()
