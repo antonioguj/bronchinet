@@ -11,7 +11,7 @@ matplotlib==3.2.1
 nibabel==3.1.0
 numpy==1.18.4
 pandas==1.0.3
-Pillow==7.1.2
+Pillow==8.1.1
 pydicom==1.4.2
 scikit-image==0.17.2
 scikit-learn==0.23.1
