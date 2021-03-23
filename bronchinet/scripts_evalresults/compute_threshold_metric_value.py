@@ -128,7 +128,7 @@ def main(args):
                     in_predicted_data = in_predicted_mask
 
                 if (args.is_remove_trachea_calc_metrics):
-                    # Remove the trachea and main bronchii from the binary masks
+                    # Remove the trachea and main bronchi from the binary masks
                     in_predicted_data = MaskOperator.substract_two_masks(in_predicted_data, in_coarse_airways)
                 # **********************************************
 

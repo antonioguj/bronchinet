@@ -173,7 +173,7 @@ def main(args):
 
 
     if args.is_conservative_remove_trachea_calc_metrics:
-        # Compute a more conversative coarse airways masks to remove trachea and main bronchii in the computation of metrics
+        # Compute a more conversative coarse airways masks to remove trachea and main bronchi in the computation of metrics
 
         workdir_manager            = TrainDirManager(basedir)
         input_reference_masks_path = workdir_manager.get_datadir_exist(NAME_RAW_LABELS_RELPATH)
@@ -183,7 +183,7 @@ def main(args):
         output_tempo_refer_coarse_airways_path = workdir_manager.get_datadir_new('CoarseAirways_ReferMasks')
         output_conser_coarse_airways_path      = workdir_manager.get_datadir_new('CoarseAirways_Conservative')
 
-        # Mask reference airways masks with the lung mask to compute reference trachea and main bronchii
+        # Mask reference airways masks with the lung mask to compute reference trachea and main bronchi
         new_call = ['python3', SCRIPT_CALC_CONSER_COARSEAIRWAYS_MASK, input_reference_masks_path, output_tempo_refer_coarse_airways_path,
                     '--type', 'substract',
                     '--in_2ndmask_dir', input_RoImasks_path]
@@ -208,7 +208,7 @@ def main(args):
                 '--basedir', basedir,
                 '--input_centrelines_dir', output_predict_centrelines_path,
                 '--output_file', output_result_metrics_file,
-                #'--list_type_metrics_result', ' '.join([el for el in args.list_type_metrics_result]),
+                #'--list_type_metrics', ' '.join([el for el in args.list_type_metrics_result]),
                 '--is_remove_trachea_calc_metrics', str(IS_REMOVE_TRACHEA_CALC_METRICS),
                 '--name_input_coarse_airways_relpath', name_input_coarse_airways_relpath]
     list_calls_all.append(new_call)

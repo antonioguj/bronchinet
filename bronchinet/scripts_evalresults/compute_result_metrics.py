@@ -27,13 +27,13 @@ def main(args):
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
 
 
-    list_metrics_compute = OrderedDict()
+    list_metrics = OrderedDict()
     list_is_use_reference_cenlines = []
     list_is_use_predicted_cenlines = []
-    for itype_metric in args.list_type_metrics_result:
-        new_metric = get_metric(itype_metric)
-        list_metrics_compute[new_metric._name_fun_out] = new_metric.compute
 
+    for itype_metric in args.list_type_metrics:
+        new_metric = get_metric(itype_metric)
+        list_metrics[new_metric._name_fun_out] = new_metric
         list_is_use_reference_cenlines.append(new_metric._is_use_ytrue_cenlines)
         list_is_use_predicted_cenlines.append(new_metric._is_use_ypred_cenlines)
     # endfor
@@ -57,7 +57,7 @@ def main(args):
 
 
 
-    outdict_computed_metrics = OrderedDict()
+    outdict_calc_metrics = OrderedDict()
 
     for i, in_predicted_mask_file in enumerate(list_input_predicted_masks_files):
         print("\nInput: \'%s\'..." % (basename(in_predicted_mask_file)))
@@ -84,7 +84,7 @@ def main(args):
 
 
         if (args.is_remove_trachea_calc_metrics):
-            print("Remove trachea and main bronchii masks in computed metrics...")
+            print("Remove trachea and main bronchi masks in computed metrics...")
             in_coarse_airways_file = find_file_inlist_same_prefix(basename(in_predicted_mask_file), list_input_coarse_airways_files,
                                                                   pattern_prefix=pattern_search_input_files)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarse_airways_file)))
@@ -107,40 +107,44 @@ def main(args):
         # *******************************************************************************
         # Compute and store Metrics
         print("\nCompute the Metrics:")
-        key_casename = get_substring_filename(basename(in_predicted_mask_file), substr_pattern=pattern_search_input_files)
-        outdict_computed_metrics[key_casename] = []
+        casename = get_substring_filename(basename(in_predicted_mask_file), substr_pattern=pattern_search_input_files)
+        outdict_calc_metrics[casename] = []
 
-        for j, (imetric_name, imetric_compute) in enumerate(list_metrics_compute.items()):
-            if list_is_use_reference_cenlines[j]:
+        for (imetric_name, imetric) in list_metrics.items():
+            if imetric._is_use_ytrue_cenlines:
                 in_reference_data = in_reference_cenline
             else:
                 in_reference_data = in_reference_mask
-            if list_is_use_predicted_cenlines[j]:
+            if imetric._is_use_ypred_cenlines:
                 in_predicted_data = in_predicted_cenline
             else:
                 in_predicted_data = in_predicted_mask
 
+            if imetric._is_use_img_voxel_size:
+                in_mask_voxel_size = ImageFileReader.get_image_voxelsize(in_predicted_mask_file)
+                imetric.set_voxel_size(in_mask_voxel_size)
+
             try:
-                #'try' statement to 'catch' issues when predictions are 'null' (for extreme threshold values)
-                out_val_metric = imetric_compute(in_reference_data, in_predicted_data)
+                #'try' to 'catch' issues when predictions are 'null' (for extreme threshold values)
+                outval_metric = imetric.compute(in_reference_data, in_predicted_data)
             except:
                 # set dummy value for cases with issues
-                out_val_metric = -1.0
-            print("\'%s\': %s..." % (imetric_name, out_val_metric))
+                outval_metric = -1.0
+            print("\'%s\': %s..." % (imetric_name, outval_metric))
 
-            outdict_computed_metrics[key_casename].append(out_val_metric)
+            outdict_calc_metrics[casename].append(outval_metric)
         # endfor
     # endfor
 
 
     # write out computed metrics in file
     fout = open(args.output_file, 'w')
-    strheader = ', '.join(['/case/'] + ['/%s/' % (key) for key in list_metrics_compute.keys()]) + '\n'
+    strheader = ', '.join(['/case/'] + ['/%s/' % (key) for key in list_metrics.keys()]) + '\n'
     fout.write(strheader)
 
-    for (in_casename, outlist_computed_metrics) in outdict_computed_metrics.items():
-        list_outdata = [in_casename] + ['%0.6f' % (elem) for elem in outlist_computed_metrics]
-        strdata = ', '.join(list_outdata) + '\n'
+    for (in_casename, outlist_calc_metrics) in outdict_calc_metrics.items():
+        list_write_data = [in_casename] + ['%0.6f' % (elem) for elem in outlist_calc_metrics]
+        strdata = ', '.join(list_write_data) + '\n'
         fout.write(strdata)
     # endfor
     fout.close()
@@ -153,7 +157,7 @@ if __name__ == "__main__":
     parser.add_argument('input_predicted_masks_dir', type=str)
     parser.add_argument('--input_centrelines_dir', type=str, default=None)
     parser.add_argument('--output_file', type=str, default=NAME_PRED_RESULT_METRICS_FILE)
-    parser.add_argument('--list_type_metrics_result', nargs='+', type=str, default=LIST_TYPE_METRICS_RESULT)
+    parser.add_argument('--list_type_metrics', nargs='+', type=str, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     parser.add_argument('--name_input_coarse_airways_relpath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)

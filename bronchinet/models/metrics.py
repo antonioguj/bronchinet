@@ -19,6 +19,7 @@ LIST_AVAIL_METRICS = ['MeanSquaredError',
                       'AirwayCompleteness',
                       'AirwayVolumeLeakage',
                       'AirwayCentrelineLeakage',
+                      'AirwayTreeLength',
                       'AirwayCentrelineDistanceFalsePositiveError',
                       'AirwayCentrelineDistanceFalseNegativeError',
                       ]
@@ -29,6 +30,7 @@ class MetricBase(object):
     _value_mask_exclude = -1
     _is_use_ytrue_cenlines = False
     _is_use_ypred_cenlines = False
+    _is_use_img_voxel_size = False
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         self._is_mask_exclude = is_mask_exclude
@@ -64,6 +66,9 @@ class MetricBase(object):
 
     def _get_masked_input(self, y_input: np.ndarray, y_true: np.ndarray) -> np.ndarray:
         return np.where(y_true == self._value_mask_exclude, 0, y_input)
+
+    def set_voxel_size(self, voxel_size: np.ndarray) -> None:
+        self._voxel_size = np.array(voxel_size)
 
 
 class CombineTwoMetrics(MetricBase):
@@ -276,26 +281,37 @@ class AirwayCentrelineLeakage(MetricBase):
         return np.sum((1.0 - y_true) * y_pred) / (np.sum(y_pred) + _SMOOTH)
 
 
+class AirwayTreeLength(MetricBase):
+    _is_use_ytrue_cenlines = False
+    _is_use_ypred_cenlines = True
+    _is_use_img_voxel_size = True
+
+    def __init__(self, is_mask_exclude: bool = False) -> None:
+        super(AirwayTreeLength, self).__init__(is_mask_exclude)
+        self._name_fun_out = 'tree_length'
+
+    def _get_voxel_diag(self) -> np.ndarray:
+        return np.sqrt(self._voxel_size.dot(self._voxel_size))
+
+    def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+        return np.sum(y_pred) * self._get_voxel_diag()
+
+
 class AirwayCentrelineDistanceFalsePositiveError(MetricBase):
     _is_use_ytrue_cenlines = True
     _is_use_ypred_cenlines = True
+    _is_use_img_voxel_size = True
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayCentrelineDistanceFalsePositiveError, self).__init__(is_mask_exclude)
         self._name_fun_out = 'cenline_dist_fp_err'
 
-    @staticmethod
-    def _get_voxel_scaling(y_input: np.ndarray) -> np.ndarray:
-        #return np.diag(y_input.affine)[:3]
-        return np.asarray([1.0, 1.0, 1.0])
-
-    @classmethod
-    def _get_centreline_coords(cls, y_input: np.ndarray) -> np.ndarray:
-        return np.asarray(np.argwhere(y_input > 0)) * cls._get_voxel_scaling(y_input)
+    def _get_cenline_coords(self, y_input: np.ndarray) -> np.ndarray:
+        return np.asarray(np.argwhere(y_input > 0)) * self._voxel_size
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-        y_true = self._get_centreline_coords(y_true)
-        y_pred = self._get_centreline_coords(y_pred)
+        y_true = self._get_cenline_coords(y_true)
+        y_pred = self._get_cenline_coords(y_pred)
         dist_y = distance.cdist(y_pred, y_true)
         return np.mean(np.min(dist_y, axis=1))
 
@@ -303,22 +319,17 @@ class AirwayCentrelineDistanceFalsePositiveError(MetricBase):
 class AirwayCentrelineDistanceFalseNegativeError(MetricBase):
     _is_use_ytrue_cenlines = True
     _is_use_ypred_cenlines = True
+    _is_use_img_voxel_size = True
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayCentrelineDistanceFalseNegativeError, self).__init__(is_mask_exclude)
         self._name_fun_out = 'cenline_dist_fn_err'
 
-    @staticmethod
-    def _get_voxel_scaling(y_input: np.ndarray) -> np.ndarray:
-        #return np.diag(y_input.affine)[:3]
-        return np.asarray([1.0, 1.0, 1.0])
-
-    @classmethod
-    def _get_centreline_coords(cls, y_input: np.ndarray) -> np.ndarray:
-        return np.asarray(np.argwhere(y_input > 0)) * cls._get_voxel_scaling(y_input)
+    def _get_cenline_coords(self, y_input: np.ndarray) -> np.ndarray:
+        return np.asarray(np.argwhere(y_input > 0)) * self._voxel_size
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-        y_true = self._get_centreline_coords(y_true)
-        y_pred = self._get_centreline_coords(y_pred)
+        y_true = self._get_cenline_coords(y_true)
+        y_pred = self._get_cenline_coords(y_pred)
         dist_y = distance.cdist(y_pred, y_true)
         return np.mean(np.min(dist_y, axis=0))

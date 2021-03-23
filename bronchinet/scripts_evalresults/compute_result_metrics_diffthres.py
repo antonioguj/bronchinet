@@ -50,13 +50,13 @@ def main(args):
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
 
 
-    list_metrics_compute = OrderedDict()
+    list_metrics = OrderedDict()
     list_is_use_reference_cenlines = []
     list_is_use_predicted_cenlines = []
-    for itype_metric in args.list_type_metrics_ROC_curve:
-        new_metric = get_metric(itype_metric)
-        list_metrics_compute[new_metric._name_fun_out] = new_metric.compute
 
+    for itype_metric in args.list_type_metrics:
+        new_metric = get_metric(itype_metric)
+        list_metrics[new_metric._name_fun_out] = new_metric
         list_is_use_reference_cenlines.append(new_metric._is_use_ytrue_cenlines)
         list_is_use_predicted_cenlines.append(new_metric._is_use_ypred_cenlines)
     # endfor
@@ -71,9 +71,9 @@ def main(args):
 
 
     num_input_files  = len(list_input_posteriors_files)
-    num_comp_metrics = len(list_metrics_compute)
+    num_calc_metrics = len(list_metrics)
     num_thresholds   = len(inlist_thresholds)
-    out_computed_metrics_allcases = np.zeros((num_input_files, num_thresholds, num_comp_metrics))
+    out_calc_metrics_allcases = np.zeros((num_input_files, num_thresholds, num_calc_metrics))
 
 
     for i, in_posterior_file in enumerate(list_input_posteriors_files):
@@ -95,7 +95,7 @@ def main(args):
 
 
         if (args.is_remove_trachea_calc_metrics):
-            print("Remove trachea and main bronchii masks in computed metrics...")
+            print("Remove trachea and main bronchi masks in computed metrics...")
             in_coarse_airways_file = find_file_inlist_same_prefix(basename(in_posterior_file), list_input_coarse_airways_files,
                                                                   pattern_prefix=pattern_search_input_files)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarse_airways_file)))
@@ -118,13 +118,13 @@ def main(args):
         if args.is_connected_masks:
             print("- Compute the first connected component from the binary masks...")
         if args.is_remove_trachea_calc_metrics:
-            print("- Remove the trachea and main bronchii from the binary masks...")
+            print("- Remove the trachea and main bronchi from the binary masks...")
         if is_load_predicted_cenlines_files:
             print("- Compute the centrelines by thinning the binary masks...")
         print("- Compute the Metrics:")
 
-        key_casename = get_substring_filename(basename(in_posterior_file), substr_pattern=pattern_search_input_files)
-        outdict_computed_metrics = OrderedDict()
+        casename = get_substring_filename(basename(in_posterior_file), substr_pattern=pattern_search_input_files)
+        outdict_calc_metrics = OrderedDict()
 
         with tqdm(total=num_thresholds) as progressbar:
             for j, in_thres_value in enumerate(inlist_thresholds):
@@ -133,7 +133,7 @@ def main(args):
                 in_predicted_mask = ThresholdImage.compute(in_posterior, in_thres_value)
 
                 if (args.is_connected_masks):
-                    # First, attach the trachea and main bronchii to the binary masks, to be able to compute the largest connected component
+                    # First, attach the trachea and main bronchi to the binary masks, to be able to compute the largest connected component
                     in_predicted_mask = MaskOperator.merge_two_masks(in_predicted_mask, in_coarse_airways)  # isNot_intersect_masks=True)
 
                     # Compute the first connected component from the binary masks
@@ -148,7 +148,7 @@ def main(args):
                         in_predicted_cenline = np.zeros_like(in_predicted_mask)
 
                 if (args.is_remove_trachea_calc_metrics):
-                    # Remove the trachea and main bronchii from the binary masks
+                    # Remove the trachea and main bronchi from the binary masks
                     in_predicted_mask = MaskOperator.substract_two_masks(in_predicted_mask, in_coarse_airways)
 
                     if (is_load_predicted_cenlines_files):
@@ -156,46 +156,50 @@ def main(args):
                 # **********************************************
 
 
-                outdict_computed_metrics[in_thres_value] = []
-                for k, (imetric_name, imetric_compute) in enumerate(list_metrics_compute.items()):
-                    if list_is_use_reference_cenlines[k]:
+                outdict_calc_metrics[in_thres_value] = []
+                for (imetric_name, imetric) in list_metrics.items():
+                    if imetric._is_use_ytrue_cenlines:
                         in_reference_data = in_reference_cenline
                     else:
                         in_reference_data = in_reference_mask
-                    if list_is_use_predicted_cenlines[k]:
+                    if imetric._is_use_ypred_cenlines:
                         in_predicted_data = in_predicted_cenline
                     else:
                         in_predicted_data = in_predicted_mask
 
+                    if imetric._is_use_img_voxel_size:
+                        in_mask_voxel_size = ImageFileReader.get_image_voxelsize(in_predicted_mask_file)
+                        imetric.set_voxel_size(in_mask_voxel_size)
+
                     try:
-                        #'try' statement to 'catch' issues when predictions are 'null' (for extreme threshold values)
-                        out_val_metric = imetric_compute(in_reference_data, in_predicted_data)
+                        #'try' to 'catch' issues when predictions are 'null' (for extreme threshold values)
+                        outval_metric = imetric.compute(in_reference_data, in_predicted_data)
                     except:
                         # set dummy value for cases with issues
-                        out_val_metric = -1.0
+                        outval_metric = -1.0
 
-                    outdict_computed_metrics[in_thres_value].append(out_val_metric)
+                    outdict_calc_metrics[in_thres_value].append(outval_metric)
                 # endfor
 
-                out_computed_metrics_allcases[i,j,:] = outdict_computed_metrics[in_thres_value]
+                out_calc_metrics_allcases[i,j,:] = outdict_calc_metrics[in_thres_value]
                 progressbar.update(1)
             # endfor
         # *******************************************************************************
 
 
         # write out computed metrics in file
-        out_results_filename = outfilename_metrics_eachcase % (key_casename)
+        out_results_filename = outfilename_metrics_eachcase % (casename)
         out_results_filename = join_path_names(output_files_path, out_results_filename)
         if is_exist_file(out_results_filename):
             fout = open(out_results_filename, 'a')
         else:
             fout = open(out_results_filename, 'w')
-            strheader = ', '.join(['/thres/'] + ['/%s/' % (key) for key in list_metrics_compute.keys()]) + '\n'
+            strheader = ', '.join(['/thres/'] + ['/%s/' % (key) for key in list_metrics.keys()]) + '\n'
             fout.write(strheader)
 
-        for (in_thres, outlist_computed_metrics) in outdict_computed_metrics.items():
-            list_outdata = ['%0.6f' % (in_thres)] + ['%0.6f' % (elem) for elem in outlist_computed_metrics]
-            strdata = ', '.join(list_outdata) + '\n'
+        for (in_thres, outlist_calc_metrics) in outdict_calc_metrics.items():
+            list_write_data = ['%0.6f' % (in_thres)] + ['%0.6f' % (elem) for elem in outlist_calc_metrics]
+            strdata = ', '.join(list_write_data) + '\n'
             fout.write(strdata)
         # endfor
         fout.close()
@@ -203,19 +207,19 @@ def main(args):
 
 
     # Compute global metrics as mean over all files
-    out_mean_allcases_computed_metrics = np.mean(out_computed_metrics_allcases, axis=0)
+    out_mean_allcases_calc_metrics = np.mean(out_calc_metrics_allcases, axis=0)
 
     out_filename = join_path_names(output_files_path, outfilename_metrics_meanall)
     if is_exist_file(out_filename):
         fout = open(out_filename, 'a')
     else:
         fout = open(out_filename, 'w')
-        strheader = ', '.join(['/thres/'] + ['/%s/' % (key) for key in list_metrics_compute.keys()]) + '\n'
+        strheader = ', '.join(['/thres/'] + ['/%s/' % (key) for key in list_metrics.keys()]) + '\n'
         fout.write(strheader)
 
     for i, in_thres in enumerate(inlist_thresholds):
-        list_outdata = ['%0.6f' % (in_thres)] + ['%0.6f' % (elem) for elem in out_mean_allcases_computed_metrics[i]]
-        strdata = ', '.join(list_outdata) + '\n'
+        list_write_data = ['%0.6f' % (in_thres)] + ['%0.6f' % (elem) for elem in out_mean_allcases_calc_metrics[i]]
+        strdata = ', '.join(list_write_data) + '\n'
         fout.write(strdata)
     # endfor
     fout.close()
@@ -227,7 +231,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_posteriors_dir', type=str)
     parser.add_argument('--output_dir', type=str, default=None)
-    parser.add_argument('--list_type_metrics_ROC_curve', nargs='+', type=str, default=LIST_TYPE_METRICS_ROC_CURVE)
+    parser.add_argument('--list_type_metrics', nargs='+', type=str, default=LIST_TYPE_METRICS_ROC_CURVE)
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)

@@ -139,6 +139,7 @@ LIST_TYPE_METRICS_RESULT    = ['DiceCoefficient',
                                'AirwayCompleteness',
                                'AirwayVolumeLeakage',
                                'AirwayCentrelineLeakage',
+                               'AirwayTreeLength',
                                'AirwayCentrelineDistanceFalsePositiveError',
                                'AirwayCentrelineDistanceFalseNegativeError']
 LIST_TYPE_METRICS_ROC_CURVE = ['DiceCoefficient',
