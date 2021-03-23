@@ -60,7 +60,7 @@ elif TYPE_DNNLIB_USED == 'Keras':
 from models.metrics import MetricBase, MeanSquaredError, MeanSquaredErrorLogarithmic, BinaryCrossEntropy, \
                            WeightedBinaryCrossEntropy, WeightedBinaryCrossEntropyFixedWeights, DiceCoefficient, \
                            TruePositiveRate, TrueNegativeRate, FalsePositiveRate, FalseNegativeRate, \
-                           AirwayCompleteness, AirwayVolumeLeakage, AirwayCentrelineLeakage, \
+                           AirwayCompleteness, AirwayVolumeLeakage, AirwayCentrelineLeakage, AirwayTreeLength, \
                            AirwayCentrelineDistanceFalseNegativeError, AirwayCentrelineDistanceFalsePositiveError, \
                            SNR, PSNR, SSIM, LIST_AVAIL_METRICS
 from models.networks import ConvNetBase
@@ -96,6 +96,8 @@ def get_metric(type_metric: str,
         return AirwayVolumeLeakage(is_mask_exclude=is_mask_exclude)
     elif type_metric == 'AirwayCentrelineLeakage':
         return AirwayCentrelineLeakage(is_mask_exclude=is_mask_exclude)
+    elif type_metric == 'AirwayTreeLength':
+        return AirwayTreeLength(is_mask_exclude=is_mask_exclude)
     elif type_metric == 'AirwayCentrelineDistanceFalsePositiveError':
         return AirwayCentrelineDistanceFalsePositiveError(is_mask_exclude=is_mask_exclude)
     elif type_metric == 'AirwayCentrelineDistanceFalseNegativeError':
