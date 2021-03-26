@@ -164,12 +164,12 @@ def main(args):
         new_sublist_calls = create_task_replace_dirs(name_input_raw_RoImasks_path, name_tempo_binary_RoImasks_path)
         list_calls_all += new_sublist_calls
 
-    # Extract the labels for trachea and main bronchi from the coarse airways
+    # Extract the labels for trachea and main bronchi from the coarse airways (AND FILL HOLES INSIDE THE TRACHEA)
     if args.is_prepare_coarse_airways:
         name_tempo_trachea_main_bronchi_path = set_dirname_suffix(name_input_raw_coarse_airways_path, 'TracheaMainBronchi')
 
         new_call = ['python3', SCRIPT_GET_TRACHEA_MAIN_BRONCHI, name_input_raw_coarse_airways_path, name_tempo_trachea_main_bronchi_path,
-                    '--type', 'masklabels',
+                    '--type', 'masklabels', 'fillholes',
                     '--in_mask_labels', '2', '3', '4',
                     '--no_suffix_outname', 'True']
         list_calls_all.append(new_call)

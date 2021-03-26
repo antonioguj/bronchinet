@@ -282,19 +282,19 @@ class AirwayCentrelineLeakage(MetricBase):
 
 
 class AirwayTreeLength(MetricBase):
-    _is_use_ytrue_cenlines = False
-    _is_use_ypred_cenlines = True
+    _is_use_ytrue_cenlines = True
+    _is_use_ypred_cenlines = False
     _is_use_img_voxel_size = True
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayTreeLength, self).__init__(is_mask_exclude)
         self._name_fun_out = 'tree_length'
 
-    def _get_voxel_diag(self) -> np.ndarray:
-        return np.sqrt(self._voxel_size.dot(self._voxel_size))
+    def _get_voxel_length_unit(self) -> np.ndarray:
+        return np.prod(self._voxel_size) ** (1.0/len(self._voxel_size))
 
     def _compute(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-        return np.sum(y_pred) * self._get_voxel_diag()
+        return np.sum(y_true * y_pred) * self._get_voxel_length_unit()
 
 
 class AirwayCentrelineDistanceFalsePositiveError(MetricBase):
