@@ -204,9 +204,8 @@ def main(args):
 
 
     # 5th: Compute testing metrics from predicted binary masks and centrelines
-    new_call = ['python3', SCRIPT_COMPUTE_RESULT_METRICS, output_predict_binary_masks_path,
+    new_call = ['python3', SCRIPT_COMPUTE_RESULT_METRICS, output_predict_binary_masks_path, output_predict_centrelines_path,
                 '--basedir', basedir,
-                '--input_centrelines_dir', output_predict_centrelines_path,
                 '--output_file', output_result_metrics_file,
                 #'--list_type_metrics', ' '.join([el for el in args.list_type_metrics_result]),
                 '--is_remove_trachea_calc_metrics', str(IS_REMOVE_TRACHEA_CALC_METRICS),

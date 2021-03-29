@@ -18,9 +18,6 @@ if TYPE_DNNLIB_USED == 'Pytorch':
                                        TrueNegativeRate as TrueNegativeRate_train, \
                                        FalsePositiveRate as FalsePositiveRate_train, \
                                        FalseNegativeRate as FalseNegativeRate_train, \
-                                       AirwayCompleteness as AirwayCompleteness_train, \
-                                       AirwayVolumeLeakage as AirwayVolumeLeakage_train, \
-                                       AirwayCentrelineLeakage as AirwayCentrelineLeakage_train, \
                                        LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
     from models.pytorch.networks import UNet3D_Original, UNet3D_General, UNet3D_Plugin, LIST_AVAIL_NETWORKS
     from models.pytorch.optimizers import SGD, SGD_mom, RMSprop, Adagrad, Adadelta, Adam, LIST_AVAIL_OPTIMIZERS
@@ -40,9 +37,6 @@ elif TYPE_DNNLIB_USED == 'Keras':
                                      TrueNegativeRate as TrueNegativeRate_train, \
                                      FalsePositiveRate as FalsePositiveRate_train, \
                                      FalseNegativeRate as FalseNegativeRate_train, \
-                                     AirwayCompleteness as AirwayCompleteness_train, \
-                                     AirwayVolumeLeakage as AirwayVolumeLeakage_train, \
-                                     AirwayCentrelineLeakage as AirwayCentrelineLeakage_train, \
                                      LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
     from models.keras.networks import UNet3D_Original, UNet3D_General, UNet3D_Plugin, LIST_AVAIL_NETWORKS
     from models.keras.optimizers import SGD, SGD_mom, RMSprop, Adagrad, Adadelta, Adam, LIST_AVAIL_OPTIMIZERS
@@ -137,12 +131,6 @@ def get_metric_train(type_metric: str,
             return FalsePositiveRate_train(is_mask_exclude=is_mask_exclude)
         elif type_metric == 'FalseNegativeRate':
             return FalseNegativeRate_train(is_mask_exclude=is_mask_exclude)
-        elif type_metric == 'AirwayCompleteness':
-            return AirwayCompleteness_train(is_mask_exclude=is_mask_exclude)
-        elif type_metric == 'AirwayVolumeLeakage':
-            return AirwayVolumeLeakage_train(is_mask_exclude=is_mask_exclude)
-        elif type_metric == 'AirwayCentrelineLeakage':
-            return AirwayCentrelineLeakage_train(is_mask_exclude=is_mask_exclude)
         else:
             message = 'Choice Metric for Training not found: %s. Metrics available: %s' % (type_metric, ', '.join(LIST_AVAIL_METRICS_TRAIN))
             catch_error_exception(message)

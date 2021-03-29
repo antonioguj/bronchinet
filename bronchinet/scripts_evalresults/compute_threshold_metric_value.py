@@ -35,28 +35,21 @@ def main(args):
     workdir_manager                 = TrainDirManager(args.basedir)
     input_posteriors_path           = workdir_manager.get_pathdir_exist(args.input_posteriors_dir)
     input_reference_masks_path      = workdir_manager.get_datadir_exist(args.name_input_reference_masks_relpath)
+    input_reference_cenlines_path   = workdir_manager.get_datadir_exist(args.name_input_reference_centrelines_relpath)
     in_reference_keys_file          = workdir_manager.get_datafile_exist(args.name_input_reference_keys_file)
-    list_input_posteriors_files     = list_files_dir(input_posteriors_path)
-    list_input_reference_masks_files= list_files_dir(input_reference_masks_path)
-    indict_reference_keys           = read_dictionary(in_reference_keys_file)
-    pattern_search_input_files      = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
+
+    list_input_posteriors_files         = list_files_dir(input_posteriors_path)
+    list_input_reference_masks_files    = list_files_dir(input_reference_masks_path)
+    list_input_reference_cenlines_files = list_files_dir(input_reference_cenlines_path)
+    indict_reference_keys               = read_dictionary(in_reference_keys_file)
+    pattern_search_input_files          = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
 
     if (args.is_remove_trachea_calc_metrics):
         input_coarse_airways_path       = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
-        
-
-    new_metric = get_metric(metric_eval_threshold)
-    fun_metric_eval_threshold = new_metric.compute
-    is_load_reference_cenlines_files = new_metric._is_use_ytrue_cenlines
-    is_load_predicted_cenlines_files = new_metric._is_use_ypred_cenlines
-
-    if (is_load_reference_cenlines_files):
-        print("Loading Reference Centrelines...")
-        input_reference_centrelines_path       = workdir_manager.get_datadir_exist(args.name_input_reference_centrelines_relpath)
-        list_input_reference_centrelines_files = list_files_dir(input_reference_centrelines_path)
 
 
+    calc_metric       = get_metric(metric_eval_threshold)
     num_valid_predict_files = len(list_input_posteriors_files)
     curr_thres_value  = init_threshold_value
     old_thres_value   = ref0_threshold_value
@@ -65,37 +58,40 @@ def main(args):
 
 
     print("Load all predictions where to evaluate the metrics, total of \'%s\' files..." %(num_valid_predict_files))
-    list_in_posteriors = []
-    list_in_references = []
-    list_in_coarse_airways = []
+    list_in_posteriors      = []
+    list_in_reference_masks = []
+    list_in_reference_cenlines = []
+    list_in_coarse_airways  = []
+
     with tqdm(total=num_valid_predict_files) as progressbar:
-        for i, in_posterior_file in enumerate(list_input_posteriors_files):
+        for i, in_posteriors_file in enumerate(list_input_posteriors_files):
 
-            in_posterior = ImageFileReader.get_image(in_posterior_file)
-            list_in_posteriors.append(in_posterior)
+            in_posteriors = ImageFileReader.get_image(in_posteriors_file)
+            list_in_posteriors.append(in_posteriors)
 
-            if (is_load_reference_cenlines_files):
-                in_reference_cenline_file = find_file_inlist_same_prefix(basename(in_posterior_file), list_input_reference_centrelines_files,
-                                                                         pattern_prefix=pattern_search_input_files)
-                in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
-                in_reference_data = in_reference_cenline
-            else:
-                in_reference_mask = find_file_inlist_same_prefix(basename(in_posterior_file), list_input_reference_masks_files,
-                                                                 pattern_prefix=pattern_search_input_files)
-                in_reference_mask = ImageFileReader.get_image(in_reference_mask)
-                in_reference_data = in_reference_mask
+            in_reference_mask = find_file_inlist_same_prefix(basename(in_posteriors_file), list_input_reference_masks_files,
+                                                             pattern_prefix=pattern_search_input_files)
+            in_reference_cenline_file = find_file_inlist_same_prefix(basename(in_posteriors_file), list_input_reference_cenlines_files,
+                                                                     pattern_prefix=pattern_search_input_files)
+
+            in_reference_mask    = ImageFileReader.get_image(in_reference_mask)
+            in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
+
 
             if (args.is_remove_trachea_calc_metrics):
-                in_coarse_airways_file = find_file_inlist_same_prefix(basename(in_posterior_file), list_input_coarse_airways_files,
+                in_coarse_airways_file = find_file_inlist_same_prefix(basename(in_posteriors_file), list_input_coarse_airways_files,
                                                                       pattern_prefix=pattern_search_input_files)
                 in_coarse_airways = ImageFileReader.get_image(in_coarse_airways_file)
 
                 in_coarse_airways = MorphoDilateMask.compute(in_coarse_airways, num_iters=4)
                 list_in_coarse_airways.append(in_coarse_airways)
 
-                in_reference_data = MaskOperator.substract_two_masks(in_reference_data, in_coarse_airways)
+                in_reference_mask    = MaskOperator.substract_two_masks(in_reference_mask, in_coarse_airways)
+                in_reference_cenline = MaskOperator.substract_two_masks(in_reference_cenline, in_coarse_airways)
 
-            list_in_references.append(in_reference_data)
+
+            list_in_reference_masks.append(in_reference_mask)
+            list_in_reference_cenlines.append(in_reference_cenline)
             progressbar.update(1)
         # endfor
     # *******************************************************************************
@@ -107,34 +103,39 @@ def main(args):
         # Loop over all prediction files and compute the mean metrics over the dataset
         with tqdm(total=num_valid_predict_files) as progressbar:
             sumrun_res_metrics = 0.0
-            for i, (in_posterior, in_reference_data) in enumerate(zip(list_in_posteriors, list_in_references)):
+            for i, (in_posteriors, in_reference_data) in enumerate(zip(list_in_posteriors, list_in_reference_masks)):
 
                 # Compute the binary masks by thresholding the posteriors
-                in_predicted_mask = ThresholdImage.compute(in_posterior, curr_thres_value)
+                in_predicted_mask = ThresholdImage.compute(in_posteriors, curr_thres_value)
 
                 if (args.is_connected_masks):
                     # Compute the first connected component from the binary masks
                     in_predicted_mask = FirstConnectedRegionMask.compute(in_predicted_mask, connectivity_dim=1)
 
-                if (is_load_predicted_cenlines_files):
-                    # Compute centrelines by thinning the binary masks
-                    try:
-                        #'try' statement to 'catch' issues when predictions are 'weird' (for extreme threshold values)
-                        in_predicted_cenline = ThinningMask.compute(in_predicted_mask)
-                    except:
-                        in_predicted_cenline = np.zeros_like(in_predicted_mask)
-                    in_predicted_data = in_predicted_cenline
-                else:
-                    in_predicted_data = in_predicted_mask
+                try:
+                    # 'catch' issues when predictions are 'weird' (for extreme threshold values)
+                    in_predicted_cenline = ThinningMask.compute(in_predicted_mask)
+                except:
+                    in_predicted_cenline = np.zeros_like(in_predicted_mask)
 
                 if (args.is_remove_trachea_calc_metrics):
                     # Remove the trachea and main bronchi from the binary masks
-                    in_predicted_data = MaskOperator.substract_two_masks(in_predicted_data, in_coarse_airways)
+                    in_predicted_mask    = MaskOperator.substract_two_masks(in_predicted_mask, in_coarse_airways)
+                    in_predicted_cenline = MaskOperator.substract_two_masks(in_predicted_cenline, in_coarse_airways)
+
                 # **********************************************
 
-                out_val_metric = fun_metric_eval_threshold(in_reference_data, in_predicted_data)
-                sumrun_res_metrics += out_val_metric
+                try:
+                    # 'catch' issues when predictions are 'null' (for extreme threshold values)
+                    if calc_metric._is_airway_metric:
+                        outval_metric = calc_metric.compute_airs(in_reference_mask, in_reference_cenline,
+                                                                 in_predicted_mask, in_predicted_cenline)
+                    else:
+                        outval_metric = calc_metric.compute(in_reference_mask, in_predicted_mask)
+                except:
+                    outval_metric = 0.0
 
+                sumrun_res_metrics += outval_metric
                 progressbar.update(1)
             # endfor
             curr_res_metrics = sumrun_res_metrics / num_valid_predict_files
