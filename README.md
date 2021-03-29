@@ -69,7 +69,7 @@ Prepare data
 1) [IF NEEDED] Preprocess data: apply various operations to input images / masks: rescaling, binarise masks
 - python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[various option]
 
-2) [IF NEEDED] Compute bounding-boxes around lung masks, for input images:
+2) Compute bounding-boxes around lung masks, for input images:
 - python ./Code/scripts_prepdata/compute_boundingbox_images.py --datadir=[path_dir_dataset]
 
 3) Prepare data: include i) crop images, ii) mask ground-truth to lung regions, iii) rescale images.
@@ -97,15 +97,15 @@ Test models
 - python ./Code/scripts_evalresults/process_predicted_airway_tree.py <dir_output_probmaps> <dir_output_binmasks> --basedir=[path_dir_workdir]
 - rm -r <dir_output_predictions>
 
-4) [IF NEEDED] Compute largest connected component of airway binary masks:
+4) Compute largest connected component of airway binary masks:
 - python ./Code/scripts_util/apply_operation_images.py <dir_output_binmasks> <dir_output_conn_binmasks> --type=firstconreg
 - rm -r <dir_output_binmasks> && mv <dir_output_conn_binmasks> <dir_output_binmasks>
 
-5) [IF NEEDED] Compute centrelines from airway binary masks:
+5) Compute centrelines from airway binary masks:
 - python ./Code/scripts_util/apply_operation_images.py <dir_output_binmasks> <dir_output_centrelines> --type=thinning
 
 6) Compute results metrics / accuracy:
-- python ./Code/scripts_evalresults/compute_result_metrics.py <dir_output_binmasks> --basedir=[path_dir_workdir] [IF NEEDED:--inputcentrelinesdir=<dir_output_centrelines>]
+- python ./Code/scripts_evalresults/compute_result_metrics.py <dir_output_binmasks> <dir_output_centrelines> --basedir=[path_dir_workdir]
 
 [ALTERNATIVE] Do steps 1-6 at once:
 - python ./Code/scripts_evalresults/launch_predictions_full.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir]
