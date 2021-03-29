@@ -29,9 +29,6 @@ LIST_AVAIL_METRICS = ['MeanSquaredError',
                       'TrueNegativeRate',
                       'FalsePositiveRate',
                       'FalseNegativeRate',
-                      'AirwayCompleteness',
-                      'AirwayVolumeLeakage',
-                      'AirwayCentrelineLeakage',
                       'L1',     # HI ALEX, ADD NAMES OF NEW LOSS FUNCTIONS HERE
                       'L2',
                       'DSSIM',
@@ -45,27 +42,27 @@ class Metric(MetricBase):
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(Metric, self).__init__(is_mask_exclude)
 
-    def compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    def compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         if self._is_mask_exclude:
-            return self._compute_masked(K.flatten(y_true), K.flatten(y_pred))
+            return self._compute_masked(K.flatten(target), K.flatten(input))
         else:
-            return self._compute(K.flatten(y_true), K.flatten(y_pred))
+            return self._compute(K.flatten(target), K.flatten(input))
 
-    def lossfun(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return self.compute(y_true, y_pred)
+    def lossfun(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return self.compute(target, input)
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         raise NotImplementedError
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return self._compute(self._get_masked_input(y_true, y_true),
-                             self._get_masked_input(y_pred, y_true))
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return self._compute(self._get_masked_input(target, target),
+                             self._get_masked_input(input, target))
 
-    def _get_mask(self, y_true: tf.Tensor) -> tf.Tensor:
-        return tf.where(K.equal(y_true, self._value_mask_exclude), K.zeros_like(y_true), K.ones_like(y_true))
+    def _get_mask(self, target: tf.Tensor) -> tf.Tensor:
+        return tf.where(K.equal(target, self._value_mask_exclude), K.zeros_like(target), K.ones_like(target))
 
-    def _get_masked_input(self, y_input: tf.Tensor, y_true: tf.Tensor) -> tf.Tensor:
-        return tf.where(K.equal(y_true, self._value_mask_exclude), K.zeros_like(y_input), y_input)
+    def _get_masked_input(self, input: tf.Tensor, target: tf.Tensor) -> tf.Tensor:
+        return tf.where(K.equal(target, self._value_mask_exclude), K.zeros_like(input), input)
 
     def renamed_lossfun_backward_compat(self) -> Callable:
         setattr(self, 'loss', self.lossfun)
@@ -84,7 +81,7 @@ class Metric(MetricBase):
 
 
 class MetricWithUncertainty(Metric):
-    # Composed uncertainty loss (ask Shuai)
+    # Composed uncertainty loss
     _epsilon_default = 0.01
 
     def __init__(self, metrics_loss: Metric, epsilon: float = _epsilon_default) -> None:
@@ -93,13 +90,13 @@ class MetricWithUncertainty(Metric):
         super(MetricWithUncertainty, self).__init__(self._metrics_loss._is_mask_exclude)
         self._name_fun_out = self._metrics_loss._name_fun_out + '_uncertain'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return (1.0 - self._epsilon) * self._metrics_loss._compute(y_true, y_pred) + \
-               self._epsilon * self._metrics_loss._compute(K.ones_like(y_pred) / 3, y_pred)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return (1.0 - self._epsilon) * self._metrics_loss._compute(target, input) + \
+               self._epsilon * self._metrics_loss._compute(K.ones_like(input) / 3, input)
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return (1.0 - self._epsilon) * self._metrics_loss._compute_masked(y_true, y_pred) + \
-               self._epsilon * self._metrics_loss._compute_masked(K.ones_like(y_pred) / 3, y_pred)
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return (1.0 - self._epsilon) * self._metrics_loss._compute_masked(target, input) + \
+               self._epsilon * self._metrics_loss._compute_masked(K.ones_like(input) / 3, input)
 
 
 class CombineTwoMetrics(Metric):
@@ -111,11 +108,11 @@ class CombineTwoMetrics(Metric):
         self._weight_metric2over1 = weight_metric2over1
         self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
-    def compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return self._metrics_1.compute(y_true, y_pred) + self._weight_metric2over1 * self._metrics_2.compute(y_true, y_pred)
+    def compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return self._metrics_1.compute(target, input) + self._weight_metric2over1 * self._metrics_2.compute(target, input)
 
-    def lossfun(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return self._metrics_1.lossfun(y_true, y_pred) + self._weight_metric2over1 * self._metrics_2.lossfun(y_true, y_pred)
+    def lossfun(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return self._metrics_1.lossfun(target, input) + self._weight_metric2over1 * self._metrics_2.lossfun(target, input)
 
 
 class MeanSquaredError(Metric):
@@ -124,12 +121,12 @@ class MeanSquaredError(Metric):
         super(MeanSquaredError, self).__init__(is_mask_exclude)
         self._name_fun_out  = 'mean_squared'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return K.mean(K.square(y_pred - y_true), axis=-1)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return K.mean(K.square(input - target), axis=-1)
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        mask = self._get_mask(y_true)
-        return K.mean(K.square(y_pred - y_true) * mask, axis=-1)
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        mask = self._get_mask(target)
+        return K.mean(K.square(input - target) * mask, axis=-1)
 
 
 class MeanSquaredErrorLogarithmic(Metric):
@@ -138,14 +135,14 @@ class MeanSquaredErrorLogarithmic(Metric):
         super(MeanSquaredErrorLogarithmic, self).__init__(is_mask_exclude)
         self._name_fun_out  = 'mean_squared_log'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return K.mean(K.square(K.log(K.clip(y_pred, _EPS, None) + 1.0) -
-                               K.log(K.clip(y_true, _EPS, None) + 1.0)), axis=-1)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return K.mean(K.square(K.log(K.clip(input, _EPS, None) + 1.0) -
+                               K.log(K.clip(target, _EPS, None) + 1.0)), axis=-1)
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        mask = self._get_mask(y_true)
-        return K.mean(K.square(K.log(K.clip(y_pred, _EPS, None) + 1.0) -
-                               K.log(K.clip(y_true, _EPS, None) + 1.0)) * mask, axis=-1)
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        mask = self._get_mask(target)
+        return K.mean(K.square(K.log(K.clip(input, _EPS, None) + 1.0) -
+                               K.log(K.clip(target, _EPS, None) + 1.0)) * mask, axis=-1)
 
 
 class BinaryCrossEntropy(Metric):
@@ -154,16 +151,16 @@ class BinaryCrossEntropy(Metric):
         super(BinaryCrossEntropy, self).__init__(is_mask_exclude)
         self._name_fun_out = 'bin_cross'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return K.mean(K.binary_crossentropy(y_true, y_pred), axis=-1)
-        #return K.mean(- y_true * K.log(y_pred + _EPS)
-        #              - (1.0 - y_true) * K.log(1.0 - y_pred + _EPS))
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return K.mean(K.binary_crossentropy(target, input), axis=-1)
+        #return K.mean(- target * K.log(input + _EPS)
+        #              - (1.0 - target) * K.log(1.0 - input + _EPS))
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        mask = self._get_mask(y_true)
-        return K.mean(K.binary_crossentropy(y_true, y_pred) * mask, axis=-1)
-        #return K.mean((- y_true * K.log(y_pred + _EPS)
-        #               - (1.0 - y_true) * K.log(1.0 - y_pred + _EPS)) * mask)
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        mask = self._get_mask(target)
+        return K.mean(K.binary_crossentropy(target, input) * mask, axis=-1)
+        #return K.mean((- target * K.log(input + _EPS)
+        #               - (1.0 - target) * K.log(1.0 - input + _EPS)) * mask)
 
 
 class WeightedBinaryCrossEntropy(Metric):
@@ -172,21 +169,21 @@ class WeightedBinaryCrossEntropy(Metric):
         super(WeightedBinaryCrossEntropy, self).__init__(is_mask_exclude)
         self._name_fun_out = 'weight_bin_cross'
 
-    def _get_weights(self, y_true: tf.Tensor) -> Tuple[float, float]:
-        num_class_1 = tf.count_nonzero(tf.where(K.equal(y_true, 1.0), K.ones_like(y_true), K.zeros_like(y_true)), dtype=tf.int32)
-        num_class_0 = tf.count_nonzero(tf.where(K.equal(y_true, 0.0), K.ones_like(y_true), K.zeros_like(y_true)), dtype=tf.int32)
+    def _get_weights(self, target: tf.Tensor) -> Tuple[float, float]:
+        num_class_1 = tf.count_nonzero(tf.where(K.equal(target, 1.0), K.ones_like(target), K.zeros_like(target)), dtype=tf.int32)
+        num_class_0 = tf.count_nonzero(tf.where(K.equal(target, 0.0), K.ones_like(target), K.zeros_like(target)), dtype=tf.int32)
         return (1.0, K.cast(num_class_0, dtype=tf.float32) / (K.cast(num_class_1, dtype=tf.float32) + K.variable(_EPS)))
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        weights = self._get_weights(y_true)
-        return K.mean(- weights[1] * y_true * K.log(y_pred + _EPS)
-                      - weights[0] * (1.0 - y_true) * K.log(1.0 - y_pred + _EPS))
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        weights = self._get_weights(target)
+        return K.mean(- weights[1] * target * K.log(input + _EPS)
+                      - weights[0] * (1.0 - target) * K.log(1.0 - input + _EPS))
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        weights = self._get_weights(y_true)
-        mask = self._get_mask(y_true)
-        return K.mean((- weights[1] * y_true * K.log(y_pred + _EPS)
-                       - weights[0] * (1.0 - y_true) * K.log(1.0 - y_pred + _EPS)) * mask)
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        weights = self._get_weights(target)
+        mask = self._get_mask(target)
+        return K.mean((- weights[1] * target * K.log(input + _EPS)
+                       - weights[0] * (1.0 - target) * K.log(1.0 - input + _EPS)) * mask)
 
 
 class WeightedBinaryCrossEntropyFixedWeights(Metric):
@@ -202,7 +199,7 @@ class WeightedBinaryCrossEntropyFixedWeights(Metric):
         super(WeightedBinaryCrossEntropyFixedWeights, self).__init__(is_mask_exclude)
         self._name_fun_out = 'weight_bin_cross_fixed'
 
-    def _get_weights(self, y_true: tf.Tensor) -> Tuple[float, float]:
+    def _get_weights(self, target: tf.Tensor) -> Tuple[float, float]:
         return self._weights
 
 
@@ -215,19 +212,19 @@ class BinaryCrossEntropyFocalLoss(Metric):
         super(BinaryCrossEntropyFocalLoss, self).__init__(is_mask_exclude)
         self._name_fun_out = 'bin_cross_focal_loss'
 
-    def get_predprobs_classes(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
-        prob_1 = tf.where(K.equal(y_true, 1.0), y_pred, K.ones_like(y_pred))
-        prob_0 = tf.where(K.equal(y_true, 0.0), y_pred, K.zeros_like(y_pred))
+    def get_predprobs_classes(self, target: tf.Tensor, input: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+        prob_1 = tf.where(K.equal(target, 1.0), input, K.ones_like(input))
+        prob_0 = tf.where(K.equal(target, 0.0), input, K.zeros_like(input))
         return (prob_1, prob_0)
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return K.mean(- y_true * K.pow(1.0 - y_pred, self._gamma) * K.log(y_pred + _EPS)
-                      - (1.0 - y_true) * K.pow(y_pred, self._gamma) * K.log(1.0 - y_pred + _EPS))
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return K.mean(- target * K.pow(1.0 - input, self._gamma) * K.log(input + _EPS)
+                      - (1.0 - target) * K.pow(input, self._gamma) * K.log(1.0 - input + _EPS))
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        mask = self._get_mask(y_true)
-        return K.mean((- y_true * K.pow(1.0 - y_pred, self._gamma) * K.log(y_pred + _EPS)
-                       - (1.0 - y_true) * K.pow(y_pred, self._gamma) * K.log(1.0 - y_pred + _EPS)) * mask)
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        mask = self._get_mask(target)
+        return K.mean((- target * K.pow(1.0 - input, self._gamma) * K.log(input + _EPS)
+                       - (1.0 - target) * K.pow(input, self._gamma) * K.log(1.0 - input + _EPS)) * mask)
 
 
 class DiceCoefficient(Metric):
@@ -236,11 +233,11 @@ class DiceCoefficient(Metric):
         super(DiceCoefficient, self).__init__(is_mask_exclude)
         self._name_fun_out = 'dice'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return (2.0 * K.sum(y_true * y_pred)) / (K.sum(y_true) + K.sum(y_pred) + _SMOOTH)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return (2.0 * K.sum(target * input)) / (K.sum(target) + K.sum(input) + _SMOOTH)
 
-    def lossfun(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return 1.0 - self.compute(y_true, y_pred)
+    def lossfun(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return 1.0 - self.compute(target, input)
 
 
 class TruePositiveRate(Metric):
@@ -249,11 +246,11 @@ class TruePositiveRate(Metric):
         super(TruePositiveRate, self).__init__(is_mask_exclude)
         self._name_fun_out = 'tp_rate'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return K.sum(y_true * y_pred) / (K.sum(y_true) + _SMOOTH)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return K.sum(target * input) / (K.sum(target) + _SMOOTH)
 
-    def lossfun(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return 1.0 - self.compute(y_true, y_pred)
+    def lossfun(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return 1.0 - self.compute(target, input)
 
 
 class TrueNegativeRate(Metric):
@@ -262,11 +259,11 @@ class TrueNegativeRate(Metric):
         super(TrueNegativeRate, self).__init__(is_mask_exclude)
         self._name_fun_out = 'tn_rate'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return K.sum((1.0 - y_true) * (1.0 - y_pred)) / (K.sum((1.0 - y_true)) + _SMOOTH)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return K.sum((1.0 - target) * (1.0 - input)) / (K.sum((1.0 - target)) + _SMOOTH)
 
-    def lossfun(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return 1.0 - self.compute(y_true, y_pred)
+    def lossfun(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return 1.0 - self.compute(target, input)
 
 
 class FalsePositiveRate(Metric):
@@ -275,8 +272,8 @@ class FalsePositiveRate(Metric):
         super(FalsePositiveRate, self).__init__(is_mask_exclude)
         self._name_fun_out = 'fp_rate'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return K.sum((1.0 - y_true) * y_pred) / (K.sum((1.0 - y_true)) + _SMOOTH)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return K.sum((1.0 - target) * input) / (K.sum((1.0 - target)) + _SMOOTH)
 
 
 class FalseNegativeRate(Metric):
@@ -285,43 +282,8 @@ class FalseNegativeRate(Metric):
         super(FalseNegativeRate, self).__init__(is_mask_exclude)
         self._name_fun_out = 'fn_rate'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return K.sum(y_true * (1.0 - y_pred)) / (K.sum(y_true) + _SMOOTH)
-
-
-class AirwayCompleteness(Metric):
-    _is_use_ytrue_cenlines = True
-    _is_use_ypred_cenlines = False
-
-    def __init__(self, is_mask_exclude: bool = False) -> None:
-        super(AirwayCompleteness, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'completeness'
-
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return K.sum(y_true * y_pred) / (K.sum(y_true) + _SMOOTH)
-
-
-class AirwayVolumeLeakage(Metric):
-
-    def __init__(self, is_mask_exclude: bool = False) -> None:
-        super(AirwayVolumeLeakage, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'volume_leakage'
-
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return K.sum((1.0 - y_true) * y_pred) / (K.sum(y_pred) + _SMOOTH)
-
-
-class AirwayCentrelineLeakage(Metric):
-    _is_use_ytrue_cenlines = False
-    _is_use_ypred_cenlines = True
-
-    def __init__(self, is_mask_exclude: bool = False) -> None:
-        super(AirwayCentrelineLeakage, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'cenline_leakage'
-
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return K.sum((1.0 - y_true) * y_pred) / (K.sum(y_pred) + _SMOOTH)
-
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return K.sum(target * (1.0 - input)) / (K.sum(target) + _SMOOTH)
 
 
 # ******************** TO IMPLEMENT BY ALEX ********************
@@ -331,28 +293,28 @@ class MetricModified(Metric):
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MetricModified, self).__init__(is_mask_exclude)
 
-    def compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    def compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         if self._is_mask_exclude:
-            return self._compute_masked(y_true, y_pred)
+            return self._compute_masked(target, input)
         else:
-            return self._compute(y_true, y_pred)
+            return self._compute(target, input)
 
-    def lossfun(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return self.compute(y_true, y_pred)
+    def lossfun(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return self.compute(target, input)
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         raise NotImplementedError
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         raise NotImplementedError
 
-    def _get_mask(self, y_true: tf.Tensor) -> tf.Tensor:
-        return tf.where(K.equal(y_true, self._value_mask_exclude), K.zeros_like(y_true), K.ones_like(y_true))
+    def _get_mask(self, target: tf.Tensor) -> tf.Tensor:
+        return tf.where(K.equal(target, self._value_mask_exclude), K.zeros_like(target), K.ones_like(target))
 
-    def _get_masked_input(self, y_input: tf.Tensor, y_true: tf.Tensor) -> tf.Tensor:
-        return tf.where(K.equal(y_true, self._value_mask_exclude), K.zeros_like(y_input), y_input)
+    def _get_masked_input(self, input: tf.Tensor, target: tf.Tensor) -> tf.Tensor:
+        return tf.where(K.equal(target, self._value_mask_exclude), K.zeros_like(input), input)
 
-    def _factor_normalize(self, y_true: tf.Tensor) -> float:
+    def _factor_normalize(self, target: tf.Tensor) -> float:
         return tf.constant(1.0)
 
 
@@ -365,17 +327,17 @@ class CombineTwoMetricsModified(MetricModified):
         self._weight_metric2over1 = weight_metric2over1
         self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
-    def _get_factor_2ndmetric(self, y_true: tf.Tensor) -> float:
-        #return self._weight_metric2over1 * self._metrics_1._factor_normalize(y_true) / self._metrics_2._factor_normalize(y_true)
+    def _get_factor_2ndmetric(self, target: tf.Tensor) -> float:
+        #return self._weight_metric2over1 * self._metrics_1._factor_normalize(target) / self._metrics_2._factor_normalize(target)
         return self._weight_metric2over1
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        factor_2ndmetric = self._get_factor_2ndmetric(y_true)
-        return self._metrics_1._compute(y_true, y_pred) + factor_2ndmetric * self._metrics_2._compute(y_true, y_pred)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        factor_2ndmetric = self._get_factor_2ndmetric(target)
+        return self._metrics_1._compute(target, input) + factor_2ndmetric * self._metrics_2._compute(target, input)
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        factor_2ndmetric = self._get_factor_2ndmetric(y_true)
-        return self._metrics_1._compute_masked(y_true, y_pred) + factor_2ndmetric * self._metrics_2._compute_masked(y_true, y_pred)
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        factor_2ndmetric = self._get_factor_2ndmetric(target)
+        return self._metrics_1._compute_masked(target, input) + factor_2ndmetric * self._metrics_2._compute_masked(target, input)
 
 
 # L1
@@ -385,19 +347,19 @@ class L1(MetricModified):
         super(L1, self).__init__(is_mask_exclude)
         self._name_fun_out = 'l1'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        y_true = K.flatten(y_true)
-        y_pred = K.flatten(y_pred)
-        return K.mean(K.abs(y_pred - y_true), axis=-1)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        target = K.flatten(target)
+        input = K.flatten(input)
+        return K.mean(K.abs(input - target), axis=-1)
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        y_true = K.flatten(y_true)
-        y_pred = K.flatten(y_pred)
-        mask = self._get_mask(y_true)
-        return K.mean(K.abs(y_pred - y_true) * mask, axis=-1)
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        target = K.flatten(target)
+        input = K.flatten(input)
+        mask = self._get_mask(target)
+        return K.mean(K.abs(input - target) * mask, axis=-1)
 
-    def _factor_normalize(self, y_true: tf.Tensor) -> float:
-        return tf.reduce_max(y_true)
+    def _factor_normalize(self, target: tf.Tensor) -> float:
+        return tf.reduce_max(target)
 
 
 # L2
@@ -407,19 +369,19 @@ class L2(MetricModified):
         super(L2, self).__init__(is_mask_exclude)
         self._name_fun_out  = 'l2'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        y_true = K.flatten(y_true)
-        y_pred = K.flatten(y_pred)
-        return K.mean(K.square(y_pred - y_true), axis=-1)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        target = K.flatten(target)
+        input = K.flatten(input)
+        return K.mean(K.square(input - target), axis=-1)
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        y_true = K.flatten(y_true)
-        y_pred = K.flatten(y_pred)
-        mask = self._get_mask(y_true)
-        return K.mean(K.square(y_pred - y_true) * mask, axis=-1)
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        target = K.flatten(target)
+        input = K.flatten(input)
+        mask = self._get_mask(target)
+        return K.mean(K.square(input - target) * mask, axis=-1)
 
-    def _factor_normalize(self, y_true: tf.Tensor) -> float:
-        return tf.reduce_max(y_true)
+    def _factor_normalize(self, target: tf.Tensor) -> float:
+        return tf.reduce_max(target)
 
 
 # Structural Dissimilarity Index
@@ -429,18 +391,18 @@ class DSSIM(MetricModified):
         super(DSSIM, self).__init__(is_mask_exclude)
         self._name_fun_out = 'dssim'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        # return tf.reduce_mean(tf.image.ssim(y_true, y_pred, 255.0))
-        return tf.reduce_mean(tf.image.ssim(y_true, y_pred, 255.0, filter_size=10))
-        # return tf.reduce_mean(tf.image.ssim(y_true, y_pred, max_val=255.0, filter_size=11, filter_sigma=1.5, k1=0.01, k2=0.03))
-        # return measure.compare_ssim(y_true, y_pred, multichannel=True, data_range=255.0)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        # return tf.reduce_mean(tf.image.ssim(target, input, 255.0))
+        return tf.reduce_mean(tf.image.ssim(target, input, 255.0, filter_size=10))
+        # return tf.reduce_mean(tf.image.ssim(target, input, max_val=255.0, filter_size=11, filter_sigma=1.5, k1=0.01, k2=0.03))
+        # return measure.compare_ssim(target, input, multichannel=True, data_range=255.0)
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return self._compute(self._get_masked_input(y_true, y_true),
-                             self._get_masked_input(y_pred, y_true))
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return self._compute(self._get_masked_input(target, target),
+                             self._get_masked_input(input, target))
 
-    def lossfun(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return (1.0 - self.compute(y_true, y_pred)) / 2.0
+    def lossfun(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return (1.0 - self.compute(target, input)) / 2.0
 
 
 #  SSIM FOR TESTING ALEX
@@ -450,18 +412,18 @@ class DSSIM_TestAlex(MetricModified):
         super(DSSIM_TestAlex, self).__init__(is_mask_exclude)
         self._name_fun_out = 'dssim_testAlex'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        # y_true = tf.squeeze(y_true, axis=-1)
-        # y_pred = tf.squeeze(y_pred, axis=-1)
-        # max_value_true = tf.math.reduce_max(y_true)
-        # max_value_pred = tf.math.reduce_max(y_pred)
-        # max_value = tf.cond(max_value_true > max_value_pred, lambda: tf.math.reduce_max(y_true), lambda: tf.math.reduce_max(y_pred))
-        return (1.0 - tf.reduce_mean(tf.image.ssim(y_true, y_pred, 255.0, filter_size=10))) / 2.0
-        # loss = multiscalessim(y_true, y_pred)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        # target = tf.squeeze(target, axis=-1)
+        # input = tf.squeeze(input, axis=-1)
+        # max_value_true = tf.math.reduce_max(target)
+        # max_value_pred = tf.math.reduce_max(input)
+        # max_value = tf.cond(max_value_true > max_value_pred, lambda: tf.math.reduce_max(target), lambda: tf.math.reduce_max(input))
+        return (1.0 - tf.reduce_mean(tf.image.ssim(target, input, 255.0, filter_size=10))) / 2.0
+        # loss = multiscalessim(target, input)
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return self._compute(self._get_masked_input(y_true, y_true),
-                             self._get_masked_input(y_pred, y_true))
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return self._compute(self._get_masked_input(target, target),
+                             self._get_masked_input(input, target))
 
 
 # MultiScale Structural Similarity Index
@@ -471,16 +433,16 @@ class MultiScaleSSIM(MetricModified):
         super(MultiScaleSSIM, self).__init__(is_mask_exclude)
         self._name_fun_out = 'multiscalessim'
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return tf.reduce_mean(tf.image.ssim_multiscale(y_true, y_pred, max_val=255))
-        #return multiscalessim(y_true, y_pred)
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return tf.reduce_mean(tf.image.ssim_multiscale(target, input, max_val=255))
+        #return multiscalessim(target, input)
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return self._compute(self._get_masked_input(y_true, y_true),
-                             self._get_masked_input(y_pred, y_true))
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return self._compute(self._get_masked_input(target, target),
+                             self._get_masked_input(input, target))
 
-    def lossfun(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
-        return self.compute(y_true, y_pred)
+    def lossfun(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
+        return self.compute(target, input)
 
 
 # Perceptual loss with pretrained VGG16 network
@@ -564,75 +526,75 @@ class Perceptual(MetricModified):
                         bounding_box[1][0]:bounding_box[1][1],
                         :]      # last dim for channels
 
-    def _factor_normalize(self, y_true: tf.Tensor) -> float:
-        return tf.reduce_max(y_true)
+    def _factor_normalize(self, target: tf.Tensor) -> float:
+        return tf.reduce_max(target)
 
-    def _preprocess_inarrays_2D(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def _preprocess_inarrays_2D(self, target: tf.Tensor, input: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         # crop the image to the input size to the VGG16 net
-        y_true = self._crop_image(y_true, self._crop_bounding_box)
-        y_pred = self._crop_image(y_pred, self._crop_bounding_box)
+        target = self._crop_image(target, self._crop_bounding_box)
+        input = self._crop_image(input, self._crop_bounding_box)
 
         # gray-scale image in RGB: repeat the array in 3 input channels
-        y_true = tf.stack((tf.squeeze(y_true, axis=-1),) * 3, axis=-1)
-        y_pred = tf.stack((tf.squeeze(y_pred, axis=-1),) * 3, axis=-1)
+        target = tf.stack((tf.squeeze(target, axis=-1),) * 3, axis=-1)
+        input = tf.stack((tf.squeeze(input, axis=-1),) * 3, axis=-1)
 
-        return (y_true, y_pred)
+        return (target, input)
 
-    def _preprocess_inarrays_3D(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def _preprocess_inarrays_3D(self, target: tf.Tensor, input: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         # merge 1st dim (batch_size) and 2nd dim (img_dimZ) together
-        y_new_shape = (-1, *y_pred.shape[-3:])
-        y_true = tf.reshape(y_true, y_new_shape)
-        y_pred = tf.reshape(y_pred, y_new_shape)
+        y_new_shape = (-1, *input.shape[-3:])
+        target = tf.reshape(target, y_new_shape)
+        input = tf.reshape(input, y_new_shape)
 
         # crop the image to the input size to the VGG16 net
-        y_true = self._crop_image(y_true, self._crop_bounding_box)
-        y_pred = self._crop_image(y_pred, self._crop_bounding_box)
+        target = self._crop_image(target, self._crop_bounding_box)
+        input = self._crop_image(input, self._crop_bounding_box)
 
         # gray-scale image in RGB: repeat the array in 3 input channels
-        y_true = tf.stack((tf.squeeze(y_true, axis=-1),) * 3, axis=-1)
-        y_pred = tf.stack((tf.squeeze(y_pred, axis=-1),) * 3, axis=-1)
+        target = tf.stack((tf.squeeze(target, axis=-1),) * 3, axis=-1)
+        input = tf.stack((tf.squeeze(input, axis=-1),) * 3, axis=-1)
 
-        return (y_true, y_pred)
+        return (target, input)
 
-    def _get_mask_size_layer_vgg16(self, y_true: tf.Tensor, ilayer_vgg16_calcloss: int) -> tf.Tensor:
+    def _get_mask_size_layer_vgg16(self, target: tf.Tensor, ilayer_vgg16_calcloss: int) -> tf.Tensor:
         for i in range(self._list_num_pooling_until_layers_vgg16_calcloss[ilayer_vgg16_calcloss]):
-            y_true = tf.nn.max_pool2d(y_true, ksize=(2, 2), strides=(2, 2), padding='SAME')
-        mask = self._get_mask(y_true[...,0])
+            target = tf.nn.max_pool2d(target, ksize=(2, 2), strides=(2, 2), padding='SAME')
+        mask = self._get_mask(target[...,0])
         return tf.expand_dims(mask, axis=-1)
 
 
-    def _compute(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         if self._is_calcloss_feats_alllayer:
-            return self._compute_feats_alllayers(y_true, y_pred)
+            return self._compute_feats_alllayers(target, input)
         else:
-            return self._compute_feats_1layer(y_true, y_pred)
+            return self._compute_feats_1layer(target, input)
 
-    def _compute_masked(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         if self._is_calcloss_feats_alllayer:
-            return self._compute_masked_feats_alllayers(y_true, y_pred)
+            return self._compute_masked_feats_alllayers(target, input)
         else:
-            return self._compute_masked_feats_1layer(y_true, y_pred)
+            return self._compute_masked_feats_1layer(target, input)
 
-    def _compute_feats_1layer(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    def _compute_feats_1layer(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         # preprocess input arrays to VGG16 net
-        (y_true, y_pred) = self._preprocess_inarrays(y_true, y_pred)
+        (target, input) = self._preprocess_inarrays(target, input)
 
-        # feature maps from VGG16 when evaluated on "y_true" / "y_pred"
-        featmaps_true = self._func_get_featuremaps_vgg16(y_true)
-        featmaps_pred = self._func_get_featuremaps_vgg16(y_pred)
+        # feature maps from VGG16 when evaluated on "target" / "input"
+        featmaps_true = self._func_get_featuremaps_vgg16(target)
+        featmaps_pred = self._func_get_featuremaps_vgg16(input)
         featmaps_true = K.flatten(featmaps_true)
         featmaps_pred = K.flatten(featmaps_pred)
 
         # loss as the root mean squared error between the two feature maps
         return K.mean(K.square(featmaps_true - featmaps_pred), axis=-1)
 
-    def _compute_feats_alllayers(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    def _compute_feats_alllayers(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         # preprocess input arrays to VGG16 net
-        (y_true, y_pred) = self._preprocess_inarrays(y_true, y_pred)
+        (target, input) = self._preprocess_inarrays(target, input)
 
-        # feature maps from VGG16 when evaluated on "y_true" / "y_pred"
-        featmaps_true = self._func_get_featuremaps_vgg16(y_true)
-        featmaps_pred = self._func_get_featuremaps_vgg16(y_pred)
+        # feature maps from VGG16 when evaluated on "target" / "input"
+        featmaps_true = self._func_get_featuremaps_vgg16(target)
+        featmaps_pred = self._func_get_featuremaps_vgg16(input)
         featmaps_true = [K.flatten(feats_ilayer) for feats_ilayer in featmaps_true]
         featmaps_pred = [K.flatten(feats_ilayer) for feats_ilayer in featmaps_pred]
 
@@ -641,30 +603,30 @@ class Perceptual(MetricModified):
                                 for (feats_true_ilay, feats_pred_ilay) in zip(featmaps_true, featmaps_pred)]
         return K.sum(tf.multiply(msqrt_error_featmaps, self._weights_vgg16_calcloss))
 
-    def _compute_masked_feats_1layer(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    def _compute_masked_feats_1layer(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         # preprocess input arrays to VGG16 net
-        (y_true, y_pred) = self._preprocess_inarrays(y_true, y_pred)
+        (target, input) = self._preprocess_inarrays(target, input)
 
         # mask with size of the chosen layer of VGG16
-        mask = self._get_mask_size_layer_vgg16(y_true, 0)
+        mask = self._get_mask_size_layer_vgg16(target, 0)
 
-        # feature maps from VGG16 when evaluated on "y_true" / "y_pred"
-        featmaps_true = self._func_get_featuremaps_vgg16(y_true)
-        featmaps_pred = self._func_get_featuremaps_vgg16(y_pred)
+        # feature maps from VGG16 when evaluated on "target" / "input"
+        featmaps_true = self._func_get_featuremaps_vgg16(target)
+        featmaps_pred = self._func_get_featuremaps_vgg16(input)
 
         # loss as the root mean squared error between the two feature maps, with the squared error array being masked
         return K.mean(K.flatten(tf.multiply(K.square(featmaps_true - featmaps_pred), mask)), axis=-1)
 
-    def _compute_masked_feats_alllayers(self, y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    def _compute_masked_feats_alllayers(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         # preprocess input arrays to VGG16 net
-        (y_true, y_pred) = self._preprocess_inarrays(y_true, y_pred)
+        (target, input) = self._preprocess_inarrays(target, input)
 
-        # feature maps from VGG16 when evaluated on "y_true" / "y_pred"
-        featmaps_true = self._func_get_featuremaps_vgg16(y_true)
-        featmaps_pred = self._func_get_featuremaps_vgg16(y_pred)
+        # feature maps from VGG16 when evaluated on "target" / "input"
+        featmaps_true = self._func_get_featuremaps_vgg16(target)
+        featmaps_pred = self._func_get_featuremaps_vgg16(input)
 
         # masks with sizes of ALL the chosen layers of VGG16
-        masks = [self._get_mask_size_layer_vgg16(y_true, i) for i in range(len(self._layers_vgg16_calcloss))]
+        masks = [self._get_mask_size_layer_vgg16(target, i) for i in range(len(self._layers_vgg16_calcloss))]
 
         # list of root mean squared errors between the two feature maps on ALL layers, with the squared error array being masked
         msqrt_error_featmaps = [K.mean(K.flatten(tf.multiply(K.square(feats_true_ilay - feats_pred_ilay), mask_ilay)), axis=-1)
