@@ -1,5 +1,5 @@
 (Derived from master BronchiNet)
-==============================
+================================
 
 Enhancement / reconstruction of MRI images using deep Convolutional Neural Networks
 
