@@ -65,7 +65,7 @@ def main(args):
 
         # *******************************************************************************
         if (args.is_mask_region_interest):
-            print("Reverse Mask to RoI (lungs) in predictions...")
+            print("Reverse mask to RoI (lungs) in predictions...")
             in_roimask_file = find_file_inlist_same_prefix(basename(in_reference_file), list_input_RoImasks_files,
                                                            pattern_prefix=pattern_search_input_files)
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))

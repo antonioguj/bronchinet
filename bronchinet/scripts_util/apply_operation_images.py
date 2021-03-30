@@ -102,7 +102,7 @@ def prepare_crop_operation(args):
         crop_bounding_box = dict_crop_bounding_boxes[basename_filenoext(in_reference_key)]
         print("Crop to bounding-box: \'%s\'..." % (str(crop_bounding_box)))
 
-        return CropImage._compute3D(in_data, crop_bounding_box)
+        return CropImage.compute(in_data, crop_bounding_box)
 
     return wrapfun_crop_image
 
