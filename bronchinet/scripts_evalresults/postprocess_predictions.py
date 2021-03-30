@@ -78,7 +78,7 @@ def main(args):
                     if j>0:
                         in_next_prediction_file = next(list_input_predictions_files)
                         in_next_prediction = ImageFileReader.get_image(in_next_prediction_file)
-                        print("Next Input: \'%s\', of dims: \'%s\'..." % (basename(in_next_prediction_file), str(in_next_prediction.shape)))
+                        print("Next input: \'%s\', of dims: \'%s\'..." % (basename(in_next_prediction_file), str(in_next_prediction.shape)))
 
                     size_in_crop_bounding_box = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
                     if not BoundingBoxes.is_bounding_box_contained_in_image_size(in_crop_bounding_box, out_shape_fullimage):
@@ -88,20 +88,20 @@ def main(args):
                         (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image_reverse(in_crop_bounding_box,
                                                                                                                                             out_shape_fullimage)
                         if j==0:
-                            print("Extend Image to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
-                            inout_prediction = CropAndExtendImage._compute3D(inout_prediction, croppartial_bounding_box,
-                                                                             extendimg_bounding_box, out_shape_fullimage)
+                            print("Extend image to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
+                            inout_prediction = CropAndExtendImage.compute(inout_prediction, croppartial_bounding_box,
+                                                                          extendimg_bounding_box, out_shape_fullimage)
                         else:
-                            print("Set Image patch to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
-                            CropImageAndSetPatchInImage._compute3D(in_next_prediction, inout_prediction,
-                                                                   croppartial_bounding_box, extendimg_bounding_box)
+                            print("Set image patch to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
+                            CropImageAndSetPatchInImage.compute(in_next_prediction, inout_prediction,
+                                                                croppartial_bounding_box, extendimg_bounding_box)
                     else:
                         if j==0:
-                            print("Extend Image to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
-                            inout_prediction = ExtendImage._compute3D(inout_prediction, in_crop_bounding_box, out_shape_fullimage)
+                            print("Extend image to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
+                            inout_prediction = ExtendImage.compute(inout_prediction, in_crop_bounding_box, out_shape_fullimage)
                         else:
-                            print("Set Image patch to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
-                            SetPatchInImage._compute3D(in_next_prediction, inout_prediction, in_crop_bounding_box)
+                            print("Set image patch to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
+                            SetPatchInImage.compute(in_next_prediction, inout_prediction, in_crop_bounding_box)
                 # endfor
             else:
                 in_crop_bounding_box = list_in_crop_bounding_boxes[0]
@@ -113,12 +113,12 @@ def main(args):
 
                     (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image_reverse(in_crop_bounding_box,
                                                                                                                                         out_shape_fullimage)
-                    inout_prediction = CropAndExtendImage._compute3D(inout_prediction, croppartial_bounding_box,
-                                                                     extendimg_bounding_box, out_shape_fullimage)
+                    inout_prediction = CropAndExtendImage.compute(inout_prediction, croppartial_bounding_box,
+                                                                  extendimg_bounding_box, out_shape_fullimage)
                 else:
-                    print("Extend input Image to full size \'%s\' with bounding-box: \'%s\'..." % (str(out_shape_fullimage),
+                    print("Extend input image to full size \'%s\' with bounding-box: \'%s\'..." % (str(out_shape_fullimage),
                                                                                                    str(in_crop_bounding_box)))
-                    inout_prediction = ExtendImage._compute3D(inout_prediction, in_crop_bounding_box, out_shape_fullimage)
+                    inout_prediction = ExtendImage.compute(inout_prediction, in_crop_bounding_box, out_shape_fullimage)
 
             print("Final dims: %s..." % (str(inout_prediction.shape)))
         # *******************************************************************************
@@ -133,7 +133,7 @@ def main(args):
 
         # *******************************************************************************
         if (args.is_mask_region_interest):
-            print("Reverse Mask to RoI (lungs) in predictions...")
+            print("Reverse mask to RoI (lungs) in predictions...")
             in_roimask_file = find_file_inlist_same_prefix(basename(in_reference_file), list_input_RoImasks_files,
                                                            pattern_prefix=pattern_search_input_files)
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))

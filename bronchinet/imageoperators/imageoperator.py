@@ -253,12 +253,12 @@ class RescaleImage(ImageOperator):
     _order_default = 3
 
     @staticmethod
-    def _compute_calc(in_image: np.ndarray,
-                      scale_factor: Tuple[int, ...],
-                      order: int = _order_default,
-                      is_inlabels: bool = False,
-                      is_binarise_output: bool = False
-                      ) -> np.ndarray:
+    def _compute(in_image: np.ndarray,
+                 scale_factor: Tuple[int, ...],
+                 order: int = _order_default,
+                 is_inlabels: bool = False,
+                 is_binarise_output: bool = False
+                 ) -> np.ndarray:
         if is_inlabels:
             out_image = rescale(in_image,
                                 scale=scale_factor,
@@ -282,7 +282,7 @@ class RescaleImage(ImageOperator):
 
     @classmethod
     def compute(cls, in_image: np.ndarray, *args, **kwargs) -> np.ndarray:
-        return cls._compute_calc(in_image, *args, **kwargs)
+        return cls._compute(in_image, *args, **kwargs)
 
 
 class FlipImage(ImageOperator):

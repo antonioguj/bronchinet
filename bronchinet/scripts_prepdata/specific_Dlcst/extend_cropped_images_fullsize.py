@@ -42,7 +42,7 @@ def main(args):
         # 2 step: extend image
         in_bounding_box     = dict_input_bounding_boxes[basename_filenoext(in_reference_file)]
         out_shape_fullimage = ImageFileReader.get_image_size(in_reference_file)
-        out_full_image      = ExtendImage._compute3D(in_crop_image, in_bounding_box, out_shape_fullimage)
+        out_full_image      = ExtendImage.compute(in_crop_image, in_bounding_box, out_shape_fullimage)
 
 
         out_image_file = join_path_names(args.outputdir, name_output_images_files(in_image_file))

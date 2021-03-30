@@ -193,7 +193,7 @@ def main(args):
 
             for j, index_roimask in enumerate(list_indexes_roimasks):
                 for k, index_label in enumerate(list_indexes_labels):
-                    print('Masks input labels \'%s\' to ROI masks \'%s\'...' % (k, j))
+                    print('Mask input label \'%s\' to ROI mask \'%s\'...' % (k, j))
                     out_data = MaskOperator.mask_image_exclude_regions(list_inout_data[index_label], list_inout_data[index_roimask])
                     list_inout_data[index_label] = out_data
                 # endfor
@@ -238,7 +238,7 @@ def main(args):
 
             icount = 0
             for j, in_crop_bounding_box in enumerate(list_in_crop_bounding_boxes):
-                print("Crop input Images to bounding-box \'%s\' out of total \'%s\': \'%s\'..." % (j, num_crop_bounding_boxes, str(in_crop_bounding_box)))
+                print("Crop input images to bounding-box \'%s\' out of total \'%s\': \'%s\'..." % (j, num_crop_bounding_boxes, str(in_crop_bounding_box)))
 
                 size_in_image = list_inout_data[icount].shape
                 size_in_crop_bounding_box = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
@@ -251,16 +251,16 @@ def main(args):
                     (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image(in_crop_bounding_box, size_in_image)
 
                     for k in range(num_images_per_crop_bounding_box):
-                        print('Crop input Image \'%s\' of type \'%s\'...' % (icount, list_type_inout_data[icount]))
-                        out_data = CropAndExtendImage._compute3D(list_inout_data[icount], croppartial_bounding_box,
+                        print('Crop input image \'%s\' of type \'%s\'...' % (icount, list_type_inout_data[icount]))
+                        out_data = CropAndExtendImage.compute(list_inout_data[icount], croppartial_bounding_box,
                                                                   extendimg_bounding_box, new_size_in_image)
                         list_inout_data[icount] = out_data
                         icount += 1
                     # endfor
                 else:
                     for k in range(num_images_per_crop_bounding_box):
-                        print('Crop input Image \'%s\' of type \'%s\'...' % (icount, list_type_inout_data[icount]))
-                        out_data = CropImage._compute3D(list_inout_data[icount], in_crop_bounding_box)
+                        print('Crop input image \'%s\' of type \'%s\'...' % (icount, list_type_inout_data[icount]))
+                        out_data = CropImage.compute(list_inout_data[icount], in_crop_bounding_box)
                         list_inout_data[icount] = out_data
                         icount += 1
                     # endfor
