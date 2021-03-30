@@ -34,21 +34,7 @@ def main(args):
         input_crop_bounding_boxes_file= workdir_manager.get_datafile_exist(args.name_crop_bounding_boxes_file)
         indict_crop_bounding_boxes    = read_dictionary(input_crop_bounding_boxes_file)
 
-    if (args.is_rescale_images):
-        input_rescale_factors_file = workdir_manager.get_datafile_exist(args.name_rescale_factors_file)
-        indict_rescale_factors     = read_dictionary(input_rescale_factors_file)
 
-    if (args.is_crop_images):
-        first_elem_dict_crop_bounding_boxes = list(indict_crop_bounding_boxes.values())[0]
-        if type(first_elem_dict_crop_bounding_boxes) != list:
-            # for new developments, store input dict boundary-boxes per raw images as a list. But output only one processed image
-            for key, value in indict_crop_bounding_boxes.items():
-                indict_crop_bounding_boxes[key] = [value]
-            # endfor
-
-
-    # needed to manipulate the list iterator inside the 'for loop'
-    list_input_predictions_files = iter(list_input_predictions_files)
 
     for i, in_prediction_file in enumerate(list_input_predictions_files):
         print("\nInput: \'%s\'..." % (basename(in_prediction_file)))
@@ -66,69 +52,14 @@ def main(args):
         # *******************************************************************************
         if (args.is_crop_images):
             print("Prediction data are cropped. Extend prediction to full image size...")
+            out_shape_fullimage  = ImageFileReader.get_image_size(in_reference_file)
+            in_crop_bounding_box = indict_crop_bounding_boxes[basename_filenoext(in_reference_key)]
 
-            out_shape_fullimage = ImageFileReader.get_image_size(in_reference_file)
-
-            list_in_crop_bounding_boxes = indict_crop_bounding_boxes[basename_filenoext(in_reference_key)]
-            num_crop_bounding_boxes = len(list_in_crop_bounding_boxes)
-
-            if num_crop_bounding_boxes > 1:
-                print("A total of \'%s\' cropped predictions are assigned to image: \'%s\'..." %(num_crop_bounding_boxes, in_reference_key))
-
-                for j, in_crop_bounding_box in enumerate(list_in_crop_bounding_boxes):
-                    if j>0:
-                        in_next_prediction_file = next(list_input_predictions_files)
-                        in_next_prediction = ImageFileReader.get_image(in_next_prediction_file)
-                        print("Next Input: \'%s\', of dims: \'%s\'..." % (basename(in_next_prediction_file), str(in_next_prediction.shape)))
-
-                    size_in_crop_bounding_box = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
-                    if not BoundingBoxes.is_bounding_box_contained_in_image_size(in_crop_bounding_box, out_shape_fullimage):
-                        print("Bounding-box is larger than image size: : \'%s\' > \'%s\'. Combine cropping with extending images..."
-                              % (str(size_in_crop_bounding_box), str(out_shape_fullimage)))
-
-                        (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image_reverse(in_crop_bounding_box,
-                                                                                                                                            out_shape_fullimage)
-                        if j==0:
-                            print("Extend Image to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
-                            inout_prediction = CropAndExtendImage._compute3D(inout_prediction, croppartial_bounding_box,
-                                                                             extendimg_bounding_box, out_shape_fullimage)
-                        else:
-                            print("Set Image patch to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
-                            CropImageAndSetPatchInImage._compute3D(in_next_prediction, inout_prediction,
-                                                                   croppartial_bounding_box, extendimg_bounding_box)
-                    else:
-                        if j==0:
-                            print("Extend Image to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
-                            inout_prediction = ExtendImage._compute3D(inout_prediction, in_crop_bounding_box, out_shape_fullimage)
-                        else:
-                            print("Set Image patch to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
-                            SetPatchInImage._compute3D(in_next_prediction, inout_prediction, in_crop_bounding_box)
-                # endfor
-            else:
-                in_crop_bounding_box = list_in_crop_bounding_boxes[0]
-                size_in_crop_bounding_box = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
-
-                if not BoundingBoxes.is_bounding_box_contained_in_image_size(in_crop_bounding_box, out_shape_fullimage):
-                    print("Bounding-box is larger than image size: : \'%s\' > \'%s\'. Combine cropping with extending images..."
-                          %(str(size_in_crop_bounding_box), str(out_shape_fullimage)))
-
-                    (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image_reverse(in_crop_bounding_box,
-                                                                                                                                        out_shape_fullimage)
-                    inout_prediction = CropAndExtendImage._compute3D(inout_prediction, croppartial_bounding_box,
-                                                                     extendimg_bounding_box, out_shape_fullimage)
-                else:
-                    print("Extend input Image to full size \'%s\' with bounding-box: \'%s\'..." % (str(out_shape_fullimage),
-                                                                                                   str(in_crop_bounding_box)))
-                    inout_prediction = ExtendImage._compute3D(inout_prediction, in_crop_bounding_box, out_shape_fullimage)
+            print("Extend input Image to full size \'%s\' with bounding-box: \'%s\'..." % (str(out_shape_fullimage),
+                                                                                           str(in_crop_bounding_box)))
+            inout_prediction = ExtendImage.compute(inout_prediction, in_crop_bounding_box, out_shape_fullimage)
 
             print("Final dims: %s..." % (str(inout_prediction.shape)))
-        # *******************************************************************************
-
-
-        # *******************************************************************************
-        if (args.is_rescale_images):
-            message = 'Rescaling at Post-process time not implemented yet'
-            catch_warning_exception(message)
         # *******************************************************************************
 
 
@@ -173,8 +104,6 @@ if __name__ == "__main__":
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--name_crop_bounding_boxes_file', type=str, default=NAME_CROP_BOUNDINGBOX_FILE)
-    parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
-    parser.add_argument('--name_rescale_factors_file', type=str, default=NAME_RESCALE_FACTOR_FILE)
     parser.add_argument('--is_binary_predictions', type=str2bool, default=IS_BINARY_TRAIN_MASKS)
     # parser.add_argument('--is_process_data_stack_images', type=str2bool, default=False)
     args = parser.parse_args()
@@ -190,8 +119,6 @@ if __name__ == "__main__":
         args.is_mask_region_interest        = str2bool(input_args_file['is_mask_region_interest'])
         #args.is_crop_images                 = str2bool(input_args_file['is_crop_images'])
         #args.name_crop_bounding_boxes_file  = str(input_args_file['name_crop_bounding_boxes_file'])
-        #args.is_rescale_images              = str2bool(input_args_file['is_rescale_images'])
-        #args.name_rescale_factors_file      = str(input_args_file['name_rescale_factors_file'])
 
     print("Print input arguments...")
     for key, value in vars(args).items():

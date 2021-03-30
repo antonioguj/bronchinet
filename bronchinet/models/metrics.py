@@ -431,9 +431,9 @@ class SSIM_Homemade(MetricModifiedBase):
         mean_input = np.mean(input, axis=-1)
         std_target = np.sqrt(np.mean(np.square(target - mean_target), axis=-1))
         std_input = np.sqrt(np.mean(np.square(input - mean_input), axis=-1))
-        std_target_pred = np.mean((target - mean_target) * (input - mean_input), axis=-1)
+        std_target_input = np.mean((target - mean_target) * (input - mean_input), axis=-1)
         return (2*mean_target*mean_input + cons_C1) / (mean_target**2 + mean_input**2 + cons_C1) *\
-               (2*std_target_pred + cons_C2) / (std_target**2 + std_input**2 + cons_C2)
+               (2*std_target_input + cons_C2) / (std_target**2 + std_input**2 + cons_C2)
 
     def _compute_masked(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
         cons_K1 = 0.01
@@ -448,6 +448,6 @@ class SSIM_Homemade(MetricModifiedBase):
         mean_input = np.mean(input * mask, axis=-1)
         std_target = np.sqrt(np.mean(np.square(target - mean_target) * mask, axis=-1))
         std_input = np.sqrt(np.mean(np.square(input - mean_input) * mask, axis=-1))
-        std_target_pred = np.mean((target - mean_target) * (input - mean_input) * mask, axis=-1)
+        std_target_input = np.mean((target - mean_target) * (input - mean_input) * mask, axis=-1)
         return (2*mean_target*mean_input + cons_C1) / (mean_target**2 + mean_input**2 + cons_C1) *\
-               (2*std_target_pred + cons_C2) / (std_target**2 + std_input**2 + cons_C2)
+               (2*std_target_input + cons_C2) / (std_target**2 + std_input**2 + cons_C2)

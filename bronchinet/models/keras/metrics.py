@@ -415,9 +415,9 @@ class DSSIM_TestAlex(MetricModified):
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         # target = tf.squeeze(target, axis=-1)
         # input = tf.squeeze(input, axis=-1)
-        # max_value_true = tf.math.reduce_max(target)
-        # max_value_pred = tf.math.reduce_max(input)
-        # max_value = tf.cond(max_value_true > max_value_pred, lambda: tf.math.reduce_max(target), lambda: tf.math.reduce_max(input))
+        # max_value_target = tf.math.reduce_max(target)
+        # max_value_input = tf.math.reduce_max(input)
+        # max_value = tf.cond(max_value_target > max_value_input, lambda: tf.math.reduce_max(target), lambda: tf.math.reduce_max(input))
         return (1.0 - tf.reduce_mean(tf.image.ssim(target, input, 255.0, filter_size=10))) / 2.0
         # loss = multiscalessim(target, input)
 
@@ -532,11 +532,11 @@ class Perceptual(MetricModified):
     def _preprocess_inarrays_2D(self, target: tf.Tensor, input: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         # crop the image to the input size to the VGG16 net
         target = self._crop_image(target, self._crop_bounding_box)
-        input = self._crop_image(input, self._crop_bounding_box)
+        input  = self._crop_image(input, self._crop_bounding_box)
 
         # gray-scale image in RGB: repeat the array in 3 input channels
         target = tf.stack((tf.squeeze(target, axis=-1),) * 3, axis=-1)
-        input = tf.stack((tf.squeeze(input, axis=-1),) * 3, axis=-1)
+        input  = tf.stack((tf.squeeze(input, axis=-1),) * 3, axis=-1)
 
         return (target, input)
 
@@ -544,15 +544,15 @@ class Perceptual(MetricModified):
         # merge 1st dim (batch_size) and 2nd dim (img_dimZ) together
         y_new_shape = (-1, *input.shape[-3:])
         target = tf.reshape(target, y_new_shape)
-        input = tf.reshape(input, y_new_shape)
+        input  = tf.reshape(input, y_new_shape)
 
         # crop the image to the input size to the VGG16 net
         target = self._crop_image(target, self._crop_bounding_box)
-        input = self._crop_image(input, self._crop_bounding_box)
+        input  = self._crop_image(input, self._crop_bounding_box)
 
         # gray-scale image in RGB: repeat the array in 3 input channels
         target = tf.stack((tf.squeeze(target, axis=-1),) * 3, axis=-1)
-        input = tf.stack((tf.squeeze(input, axis=-1),) * 3, axis=-1)
+        input  = tf.stack((tf.squeeze(input, axis=-1),) * 3, axis=-1)
 
         return (target, input)
 
@@ -580,27 +580,27 @@ class Perceptual(MetricModified):
         (target, input) = self._preprocess_inarrays(target, input)
 
         # feature maps from VGG16 when evaluated on "target" / "input"
-        featmaps_true = self._func_get_featuremaps_vgg16(target)
-        featmaps_pred = self._func_get_featuremaps_vgg16(input)
-        featmaps_true = K.flatten(featmaps_true)
-        featmaps_pred = K.flatten(featmaps_pred)
+        featmaps_target = self._func_get_featuremaps_vgg16(target)
+        featmaps_input  = self._func_get_featuremaps_vgg16(input)
+        featmaps_target = K.flatten(featmaps_target)
+        featmaps_input  = K.flatten(featmaps_input)
 
         # loss as the root mean squared error between the two feature maps
-        return K.mean(K.square(featmaps_true - featmaps_pred), axis=-1)
+        return K.mean(K.square(featmaps_target - featmaps_input), axis=-1)
 
     def _compute_feats_alllayers(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         # preprocess input arrays to VGG16 net
         (target, input) = self._preprocess_inarrays(target, input)
 
         # feature maps from VGG16 when evaluated on "target" / "input"
-        featmaps_true = self._func_get_featuremaps_vgg16(target)
-        featmaps_pred = self._func_get_featuremaps_vgg16(input)
-        featmaps_true = [K.flatten(feats_ilayer) for feats_ilayer in featmaps_true]
-        featmaps_pred = [K.flatten(feats_ilayer) for feats_ilayer in featmaps_pred]
+        featmaps_target = self._func_get_featuremaps_vgg16(target)
+        featmaps_input  = self._func_get_featuremaps_vgg16(input)
+        featmaps_target = [K.flatten(feats_ilayer) for feats_ilayer in featmaps_target]
+        featmaps_input  = [K.flatten(feats_ilayer) for feats_ilayer in featmaps_input]
 
         # list of root mean squared errors between the two feature maps on ALL layers
-        msqrt_error_featmaps = [K.mean(K.square(feats_true_ilay - feats_pred_ilay), axis=-1)
-                                for (feats_true_ilay, feats_pred_ilay) in zip(featmaps_true, featmaps_pred)]
+        msqrt_error_featmaps = [K.mean(K.square(feats_target_ilay - feats_input_ilay), axis=-1)
+                                for (feats_target_ilay, feats_input_ilay) in zip(featmaps_target, featmaps_input)]
         return K.sum(tf.multiply(msqrt_error_featmaps, self._weights_vgg16_calcloss))
 
     def _compute_masked_feats_1layer(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
@@ -611,24 +611,24 @@ class Perceptual(MetricModified):
         mask = self._get_mask_size_layer_vgg16(target, 0)
 
         # feature maps from VGG16 when evaluated on "target" / "input"
-        featmaps_true = self._func_get_featuremaps_vgg16(target)
-        featmaps_pred = self._func_get_featuremaps_vgg16(input)
+        featmaps_target = self._func_get_featuremaps_vgg16(target)
+        featmaps_input  = self._func_get_featuremaps_vgg16(input)
 
         # loss as the root mean squared error between the two feature maps, with the squared error array being masked
-        return K.mean(K.flatten(tf.multiply(K.square(featmaps_true - featmaps_pred), mask)), axis=-1)
+        return K.mean(K.flatten(tf.multiply(K.square(featmaps_target - featmaps_input), mask)), axis=-1)
 
     def _compute_masked_feats_alllayers(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         # preprocess input arrays to VGG16 net
         (target, input) = self._preprocess_inarrays(target, input)
 
         # feature maps from VGG16 when evaluated on "target" / "input"
-        featmaps_true = self._func_get_featuremaps_vgg16(target)
-        featmaps_pred = self._func_get_featuremaps_vgg16(input)
+        featmaps_target = self._func_get_featuremaps_vgg16(target)
+        featmaps_input  = self._func_get_featuremaps_vgg16(input)
 
         # masks with sizes of ALL the chosen layers of VGG16
         masks = [self._get_mask_size_layer_vgg16(target, i) for i in range(len(self._layers_vgg16_calcloss))]
 
         # list of root mean squared errors between the two feature maps on ALL layers, with the squared error array being masked
-        msqrt_error_featmaps = [K.mean(K.flatten(tf.multiply(K.square(feats_true_ilay - feats_pred_ilay), mask_ilay)), axis=-1)
-                                for (feats_true_ilay, feats_pred_ilay, mask_ilay) in zip(featmaps_true, featmaps_pred, masks)]
+        msqrt_error_featmaps = [K.mean(K.flatten(tf.multiply(K.square(feats_target_ilay - feats_input_ilay), mask_ilay)), axis=-1)
+                                for (feats_target_ilay, feats_input_ilay, mask_ilay) in zip(featmaps_target, featmaps_input, masks)]
         return K.sum(tf.multiply(msqrt_error_featmaps, self._weights_vgg16_calcloss))
