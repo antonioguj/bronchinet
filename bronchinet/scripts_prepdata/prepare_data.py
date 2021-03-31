@@ -201,7 +201,7 @@ def main(args):
 
         # *******************************************************************************
         if (args.is_mask_region_interest):
-            index_roimask = list_type_inout_data.find('roimask')
+            index_roimask = list_type_inout_data.index('roimask')
 
             for j, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
                 if (type_in_data == 'label'):
