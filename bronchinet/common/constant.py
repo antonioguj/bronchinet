@@ -78,12 +78,11 @@ DIST_PROPDATA_TRAINVALIDTEST    = (0.65, 0.15, 0.20)
 
 # TRAINING MODELS
 TYPE_DNNLIB_USED            = 'Keras'
-#TYPE_GPU_USED               = 'larger_GPU'
 IS_MODEL_IN_GPU             = True
 IS_MODEL_HALF_PRECISION     = False
 USE_MULTITHREADING          = False
 SIZE_IN_IMAGES              = (288, 288, 96)
-MAX_TRAIN_IMAGES            = 500          # WATCH OUT IS LARGER THAN THE NUM. IMAGES YOU WANT TO LOAD
+MAX_TRAIN_IMAGES            = 500           # WATCH OUT IS LARGER THAN THE NUM. IMAGES YOU WANT TO LOAD
 MAX_VALID_IMAGES            = 200
 BATCH_SIZE                  = 1
 NUM_EPOCHS                  = 500

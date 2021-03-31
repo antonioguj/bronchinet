@@ -2,7 +2,7 @@
 from typing import Tuple, List, Union
 import numpy as np
 
-#from tensorflow.keras import backend as K
+from tensorflow.keras import backend as K
 
 from common.exceptionmanager import catch_error_exception
 from models.visualmodelparams import VisualModelParamsBase
