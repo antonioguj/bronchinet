@@ -47,17 +47,12 @@ IS_MASK_REGION_INTEREST         = True
 IS_NORMALIZE_DATA               = False
 IS_RESCALE_IMAGES               = False
 FIXED_RESCALE_RESOL             = None
-#FIXED_RESCALE_RESOL             = (0.6, 0.55, 0.55)   # for LUVAR
-#FIXED_RESCALE_RESOL             = (0.8, 0.69, 0.69)   # for EXACT
 IS_CROP_IMAGES                  = True
 IS_TWO_BOUNDBOXES_EACH_LUNGS    = False
 SIZE_BUFFER_BOUNDBOX_BORDERS    = (20, 20, 20)
 IS_SAME_SIZE_BOUNDBOX_ALL_IMAGES= False
 IS_CALC_BOUNDINGBOX_IN_SLICES   = False
 FIXED_SIZE_BOUNDING_BOX         = None
-#FIXED_SIZE_BOUNDING_BOX         = (352, 480)
-#FIXED_SIZE_BOUNDING_BOX         = (332, 316, 236) # for DLCST and full size lungs
-#FIXED_SIZE_BOUNDING_BOX         = (508, 332, 236) # for EXACT and full size lungs
 IS_SHUFFLE_TRAINDATA            = True
 
 
@@ -84,21 +79,14 @@ TYPE_TRANSFORM_ELASTICDEFORM_IMAGES = 'gridwise'
 
 # DISTRIBUTE DATA TRAIN / VALID / TEST
 DIST_PROPDATA_TRAINVALIDTEST    = (0.5, 0.15, 0.35)
-#DIST_PROPDATA_TRAINVALIDTEST    = (0.84, 0.16, 0.0) # for EXACT
-#DIST_PROPDATA_TRAINVALIDTEST    = (0.5, 0.13, 0.37) # for DLCST+LUVAR
 
 
 # TRAINING MODELS
 TYPE_DNNLIB_USED            = 'Pytorch'
-#TYPE_GPU_USED               = 'larger_GPU'
 IS_MODEL_IN_GPU             = True
 IS_MODEL_HALF_PRECISION     = False
 USE_MULTITHREADING          = False
-#SIZE_IN_IMAGES              = (176, 352, 240)
-#SIZE_IN_IMAGES              = (256, 256, 256) # for Non-valid convolutions
-SIZE_IN_IMAGES              = (252, 252, 252) # for Valid convolutions
-#SIZE_IN_IMAGES              = (332, 316, 236) # for DLCST and full size lungs
-#SIZE_IN_IMAGES              = (508, 332, 236) # for EXACT and full size lungs
+SIZE_IN_IMAGES              = (252, 252, 252)
 MAX_TRAIN_IMAGES            = 100
 MAX_VALID_IMAGES            = 20
 BATCH_SIZE                  = 1
@@ -116,7 +104,6 @@ LEARN_RATE                  = 1.0e-04
 TYPE_LOSS                   = 'DiceCoefficient'
 WEIGHT_COMBINED_LOSS        = 1000.0
 LIST_TYPE_METRICS           = []
-#LIST_TYPE_METRICS           = ['TruePositiveRate', 'FalsePositiveRate', 'TrueNegativeRate', 'FalseNegativeRate']
 MANUAL_SEED_TRAIN           = None
 IS_VALID_CONVOLUTIONS       = True
 USE_VALIDATION_DATA         = True
