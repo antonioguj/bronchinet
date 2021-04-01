@@ -33,14 +33,14 @@ class SlidingWindowImages(ImageGenerator):
 
         if self._ndims==2:
             self._func_get_indexes_local = self.get_indexes_local_2dim
-            self._func_crop_images = CropImage._compute2D
-            self._func_setpatch_images = SetPatchInImage._compute2D
-            self._func_setpatch_images_byadding = SetPatchInImage._compute2D_byadding
+            self._func_crop_images = CropImage._compute2d
+            self._func_setpatch_images = SetPatchInImage._compute2d
+            self._func_setpatch_images_byadding = SetPatchInImage._compute2d_byadding
         elif self._ndims==3:
             self._func_get_indexes_local = self.get_indexes_local_3dim
-            self._func_crop_images = CropImage._compute3D
-            self._func_setpatch_images = SetPatchInImage._compute3D
-            self._func_setpatch_images_byadding = SetPatchInImage._compute3D_byadding
+            self._func_crop_images = CropImage._compute3d
+            self._func_setpatch_images = SetPatchInImage._compute3d
+            self._func_setpatch_images_byadding = SetPatchInImage._compute3d_byadding
         else:
             message = 'SlidingWindowImages:__init__: wrong \'ndims\': %s...' % (self._ndims)
             catch_error_exception(message)

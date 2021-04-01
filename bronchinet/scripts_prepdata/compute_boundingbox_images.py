@@ -37,20 +37,20 @@ def main(args):
             (in_roimask_left, in_roimask_right)  = MaskOperator.get_list_masks_with_labels_list(in_roimask, [1, 2])
 
             # left lung bounding-box:
-            bounding_box_left = BoundingBoxes.compute_bounding_box_contain_masks(in_roimask_left,
-                                                                                 size_borders_buffer=args.size_buffer_in_borders,
-                                                                                 is_bounding_box_slices=args.is_calc_bounding_box_in_slices)
-            size_bounding_box = BoundingBoxes.get_size_bounding_box(bounding_box_left)
+            bounding_box_left = BoundingBoxes.compute_boundbox_contain_mask(in_roimask_left,
+                                                                            size_borders_buffer=args.size_buffer_in_borders,
+                                                                            is_boundbox_slices=args.is_calc_bounding_box_in_slices)
+            size_bounding_box = BoundingBoxes.get_size_boundbox(bounding_box_left)
             print("Bounding-box around ROI: left lung: \'%s\', of size: \'%s\'" % (bounding_box_left, size_bounding_box))
 
-            max_size_bounding_box = BoundingBoxes.get_max_size_bounding_box(size_bounding_box, max_size_bounding_box)
-            min_size_bounding_box = BoundingBoxes.get_min_size_bounding_box(size_bounding_box, min_size_bounding_box)
+            max_size_bounding_box = BoundingBoxes.get_max_size_boundbox(size_bounding_box, max_size_bounding_box)
+            min_size_bounding_box = BoundingBoxes.get_min_size_boundbox(size_bounding_box, min_size_bounding_box)
 
             # right lung bounding-box:
-            bounding_box_right = BoundingBoxes.compute_bounding_box_contain_masks(in_roimask_right,
-                                                                                  size_borders_buffer=args.size_buffer_in_borders,
-                                                                                  is_bounding_box_slices=args.is_calc_bounding_box_in_slices)
-            size_bounding_box = BoundingBoxes.get_size_bounding_box(bounding_box_right)
+            bounding_box_right = BoundingBoxes.compute_boundbox_contain_mask(in_roimask_right,
+                                                                             size_borders_buffer=args.size_buffer_in_borders,
+                                                                             is_boundbox_slices=args.is_calc_bounding_box_in_slices)
+            size_bounding_box = BoundingBoxes.get_size_boundbox(bounding_box_right)
             print("Bounding-box around ROI: right lung: \'%s\', of size: \'%s\'" % (bounding_box_right, size_bounding_box))
 
             in_reference_key = list_input_reference_files[i]
@@ -66,14 +66,14 @@ def main(args):
 
             in_roimask = MaskOperator.binarise(in_roimask)  # convert masks to binary (0, 1)
 
-            bounding_box = BoundingBoxes.compute_bounding_box_contain_masks(in_roimask,
-                                                                            size_borders_buffer=args.size_buffer_in_borders,
-                                                                            is_bounding_box_slices=args.is_calc_bounding_box_in_slices)
-            size_bounding_box = BoundingBoxes.get_size_bounding_box(bounding_box)
+            bounding_box = BoundingBoxes.compute_boundbox_contain_mask(in_roimask,
+                                                                       size_borders_buffer=args.size_buffer_in_borders,
+                                                                       is_boundbox_slices=args.is_calc_bounding_box_in_slices)
+            size_bounding_box = BoundingBoxes.get_size_boundbox(bounding_box)
             print("Bounding-box around ROI: lungs: \'%s\', of size: \'%s\'" % (bounding_box, size_bounding_box))
 
-            max_size_bounding_box = BoundingBoxes.get_max_size_bounding_box(size_bounding_box, max_size_bounding_box)
-            min_size_bounding_box = BoundingBoxes.get_min_size_bounding_box(size_bounding_box, min_size_bounding_box)
+            max_size_bounding_box = BoundingBoxes.get_max_size_boundbox(size_bounding_box, max_size_bounding_box)
+            min_size_bounding_box = BoundingBoxes.get_min_size_boundbox(size_bounding_box, min_size_bounding_box)
 
             in_reference_key = list_input_reference_files[i]
             outdict_crop_bounding_boxes[basename_filenoext(in_reference_key)] = bounding_box
@@ -110,7 +110,7 @@ def main(args):
 
 
         for j, in_bounding_box in enumerate(in_list_bounding_boxes):
-            size_bounding_box = BoundingBoxes.get_size_bounding_box(in_bounding_box)
+            size_bounding_box = BoundingBoxes.get_size_boundbox(in_bounding_box)
             print("\nInput Bounding-box: \'%s\', of size: \'%s\'" % (in_bounding_box, size_bounding_box))
 
             if args.is_same_size_boundbox_all_images:
@@ -123,19 +123,19 @@ def main(args):
                 size_proc_bounding_box = size_bounding_box
 
             # Check whether the size of bounding-box is smaller than the training image patches
-            if not BoundingBoxes.is_image_patch_contained_in_bounding_box(size_proc_bounding_box, args.size_train_images):
+            if not BoundingBoxes.is_image_inside_boundbox(size_proc_bounding_box, args.size_train_images):
                 print("Size of bounding-box is smaller than size of training image patches: \'%s\'..." %(str(args.size_train_images)))
 
-                size_proc_bounding_box = BoundingBoxes.get_max_size_bounding_box(size_proc_bounding_box, args.size_train_images)
+                size_proc_bounding_box = BoundingBoxes.get_max_size_boundbox(size_proc_bounding_box, args.size_train_images)
                 print("Resize bounding-box to size: \'%s\'..." %(str(size_proc_bounding_box)))
 
 
             if size_proc_bounding_box != size_bounding_box:
                 # Compute new bounding-box: of 'size_proc_bounding_box', with same center as 'in_bounding_box', and that fits in 'in_roimask_array'
-                proc_bounding_box = BoundingBoxes.compute_bounding_box_centered_bounding_box_fit_image(in_bounding_box,
-                                                                                                       size_proc_bounding_box,
-                                                                                                       in_shape_roimask)
-                size_proc_bounding_box = BoundingBoxes.get_size_bounding_box(proc_bounding_box)
+                proc_bounding_box = BoundingBoxes.calc_boundbox_centered_boundbox_fitimg(in_bounding_box,
+                                                                                         size_proc_bounding_box,
+                                                                                         in_shape_roimask)
+                size_proc_bounding_box = BoundingBoxes.get_size_boundbox(proc_bounding_box)
                 print("New processed bounding-box: \'%s\', of size: \'%s\'" % (proc_bounding_box, size_proc_bounding_box))
 
                 if args.is_two_bounding_box_each_lungs:

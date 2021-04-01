@@ -80,13 +80,13 @@ def main(args):
                         in_next_prediction = ImageFileReader.get_image(in_next_prediction_file)
                         print("Next input: \'%s\', of dims: \'%s\'..." % (basename(in_next_prediction_file), str(in_next_prediction.shape)))
 
-                    size_in_crop_bounding_box = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
-                    if not BoundingBoxes.is_bounding_box_contained_in_image_size(in_crop_bounding_box, out_shape_fullimage):
+                    size_in_crop_bounding_box = BoundingBoxes.get_size_boundbox(in_crop_bounding_box)
+                    if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_bounding_box, out_shape_fullimage):
                         print("Bounding-box is larger than image size: : \'%s\' > \'%s\'. Combine cropping with extending images..."
                               % (str(size_in_crop_bounding_box), str(out_shape_fullimage)))
 
-                        (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image_reverse(in_crop_bounding_box,
-                                                                                                                                            out_shape_fullimage)
+                        (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.calc_boundboxes_crop_extend_image_reverse(in_crop_bounding_box,
+                                                                                                                                     out_shape_fullimage)
                         if j==0:
                             print("Extend image to full size \'%s\' with bounding-box \'%s\': \'%s\'..." % (str(out_shape_fullimage), j, str(in_crop_bounding_box)))
                             inout_prediction = CropAndExtendImage.compute(inout_prediction, croppartial_bounding_box,
@@ -105,14 +105,14 @@ def main(args):
                 # endfor
             else:
                 in_crop_bounding_box = list_in_crop_bounding_boxes[0]
-                size_in_crop_bounding_box = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
+                size_in_crop_bounding_box = BoundingBoxes.get_size_boundbox(in_crop_bounding_box)
 
-                if not BoundingBoxes.is_bounding_box_contained_in_image_size(in_crop_bounding_box, out_shape_fullimage):
+                if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_bounding_box, out_shape_fullimage):
                     print("Bounding-box is larger than image size: : \'%s\' > \'%s\'. Combine cropping with extending images..."
                           %(str(size_in_crop_bounding_box), str(out_shape_fullimage)))
 
-                    (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image_reverse(in_crop_bounding_box,
-                                                                                                                                        out_shape_fullimage)
+                    (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.calc_boundboxes_crop_extend_image_reverse(in_crop_bounding_box,
+                                                                                                                                 out_shape_fullimage)
                     inout_prediction = CropAndExtendImage.compute(inout_prediction, croppartial_bounding_box,
                                                                   extendimg_bounding_box, out_shape_fullimage)
                 else:

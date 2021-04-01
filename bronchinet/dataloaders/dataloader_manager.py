@@ -3,15 +3,15 @@ from typing import List, Tuple, Union
 import numpy as np
 
 from common.constant import TYPE_DNNLIB_USED, IS_MODEL_IN_GPU, IS_MODEL_HALF_PRECISION
-from common.exceptionmanager import catch_error_exception
 if TYPE_DNNLIB_USED == 'Pytorch':
-    from dataloaders.pytorch.batchdatagenerator import Wrapper_TrainBatchImageDataGenerator_1Image as TrainBatchImageDataGenerator_1Image, \
-                                                       Wrapper_TrainBatchImageDataGenerator_2Images as TrainBatchImageDataGenerator_2Images
+    from dataloaders.pytorch.batchdatagenerator import \
+        WrapperTrainBatchImageDataGenerator1Image as TrainBatchImageDataGenerator1Image, \
+        WrapperTrainBatchImageDataGenerator2Images as TrainBatchImageDataGenerator2Images
 elif TYPE_DNNLIB_USED == 'Keras':
-    from dataloaders.keras.batchdatagenerator import TrainBatchImageDataGenerator_1Image, \
-                                                     TrainBatchImageDataGenerator_2Images
-from dataloaders.batchdatagenerator import BatchImageDataGenerator_1Image, BatchImageDataGenerator_2Images
-from dataloaders.imagedataloader import ImageDataLoader, ImageDataInBatchesLoader
+    from dataloaders.keras.batchdatagenerator import TrainBatchImageDataGenerator1Image, \
+                                                     TrainBatchImageDataGenerator2Images
+from dataloaders.batchdatagenerator import BatchImageDataGenerator1Image, BatchImageDataGenerator2Images
+from dataloaders.imagedataloader import ImageDataLoader
 from preprocessing.preprocessing_manager import get_images_generator
 
 
@@ -26,15 +26,15 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
                                batch_size: int = 1,
                                is_shuffle: bool = True,
                                manual_seed: int = None
-                               ) -> Union[BatchImageDataGenerator_1Image, List[np.ndarray]]:
+                               ) -> Union[BatchImageDataGenerator1Image, List[np.ndarray]]:
     print("Generate Data Loader with Batch Generator...")
 
-    list_Xdata = ImageDataLoader.load_1list_files(list_filenames_1)
+    list_xdata = ImageDataLoader.load_1list_files(list_filenames_1)
 
-    if not (use_sliding_window_images or use_random_window_images) and (len(list_Xdata) == 1):
-        size_in_images = list_Xdata[0].shape
+    if not (use_sliding_window_images or use_random_window_images) and (len(list_xdata) == 1):
+        size_in_images = list_xdata[0].shape
 
-    size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
+    size_full_image = list_xdata[0].shape if len(list_xdata) == 1 else (0, 0, 0)
     num_channels_in = 1
 
     images_generator = get_images_generator(size_in_images,
@@ -45,13 +45,13 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
                                             use_transform_rigid_images=use_transform_rigid_images,
                                             use_transform_elasticdeform_images=use_transform_elasticdeform_images,
                                             size_volume_image=size_full_image)
-    return BatchImageDataGenerator_1Image(size_in_images,
-                                          list_Xdata,
-                                          images_generator,
-                                          num_channels_in=num_channels_in,
-                                          batch_size=batch_size,
-                                          shuffle=is_shuffle,
-                                          seed=manual_seed)
+    return BatchImageDataGenerator1Image(size_in_images,
+                                         list_xdata,
+                                         images_generator,
+                                         num_channels_in=num_channels_in,
+                                         batch_size=batch_size,
+                                         shuffle=is_shuffle,
+                                         seed=manual_seed)
 
 
 def get_imagedataloader_2images(list_filenames_1: List[str],
@@ -68,15 +68,15 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
                                 batch_size: int = 1,
                                 is_shuffle: bool = True,
                                 manual_seed: int = None
-                                ) -> Union[BatchImageDataGenerator_2Images, Tuple[List[np.ndarray], List[np.ndarray]]]:
+                                ) -> Union[BatchImageDataGenerator2Images, Tuple[List[np.ndarray], List[np.ndarray]]]:
     print("Generate Data Loader with Batch Generator...")
 
-    (list_Xdata, list_Ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
+    (list_xdata, list_ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
 
-    if not (use_sliding_window_images or use_random_window_images) and (len(list_Xdata) == 1):
-        size_in_images = list_Xdata[0].shape
+    if not (use_sliding_window_images or use_random_window_images) and (len(list_xdata) == 1):
+        size_in_images = list_xdata[0].shape
 
-    size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
+    size_full_image = list_xdata[0].shape if len(list_xdata) == 1 else (0, 0, 0)
     num_channels_in = 1
     num_classes_out = 1
 
@@ -88,17 +88,17 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
                                             use_transform_rigid_images=use_transform_rigid_images,
                                             use_transform_elasticdeform_images=use_transform_elasticdeform_images,
                                             size_volume_image=size_full_image)
-    return BatchImageDataGenerator_2Images(size_in_images,
-                                           list_Xdata,
-                                           list_Ydata,
-                                           images_generator,
-                                           num_channels_in=num_channels_in,
-                                           num_classes_out=num_classes_out,
-                                           is_output_nnet_validconvs=is_output_nnet_validconvs,
-                                           size_output_image=size_output_images,
-                                           batch_size=batch_size,
-                                           shuffle=is_shuffle,
-                                           seed=manual_seed)
+    return BatchImageDataGenerator2Images(size_in_images,
+                                          list_xdata,
+                                          list_ydata,
+                                          images_generator,
+                                          num_channels_in=num_channels_in,
+                                          num_classes_out=num_classes_out,
+                                          is_output_nnet_validconvs=is_output_nnet_validconvs,
+                                          size_output_image=size_output_images,
+                                          batch_size=batch_size,
+                                          shuffle=is_shuffle,
+                                          seed=manual_seed)
 
 
 def get_train_imagedataloader_1image(list_filenames_1: List[str],
@@ -112,12 +112,12 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                      batch_size: int = 1,
                                      is_shuffle: bool = True,
                                      manual_seed: int = None
-                                     ) -> Union[TrainBatchImageDataGenerator_1Image, List[np.ndarray]]:
+                                     ) -> Union[TrainBatchImageDataGenerator1Image, List[np.ndarray]]:
     print("Generate Data Loader with Batch Generator...")
 
-    list_Xdata = ImageDataLoader.load_1list_files(list_filenames_1)
+    list_xdata = ImageDataLoader.load_1list_files(list_filenames_1)
 
-    size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
+    size_full_image = list_xdata[0].shape if len(list_xdata) == 1 else (0, 0, 0)
     num_channels_in = 1
 
     images_generator = get_images_generator(size_in_images,
@@ -128,15 +128,15 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                             use_transform_rigid_images=use_transform_rigid_images,
                                             use_transform_elasticdeform_images=use_transform_elasticdeform_images,
                                             size_volume_image=size_full_image)
-    return TrainBatchImageDataGenerator_1Image(size_in_images,
-                                               list_Xdata,
-                                               images_generator,
-                                               num_channels_in=num_channels_in,
-                                               batch_size=batch_size,
-                                               shuffle=is_shuffle,
-                                               seed=manual_seed,
-                                               is_datagen_gpu=IS_MODEL_IN_GPU,
-                                               is_datagen_halfPrec=IS_MODEL_HALF_PRECISION)
+    return TrainBatchImageDataGenerator1Image(size_in_images,
+                                              list_xdata,
+                                              images_generator,
+                                              num_channels_in=num_channels_in,
+                                              batch_size=batch_size,
+                                              shuffle=is_shuffle,
+                                              seed=manual_seed,
+                                              is_datagen_gpu=IS_MODEL_IN_GPU,
+                                              is_datagen_halfprec=IS_MODEL_HALF_PRECISION)
 
 
 def get_train_imagedataloader_2images(list_filenames_1: List[str],
@@ -153,12 +153,13 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                       batch_size: int = 1,
                                       is_shuffle: bool = True,
                                       manual_seed: int = None
-                                      ) -> Union[TrainBatchImageDataGenerator_2Images, Tuple[List[np.ndarray], List[np.ndarray]]]:
+                                      ) -> Union[TrainBatchImageDataGenerator2Images,
+                                                 Tuple[List[np.ndarray], List[np.ndarray]]]:
     print("Generate Data Loader with Batch Generator...")
 
-    (list_Xdata, list_Ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
+    (list_xdata, list_ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
 
-    size_full_image = list_Xdata[0].shape if len(list_Xdata) == 1 else (0, 0, 0)
+    size_full_image = list_xdata[0].shape if len(list_xdata) == 1 else (0, 0, 0)
     num_channels_in = 1
     num_classes_out = 1
 
@@ -170,16 +171,16 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                             use_transform_rigid_images=use_transform_rigid_images,
                                             use_transform_elasticdeform_images=use_transform_elasticdeform_images,
                                             size_volume_image=size_full_image)
-    return TrainBatchImageDataGenerator_2Images(size_in_images,
-                                                list_Xdata,
-                                                list_Ydata,
-                                                images_generator,
-                                                num_channels_in=num_channels_in,
-                                                num_classes_out=num_classes_out,
-                                                is_output_nnet_validconvs=is_output_nnet_validconvs,
-                                                size_output_image=size_output_images,
-                                                batch_size=batch_size,
-                                                shuffle=is_shuffle,
-                                                seed=manual_seed,
-                                                is_datagen_gpu=IS_MODEL_IN_GPU,
-                                                is_datagen_halfPrec=IS_MODEL_HALF_PRECISION)
+    return TrainBatchImageDataGenerator2Images(size_in_images,
+                                               list_xdata,
+                                               list_ydata,
+                                               images_generator,
+                                               num_channels_in=num_channels_in,
+                                               num_classes_out=num_classes_out,
+                                               is_nnet_validconvs=is_output_nnet_validconvs,
+                                               size_output_image=size_output_images,
+                                               batch_size=batch_size,
+                                               shuffle=is_shuffle,
+                                               seed=manual_seed,
+                                               is_datagen_gpu=IS_MODEL_IN_GPU,
+                                               is_datagen_halfprec=IS_MODEL_HALF_PRECISION)

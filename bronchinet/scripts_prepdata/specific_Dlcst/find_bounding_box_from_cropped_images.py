@@ -71,7 +71,7 @@ def main(args):
         test_range_bounding_boxes = compute_test_range_boundbox(in_shape_fullimage, in_shape_cropimage,
                                                                 alpha_relax=_alpha_relax, z_min_top=_z_min_top, z_numtest=_z_numtest)
 
-        test_range_shape_bounding_boxes = BoundingBoxes.get_size_bounding_box(test_range_bounding_boxes)
+        test_range_shape_bounding_boxes = BoundingBoxes.get_size_boundbox(test_range_bounding_boxes)
         if (test_range_shape_bounding_boxes < in_crop_image.shape):
             message = 'size test range of Bounding Boxes than cropped Image: \'%s\' < \'%s\'...' %(test_range_shape_bounding_boxes,
                                                                                                    in_crop_image.shape)

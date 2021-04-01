@@ -33,12 +33,12 @@ class ImageReconstructor(object):
         self._is_output_nnet_validconvs = is_output_nnet_validconvs
         if is_output_nnet_validconvs and size_output_image and (size_image != size_output_image):
             self._size_output_image = size_output_image
-            self._valid_output_bounding_box = BoundingBoxes.compute_bounding_box_centered_image_fit_image(self._size_output_image,
-                                                                                                          self._size_image)
+            self._valid_output_bounding_box = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_output_image,
+                                                                                                self._size_image)
             if self._ndims==2:
-                self._func_extend_image_patch = ExtendImage._compute2D
+                self._func_extend_image_patch = ExtendImage._compute2d
             elif self._ndims==3:
-                self._func_extend_image_patch = ExtendImage._compute3D
+                self._func_extend_image_patch = ExtendImage._compute3d
             else:
                 message = 'ImageReconstructor:__init__: wrong \'ndims\': %s...' % (self._ndims)
                 catch_error_exception(message)
@@ -67,7 +67,7 @@ class ImageReconstructor(object):
     def _get_processed_image_patch(self, in_image: np.ndarray) -> np.ndarray:
         if self._is_output_nnet_validconvs:
             out_shape_image = self._get_shape_output_image(in_image.shape, self._size_image)
-            out_image = self._func_extend_image_patch(in_image, self._valid_output_bounding_box, out_shape_image, background_value=0)
+            out_image = self._func_extend_image_patch(in_image, self._valid_output_bounding_box, out_shape_image, value_backgrnd=0)
         else:
             out_image = in_image
 

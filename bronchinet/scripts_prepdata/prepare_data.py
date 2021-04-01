@@ -241,14 +241,14 @@ def main(args):
                 print("Crop input images to bounding-box \'%s\' out of total \'%s\': \'%s\'..." % (j, num_crop_bounding_boxes, str(in_crop_bounding_box)))
 
                 size_in_image = list_inout_data[icount].shape
-                size_in_crop_bounding_box = BoundingBoxes.get_size_bounding_box(in_crop_bounding_box)
+                size_in_crop_bounding_box = BoundingBoxes.get_size_boundbox(in_crop_bounding_box)
 
-                if not BoundingBoxes.is_bounding_box_contained_in_image_size(in_crop_bounding_box, size_in_image):
+                if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_bounding_box, size_in_image):
                     print("Bounding-box is larger than image size: : \'%s\' > \'%s\'. Combine cropping with extending images..."
                           % (str(size_in_crop_bounding_box), str(size_in_image)))
 
                     new_size_in_image = size_in_crop_bounding_box
-                    (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.compute_bounding_boxes_crop_extend_image(in_crop_bounding_box, size_in_image)
+                    (croppartial_bounding_box, extendimg_bounding_box) = BoundingBoxes.calc_boundboxes_crop_extend_image(in_crop_bounding_box, size_in_image)
 
                     for k in range(num_images_per_crop_bounding_box):
                         print('Crop input image \'%s\' of type \'%s\'...' % (icount, list_type_inout_data[icount]))
