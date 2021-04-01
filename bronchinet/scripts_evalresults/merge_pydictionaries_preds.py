@@ -1,8 +1,8 @@
 
-from common.functionutil import *
 from collections import OrderedDict
 import argparse
 
+from common.functionutil import read_dictionary, save_dictionary, save_dictionary_csv
 
 
 def main(args):
@@ -18,7 +18,6 @@ def main(args):
     save_dictionary_csv(args.output_file.replace('.npy', '.csv'), output_dict_preds_referkeys_all)
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('list_input_files', nargs='+', type=str)
@@ -27,6 +26,6 @@ if __name__ == "__main__":
 
     print("Print input arguments...")
     for key, value in vars(args).items():
-        print("\'%s\' = %s" %(key, value))
+        print("\'%s\' = %s" % (key, value))
 
     main(args)

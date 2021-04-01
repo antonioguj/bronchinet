@@ -130,7 +130,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
     parser.add_argument('--net_num_levels', type=int, default=NET_NUM_LEVELS)
     parser.add_argument('--use_sliding_window_images', type=str2bool, default=True)
-    parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW_TESTING)
+    parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW_PRED)
     parser.add_argument('--use_random_window_images', type=str2tuple_float, default=False)
     parser.add_argument('--num_random_patches_epoch', type=str2tuple_float, default=0)
     args = parser.parse_args()

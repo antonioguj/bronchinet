@@ -1,34 +1,38 @@
 
-from common.constant import *
-from common.functionutil import *
+from collections import OrderedDict
+import argparse
+
+from common.constant import BASEDIR, LIST_TYPE_METRICS_RESULT, IS_REMOVE_TRACHEA_CALC_METRICS, \
+                            NAME_RAW_LABELS_RELPATH, NAME_RAW_COARSEAIRWAYS_RELPATH, NAME_RAW_CENTRELINES_RELPATH, \
+                            NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_PRED_RESULT_METRICS_FILE
+from common.functionutil import basename, list_files_dir, get_substring_filename, get_pattern_refer_filename, \
+                                find_file_inlist_same_prefix, str2bool, read_dictionary
+from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
 from models.model_manager import get_metric
 from imageoperators.imageoperator import MorphoDilateMask
 from imageoperators.maskoperator import MaskOperator
-from collections import OrderedDict
-import argparse
-
 
 
 def main(args):
 
-    workdir_manager                 = TrainDirManager(args.basedir)
-    input_predicted_masks_path      = workdir_manager.get_pathdir_exist(args.input_predicted_masks_dir)
-    input_predicted_cenlines_path   = workdir_manager.get_pathdir_exist(args.input_pred_centrelines_dir)
-    input_reference_masks_path      = workdir_manager.get_datadir_exist(args.name_input_reference_masks_relpath)
-    input_reference_cenlines_path   = workdir_manager.get_datadir_exist(args.name_input_reference_centrelines_relpath)
-    in_reference_keys_file          = workdir_manager.get_datafile_exist(args.name_input_reference_keys_file)
+    workdir_manager = TrainDirManager(args.basedir)
+    input_predicted_masks_path = workdir_manager.get_pathdir_exist(args.input_predicted_masks_dir)
+    input_predicted_cenlines_path = workdir_manager.get_pathdir_exist(args.input_pred_centrelines_dir)
+    input_reference_masks_path = workdir_manager.get_datadir_exist(args.name_input_reference_masks_relpath)
+    input_reference_cenlines_path = workdir_manager.get_datadir_exist(args.name_input_reference_centrelines_relpath)
+    in_reference_keys_file = workdir_manager.get_datafile_exist(args.name_input_reference_keys_file)
 
-    list_input_predicted_masks_files    = list_files_dir(input_predicted_masks_path)
+    list_input_predicted_masks_files = list_files_dir(input_predicted_masks_path)
     list_input_predicted_cenlines_files = list_files_dir(input_predicted_cenlines_path)
-    list_input_reference_masks_files    = list_files_dir(input_reference_masks_path)
+    list_input_reference_masks_files = list_files_dir(input_reference_masks_path)
     list_input_reference_cenlines_files = list_files_dir(input_reference_cenlines_path)
-    indict_reference_keys               = read_dictionary(in_reference_keys_file)
-    pattern_search_input_files          = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
+    indict_reference_keys = read_dictionary(in_reference_keys_file)
+    pattern_search_input_files = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
 
     if (args.is_remove_trachea_calc_metrics):
-        input_coarse_airways_path       = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
+        input_coarse_airways_path = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
 
     if len(list_input_predicted_masks_files) != len(list_input_predicted_cenlines_files):
@@ -41,49 +45,54 @@ def main(args):
         list_metrics[new_metric._name_fun_out] = new_metric
     # endfor
 
-
+    # *****************************************************
 
     outdict_calc_metrics = OrderedDict()
 
-    for i, (in_predicted_mask_file, in_predicted_cenline_file) in enumerate(zip(list_input_predicted_masks_files,
-                                                                                list_input_predicted_cenlines_files)):
+    for i, (in_predicted_mask_file, in_predicted_cenline_file) in \
+            enumerate(zip(list_input_predicted_masks_files, list_input_predicted_cenlines_files)):
         print("\nInput: \'%s\'..." % (basename(in_predicted_mask_file)))
         print("And: \'%s\'..." % (basename(in_predicted_cenline_file)))
 
-        in_reference_mask_file = find_file_inlist_same_prefix(basename(in_predicted_mask_file), list_input_reference_masks_files,
+        in_reference_mask_file = find_file_inlist_same_prefix(basename(in_predicted_mask_file),
+                                                              list_input_reference_masks_files,
                                                               pattern_prefix=pattern_search_input_files)
-        in_reference_cenline_file = find_file_inlist_same_prefix(basename(in_predicted_mask_file), list_input_reference_cenlines_files,
+        in_reference_cenline_file = find_file_inlist_same_prefix(basename(in_predicted_mask_file),
+                                                                 list_input_reference_cenlines_files,
                                                                  pattern_prefix=pattern_search_input_files)
         print("Reference mask file: \'%s\'..." % (basename(in_reference_mask_file)))
         print("Reference centrelines file: \'%s\'..." % (basename(in_reference_cenline_file)))
 
-        in_predicted_mask    = ImageFileReader.get_image(in_predicted_mask_file)
+        in_predicted_mask = ImageFileReader.get_image(in_predicted_mask_file)
         in_predicted_cenline = ImageFileReader.get_image(in_predicted_cenline_file)
-        in_reference_mask    = ImageFileReader.get_image(in_reference_mask_file)
+        in_reference_mask = ImageFileReader.get_image(in_reference_mask_file)
         in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
         print("Predictions of size: %s..." % (str(in_predicted_mask.shape)))
 
-
         if (args.is_remove_trachea_calc_metrics):
             print("Remove trachea and main bronchi masks in computed metrics...")
-            in_coarse_airways_file = find_file_inlist_same_prefix(basename(in_predicted_mask_file), list_input_coarse_airways_files,
+            in_coarse_airways_file = find_file_inlist_same_prefix(basename(in_predicted_mask_file),
+                                                                  list_input_coarse_airways_files,
                                                                   pattern_prefix=pattern_search_input_files)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarse_airways_file)))
 
             in_coarse_airways = ImageFileReader.get_image(in_coarse_airways_file)
 
-            print("Dilate coarse airways masks 4 levels to remove completely trachea and main bronchi from ground-truth...")
+            print("Dilate coarse airways masks 4 levels to remove completely the trachea and main bronchi from "
+                  "the predictions and the ground-truth...")
             in_coarse_airways = MorphoDilateMask.compute(in_coarse_airways, num_iters=4)
 
-            in_predicted_mask    = MaskOperator.substract_two_masks(in_predicted_mask, in_coarse_airways)
+            in_predicted_mask = MaskOperator.substract_two_masks(in_predicted_mask, in_coarse_airways)
             in_predicted_cenline = MaskOperator.substract_two_masks(in_predicted_cenline, in_coarse_airways)
-            in_reference_mask    = MaskOperator.substract_two_masks(in_reference_mask, in_coarse_airways)
+            in_reference_mask = MaskOperator.substract_two_masks(in_reference_mask, in_coarse_airways)
             in_reference_cenline = MaskOperator.substract_two_masks(in_reference_cenline, in_coarse_airways)
 
+        # ******************************
 
         # Compute and store Metrics
         print("\nCompute the Metrics:")
-        casename = get_substring_filename(basename(in_predicted_mask_file), substr_pattern=pattern_search_input_files)
+        casename = get_substring_filename(basename(in_predicted_mask_file),
+                                          substr_pattern=pattern_search_input_files)
         outdict_calc_metrics[casename] = []
 
         for (imetric_name, imetric) in list_metrics.items():
@@ -102,6 +111,7 @@ def main(args):
         # endfor
     # endfor
 
+    # *****************************************************
 
     # write out computed metrics in file
     fout = open(args.output_file, 'w')
@@ -116,23 +126,22 @@ def main(args):
     fout.close()
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_predicted_masks_dir', type=str)
     parser.add_argument('input_pred_centrelines_dir', type=str)
-    parser.add_argument('--output_file', type=str, default=NAME_PRED_RESULT_METRICS_FILE)
     parser.add_argument('--list_type_metrics', nargs='+', type=str, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     parser.add_argument('--name_input_coarse_airways_relpath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)
     parser.add_argument('--name_input_reference_centrelines_relpath', type=str, default=NAME_RAW_CENTRELINES_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
+    parser.add_argument('--output_file', type=str, default=NAME_PRED_RESULT_METRICS_FILE)
     args = parser.parse_args()
 
     print("Print input arguments...")
     for key, value in vars(args).items():
-        print("\'%s\' = %s" %(key, value))
+        print("\'%s\' = %s" % (key, value))
 
     main(args)
