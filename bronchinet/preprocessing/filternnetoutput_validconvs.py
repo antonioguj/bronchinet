@@ -2,8 +2,6 @@
 from typing import Tuple
 import numpy as np
 
-#from common.constant import *
-from common.exceptionmanager import catch_error_exception
 from common.functionutil import ImagesUtil
 from imageoperators.boundingboxes import BoundingBoxes
 from preprocessing.imagegenerator import ImageGenerator
@@ -27,9 +25,6 @@ class FilterNnetOutputValidConvs(ImageGenerator):
 
         if is_multiple_outputs_nnet:
             self._type_progression = 'all_outputs_Unet'
-            if type(size_output_image) != type([]):
-                message = 'Wrong input argument \'size_output_image\': \'%s\'. It must be a list of tuples'
-                catch_error_exception(message)
         else:
             self._type_progression = 'quadratic'
 
@@ -38,19 +33,19 @@ class FilterNnetOutputValidConvs(ImageGenerator):
         super(FilterNnetOutputValidConvs, self).__init__(size_image, 1)
 
     @staticmethod
-    def _calc_tensor_product_2D(a: int, b: int) -> np.ndarray:
+    def _calc_tensor_product_2d(a: int, b: int) -> np.ndarray:
         return np.einsum('i,j->ij', a, b)
 
     @staticmethod
-    def _calc_tensor_product_3D(a:int, b:int, c:int) -> np.ndarray:
+    def _calc_tensor_product_3d(a: int, b: int, c: int) -> np.ndarray:
         return np.einsum('i,j,k->ijk', a, b, c)
 
     @staticmethod
-    def _calc_linear_progression(coord_0: int, coord_1:int) -> np.ndarray:
+    def _calc_linear_progression(coord_0: int, coord_1: int) -> np.ndarray:
         return np.linspace(0, 1, coord_1 - coord_0)
 
     @staticmethod
-    def _calc_quadratic_progression(coord_0: int, coord_1:int) -> np.ndarray:
+    def _calc_quadratic_progression(coord_0: int, coord_1: int) -> np.ndarray:
         return np.power(np.linspace(0, 1, coord_1 - coord_0), 2)
 
     @staticmethod
@@ -97,18 +92,14 @@ class FilterNnetOutputValidConvs(ImageGenerator):
     def _compute_progression_decreasing(self, coord_0: int, coord_1: int) -> np.ndarray:
         return self._compute_progression_increasing(coord_0, coord_1)[::-1]
 
-    def _fill_flat_interior_bounding_box(self, inner_bounding_box: BoundBoxNDType) -> None:
+    def _fill_flat_interior_boundbox(self, inner_boundbox: BoundBoxNDType) -> None:
         return NotImplemented
 
-    def _fill_flat_exterior_bounding_box(self, outer_bounding_box: BoundBoxNDType) -> None:
+    def _fill_flat_exterior_boundbox(self, outer_boundbox: BoundBoxNDType) -> None:
         return NotImplemented
 
-    def _fill_progression_between_two_bounding_boxes(self,
-                                                     inner_bounding_box: BoundBoxNDType,
-                                                     outer_bounding_box: BoundBoxNDType,
-                                                     propa_value_in: float = 1.0,
-                                                     propa_value_out: float = 0.0
-                                                     ) -> None:
+    def _fill_progression_between_two_boundboxes(self, inner_boundbox: BoundBoxNDType, outer_boundbox: BoundBoxNDType,
+                                                 propa_value_in: float = 1.0, propa_value_out: float = 0.0) -> None:
         return NotImplemented
 
     def _check_correct_dims_image_filter(self, in_shape_image: Tuple[int, ...]) -> bool:
@@ -126,37 +117,35 @@ class FilterNnetOutputValidConvs(ImageGenerator):
 
         if self._is_multiple_outputs_nnet:
             # set flat probability equal to 'one' inside inner output of nnet
-            # set piecewise probability distribution in between bounding boxes corresponding to outputs of Unet up to 'max_depth'
-            # in between bounding boxes, assume quadratic distribution in between two values with diff: 1/num_output_nnet
+            # set piecewise probability distribution in between bounding boxes for outputs of Unet up to 'max_depth'
+            # between bounding boxes, assume quadratic distribution in between two values with diff: 1/num_output_nnet
             num_outputs_nnet = len(self._size_output_image)
-            sizes_bounding_boxes_output = self._size_output_image + [self._size_image]
+            sizes_boundboxes_output = self._size_output_image + [self._size_image]
 
-            inner_bounding_box_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
-                                                                                          sizes_bounding_boxes_output[0])
-            self._fill_flat_interior_bounding_box(inner_bounding_box_output)
+            inner_boundbox_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
+                                                                                      sizes_boundboxes_output[0])
+            self._fill_flat_interior_boundbox(inner_boundbox_output)
 
             for i in range(num_outputs_nnet):
                 propa_value_in = 1.0 - i / float(num_outputs_nnet)
                 propa_value_out = 1.0 - (i + 1) / float(num_outputs_nnet)
 
-                inner_bounding_box_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
-                                                                                              sizes_bounding_boxes_output[i])
-                outer_bounding_box_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
-                                                                                              sizes_bounding_boxes_output[i + 1])
-                self._fill_progression_between_two_bounding_boxes(inner_bounding_box_output,
-                                                                  outer_bounding_box_output,
-                                                                  propa_value_in,
-                                                                  propa_value_out)
+                inner_boundbox_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
+                                                                                          sizes_boundboxes_output[i])
+                outer_boundbox_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
+                                                                                          sizes_boundboxes_output[i+1])
+                self._fill_progression_between_two_boundboxes(inner_boundbox_output, outer_boundbox_output,
+                                                              propa_value_in, propa_value_out)
         else:
             # set flat probability equal to 'one' inside output of nnet
             # set probability distribution (linear, quadratic, ...) in between output of nnet and borders of image
-            inner_bounding_box_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
-                                                                                          self._size_output_image)
-            image_bounding_box_default = BoundingBoxes.get_default_boundbox_image(self._size_image)
+            inner_boundbox_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
+                                                                                      self._size_output_image)
+            image_boundbox_default = BoundingBoxes.get_default_boundbox_image(self._size_image)
 
-            self._fill_flat_interior_bounding_box(inner_bounding_box_output)
-            self._fill_progression_between_two_bounding_boxes(inner_bounding_box_output,
-                                                              image_bounding_box_default)
+            self._fill_flat_interior_boundbox(inner_boundbox_output)
+            self._fill_progression_between_two_boundboxes(inner_boundbox_output,
+                                                          image_boundbox_default)
 
 
 class FilteringNnetOutputValidConvs2D(FilterNnetOutputValidConvs):
@@ -167,46 +156,59 @@ class FilteringNnetOutputValidConvs2D(FilterNnetOutputValidConvs):
                  ) -> None:
         super(FilteringNnetOutputValidConvs2D, self).__init__(size_image, size_output_image)
 
-    def _fill_flat_interior_bounding_box(self, inner_bounding_box: BoundBoxNDType) -> None:
+    def _fill_flat_interior_boundbox(self, inner_boundbox: BoundBoxNDType) -> None:
         # assign probability 'one' inside box
-        (x_left, x_right, y_down, y_up) = inner_bounding_box
+        (x_left, x_right, y_down, y_up) = inner_boundbox
         self._probmap_output_nnet[x_left:x_right, y_down:y_up] = 1.0
 
-    def _fill_flat_exterior_bounding_box(self, outer_bounding_box: BoundBoxNDType) -> None:
+    def _fill_flat_exterior_boundbox(self, outer_boundbox: BoundBoxNDType) -> None:
         # assign probability 'zero' outside box
-        (x_left, x_right, y_down, y_up) = outer_bounding_box
+        (x_left, x_right, y_down, y_up) = outer_boundbox
         self._probmap_output_nnet[0:x_left, :] = 0.0
         self._probmap_output_nnet[x_right:, :] = 0.0
         self._probmap_output_nnet[:, 0:y_down] = 0.0
         self._probmap_output_nnet[:, y_up:] = 0.0
 
-    def _fill_progression_between_two_bounding_boxes(self,
-                                                     inner_bounding_box: BoundBoxNDType,
-                                                     outer_bounding_box: BoundBoxNDType,
-                                                     propa_value_in: float = 1.0,
-                                                     propa_value_out: float = 0.0
-                                                     ) -> None:
-        # assign probability distribution between 'inner' and 'outer' boundboxes, between values 'propa_value_in' and 'propa_value_out'
-        (x_left_in, x_right_in, y_down_in, y_up_in) = inner_bounding_box
-        (x_left_out, x_right_out, y_down_out, y_up_out) = outer_bounding_box
+    def _fill_progression_between_two_boundboxes(self,
+                                                 inner_boundbox: BoundBoxNDType,
+                                                 outer_boundbox: BoundBoxNDType,
+                                                 propa_value_in: float = 1.0,
+                                                 propa_value_out: float = 0.0
+                                                 ) -> None:
+        # assign probability distribution between 'inner' and 'outer' boundboxes,
+        # between values 'propa_value_in' and 'propa_value_out'
+        (x_left_in, x_right_in, y_down_in, y_up_in) = inner_boundbox
+        (x_left_out, x_right_out, y_down_out, y_up_out) = outer_boundbox
 
-        progression_x_left = self._compute_progression_increasing(x_left_out, x_left_in) * (propa_value_in - propa_value_out) + propa_value_out
-        progression_x_right = self._compute_progression_decreasing(x_right_in, x_right_out) * (propa_value_in - propa_value_out) + propa_value_out
-        progression_y_down = self._compute_progression_increasing(y_down_out, y_down_in) * (propa_value_in - propa_value_out) + propa_value_out
-        progression_y_up = self._compute_progression_decreasing(y_up_in, y_up_out) * (propa_value_in - propa_value_out) + propa_value_out
+        progression_x_left = self._compute_progression_increasing(x_left_out, x_left_in) * \
+            (propa_value_in - propa_value_out) + propa_value_out
+        progression_x_right = self._compute_progression_decreasing(x_right_in, x_right_out) * \
+            (propa_value_in - propa_value_out) + propa_value_out
+        progression_y_down = self._compute_progression_increasing(y_down_out, y_down_in) * \
+            (propa_value_in - propa_value_out) + propa_value_out
+        progression_y_up = self._compute_progression_decreasing(y_up_in, y_up_out) * \
+            (propa_value_in - propa_value_out) + propa_value_out
         progression_x_middle = np.ones([x_right_in - x_left_in]) * propa_value_in
         progression_y_middle = np.ones([y_up_in - y_down_in]) * propa_value_in
 
         # laterals
-        self._probmap_output_nnet[x_left_out:x_left_in, y_down_in:y_up_in] = self._calc_tensor_product_2D(progression_x_left, progression_y_middle)
-        self._probmap_output_nnet[x_right_in:x_right_out, y_down_in:y_up_in] = self._calc_tensor_product_2D(progression_x_right, progression_y_middle)
-        self._probmap_output_nnet[x_left_in:x_right_in, y_down_out:y_down_in] = self._calc_tensor_product_2D(progression_x_middle, progression_y_down)
-        self._probmap_output_nnet[x_left_in:x_right_in, y_up_in:y_up_out] = self._calc_tensor_product_2D(progression_x_middle, progression_y_up)
+        self._probmap_output_nnet[x_left_out:x_left_in, y_down_in:y_up_in] = \
+            self._calc_tensor_product_2d(progression_x_left, progression_y_middle)
+        self._probmap_output_nnet[x_right_in:x_right_out, y_down_in:y_up_in] = \
+            self._calc_tensor_product_2d(progression_x_right, progression_y_middle)
+        self._probmap_output_nnet[x_left_in:x_right_in, y_down_out:y_down_in] = \
+            self._calc_tensor_product_2d(progression_x_middle, progression_y_down)
+        self._probmap_output_nnet[x_left_in:x_right_in, y_up_in:y_up_out] = \
+            self._calc_tensor_product_2d(progression_x_middle, progression_y_up)
         # corners
-        self._probmap_output_nnet[x_left_out:x_left_in, y_down_out:y_down_in] = self._calc_tensor_product_2D(progression_x_left, progression_y_down)
-        self._probmap_output_nnet[x_right_in:x_right_out, y_down_out:y_down_in] = self._calc_tensor_product_2D(progression_x_right, progression_y_down)
-        self._probmap_output_nnet[x_left_out:x_left_in, y_up_in:y_up_out] = self._calc_tensor_product_2D(progression_x_left, progression_y_up)
-        self._probmap_output_nnet[x_right_in:x_right_out, y_up_in:y_up_out] = self._calc_tensor_product_2D(progression_x_right, progression_y_up)
+        self._probmap_output_nnet[x_left_out:x_left_in, y_down_out:y_down_in] = \
+            self._calc_tensor_product_2d(progression_x_left, progression_y_down)
+        self._probmap_output_nnet[x_right_in:x_right_out, y_down_out:y_down_in] = \
+            self._calc_tensor_product_2d(progression_x_right, progression_y_down)
+        self._probmap_output_nnet[x_left_out:x_left_in, y_up_in:y_up_out] = \
+            self._calc_tensor_product_2d(progression_x_left, progression_y_up)
+        self._probmap_output_nnet[x_right_in:x_right_out, y_up_in:y_up_out] = \
+            self._calc_tensor_product_2d(progression_x_right, progression_y_up)
 
 
 class FilteringNnetOutputValidConvs3D(FilterNnetOutputValidConvs):
@@ -217,14 +219,14 @@ class FilteringNnetOutputValidConvs3D(FilterNnetOutputValidConvs):
                  ) -> None:
         super(FilteringNnetOutputValidConvs3D, self).__init__(size_image, size_output_image)
 
-    def _fill_flat_interior_bounding_box(self, inner_bounding_box: BoundBoxNDType) -> None:
+    def _fill_flat_interior_boundbox(self, inner_boundbox: BoundBoxNDType) -> None:
         # assign probability 'one' inside box
-        (z_back, z_front, x_left, x_right, y_down, y_up) = inner_bounding_box
+        (z_back, z_front, x_left, x_right, y_down, y_up) = inner_boundbox
         self._probmap_output_nnet[z_back:z_front, x_left:x_right, y_down:y_up] = 1.0
 
-    def _fill_flat_exterior_bounding_box(self, outer_bounding_box: BoundBoxNDType) -> None:
+    def _fill_flat_exterior_boundbox(self, outer_boundbox: BoundBoxNDType) -> None:
         # assign probability 'zero' outside box
-        (z_back, z_front, x_left, x_right, y_down, y_up) = outer_bounding_box
+        (z_back, z_front, x_left, x_right, y_down, y_up) = outer_boundbox
         self._probmap_output_nnet[0:z_back, :, :] = 0.0
         self._probmap_output_nnet[z_front:, :, :] = 0.0
         self._probmap_output_nnet[:, 0:x_left, :] = 0.0
@@ -232,52 +234,85 @@ class FilteringNnetOutputValidConvs3D(FilterNnetOutputValidConvs):
         self._probmap_output_nnet[:, :, 0:y_down] = 0.0
         self._probmap_output_nnet[:, :, y_up:] = 0.0
 
-    def _fill_progression_between_two_bounding_boxes(self,
-                                                     inner_bounding_box: BoundBoxNDType,
-                                                     outer_bounding_box: BoundBoxNDType,
-                                                     propa_value_in: float = 1.0,
-                                                     propa_value_out: float = 0.0
-                                                     ) -> None:
-        # assign probability distribution between 'inner' and 'outer' boundboxes, between values 'propa_value_in' and 'propa_value_out'
-        (z_back_in, z_front_in, x_left_in, x_right_in, y_down_in, y_up_in) = inner_bounding_box
-        (z_back_out, z_front_out, x_left_out, x_right_out, y_down_out, y_up_out) = outer_bounding_box
+    def _fill_progression_between_two_boundboxes(self,
+                                                 inner_boundbox: BoundBoxNDType,
+                                                 outer_boundbox: BoundBoxNDType,
+                                                 propa_value_in: float = 1.0,
+                                                 propa_value_out: float = 0.0
+                                                 ) -> None:
+        # assign probability distribution between 'inner' and 'outer' boundboxes,
+        # between values 'propa_value_in' and 'propa_value_out'
+        (z_back_in, z_front_in, x_left_in, x_right_in, y_down_in, y_up_in) = inner_boundbox
+        (z_back_out, z_front_out, x_left_out, x_right_out, y_down_out, y_up_out) = outer_boundbox
 
-        progression_z_back = self._compute_progression_increasing(z_back_out, z_back_in) * (propa_value_in - propa_value_out) + propa_value_out
-        progression_z_front = self._compute_progression_decreasing(z_front_in, z_front_out) * (propa_value_in - propa_value_out) + propa_value_out
-        progression_x_left = self._compute_progression_increasing(x_left_out, x_left_in) * (propa_value_in - propa_value_out) + propa_value_out
-        progression_x_right = self._compute_progression_decreasing(x_right_in, x_right_out) * (propa_value_in - propa_value_out) + propa_value_out
-        progression_y_down = self._compute_progression_increasing(y_down_out, y_down_in) * (propa_value_in - propa_value_out) + propa_value_out
-        progression_y_up = self._compute_progression_decreasing(y_up_in, y_up_out) * (propa_value_in - propa_value_out) + propa_value_out
+        progression_z_back = self._compute_progression_increasing(z_back_out, z_back_in) * \
+            (propa_value_in - propa_value_out) + propa_value_out
+        progression_z_front = self._compute_progression_decreasing(z_front_in, z_front_out) * \
+            (propa_value_in - propa_value_out) + propa_value_out
+        progression_x_left = self._compute_progression_increasing(x_left_out, x_left_in) * \
+            (propa_value_in - propa_value_out) + propa_value_out
+        progression_x_right = self._compute_progression_decreasing(x_right_in, x_right_out) * \
+            (propa_value_in - propa_value_out) + propa_value_out
+        progression_y_down = self._compute_progression_increasing(y_down_out, y_down_in) * \
+            (propa_value_in - propa_value_out) + propa_value_out
+        progression_y_up = self._compute_progression_decreasing(y_up_in, y_up_out) * \
+            (propa_value_in - propa_value_out) + propa_value_out
         progression_z_middle = np.ones([z_front_in - z_back_in]) * propa_value_in
         progression_x_middle = np.ones([x_right_in - x_left_in]) * propa_value_in
         progression_y_middle = np.ones([y_up_in - y_down_in]) * propa_value_in
 
         # laterals
-        self._probmap_output_nnet[z_back_in:z_front_in, x_left_out:x_left_in, y_down_in:y_up_in] = self._calc_tensor_product_3D(progression_z_middle, progression_x_left, progression_y_middle)
-        self._probmap_output_nnet[z_back_in:z_front_in, x_right_in:x_right_out, y_down_in:y_up_in] = self._calc_tensor_product_3D(progression_z_middle, progression_x_right, progression_y_middle)
-        self._probmap_output_nnet[z_back_in:z_front_in, x_left_in:x_right_in, y_down_out:y_down_in] = self._calc_tensor_product_3D(progression_z_middle, progression_x_middle, progression_y_down)
-        self._probmap_output_nnet[z_back_in:z_front_in, x_left_in:x_right_in, y_up_in:y_up_out] = self._calc_tensor_product_3D(progression_z_middle, progression_x_middle, progression_y_up)
-        self._probmap_output_nnet[z_back_out:z_back_in, x_left_in:x_right_in, y_down_in:y_up_in] = self._calc_tensor_product_3D(progression_z_back, progression_x_middle, progression_y_middle)
-        self._probmap_output_nnet[z_front_in:z_front_out, x_left_in:x_right_in, y_down_in:y_up_in] = self._calc_tensor_product_3D(progression_z_front, progression_x_middle, progression_y_middle)
+        self._probmap_output_nnet[z_back_in:z_front_in, x_left_out:x_left_in, y_down_in:y_up_in] = \
+            self._calc_tensor_product_3d(progression_z_middle, progression_x_left, progression_y_middle)
+        self._probmap_output_nnet[z_back_in:z_front_in, x_right_in:x_right_out, y_down_in:y_up_in] = \
+            self._calc_tensor_product_3d(progression_z_middle, progression_x_right, progression_y_middle)
+        self._probmap_output_nnet[z_back_in:z_front_in, x_left_in:x_right_in, y_down_out:y_down_in] = \
+            self._calc_tensor_product_3d(progression_z_middle, progression_x_middle, progression_y_down)
+        self._probmap_output_nnet[z_back_in:z_front_in, x_left_in:x_right_in, y_up_in:y_up_out] = \
+            self._calc_tensor_product_3d(progression_z_middle, progression_x_middle, progression_y_up)
+        self._probmap_output_nnet[z_back_out:z_back_in, x_left_in:x_right_in, y_down_in:y_up_in] = \
+            self._calc_tensor_product_3d(progression_z_back, progression_x_middle, progression_y_middle)
+        self._probmap_output_nnet[z_front_in:z_front_out, x_left_in:x_right_in, y_down_in:y_up_in] = \
+            self._calc_tensor_product_3d(progression_z_front, progression_x_middle, progression_y_middle)
         # edges corners
-        self._probmap_output_nnet[z_back_out:z_back_in, x_left_out:x_left_in, y_down_in:y_up_in] = self._calc_tensor_product_3D(progression_z_back, progression_x_left, progression_y_middle)
-        self._probmap_output_nnet[z_back_out:z_back_in, x_right_in:x_right_out, y_down_in:y_up_in] = self._calc_tensor_product_3D(progression_z_back, progression_x_right, progression_y_middle)
-        self._probmap_output_nnet[z_back_out:z_back_in, x_left_in:x_right_in, y_down_out:y_down_in] = self._calc_tensor_product_3D(progression_z_back, progression_x_middle, progression_y_down)
-        self._probmap_output_nnet[z_back_out:z_back_in, x_left_in:x_right_in, y_up_in:y_up_out] = self._calc_tensor_product_3D(progression_z_back, progression_x_middle, progression_y_up)
-        self._probmap_output_nnet[z_front_in:z_front_out, x_left_out:x_left_in, y_down_in:y_up_in] = self._calc_tensor_product_3D(progression_z_front, progression_x_left, progression_y_middle)
-        self._probmap_output_nnet[z_front_in:z_front_out, x_right_in:x_right_out, y_down_in:y_up_in] = self._calc_tensor_product_3D(progression_z_front, progression_x_right, progression_y_middle)
-        self._probmap_output_nnet[z_front_in:z_front_out, x_left_in:x_right_in, y_down_out:y_down_in] = self._calc_tensor_product_3D(progression_z_front, progression_x_middle, progression_y_down)
-        self._probmap_output_nnet[z_front_in:z_front_out, x_left_in:x_right_in, y_up_in:y_up_out] = self._calc_tensor_product_3D(progression_z_front, progression_x_middle, progression_y_up)
-        self._probmap_output_nnet[z_back_in:z_front_in, x_left_out:x_left_in, y_down_out:y_down_in] = self._calc_tensor_product_3D(progression_z_middle, progression_x_left, progression_y_down)
-        self._probmap_output_nnet[z_back_in:z_front_in, x_right_in:x_right_out, y_down_out:y_down_in] = self._calc_tensor_product_3D(progression_z_middle, progression_x_right, progression_y_down)
-        self._probmap_output_nnet[z_back_in:z_front_in, x_left_out:x_left_in, y_up_in:y_up_out] = self._calc_tensor_product_3D(progression_z_middle, progression_x_left, progression_y_up)
-        self._probmap_output_nnet[z_back_in:z_front_in, x_right_in:x_right_out, y_up_in:y_up_out] = self._calc_tensor_product_3D(progression_z_middle, progression_x_right, progression_y_up)
+        self._probmap_output_nnet[z_back_out:z_back_in, x_left_out:x_left_in, y_down_in:y_up_in] = \
+            self._calc_tensor_product_3d(progression_z_back, progression_x_left, progression_y_middle)
+        self._probmap_output_nnet[z_back_out:z_back_in, x_right_in:x_right_out, y_down_in:y_up_in] = \
+            self._calc_tensor_product_3d(progression_z_back, progression_x_right, progression_y_middle)
+        self._probmap_output_nnet[z_back_out:z_back_in, x_left_in:x_right_in, y_down_out:y_down_in] = \
+            self._calc_tensor_product_3d(progression_z_back, progression_x_middle, progression_y_down)
+        self._probmap_output_nnet[z_back_out:z_back_in, x_left_in:x_right_in, y_up_in:y_up_out] = \
+            self._calc_tensor_product_3d(progression_z_back, progression_x_middle, progression_y_up)
+        self._probmap_output_nnet[z_front_in:z_front_out, x_left_out:x_left_in, y_down_in:y_up_in] = \
+            self._calc_tensor_product_3d(progression_z_front, progression_x_left, progression_y_middle)
+        self._probmap_output_nnet[z_front_in:z_front_out, x_right_in:x_right_out, y_down_in:y_up_in] = \
+            self._calc_tensor_product_3d(progression_z_front, progression_x_right, progression_y_middle)
+        self._probmap_output_nnet[z_front_in:z_front_out, x_left_in:x_right_in, y_down_out:y_down_in] = \
+            self._calc_tensor_product_3d(progression_z_front, progression_x_middle, progression_y_down)
+        self._probmap_output_nnet[z_front_in:z_front_out, x_left_in:x_right_in, y_up_in:y_up_out] = \
+            self._calc_tensor_product_3d(progression_z_front, progression_x_middle, progression_y_up)
+        self._probmap_output_nnet[z_back_in:z_front_in, x_left_out:x_left_in, y_down_out:y_down_in] = \
+            self._calc_tensor_product_3d(progression_z_middle, progression_x_left, progression_y_down)
+        self._probmap_output_nnet[z_back_in:z_front_in, x_right_in:x_right_out, y_down_out:y_down_in] = \
+            self._calc_tensor_product_3d(progression_z_middle, progression_x_right, progression_y_down)
+        self._probmap_output_nnet[z_back_in:z_front_in, x_left_out:x_left_in, y_up_in:y_up_out] = \
+            self._calc_tensor_product_3d(progression_z_middle, progression_x_left, progression_y_up)
+        self._probmap_output_nnet[z_back_in:z_front_in, x_right_in:x_right_out, y_up_in:y_up_out] = \
+            self._calc_tensor_product_3d(progression_z_middle, progression_x_right, progression_y_up)
         # corners
-        self._probmap_output_nnet[z_back_out:z_back_in, x_left_out:x_left_in, y_down_out:y_down_in] = self._calc_tensor_product_3D(progression_z_back, progression_x_left, progression_y_down)
-        self._probmap_output_nnet[z_back_out:z_back_in, x_right_in:x_right_out, y_down_out:y_down_in] = self._calc_tensor_product_3D(progression_z_back, progression_x_right, progression_y_down)
-        self._probmap_output_nnet[z_back_out:z_back_in, x_left_out:x_left_in, y_up_in:y_up_out] = self._calc_tensor_product_3D(progression_z_back, progression_x_left, progression_y_up)
-        self._probmap_output_nnet[z_back_out:z_back_in, x_right_in:x_right_out, y_up_in:y_up_out] = self._calc_tensor_product_3D(progression_z_back, progression_x_right, progression_y_up)
-        self._probmap_output_nnet[z_front_in:z_front_out, x_left_out:x_left_in, y_down_out:y_down_in] = self._calc_tensor_product_3D(progression_z_front, progression_x_left, progression_y_down)
-        self._probmap_output_nnet[z_front_in:z_front_out, x_right_in:x_right_out, y_down_out:y_down_in] = self._calc_tensor_product_3D(progression_z_front, progression_x_right, progression_y_down)
-        self._probmap_output_nnet[z_front_in:z_front_out, x_left_out:x_left_in, y_up_in:y_up_out] = self._calc_tensor_product_3D(progression_z_front, progression_x_left, progression_y_up)
-        self._probmap_output_nnet[z_front_in:z_front_out, x_right_in:x_right_out, y_up_in:y_up_out] = self._calc_tensor_product_3D(progression_z_front, progression_x_right, progression_y_up)
+        self._probmap_output_nnet[z_back_out:z_back_in, x_left_out:x_left_in, y_down_out:y_down_in] = \
+            self._calc_tensor_product_3d(progression_z_back, progression_x_left, progression_y_down)
+        self._probmap_output_nnet[z_back_out:z_back_in, x_right_in:x_right_out, y_down_out:y_down_in] = \
+            self._calc_tensor_product_3d(progression_z_back, progression_x_right, progression_y_down)
+        self._probmap_output_nnet[z_back_out:z_back_in, x_left_out:x_left_in, y_up_in:y_up_out] = \
+            self._calc_tensor_product_3d(progression_z_back, progression_x_left, progression_y_up)
+        self._probmap_output_nnet[z_back_out:z_back_in, x_right_in:x_right_out, y_up_in:y_up_out] = \
+            self._calc_tensor_product_3d(progression_z_back, progression_x_right, progression_y_up)
+        self._probmap_output_nnet[z_front_in:z_front_out, x_left_out:x_left_in, y_down_out:y_down_in] = \
+            self._calc_tensor_product_3d(progression_z_front, progression_x_left, progression_y_down)
+        self._probmap_output_nnet[z_front_in:z_front_out, x_right_in:x_right_out, y_down_out:y_down_in] = \
+            self._calc_tensor_product_3d(progression_z_front, progression_x_right, progression_y_down)
+        self._probmap_output_nnet[z_front_in:z_front_out, x_left_out:x_left_in, y_up_in:y_up_out] = \
+            self._calc_tensor_product_3d(progression_z_front, progression_x_left, progression_y_up)
+        self._probmap_output_nnet[z_front_in:z_front_out, x_right_in:x_right_out, y_up_in:y_up_out] = \
+            self._calc_tensor_product_3d(progression_z_front, progression_x_right, progression_y_up)

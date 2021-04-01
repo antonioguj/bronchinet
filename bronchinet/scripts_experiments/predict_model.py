@@ -77,7 +77,7 @@ def main(args):
                                                         num_random_patches_epoch=0,
                                                         use_transform_rigid_images=False,
                                                         use_transform_elasticdeform_images=False,
-                                                        is_output_nnet_validconvs=args.is_valid_convolutions,
+                                                        is_nnet_validconvs=args.is_valid_convolutions,
                                                         size_output_image=size_out_image_model,
                                                         is_filter_output_nnet=IS_FILTER_PRED_PROBMAPS,
                                                         prop_filter_output_nnet=PROP_VALID_OUTPUT_NNET)

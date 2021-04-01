@@ -153,7 +153,7 @@ class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
                  num_channels_in: int = 1,
                  num_classes_out: int = 1,
                  type_image_format: str = 'channels_last',
-                 is_output_nnet_validconvs: bool = False,
+                 is_nnet_validconvs: bool = False,
                  size_output_image: Tuple[int, ...] = None,
                  batch_size: int = 1,
                  shuffle: bool = True,
@@ -180,8 +180,8 @@ class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
                       % (len(list_xdata), len(list_ydata))
             catch_error_exception(message)
 
-        self._is_output_nnet_validconvs = is_output_nnet_validconvs
-        if is_output_nnet_validconvs and size_output_image and (size_image != size_output_image):
+        self._is_nnet_validconvs = is_nnet_validconvs
+        if is_nnet_validconvs and size_output_image and (size_image != size_output_image):
             self._size_output_image = size_output_image
             self._output_crop_boundbox = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_output_image,
                                                                                            self._size_image)
@@ -194,7 +194,7 @@ class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
                 message = 'BatchImageDataGenerator2Images:__init__: wrong \'ndims\': %s...' % (ndims)
                 catch_error_exception(message)
         else:
-            self._is_output_nnet_validconvs = False
+            self._is_nnet_validconvs = False
             self._size_output_image = size_image
 
     def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
@@ -244,7 +244,7 @@ class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
         return self._func_crop_images(in_image, self._output_crop_boundbox)
 
     def _process_sample_ydata(self, in_image: np.ndarray) -> np.ndarray:
-        if self._is_output_nnet_validconvs:
+        if self._is_nnet_validconvs:
             in_image = self._get_cropped_sample(in_image)
         return self._process_sample_xdata(in_image)
 

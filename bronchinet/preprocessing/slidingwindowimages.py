@@ -31,12 +31,12 @@ class SlidingWindowImages(ImageGenerator):
         self._num_images_dirs = self._get_num_images_dirs()
         self._num_images = np.prod(self._num_images_dirs)
 
-        if self._ndims==2:
+        if self._ndims == 2:
             self._func_get_indexes_local = self.get_indexes_local_2dim
             self._func_crop_images = CropImage._compute2d
             self._func_setpatch_images = SetPatchInImage._compute2d
             self._func_setpatch_images_byadding = SetPatchInImage._compute2d_byadding
-        elif self._ndims==3:
+        elif self._ndims == 3:
             self._func_get_indexes_local = self.get_indexes_local_3dim
             self._func_crop_images = CropImage._compute3d
             self._func_setpatch_images = SetPatchInImage._compute3d
@@ -52,7 +52,8 @@ class SlidingWindowImages(ImageGenerator):
                           prop_overlap_segment: float,
                           size_total_segment: int
                           ) -> int:
-        return max(int(np.ceil((size_total_segment - prop_overlap_segment * size_segment) / (1 - prop_overlap_segment) / size_segment)), 0)
+        return max(int(np.ceil((size_total_segment - prop_overlap_segment * size_segment)
+                               / (1 - prop_overlap_segment) / size_segment)), 0)
 
     @staticmethod
     def get_limits_image_1d(index: int,
@@ -96,15 +97,15 @@ class SlidingWindowImages(ImageGenerator):
 
     def _compute_gendata(self, **kwargs) -> None:
         index = kwargs['index']
-        self._crop_window_bounding_box = self._get_crop_window_box_image(index)
+        self._crop_boundbox = self._get_crop_boundbox_image(index)
         self._is_compute_gendata = False
 
     def _initialize_gendata(self) -> None:
         self._is_compute_gendata = True
-        self._crop_window_bounding_box = None
+        self._crop_boundbox = None
 
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:
-        return self._func_crop_images(in_image, self._crop_window_bounding_box)
+        return self._func_crop_images(in_image, self._crop_boundbox)
 
     def _get_num_images_dirs(self) -> Tuple[int, ...]:
         num_images_dirs = []
@@ -116,52 +117,49 @@ class SlidingWindowImages(ImageGenerator):
 
         return tuple(num_images_dirs)
 
-    def _get_crop_window_box_image(self, index: int) -> BoundBoxNDType:
+    def _get_crop_boundbox_image(self, index: int) -> BoundBoxNDType:
         indexes_local = self._func_get_indexes_local(index, self._num_images_dirs)
-        crop_bounding_box = []
+        crop_boundbox = []
         for i in range(self._ndims):
-            (limit_left, limit_right) = self.get_limits_image_1d(indexes_local[i],
-                                                                 self._size_image[i],
+            (limit_left, limit_right) = self.get_limits_image_1d(indexes_local[i], self._size_image[i],
                                                                  self._prop_overlap_images[i],
                                                                  self._size_volume_image[i])
-            crop_bounding_box.append((limit_left, limit_right))
+            crop_boundbox.append((limit_left, limit_right))
 
-        return tuple(crop_bounding_box)
+        return tuple(crop_boundbox)
 
     def get_cropped_image(self, in_image: np.ndarray, index: int) -> np.ndarray:
-        crop_bounding_box = self._get_crop_window_box_image(index)
-        return self._func_crop_images(in_image, crop_bounding_box)
+        crop_boundbox = self._get_crop_boundbox_image(index)
+        return self._func_crop_images(in_image, crop_boundbox)
 
     def set_assign_image_patch(self, in_image: np.ndarray, out_volume_image: np.ndarray, index: int) -> np.ndarray:
-        crop_bounding_box = self._get_crop_window_box_image(index)
-        self._func_setpatch_images(in_image, out_volume_image, crop_bounding_box)
+        crop_boundbox = self._get_crop_boundbox_image(index)
+        self._func_setpatch_images(in_image, out_volume_image, crop_boundbox)
 
     def set_add_image_patch(self, in_image: np.ndarray, out_volume_image: np.ndarray, index: int) -> np.ndarray:
-        crop_bounding_box = self._get_crop_window_box_image(index)
-        self._func_setpatch_images_byadding(in_image, out_volume_image, crop_bounding_box)
+        crop_boundbox = self._get_crop_boundbox_image(index)
+        self._func_setpatch_images_byadding(in_image, out_volume_image, crop_boundbox)
 
     def get_limits_sliding_window_image(self) -> List[List[Tuple[int, int]]]:
         limits_window_image = []
         for i in range(self._ndims):
-            limits_image_1dir = [self.get_limits_image_1d(index,
-                                                          self._size_image[i],
-                                                          self._prop_overlap_images[i],
-                                                          self._size_volume_image[i])
-                                 for index in range(self._num_images_dirs[i])]
+            limits_image_1dir = \
+                [self.get_limits_image_1d(index, self._size_image[i],
+                                          self._prop_overlap_images[i],
+                                          self._size_volume_image[i]) for index in range(self._num_images_dirs[i])]
             limits_window_image.append(limits_image_1dir)
 
         return limits_window_image
 
     def get_text_description(self) -> str:
-        message  = 'Sliding-window generation of images:\n'
-        message += 'size image: \'%s\', prop. overlap: \'%s\', size volume image: \'%s\'...\n' % (str(self._size_image),
-                                                                                                  str(self._prop_overlap_images),
-                                                                                                  str(self._size_volume_image))
-        message += 'num images total: \'%s\', and num images in each direction: \'%s\'...\n' % (self._num_images,
-                                                                                                str(self._num_images_dirs))
+        message = 'Sliding-window generation of images:\n'
+        message += 'size image: \'%s\', prop. overlap: \'%s\', size volume image: \'%s\'...\n' \
+                   % (str(self._size_image), str(self._prop_overlap_images), str(self._size_volume_image))
+        message += 'num images total: \'%s\', and num images in each direction: \'%s\'...\n' \
+                   % (self._num_images, str(self._num_images_dirs))
         limits_window_image = self.get_limits_sliding_window_image()
         for i in range(self._ndims):
-            message += 'limits images in dir \'%s\': \'%s\'...\n' %(i, str(limits_window_image[i]))
+            message += 'limits images in dir \'%s\': \'%s\'...\n' % (i, str(limits_window_image[i]))
 
         return message
 
