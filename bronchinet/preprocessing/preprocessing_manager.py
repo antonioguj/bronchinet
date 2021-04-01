@@ -1,15 +1,18 @@
 
 from typing import Tuple
 
-from common.constant import TRANS_ROTATION_XY_RANGE, TRANS_ROTATION_XZ_RANGE, TRANS_ROTATION_YZ_RANGE, TRANS_HEIGHT_SHIFT_RANGE, TRANS_WIDTH_SHIFT_RANGE, \
-                            TRANS_DEPTH_SHIFT_RANGE, TRANS_HORIZONTAL_FLIP, TRANS_VERTICAL_FLIP, TRANS_AXIALDIR_FLIP,  TRANS_ZOOM_RANGE, TRANS_FILL_MODE_TRANSFORM, \
+from common.constant import TRANS_ROTATION_XY_RANGE, TRANS_ROTATION_XZ_RANGE, TRANS_ROTATION_YZ_RANGE, \
+                            TRANS_HEIGHT_SHIFT_RANGE, TRANS_WIDTH_SHIFT_RANGE, \
+                            TRANS_DEPTH_SHIFT_RANGE, TRANS_HORIZONTAL_FLIP, TRANS_VERTICAL_FLIP, \
+                            TRANS_AXIALDIR_FLIP,  TRANS_ZOOM_RANGE, TRANS_FILL_MODE_TRANSFORM, \
                             TYPE_TRANSFORM_ELASTICDEFORM_IMAGES
 from common.exceptionmanager import catch_error_exception
 from preprocessing.imagegenerator import ImageGenerator, NullGenerator, CombinedImagesGenerator
 from preprocessing.randomwindowimages import RandomWindowImages
 from preprocessing.slidingwindowimages import SlidingWindowImages
 from preprocessing.transformrigidimages import TransformRigidImages2D, TransformRigidImages3D
-from preprocessing.elasticdeformimages import ElasticDeformGridwiseImages, ElasticDeformPixelwiseImages, ElasticDeformGridwiseImagesGijs
+from preprocessing.elasticdeformimages import ElasticDeformGridwiseImages, ElasticDeformPixelwiseImages, \
+                                              ElasticDeformGridwiseImagesGijs
 
 
 def get_images_generator(size_images: Tuple[int, ...],
@@ -37,11 +40,10 @@ def get_images_generator(size_images: Tuple[int, ...],
                                                   size_volume_image)
         list_images_generators.append(new_images_generator)
 
-
     if use_transform_rigid_images:
         # generator of images by random rigid transformations of input images...
         ndims = len(size_images)
-        if ndims==2:
+        if ndims == 2:
             new_images_generator = TransformRigidImages2D(size_images,
                                                           rotation_range=TRANS_ROTATION_XY_RANGE,
                                                           height_shift_range=TRANS_HEIGHT_SHIFT_RANGE,
@@ -51,11 +53,11 @@ def get_images_generator(size_images: Tuple[int, ...],
                                                           zoom_range=TRANS_ZOOM_RANGE,
                                                           fill_mode=TRANS_FILL_MODE_TRANSFORM)
             list_images_generators.append(new_images_generator)
-        elif ndims==3:
+        elif ndims == 3:
             new_images_generator = TransformRigidImages3D(size_images,
-                                                          rotation_XY_range=TRANS_ROTATION_XY_RANGE,
-                                                          rotation_XZ_range=TRANS_ROTATION_XZ_RANGE,
-                                                          rotation_YZ_range=TRANS_ROTATION_YZ_RANGE,
+                                                          rotation_xy_range=TRANS_ROTATION_XY_RANGE,
+                                                          rotation_xz_range=TRANS_ROTATION_XZ_RANGE,
+                                                          rotation_yz_range=TRANS_ROTATION_YZ_RANGE,
                                                           height_shift_range=TRANS_HEIGHT_SHIFT_RANGE,
                                                           width_shift_range=TRANS_WIDTH_SHIFT_RANGE,
                                                           depth_shift_range=TRANS_DEPTH_SHIFT_RANGE,
@@ -89,13 +91,13 @@ def get_images_generator(size_images: Tuple[int, ...],
             message = 'Wrong value for type of Elastic Deformations: %s' % (TYPE_TRANSFORM_ELASTICDEFORM_IMAGES)
             catch_error_exception(message)
 
-
     num_created_images_generators = len(list_images_generators)
 
     if num_created_images_generators == 0:
         return NullGenerator()
     elif num_created_images_generators == 1:
         return list_images_generators[0]
-    else: #num_created_images_generators > 1:
+    else:
+        # num_created_images_generators > 1:
         # combination of single image generators
         return CombinedImagesGenerator(list_images_generators)

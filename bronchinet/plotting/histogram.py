@@ -23,7 +23,7 @@ class Histogram(object):
                        in_image: np.ndarray,
                        num_bins: int = 20,
                        density_range: bool = False,
-                       is_save_outfiles= False,
+                       is_save_outfiles: bool = False,
                        outfilename: str = 'image_test.png'
                        ) -> None:
         max_value = np.max(in_image)
@@ -50,7 +50,7 @@ class Histogram(object):
         # colors = [cmap(float(i)/(num_images-1)) for i in range(num_images)]
         colors = ['blue', 'red', 'green', 'yellow', 'orange']
 
-        max_value =-1.0e+06
+        max_value = -1.0e+06
         min_value = 1.0e+06
         for in_image in in_list_images:
             max_value = max(np.max(in_image), max_value)
@@ -60,10 +60,9 @@ class Histogram(object):
 
         for i, in_image in enumerate(in_list_images):
             plt.hist(in_image.flatten(), bins=bins, alpha=0.5, color=colors[i],
-                     label='image%s'%(i), log=True, density=density_range)
+                     label='image%s' % (i), log=True, density=density_range)
 
         plt.legend(loc='upper right')
-
         if is_save_outfiles:
             plt.savefig(outfilename)
             plt.close()

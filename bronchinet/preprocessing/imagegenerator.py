@@ -1,5 +1,5 @@
 
-from typing import Tuple, List, Any
+from typing import Tuple, List
 import numpy as np
 
 from common.functionutil import ImagesUtil
@@ -21,7 +21,7 @@ class ImageGenerator(object):
     def get_num_images(self) -> int:
         return self._num_images
 
-    #def update_image_data(self, **kwargs):
+    # def update_image_data(self, **kwargs):
     def update_image_data(self, in_shape_image: Tuple[int, ...]) -> None:
         raise NotImplementedError
 
