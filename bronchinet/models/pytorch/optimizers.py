@@ -14,26 +14,31 @@ LIST_AVAIL_OPTIMIZERS = ['SGD',
                          ]
 
 
-def SGD(learn_rate: float, **kwargs):
+def get_sgd(learn_rate: float, **kwargs):
     model_params = kwargs['model_params']
     return SGD_torch(model_params, lr=learn_rate)
 
-def SGD_mom(learn_rate: float, momentum: float = 0.9, **kwargs):
+
+def get_sgd_mom(learn_rate: float, momentum: float = 0.9, **kwargs):
     model_params = kwargs['model_params']
     return SGD_torch(model_params, lr=learn_rate, momentum=momentum)
 
-def Adagrad(learn_rate: float, **kwargs):
+
+def get_adagrad(learn_rate: float, **kwargs):
     model_params = kwargs['model_params']
     return Adagrad_torch(model_params, lr=learn_rate)
 
-def RMSprop(learn_rate: float, **kwargs):
+
+def get_rmsprop(learn_rate: float, **kwargs):
     model_params = kwargs['model_params']
     return RMSprop_torch(model_params, lr=learn_rate)
 
-def Adadelta(learn_rate: float, **kwargs):
+
+def get_adadelta(learn_rate: float, **kwargs):
     model_params = kwargs['model_params']
     return Adadelta_torch(model_params, lr=learn_rate)
 
-def Adam(learn_rate: float, **kwargs):
+
+def get_adam(learn_rate: float, **kwargs):
     model_params = kwargs['model_params']
     return Adam_torch(model_params, lr=learn_rate)

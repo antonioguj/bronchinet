@@ -46,8 +46,9 @@ class VisualModelParams(VisualModelParamsBase):
             index_last_featmap = index_first_featmap + num_featmaps
 
             # define function to retrieve the feature maps for "index_layer"
-            get_feat_maps_layer_func = K.function([self.model.input],
-                                                  [model_layer_class.output[..., index_first_featmap:index_last_featmap]])
+            get_feat_maps_layer_func = K.function(
+                [self.model.input],
+                [model_layer_class.output[..., index_first_featmap:index_last_featmap]])
         else:
             # define function to retrieve the feature maps for "index_layer"
             get_feat_maps_layer_func = K.function([self._network.input],

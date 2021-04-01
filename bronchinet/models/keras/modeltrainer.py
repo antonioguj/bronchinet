@@ -5,12 +5,12 @@ import numpy as np
 from tensorflow.keras.models import load_model
 import tensorflow as tf
 
-from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_EPOCH_KERAS, NAME_SAVEDMODEL_LAST_KERAS, IS_SHUFFLE_TRAINDATA
-from common.exceptionmanager import catch_error_exception
+from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_EPOCH_KERAS, NAME_SAVEDMODEL_LAST_KERAS, \
+                            IS_SHUFFLE_TRAINDATA
 from common.functionutil import join_path_names
 from dataloaders.batchdatagenerator import BatchDataGenerator
 from models.modeltrainer import ModelTrainerBase
-from models.keras.callbacks import RecordLossHistory, EarlyStopping, ModelCheckpoint
+from models.keras.callbacks import RecordLossHistory, ModelCheckpoint
 
 
 class ModelTrainer(ModelTrainerBase):
@@ -38,9 +38,12 @@ class ModelTrainer(ModelTrainerBase):
     def create_callbacks(self, models_path: str, **kwargs) -> None:
         self._list_callbacks = []
 
-        is_restart_model = kwargs['is_restart_model'] if 'is_restart_model' in kwargs.keys() else False
-        is_validation_data = kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() else True
-        freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
+        is_restart_model = kwargs['is_restart_model'] \
+            if 'is_restart_model' in kwargs.keys() else False
+        is_validation_data = kwargs['is_validation_data'] \
+            if 'is_validation_data' in kwargs.keys() else True
+        freq_save_check_model = kwargs['freq_save_check_model'] \
+            if 'freq_save_check_model' in kwargs.keys() else 1
 
         losshistory_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
         new_callback = RecordLossHistory(losshistory_filename, self._list_metrics,
@@ -86,7 +89,7 @@ class ModelTrainer(ModelTrainerBase):
 
     def get_size_output_model(self) -> Tuple[int, ...]:
         return self._compiled_model.outputs[0].shape[1:]
-        #return self._network.get_size_output()
+        # return self._network.get_size_output()
 
     def get_size_output_image_model(self) -> Tuple[int, ...]:
         return self.get_size_output_model()[:-1]

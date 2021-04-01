@@ -1,9 +1,8 @@
 
 from typing import Tuple, List, Dict, Union, Any
 
-from torch.nn import Conv3d, ConvTranspose3d, MaxPool3d, Upsample, BatchNorm3d, Dropout3d, ReLU, Sigmoid, Softmax
+from torch.nn import Conv3d, MaxPool3d, Upsample, BatchNorm3d, Dropout3d, ReLU, Sigmoid
 import torch.nn as nn
-import torch.nn.functional as F
 import torch
 
 from common.exceptionmanager import catch_error_exception
@@ -29,8 +28,7 @@ class UNet(UNetBase, nn.Module):
         super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in, num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols)
         nn.Module.__init__(self)
-
-        self._size_input  = ImagesUtil.get_shape_channels_first(self._size_input)
+        self._size_input = ImagesUtil.get_shape_channels_first(self._size_input)
         self._size_output = ImagesUtil.get_shape_channels_first(self._size_output)
 
     def preprocess(self, *args, **kwargs) -> None:
@@ -41,23 +39,23 @@ class UNet(UNetBase, nn.Module):
 
     def _build_list_info_crop_where_merge(self) -> None:
         indexes_output_where_merge = [i for i, el in enumerate(self._list_opers_names_layers_all) if el == 'upsample']
-        self._list_sizes_crop_where_merge = [self._list_sizes_output_all_layers[i] for i in indexes_output_where_merge][::-1]
+        self._list_sizes_crop_where_merge = [self._list_sizes_output_all_layers[i]
+                                             for i in indexes_output_where_merge][::-1]
 
-    def _crop_image_2D(self, input: torch.FloatTensor, size_crop) -> torch.FloatTensor:
+    def _crop_image_2d(self, input: torch.FloatTensor, size_crop) -> torch.FloatTensor:
         size_input = input.shape[-2:]
-        limits_output = self._get_limits_output_crop(size_input, size_crop)
-        return input[:,:, limits_output[0][0]:limits_output[0][1],
-                          limits_output[1][0]:limits_output[1][1]]
+        out_limit = self._get_limits_output_crop(size_input, size_crop)
+        return input[:, :,  # dims for input and output features
+                     out_limit[0][0]:out_limit[0][1], out_limit[1][0]:out_limit[1][1]]
 
-    def _crop_image_3D(self, input: torch.FloatTensor, size_crop) -> torch.FloatTensor:
+    def _crop_image_3d(self, input: torch.FloatTensor, size_crop) -> torch.FloatTensor:
         size_input = input.shape[-3:]
-        limits_output = self._get_limits_output_crop(size_input, size_crop)
-        return input[:,:, limits_output[0][0]:limits_output[0][1],
-                          limits_output[1][0]:limits_output[1][1],
-                          limits_output[2][0]:limits_output[2][1]]
+        out_limit = self._get_limits_output_crop(size_input, size_crop)
+        return input[:, :,  # dims for input and output features
+                     out_limit[0][0]:out_limit[0][1], out_limit[1][0]:out_limit[1][1], out_limit[2][0]:out_limit[2][1]]
 
 
-class UNet3D_Original(UNet):
+class UNet3DOriginal(UNet):
 
     def __init__(self,
                  size_image_in: Tuple[int, int, int],
@@ -66,8 +64,8 @@ class UNet3D_Original(UNet):
                  num_classes_out: int = 1
                  ) -> None:
         num_levels = 5
-        super(UNet3D_Original, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in, num_classes_out,
-                                              is_use_valid_convols=False)
+        super(UNet3DOriginal, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in,
+                                             num_classes_out, is_use_valid_convols=False)
         self._build_model()
 
     def get_network_input_args(self) -> Dict[str, Any]:
@@ -79,102 +77,102 @@ class UNet3D_Original(UNet):
     def _build_model(self) -> None:
 
         num_featmaps_lev1 = self._num_featmaps_in
-        self._convolution_down_lev1_1 = Conv3d(self._num_channels_in, num_featmaps_lev1, kernel_size=3, padding=1)
-        self._convolution_down_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=1)
+        self._convols_down_lev1_1 = Conv3d(self._num_channels_in, num_featmaps_lev1, kernel_size=3, padding=1)
+        self._convols_down_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=1)
         self._pooling_down_lev1 = MaxPool3d(kernel_size=2, padding=0)
 
         num_featmaps_lev2 = 2 * num_featmaps_lev1
-        self._convolution_down_lev2_1 = Conv3d(num_featmaps_lev1, num_featmaps_lev2, kernel_size=3, padding=1)
-        self._convolution_down_lev2_2 = Conv3d(num_featmaps_lev2, num_featmaps_lev2, kernel_size=3, padding=1)
+        self._convols_down_lev2_1 = Conv3d(num_featmaps_lev1, num_featmaps_lev2, kernel_size=3, padding=1)
+        self._convols_down_lev2_2 = Conv3d(num_featmaps_lev2, num_featmaps_lev2, kernel_size=3, padding=1)
         self._pooling_down_lev2 = MaxPool3d(kernel_size=2, padding=0)
 
         num_featmaps_lev3 = 2 * num_featmaps_lev2
-        self._convolution_down_lev3_1 = Conv3d(num_featmaps_lev2, num_featmaps_lev3, kernel_size=3, padding=1)
-        self._convolution_down_lev3_2 = Conv3d(num_featmaps_lev3, num_featmaps_lev3, kernel_size=3, padding=1)
+        self._convols_down_lev3_1 = Conv3d(num_featmaps_lev2, num_featmaps_lev3, kernel_size=3, padding=1)
+        self._convols_down_lev3_2 = Conv3d(num_featmaps_lev3, num_featmaps_lev3, kernel_size=3, padding=1)
         self._pooling_down_lev3 = MaxPool3d(kernel_size=2, padding=0)
 
         num_featmaps_lev4 = 2 * num_featmaps_lev3
-        self._convolution_down_lev4_1 = Conv3d(num_featmaps_lev3, num_featmaps_lev4, kernel_size=3, padding=1)
-        self._convolution_down_lev4_2 = Conv3d(num_featmaps_lev4, num_featmaps_lev4, kernel_size=3, padding=1)
+        self._convols_down_lev4_1 = Conv3d(num_featmaps_lev3, num_featmaps_lev4, kernel_size=3, padding=1)
+        self._convols_down_lev4_2 = Conv3d(num_featmaps_lev4, num_featmaps_lev4, kernel_size=3, padding=1)
         self._pooling_down_lev4 = MaxPool3d(kernel_size=2, padding=0)
 
         num_featmaps_lev5 = 2 * num_featmaps_lev4
-        self._convolution_down_lev5_1 = Conv3d(num_featmaps_lev4, num_featmaps_lev5, kernel_size=3, padding=1)
-        self._convolution_down_lev5_2 = Conv3d(num_featmaps_lev5, num_featmaps_lev5, kernel_size=3, padding=1)
+        self._convols_down_lev5_1 = Conv3d(num_featmaps_lev4, num_featmaps_lev5, kernel_size=3, padding=1)
+        self._convols_down_lev5_2 = Conv3d(num_featmaps_lev5, num_featmaps_lev5, kernel_size=3, padding=1)
         self._upsample_up_lev5 = Upsample(scale_factor=2, mode='nearest')
 
-        num_featmaps_lev4pl5 = num_featmaps_lev4 + num_featmaps_lev5
-        self._convolution_up_lev4_1 = Conv3d(num_featmaps_lev4pl5, num_featmaps_lev4, kernel_size=3, padding=1)
-        self._convolution_up_lev4_2 = Conv3d(num_featmaps_lev4, num_featmaps_lev4, kernel_size=3, padding=1)
+        num_feats_lev4pl5 = num_featmaps_lev4 + num_featmaps_lev5
+        self._convols_up_lev4_1 = Conv3d(num_feats_lev4pl5, num_featmaps_lev4, kernel_size=3, padding=1)
+        self._convols_up_lev4_2 = Conv3d(num_featmaps_lev4, num_featmaps_lev4, kernel_size=3, padding=1)
         self._upsample_up_lev4 = Upsample(scale_factor=2, mode='nearest')
 
-        num_featmaps_lev3pl4 = num_featmaps_lev3 + num_featmaps_lev4
-        self._convolution_up_lev3_1 = Conv3d(num_featmaps_lev3pl4, num_featmaps_lev3, kernel_size=3, padding=1)
-        self._convolution_up_lev3_2 = Conv3d(num_featmaps_lev3, num_featmaps_lev3, kernel_size=3, padding=1)
+        num_feats_lev3pl4 = num_featmaps_lev3 + num_featmaps_lev4
+        self._convols_up_lev3_1 = Conv3d(num_feats_lev3pl4, num_featmaps_lev3, kernel_size=3, padding=1)
+        self._convols_up_lev3_2 = Conv3d(num_featmaps_lev3, num_featmaps_lev3, kernel_size=3, padding=1)
         self._upsample_up_lev3 = Upsample(scale_factor=2, mode='nearest')
 
-        num_featmaps_lev2pl3 = num_featmaps_lev2 + num_featmaps_lev3
-        self._convolution_up_lev2_1 = Conv3d(num_featmaps_lev2pl3, num_featmaps_lev2, kernel_size=3, padding=1)
-        self._convolution_up_lev2_2 = Conv3d(num_featmaps_lev2, num_featmaps_lev2, kernel_size=3, padding=1)
+        num_feats_lev2pl3 = num_featmaps_lev2 + num_featmaps_lev3
+        self._convols_up_lev2_1 = Conv3d(num_feats_lev2pl3, num_featmaps_lev2, kernel_size=3, padding=1)
+        self._convols_up_lev2_2 = Conv3d(num_featmaps_lev2, num_featmaps_lev2, kernel_size=3, padding=1)
         self._upsample_up_lev2 = Upsample(scale_factor=2, mode='nearest')
 
-        num_featmaps_lev1pl2 = num_featmaps_lev1 + num_featmaps_lev2
-        self._convolution_up_lev1_1 = Conv3d(num_featmaps_lev1pl2, num_featmaps_lev1, kernel_size=3, padding=1)
-        self._convolution_up_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=1)
+        num_feats_lev1pl2 = num_featmaps_lev1 + num_featmaps_lev2
+        self._convols_up_lev1_1 = Conv3d(num_feats_lev1pl2, num_featmaps_lev1, kernel_size=3, padding=1)
+        self._convols_up_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=1)
 
         self._classification_last = Conv3d(num_featmaps_lev1, self._num_classes_out, kernel_size=1, padding=0)
         self._activation_last = Sigmoid()
 
     def forward(self, input: torch.FloatTensor) -> torch.FloatTensor:
 
-        hidden_next = self._convolution_down_lev1_1(input)
-        hidden_next = self._convolution_down_lev1_2(hidden_next)
+        hidden_next = self._convols_down_lev1_1(input)
+        hidden_next = self._convols_down_lev1_2(hidden_next)
         skipconn_lev1 = hidden_next
         hidden_next = self._pooling_down_lev1(hidden_next)
 
-        hidden_next = self._convolution_down_lev2_1(hidden_next)
-        hidden_next = self._convolution_down_lev2_2(hidden_next)
+        hidden_next = self._convols_down_lev2_1(hidden_next)
+        hidden_next = self._convols_down_lev2_2(hidden_next)
         skipconn_lev2 = hidden_next
         hidden_next = self._pooling_down_lev2(hidden_next)
 
-        hidden_next = self._convolution_down_lev3_1(hidden_next)
-        hidden_next = self._convolution_down_lev3_2(hidden_next)
+        hidden_next = self._convols_down_lev3_1(hidden_next)
+        hidden_next = self._convols_down_lev3_2(hidden_next)
         skipconn_lev3 = hidden_next
         hidden_next = self._pooling_down_lev3(hidden_next)
 
-        hidden_next = self._convolution_down_lev4_1(hidden_next)
-        hidden_next = self._convolution_down_lev4_2(hidden_next)
+        hidden_next = self._convols_down_lev4_1(hidden_next)
+        hidden_next = self._convols_down_lev4_2(hidden_next)
         skipconn_lev4 = hidden_next
         hidden_next = self._pooling_down_lev4(hidden_next)
 
-        hidden_next = self._convolution_down_lev5_1(hidden_next)
-        hidden_next = self._convolution_down_lev5_2(hidden_next)
+        hidden_next = self._convols_down_lev5_1(hidden_next)
+        hidden_next = self._convols_down_lev5_2(hidden_next)
         hidden_next = self._upsample_up_lev5(hidden_next)
 
         hidden_next = torch.cat([hidden_next, skipconn_lev4], dim=1)
-        hidden_next = self._convolution_up_lev4_1(hidden_next)
-        hidden_next = self._convolution_up_lev4_2(hidden_next)
+        hidden_next = self._convols_up_lev4_1(hidden_next)
+        hidden_next = self._convols_up_lev4_2(hidden_next)
         hidden_next = self._upsample_up_lev4(hidden_next)
 
         hidden_next = torch.cat([hidden_next, skipconn_lev3], dim=1)
-        hidden_next = self._convolution_up_lev3_1(hidden_next)
-        hidden_next = self._convolution_up_lev3_2(hidden_next)
+        hidden_next = self._convols_up_lev3_1(hidden_next)
+        hidden_next = self._convols_up_lev3_2(hidden_next)
         hidden_next = self._upsample_up_lev3(hidden_next)
 
         hidden_next = torch.cat([hidden_next, skipconn_lev2], dim=1)
-        hidden_next = self._convolution_up_lev2_1(hidden_next)
-        hidden_next = self._convolution_up_lev2_2(hidden_next)
+        hidden_next = self._convols_up_lev2_1(hidden_next)
+        hidden_next = self._convols_up_lev2_2(hidden_next)
         hidden_next = self._upsample_up_lev2(hidden_next)
 
         hidden_next = torch.cat([hidden_next, skipconn_lev1], dim=1)
-        hidden_next = self._convolution_up_lev1_1(hidden_next)
-        hidden_next = self._convolution_up_lev1_2(hidden_next)
+        hidden_next = self._convols_up_lev1_1(hidden_next)
+        hidden_next = self._convols_up_lev1_2(hidden_next)
 
         output = self._activation_last(self._classification_last(hidden_next))
         return output
 
 
-class UNet3D_General(UNet):
+class UNet3DGeneral(UNet):
     _num_levels_default = 5
     _num_levels_non_padded = 3
     _num_featmaps_in_default = 16
@@ -201,9 +199,12 @@ class UNet3D_General(UNet):
                  num_featmaps_levels: List[int] = None,
                  num_convols_levels_down: Union[int, Tuple[int, ...]] = _num_convols_levels_down_default,
                  num_convols_levels_up: Union[int, Tuple[int, ...]] = _num_convols_levels_up_default,
-                 sizes_kernel_convol_levels_down: Union[Tuple[int, int, int], List[Tuple[int, int, int]]] = _sizes_kernel_convol_levels_down_default,
-                 sizes_kernel_convol_levels_up: Union[Tuple[int, int, int], List[Tuple[int, int, int]]] = _sizes_kernel_convol_levels_up_default,
-                 sizes_pooling_levels: Union[Tuple[int, int, int], List[Tuple[int, int, int]]] = _sizes_pooling_levels_default,
+                 sizes_kernel_convol_levels_down: Union[Tuple[int, int, int], List[Tuple[int, int, int]]] =
+                 _sizes_kernel_convol_levels_down_default,
+                 sizes_kernel_convol_levels_up: Union[Tuple[int, int, int], List[Tuple[int, int, int]]] =
+                 _sizes_kernel_convol_levels_up_default,
+                 sizes_pooling_levels: Union[Tuple[int, int, int], List[Tuple[int, int, int]]] =
+                 _sizes_pooling_levels_default,
                  is_disable_convol_pooling_axialdim_lastlevel: bool = False,
                  is_use_dropout: bool = False,
                  dropout_rate: float = _dropout_rate_default,
@@ -213,9 +214,8 @@ class UNet3D_General(UNet):
                  is_use_batchnormalize_levels_down: Union[bool, List[bool]] = True,
                  is_use_batchnormalize_levels_up: Union[bool, List[bool]] = True
                  ) -> None:
-        super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in, num_classes_out,
-                                   is_use_valid_convols=is_use_valid_convols)
-
+        super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in,
+                                   num_classes_out, is_use_valid_convols=is_use_valid_convols)
         self._type_activate_hidden = type_activate_hidden
         self._type_activate_output = type_activate_output
 
@@ -225,7 +225,7 @@ class UNet3D_General(UNet):
             # default: double featmaps after every pooling
             self._num_featmaps_levels = [self._num_featmaps_in]
             for i in range(1, self._num_levels):
-                self._num_featmaps_levels[i] = 2 * self._num_featmaps_levels[i-1]
+                self._num_featmaps_levels[i] = 2 * self._num_featmaps_levels[i - 1]
 
         if type(num_convols_levels_down) == int:
             self._num_convols_levels_down = [num_convols_levels_down] * self._num_levels
@@ -253,7 +253,8 @@ class UNet3D_General(UNet):
 
         if is_disable_convol_pooling_axialdim_lastlevel:
             size_kernel_convol_lastlevel = self._sizes_kernel_convol_levels_down[-1]
-            self._sizes_kernel_convol_levels_down[-1] = (1, size_kernel_convol_lastlevel[1], size_kernel_convol_lastlevel[2])
+            self._sizes_kernel_convol_levels_down[-1] = (1, size_kernel_convol_lastlevel[1],
+                                                         size_kernel_convol_lastlevel[2])
             size_pooling_lastlevel = self._sizes_pooling_levels[-1]
             self._sizes_pooling_levels[-1] = (1, size_pooling_lastlevel[1], size_pooling_lastlevel[2])
 
@@ -292,10 +293,10 @@ class UNet3D_General(UNet):
                 'is_use_valid_convols': self._is_use_valid_convols}
 
     def _build_model(self) -> None:
-        padding_value_convols = 0 if self._is_use_valid_convols else 1
+        value_padding_convols = 0 if self._is_use_valid_convols else 1
 
-        self._convolutions_levels_down = [[] for i in range(self._num_levels)]
-        self._convolutions_levels_up = [[] for i in range(self._num_levels - 1)]
+        self._convols_levels_down = [[] for i in range(self._num_levels)]
+        self._convols_levels_up = [[] for i in range(self._num_levels - 1)]
         self._poolings_levels_down = []
         self._upsamples_levels_up = []
         self._batchnormalize_levels_down = [[] for i in range(self._num_levels)]
@@ -303,17 +304,17 @@ class UNet3D_General(UNet):
 
         # ENCODING LAYERS
         for i_lev in range(self._num_levels):
-            num_featmaps_in_level = self._num_channels_in if i_lev == 0 else self._num_featmaps_levels[i_lev-1]
+            num_featmaps_in_level = self._num_channels_in if i_lev == 0 else self._num_featmaps_levels[i_lev - 1]
             num_featmaps_out_level = self._num_featmaps_levels[i_lev]
 
             for i_con in range(self._num_convols_levels_down[i_lev]):
                 num_featmaps_in_convol = num_featmaps_in_level if i_con else num_featmaps_in_level
                 num_featmaps_out_convol = num_featmaps_out_level
 
-                new_convolution = Conv3d(num_featmaps_in_convol, num_featmaps_out_convol,
-                                         kernel_size=self._sizes_kernel_convol_levels_down[i_lev],
-                                         padding=padding_value_convols)
-                self._convolutions_levels_down[i_lev].append(new_convolution)
+                new_convols = Conv3d(num_featmaps_in_convol, num_featmaps_out_convol,
+                                     kernel_size=self._sizes_kernel_convol_levels_down[i_lev],
+                                     padding=value_padding_convols)
+                self._convols_levels_down[i_lev].append(new_convols)
 
                 if self._is_use_batchnormalize and self._is_use_batchnormalize_levels_down[i_lev]:
                     new_batchnormalize = BatchNorm3d(num_featmaps_out_convol)
@@ -325,7 +326,7 @@ class UNet3D_General(UNet):
 
         # DECODING LAYERS
         for i_lev in range(self._num_levels-2, -1, -1):
-            num_featmaps_in_level = self._num_featmaps_levels[i_lev-1] + self._num_featmaps_levels[i_lev]
+            num_featmaps_in_level = self._num_featmaps_levels[i_lev - 1] + self._num_featmaps_levels[i_lev]
             num_featmaps_out_level = self._num_featmaps_levels[i_lev]
 
             new_upsample = Upsample(scale_factor=self._sizes_upsample_levels[i_lev], mode='nearest')
@@ -335,16 +336,16 @@ class UNet3D_General(UNet):
                 num_featmaps_in_convol = num_featmaps_in_level if i_con else num_featmaps_in_level
                 num_featmaps_out_convol = num_featmaps_out_level
 
-                new_convolution = Conv3d(num_featmaps_in_convol, num_featmaps_out_convol,
-                                         kernel_size=self._sizes_kernel_convol_levels_up[i_lev],
-                                         padding=padding_value_convols)
-                self._convolutions_levels_up[i_lev].append(new_convolution)
+                new_convols = Conv3d(num_featmaps_in_convol, num_featmaps_out_convol,
+                                     kernel_size=self._sizes_kernel_convol_levels_up[i_lev],
+                                     padding=value_padding_convols)
+                self._convols_levels_up[i_lev].append(new_convols)
 
                 if self._is_use_batchnormalize and self._is_use_batchnormalize_levels_up[i_lev]:
                     new_batchnormalize = BatchNorm3d(num_featmaps_out_convol)
                     self._batchnormalize_levels_up[i_lev].append(new_batchnormalize)
 
-        self._classification_last = Conv3d(self._num_featmaps_levels[0], self._num_classes_out, kernel_size=1, padding=0)
+        self._classification_last = Conv3d(self._num_featmaps_in, self._num_classes_out, kernel_size=1, padding=0)
 
         if self._is_use_dropout:
             self._dropout_all_levels = Dropout3d(self._dropout_rate, inplace=True)
@@ -376,7 +377,7 @@ class UNet3D_General(UNet):
         # ENCODING LAYERS
         for i_lev in range(self._num_levels):
             for i_con in range(self._num_convols_levels_down[i_lev]):
-                hidden_next = self._activation_hidden(self._convolutions_levels_down[i_lev][i_con](hidden_next))
+                hidden_next = self._activation_hidden(self._convols_levels_down[i_lev][i_con](hidden_next))
 
                 if self._is_use_batchnormalize and self._is_use_batchnormalize_levels_down[i_lev]:
                     hidden_next = self._batchnormalize_levels_down[i_lev][i_con](hidden_next)
@@ -394,11 +395,11 @@ class UNet3D_General(UNet):
 
             skipconn_thislev = list_skipconn_levels[i_lev]
             if self._is_use_valid_convols:
-                skipconn_thislev = self._crop_image_3D(skipconn_thislev, self._list_sizes_crop_where_merge[3])
+                skipconn_thislev = self._crop_image_3d(skipconn_thislev, self._list_sizes_crop_where_merge[3])
             hidden_next = torch.cat([hidden_next, skipconn_thislev], dim=1)
 
             for i_con in range(self._num_convols_levels_up[i_lev]):
-                hidden_next = self._activation_hidden(self._convolutions_levels_up[i_lev][i_con](hidden_next))
+                hidden_next = self._activation_hidden(self._convols_levels_up[i_lev][i_con](hidden_next))
 
                 if self._is_use_batchnormalize and self._is_use_batchnormalize_levels_up[i_lev]:
                     hidden_next = self._batchnormalize_levels_up[i_lev][i_con](hidden_next)
@@ -410,7 +411,7 @@ class UNet3D_General(UNet):
         return output
 
 
-class UNet3D_Plugin(UNet):
+class UNet3DPlugin(UNet):
     _num_levels_default = 5
     _num_levels_non_padded = 3
     _num_featmaps_in_default = 16
@@ -428,9 +429,8 @@ class UNet3D_Plugin(UNet):
                  num_classes_out: int = _num_classes_out_default,
                  is_use_valid_convols: bool = False
                  ) -> None:
-        super(UNet3D_Plugin, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in, num_classes_out,
-                                            is_use_valid_convols=is_use_valid_convols)
-
+        super(UNet3DPlugin, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in,
+                                           num_classes_out, is_use_valid_convols=is_use_valid_convols)
         self._type_activate_hidden = self._type_activate_hidden_default
         self._type_activate_output = self._type_activate_output_default
 
@@ -445,51 +445,51 @@ class UNet3D_Plugin(UNet):
                 'is_use_valid_convols': self._is_use_valid_convols}
 
     def _build_model(self) -> None:
-        padding_value = 0 if self._is_use_valid_convols else 1
+        val_padding = 0 if self._is_use_valid_convols else 1
 
         num_featmaps_lev1 = self._num_featmaps_in
-        self._convolution_down_lev1_1 = Conv3d(self._num_channels_in, num_featmaps_lev1, kernel_size=3, padding=padding_value)
-        self._convolution_down_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=padding_value)
+        self._convols_down_lev1_1 = Conv3d(self._num_channels_in, num_featmaps_lev1, kernel_size=3, padding=val_padding)
+        self._convols_down_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=val_padding)
         self._pooling_down_lev1 = MaxPool3d(kernel_size=2, padding=0)
 
         num_featmaps_lev2 = 2 * num_featmaps_lev1
-        self._convolution_down_lev2_1 = Conv3d(num_featmaps_lev1, num_featmaps_lev2, kernel_size=3, padding=padding_value)
-        self._convolution_down_lev2_2 = Conv3d(num_featmaps_lev2, num_featmaps_lev2, kernel_size=3, padding=padding_value)
+        self._convols_down_lev2_1 = Conv3d(num_featmaps_lev1, num_featmaps_lev2, kernel_size=3, padding=val_padding)
+        self._convols_down_lev2_2 = Conv3d(num_featmaps_lev2, num_featmaps_lev2, kernel_size=3, padding=val_padding)
         self._pooling_down_lev2 = MaxPool3d(kernel_size=2, padding=0)
 
         num_featmaps_lev3 = 2 * num_featmaps_lev2
-        self._convolution_down_lev3_1 = Conv3d(num_featmaps_lev2, num_featmaps_lev3, kernel_size=3, padding=padding_value)
-        self._convolution_down_lev3_2 = Conv3d(num_featmaps_lev3, num_featmaps_lev3, kernel_size=3, padding=padding_value)
+        self._convols_down_lev3_1 = Conv3d(num_featmaps_lev2, num_featmaps_lev3, kernel_size=3, padding=val_padding)
+        self._convols_down_lev3_2 = Conv3d(num_featmaps_lev3, num_featmaps_lev3, kernel_size=3, padding=val_padding)
         self._pooling_down_lev3 = MaxPool3d(kernel_size=2, padding=0)
 
         num_featmaps_lev4 = 2 * num_featmaps_lev3
-        self._convolution_down_lev4_1 = Conv3d(num_featmaps_lev3, num_featmaps_lev4, kernel_size=3, padding=1)
-        self._convolution_down_lev4_2 = Conv3d(num_featmaps_lev4, num_featmaps_lev4, kernel_size=3, padding=1)
+        self._convols_down_lev4_1 = Conv3d(num_featmaps_lev3, num_featmaps_lev4, kernel_size=3, padding=1)
+        self._convols_down_lev4_2 = Conv3d(num_featmaps_lev4, num_featmaps_lev4, kernel_size=3, padding=1)
         self._pooling_down_lev4 = MaxPool3d(kernel_size=2, padding=0)
 
         num_featmaps_lev5 = 2 * num_featmaps_lev4
-        self._convolution_down_lev5_1 = Conv3d(num_featmaps_lev4, num_featmaps_lev5, kernel_size=3, padding=1)
-        self._convolution_down_lev5_2 = Conv3d(num_featmaps_lev5, num_featmaps_lev5, kernel_size=3, padding=1)
+        self._convols_down_lev5_1 = Conv3d(num_featmaps_lev4, num_featmaps_lev5, kernel_size=3, padding=1)
+        self._convols_down_lev5_2 = Conv3d(num_featmaps_lev5, num_featmaps_lev5, kernel_size=3, padding=1)
         self._upsample_up_lev5 = Upsample(scale_factor=2, mode='nearest')
 
-        num_featmaps_lev4pl5 = num_featmaps_lev4 + num_featmaps_lev5
-        self._convolution_up_lev4_1 = Conv3d(num_featmaps_lev4pl5, num_featmaps_lev4, kernel_size=3, padding=1)
-        self._convolution_up_lev4_2 = Conv3d(num_featmaps_lev4, num_featmaps_lev4, kernel_size=3, padding=1)
+        num_feats_lev4pl5 = num_featmaps_lev4 + num_featmaps_lev5
+        self._convols_up_lev4_1 = Conv3d(num_feats_lev4pl5, num_featmaps_lev4, kernel_size=3, padding=1)
+        self._convols_up_lev4_2 = Conv3d(num_featmaps_lev4, num_featmaps_lev4, kernel_size=3, padding=1)
         self._upsample_up_lev4 = Upsample(scale_factor=2, mode='nearest')
 
-        num_featmaps_lev3pl4 = num_featmaps_lev3 + num_featmaps_lev4
-        self._convolution_up_lev3_1 = Conv3d(num_featmaps_lev3pl4, num_featmaps_lev3, kernel_size=3, padding=padding_value)
-        self._convolution_up_lev3_2 = Conv3d(num_featmaps_lev3, num_featmaps_lev3, kernel_size=3, padding=padding_value)
+        num_feats_lev3pl4 = num_featmaps_lev3 + num_featmaps_lev4
+        self._convols_up_lev3_1 = Conv3d(num_feats_lev3pl4, num_featmaps_lev3, kernel_size=3, padding=val_padding)
+        self._convols_up_lev3_2 = Conv3d(num_featmaps_lev3, num_featmaps_lev3, kernel_size=3, padding=val_padding)
         self._upsample_up_lev3 = Upsample(scale_factor=2, mode='nearest')
 
-        num_featmaps_lev2pl3 = num_featmaps_lev2 + num_featmaps_lev3
-        self._convolution_up_lev2_1 = Conv3d(num_featmaps_lev2pl3, num_featmaps_lev2, kernel_size=3, padding=padding_value)
-        self._convolution_up_lev2_2 = Conv3d(num_featmaps_lev2, num_featmaps_lev2, kernel_size=3, padding=padding_value)
+        num_feats_lev2pl3 = num_featmaps_lev2 + num_featmaps_lev3
+        self._convols_up_lev2_1 = Conv3d(num_feats_lev2pl3, num_featmaps_lev2, kernel_size=3, padding=val_padding)
+        self._convols_up_lev2_2 = Conv3d(num_featmaps_lev2, num_featmaps_lev2, kernel_size=3, padding=val_padding)
         self._upsample_up_lev2 = Upsample(scale_factor=2, mode='nearest')
 
-        num_featmaps_lay1pl2 = num_featmaps_lev1 + num_featmaps_lev2
-        self._convolution_up_lev1_1 = Conv3d(num_featmaps_lay1pl2, num_featmaps_lev1, kernel_size=3, padding=padding_value)
-        self._convolution_up_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=padding_value)
+        num_feats_lay1pl2 = num_featmaps_lev1 + num_featmaps_lev2
+        self._convols_up_lev1_1 = Conv3d(num_feats_lay1pl2, num_featmaps_lev1, kernel_size=3, padding=val_padding)
+        self._convols_up_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=val_padding)
 
         self._classification_last = Conv3d(num_featmaps_lev1, self._num_classes_out, kernel_size=1, padding=0)
 
@@ -510,61 +510,61 @@ class UNet3D_Plugin(UNet):
                 return input
             self._activation_last = func_activation_linear
         else:
-            message = 'Type activation output not existing: \'%s\' ' %(self._type_activate_output)
+            message = 'Type activation output not existing: \'%s\' ' % (self._type_activate_output)
             catch_error_exception(message)
 
     def forward(self, input: torch.FloatTensor) -> torch.FloatTensor:
 
-        hidden_next = self._activation_hidden(self._convolution_down_lev1_1(input))
-        hidden_next = self._activation_hidden(self._convolution_down_lev1_2(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_down_lev1_1(input))
+        hidden_next = self._activation_hidden(self._convols_down_lev1_2(hidden_next))
         skipconn_lev1 = hidden_next
         hidden_next = self._pooling_down_lev1(hidden_next)
 
-        hidden_next = self._activation_hidden(self._convolution_down_lev2_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_down_lev2_2(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_down_lev2_1(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_down_lev2_2(hidden_next))
         skipconn_lev2 = hidden_next
         hidden_next = self._pooling_down_lev2(hidden_next)
 
-        hidden_next = self._activation_hidden(self._convolution_down_lev3_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_down_lev3_2(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_down_lev3_1(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_down_lev3_2(hidden_next))
         skipconn_lev3 = hidden_next
         hidden_next = self._pooling_down_lev3(hidden_next)
 
-        hidden_next = self._activation_hidden(self._convolution_down_lev4_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_down_lev4_2(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_down_lev4_1(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_down_lev4_2(hidden_next))
         skipconn_lev4 = hidden_next
         hidden_next = self._pooling_down_lev4(hidden_next)
 
-        hidden_next = self._activation_hidden(self._convolution_down_lev5_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_down_lev5_2(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_down_lev5_1(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_down_lev5_2(hidden_next))
         hidden_next = self._upsample_up_lev5(hidden_next)
 
         if self._is_use_valid_convols:
-            skipconn_lev4 = self._crop_image_3D(skipconn_lev4, self._list_sizes_crop_where_merge[3])
+            skipconn_lev4 = self._crop_image_3d(skipconn_lev4, self._list_sizes_crop_where_merge[3])
         hidden_next = torch.cat([hidden_next, skipconn_lev4], dim=1)
-        hidden_next = self._activation_hidden(self._convolution_up_lev4_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_up_lev4_2(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_up_lev4_1(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_up_lev4_2(hidden_next))
         hidden_next = self._upsample_up_lev4(hidden_next)
 
         if self._is_use_valid_convols:
-            skipconn_lev3 = self._crop_image_3D(skipconn_lev3, self._list_sizes_crop_where_merge[2])
+            skipconn_lev3 = self._crop_image_3d(skipconn_lev3, self._list_sizes_crop_where_merge[2])
         hidden_next = torch.cat([hidden_next, skipconn_lev3], dim=1)
-        hidden_next = self._activation_hidden(self._convolution_up_lev3_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_up_lev3_2(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_up_lev3_1(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_up_lev3_2(hidden_next))
         hidden_next = self._upsample_up_lev3(hidden_next)
 
         if self._is_use_valid_convols:
-            skipconn_lev2 = self._crop_image_3D(skipconn_lev2, self._list_sizes_crop_where_merge[1])
+            skipconn_lev2 = self._crop_image_3d(skipconn_lev2, self._list_sizes_crop_where_merge[1])
         hidden_next = torch.cat([hidden_next, skipconn_lev2], dim=1)
-        hidden_next = self._activation_hidden(self._convolution_up_lev2_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_up_lev2_2(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_up_lev2_1(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_up_lev2_2(hidden_next))
         hidden_next = self._upsample_up_lev2(hidden_next)
 
         if self._is_use_valid_convols:
-            skipconn_lev1 = self._crop_image_3D(skipconn_lev1, self._list_sizes_crop_where_merge[0])
+            skipconn_lev1 = self._crop_image_3d(skipconn_lev1, self._list_sizes_crop_where_merge[0])
         hidden_next = torch.cat([hidden_next, skipconn_lev1], dim=1)
-        hidden_next = self._activation_hidden(self._convolution_up_lev1_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_up_lev1_2(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_up_lev1_1(hidden_next))
+        hidden_next = self._activation_hidden(self._convols_up_lev1_2(hidden_next))
 
         output = self._activation_last(self._classification_last(hidden_next))
         return output

@@ -49,7 +49,8 @@ class ModelTrainerBase(object):
                                     dropout_rate=dropout_rate,
                                     is_use_batchnormalize=is_use_batchnormalize)
 
-    def create_loss(self, type_loss: str, is_mask_to_region_interest: bool = False, weight_combined_loss: float = 1.0) -> None:
+    def create_loss(self, type_loss: str, is_mask_to_region_interest: bool = False,
+                    weight_combined_loss: float = 1.0) -> None:
         self._loss = get_metric_train(type_metric=type_loss,
                                       is_mask_exclude=is_mask_to_region_interest,
                                       weight_combined_loss=weight_combined_loss)

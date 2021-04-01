@@ -1,7 +1,6 @@
 
 from typing import Tuple, Callable
 
-from tensorflow.keras.losses import mean_squared_error, binary_crossentropy
 from tensorflow.keras import backend as K
 import tensorflow as tf
 
@@ -96,17 +95,19 @@ class CombineTwoMetrics(Metric):
         self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
     def compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return self._metrics_1.compute(target, input) + self._weight_metric2over1 * self._metrics_2.compute(target, input)
+        return self._metrics_1.compute(target, input) + \
+               self._weight_metric2over1 * self._metrics_2.compute(target, input)
 
     def lossfun(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return self._metrics_1.lossfun(target, input) + self._weight_metric2over1 * self._metrics_2.lossfun(target, input)
+        return self._metrics_1.lossfun(target, input) + \
+               self._weight_metric2over1 * self._metrics_2.lossfun(target, input)
 
 
 class MeanSquaredError(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredError, self).__init__(is_mask_exclude)
-        self._name_fun_out  = 'mean_squared'
+        self._name_fun_out = 'mean_squared'
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         return K.mean(K.square(input - target), axis=-1)
@@ -120,7 +121,7 @@ class MeanSquaredErrorLogarithmic(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredErrorLogarithmic, self).__init__(is_mask_exclude)
-        self._name_fun_out  = 'mean_squared_log'
+        self._name_fun_out = 'mean_squared_log'
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         return K.mean(K.square(K.log(K.clip(input, _EPS, None) + 1.0) -
@@ -140,14 +141,14 @@ class BinaryCrossEntropy(Metric):
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         return K.mean(K.binary_crossentropy(target, input), axis=-1)
-        #return K.mean(- target * K.log(input + _EPS)
-        #              - (1.0 - target) * K.log(1.0 - input + _EPS))
+        # return K.mean(- target * K.log(input + _EPS)
+        #               - (1.0 - target) * K.log(1.0 - input + _EPS))
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         mask = self._get_mask(target)
         return K.mean(K.binary_crossentropy(target, input) * mask, axis=-1)
-        #return K.mean((- target * K.log(input + _EPS)
-        #               - (1.0 - target) * K.log(1.0 - input + _EPS)) * mask)
+        # return K.mean((- target * K.log(input + _EPS)
+        #                - (1.0 - target) * K.log(1.0 - input + _EPS)) * mask)
 
 
 class WeightedBinaryCrossEntropy(Metric):
@@ -157,9 +158,12 @@ class WeightedBinaryCrossEntropy(Metric):
         self._name_fun_out = 'weight_bin_cross'
 
     def _get_weights(self, target: tf.Tensor) -> Tuple[float, float]:
-        num_class_1 = tf.count_nonzero(tf.where(K.equal(target, 1.0), K.ones_like(target), K.zeros_like(target)), dtype=tf.int32)
-        num_class_0 = tf.count_nonzero(tf.where(K.equal(target, 0.0), K.ones_like(target), K.zeros_like(target)), dtype=tf.int32)
-        return (1.0, K.cast(num_class_0, dtype=tf.float32) / (K.cast(num_class_1, dtype=tf.float32) + K.variable(_EPS)))
+        num_class_1 = tf.count_nonzero(tf.where(K.equal(target, 1.0), K.ones_like(target), K.zeros_like(target)),
+                                       dtype=tf.int32)
+        num_class_0 = tf.count_nonzero(tf.where(K.equal(target, 0.0), K.ones_like(target), K.zeros_like(target)),
+                                       dtype=tf.int32)
+        return (1.0, K.cast(num_class_0, dtype=tf.float32) /
+                (K.cast(num_class_1, dtype=tf.float32) + K.variable(_EPS)))
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         weights = self._get_weights(target)
@@ -176,7 +180,7 @@ class WeightedBinaryCrossEntropy(Metric):
 class WeightedBinaryCrossEntropyFixedWeights(Metric):
     weights_no_masks_exclude = (1.0, 80.0)
     weights_mask_exclude = (1.0, 300.0)  # for LUVAR data
-    #weights_mask_exclude = (1.0, 361.0)  # for DLCST data
+    # weights_mask_exclude = (1.0, 361.0)  # for DLCST data
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         if is_mask_exclude:

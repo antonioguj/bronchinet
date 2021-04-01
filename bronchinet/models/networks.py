@@ -1,9 +1,9 @@
 
 from typing import Tuple, List
 
-BoundBoxNDType = Tuple[Tuple[int, int], ...]
-
 from common.exceptionmanager import catch_error_exception
+
+BoundBoxNDType = Tuple[Tuple[int, int], ...]
 
 
 class NeuralNetwork(object):
@@ -61,18 +61,18 @@ class ConvNetBase(NeuralNetwork):
         raise NotImplementedError
 
     def _get_size_output_layer(self, size_input: Tuple[int, ...], oper_name: str) -> Tuple[int, ...]:
-        if oper_name == 'convolution':
+        if oper_name == 'convols':
             if self._is_use_valid_convols:
                 return self._get_size_output_valid_convolution(size_input)
             else:
                 return size_input
-        elif oper_name == 'convolution_padded':
+        elif oper_name == 'convols_padded':
             return size_input
         elif oper_name == 'pooling':
             return self._get_size_output_pooling(size_input)
         elif oper_name == 'upsample':
             return self._get_size_output_upsample(size_input)
-        elif oper_name == 'convol_classify':
+        elif oper_name == 'classify':
             return size_input
         else:
             raise NotImplementedError
@@ -82,8 +82,8 @@ class ConvNetBase(NeuralNetwork):
             level_end = len(self._list_opers_names_layers_all)
 
         if level_end < level_begin or \
-            level_begin >= len(self._list_opers_names_layers_all) or \
-            level_end > len(self._list_opers_names_layers_all):
+                level_begin >= len(self._list_opers_names_layers_all) or \
+                level_end > len(self._list_opers_names_layers_all):
             message = 'Problem with input \'level_begin\' (%s) or \'level_end\' (%s)' % (level_begin, level_end)
             catch_error_exception(message)
 
@@ -148,22 +148,23 @@ class UNetBase(ConvNetBase):
 
     def _build_list_opers_names_layers(self) -> None:
         if self._num_levels == 1:
-            self._list_opers_names_layers_all = ['convolution'] * 4 + ['convol_classify']
+            self._list_opers_names_layers_all = ['convols'] * 4 + ['classify']
 
         elif self._is_use_valid_convols and self._num_levels > self._num_levels_non_padded:
             # Assume that last convolutions have padding, to avoid large reduction of image dims
             num_levels_with_padding = self._num_levels - self._num_levels_non_padded - 1
-            self._list_opers_names_layers_all = self._num_levels_non_padded * ( ['convolution'] * 2 + ['pooling'] ) + \
-                                                num_levels_with_padding * ( ['convolution_padded'] * 2 + ['pooling'] ) + \
-                                                ['convolution_padded'] * 2 + \
-                                                num_levels_with_padding * ( ['upsample'] + ['convolution_padded'] * 2 ) + \
-                                                self._num_levels_non_padded * ( ['upsample'] + ['convolution'] * 2 ) + \
-                                                ['convol_classify']
+            self._list_opers_names_layers_all = \
+                self._num_levels_non_padded * (['convols'] * 2 + ['pooling']) + \
+                num_levels_with_padding * (['convols_padded'] * 2 + ['pooling']) + \
+                ['convols_padded'] * 2 + \
+                num_levels_with_padding * (['upsample'] + ['convols_padded'] * 2) + \
+                self._num_levels_non_padded * (['upsample'] + ['convols'] * 2) + \
+                ['classify']
         else:
-            self._list_opers_names_layers_all = (self._num_levels - 1) * ( ['convolution'] * 2 + ['pooling'] ) + \
-                                                ['convolution'] * 2 + \
-                                                (self._num_levels - 1) * ( ['upsample'] + ['convolution'] * 2 ) + \
-                                                ['convol_classify']
+            self._list_opers_names_layers_all = (self._num_levels - 1) * (['convols'] * 2 + ['pooling']) + \
+                                                ['convols'] * 2 + \
+                                                (self._num_levels - 1) * (['upsample'] + ['convols'] * 2) + \
+                                                ['classify']
 
     def _build_list_info_crop_where_merge(self) -> None:
         raise NotImplementedError
@@ -176,8 +177,10 @@ class UNetBase(ConvNetBase):
 
     @classmethod
     def _get_limits_output_crop(cls, size_input: Tuple[int, ...], size_crop: Tuple[int, ...]) -> BoundBoxNDType:
-        return tuple([cls._get_limits_output_crop_1d(elem_si, elem_sc) for (elem_si, elem_sc) in zip(size_input, size_crop)])
+        return tuple([cls._get_limits_output_crop_1d(elem_si, elem_sc)
+                      for (elem_si, elem_sc) in zip(size_input, size_crop)])
 
     @staticmethod
     def _get_size_borders_output_crop(size_input: Tuple[int, ...], size_crop: Tuple[int, ...]) -> Tuple[int, ...]:
-        return tuple([int((elem_si - elem_sc) / 2) for (elem_si, elem_sc) in zip(size_input, size_crop)])
+        return tuple([int((elem_si - elem_sc) / 2)
+                      for (elem_si, elem_sc) in zip(size_input, size_crop)])

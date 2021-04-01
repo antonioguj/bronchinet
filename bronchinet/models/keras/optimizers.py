@@ -14,20 +14,25 @@ LIST_AVAIL_OPTIMIZERS = ['SGD',
                          ]
 
 
-def SGD(learn_rate: float, **kwargs):
+def get_sgd(learn_rate: float, **kwargs):
     return SGD_keras(lr=learn_rate)
 
-def SGD_mom(learn_rate: float, momentum: float = 0.9, **kwargs):
+
+def get_sgd_mom(learn_rate: float, momentum: float = 0.9, **kwargs):
     return SGD_keras(lr=learn_rate, momentum=momentum)
 
-def Adagrad(learn_rate: float, **kwargs):
+
+def get_adagrad(learn_rate: float, **kwargs):
     return Adagrad_keras(lr=learn_rate)
 
-def RMSprop(learn_rate: float, **kwargs):
+
+def get_rmsprop(learn_rate: float, **kwargs):
     return RMSprop_keras(lr=learn_rate)
 
-def Adadelta(learn_rate: float, **kwargs):
+
+def get_adadelta(learn_rate: float, **kwargs):
     return Adadelta_keras(lr=learn_rate)
 
-def Adam(learn_rate: float, **kwargs):
+
+def get_adam(learn_rate: float, **kwargs):
     return Adam_keras(lr=learn_rate)
