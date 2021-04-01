@@ -131,18 +131,18 @@ class FilterNnetOutputValidConvs(ImageGenerator):
             num_outputs_nnet = len(self._size_output_image)
             sizes_bounding_boxes_output = self._size_output_image + [self._size_image]
 
-            inner_bounding_box_output = BoundingBoxes.compute_bounding_box_centered_image_fit_image(self._size_image,
-                                                                                                    sizes_bounding_boxes_output[0])
+            inner_bounding_box_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
+                                                                                          sizes_bounding_boxes_output[0])
             self._fill_flat_interior_bounding_box(inner_bounding_box_output)
 
             for i in range(num_outputs_nnet):
                 propa_value_in = 1.0 - i / float(num_outputs_nnet)
                 propa_value_out = 1.0 - (i + 1) / float(num_outputs_nnet)
 
-                inner_bounding_box_output = BoundingBoxes.compute_bounding_box_centered_image_fit_image(self._size_image,
-                                                                                                        sizes_bounding_boxes_output[i])
-                outer_bounding_box_output = BoundingBoxes.compute_bounding_box_centered_image_fit_image(self._size_image,
-                                                                                                        sizes_bounding_boxes_output[i + 1])
+                inner_bounding_box_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
+                                                                                              sizes_bounding_boxes_output[i])
+                outer_bounding_box_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
+                                                                                              sizes_bounding_boxes_output[i + 1])
                 self._fill_progression_between_two_bounding_boxes(inner_bounding_box_output,
                                                                   outer_bounding_box_output,
                                                                   propa_value_in,
@@ -150,9 +150,9 @@ class FilterNnetOutputValidConvs(ImageGenerator):
         else:
             # set flat probability equal to 'one' inside output of nnet
             # set probability distribution (linear, quadratic, ...) in between output of nnet and borders of image
-            inner_bounding_box_output = BoundingBoxes.compute_bounding_box_centered_image_fit_image(self._size_image,
-                                                                                                    self._size_output_image)
-            image_bounding_box_default = BoundingBoxes.get_default_bounding_box_image(self._size_image)
+            inner_bounding_box_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
+                                                                                          self._size_output_image)
+            image_bounding_box_default = BoundingBoxes.get_default_boundbox_image(self._size_image)
 
             self._fill_flat_interior_bounding_box(inner_bounding_box_output)
             self._fill_progression_between_two_bounding_boxes(inner_bounding_box_output,

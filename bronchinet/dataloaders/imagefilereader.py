@@ -6,12 +6,12 @@ import pydicom
 import gzip
 import warnings
 with warnings.catch_warnings():
-    #disable an annoying FutureWarning: Conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated.
+    # disable FutureWarning: conversion of the second argument of issubdtype from `float` to `np.floating` is deprecated
     warnings.filterwarnings("ignore", category=FutureWarning)
     import nibabel as nib
     import h5py
 
-from common.exceptionmanager import catch_error_exception, catch_warning_exception
+from common.exceptionmanager import catch_error_exception
 from common.functionutil import fileextension
 
 
@@ -62,7 +62,7 @@ class ImageFileReader(object):
         elif (extension == '.dcm'):
             return DicomReader
         else:
-            message = "Not valid file extension: %s..." %(extension)
+            message = "Not valid file extension: %s..." % (extension)
             catch_error_exception(message)
 
 
@@ -71,7 +71,7 @@ class NiftiReader(ImageFileReader):
     @classmethod
     def get_image_position(cls, filename: str) -> Tuple[float, float, float]:
         affine = cls._get_image_affine_matrix(filename)
-        return tuple(affine[:3,-1])
+        return tuple(affine[:3, -1])
 
     @classmethod
     def get_image_voxelsize(cls, filename: str) -> Tuple[float, float, float]:
@@ -89,7 +89,7 @@ class NiftiReader(ImageFileReader):
         return cls._update_affine_matrix(in_metadata, rescale_factor, translate_factor)
 
     @classmethod
-    def get_image(cls, filename: str, is_fix_from_dicom2niix: bool=False) -> np.ndarray:
+    def get_image(cls, filename: str, is_fix_from_dicom2niix: bool = False) -> np.ndarray:
         out_image = nib.load(filename).get_data()
         return cls._fix_dims_image_read(out_image)
 
@@ -107,28 +107,28 @@ class NiftiReader(ImageFileReader):
     @staticmethod
     def _compute_affine_matrix(image_voxelsize: Tuple[float, float, float],
                                image_position: Tuple[float, float, float],
-                               #image_rotation: : Tuple[float, float, float]
+                               # image_rotation: : Tuple[float, float, float]
                                ) -> np.ndarray:
         # Consider affine transformations composed of rescaling and translation, for the moment
         affine = np.eye(4)
-        if image_voxelsize != None:
-            np.fill_diagonal(affine[:3,:3], image_voxelsize)
-        if image_position != None:
-            affine[:3,-1] = image_position
+        if image_voxelsize is not None:
+            np.fill_diagonal(affine[:3, :3], image_voxelsize)
+        if image_position is not None:
+            affine[:3, -1] = image_position
         return affine
 
     @staticmethod
     def _update_affine_matrix(inout_affine: np.ndarray,
                               rescale_factor: Tuple[float, float, float],
                               translate_factor: Tuple[float, float, float],
-                              #rotate_factor: Tuple[float, float, float]
+                              # rotate_factor: Tuple[float, float, float]
                               ) -> np.ndarray:
         # Consider affine transformations composed of rescaling and translation, for the moment
-        if rescale_factor != None:
+        if rescale_factor is not None:
             rescale_matrix = np.eye(rescale_factor + (1,))
             inout_affine = np.dot(inout_affine, rescale_matrix)
-        if translate_factor != None:
-            inout_affine[:3,-1] += translate_factor
+        if translate_factor is not None:
+            inout_affine[:3, -1] += translate_factor
         return inout_affine
 
     @staticmethod
@@ -162,7 +162,7 @@ class NiftiReader(ImageFileReader):
     @staticmethod
     def fix_dims_image_affine_matrix_from_dicom2niix(inout_affine: np.ndarray) -> np.ndarray:
         inout_affine[1, 1] = - inout_affine[1, 1]
-        inout_affine[1,-1] = - inout_affine[1,-1]
+        inout_affine[1, -1] = - inout_affine[1, -1]
         return inout_affine
 
 

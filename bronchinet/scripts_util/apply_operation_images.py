@@ -255,7 +255,7 @@ def prepare_maskwithlabels_operation(args):
 
     def wrapfun_maskwithlabels_image(in_data, i):
         print("Retrieve labels: \'%s\'..." %(in_mask_labels))
-        return MaskOperator.get_masks_with_labels_list(in_data, inlist_labels=in_mask_labels)
+        return MaskOperator.get_masks_with_labels_list(in_data, in_labels=in_mask_labels)
 
     return wrapfun_maskwithlabels_image
 
