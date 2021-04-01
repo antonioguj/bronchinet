@@ -2,7 +2,7 @@
 from typing import Tuple
 import numpy as np
 from scipy.spatial import distance
-#from scipy.stats import signaltonoise
+# from scipy.stats import signaltonoise
 from skimage.metrics import structural_similarity as ssim
 
 _EPS = 1.0e-7
@@ -32,8 +32,8 @@ LIST_AVAIL_METRICS = ['MeanSquaredError',
 
 class MetricBase(object):
     _value_mask_exclude = -1
-    _is_airway_metric   = False
-    _is_use_voxelsize   = False
+    _is_airway_metric = False
+    _is_use_voxelsize = False
     _max_size_memory_safe = 5e+08
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
@@ -82,17 +82,19 @@ class CombineTwoMetrics(MetricBase):
         self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
     def compute(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
-        return self._metrics_1.compute(target, input) + self._weight_metric2over1 * self._metrics_2.compute(target, input)
+        return self._metrics_1.compute(target, input) + \
+               self._weight_metric2over1 * self._metrics_2.compute(target, input)
 
     def compute_safememory(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
-        return self._metrics_1.compute_safememory(target, input) + self._weight_metric2over1 * self._metrics_2.compute_safememory(target, input)
+        return self._metrics_1.compute_safememory(target, input) + \
+               self._weight_metric2over1 * self._metrics_2.compute_safememory(target, input)
 
 
 class MeanSquaredError(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredError, self).__init__(is_mask_exclude)
-        self._name_fun_out  = 'mean_squared'
+        self._name_fun_out = 'mean_squared'
 
     def _compute(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
         return np.mean(np.square(input - target))
@@ -106,7 +108,7 @@ class MeanSquaredErrorLogarithmic(MetricBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredErrorLogarithmic, self).__init__(is_mask_exclude)
-        self._name_fun_out  = 'mean_squared_log'
+        self._name_fun_out = 'mean_squared_log'
 
     def _compute(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
         return np.mean(np.square(np.log(np.clip(input, _EPS, None) + 1.0) -
@@ -160,7 +162,7 @@ class WeightedBinaryCrossEntropy(MetricBase):
 class WeightedBinaryCrossEntropyFixedWeights(WeightedBinaryCrossEntropy):
     weights_no_masks_exclude = (1.0, 80.0)
     weights_mask_exclude = (1.0, 300.0)  # for LUVAR data
-    #weights_mask_exclude = (1.0, 361.0)  # for DLCST data
+    # weights_mask_exclude = (1.0, 361.0)  # for DLCST data
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         if is_mask_exclude:
@@ -256,10 +258,12 @@ class AirwayMetricBase(MetricBase):
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayMetricBase, self).__init__(is_mask_exclude)
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray,
+                      input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
-    def compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
+    def compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
+                     input_cenline: np.ndarray) -> np.ndarray:
         return self._compute_airs(target, target_cenline, input, input_cenline)
 
     def set_voxel_size(self, voxel_size: np.ndarray) -> None:
@@ -272,7 +276,8 @@ class AirwayCompleteness(AirwayMetricBase):
         super(AirwayCompleteness, self).__init__(is_mask_exclude)
         self._name_fun_out = 'completeness'
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
+                      input_cenline: np.ndarray) -> np.ndarray:
         return np.sum(target_cenline * input) / (np.sum(target_cenline) + _SMOOTH)
 
 
@@ -282,7 +287,8 @@ class AirwayVolumeLeakage(AirwayMetricBase):
         super(AirwayVolumeLeakage, self).__init__(is_mask_exclude)
         self._name_fun_out = 'volume_leakage'
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
+                      input_cenline: np.ndarray) -> np.ndarray:
         return np.sum((1.0 - target) * input) / (np.sum(target) + _SMOOTH)
 
 
@@ -292,7 +298,8 @@ class AirwayCentrelineLeakage(AirwayMetricBase):
         super(AirwayCentrelineLeakage, self).__init__(is_mask_exclude)
         self._name_fun_out = 'cenline_leakage'
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
+                      input_cenline: np.ndarray) -> np.ndarray:
         return np.sum((1.0 - target) * input_cenline) / (np.sum(target_cenline) + _SMOOTH)
 
 
@@ -306,7 +313,8 @@ class AirwayTreeLength(AirwayMetricBase):
     def _get_voxel_length_unit(self) -> np.ndarray:
         return np.prod(self._voxel_size) ** (1.0/len(self._voxel_size))
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
+                      input_cenline: np.ndarray) -> np.ndarray:
         return np.sum(target_cenline * input) * self._get_voxel_length_unit()
 
 
@@ -320,9 +328,10 @@ class AirwayCentrelineDistanceFalsePositiveError(AirwayMetricBase):
     def _get_cenline_coords(self, input_cenline: np.ndarray) -> np.ndarray:
         return np.asarray(np.argwhere(input_cenline > 0)) * self._voxel_size
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
+                      input_cenline: np.ndarray) -> np.ndarray:
         target_coords = self._get_cenline_coords(target_cenline)
-        input_coords  = self._get_cenline_coords(input_cenline)
+        input_coords = self._get_cenline_coords(input_cenline)
         dists = distance.cdist(input_coords, target_coords)
         return np.mean(np.min(dists, axis=1))
 
@@ -337,14 +346,15 @@ class AirwayCentrelineDistanceFalseNegativeError(AirwayMetricBase):
     def _get_cenline_coords(self, input_cenline: np.ndarray) -> np.ndarray:
         return np.asarray(np.argwhere(input_cenline > 0)) * self._voxel_size
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
+                      input_cenline: np.ndarray) -> np.ndarray:
         target_coords = self._get_cenline_coords(target_cenline)
-        input_coords  = self._get_cenline_coords(input_cenline)
+        input_coords = self._get_cenline_coords(input_cenline)
         dists = distance.cdist(input_coords, target_coords)
         return np.mean(np.min(dists, axis=0))
 
 
-# ******************** TO IMPLEMENT BY ALEX ********************
+# ******************** METRICS USED IN MRI_ENHANCE METHOD ********************
 
 class MetricModifiedBase(MetricBase):
 
@@ -382,7 +392,7 @@ class SNR(MetricModifiedBase):
         mean = np.mean(input.flatten())
         std = np.std(input.flatten())
         return mean / std
-        #return signaltonoise(input, axis=None)
+        # return signaltonoise(input, axis=None)
 
 
 # Peak Signal-to-Noise ratio
@@ -413,18 +423,18 @@ class SSIM(MetricModifiedBase):
 
 
 # SSIM HOMEMADE FOR TESTING
-class SSIM_Homemade(MetricModifiedBase):
+class SSIMHomemade(MetricModifiedBase):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
-        super(SSIM_Homemade, self).__init__(is_mask_exclude)
+        super(SSIMHomemade, self).__init__(is_mask_exclude)
         self._name_fun_out = 'ssim_homemade'
 
     def _compute(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
-        cons_K1 = 0.01
-        cons_K2 = 0.03
-        range_L = 255.0
-        cons_C1 = (cons_K1*range_L)**2
-        cons_C2 = (cons_K2*range_L)**2
+        cons_k1 = 0.01
+        cons_k2 = 0.03
+        range_l = 255.0
+        cons_c1 = (cons_k1*range_l)**2
+        cons_c2 = (cons_k2*range_l)**2
         target = target.flatten()
         input = input.flatten()
         mean_target = np.mean(target, axis=-1)
@@ -432,15 +442,15 @@ class SSIM_Homemade(MetricModifiedBase):
         std_target = np.sqrt(np.mean(np.square(target - mean_target), axis=-1))
         std_input = np.sqrt(np.mean(np.square(input - mean_input), axis=-1))
         std_target_input = np.mean((target - mean_target) * (input - mean_input), axis=-1)
-        return (2*mean_target*mean_input + cons_C1) / (mean_target**2 + mean_input**2 + cons_C1) *\
-               (2*std_target_input + cons_C2) / (std_target**2 + std_input**2 + cons_C2)
+        return (2*mean_target*mean_input + cons_c1) / (mean_target**2 + mean_input**2 + cons_c1) *\
+               (2*std_target_input + cons_c2) / (std_target**2 + std_input**2 + cons_c2)
 
     def _compute_masked(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
-        cons_K1 = 0.01
-        cons_K2 = 0.03
-        range_L = 255.0
-        cons_C1 = (cons_K1*range_L)**2
-        cons_C2 = (cons_K2*range_L)**2
+        cons_k1 = 0.01
+        cons_k2 = 0.03
+        range_l = 255.0
+        cons_c1 = (cons_k1*range_l)**2
+        cons_c2 = (cons_k2*range_l)**2
         target = target.flatten()
         input = input.flatten()
         mask = self._get_mask(target)
@@ -449,5 +459,5 @@ class SSIM_Homemade(MetricModifiedBase):
         std_target = np.sqrt(np.mean(np.square(target - mean_target) * mask, axis=-1))
         std_input = np.sqrt(np.mean(np.square(input - mean_input) * mask, axis=-1))
         std_target_input = np.mean((target - mean_target) * (input - mean_input) * mask, axis=-1)
-        return (2*mean_target*mean_input + cons_C1) / (mean_target**2 + mean_input**2 + cons_C1) *\
-               (2*std_target_input + cons_C2) / (std_target**2 + std_input**2 + cons_C2)
+        return (2*mean_target*mean_input + cons_c1) / (mean_target**2 + mean_input**2 + cons_c1) *\
+               (2*std_target_input + cons_c2) / (std_target**2 + std_input**2 + cons_c2)

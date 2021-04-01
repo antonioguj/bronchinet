@@ -1,7 +1,7 @@
 
 from typing import List
 
-from models.callbacks import RecordLossHistoryBase, EarlyStoppingBase, ModelCheckpointBase
+from models.callbacks import RecordLossHistoryBase, ModelCheckpointBase
 from models.metrics import MetricBase
 
 

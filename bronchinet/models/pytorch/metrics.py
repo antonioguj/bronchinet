@@ -1,7 +1,6 @@
 
 from typing import Tuple
 
-from torch.nn import CrossEntropyLoss
 import torch.nn as nn
 import torch
 
@@ -85,17 +84,19 @@ class CombineTwoMetrics(Metric):
         self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
     def compute(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
-        return self._metrics_1.compute(target, input) + self._weight_metric2over1 * self._metrics_2.compute(target, input)
+        return self._metrics_1.compute(target, input) + \
+               self._weight_metric2over1 * self._metrics_2.compute(target, input)
 
     def forward(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
-        return self._metrics_1.forward(target, input) + self._weight_metric2over1 * self._metrics_2.forward(target, input)
+        return self._metrics_1.forward(target, input) + \
+               self._weight_metric2over1 * self._metrics_2.forward(target, input)
 
 
 class MeanSquaredError(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredError, self).__init__(is_mask_exclude)
-        self._name_fun_out  = 'mean_squared'
+        self._name_fun_out = 'mean_squared'
 
     def _compute(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
         return torch.mean(torch.square(input - target))
@@ -109,7 +110,7 @@ class MeanSquaredErrorLogarithmic(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredErrorLogarithmic, self).__init__(is_mask_exclude)
-        self._name_fun_out  = 'mean_squared_log'
+        self._name_fun_out = 'mean_squared_log'
 
     def _compute(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
         return torch.mean(torch.square(torch.log(torch.clip(input, _EPS, None) + 1.0) -
@@ -144,9 +145,12 @@ class WeightedBinaryCrossEntropy(Metric):
         self._name_fun_out = 'weight_bin_cross'
 
     def _get_weights(self, target: torch.FloatTensor) -> Tuple[torch.FloatTensor, torch.FloatTensor]:
-        num_class_1 = torch.count_nonzero(torch.where(target == 1.0, torch.ones_like(target), torch.zeros_like(target)), dtype=torch.int32)
-        num_class_0 = torch.count_nonzero(torch.where(target == 0.0, torch.ones_like(target), torch.zeros_like(target)), dtype=torch.int32)
-        return (1.0, torch.cast(num_class_0, dtype=torch.float32) / (torch.cast(num_class_1, dtype=torch.float32) + torch.variable(_EPS)))
+        num_class_1 = torch.count_nonzero(torch.where(target == 1.0, torch.ones_like(target), torch.zeros_like(target)),
+                                          dtype=torch.int32)
+        num_class_0 = torch.count_nonzero(torch.where(target == 0.0, torch.ones_like(target), torch.zeros_like(target)),
+                                          dtype=torch.int32)
+        return (1.0, torch.cast(num_class_0, dtype=torch.float32) /
+                (torch.cast(num_class_1, dtype=torch.float32) + torch.variable(_EPS)))
 
     def _compute(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
         weights = self._get_weights(target)
@@ -163,7 +167,7 @@ class WeightedBinaryCrossEntropy(Metric):
 class WeightedBinaryCrossEntropyFixedWeights(WeightedBinaryCrossEntropy):
     weights_no_mask_exclude = (1.0, 80.0)
     weights_mask_exclude = (1.0, 300.0)  # for LUVAR data
-    #weights_mask_exclude = (1.0, 361.0)  # for DLCST data
+    # weights_mask_exclude = (1.0, 361.0)  # for DLCST data
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         if is_mask_exclude:
@@ -186,7 +190,8 @@ class BinaryCrossEntropyFocalLoss(Metric):
         super(BinaryCrossEntropyFocalLoss, self).__init__(is_mask_exclude)
         self._name_fun_out = 'bin_cross_focal_loss'
 
-    def get_predprobs_classes(self, target: torch.FloatTensor, input: torch.FloatTensor) -> Tuple[torch.FloatTensor, torch.FloatTensor]:
+    def get_predprobs_classes(self, target: torch.FloatTensor, input: torch.FloatTensor) -> Tuple[torch.FloatTensor,
+                                                                                                  torch.FloatTensor]:
         prob_1 = torch.where(target == 1.0, input, torch.ones_like(input))
         prob_0 = torch.where(target == 0.0, input, torch.zeros_like(input))
         return (prob_1, prob_0)

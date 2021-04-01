@@ -1,7 +1,6 @@
 
 from typing import Tuple, List, Dict, Union
 import numpy as np
-#from tensorflow.keras import backend as K
 
 from common.exceptionmanager import catch_error_exception
 from preprocessing.imagegenerator import ImageGenerator

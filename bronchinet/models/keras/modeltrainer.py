@@ -6,12 +6,13 @@ from tensorflow.keras.models import load_model
 import tensorflow as tf
 from tensorflow.keras.initializers import RandomNormal
 
-from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_EPOCH_KERAS, NAME_SAVEDMODEL_LAST_KERAS, IS_SHUFFLE_TRAINDATA
+from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_EPOCH_KERAS, NAME_SAVEDMODEL_LAST_KERAS, \
+                            IS_SHUFFLE_TRAINDATA
 from common.exceptionmanager import catch_error_exception
 from common.functionutil import join_path_names
 from dataloaders.batchdatagenerator import BatchDataGenerator
 from models.modeltrainer import ModelTrainerBase
-from models.keras.callbacks import RecordLossHistory, EarlyStopping, ModelCheckpoint
+from models.keras.callbacks import RecordLossHistory, ModelCheckpoint
 
 
 class ModelTrainer(ModelTrainerBase):
@@ -39,9 +40,12 @@ class ModelTrainer(ModelTrainerBase):
     def create_callbacks(self, models_path: str, **kwargs) -> None:
         self._list_callbacks = []
 
-        is_restart_model = kwargs['is_restart_model'] if 'is_restart_model' in kwargs.keys() else False
-        is_validation_data = kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() else True
-        freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
+        is_restart_model = kwargs['is_restart_model'] \
+            if 'is_restart_model' in kwargs.keys() else False
+        is_validation_data = kwargs['is_validation_data'] \
+            if 'is_validation_data' in kwargs.keys() else True
+        freq_save_check_model = kwargs['freq_save_check_model'] \
+            if 'freq_save_check_model' in kwargs.keys() else 1
 
         losshistory_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
         new_callback = RecordLossHistory(losshistory_filename, self._list_metrics,
@@ -70,9 +74,9 @@ class ModelTrainer(ModelTrainerBase):
     def load_model_weights_diff_model(self, model_filename: str, **kwargs) -> None:
         type_load_model = kwargs['type_load_model']
         if type_load_model == 'UNet_noSkipConns':
-            self.load_model_weights_UNet_noSkipConns(model_filename)
+            self.load_model_weights_unet_noskipconns(model_filename)
         else:
-            message = "Type of loading weights from a different model not implemented: %s..." %(type_load_model)
+            message = "Type of loading weights from a different model not implemented: %s..." % (type_load_model)
             catch_error_exception(message)
 
     def load_model_full(self, model_filename: str, **kwargs) -> None:
@@ -95,7 +99,7 @@ class ModelTrainer(ModelTrainerBase):
 
     def get_size_output_model(self) -> Tuple[int, ...]:
         return self._compiled_model.outputs[0].shape[1:]
-        #return self._network.get_size_output()
+        # return self._network.get_size_output()
 
     def get_size_output_image_model(self) -> Tuple[int, ...]:
         return self.get_size_output_model()[:-1]
@@ -121,8 +125,7 @@ class ModelTrainer(ModelTrainerBase):
                                                          batch_size=1)
         return output_prediction
 
-
-    def load_model_weights_UNet_noSkipConns(self, model_filename: str):
+    def load_model_weights_unet_noskipconns(self, model_filename: str):
         def lossfun_dummy_max(y_true, y_pred):
             from keras import backend as K
             return K.max(K.abs(y_pred - y_true), axis=-1)
@@ -140,8 +143,8 @@ class ModelTrainer(ModelTrainerBase):
 
             elif next_layer_convol_after_upsample:
                 # for the convolutional layers after 'upsample + merge', we need to tweak the loaded weights
-                # for this layer, the kernel weights in UNet have larger dimension than those in the loaded UNet_noSkipConn
-                # extend kernel weights with added ones, initialized randomly, corresponding to the features from skip conns
+                # for this layer, the kernel weights in UNet have larger dimension than those in UNet_noSkipConn
+                # extend kernel weights with added ones, initialized randomly, for the features from skip conns
 
                 loaded_model_layer = loaded_copyfrom_model.get_layer(layer_name)
                 (loaded_weights_kernel, loaded_weights_bias) = loaded_model_layer.get_weights()
@@ -149,7 +152,8 @@ class ModelTrainer(ModelTrainerBase):
                 dim_weights_kernel_featsbeg = loaded_weights_kernel.shape[3]
                 dim_extend_weights_kernel_featsbeg = dim_weights_kernel_featsbeg // 2
 
-                extend_weights_kernel_shape = loaded_weights_kernel.shape[:3] + (dim_extend_weights_kernel_featsbeg, loaded_weights_kernel.shape[-1])
+                extend_weights_kernel_shape = loaded_weights_kernel.shape[:3] + (dim_extend_weights_kernel_featsbeg,
+                                                                                 loaded_weights_kernel.shape[-1])
                 weights_initializer = RandomNormal(mean=0.0, stddev=0.05, seed=None)
                 extend_weights_kernel = weights_initializer(shape=extend_weights_kernel_shape)
 

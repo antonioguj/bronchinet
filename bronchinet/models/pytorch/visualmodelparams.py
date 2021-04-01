@@ -2,9 +2,6 @@
 from typing import Tuple, List, Union
 import numpy as np
 
-import torch.nn as nn
-import torch
-
 from common.exceptionmanager import catch_error_exception
 from common.functionutil import ImagesUtil
 from models.visualmodelparams import VisualModelParamsBase
@@ -43,7 +40,8 @@ class VisualModelParams(VisualModelParamsBase):
             global out_featmaps_patch
             out_featmaps_patch = output.detach().cpu()
             # this should be eventually inside Networks.forward()
-            out_featmaps_patch = out_featmaps_patch.view(-1, num_featmaps, self._size_image[0], self._size_image[1], self._size_image[2])
+            out_featmaps_patch = out_featmaps_patch.view(-1, num_featmaps, self._size_image[0],
+                                                         self._size_image[1], self._size_image[2])
             return None
 
         # attach hook to the corresponding module layer

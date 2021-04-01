@@ -1,16 +1,14 @@
 
 from typing import List, Tuple, Callable
 
-from tensorflow.keras.losses import mean_squared_error, binary_crossentropy
 from tensorflow.keras import backend as K
 import tensorflow as tf
-from skimage import measure
-from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
+# from skimage import measure
+from tensorflow.keras.applications.vgg16 import VGG16
 from tensorflow.keras.models import Model
-#from scipy import signal
-#from skimage.metrics import structural_similarity as ssim
-from scipy import signal
-import sys
+# from scipy import signal
+# from skimage.metrics import structural_similarity as ssim
+# from scipy import signal
 
 from common.exceptionmanager import catch_error_exception
 from models.metrics import MetricBase
@@ -29,7 +27,7 @@ LIST_AVAIL_METRICS = ['MeanSquaredError',
                       'TrueNegativeRate',
                       'FalsePositiveRate',
                       'FalseNegativeRate',
-                      'L1',     # HI ALEX, ADD NAMES OF NEW LOSS FUNCTIONS HERE
+                      'L1',
                       'L2',
                       'DSSIM',
                       'MultiScaleSSIM',
@@ -109,17 +107,19 @@ class CombineTwoMetrics(Metric):
         self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
     def compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return self._metrics_1.compute(target, input) + self._weight_metric2over1 * self._metrics_2.compute(target, input)
+        return self._metrics_1.compute(target, input) + \
+               self._weight_metric2over1 * self._metrics_2.compute(target, input)
 
     def lossfun(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return self._metrics_1.lossfun(target, input) + self._weight_metric2over1 * self._metrics_2.lossfun(target, input)
+        return self._metrics_1.lossfun(target, input) + \
+               self._weight_metric2over1 * self._metrics_2.lossfun(target, input)
 
 
 class MeanSquaredError(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredError, self).__init__(is_mask_exclude)
-        self._name_fun_out  = 'mean_squared'
+        self._name_fun_out = 'mean_squared'
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         return K.mean(K.square(input - target), axis=-1)
@@ -133,7 +133,7 @@ class MeanSquaredErrorLogarithmic(Metric):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(MeanSquaredErrorLogarithmic, self).__init__(is_mask_exclude)
-        self._name_fun_out  = 'mean_squared_log'
+        self._name_fun_out = 'mean_squared_log'
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         return K.mean(K.square(K.log(K.clip(input, _EPS, None) + 1.0) -
@@ -153,14 +153,14 @@ class BinaryCrossEntropy(Metric):
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         return K.mean(K.binary_crossentropy(target, input), axis=-1)
-        #return K.mean(- target * K.log(input + _EPS)
-        #              - (1.0 - target) * K.log(1.0 - input + _EPS))
+        # return K.mean(- target * K.log(input + _EPS)
+        #               - (1.0 - target) * K.log(1.0 - input + _EPS))
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         mask = self._get_mask(target)
         return K.mean(K.binary_crossentropy(target, input) * mask, axis=-1)
-        #return K.mean((- target * K.log(input + _EPS)
-        #               - (1.0 - target) * K.log(1.0 - input + _EPS)) * mask)
+        # return K.mean((- target * K.log(input + _EPS)
+        #                - (1.0 - target) * K.log(1.0 - input + _EPS)) * mask)
 
 
 class WeightedBinaryCrossEntropy(Metric):
@@ -170,9 +170,12 @@ class WeightedBinaryCrossEntropy(Metric):
         self._name_fun_out = 'weight_bin_cross'
 
     def _get_weights(self, target: tf.Tensor) -> Tuple[float, float]:
-        num_class_1 = tf.count_nonzero(tf.where(K.equal(target, 1.0), K.ones_like(target), K.zeros_like(target)), dtype=tf.int32)
-        num_class_0 = tf.count_nonzero(tf.where(K.equal(target, 0.0), K.ones_like(target), K.zeros_like(target)), dtype=tf.int32)
-        return (1.0, K.cast(num_class_0, dtype=tf.float32) / (K.cast(num_class_1, dtype=tf.float32) + K.variable(_EPS)))
+        num_class_1 = tf.count_nonzero(tf.where(K.equal(target, 1.0), K.ones_like(target), K.zeros_like(target)),
+                                       dtype=tf.int32)
+        num_class_0 = tf.count_nonzero(tf.where(K.equal(target, 0.0), K.ones_like(target), K.zeros_like(target)),
+                                       dtype=tf.int32)
+        return (1.0, K.cast(num_class_0, dtype=tf.float32) /
+                (K.cast(num_class_1, dtype=tf.float32) + K.variable(_EPS)))
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         weights = self._get_weights(target)
@@ -189,7 +192,7 @@ class WeightedBinaryCrossEntropy(Metric):
 class WeightedBinaryCrossEntropyFixedWeights(Metric):
     weights_no_masks_exclude = (1.0, 80.0)
     weights_mask_exclude = (1.0, 300.0)  # for LUVAR data
-    #weights_mask_exclude = (1.0, 361.0)  # for DLCST data
+    # weights_mask_exclude = (1.0, 361.0)  # for DLCST data
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         if is_mask_exclude:
@@ -286,7 +289,7 @@ class FalseNegativeRate(Metric):
         return K.sum(target * (1.0 - input)) / (K.sum(target) + _SMOOTH)
 
 
-# ******************** TO IMPLEMENT BY ALEX ********************
+# ******************** METRICS USED IN MRI_ENHANCE METHOD ********************
 
 class MetricModified(Metric):
 
@@ -328,7 +331,8 @@ class CombineTwoMetricsModified(MetricModified):
         self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
     def _get_factor_2ndmetric(self, target: tf.Tensor) -> float:
-        #return self._weight_metric2over1 * self._metrics_1._factor_normalize(target) / self._metrics_2._factor_normalize(target)
+        # return self._weight_metric2over1 * self._metrics_1._factor_normalize(target) \
+        #        / self._metrics_2._factor_normalize(target)
         return self._weight_metric2over1
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
@@ -337,10 +341,10 @@ class CombineTwoMetricsModified(MetricModified):
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         factor_2ndmetric = self._get_factor_2ndmetric(target)
-        return self._metrics_1._compute_masked(target, input) + factor_2ndmetric * self._metrics_2._compute_masked(target, input)
+        return self._metrics_1._compute_masked(target, input) \
+            + factor_2ndmetric * self._metrics_2._compute_masked(target, input)
 
 
-# L1
 class L1(MetricModified):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
@@ -362,12 +366,11 @@ class L1(MetricModified):
         return tf.reduce_max(target)
 
 
-# L2
 class L2(MetricModified):
 
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(L2, self).__init__(is_mask_exclude)
-        self._name_fun_out  = 'l2'
+        self._name_fun_out = 'l2'
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         target = K.flatten(target)
@@ -394,7 +397,8 @@ class DSSIM(MetricModified):
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         # return tf.reduce_mean(tf.image.ssim(target, input, 255.0))
         return tf.reduce_mean(tf.image.ssim(target, input, 255.0, filter_size=10))
-        # return tf.reduce_mean(tf.image.ssim(target, input, max_val=255.0, filter_size=11, filter_sigma=1.5, k1=0.01, k2=0.03))
+        # return tf.reduce_mean(tf.image.ssim(target, input, max_val=255.0, filter_size=11, filter_sigma=1.5,
+        #                                     k1=0.01, k2=0.03))
         # return measure.compare_ssim(target, input, multichannel=True, data_range=255.0)
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
@@ -403,27 +407,6 @@ class DSSIM(MetricModified):
 
     def lossfun(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         return (1.0 - self.compute(target, input)) / 2.0
-
-
-#  SSIM FOR TESTING ALEX
-class DSSIM_TestAlex(MetricModified):
-
-    def __init__(self, is_mask_exclude: bool = False) -> None:
-        super(DSSIM_TestAlex, self).__init__(is_mask_exclude)
-        self._name_fun_out = 'dssim_testAlex'
-
-    def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        # target = tf.squeeze(target, axis=-1)
-        # input = tf.squeeze(input, axis=-1)
-        # max_value_target = tf.math.reduce_max(target)
-        # max_value_input = tf.math.reduce_max(input)
-        # max_value = tf.cond(max_value_target > max_value_input, lambda: tf.math.reduce_max(target), lambda: tf.math.reduce_max(input))
-        return (1.0 - tf.reduce_mean(tf.image.ssim(target, input, 255.0, filter_size=10))) / 2.0
-        # loss = multiscalessim(target, input)
-
-    def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return self._compute(self._get_masked_input(target, target),
-                             self._get_masked_input(input, target))
 
 
 # MultiScale Structural Similarity Index
@@ -435,7 +418,7 @@ class MultiScaleSSIM(MetricModified):
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         return tf.reduce_mean(tf.image.ssim_multiscale(target, input, max_val=255))
-        #return multiscalessim(target, input)
+        # return multiscalessim(target, input)
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         return self._compute(self._get_masked_input(target, target),
@@ -475,18 +458,19 @@ class Perceptual(MetricModified):
         self._model_vgg16.trainable = False
 
         if len(size_image) == 2:
-            self._preprocess_inarrays = self._preprocess_inarrays_2D
+            self._preprocess_inarrays = self._preprocess_inarrays_2d
         elif len(size_image) == 3:
-            self._preprocess_inarrays = self._preprocess_inarrays_3D
+            self._preprocess_inarrays = self._preprocess_inarrays_3d
         else:
             message = 'Perceptual:__init__: wrong \'ndims\': %s...' % (len(size_image))
             catch_error_exception(message)
 
         # cropping bounding box to extract the smaller input image to the VGG16 net from the input image
-        self._crop_bounding_box = self._calc_bounding_box_centered(self._size_slice_image, self._size_input_vgg16)
+        self._crop_boundbox = self._calc_boundbox_centered(self._size_slice_image, self._size_input_vgg16)
 
         # function to compute the feature maps at the spec. layers of VGG16 net when evaluated on the input image
-        self._output_layers_vgg16_calcloss = [self._model_vgg16.get_layer(iname).output for iname in self._layers_vgg16_calcloss]
+        self._output_layers_vgg16_calcloss = [self._model_vgg16.get_layer(iname).output
+                                              for iname in self._layers_vgg16_calcloss]
         self._func_get_featuremaps_vgg16 = Model(inputs=self._model_vgg16.input,
                                                  outputs=self._output_layers_vgg16_calcloss)
 
@@ -508,60 +492,61 @@ class Perceptual(MetricModified):
         print('\nUse Pretrained VGG16 model to compute the loss...')
         # print(self._modelVGG16.summary())
         print('1: Evaluate the prediction and ground-truth on the VGG16 model...')
-        print('2: Compute loss as the L2 norm of the difference of feature maps from VGG16 layers: %s\n' % (self._layers_vgg16_calcloss))
+        print('2: Compute loss as the L2 norm of the difference of feature maps from VGG16 layers: %s\n'
+              % (self._layers_vgg16_calcloss))
 
         self._counter_call_compute_vec = 0
 
-
-    def _calc_bounding_box_centered(self, in_size_bounding_box: Tuple[int, int], out_size_bounding_box: Tuple[int, int]) -> Tuple[Tuple[int, int], Tuple[int, int]]:
-        boundbox_origin = (int( (in_size_bounding_box[0] - out_size_bounding_box[0]) / 2),
-                           int( (in_size_bounding_box[1] - out_size_bounding_box[1]) / 2))
-        out_boundbox = ((boundbox_origin[0], boundbox_origin[0] + out_size_bounding_box[0]),
-                        (boundbox_origin[1], boundbox_origin[1] + out_size_bounding_box[1]))
+    def _calc_boundbox_centered(self, in_size_boundbox: Tuple[int, int],
+                                out_size_boundbox: Tuple[int, int]
+                                ) -> Tuple[Tuple[int, int], Tuple[int, int]]:
+        boundbox_origin = (int((in_size_boundbox[0] - out_size_boundbox[0]) / 2),
+                           int((in_size_boundbox[1] - out_size_boundbox[1]) / 2))
+        out_boundbox = ((boundbox_origin[0], boundbox_origin[0] + out_size_boundbox[0]),
+                        (boundbox_origin[1], boundbox_origin[1] + out_size_boundbox[1]))
         return out_boundbox
 
-    def _crop_image(self, in_image: tf.Tensor, bounding_box: Tuple[Tuple[int, int], Tuple[int, int]]) -> tf.Tensor:
-        return in_image[...,    # first dim for batch size, if needed
-                        bounding_box[0][0]:bounding_box[0][1],
-                        bounding_box[1][0]:bounding_box[1][1],
+    def _crop_image(self, in_image: tf.Tensor, in_boundbox: Tuple[Tuple[int, int], Tuple[int, int]]) -> tf.Tensor:
+        return in_image[...,  # first dim for batch size, if needed
+                        in_boundbox[0][0]:in_boundbox[0][1],
+                        in_boundbox[1][0]:in_boundbox[1][1],
                         :]      # last dim for channels
 
     def _factor_normalize(self, target: tf.Tensor) -> float:
         return tf.reduce_max(target)
 
-    def _preprocess_inarrays_2D(self, target: tf.Tensor, input: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def _preprocess_inarrays_2d(self, target: tf.Tensor, input: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         # crop the image to the input size to the VGG16 net
-        target = self._crop_image(target, self._crop_bounding_box)
-        input  = self._crop_image(input, self._crop_bounding_box)
+        target = self._crop_image(target, self._crop_boundbox)
+        input = self._crop_image(input, self._crop_boundbox)
 
         # gray-scale image in RGB: repeat the array in 3 input channels
         target = tf.stack((tf.squeeze(target, axis=-1),) * 3, axis=-1)
-        input  = tf.stack((tf.squeeze(input, axis=-1),) * 3, axis=-1)
+        input = tf.stack((tf.squeeze(input, axis=-1),) * 3, axis=-1)
 
         return (target, input)
 
-    def _preprocess_inarrays_3D(self, target: tf.Tensor, input: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def _preprocess_inarrays_3d(self, target: tf.Tensor, input: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         # merge 1st dim (batch_size) and 2nd dim (img_dimZ) together
         y_new_shape = (-1, *input.shape[-3:])
         target = tf.reshape(target, y_new_shape)
-        input  = tf.reshape(input, y_new_shape)
+        input = tf.reshape(input, y_new_shape)
 
         # crop the image to the input size to the VGG16 net
-        target = self._crop_image(target, self._crop_bounding_box)
-        input  = self._crop_image(input, self._crop_bounding_box)
+        target = self._crop_image(target, self._crop_boundbox)
+        input = self._crop_image(input, self._crop_boundbox)
 
         # gray-scale image in RGB: repeat the array in 3 input channels
         target = tf.stack((tf.squeeze(target, axis=-1),) * 3, axis=-1)
-        input  = tf.stack((tf.squeeze(input, axis=-1),) * 3, axis=-1)
+        input = tf.stack((tf.squeeze(input, axis=-1),) * 3, axis=-1)
 
         return (target, input)
 
     def _get_mask_size_layer_vgg16(self, target: tf.Tensor, ilayer_vgg16_calcloss: int) -> tf.Tensor:
         for i in range(self._list_num_pooling_until_layers_vgg16_calcloss[ilayer_vgg16_calcloss]):
             target = tf.nn.max_pool2d(target, ksize=(2, 2), strides=(2, 2), padding='SAME')
-        mask = self._get_mask(target[...,0])
+        mask = self._get_mask(target[..., 0])
         return tf.expand_dims(mask, axis=-1)
-
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         if self._is_calcloss_feats_alllayer:
@@ -581,9 +566,9 @@ class Perceptual(MetricModified):
 
         # feature maps from VGG16 when evaluated on "target" / "input"
         featmaps_target = self._func_get_featuremaps_vgg16(target)
-        featmaps_input  = self._func_get_featuremaps_vgg16(input)
+        featmaps_input = self._func_get_featuremaps_vgg16(input)
         featmaps_target = K.flatten(featmaps_target)
-        featmaps_input  = K.flatten(featmaps_input)
+        featmaps_input = K.flatten(featmaps_input)
 
         # loss as the root mean squared error between the two feature maps
         return K.mean(K.square(featmaps_target - featmaps_input), axis=-1)
@@ -594,9 +579,9 @@ class Perceptual(MetricModified):
 
         # feature maps from VGG16 when evaluated on "target" / "input"
         featmaps_target = self._func_get_featuremaps_vgg16(target)
-        featmaps_input  = self._func_get_featuremaps_vgg16(input)
+        featmaps_input = self._func_get_featuremaps_vgg16(input)
         featmaps_target = [K.flatten(feats_ilayer) for feats_ilayer in featmaps_target]
-        featmaps_input  = [K.flatten(feats_ilayer) for feats_ilayer in featmaps_input]
+        featmaps_input = [K.flatten(feats_ilayer) for feats_ilayer in featmaps_input]
 
         # list of root mean squared errors between the two feature maps on ALL layers
         msqrt_error_featmaps = [K.mean(K.square(feats_target_ilay - feats_input_ilay), axis=-1)
@@ -612,7 +597,7 @@ class Perceptual(MetricModified):
 
         # feature maps from VGG16 when evaluated on "target" / "input"
         featmaps_target = self._func_get_featuremaps_vgg16(target)
-        featmaps_input  = self._func_get_featuremaps_vgg16(input)
+        featmaps_input = self._func_get_featuremaps_vgg16(input)
 
         # loss as the root mean squared error between the two feature maps, with the squared error array being masked
         return K.mean(K.flatten(tf.multiply(K.square(featmaps_target - featmaps_input), mask)), axis=-1)
@@ -623,12 +608,14 @@ class Perceptual(MetricModified):
 
         # feature maps from VGG16 when evaluated on "target" / "input"
         featmaps_target = self._func_get_featuremaps_vgg16(target)
-        featmaps_input  = self._func_get_featuremaps_vgg16(input)
+        featmaps_input = self._func_get_featuremaps_vgg16(input)
 
         # masks with sizes of ALL the chosen layers of VGG16
         masks = [self._get_mask_size_layer_vgg16(target, i) for i in range(len(self._layers_vgg16_calcloss))]
 
-        # list of root mean squared errors between the two feature maps on ALL layers, with the squared error array being masked
-        msqrt_error_featmaps = [K.mean(K.flatten(tf.multiply(K.square(feats_target_ilay - feats_input_ilay), mask_ilay)), axis=-1)
-                                for (feats_target_ilay, feats_input_ilay, mask_ilay) in zip(featmaps_target, featmaps_input, masks)]
+        # list of root mean squared errors between the two feature maps on ALL layers,
+        # with the squared error array being masked
+        msqrt_error_featmaps = \
+            [K.mean(K.flatten(tf.multiply(K.square(feats_target_ilay - feats_input_ilay), mask_ilay)), axis=-1)
+             for (feats_target_ilay, feats_input_ilay, mask_ilay) in zip(featmaps_target, featmaps_input, masks)]
         return K.sum(tf.multiply(msqrt_error_featmaps, self._weights_vgg16_calcloss))
