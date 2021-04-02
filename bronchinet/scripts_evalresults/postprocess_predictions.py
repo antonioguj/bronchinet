@@ -75,7 +75,6 @@ def main(args):
 
         if (args.is_crop_images):
             print("Prediction data are cropped. Extend prediction to full image size...")
-
             out_shape_fullimage = ImageFileReader.get_image_size(in_reference_file)
 
             list_in_crop_boundboxes = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
@@ -84,7 +83,6 @@ def main(args):
             if num_crop_boundboxes > 1:
                 print("A total of \'%s\' cropped predictions are assigned to image: \'%s\'..." % (num_crop_boundboxes,
                                                                                                   in_reference_key))
-
                 for icrop, in_crop_boundox in enumerate(list_in_crop_boundboxes):
                     if icrop > 0:
                         in_next_prediction_file = next(list_input_predictions_files)
