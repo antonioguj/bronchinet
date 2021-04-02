@@ -22,7 +22,7 @@ if TYPE_DNNLIB_USED == 'Pytorch':
 elif TYPE_DNNLIB_USED == 'Keras':
     from common.constant import NAME_SAVEDMODEL_LAST_KERAS as NAME_SAVEDMODEL_LAST
 from common.functionutil import join_path_names, is_exist_file, update_filename, basename, basename_filenoext, \
-                                list_files_dir, get_substring_filename, str2bool, str2list_str, str2tuple_int, \
+                                list_files_dir, get_substring_filename, str2bool, str2int, str2list_str, str2tuple_int,\
                                 str2tuple_float, str2list_float, read_dictionary, read_dictionary_configparams, \
                                 save_dictionary_configparams
 from common.exceptionmanager import catch_error_exception
@@ -60,11 +60,12 @@ def get_restart_epoch_from_model_filename(model_filename: str) -> int:
 
 
 def main(args):
-    # ---------- SETTINGS ----------
+
+    # SETTINGS
     name_input_images_files = 'images_proc*.nii.gz'
     name_input_labels_files = 'labels_proc*.nii.gz'
     # name_input_extra_labels_files = 'cenlines_proc*.nii.gz'
-    # ---------- SETTINGS ----------
+    # --------
 
     workdir_manager = TrainDirManager(args.basedir)
     training_data_path = workdir_manager.get_pathdir_exist(args.training_datadir)
@@ -301,8 +302,8 @@ if __name__ == "__main__":
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--use_sliding_window_images', type=str2bool, default=USE_SLIDING_WINDOW_IMAGES)
     parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW)
-    parser.add_argument('--use_random_window_images', type=str2tuple_float, default=USE_RANDOM_WINDOW_IMAGES)
-    parser.add_argument('--num_random_patches_epoch', type=str2tuple_float, default=NUM_RANDOM_PATCHES_EPOCH)
+    parser.add_argument('--use_random_window_images', type=str2bool, default=USE_RANDOM_WINDOW_IMAGES)
+    parser.add_argument('--num_random_patches_epoch', type=str2int, default=NUM_RANDOM_PATCHES_EPOCH)
     parser.add_argument('--use_transform_rigid_images', type=str2bool, default=USE_TRANSFORM_RIGID_IMAGES)
     parser.add_argument(
         '--use_transform_elasticdeform_images', type=str2bool, default=USE_TRANSFORM_ELASTICDEFORM_IMAGES)
@@ -353,12 +354,16 @@ if __name__ == "__main__":
         args.type_loss = str(input_args_file['type_loss'])
         args.weight_combined_loss = float(input_args_file['weight_combined_loss'])
         args.list_type_metrics = str2list_str(input_args_file['list_type_metrics'])
-        args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
         args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
+        args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
         args.use_sliding_window_images = str2bool(input_args_file['use_sliding_window_images'])
         args.prop_overlap_sliding_window = str2tuple_float(input_args_file['prop_overlap_sliding_window'])
+        args.use_random_window_images = str2bool(input_args_file['use_random_window_images'])
+        args.num_random_patches_epoch = str2int(input_args_file['num_random_patches_epoch'])
         args.use_transform_rigid_images = str2bool(input_args_file['use_transform_rigid_images'])
         args.use_transform_elasticdeform_images = str2bool(input_args_file['use_transform_elasticdeform_images'])
+        args.manual_seed_train = str2int(input_args_file['manual_seed_train'])
+        args.name_reference_keys_file = str(input_args_file['name_reference_keys_file'])
         args.layers_vgg16_loss_perceptual = str2list_str(input_args_file['layers_vgg16_loss_perceptual'])
         args.weights_vgg16_loss_perceptual = str2list_float(input_args_file['weights_vgg16_loss_perceptual'])
         args.prop_redsize_vgg16_loss_perceptual = float(input_args_file['prop_redsize_vgg16_loss_perceptual'])

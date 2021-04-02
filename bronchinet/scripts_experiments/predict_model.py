@@ -25,7 +25,8 @@ def func_extract_caseprocname_filename(in_filename: str) -> str:
 
 
 def main(args):
-    # ---------- SETTINGS ----------
+
+    # SETTINGS
     name_input_images_files = 'images_proc*.nii.gz'
     # name_input_labels_files = 'labels_proc*.nii.gz'
     # name_input_extra_labels_files = 'cenlines_proc*.nii.gz'
@@ -33,7 +34,7 @@ def main(args):
         name_output_prediction_files = 'featmaps_proc%s_lay-%s_feat%0.2i.nii.gz'
     else:
         name_output_prediction_files = 'probmaps_proc%s.nii.gz'
-    # ---------- SETTINGS ----------
+    # --------
 
     workdir_manager = TrainDirManager(args.basedir)
     testing_data_path = workdir_manager.get_pathdir_exist(args.testing_datadir)

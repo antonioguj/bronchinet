@@ -1,16 +1,21 @@
 
+import numpy as np
 import matplotlib.pyplot as plt
-from common.functionutil import *
+import argparse
+
+from common.functionutil import makedir, is_exist_dir, join_path_names, basename_filenoext, list_files_dir
+from common.exceptionmanager import catch_error_exception
 from dataloaders.imagefilereader import ImageFileReader
-from plotting.histogram import Histogram
-import argparse, textwrap
+# from plotting.histogram import Histogram
 
 TYPES_PLOT_AVAILABLE = ['histogram']
 
 
 def main(args):
 
+    # SETTINGS
     save_plot_figures = False
+    # --------
 
     list_input_files = list_files_dir(args.input_dir)
 
@@ -20,7 +25,7 @@ def main(args):
     if args.type_plot == 'histogram':
         template_outfigname = 'fig_hist_%s.png'
 
-
+    # ******************************
 
     for i, in_file in enumerate(list_input_files):
         print("\nInput: \'%s\'..." % (in_file))
@@ -48,13 +53,12 @@ def main(args):
             outfigname = join_path_names(args.output_dir, outfigname)
             print("Output: \'%s\'..." % (outfigname))
 
-            #plt.savefig(outfigname, format='eps', dpi=1000)
+            # plt.savefig(outfigname, format='eps', dpi=1000)
             plt.savefig(outfigname, format='png')
             plt.close()
         else:
             plt.show()
     # endfor
-
 
 
 if __name__ == "__main__":

@@ -294,11 +294,11 @@ if __name__ == "__main__":
     parser.add_argument('--dist_propdata_train_valid_test', type=str2tuple_float, default=DIST_PROPDATA_TRAINVALIDTEST)
     parser.add_argument('--infile_order_train', type=str, default=None)
     parser.add_argument('--num_folds_crossval', type=int, default=None)
+    parser.add_argument('--name_input_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
+    parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
     parser.add_argument('--name_training_data_relpath', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--name_validation_data_relpath', type=str, default=NAME_VALIDATIONDATA_RELPATH)
     parser.add_argument('--name_testing_data_relpath', type=str, default=NAME_TESTINGDATA_RELPATH)
-    parser.add_argument('--name_input_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
-    parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--name_input_extra_labels_relpath', type=str, default=NAME_PROC_EXTRALABELS_RELPATH)
     parser.add_argument('--is_prepare_many_images_per_label', type=str2bool, default=False)
@@ -314,7 +314,6 @@ if __name__ == "__main__":
         args.is_keep_raw_images = True
         args.is_prepare_labels = False
         args.is_input_extra_labels = False
-        args.is_prepare_centrelines = True
     else:
         message = 'Input param \'type_data\' = \'%s\' not valid, must be inside: \'%s\'...' \
                   % (args.type_data, LIST_TYPE_DATA_AVAIL)

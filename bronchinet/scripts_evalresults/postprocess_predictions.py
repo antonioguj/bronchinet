@@ -4,7 +4,7 @@ import argparse
 from common.constant import BASEDIR, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_BINARY_TRAIN_MASKS,\
                             NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
                             NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, \
-                            NAME_CROP_BOUNDINGBOX_FILE
+                            NAME_CROP_BOUNDBOXES_FILE
 from common.functionutil import is_exist_file, join_path_names, basename, basename_filenoext, list_files_dir, \
                                 find_file_inlist_same_prefix, str2bool, read_dictionary, \
                                 read_dictionary_configparams
@@ -16,10 +16,11 @@ from imageoperators.maskoperator import MaskOperator
 
 
 def main(args):
-    # ---------- SETTINGS ----------
+
+    # SETTINGS
     def name_output_posteriors_files(in_name: str):
         return basename_filenoext(in_name) + '_probmap.nii.gz'
-    # ---------- SETTINGS ----------
+    # --------
 
     workdir_manager = TrainDirManager(args.basedir)
     input_predictions_path = workdir_manager.get_pathdir_exist(args.name_input_predictions_relpath)
@@ -36,7 +37,7 @@ def main(args):
         list_input_roimasks_files = list_files_dir(input_roimasks_path)
 
     if (args.is_crop_images):
-        input_crop_boundboxes_file = workdir_manager.get_datafile_exist(args.name_crop_bounding_boxes_file)
+        input_crop_boundboxes_file = workdir_manager.get_datafile_exist(args.name_crop_boundboxes_file)
         indict_crop_boundboxes = read_dictionary(input_crop_boundboxes_file)
 
     # *****************************************************
@@ -110,7 +111,7 @@ if __name__ == "__main__":
     parser.add_argument('--name_input_roimasks_relpath', type=str, default=NAME_RAW_ROIMASKS_RELPATH)
     parser.add_argument('--name_input_reference_files_relpath', type=str, default=NAME_REFERENCE_FILES_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_POSTERIORS_FILE)
-    parser.add_argument('--name_crop_bounding_boxes_file', type=str, default=NAME_CROP_BOUNDINGBOX_FILE)
+    parser.add_argument('--name_crop_boundboxes_file', type=str, default=NAME_CROP_BOUNDBOXES_FILE)
     parser.add_argument('--is_binary_predictions', type=str2bool, default=IS_BINARY_TRAIN_MASKS)
     # parser.add_argument('--is_process_data_stack_images', type=str2bool, default=False)
     args = parser.parse_args()
@@ -125,7 +126,7 @@ if __name__ == "__main__":
         args.basedir = str(input_args_file['basedir'])
         args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
         # args.is_crop_images = str2bool(input_args_file['is_crop_images'])
-        # args.name_crop_bounding_boxes_file = str(input_args_file['name_crop_bounding_boxes_file'])
+        # args.name_crop_boundboxes_file = str(input_args_file['name_crop_boundboxes_file'])
 
     print("Print input arguments...")
     for key, value in vars(args).items():
