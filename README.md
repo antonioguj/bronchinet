@@ -30,7 +30,7 @@ Project Organization
     │   │
     │   ├── scripts_evalresults	<- Scripts to evaluate results from models
     │   ├── scripts_experiments	<- Scripts to train and test models
-    │   ├── scripts_prepdata  	<- Scripts to prepare data to train models
+    │   ├── scripts_preparedata	<- Scripts to prepare data to train models
     │   └── scripts_util	<- Scripts for various utilities
     │
     └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
@@ -70,10 +70,10 @@ Prepare data
 - python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[various option]
 
 2) Compute bounding-boxes around lung masks, for input images:
-- python ./Code/scripts_prepdata/compute_boundingbox_images.py --datadir=[path_dir_dataset]
+- python ./Code/scripts_preparedata/compute_boundingbox_images.py --datadir=[path_dir_dataset]
 
 3) Prepare data: include i) crop images, ii) mask ground-truth to lung regions, iii) rescale images.
-- python ./Code/scripts_prepdata/prepare_data.py --datadir=[path_dir_dataset]
+- python ./Code/scripts_preparedata/prepare_data.py --datadir=[path_dir_dataset]
 
 Train models
 ------------
