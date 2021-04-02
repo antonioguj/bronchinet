@@ -1,25 +1,26 @@
 
-from common.functionutil import *
-from dataloaders.imagefilereader import ImageFileReader
-from imageoperators.imageoperator import *
+import numpy as np
 import argparse
 
+from common.functionutil import basename, list_files_dir, str2bool
+from dataloaders.imagefilereader import ImageFileReader
 
 value_exclude = -1
-value_foreground = 1
-value_background = 0
+value_foregrnd = 1
+value_backgrnd = 0
+
 
 def compute_balance_classes(in_mask):
-    numvox_foreground_class = len(np.where(in_mask == value_foreground)[0])
-    numvox_background_class = len(np.where(in_mask != value_foreground)[0])
-    return (numvox_foreground_class, numvox_background_class)
+    numvox_foregrnd_cls = len(np.where(in_mask == value_foregrnd)[0])
+    numvox_backgrnd_cls = len(np.where(in_mask != value_foregrnd)[0])
+    return (numvox_foregrnd_cls, numvox_backgrnd_cls)
+
 
 def compute_balance_classes_with_exclusion(in_mask):
-    numvox_exclude_class    = len(np.where(in_mask == value_exclude)[0])
-    numvox_foreground_class = len(np.where(in_mask == value_foreground)[0])
-    numvox_background_class = len(np.where(in_mask == value_background)[0])
-    return (numvox_foreground_class, numvox_background_class)
-
+    # numvox_exclude_cls = len(np.where(in_mask == value_exclude)[0])
+    numvox_foregrnd_cls = len(np.where(in_mask == value_foregrnd)[0])
+    numvox_backgrnd_cls = len(np.where(in_mask == value_backgrnd)[0])
+    return (numvox_foregrnd_cls, numvox_backgrnd_cls)
 
 
 def main(args):
@@ -35,22 +36,21 @@ def main(args):
 
         if (args.is_mask_region_interest):
             print("Compute ratio foreground / background masks with exclusion to Region of Interest...")
-            (num_foreground_class, num_background_class) = compute_balance_classes_with_exclusion(in_mask)
+            (num_foregrnd_cls, num_backgrnd_cls) = compute_balance_classes_with_exclusion(in_mask)
         else:
-            (num_foreground_class, num_background_class) = compute_balance_classes(in_mask)
+            (num_foregrnd_cls, num_backgrnd_cls) = compute_balance_classes(in_mask)
 
-        ratio_back_foreground_class = num_background_class / num_foreground_class
+        ratio_back_foreground_class = num_backgrnd_cls / num_foregrnd_cls
 
         list_ratio_back_foreground_class.append(ratio_back_foreground_class)
 
-        print("Number of voxels of foreground masks: \'%s\', and background masks: \'%s\'..." %(num_foreground_class, num_background_class))
-        print("Balance classes background / foreground masks: \'%s\'..." %(ratio_back_foreground_class))
+        print("Number voxels of foreground \'%s\' and background mask \'%s\'..." % (num_foregrnd_cls, num_backgrnd_cls))
+        print("Balance classes background / foreground masks: \'%s\'..." % (ratio_back_foreground_class))
     # endfor
 
     average_ratio_back_foreground_class = sum(list_ratio_back_foreground_class) / len(list_ratio_back_foreground_class)
 
     print("\nAverage balance classes negative / positive: \'%s\'..." % (average_ratio_back_foreground_class))
-
 
 
 if __name__ == "__main__":
@@ -62,6 +62,6 @@ if __name__ == "__main__":
 
     print("Print input arguments...")
     for key, value in vars(args).items():
-        print("\'%s\' = %s" %(key, value))
+        print("\'%s\' = %s" % (key, value))
 
     main(args)

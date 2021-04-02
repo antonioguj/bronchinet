@@ -17,7 +17,8 @@ from imageoperators.maskoperator import MaskOperator
 
 
 def main(args):
-    # ---------- SETTINGS ----------
+
+    # SETTINGS
     metric_eval_threshold = args.metric_eval_threshold
     metrics_value_sought = args.metric_value_sought
     num_iter_evaluate_max = args.num_iter_evaluate_max
@@ -34,7 +35,7 @@ def main(args):
         message = 'MetricsEvalThreshold \'%s\' not found...' % (metric_eval_threshold)
         catch_error_exception(message)
     _epsilon = 1.0e-06
-    # ---------- SETTINGS ----------
+    # --------
 
     workdir_manager = TrainDirManager(args.basedir)
     input_posteriors_path = workdir_manager.get_pathdir_exist(args.input_posteriors_dir)

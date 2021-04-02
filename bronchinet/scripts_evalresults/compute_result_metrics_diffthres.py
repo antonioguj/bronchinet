@@ -19,7 +19,8 @@ np.random.seed(2017)
 
 
 def main(args):
-    # ---------- SETTINGS ----------
+
+    # SETTINGS
     outfilename_metrics_eachcase = 'results_metrics_diffThres_%s.csv'
     outfilename_metrics_meanall = 'meanAllcases_results_metrics_diffThres.csv'
 
@@ -38,7 +39,7 @@ def main(args):
     # #allowedDistance = 0
     # inlist_thresholds += [1.0]
     print("List of Threshold values: %s" % (inlist_thresholds))
-    # ---------- SETTINGS ----------
+    # --------
 
     workdir_manager = TrainDirManager(args.basedir)
     input_posteriors_path = workdir_manager.get_pathdir_exist(args.input_posteriors_dir)

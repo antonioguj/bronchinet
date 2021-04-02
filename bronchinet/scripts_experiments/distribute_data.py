@@ -8,7 +8,7 @@ from common.constant import BASEDIR, DIST_PROPDATA_TRAINVALIDTEST, \
                             NAME_TRAININGDATA_RELPATH, NAME_VALIDATIONDATA_RELPATH, NAME_TESTINGDATA_RELPATH, \
                             NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
                             NAME_REFERENCE_KEYS_PROCIMAGE_FILE
-from common.functionutil import makelink, set_dirname_suffix, is_exist_file, join_path_names, list_files_dir, basename, \
+from common.functionutil import makelink, set_dirname_suffix, is_exist_file, join_path_names, list_files_dir, basename,\
                                 basename_filenoext, str2tuple_float, read_dictionary, find_intersection_3lists
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.workdirmanager import TrainDirManager
@@ -259,11 +259,11 @@ if __name__ == "__main__":
     parser.add_argument('--dist_propdata_train_valid_test', type=str2tuple_float, default=DIST_PROPDATA_TRAINVALIDTEST)
     parser.add_argument('--infile_order_train', type=str, default=None)
     parser.add_argument('--num_folds_crossval', type=int, default=None)
+    parser.add_argument('--name_input_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
+    parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
     parser.add_argument('--name_training_data_relpath', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--name_validation_data_relpath', type=str, default=NAME_VALIDATIONDATA_RELPATH)
     parser.add_argument('--name_testing_data_relpath', type=str, default=NAME_TESTINGDATA_RELPATH)
-    parser.add_argument('--name_input_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
-    parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--name_input_extra_labels_relpath', type=str, default=NAME_PROC_EXTRALABELS_RELPATH)
     args = parser.parse_args()

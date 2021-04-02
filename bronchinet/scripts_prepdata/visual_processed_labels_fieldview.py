@@ -1,33 +1,36 @@
 
-from common.constant import *
-from common.functionutil import *
+import numpy as np
+import argparse
+
+from common.constant import DATADIR, SIZE_IN_IMAGES, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, \
+                            NET_NUM_LEVELS, IS_VALID_CONVOLUTIONS, IS_FILTER_PRED_PROBMAPS, PROP_VALID_OUTPUT_NNET, \
+                            PROP_OVERLAP_SLIDING_WINDOW_PRED, NAME_REFERENCE_KEYS_PROCIMAGE_FILE
+from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, str2bool, \
+                                str2tuple_int, str2tuple_float
 from common.workdirmanager import GeneralDirManager
 from dataloaders.dataloader_manager import get_imagedataloader_2images
 from dataloaders.imagefilereader import ImageFileReader
 from models.model_manager import get_network
 from postprocessing.postprocessing_manager import get_images_reconstructor
-import argparse
-
 
 
 def main(args):
-    # ---------- SETTINGS ----------
-    name_input_images_files = 'images_proc*.nii.gz'
+
+    # SETTINGS
+    # name_input_images_files = 'images_proc*.nii.gz'
     name_input_labels_files = 'labels_proc*.nii.gz'
 
     def name_output_files(in_name, in_size_image):
-        suffix = 'outsize-%s' %('x'.join([str(s) for s in in_size_image]))
+        suffix = 'outsize-%s' % ('x'.join([str(s) for s in in_size_image]))
         return 'fieldview_' + basename_filenoext(in_name) + '_' + suffix + '.nii.gz'
-    # ---------- SETTINGS ----------
+    # --------
 
-
-    workdir_manager         = GeneralDirManager(args.datadir)
-    input_images_data_path  = workdir_manager.get_pathdir_exist(args.name_input_images_relpath)
-    input_labels_data_path  = workdir_manager.get_pathdir_exist(args.name_input_labels_relpath)
-    in_reference_keys_file  = workdir_manager.get_pathfile_exist(args.name_input_reference_keys_file)
-    output_files_path       = workdir_manager.get_pathdir_new(args.output_dir)
+    workdir_manager = GeneralDirManager(args.datadir)
+    # input_images_data_path = workdir_manager.get_pathdir_exist(args.name_input_images_relpath)
+    input_labels_data_path = workdir_manager.get_pathdir_exist(args.name_input_labels_relpath)
+    # in_reference_keys_file = workdir_manager.get_pathfile_exist(args.name_input_reference_keys_file)
+    output_files_path = workdir_manager.get_pathdir_new(args.output_dir)
     list_input_labels_files = list_files_dir(input_labels_data_path, name_input_labels_files)
-
 
     # Build model to calculate the output size
     model_network = get_network('UNet3D_Plugin',
@@ -39,8 +42,9 @@ def main(args):
     size_out_image_network = model_network.get_size_output()[1:]
 
     if args.is_valid_convolutions:
-        print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..." % (str(args.size_in_images),
-                                                                                               str(size_out_image_network)))
+        print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..."
+              % (str(args.size_in_images), str(size_out_image_network)))
+
     # Create Image Reconstructor
     images_reconstructor = get_images_reconstructor(args.size_in_images,
                                                     use_sliding_window_images=args.use_sliding_window_images,
@@ -54,6 +58,7 @@ def main(args):
                                                     is_filter_output_nnet=IS_FILTER_PRED_PROBMAPS,
                                                     prop_filter_output_nnet=PROP_VALID_OUTPUT_NNET)
 
+    # *****************************************************
 
     names_files_different = []
 
@@ -61,22 +66,22 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_label_file)))
 
         print("Loading data...")
-        label_data_loader = get_imagedataloader_2images([in_label_file],
-                                                        [in_label_file],
-                                                        size_in_images=args.size_in_images,
-                                                        use_sliding_window_images=args.use_sliding_window_images,
-                                                        prop_overlap_slide_window=args.prop_overlap_sliding_window,
-                                                        use_transform_rigid_images=False,
-                                                        use_transform_elasticdeform_images=False,
-                                                        use_random_window_images=False,
-                                                        num_random_patches_epoch=0,
-                                                        is_nnet_validconvs=args.is_valid_convolutions,
-                                                        size_output_images=size_out_image_network,
-                                                        batch_size=1,
-                                                        is_shuffle=False)
+        label_data_loader = get_imagedataloader_2images(
+            [in_label_file],
+            [in_label_file],
+            size_in_images=args.size_in_images,
+            use_sliding_window_images=args.use_sliding_window_images,
+            prop_overlap_slide_window=args.prop_overlap_sliding_window,
+            use_transform_rigid_images=False,
+            use_transform_elasticdeform_images=False,
+            use_random_window_images=False,
+            num_random_patches_epoch=0,
+            is_nnet_validconvs=args.is_valid_convolutions,
+            size_output_images=size_out_image_network,
+            batch_size=1,
+            is_shuffle=False)
         (_, label_data_batches) = label_data_loader.get_full_data()
         print("Loaded \'%s\' files. Total batches generated: %s..." % (1, len(label_data_batches)))
-
 
         print("Reconstruct full size label from batches...")
         out_shape_reconstructed_label = ImageFileReader.get_image_size(in_label_file)
@@ -85,6 +90,7 @@ def main(args):
         out_label_reconstructed = images_reconstructor.compute(label_data_batches)
         out_fieldview_reconstructed = images_reconstructor.compute_overlap_image_patches()
 
+        # ******************************
 
         print("Compare voxels-wise both Original and Reconstructed Labels...")
         in_label_original = ImageFileReader.get_image(in_label_file)
@@ -99,10 +105,9 @@ def main(args):
             print("WARNING: Labels 1 and 2 are not equal...")
             num_voxels_labels_original = np.sum(in_onlylabels_original)
             num_voxels_labels_reconstructed = np.sum(in_onlylabels_reconstructed)
-            print("Num Voxels for Original and Reconstructed Labels: \'%s\' != \'%s\'..." %(num_voxels_labels_original,
-                                                                                            num_voxels_labels_reconstructed))
+            print("Num Voxels for Original and Reconstructed Labels: \'%s\' != \'%s\'..."
+                  % (num_voxels_labels_original, num_voxels_labels_reconstructed))
             names_files_different.append(basename(in_label_file))
-
 
         # Output computed field of view
         out_filename = join_path_names(output_files_path, name_output_files(in_label_file, size_out_image_network))
@@ -114,9 +119,8 @@ def main(args):
     if (len(names_files_different) == 0):
         print("\nGOOD: ALL IMAGE FILES ARE EQUAL...")
     else:
-        print("\nWARNING: Found \'%s\' files that are different. Names of files: \'%s\'..." %(len(names_files_different),
-                                                                                              names_files_different))
-
+        print("\nWARNING: Found \'%s\' files that are different. Names of files: \'%s\'..."
+              % (len(names_files_different), names_files_different))
 
 
 if __name__ == "__main__":
@@ -137,5 +141,5 @@ if __name__ == "__main__":
 
     print("Print input arguments...")
     for key, value in vars(args).items():
-        print("\'%s\' = %s" %(key, value))
+        print("\'%s\' = %s" % (key, value))
     main(args)

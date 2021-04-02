@@ -11,8 +11,8 @@ from common.constant import BASEDIR, POST_THRESHOLD_VALUE, LIST_TYPE_METRICS_RES
                             NAME_TESTINGDATA_RELPATH, NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH,\
                             NAME_PRED_BINARYMASKS_RELPATH, NAME_PRED_CENTRELINES_RELPATH, \
                             NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_PRED_RESULT_METRICS_FILE
-from common.functionutil import currentdir, set_filename_suffix, set_dirname_suffix, is_exist_file, join_path_names, \
-                                makedir, basename, basenamedir, dirname, list_dirs_dir, str2bool
+from common.functionutil import currentdir, makedir, set_filename_suffix, set_dirname_suffix, is_exist_file, \
+                                join_path_names, basename, basenamedir, dirname, list_dirs_dir, str2bool
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 

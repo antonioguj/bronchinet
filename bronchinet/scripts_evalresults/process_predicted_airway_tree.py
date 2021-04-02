@@ -13,10 +13,11 @@ from imageoperators.maskoperator import MaskOperator
 
 
 def main(args):
-    # ---------- SETTINGS ----------
+
+    # SETTINGS
     def name_output_binary_masks_files(in_name: str, thres: float):
         return basename(in_name).replace('probmap', 'binmask_thres%s') % (str(thres).replace('.', ''))
-    # ---------- SETTINGS ----------
+    # --------
 
     workdir_manager = TrainDirManager(args.basedir)
     input_posteriors_path = workdir_manager.get_pathdir_exist(args.name_input_posteriors_relpath)

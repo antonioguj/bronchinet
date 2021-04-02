@@ -1,10 +1,15 @@
 
-from common.functionutil import *
-from dataloaders.imagefilereader import ImageFileReader
+from typing import Tuple
+import numpy as np
 import argparse
 
+from dataloaders.imagefilereader import ImageFileReader
 
-def create_sphere_in_image(inout_image: np.ndarray, coords0=None, radius=50) -> np.ndarray:
+
+def create_sphere_in_image(inout_image: np.ndarray,
+                           coords0: Tuple[int, int, int] = None,
+                           radius: float = 50
+                           ) -> np.ndarray:
     if not coords0:
         coords0 = (int(inout_image.shape[0]/2), int(inout_image.shape[1]/2), int(inout_image.shape[2]/2))
 
@@ -12,27 +17,30 @@ def create_sphere_in_image(inout_image: np.ndarray, coords0=None, radius=50) -> 
     (x_min, x_max) = (coords0[1] - radius, coords0[1] + radius)
     (y_min, y_max) = (coords0[2] - radius, coords0[2] + radius)
 
-    indexZ_sphere = []
-    indexX_sphere = []
-    indexY_sphere = []
+    indexes_z_sphere = []
+    indexes_x_sphere = []
+    indexes_y_sphere = []
     for iz in range(z_min, z_max, 1):
         for ix in range(x_min, x_max, 1):
             for iy in range(y_min, y_max, 1):
                 dist = np.sqrt((iz - coords0[0]) ** 2 + (ix - coords0[1]) ** 2 + (iy - coords0[2]) ** 2)
                 if (dist < radius):
-                    indexZ_sphere.append(iz)
-                    indexX_sphere.append(ix)
-                    indexY_sphere.append(iy)
+                    indexes_z_sphere.append(iz)
+                    indexes_x_sphere.append(ix)
+                    indexes_y_sphere.append(iy)
             # endfor
         # endfor
     # endfor
-    indexes_sphere = [indexZ_sphere, indexX_sphere, indexY_sphere]
+    indexes_sphere = [indexes_z_sphere, indexes_x_sphere, indexes_y_sphere]
 
     inout_image[indexes_sphere] = 1
     return inout_image
 
 
-def create_cuboid_in_image(inout_image: np.ndarray, coords0=None, halfsides=(50, 50, 50)) -> np.ndarray:
+def create_cuboid_in_image(inout_image: np.ndarray,
+                           coords0: Tuple[int, int, int] = None,
+                           halfsides: Tuple[int, int, int] = (50, 50, 50)
+                           ) -> np.ndarray:
     if not coords0:
         coords0 = (int(inout_image.shape[0] / 2), int(inout_image.shape[1] / 2), int(inout_image.shape[2] / 2))
 
@@ -40,41 +48,34 @@ def create_cuboid_in_image(inout_image: np.ndarray, coords0=None, halfsides=(50,
     (x_min, x_max) = (coords0[1] - halfsides[1], coords0[1] + halfsides[1])
     (y_min, y_max) = (coords0[2] - halfsides[2], coords0[2] + halfsides[2])
 
-    indexZ_cuboid = []
-    indexX_cuboid = []
-    indexY_cuboid = []
+    indexes_z_cuboid = []
+    indexes_x_cuboid = []
+    indexes_y_cuboid = []
     for iz in range(z_min, z_max, 1):
         for ix in range(x_min, x_max, 1):
             for iy in range(y_min, y_max, 1):
-                indexZ_cuboid.append(iz)
-                indexX_cuboid.append(ix)
-                indexY_cuboid.append(iy)
+                indexes_z_cuboid.append(iz)
+                indexes_x_cuboid.append(ix)
+                indexes_y_cuboid.append(iy)
             # endfor
         # endfor
     # endfor
-    indexes_cuboid = [indexZ_cuboid, indexX_cuboid, indexY_cuboid]
+    indexes_cuboid = [indexes_z_cuboid, indexes_y_cuboid, indexes_y_cuboid]
 
     inout_image[indexes_cuboid] = 1
     return inout_image
 
 
-
 def main(args):
-
 
     # Create image
     out_shape_image = (256, 256, 256)
-
-    out_image_1 = np.zeros(out_shape_image)
-    out_image_1 = create_sphere_in_image(out_image_1, radius=50)
-    #out_image_1 = create_cuboid_in_image(out_image_1, halfsides=(50, 50, 50))
-
-    out_image = out_image_1
+    out_image = np.zeros(out_shape_image)
+    out_image = create_sphere_in_image(out_image, radius=50)
 
     # write out image
-    print("Write out image: %s..." %(args.output_file))
+    print("Write out image: %s..." % (args.output_file))
     ImageFileReader.write_image(args.output_file, out_image)
-
 
 
 if __name__ == "__main__":
@@ -84,6 +85,6 @@ if __name__ == "__main__":
 
     print("Print input arguments...")
     for key, value in vars(args).items():
-        print("\'%s\' = %s" %(key, value))
+        print("\'%s\' = %s" % (key, value))
 
     main(args)
