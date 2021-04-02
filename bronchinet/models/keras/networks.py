@@ -8,14 +8,14 @@ from tensorflow.keras.models import Model
 
 from models.networks import UNetBase
 
-LIST_AVAIL_NETWORKS = ['UNet3DOriginal',
-                       'UNet3DGeneral',
-                       'UNet3DPlugin',
-                       'UNet3DPlugin3levels',
-                       'UNet3DPlugin5levels',
-                       'UNet2DPlugin3levels',
-                       'UNet3DPluginNoSkipConn5levels',
-                       'UNet3DPluginNoSkipConn3levels',
+LIST_AVAIL_NETWORKS = ['UNet3D_Original',
+                       'UNet3D_General',
+                       'UNet3D_Plugin',
+                       'UNet3D_Plugin3levels',
+                       'UNet3D_Plugin5levels',
+                       'UNet2D_Plugin3levels',
+                       'UNet3D_PluginNoSkipConn5levels',
+                       'UNet3D_PluginNoSkipConn3levels',
                        ]
 
 

@@ -30,7 +30,7 @@ Project Organization
     │   │
     │   ├── scripts_evalresults	<- Scripts to evaluate results from models
     │   ├── scripts_experiments	<- Scripts to train and test models
-    │   ├── scripts_prepdata  	<- Scripts to prepare data to train models
+    │   ├── scripts_preparedata	<- Scripts to prepare data to train models
     │   └── scripts_util	<- Scripts for various utilities
     │
     └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
@@ -69,8 +69,8 @@ Prepare data
 1) [IF NEEDED] Preprocess data: apply various operations to input images / masks: rescaling, binarise masks
 - python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[various option]
 
-3) Prepare data:
-- python ./Code/scripts_prepdata/prepare_data.py --datadir=[path_dir_dataset]
+2) Prepare data:
+- python ./Code/scripts_preparedata/prepare_data.py --datadir=[path_dir_dataset]
 
 Train models
 ------------
