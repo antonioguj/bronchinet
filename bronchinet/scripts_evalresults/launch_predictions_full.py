@@ -4,15 +4,13 @@ import traceback
 import sys
 import argparse
 
-from common.constant import BASEDIR, POST_THRESHOLD_VALUE, LIST_TYPE_METRICS_RESULT, \
-                            IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, \
-                            NAME_CONFIG_PARAMS_FILE, IS_ATTACH_COARSE_AIRWAYS, IS_REMOVE_TRACHEA_CALC_METRICS, \
-                            NAME_RAW_LABELS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, NAME_RAW_COARSEAIRWAYS_RELPATH, \
-                            NAME_TESTINGDATA_RELPATH, NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH,\
-                            NAME_PRED_BINARYMASKS_RELPATH, NAME_PRED_CENTRELINES_RELPATH, \
-                            NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_PRED_RESULT_METRICS_FILE
+from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, POST_THRESHOLD_VALUE, LIST_TYPE_METRICS_RESULT, \
+    IS_REMOVE_TRACHEA_CALC_METRICS, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, \
+    IS_ATTACH_COARSE_AIRWAYS, NAME_CONFIG_PARAMS_FILE, NAME_RAW_LABELS_RELPATH, NAME_TEMPO_POSTERIORS_RELPATH, \
+    NAME_POSTERIORS_RELPATH, NAME_PRED_BINARYMASKS_RELPATH, NAME_PRED_CENTRELINES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
+    NAME_RAW_COARSEAIRWAYS_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_PRED_RESULT_METRICS_FILE
 from common.functionutil import currentdir, makedir, set_filename_suffix, set_dirname_suffix, is_exist_file, \
-                                join_path_names, basename, basenamedir, dirname, list_dirs_dir, str2bool
+    join_path_names, basename, basenamedir, dirname, list_dirs_dir, str2bool
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 
@@ -95,10 +93,10 @@ def main(args):
         for i, inputdir in enumerate(list_input_modeldirs):
             input_model_file = join_path_names(inputdir, input_model_relfile)
             in_config_params_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
-            print('For CV-fold %s: load model file: %s' % (i+1, input_model_file))
+            print('For CV-fold %s: load model file: %s' % (i + 1, input_model_file))
 
             inout_predict_reference_keys_file_this \
-                = set_filename_suffix(inout_predict_reference_keys_file, 'CV%0.2i' % (i+1))
+                = set_filename_suffix(inout_predict_reference_keys_file, 'CV%0.2i' % (i + 1))
             list_predict_reference_keys_files_cvfolds.append(inout_predict_reference_keys_file_this)
 
             if not is_exist_file(in_config_params_file):
@@ -146,11 +144,11 @@ def main(args):
     new_call = ['python3', SCRIPT_POSTPROCESS_PREDICTIONS,
                 '--basedir', basedir,
                 '--name_input_predictions_relpath', inout_tempo_posteriors_path,
-                '--name_input_reference_keys_file', inout_predict_reference_keys_file,
                 '--name_output_posteriors_relpath', output_posteriors_path,
                 '--is_mask_region_interest', str(IS_MASK_REGION_INTEREST),
                 '--is_crop_images', str(IS_CROP_IMAGES),
-                '--is_rescale_images', str(IS_RESCALE_IMAGES)]
+                '--is_rescale_images', str(IS_RESCALE_IMAGES),
+                '--name_input_reference_keys_file', inout_predict_reference_keys_file]
     list_calls_all.append(new_call)
 
     # ******************************
@@ -230,9 +228,9 @@ def main(args):
     new_call = ['python3', SCRIPT_COMPUTE_RESULT_METRICS,
                 output_predict_binary_masks_path, output_predict_centrelines_path,
                 '--basedir', basedir,
-                '--output_file', output_result_metrics_file,
                 # '--list_type_metrics', ' '.join([el for el in args.list_type_metrics_result]),
                 '--is_remove_trachea_calc_metrics', str(IS_REMOVE_TRACHEA_CALC_METRICS),
+                '--output_file', output_result_metrics_file,
                 '--name_input_coarse_airways_relpath', name_input_coarse_airways_relpath]
     list_calls_all.append(new_call)
 
@@ -276,8 +274,8 @@ if __name__ == "__main__":
     parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--is_preds_crossval', type=str2bool, default=False)
     parser.add_argument('--post_thresholds_values', type=str, nargs='*', default=[POST_THRESHOLD_VALUE])
-    parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
     parser.add_argument('--list_type_metrics_result', nargs='+', type=str, default=LIST_TYPE_METRICS_RESULT)
+    parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)
     parser.add_argument('--in_connregions_dim', type=int, default=1)
     parser.add_argument('--is_conservative_remove_trachea_calc_metrics', type=str2bool, default=True)

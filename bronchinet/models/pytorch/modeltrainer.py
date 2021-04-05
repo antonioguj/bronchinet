@@ -209,7 +209,8 @@ class ModelTrainer(ModelTrainerBase):
               valid_data_loader: BatchDataGenerator = None,
               num_epochs: int = 1,
               max_steps_epoch: int = None,
-              initial_epoch: int = 0
+              initial_epoch: int = 0,
+              is_shuffle_data: bool = False
               ) -> None:
         self._train_data_loader = train_data_loader
         self._valid_data_loader = valid_data_loader
@@ -279,7 +280,7 @@ class ModelTrainer(ModelTrainerBase):
             num_batches = len(self._train_data_loader)
 
         progressbar = tqdm(total=num_batches,
-                           desc='Epochs {}/{}'.format(self._epoch_count+1, self._num_epochs),
+                           desc='Epochs {}/{}'.format(self._epoch_count + 1, self._num_epochs),
                            bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{remaining}{postfix}]')
 
         # time_compute = 0.0
@@ -308,7 +309,7 @@ class ModelTrainer(ModelTrainerBase):
             # time_now = dt.now()
             # time_compute += (time_now - time_ini).seconds
 
-            loss_partial = sumrun_loss / (i_batch+1)
+            loss_partial = sumrun_loss / (i_batch + 1)
             progressbar.set_postfix(loss='{0:1.5f}'.format(loss_partial))
             progressbar.update(1)
 

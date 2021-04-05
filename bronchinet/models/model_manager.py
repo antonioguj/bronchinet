@@ -39,12 +39,12 @@ elif TYPE_DNNLIB_USED == 'Keras':
     from models.keras.networks import UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS
     from models.keras.optimizers import get_sgd, get_sgd_mom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
-from models.metrics import MetricBase, MeanSquaredError, MeanSquaredErrorLogarithmic, BinaryCrossEntropy, \
-                           WeightedBinaryCrossEntropy, WeightedBinaryCrossEntropyFixedWeights, DiceCoefficient, \
-                           TruePositiveRate, TrueNegativeRate, FalsePositiveRate, FalseNegativeRate, \
-                           AirwayCompleteness, AirwayVolumeLeakage, AirwayCentrelineLeakage, AirwayTreeLength, \
-                           AirwayCentrelineDistanceFalseNegativeError, AirwayCentrelineDistanceFalsePositiveError, \
-                           LIST_AVAIL_METRICS
+from models.metrics import MetricBase, MeanSquaredError, MeanSquaredErrorLogarithmic, \
+    BinaryCrossEntropy, WeightedBinaryCrossEntropy, WeightedBinaryCrossEntropyFixedWeights, \
+    DiceCoefficient, TruePositiveRate, TrueNegativeRate, FalsePositiveRate, FalseNegativeRate, \
+    AirwayCompleteness, AirwayVolumeLeakage, AirwayCentrelineLeakage, AirwayTreeLength, \
+    AirwayCentrelineDistanceFalseNegativeError, AirwayCentrelineDistanceFalsePositiveError, \
+    LIST_AVAIL_METRICS
 from models.networks import ConvNetBase
 
 

@@ -1,9 +1,9 @@
 
 from tensorflow.keras.optimizers import SGD as SGD_keras, \
-                                        Adagrad as Adagrad_keras, \
-                                        RMSprop as RMSprop_keras, \
-                                        Adadelta as Adadelta_keras, \
-                                        Adam as Adam_keras
+    Adagrad as Adagrad_keras, \
+    RMSprop as RMSprop_keras, \
+    Adadelta as Adadelta_keras, \
+    Adam as Adam_keras
 
 LIST_AVAIL_OPTIMIZERS = ['SGD',
                          'SGD_mom',

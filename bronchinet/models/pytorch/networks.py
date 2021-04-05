@@ -232,7 +232,7 @@ class UNet3DGeneral(UNet):
         else:
             self._num_convols_levels_down = num_convols_levels_down
         if type(num_convols_levels_up) == int:
-            self._num_convols_levels_up = [num_convols_levels_up] * (self._num_levels-1)
+            self._num_convols_levels_up = [num_convols_levels_up] * (self._num_levels - 1)
         else:
             self._num_convols_levels_up = num_convols_levels_up
 
@@ -241,7 +241,7 @@ class UNet3DGeneral(UNet):
         else:
             self._sizes_kernel_convol_levels_down = sizes_kernel_convol_levels_down
         if type(sizes_kernel_convol_levels_up) == tuple:
-            self._sizes_kernel_convol_levels_up = [sizes_kernel_convol_levels_up] * (self._num_levels-1)
+            self._sizes_kernel_convol_levels_up = [sizes_kernel_convol_levels_up] * (self._num_levels - 1)
         else:
             self._sizes_kernel_convol_levels_up = sizes_kernel_convol_levels_up
 
@@ -267,7 +267,7 @@ class UNet3DGeneral(UNet):
             else:
                 self._is_use_dropout_levels_down = is_use_dropout_levels_down
             if type(is_use_dropout_levels_up) == bool:
-                self._is_use_dropout_levels_up = [is_use_dropout_levels_up] * (self._num_levels-1)
+                self._is_use_dropout_levels_up = [is_use_dropout_levels_up] * (self._num_levels - 1)
             else:
                 self._is_use_dropout_levels_up = is_use_dropout_levels_up
 
@@ -278,7 +278,7 @@ class UNet3DGeneral(UNet):
             else:
                 self._is_use_batchnormalize_levels_down = is_use_batchnormalize_levels_down
             if type(is_use_batchnormalize_levels_up) == bool:
-                self._is_use_batchnormalize_levels_up = [is_use_batchnormalize_levels_up] * (self._num_levels-1)
+                self._is_use_batchnormalize_levels_up = [is_use_batchnormalize_levels_up] * (self._num_levels - 1)
             else:
                 self._is_use_batchnormalize_levels_up = is_use_batchnormalize_levels_up
 
@@ -320,12 +320,12 @@ class UNet3DGeneral(UNet):
                     new_batchnormalize = BatchNorm3d(num_featmaps_out_convol)
                     self._batchnormalize_levels_down[i_lev].append(new_batchnormalize)
 
-            if (i_lev != self._num_levels-1):
+            if (i_lev != self._num_levels - 1):
                 new_pooling = MaxPool3d(kernel_size=self._sizes_pooling_levels[i_lev], padding=0)
                 self._poolings_levels_down.append(new_pooling)
 
         # DECODING LAYERS
-        for i_lev in range(self._num_levels-2, -1, -1):
+        for i_lev in range(self._num_levels - 2, -1, -1):
             num_featmaps_in_level = self._num_featmaps_levels[i_lev - 1] + self._num_featmaps_levels[i_lev]
             num_featmaps_out_level = self._num_featmaps_levels[i_lev]
 
@@ -385,12 +385,12 @@ class UNet3DGeneral(UNet):
             if self._is_use_dropout and self._is_use_dropout_levels_down[i_lev]:
                 hidden_next = self._dropout_all_levels(hidden_next)
 
-            if (i_lev != self._num_levels-1):
+            if (i_lev != self._num_levels - 1):
                 list_skipconn_levels.append(hidden_next)
                 hidden_next = self._poolings_levels_down[i_lev](hidden_next)
 
         # DECODING LAYERS
-        for i_lev in range(self._num_levels-2, -1, -1):
+        for i_lev in range(self._num_levels - 2, -1, -1):
             hidden_next = self._upsamples_levels_up[i_lev](hidden_next)
 
             skipconn_thislev = list_skipconn_levels[i_lev]

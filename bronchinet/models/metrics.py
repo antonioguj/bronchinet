@@ -60,9 +60,9 @@ class MetricBase(object):
             totaldim_0 = target.shape[0]
             metrics_1 = self.compute(target[0:totaldim_0 / 2], input[:totaldim_0 / 2])
             metrics_2 = self.compute(target[totaldim_0 / 2:], input[totaldim_0 / 2:])
-            size_1 = target[0:totaldim_0/2].size
-            size_2 = target[totaldim_0/2:].size
-            return (metrics_1 * size_1 + metrics_2 * size_2)/(size_1 + size_2)
+            size_1 = target[0:totaldim_0 / 2].size
+            size_2 = target[totaldim_0 / 2:].size
+            return (metrics_1 * size_1 + metrics_2 * size_2) / (size_1 + size_2)
         else:
             return self.compute(target, input)
 
@@ -77,12 +77,12 @@ class CombineTwoMetrics(MetricBase):
         self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
     def compute(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
-        return self._metrics_1.compute(target, input) + \
-               self._weight_metric2over1 * self._metrics_2.compute(target, input)
+        return self._metrics_1.compute(target, input) \
+            + self._weight_metric2over1 * self._metrics_2.compute(target, input)
 
     def compute_safememory(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
-        return self._metrics_1.compute_safememory(target, input) + \
-               self._weight_metric2over1 * self._metrics_2.compute_safememory(target, input)
+        return self._metrics_1.compute_safememory(target, input) \
+            + self._weight_metric2over1 * self._metrics_2.compute_safememory(target, input)
 
 
 class MeanSquaredError(MetricBase):
@@ -106,13 +106,13 @@ class MeanSquaredErrorLogarithmic(MetricBase):
         self._name_fun_out = 'mean_squared_log'
 
     def _compute(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
-        return np.mean(np.square(np.log(np.clip(input, _EPS, None) + 1.0) -
-                                 np.log(np.clip(target, _EPS, None) + 1.0)))
+        return np.mean(np.square(np.log(np.clip(input, _EPS, None) + 1.0)
+                                 - np.log(np.clip(target, _EPS, None) + 1.0)))
 
     def _compute_masked(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
         mask = self._get_mask(target)
-        return np.mean(np.square(np.log(np.clip(input, _EPS, None) + 1.0) -
-                                 np.log(np.clip(target, _EPS, None) + 1.0)) * mask)
+        return np.mean(np.square(np.log(np.clip(input, _EPS, None) + 1.0)
+                                 - np.log(np.clip(target, _EPS, None) + 1.0)) * mask)
 
 
 class BinaryCrossEntropy(MetricBase):
@@ -306,7 +306,7 @@ class AirwayTreeLength(AirwayMetricBase):
         self._name_fun_out = 'tree_length'
 
     def _get_voxel_length_unit(self) -> np.ndarray:
-        return np.prod(self._voxel_size) ** (1.0/len(self._voxel_size))
+        return np.prod(self._voxel_size) ** (1.0 / len(self._voxel_size))
 
     def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
                       input_cenline: np.ndarray) -> np.ndarray:

@@ -5,8 +5,7 @@ import numpy as np
 from tensorflow.keras.models import load_model
 import tensorflow as tf
 
-from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_EPOCH_KERAS, NAME_SAVEDMODEL_LAST_KERAS, \
-                            IS_SHUFFLE_TRAINDATA
+from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_EPOCH_KERAS, NAME_SAVEDMODEL_LAST_KERAS
 from common.functionutil import join_path_names
 from dataloaders.batchdatagenerator import BatchDataGenerator
 from models.modeltrainer import ModelTrainerBase
@@ -99,7 +98,8 @@ class ModelTrainer(ModelTrainerBase):
               valid_data_loader: BatchDataGenerator = None,
               num_epochs: int = 1,
               max_steps_epoch: int = None,
-              initial_epoch: int = 0
+              initial_epoch: int = 0,
+              is_shuffle_data: bool = False
               ) -> None:
         self._compiled_model.fit_generator(generator=train_data_loader,
                                            steps_per_epoch=max_steps_epoch,
@@ -107,7 +107,7 @@ class ModelTrainer(ModelTrainerBase):
                                            verbose=1,
                                            callbacks=self._list_callbacks,
                                            validation_data=valid_data_loader,
-                                           shuffle=IS_SHUFFLE_TRAINDATA,
+                                           shuffle=is_shuffle_data,
                                            initial_epoch=initial_epoch)
 
     def predict(self, test_data_loader: BatchDataGenerator) -> np.ndarray:

@@ -3,7 +3,7 @@ import numpy as np
 import argparse
 
 from common.functionutil import makedir, join_path_names, list_files_dir, basename, get_substring_filename, \
-                                get_pattern_refer_filename, find_file_inlist_same_prefix
+    get_pattern_refer_filename, find_file_inlist_same_prefix
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.imageoperator import NormaliseImage
 

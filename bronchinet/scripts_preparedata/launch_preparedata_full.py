@@ -4,12 +4,12 @@ import traceback
 import sys
 import argparse
 
-from common.constant import SIZE_IN_IMAGES, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_TWO_BOUNDBOXES_EACH_LUNG,\
-                            IS_RESCALE_IMAGES, FIXED_RESCALE_RESOL, NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, \
-                            NAME_RAW_ROIMASKS_RELPATH, NAME_RAW_COARSEAIRWAYS_RELPATH, NAME_REFERENCE_FILES_RELPATH, \
-                            NAME_RAW_CENTRELINES_RELPATH, NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE
+from common.constant import SIZE_IN_IMAGES, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, \
+    IS_TWO_BOUNDBOXES_EACH_LUNG, NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
+    NAME_REFERENCE_FILES_RELPATH, NAME_RAW_CENTRELINES_RELPATH, NAME_RAW_COARSEAIRWAYS_RELPATH, \
+    NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE
 from common.functionutil import currentdir, makedir, set_dirname_suffix, join_path_names, list_files_dir, \
-                                basename, fileextension, str2bool, str2tuple_int, str2tuple_float
+    basename, fileextension, str2bool, str2tuple_int
 from common.exceptionmanager import catch_error_exception
 
 CODEDIR = '/home/antonio/Codes/Antonio_repository/bronchinet/src/'
@@ -329,9 +329,8 @@ if __name__ == "__main__":
     parser.add_argument('--size_train_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
-    parser.add_argument('--is_two_boundboxes_each_lung', type=str2bool, default=IS_TWO_BOUNDBOXES_EACH_LUNG)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
-    parser.add_argument('--fixed_rescale_resol', type=str2tuple_float, default=FIXED_RESCALE_RESOL)
+    parser.add_argument('--is_two_boundboxes_each_lung', type=str2bool, default=IS_TWO_BOUNDBOXES_EACH_LUNG)
     args = parser.parse_args()
 
     if args.type_data == 'training':

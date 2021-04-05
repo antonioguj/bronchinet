@@ -5,10 +5,10 @@ import numpy as np
 import argparse
 
 from common.constant import NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
-                            NAME_REFERENCE_KEYS_PROCIMAGE_FILE
+    NAME_REFERENCE_KEYS_PROCIMAGE_FILE
 from common.functionutil import makedir, makelink, copyfile, update_dirname, is_exist_file, is_exist_dir, \
-                                join_path_names, list_files_dir, basename, basenamedir, basename_filenoext, \
-                                dirnamedir, str2bool, read_dictionary, save_dictionary, save_dictionary_csv
+    join_path_names, list_files_dir, basename, basenamedir, basename_filenoext, dirnamedir, str2bool, \
+    read_dictionary, save_dictionary, save_dictionary_csv
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import GeneralDirManager
 
@@ -128,7 +128,7 @@ def main(args):
         input_image_file = list_input_images_files_all_data[index_data][index_image_file]
         in_reference_file = list_dict_in_reference_keys_all_data[index_data][basename_filenoext(input_image_file)]
         output_image_file = join_path_names(output_images_data_path,
-                                            name_template_output_images_files % (icount+1))
+                                            name_template_output_images_files % (icount + 1))
         print("%s --> %s (%s)" % (basename(output_image_file), input_image_file, basename(in_reference_file)))
         if args.is_link_merged_files:
             makelink(input_image_file, output_image_file)
@@ -140,7 +140,7 @@ def main(args):
         if args.is_prepare_labels:
             input_label_file = list_input_labels_files_all_data[index_data][index_image_file]
             output_label_file = join_path_names(output_labels_data_path,
-                                                name_template_output_labels_files % (icount+1))
+                                                name_template_output_labels_files % (icount + 1))
             if args.is_link_merged_files:
                 makelink(input_label_file, output_label_file)
             else:
@@ -149,7 +149,7 @@ def main(args):
         if args.is_input_extra_labels:
             input_extra_label_file = list_input_extra_labels_files_all_data[index_data][index_image_file]
             output_extra_label_file = join_path_names(output_extra_labels_data_path,
-                                                      name_template_output_extra_labels_files % (icount+1))
+                                                      name_template_output_extra_labels_files % (icount + 1))
             if args.is_link_merged_files:
                 makelink(input_extra_label_file, output_extra_label_file)
             else:

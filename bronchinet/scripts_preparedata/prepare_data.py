@@ -5,13 +5,12 @@ import numpy as np
 import argparse
 
 from common.constant import DATADIR, IS_BINARY_TRAIN_MASKS, IS_MASK_REGION_INTEREST, IS_NORMALIZE_DATA, \
-                            IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_TWO_BOUNDBOXES_EACH_LUNG, NAME_RAW_IMAGES_RELPATH, \
-                            NAME_RAW_LABELS_RELPATH, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, \
-                            NAME_RAW_ROIMASKS_RELPATH, NAME_RAW_EXTRALABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
-                            NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-                            NAME_RESCALE_FACTORS_FILE, NAME_CROP_BOUNDBOXES_FILE
+    IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_TWO_BOUNDBOXES_EACH_LUNG, NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, \
+    NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_RAW_EXTRALABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
+    NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_RAW_ROIMASKS_RELPATH, \
+    NAME_RESCALE_FACTORS_FILE, NAME_CROP_BOUNDBOXES_FILE
 from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, str2bool, \
-                                read_dictionary, save_dictionary, save_dictionary_csv
+    read_dictionary, save_dictionary, save_dictionary_csv
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.workdirmanager import GeneralDirManager
 from dataloaders.imagefilereader import ImageFileReader
@@ -299,12 +298,12 @@ def main(args):
 
             if is_output_multiple_files_per_image:
                 output_image_file = join_path_names(output_images_path,
-                                                    name_template_output_images_files % (ifile+1, isubfile+1))
+                                                    name_template_output_images_files % (ifile + 1, isubfile + 1))
             else:
                 output_image_file = join_path_names(output_images_path,
-                                                    name_template_output_images_files % (ifile+1))
+                                                    name_template_output_images_files % (ifile + 1))
             print("Output \'%s\' image, of type \'%s\': \'%s\'..."
-                  % (icount+1, list_type_inout_data[icount], basename(output_image_file)))
+                  % (icount + 1, list_type_inout_data[icount], basename(output_image_file)))
 
             ImageFileReader.write_image(output_image_file, list_inout_data[icount])
             icount += 1
@@ -320,12 +319,12 @@ def main(args):
 
                 if is_output_multiple_files_per_label:
                     output_label_file = join_path_names(output_labels_path,
-                                                        name_template_output_labels_files % (ifile+1, isubfile+1))
+                                                        name_template_output_labels_files % (ifile + 1, isubfile + 1))
                 else:
                     output_label_file = join_path_names(output_labels_path,
-                                                        name_template_output_labels_files % (ifile+1))
+                                                        name_template_output_labels_files % (ifile + 1))
                 print("Output \'%s\' label, of type \'%s\': \'%s\'..."
-                      % (icount+1, list_type_inout_data[icount], basename(output_label_file)))
+                      % (icount + 1, list_type_inout_data[icount], basename(output_label_file)))
 
                 ImageFileReader.write_image(output_label_file, list_inout_data[icount])
                 icount += 1
@@ -336,15 +335,15 @@ def main(args):
                     catch_error_exception(message)
 
                 if is_output_multiple_files_per_label:
-                    output_extra_label_file = join_path_names(output_labels_path,
-                                                              name_template_output_labels_files % (ifile+1, isubfile+1))
+                    output_label_file = join_path_names(output_labels_path,
+                                                        name_template_output_labels_files % (ifile + 1, isubfile + 1))
                 else:
-                    output_extra_label_file = join_path_names(output_labels_path,
-                                                              name_template_output_labels_files % (ifile+1))
+                    output_label_file = join_path_names(output_labels_path,
+                                                        name_template_output_labels_files % (ifile + 1))
                 print("Output \'%s\' extra label, of type \'%s\': \'%s\'..."
-                      % (icount+1, list_type_inout_data[icount], basename(output_extra_label_file)))
+                      % (icount + 1, list_type_inout_data[icount], basename(output_label_file)))
 
-                ImageFileReader.write_image(output_extra_label_file, list_inout_data[icount])
+                ImageFileReader.write_image(output_label_file, list_inout_data[icount])
                 icount += 1
         # endfor
     # endfor

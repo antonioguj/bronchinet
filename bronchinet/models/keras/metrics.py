@@ -77,12 +77,12 @@ class MetricWithUncertainty(Metric):
         self._name_fun_out = self._metrics_loss._name_fun_out + '_uncertain'
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return (1.0 - self._epsilon) * self._metrics_loss._compute(target, input) + \
-               self._epsilon * self._metrics_loss._compute(K.ones_like(input) / 3, input)
+        return (1.0 - self._epsilon) * self._metrics_loss._compute(target, input) \
+            + self._epsilon * self._metrics_loss._compute(K.ones_like(input) / 3, input)
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return (1.0 - self._epsilon) * self._metrics_loss._compute_masked(target, input) + \
-               self._epsilon * self._metrics_loss._compute_masked(K.ones_like(input) / 3, input)
+        return (1.0 - self._epsilon) * self._metrics_loss._compute_masked(target, input) \
+            + self._epsilon * self._metrics_loss._compute_masked(K.ones_like(input) / 3, input)
 
 
 class CombineTwoMetrics(Metric):
@@ -95,12 +95,12 @@ class CombineTwoMetrics(Metric):
         self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
     def compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return self._metrics_1.compute(target, input) + \
-               self._weight_metric2over1 * self._metrics_2.compute(target, input)
+        return self._metrics_1.compute(target, input) \
+            + self._weight_metric2over1 * self._metrics_2.compute(target, input)
 
     def lossfun(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return self._metrics_1.lossfun(target, input) + \
-               self._weight_metric2over1 * self._metrics_2.lossfun(target, input)
+        return self._metrics_1.lossfun(target, input) \
+            + self._weight_metric2over1 * self._metrics_2.lossfun(target, input)
 
 
 class MeanSquaredError(Metric):
@@ -124,13 +124,13 @@ class MeanSquaredErrorLogarithmic(Metric):
         self._name_fun_out = 'mean_squared_log'
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return K.mean(K.square(K.log(K.clip(input, _EPS, None) + 1.0) -
-                               K.log(K.clip(target, _EPS, None) + 1.0)), axis=-1)
+        return K.mean(K.square(K.log(K.clip(input, _EPS, None) + 1.0)
+                               - K.log(K.clip(target, _EPS, None) + 1.0)), axis=-1)
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         mask = self._get_mask(target)
-        return K.mean(K.square(K.log(K.clip(input, _EPS, None) + 1.0) -
-                               K.log(K.clip(target, _EPS, None) + 1.0)) * mask, axis=-1)
+        return K.mean(K.square(K.log(K.clip(input, _EPS, None) + 1.0)
+                               - K.log(K.clip(target, _EPS, None) + 1.0)) * mask, axis=-1)
 
 
 class BinaryCrossEntropy(Metric):
@@ -162,8 +162,8 @@ class WeightedBinaryCrossEntropy(Metric):
                                        dtype=tf.int32)
         num_class_0 = tf.count_nonzero(tf.where(K.equal(target, 0.0), K.ones_like(target), K.zeros_like(target)),
                                        dtype=tf.int32)
-        return (1.0, K.cast(num_class_0, dtype=tf.float32) /
-                (K.cast(num_class_1, dtype=tf.float32) + K.variable(_EPS)))
+        return (1.0, K.cast(num_class_0, dtype=tf.float32)
+                / (K.cast(num_class_1, dtype=tf.float32) + K.variable(_EPS)))
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         weights = self._get_weights(target)

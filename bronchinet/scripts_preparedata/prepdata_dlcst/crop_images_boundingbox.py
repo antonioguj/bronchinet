@@ -1,8 +1,8 @@
 
 import argparse
 
-from common.functionutil import makedir, list_files_dir, join_path_names, basename, basename_filenoext, fileextension, \
-                                get_pattern_prefix_filename, find_file_inlist_same_prefix, read_dictionary
+from common.functionutil import makedir, list_files_dir, join_path_names, basename, basename_filenoext, fileextension,\
+    get_pattern_prefix_filename, find_file_inlist_same_prefix, read_dictionary
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.imageoperator import CropImage, FlipImage
 

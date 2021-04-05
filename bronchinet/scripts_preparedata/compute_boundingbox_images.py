@@ -3,10 +3,10 @@ from collections import OrderedDict
 import argparse
 
 from common.constant import DATADIR, SIZE_BUFFER_BOUNDBOX_BORDERS, IS_TWO_BOUNDBOXES_EACH_LUNG, SIZE_IN_IMAGES, \
-                            IS_SAME_SIZE_BOUNDBOX_ALL_IMAGES, SIZE_FIXED_BOUNDBOX_ALL, IS_CALC_BOUNDBOX_IN_SLICES, \
-                            NAME_RAW_ROIMASKS_RELPATH, NAME_CROP_BOUNDBOXES_FILE, NAME_REFERENCE_FILES_RELPATH
+    IS_SAME_SIZE_BOUNDBOX_ALL_IMAGES, SIZE_FIXED_BOUNDBOX_ALL, IS_CALC_BOUNDBOX_IN_SLICES, NAME_RAW_ROIMASKS_RELPATH, \
+    NAME_CROP_BOUNDBOXES_FILE, NAME_REFERENCE_FILES_RELPATH
 from common.functionutil import basename, basename_filenoext, list_files_dir, str2bool, str2tuple_int, \
-                                save_dictionary, save_dictionary_csv
+    save_dictionary, save_dictionary_csv
 from common.workdirmanager import GeneralDirManager
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.boundingboxes import BoundingBoxes

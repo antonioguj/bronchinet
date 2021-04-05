@@ -13,7 +13,7 @@ def get_images_reconstructor(size_images: Tuple[int, ...],
                              use_random_window_images: bool,
                              num_random_patches_epoch: int,
                              use_transform_rigid_images: bool = False,
-                             use_transform_elasticdeform_images: bool = False,
+                             use_transform_elastic_images: bool = False,
                              size_volume_image: Tuple[int, ...] = (0, 0, 0),
                              is_nnet_validconvs: bool = False,
                              size_output_image: Tuple[int, ...] = None,
@@ -27,7 +27,7 @@ def get_images_reconstructor(size_images: Tuple[int, ...],
                                             use_random_window_images=use_random_window_images,
                                             num_random_patches_epoch=num_random_patches_epoch,
                                             use_transform_rigid_images=use_transform_rigid_images,
-                                            use_transform_elasticdeform_images=use_transform_elasticdeform_images,
+                                            use_transform_elastic_images=use_transform_elastic_images,
                                             size_volume_image=size_volume_image)
 
     if is_filter_output_nnet:

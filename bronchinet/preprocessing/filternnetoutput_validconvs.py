@@ -54,7 +54,7 @@ class FilterNnetOutputValidConvs(ImageGenerator):
 
     @staticmethod
     def calc_exponential_progression(coord_0: int, coord_1: int) -> np.ndarray:
-        return (np.exp(np.linspace(0, 1, coord_1 - coord_0)) - 1)/(np.exp(1) - 1)
+        return (np.exp(np.linspace(0, 1, coord_1 - coord_0)) - 1) / (np.exp(1) - 1)
 
     def update_image_data(self, in_shape_image: Tuple[int, ...]) -> None:
         self._num_images = in_shape_image[0]
@@ -122,18 +122,18 @@ class FilterNnetOutputValidConvs(ImageGenerator):
             num_outputs_nnet = len(self._size_output_image)
             sizes_boundboxes_output = self._size_output_image + [self._size_image]
 
-            inner_boundbox_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
-                                                                                      sizes_boundboxes_output[0])
+            inner_boundbox_output = \
+                BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image, sizes_boundboxes_output[0])
             self._fill_flat_interior_boundbox(inner_boundbox_output)
 
             for i in range(num_outputs_nnet):
                 propa_value_in = 1.0 - i / float(num_outputs_nnet)
                 propa_value_out = 1.0 - (i + 1) / float(num_outputs_nnet)
 
-                inner_boundbox_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
-                                                                                          sizes_boundboxes_output[i])
-                outer_boundbox_output = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
-                                                                                          sizes_boundboxes_output[i+1])
+                inner_boundbox_output = \
+                    BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image, sizes_boundboxes_output[i])
+                outer_boundbox_output = \
+                    BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image, sizes_boundboxes_output[i + 1])
                 self._fill_progression_between_two_boundboxes(inner_boundbox_output, outer_boundbox_output,
                                                               propa_value_in, propa_value_out)
         else:

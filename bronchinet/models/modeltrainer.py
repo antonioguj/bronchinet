@@ -105,7 +105,8 @@ class ModelTrainerBase(object):
               valid_data_loader: BatchDataGenerator = None,
               num_epochs: int = 1,
               max_steps_epoch: int = None,
-              initial_epoch: int = 0
+              initial_epoch: int = 0,
+              is_shuffle_data: bool = False
               ) -> None:
         raise NotImplementedError
 

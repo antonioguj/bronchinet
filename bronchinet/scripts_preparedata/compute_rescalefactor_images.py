@@ -4,9 +4,9 @@ import numpy as np
 import argparse
 
 from common.constant import DATADIR, FIXED_RESCALE_RESOL, NAME_RAW_IMAGES_RELPATH, NAME_RESCALE_FACTORS_FILE, \
-                            NAME_REFERENCE_FILES_RELPATH
+    NAME_REFERENCE_FILES_RELPATH
 from common.functionutil import basename, basename_filenoext, list_files_dir, str2tuple_float, \
-                                save_dictionary, save_dictionary_csv
+    save_dictionary, save_dictionary_csv
 from common.workdirmanager import GeneralDirManager
 from dataloaders.imagefilereader import DicomReader
 

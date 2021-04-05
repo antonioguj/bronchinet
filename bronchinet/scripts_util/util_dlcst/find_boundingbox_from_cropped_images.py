@@ -15,10 +15,10 @@ def compute_test_range_boundbox(in_shape_fullimage: Tuple[int, int, int],
                                 alpha_relax: float = 0.5, z_min_top: int = 0, z_numtest: int = 1
                                 ) -> np.ndarray:
     test_range_boundboxes = np.zeros((3, 2), dtype=np.int)
-    y_0 = (1.0 - alpha_relax) * (int(np.float(in_shape_fullimage[1]) / 2) -
-                                 int(np.ceil(np.float(in_shape_cropimage[1]) / 2)))
-    x_0 = (1.0 - alpha_relax) * (int(np.float(in_shape_fullimage[2]) / 2) -
-                                 int(np.ceil(np.float(in_shape_cropimage[2]) / 2)))
+    y_0 = (1.0 - alpha_relax) * (int(np.float(in_shape_fullimage[1]) / 2)
+                                 - int(np.ceil(np.float(in_shape_cropimage[1]) / 2)))
+    x_0 = (1.0 - alpha_relax) * (int(np.float(in_shape_fullimage[2]) / 2)
+                                 - int(np.ceil(np.float(in_shape_cropimage[2]) / 2)))
     z_m = in_shape_fullimage[0] - z_min_top
     z_0 = z_m - in_shape_cropimage[0] - (z_numtest - 1)
     test_range_boundboxes[0, 0] = z_0

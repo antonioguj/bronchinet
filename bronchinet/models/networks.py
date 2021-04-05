@@ -154,17 +154,18 @@ class UNetBase(ConvNetBase):
             # Assume that last convolutions have padding, to avoid large reduction of image dims
             num_levels_with_padding = self._num_levels - self._num_levels_non_padded - 1
             self._list_opers_names_layers_all = \
-                self._num_levels_non_padded * (['convols'] * 2 + ['pooling']) + \
-                num_levels_with_padding * (['convols_padded'] * 2 + ['pooling']) + \
-                ['convols_padded'] * 2 + \
-                num_levels_with_padding * (['upsample'] + ['convols_padded'] * 2) + \
-                self._num_levels_non_padded * (['upsample'] + ['convols'] * 2) + \
-                ['classify']
+                self._num_levels_non_padded * (['convols'] * 2 + ['pooling']) \
+                + num_levels_with_padding * (['convols_padded'] * 2 + ['pooling']) \
+                + ['convols_padded'] * 2 \
+                + num_levels_with_padding * (['upsample'] + ['convols_padded'] * 2) \
+                + self._num_levels_non_padded * (['upsample'] + ['convols'] * 2) \
+                + ['classify']
         else:
-            self._list_opers_names_layers_all = (self._num_levels - 1) * (['convols'] * 2 + ['pooling']) + \
-                                                ['convols'] * 2 + \
-                                                (self._num_levels - 1) * (['upsample'] + ['convols'] * 2) + \
-                                                ['classify']
+            self._list_opers_names_layers_all = \
+                (self._num_levels - 1) * (['convols'] * 2 + ['pooling']) \
+                + ['convols'] * 2 \
+                + (self._num_levels - 1) * (['upsample'] + ['convols'] * 2) \
+                + ['classify']
 
     def _build_list_info_crop_where_merge(self) -> None:
         raise NotImplementedError

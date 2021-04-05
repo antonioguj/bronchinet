@@ -28,7 +28,7 @@ def check_compare_equal_volume_mask(in_image_1: np.ndarray, in_image_2: np.ndarr
     volmask_image1 = np.prod(img1_voxel_size) * num_voxels_image1
     volmask_image2 = np.prod(img2_voxel_size) * num_voxels_image2
 
-    rel_error_vols = abs(1.0 - volmask_image2/volmask_image1)
+    rel_error_vols = abs(1.0 - volmask_image2 / volmask_image1)
     if rel_error_vols < _max_relerror_volume_mask:
         print("GOOD: masks have similar volumes: \'%s\' == \'%s\'. Rel error: \'%s\'..."
               % (volmask_image1, volmask_image2, rel_error_vols))
@@ -152,11 +152,11 @@ def main(args):
                         names_files_different.append(basename(in_file_1))
 
                         out_diffimages_filename = join_path_names(args.tempdir,
-                                                                  name_output_diff_image_files_name % (i+1))
+                                                                  name_output_diff_image_files_name % (i + 1))
                         print("Output difference between images maps: \'%s\'..." % (basename(out_diffimages_filename)))
 
                         out_histo_filename = join_path_names(args.tempdir,
-                                                             name_output_histo_files_name % (i+1))
+                                                             name_output_histo_files_name % (i + 1))
                         print("Output the histograms of both images: \'%s\'..." % (basename(out_histo_filename)))
 
                         Histogram.plot_compare_histograms([in_image_1, in_image_2],
@@ -166,7 +166,7 @@ def main(args):
         else:
             print("Images of different size: \'%s\' != \'%s\'" % (in_image_1.shape, in_image_2.shape))
 
-            out_histo_filename = join_path_names(args.tempdir, name_output_histo_files_name % (i+1))
+            out_histo_filename = join_path_names(args.tempdir, name_output_histo_files_name % (i + 1))
             print("Output the histograms of both images: \'%s\'..." % (basename(out_histo_filename)))
             print("CHECK MANUALLY THE HISTOGRAMS WHETHER THE IMAGES ARE DIFFERENT")
 

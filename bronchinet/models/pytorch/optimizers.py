@@ -1,9 +1,9 @@
 
 from torch.optim import SGD as SGD_torch, \
-                        Adagrad as Adagrad_torch, \
-                        RMSprop as RMSprop_torch, \
-                        Adadelta as Adadelta_torch, \
-                        Adam as Adam_torch
+    Adagrad as Adagrad_torch, \
+    RMSprop as RMSprop_torch, \
+    Adadelta as Adadelta_torch, \
+    Adam as Adam_torch
 
 LIST_AVAIL_OPTIMIZERS = ['SGD',
                          'SGD_mom',

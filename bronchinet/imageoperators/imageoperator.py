@@ -398,10 +398,10 @@ class FirstConnectedRegionMask(ImageOperator):
         out_image = None
         for ireg in range(num_regs):
             # volume = count voxels for the the conn. region with label "i+1"
-            iconreg_vol = np.count_nonzero(all_regions == ireg+1)
+            iconreg_vol = np.count_nonzero(all_regions == ireg + 1)
             if iconreg_vol > max_vol_regs:
                 # extract the conn. region with label "i+1"
-                out_image = np.where(all_regions == ireg+1, 1, 0).astype(in_image.dtype)
+                out_image = np.where(all_regions == ireg + 1, 1, 0).astype(in_image.dtype)
                 max_vol_regs = iconreg_vol
 
         return out_image

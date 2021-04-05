@@ -5,24 +5,21 @@ import numpy as np
 import argparse
 
 from common.constant import BASEDIR, SIZE_IN_IMAGES, NAME_TRAININGDATA_RELPATH, NAME_VALIDATIONDATA_RELPATH, \
-                            MAX_TRAIN_IMAGES, MAX_VALID_IMAGES, USE_VALIDATION_DATA, BATCH_SIZE, NUM_EPOCHS, \
-                            TYPE_NETWORK, NET_NUM_LEVELS, NET_NUM_FEATMAPS, TYPE_OPTIMIZER, LEARN_RATE, TYPE_LOSS, \
-                            WEIGHT_COMBINED_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, IS_MASK_REGION_INTEREST, \
-                            USE_SLIDING_WINDOW_IMAGES, PROP_OVERLAP_SLIDING_WINDOW, USE_RANDOM_WINDOW_IMAGES, \
-                            NUM_RANDOM_PATCHES_EPOCH, USE_TRANSFORM_RIGID_IMAGES, USE_TRANSFORM_VALIDATION_DATA, \
-                            USE_TRANSFORM_ELASTICDEFORM_IMAGES, IS_SHUFFLE_TRAINDATA, MANUAL_SEED_TRAIN, \
-                            FREQ_SAVE_INTER_MODELS, FREQ_VALIDATE_MODEL, NAME_LOSSHISTORY_FILE, \
-                            NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, \
-                            WRITE_OUT_DESC_MODEL_TEXT, NAME_DESCRIPT_MODEL_LOGFILE, NAME_REFERENCE_KEYS_PROCIMAGE_FILE,\
-                            TYPE_DNNLIB_USED, IS_RESTART_ONLY_WEIGHTS
+    MAX_TRAIN_IMAGES, MAX_VALID_IMAGES, BATCH_SIZE, NUM_EPOCHS, TYPE_NETWORK, NET_NUM_LEVELS, NET_NUM_FEATMAPS, \
+    TYPE_OPTIMIZER, LEARN_RATE, TYPE_LOSS, WEIGHT_COMBINED_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, \
+    IS_MASK_REGION_INTEREST, USE_SLIDING_WINDOW_IMAGES, PROP_OVERLAP_SLIDING_WINDOW, USE_RANDOM_WINDOW_IMAGES, \
+    NUM_RANDOM_PATCHES_EPOCH, USE_TRANSFORM_RIGID_IMAGES, USE_TRANSFORM_VALIDATION_DATA, USE_VALIDATION_DATA, \
+    USE_TRANSFORM_ELASTIC_IMAGES, FREQ_SAVE_INTER_MODELS, FREQ_VALIDATE_MODEL, NAME_LOSSHISTORY_FILE, \
+    NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
+    MANUAL_SEED_TRAIN, IS_SHUFFLE_TRAINDATA, WRITE_OUT_DESC_MODEL_TEXT, NAME_DESCRIPT_MODEL_LOGFILE, TYPE_DNNLIB_USED,\
+    IS_RESTART_ONLY_WEIGHTS
 if TYPE_DNNLIB_USED == 'Pytorch':
     from common.constant import NAME_SAVEDMODEL_LAST_TORCH as NAME_SAVEDMODEL_LAST
 elif TYPE_DNNLIB_USED == 'Keras':
     from common.constant import NAME_SAVEDMODEL_LAST_KERAS as NAME_SAVEDMODEL_LAST
 from common.functionutil import join_path_names, is_exist_file, update_filename, basename, basename_filenoext, \
-                                list_files_dir, get_substring_filename, str2bool, str2int, str2list_str, \
-                                str2tuple_int, str2tuple_float, read_dictionary, read_dictionary_configparams, \
-                                save_dictionary_configparams
+    list_files_dir, get_substring_filename, str2bool, str2int, str2list_str, str2tuple_int, str2tuple_float, \
+    read_dictionary, read_dictionary_configparams, save_dictionary_configparams
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.dataloader_manager import get_train_imagedataloader_2images
@@ -181,21 +178,21 @@ def main(args):
               % (str(args.size_in_images), str(size_out_image_model)))
 
     print("Loading Training data...")
-    training_data_loader = get_train_imagedataloader_2images(
-        list_train_images_files,
-        list_train_labels_files,
-        size_in_images=args.size_in_images,
-        use_sliding_window_images=args.use_sliding_window_images,
-        prop_overlap_slide_window=args.prop_overlap_sliding_window,
-        use_transform_rigid_images=args.use_transform_rigid_images,
-        use_transform_elasticdeform_images=args.use_transform_elasticdeform_images,
-        use_random_window_images=args.use_random_window_images,
-        num_random_patches_epoch=args.num_random_patches_epoch,
-        is_nnet_validconvs=args.is_valid_convolutions,
-        size_output_images=size_out_image_model,
-        batch_size=args.batch_size,
-        is_shuffle=IS_SHUFFLE_TRAINDATA,
-        manual_seed=args.manual_seed_train)
+    training_data_loader = \
+        get_train_imagedataloader_2images(list_train_images_files,
+                                          list_train_labels_files,
+                                          size_in_images=args.size_in_images,
+                                          use_sliding_window_images=args.use_sliding_window_images,
+                                          prop_overlap_slide_window=args.prop_overlap_sliding_window,
+                                          use_transform_rigid_images=args.use_transform_rigid_images,
+                                          use_transform_elastic_images=args.use_transform_elastic_images,
+                                          use_random_window_images=args.use_random_window_images,
+                                          num_random_patches_epoch=args.num_random_patches_epoch,
+                                          is_nnet_validconvs=args.is_valid_convolutions,
+                                          size_output_images=size_out_image_model,
+                                          batch_size=args.batch_size,
+                                          is_shuffle=IS_SHUFFLE_TRAINDATA,
+                                          manual_seed=args.manual_seed_train)
     print("Loaded \'%s\' files. Total batches generated: %s..."
           % (len(list_train_images_files), len(training_data_loader)))
 
@@ -203,24 +200,24 @@ def main(args):
         print("\nLoading Validation data...")
         args.use_transform_rigid_images = \
             args.use_transform_rigid_images and USE_TRANSFORM_VALIDATION_DATA
-        args.use_transform_elasticdeform_images = \
-            args.use_transform_elasticdeform_images and USE_TRANSFORM_VALIDATION_DATA
+        args.use_transform_elastic_images = \
+            args.use_transform_elastic_images and USE_TRANSFORM_VALIDATION_DATA
 
-        validation_data_loader = get_train_imagedataloader_2images(
-            list_valid_images_files,
-            list_valid_labels_files,
-            size_in_images=args.size_in_images,
-            use_sliding_window_images=args.use_sliding_window_images,
-            prop_overlap_slide_window=args.prop_overlap_sliding_window,
-            use_transform_rigid_images=args.use_transform_rigid_images,
-            use_transform_elasticdeform_images=args.use_transform_elasticdeform_images,
-            use_random_window_images=args.use_random_window_images,
-            num_random_patches_epoch=args.num_random_patches_epoch,
-            is_nnet_validconvs=args.is_valid_convolutions,
-            size_output_images=size_out_image_model,
-            batch_size=args.batch_size,
-            is_shuffle=IS_SHUFFLE_TRAINDATA,
-            manual_seed=args.manual_seed_train)
+        validation_data_loader = \
+            get_train_imagedataloader_2images(list_valid_images_files,
+                                              list_valid_labels_files,
+                                              size_in_images=args.size_in_images,
+                                              use_sliding_window_images=args.use_sliding_window_images,
+                                              prop_overlap_slide_window=args.prop_overlap_sliding_window,
+                                              use_transform_rigid_images=args.use_transform_rigid_images,
+                                              use_transform_elastic_images=args.use_transform_elastic_images,
+                                              use_random_window_images=args.use_random_window_images,
+                                              num_random_patches_epoch=args.num_random_patches_epoch,
+                                              is_nnet_validconvs=args.is_valid_convolutions,
+                                              size_output_images=size_out_image_model,
+                                              batch_size=args.batch_size,
+                                              is_shuffle=IS_SHUFFLE_TRAINDATA,
+                                              manual_seed=args.manual_seed_train)
         print("Loaded \'%s\' files. Total batches generated: %s..."
               % (len(list_valid_images_files), len(validation_data_loader)))
     else:
@@ -249,7 +246,8 @@ def main(args):
                         valid_data_loader=validation_data_loader,
                         num_epochs=args.num_epochs,
                         max_steps_epoch=args.max_steps_epoch,
-                        initial_epoch=initial_epoch)
+                        initial_epoch=initial_epoch,
+                        is_shuffle_data=IS_SHUFFLE_TRAINDATA)
 
 
 if __name__ == "__main__":
@@ -280,8 +278,7 @@ if __name__ == "__main__":
     parser.add_argument('--use_random_window_images', type=str2bool, default=USE_RANDOM_WINDOW_IMAGES)
     parser.add_argument('--num_random_patches_epoch', type=str2int, default=NUM_RANDOM_PATCHES_EPOCH)
     parser.add_argument('--use_transform_rigid_images', type=str2bool, default=USE_TRANSFORM_RIGID_IMAGES)
-    parser.add_argument(
-        '--use_transform_elasticdeform_images', type=str2bool, default=USE_TRANSFORM_ELASTICDEFORM_IMAGES)
+    parser.add_argument('--use_transform_elastic_images', type=str2bool, default=USE_TRANSFORM_ELASTIC_IMAGES)
     parser.add_argument('--manual_seed_train', type=int, default=MANUAL_SEED_TRAIN)
     parser.add_argument('--name_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--is_restart_model', type=str2bool, default=False)
@@ -325,7 +322,7 @@ if __name__ == "__main__":
         args.use_random_window_images = str2bool(input_args_file['use_random_window_images'])
         args.num_random_patches_epoch = str2int(input_args_file['num_random_patches_epoch'])
         args.use_transform_rigid_images = str2bool(input_args_file['use_transform_rigid_images'])
-        args.use_transform_elasticdeform_images = str2bool(input_args_file['use_transform_elasticdeform_images'])
+        args.use_transform_elastic_images = str2bool(input_args_file['use_transform_elastic_images'])
         args.manual_seed_train = str2int(input_args_file['manual_seed_train'])
         args.name_reference_keys_file = str(input_args_file['name_reference_keys_file'])
 

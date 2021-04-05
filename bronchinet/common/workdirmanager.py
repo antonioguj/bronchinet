@@ -1,6 +1,6 @@
 
 from common.functionutil import join_path_names, is_exist_dir, is_exist_file, currentdir, makedir, \
-                                update_dirname, update_filename
+    update_dirname, update_filename
 from common.exceptionmanager import catch_error_exception
 
 

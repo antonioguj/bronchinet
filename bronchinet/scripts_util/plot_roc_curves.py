@@ -58,7 +58,7 @@ def main(args):
 
     print("Files to plot ROC curves from: \'%s\'..." % (num_input_files))
     for i, ifile in enumerate(list_input_files):
-        print("%s: \'%s\'" % (i+1, ifile))
+        print("%s: \'%s\'" % (i + 1, ifile))
     # endfor
 
     labels_files = ['model_%i' % (i + 1) for i in range(num_input_files)]
@@ -77,7 +77,7 @@ def main(args):
 
         print("Files for annotations (\'%s\')..." % (num_annotate_files))
         for i, ifile in enumerate(list_input_annotate_files):
-            print("%s: \'%s\'" % (i+1, ifile))
+            print("%s: \'%s\'" % (i + 1, ifile))
         # endfor
 
     # ******************************
@@ -110,7 +110,7 @@ def main(args):
 
         for (i, in_annot_file) in enumerate(list_input_annotate_files):
             data_this = np.genfromtxt(in_annot_file, dtype=float, delimiter=',')
-            data_xaxis = np.mean(data_this[1:, 1+index_field_xaxis] * 100)
+            data_xaxis = np.mean(data_this[1:, 1 + index_field_xaxis] * 100)
             data_yaxis = np.mean(data_this[1:, 1 + index_field_yaxis] * 100)
 
             list_annotation_xaxis.append(data_xaxis)
@@ -121,7 +121,7 @@ def main(args):
         plt.plot(data_xaxis_list[0], data_yaxis_list[0], 'o-', color='b')
 
         if args.is_annotations:
-            plt.scatter(list_annotation_xaxis[0], list_annotation_yaxis[0],  marker='o', color='b', s=50)
+            plt.scatter(list_annotation_xaxis[0], list_annotation_yaxis[0], marker='o', color='b', s=50)
         plt.xlabel(name_metrics_xaxis)
         plt.ylabel(name_metrics_yaxis)
         plt.show()
@@ -129,7 +129,7 @@ def main(args):
     else:
         # num_input_files != 1:
         cmap = plt.get_cmap('rainbow')
-        colors = [cmap(float(i)/(num_input_files-1)) for i in range(num_input_files)]
+        colors = [cmap(float(i) / (num_input_files - 1)) for i in range(num_input_files)]
 
         for i in range(num_input_files):
             plt.plot(data_xaxis_list[i], data_yaxis_list[i], color=colors[i], label=labels_files[i])

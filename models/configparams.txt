@@ -16,5 +16,5 @@ type_network = UNet3D
 type_optimizer = Adam
 use_random_window_images = True
 use_sliding_window_images = False
-use_transform_elasticdeform_images = False
+use_transform_elastic_images = False
 use_transform_rigid_images = True

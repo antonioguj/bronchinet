@@ -4,14 +4,12 @@ import numpy as np
 import argparse
 
 from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, SIZE_IN_IMAGES, PROP_OVERLAP_SLIDING_WINDOW_PRED, \
-                            USE_SLIDING_WINDOW_IMAGES, USE_RANDOM_WINDOW_IMAGES, TYPE_LOSS, LIST_TYPE_METRICS, \
-                            IS_VALID_CONVOLUTIONS, IS_MASK_REGION_INTEREST, NAME_TEMPO_POSTERIORS_RELPATH, \
-                            NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_REFERENCE_KEYS_POSTERIORS_FILE, \
-                            TYPE_DNNLIB_USED, IS_FILTER_PRED_PROBMAPS, PROP_VALID_OUTPUT_NNET, \
-                            IS_SAVE_FEATMAPS_LAYER, NAME_LAYER_SAVE_FEATS
-from common.functionutil import join_path_names, is_exist_file, basename, basename_filenoext, list_files_dir, \
-                                str2bool, str2list_str, str2tuple_int, read_dictionary, read_dictionary_configparams, \
-                                save_dictionary, save_dictionary_csv
+    USE_SLIDING_WINDOW_IMAGES, USE_RANDOM_WINDOW_IMAGES, TYPE_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, \
+    IS_MASK_REGION_INTEREST, NAME_TEMPO_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
+    NAME_REFERENCE_KEYS_POSTERIORS_FILE, IS_SAVE_FEATMAPS_LAYER, NAME_LAYER_SAVE_FEATS, TYPE_DNNLIB_USED, \
+    IS_FILTER_PRED_PROBMAPS, PROP_VALID_OUTPUT_NNET
+from common.functionutil import join_path_names, is_exist_file, basename, basename_filenoext, list_files_dir, str2bool,\
+    str2list_str, str2tuple_int, read_dictionary, read_dictionary_configparams, save_dictionary, save_dictionary_csv
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.dataloader_manager import get_train_imagedataloader_1image
@@ -85,7 +83,7 @@ def main(args):
                                                         use_random_window_images=False,
                                                         num_random_patches_epoch=0,
                                                         use_transform_rigid_images=False,
-                                                        use_transform_elasticdeform_images=False,
+                                                        use_transform_elastic_images=False,
                                                         is_nnet_validconvs=args.is_valid_convolutions,
                                                         size_output_image=size_out_image_model,
                                                         is_filter_output_nnet=IS_FILTER_PRED_PROBMAPS,
@@ -102,16 +100,17 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
         print("Loading data...")
-        image_data_loader = get_train_imagedataloader_1image([in_image_file],
-                                                             size_in_images=args.size_in_images,
-                                                             use_sliding_window_images=args.is_reconstruct_pred_patches,
-                                                             prop_overlap_slide_window=PROP_OVERLAP_SLIDING_WINDOW_PRED,
-                                                             use_transform_rigid_images=False,
-                                                             use_transform_elasticdeform_images=False,
-                                                             use_random_window_images=False,
-                                                             num_random_patches_epoch=0,
-                                                             batch_size=1,
-                                                             is_shuffle=False)
+        image_data_loader = \
+            get_train_imagedataloader_1image([in_image_file],
+                                             size_in_images=args.size_in_images,
+                                             use_sliding_window_images=args.is_reconstruct_pred_patches,
+                                             prop_overlap_slide_window=PROP_OVERLAP_SLIDING_WINDOW_PRED,
+                                             use_transform_rigid_images=False,
+                                             use_transform_elastic_images=False,
+                                             use_random_window_images=False,
+                                             num_random_patches_epoch=0,
+                                             batch_size=1,
+                                             is_shuffle=False)
         print("Loaded \'%s\' files. Total batches generated: %s..." % (1, len(image_data_loader)))
 
         # ******************************
@@ -149,7 +148,7 @@ def main(args):
                 output_prediction_file = join_path_names(output_predictions_path,
                                                          name_output_prediction_files % (in_caseprocname_file,
                                                                                          args.name_layer_save_feats,
-                                                                                         ifeat+1))
+                                                                                         ifeat + 1))
                 print("Output: \'%s\', of dims \'%s\'..." % (basename(output_prediction_file),
                                                              out_prediction_reconstructed[..., ifeat].shape))
 
@@ -180,8 +179,8 @@ if __name__ == "__main__":
     parser.add_argument('--in_config_file', type=str, default=None)
     parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
-    parser.add_argument('--is_reconstruct_pred_patches', type=str2bool, default=(USE_SLIDING_WINDOW_IMAGES or
-                                                                                 USE_RANDOM_WINDOW_IMAGES))
+    parser.add_argument('--is_reconstruct_pred_patches', type=str2bool, default=(USE_SLIDING_WINDOW_IMAGES
+                                                                                 or USE_RANDOM_WINDOW_IMAGES))
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
     parser.add_argument('--list_type_metrics', type=str2list_str, default=LIST_TYPE_METRICS)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)

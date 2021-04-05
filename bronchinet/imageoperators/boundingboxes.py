@@ -58,25 +58,25 @@ class BoundingBoxes(object):
     def is_boundbox_inside_boundbox(in_boundbox: BoundBox3DType,
                                     ref_boundbox: BoundBox3DType
                                     ) -> bool:
-        return (in_boundbox[0][0] >= ref_boundbox[0][0] and in_boundbox[0][1] <= ref_boundbox[0][1] and
-                in_boundbox[1][0] >= ref_boundbox[1][0] and in_boundbox[1][1] <= ref_boundbox[1][1] and
-                in_boundbox[2][0] >= ref_boundbox[2][0] and in_boundbox[2][1] <= ref_boundbox[2][1])
+        return (in_boundbox[0][0] >= ref_boundbox[0][0] and in_boundbox[0][1] <= ref_boundbox[0][1]
+                and in_boundbox[1][0] >= ref_boundbox[1][0] and in_boundbox[1][1] <= ref_boundbox[1][1]
+                and in_boundbox[2][0] >= ref_boundbox[2][0] and in_boundbox[2][1] <= ref_boundbox[2][1])
 
     @staticmethod
     def is_boundbox_inside_image_size(in_boundbox: BoundBox3DType,
                                       size_image: Tuple[int, int, int]
                                       ) -> bool:
-        return (in_boundbox[0][0] >= 0 and in_boundbox[0][1] <= size_image[0] and
-                in_boundbox[1][0] >= 0 and in_boundbox[1][1] <= size_image[1] and
-                in_boundbox[2][0] >= 0 and in_boundbox[2][1] <= size_image[2])
+        return (in_boundbox[0][0] >= 0 and in_boundbox[0][1] <= size_image[0]
+                and in_boundbox[1][0] >= 0 and in_boundbox[1][1] <= size_image[1]
+                and in_boundbox[2][0] >= 0 and in_boundbox[2][1] <= size_image[2])
 
     @staticmethod
     def is_image_inside_boundbox(size_in_boundbox: Tuple[int, int, int],
                                  size_image: Tuple[int, int, int]
                                  ) -> bool:
-        return (size_image[0] <= size_in_boundbox[0] and
-                size_image[1] <= size_in_boundbox[1] and
-                size_image[2] <= size_in_boundbox[2])
+        return (size_image[0] <= size_in_boundbox[0]
+                and size_image[1] <= size_in_boundbox[1]
+                and size_image[2] <= size_in_boundbox[2])
 
     @staticmethod
     def fit_boundbox_to_boundbox(in_boundbox: BoundBox3DType,

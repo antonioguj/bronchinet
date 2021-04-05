@@ -4,10 +4,10 @@ from tqdm import tqdm
 import argparse
 
 from common.constant import BASEDIR, METRIC_EVALUATE_THRESHOLD, IS_REMOVE_TRACHEA_CALC_METRICS, \
-                            NAME_RAW_LABELS_RELPATH, NAME_RAW_COARSEAIRWAYS_RELPATH, NAME_RAW_CENTRELINES_RELPATH, \
-                            NAME_REFERENCE_KEYS_PROCIMAGE_FILE
+    NAME_RAW_LABELS_RELPATH, NAME_RAW_CENTRELINES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
+    NAME_RAW_COARSEAIRWAYS_RELPATH
 from common.functionutil import basename, list_files_dir, get_pattern_refer_filename, find_file_inlist_same_prefix, \
-                                str2bool, read_dictionary
+    str2bool, read_dictionary
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
@@ -26,8 +26,7 @@ def main(args):
     init_threshold_value = args.init_threshold_value
 
     ref0_threshold_value = 0.0
-    if (metric_eval_threshold == 'DiceCoefficient' or
-            metric_eval_threshold == 'AirwayCompleteness'):
+    if (metric_eval_threshold == 'DiceCoefficient' or metric_eval_threshold == 'AirwayCompleteness'):
         ref0_metrics_value = 0.0
     elif (metric_eval_threshold == 'AirwayVolumeLeakage'):
         ref0_metrics_value = 1.0
@@ -158,9 +157,9 @@ def main(args):
             break
         else:
             # Update the threshold following a Newton-Raphson formula
-            new_threshold = curr_thres_value + \
-                            (curr_thres_value - old_thres_value) / (curr_res_metrics - old_metrics_value + _epsilon) * \
-                            (metrics_value_sought - curr_res_metrics)
+            new_threshold = curr_thres_value \
+                + (curr_thres_value - old_thres_value) / (curr_res_metrics - old_metrics_value + _epsilon) \
+                * (metrics_value_sought - curr_res_metrics)
             new_threshold = np.clip(new_threshold, 0.0, 1.0)   # clip new value to bounded limits
 
             print("Not Converged. Result metrics \'%s\', rel. error: \'%s\'. New threshold \'%s\'..."
@@ -186,9 +185,9 @@ if __name__ == "__main__":
     parser.add_argument('--rel_error_eval_max', type=float, default=1.0e-04)
     parser.add_argument('--init_threshold_value', type=float, default=0.5)
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
-    parser.add_argument('--name_input_coarse_airways_relpath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)
     parser.add_argument('--name_input_reference_centrelines_relpath', type=str, default=NAME_RAW_CENTRELINES_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
+    parser.add_argument('--name_input_coarse_airways_relpath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)
     args = parser.parse_args()
 
     print("Print input arguments...")

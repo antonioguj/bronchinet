@@ -3,10 +3,10 @@ import numpy as np
 import argparse
 
 from common.constant import DATADIR, SIZE_IN_IMAGES, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, \
-                            NET_NUM_LEVELS, IS_VALID_CONVOLUTIONS, IS_FILTER_PRED_PROBMAPS, PROP_VALID_OUTPUT_NNET, \
-                            PROP_OVERLAP_SLIDING_WINDOW_PRED, NAME_REFERENCE_KEYS_PROCIMAGE_FILE
+    NET_NUM_LEVELS, IS_VALID_CONVOLUTIONS, IS_FILTER_PRED_PROBMAPS, PROP_VALID_OUTPUT_NNET, \
+    PROP_OVERLAP_SLIDING_WINDOW_PRED, NAME_REFERENCE_KEYS_PROCIMAGE_FILE
 from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, str2bool, \
-                                str2tuple_int, str2tuple_float
+    str2tuple_int, str2tuple_float
 from common.workdirmanager import GeneralDirManager
 from dataloaders.dataloader_manager import get_imagedataloader_2images
 from dataloaders.imagefilereader import ImageFileReader
@@ -52,7 +52,7 @@ def main(args):
                                                     use_random_window_images=False,
                                                     num_random_patches_epoch=0,
                                                     use_transform_rigid_images=False,
-                                                    use_transform_elasticdeform_images=False,
+                                                    use_transform_elastic_images=False,
                                                     is_nnet_validconvs=args.is_valid_convolutions,
                                                     size_output_image=size_out_image_network,
                                                     is_filter_output_nnet=IS_FILTER_PRED_PROBMAPS,
@@ -66,20 +66,19 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_label_file)))
 
         print("Loading data...")
-        label_data_loader = get_imagedataloader_2images(
-            [in_label_file],
-            [in_label_file],
-            size_in_images=args.size_in_images,
-            use_sliding_window_images=args.use_sliding_window_images,
-            prop_overlap_slide_window=args.prop_overlap_sliding_window,
-            use_transform_rigid_images=False,
-            use_transform_elasticdeform_images=False,
-            use_random_window_images=False,
-            num_random_patches_epoch=0,
-            is_nnet_validconvs=args.is_valid_convolutions,
-            size_output_images=size_out_image_network,
-            batch_size=1,
-            is_shuffle=False)
+        label_data_loader = get_imagedataloader_2images([in_label_file],
+                                                        [in_label_file],
+                                                        size_in_images=args.size_in_images,
+                                                        use_sliding_window_images=args.use_sliding_window_images,
+                                                        prop_overlap_slide_window=args.prop_overlap_sliding_window,
+                                                        use_transform_rigid_images=False,
+                                                        use_transform_elastic_images=False,
+                                                        use_random_window_images=False,
+                                                        num_random_patches_epoch=0,
+                                                        is_nnet_validconvs=args.is_valid_convolutions,
+                                                        size_output_images=size_out_image_network,
+                                                        batch_size=1,
+                                                        is_shuffle=False)
         (_, label_data_batches) = label_data_loader.get_full_data()
         print("Loaded \'%s\' files. Total batches generated: %s..." % (1, len(label_data_batches)))
 

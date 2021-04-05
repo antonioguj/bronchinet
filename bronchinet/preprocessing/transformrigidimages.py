@@ -475,18 +475,18 @@ class TransformRigidImages2D(TransformRigidImages):
         if tx != 0 or ty != 0:
             shift_matrix = np.array([[1, 0, -tx],
                                      [0, 1, -ty],
-                                     [0, 0,  1]])
+                                     [0, 0, 1]])
             transform_matrix = shift_matrix if transform_matrix is None else np.dot(transform_matrix, shift_matrix)
 
         if shear != 0:
             shear_matrix = np.array([[1, np.tan(shear), 0],
-                                     [0, 1.0/np.cos(shear), 0],
+                                     [0, 1.0 / np.cos(shear), 0],
                                      [0, 0, 1]])
             transform_matrix = shear_matrix if transform_matrix is None else np.dot(transform_matrix, shear_matrix)
 
         if zx != 1 or zy != 1:
-            zoom_matrix = np.array([[1.0/zx, 0, 0],
-                                    [0, 1.0/zy, 0],
+            zoom_matrix = np.array([[1.0 / zx, 0, 0],
+                                    [0, 1.0 / zy, 0],
                                     [0, 0, 1]])
             transform_matrix = zoom_matrix if transform_matrix is None else np.dot(transform_matrix, zoom_matrix)
 
@@ -884,32 +884,32 @@ class TransformRigidImages3D(TransformRigidImages):
             shift_matrix = np.array([[1, 0, 0, -tz],
                                      [0, 1, 0, -tx],
                                      [0, 0, 1, -ty],
-                                     [0, 0, 0,  1]])
+                                     [0, 0, 0, 1]])
             transform_matrix = shift_matrix if transform_matrix is None else np.dot(transform_matrix, shift_matrix)
 
         if shear_xy != 0:
             shear_matrix = np.array([[1, 0, 0, 0],
                                      [0, 1, np.tan(shear_xy), 0],
-                                     [0, 0, 1.0/np.cos(shear_xy), 0],
+                                     [0, 0, 1.0 / np.cos(shear_xy), 0],
                                      [0, 0, 0, 1]])
             transform_matrix = shear_matrix if transform_matrix is None else np.dot(transform_matrix, shear_matrix)
         if shear_xz != 0:
-            shear_matrix = np.array([[1.0/np.cos(shear_xz), 0, 0, 0],
+            shear_matrix = np.array([[1.0 / np.cos(shear_xz), 0, 0, 0],
                                      [np.tan(shear_xz), 1, 0, 0],
                                      [0, 0, 1, 0],
                                      [0, 0, 0, 1]])
             transform_matrix = shear_matrix if transform_matrix is None else np.dot(transform_matrix, shear_matrix)
         if shear_yz != 0:
-            shear_matrix = np.array([[1.0/np.cos(shear_yz), 0, 0, 0],
+            shear_matrix = np.array([[1.0 / np.cos(shear_yz), 0, 0, 0],
                                      [0, 1, 0, 0],
                                      [np.tan(shear_yz), 0, 1, 0],
                                      [0, 0, 0, 1]])
             transform_matrix = shear_matrix if transform_matrix is None else np.dot(transform_matrix, shear_matrix)
 
         if zx != 1 or zy != 1 or zz != 1:
-            zoom_matrix = np.array([[1.0/zz, 0, 0, 0],
-                                    [0, 1.0/zx, 0, 0],
-                                    [0, 0, 1.0/zy, 0],
+            zoom_matrix = np.array([[1.0 / zz, 0, 0, 0],
+                                    [0, 1.0 / zx, 0, 0],
+                                    [0, 0, 1.0 / zy, 0],
                                     [0, 0, 0, 1]])
             transform_matrix = zoom_matrix if transform_matrix is None else np.dot(transform_matrix, zoom_matrix)
 
