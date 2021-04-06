@@ -125,7 +125,7 @@ class ModelTrainer(ModelTrainerBase):
                                                          batch_size=1)
         return output_prediction
 
-    def load_model_weights_unet_noskipconns(self, model_filename: str):
+    def load_model_weights_unet_noskipconns(self, model_filename: str) -> None:
         def lossfun_dummy_max(y_true, y_pred):
             from keras import backend as K
             return K.max(K.abs(y_pred - y_true), axis=-1)

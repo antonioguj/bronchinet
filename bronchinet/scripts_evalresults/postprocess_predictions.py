@@ -25,6 +25,7 @@ def main(args):
     in_reference_files_path = workdir_manager.get_datadir_exist(args.name_input_reference_files_relpath)
     in_reference_keys_file = workdir_manager.get_pathfile_exist(args.name_input_reference_keys_file)
     output_posteriors_path = workdir_manager.get_pathdir_new(args.name_output_posteriors_relpath)
+
     list_input_predictions_files = list_files_dir(input_predictions_path)
     indict_reference_keys = read_dictionary(in_reference_keys_file)
     # pattern_search_input_files = get_pattern_prefix_filename(list(indict_reference_keys.values())[0])
@@ -131,6 +132,8 @@ if __name__ == "__main__":
         args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
         # args.is_crop_images = str2bool(input_args_file['is_crop_images'])
         # args.name_crop_boundboxes_file = str(input_args_file['name_crop_boundboxes_file'])
+        # args.is_rescale_images = str2bool(input_args_file['is_rescale_images'])
+        # args.name_rescale_factors_file = str(input_args_file['name_rescale_factors_file'])
 
     print("Print input arguments...")
     for key, value in vars(args).items():

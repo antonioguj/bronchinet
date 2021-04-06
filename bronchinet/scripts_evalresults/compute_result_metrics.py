@@ -14,6 +14,7 @@ def main(args):
     workdir_manager = TrainDirManager(args.basedir)
     input_predicted_masks_path = workdir_manager.get_pathdir_exist(args.input_predicted_masks_dir)
     input_reference_masks_path = workdir_manager.get_datadir_exist(args.name_input_reference_masks_relpath)
+
     list_input_predicted_masks_files = list_files_dir(input_predicted_masks_path)
     list_input_reference_masks_files = list_files_dir(input_reference_masks_path)
     # pattern_search_input_files = get_pattern_prefix_filename(list(indict_reference_keys.values())[0])
@@ -74,7 +75,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_predicted_masks_dir', type=str)
-    parser.add_argument('--output_file', type=str, default=NAME_PRED_RESULT_METRICS_FILE)
     parser.add_argument('--list_type_metrics', nargs='+', type=str, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--output_file', type=str, default=NAME_PRED_RESULT_METRICS_FILE)
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
