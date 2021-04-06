@@ -7,33 +7,33 @@ Project Organization
 ------------
 
     ├── LICENSE
-    ├── Makefile           <- Makefile with commands like `make data` or `make train`
-    ├── README.md          <- The top-level README for developers using this project.
+    ├── Makefile           	<- Makefile with commands like `make data` or `make train`
+    ├── README.md          	<- The top-level README for developers using this project.
     │
-    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
+    ├── docs               	<- A default Sphinx project; see sphinx-doc.org for details
     │
-    ├── models             <- Trained and serialized models, model predictions, or model summaries
+    ├── models             	<- Trained and serialized models, model predictions, or model summaries
     │
-    ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-    │                         generated with `pip freeze > requirements.txt`
+    ├── requirements.txt   	<- The requirements file for reproducing the analysis environment, e.g.
+    │                         	   generated with `pip freeze > requirements.txt`
     │
-    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
-    ├── bronchinet         <- Source code for use in this project.
+    ├── setup.py           	<- makes project pip installable (pip install -e .) so src can be imported
+    ├── src         	   	<- Source code for use in this project.
     │   │
-    │   ├── common         <- General files and utilities
-    │   ├── dataloaders    <- Modules to load data and batch generators
-    │   ├── imageoperators <- Various image operations
-    │   ├── models 	   <- All modules to define networks, metrics and optimizers
-    │   ├── plotting       <- Various plotting modules
-    │   ├── postprocessing <- Modules to postprocess the output of networks
-    │   ├── preprocessing  <- Modules to preprocess the images to feed to networks
+    │   ├── common         	<- General files and utilities
+    │   ├── dataloaders    	<- Modules to load data and batch generators
+    │   ├── imageoperators 	<- Various image operations
+    │   ├── models 	   	<- All modules to define networks, metrics and optimizers
+    │   ├── plotting       	<- Various plotting modules
+    │   ├── postprocessing 	<- Modules to postprocess the output of networks
+    │   ├── preprocessing  	<- Modules to preprocess the images to feed to networks
     │   │
     │   ├── scripts_evalresults	<- Scripts to evaluate results from models
     │   ├── scripts_experiments	<- Scripts to train and test models
     │   ├── scripts_preparedata	<- Scripts to prepare data to train models
     │   └── scripts_util	<- Scripts for various utilities
     │
-    └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
+    └── tox.ini            	<- tox file with settings for running tox; see tox.readthedocs.io
 
 
 ------------
@@ -59,9 +59,9 @@ Create working directory
 - ln -s <dir_data_stored> BaseData
 - ln -s <dir_this_framework> Code
 
-(Default settings for all scripts below are in file ./bronchinet/common/constants.py)
+(Default settings for all scripts below are in file ./src/common/constants.py)
 
-[IF NEEDED] (in "~/.bashrc" file: export PYTHONPATH=<dir_this_framework>/bronchinet/")
+[IF NEEDED] (in "~/.bashrc" file: export PYTHONPATH=<dir_this_framework>/src/")
 
 Prepare data
 ------------
