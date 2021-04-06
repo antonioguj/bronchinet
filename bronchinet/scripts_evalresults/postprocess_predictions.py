@@ -152,7 +152,7 @@ def main(args):
         # ******************************
 
         if (args.is_rescale_images):
-            message = 'Rescaling at Post-process time not implemented yet'
+            message = 'Rescaling at Postprocessing time not implemented yet'
             catch_warning_exception(message)
 
         # ******************************
