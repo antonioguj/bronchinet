@@ -23,7 +23,7 @@ from common.functionutil import join_path_names, is_exist_file, update_filename,
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.dataloader_manager import get_train_imagedataloader_2images
-from models.model_manager import ModelTrainer
+from models.model_manager import get_model_trainer
 
 
 def write_train_valid_data_logfile(out_filename: str,
@@ -109,7 +109,7 @@ def main(args):
     print("\nBuilding model...")
     print("-" * 30)
 
-    model_trainer = ModelTrainer()
+    model_trainer = get_model_trainer()
 
     if not args.is_restart_model or (args.is_restart_model and args.is_restart_only_weights):
         model_trainer.create_network(type_network=args.type_network,

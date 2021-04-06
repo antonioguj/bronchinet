@@ -206,7 +206,7 @@ def main(args):
                     if (type_in_data == 'label'):
                         print("Mask input label \'%s\' to ROI mask \'%s\'..." % (jdata, imask))
                         out_data = MaskOperator.mask_image_exclude_regions(in_data, list_inout_data[index_roimask])
-                        list_inout_data[idata] = out_data
+                        list_inout_data[jdata] = out_data
                 # endfor
 
             # remove the roimasks from the list of processing data

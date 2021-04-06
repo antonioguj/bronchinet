@@ -14,7 +14,7 @@ from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.dataloader_manager import get_train_imagedataloader_1image
 from dataloaders.imagefilereader import ImageFileReader
-from models.model_manager import ModelTrainer, VisualModelParams
+from models.model_manager import get_model_trainer, get_visual_model_params
 from postprocessing.postprocessing_manager import get_images_reconstructor
 
 
@@ -49,7 +49,7 @@ def main(args):
     print("-" * 30)
 
     print("Compute Predictions from file: \'%s\'..." % (args.preds_model_file))
-    model_trainer = ModelTrainer()
+    model_trainer = get_model_trainer()
 
     print("Load full model (model weights and description, optimizer, loss and metrics) to restart model...")
     if TYPE_DNNLIB_USED == 'Keras':
@@ -67,7 +67,7 @@ def main(args):
 
     if (args.is_save_featmaps_layer):
         print("Compute and store Feature Maps from the Model layer \'%s\'..." % (args.name_layer_save_feats))
-        visual_model_params = VisualModelParams(model_trainer._network, args.size_in_images)
+        visual_model_params = get_visual_model_params(model_trainer._network, args.size_in_images)
 
     size_out_image_model = model_trainer.get_size_output_image_model()
 

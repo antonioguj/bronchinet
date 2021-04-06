@@ -3,13 +3,14 @@ from typing import Tuple, List, Dict, Union
 import numpy as np
 
 from common.exceptionmanager import catch_error_exception
+from models.networks import ConvNetBase
 from preprocessing.imagegenerator import ImageGenerator
 
 
 class VisualModelParamsBase(object):
 
     def __init__(self,
-                 network,
+                 network: ConvNetBase,
                  size_image: Tuple[int, ...]
                  ) -> None:
         self._network = network

@@ -18,11 +18,11 @@ SCRIPT_BINARISE_MASKS = join_path_names(CODEDIR, 'scripts_util/apply_operation_i
 SCRIPT_GET_TRACHEA_MAIN_BRONCHI = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
 SCRIPT_COMPUTE_CENTRELINES = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
 SCRIPT_RESCALE_ROI_MASKS = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
-SCRIPT_EXTEND_CROPPED_IMAGES \
-    = join_path_names(CODEDIR, 'scripts_prepdata/preparedata_dlcst/extend_cropped_images_fullsize.py')
-SCRIPT_CALC_RESCALE_FACTOR_IMAGES = join_path_names(CODEDIR, 'scripts_prepdata/compute_rescalefactor_images.py')
-SCRIPT_CALC_BOUNDING_BOX_IMAGES = join_path_names(CODEDIR, 'scripts_prepdata/compute_boundingbox_images.py')
-SCRIPT_PREPARE_DATA = join_path_names(CODEDIR, 'scripts_prepdata/prepare_data.py')
+SCRIPT_EXTEND_CROPPED_IMAGES = \
+    join_path_names(CODEDIR, 'scripts_preparedata/prepdata_dlcst/extend_cropped_images_fullsize.py')
+SCRIPT_CALC_RESCALE_FACTOR_IMAGES = join_path_names(CODEDIR, 'scripts_preparedata/compute_rescalefactor_images.py')
+SCRIPT_CALC_BOUNDING_BOX_IMAGES = join_path_names(CODEDIR, 'scripts_preparedata/compute_boundingbox_images.py')
+SCRIPT_PREPARE_DATA = join_path_names(CODEDIR, 'scripts_preparedata/prepare_data.py')
 
 CLUSTER_ARCHIVE_DIR = 'agarcia@bigr-app001:/scratch/agarcia/Data/'
 
@@ -91,14 +91,12 @@ def main(args):
     name_input_raw_labels_path = join_path_names(output_datadir, NAME_RAW_LABELS_RELPATH)
     name_input_raw_roimasks_path = join_path_names(output_datadir, NAME_RAW_ROIMASKS_RELPATH)
     name_input_reference_files_path = join_path_names(output_datadir, NAME_REFERENCE_FILES_RELPATH)
+    name_input_crop_boundboxes_file = join_path_names(output_datadir, NAME_CROP_BOUNDBOXES_FILE)
+    name_input_rescale_factors_file = join_path_names(output_datadir, NAME_RESCALE_FACTORS_FILE)
     if args.is_prepare_centrelines:
         name_input_raw_centrelines_path = join_path_names(output_datadir, NAME_RAW_CENTRELINES_RELPATH)
     if args.is_prepare_coarse_airways:
         name_input_raw_coarse_airways_path = join_path_names(output_datadir, NAME_RAW_COARSEAIRWAYS_RELPATH)
-    if (args.is_crop_images):
-        name_input_crop_boundboxes_file = join_path_names(output_datadir, NAME_CROP_BOUNDBOXES_FILE)
-    if args.is_rescale_images:
-        name_input_rescale_factors_file = join_path_names(output_datadir, NAME_RESCALE_FACTORS_FILE)
     if args.in_cluster_casedir in ['DLCST', 'DLCST/']:
         name_input_found_boundboxes_file = join_path_names(output_datadir, basename(name_source_found_boundboxes_file))
 
@@ -252,7 +250,7 @@ def main(args):
         new_call = ['python3', SCRIPT_RESCALE_ROI_MASKS,
                     name_input_raw_roimasks_path, name_tempo_rescaled_roi_masks_path,
                     '--type', 'rescale_mask',
-                    '--rescalefactor_file', name_input_rescale_factors_file,
+                    '--rescale_factors_file', name_input_rescale_factors_file,
                     '--reference_dir', name_input_reference_files_path]
         list_calls_all.append(new_call)
 
@@ -265,8 +263,8 @@ def main(args):
     if args.is_crop_images:
         new_call = ['python3', SCRIPT_CALC_BOUNDING_BOX_IMAGES,
                     '--datadir', output_datadir,
-                    '--is_two_boundboxes_each_lung', str(args.is_two_boundboxes_each_lung),
                     '--size_buffer_in_borders', str(args.size_buffer_in_borders),
+                    '--is_two_boundboxes_each_lung', str(args.is_two_boundboxes_each_lung),
                     '--size_train_images', str(args.size_train_images),
                     '--is_same_size_boundbox_all_images', str(args.is_same_size_boundbox_all_images),
                     '--name_output_boundboxes_file', name_input_crop_boundboxes_file]
