@@ -2,9 +2,9 @@
 from collections import OrderedDict
 import argparse
 
-from common.constant import BASEDIR, LIST_TYPE_METRICS_RESULT, IS_REMOVE_TRACHEA_CALC_METRICS, \
-    NAME_PRED_RESULT_METRICS_FILE, NAME_RAW_LABELS_RELPATH, NAME_RAW_COARSEAIRWAYS_RELPATH, \
-    NAME_RAW_CENTRELINES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE
+from common.constant import BASEDIR, LIST_TYPE_METRICS_RESULT, NAME_PRED_RESULT_METRICS_FILE, \
+    IS_REMOVE_TRACHEA_CALC_METRICS, NAME_RAW_LABELS_RELPATH, NAME_RAW_CENTRELINES_RELPATH, \
+    NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_RAW_COARSEAIRWAYS_RELPATH
 from common.functionutil import basename, list_files_dir, get_substring_filename, get_pattern_refer_filename, \
     find_file_inlist_same_prefix, str2bool, read_dictionary
 from common.exceptionmanager import catch_error_exception
@@ -132,12 +132,12 @@ if __name__ == "__main__":
     parser.add_argument('input_predicted_masks_dir', type=str)
     parser.add_argument('input_pred_centrelines_dir', type=str)
     parser.add_argument('--list_type_metrics', nargs='+', type=str, default=LIST_TYPE_METRICS_RESULT)
-    parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--output_file', type=str, default=NAME_PRED_RESULT_METRICS_FILE)
+    parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
-    parser.add_argument('--name_input_coarse_airways_relpath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)
     parser.add_argument('--name_input_reference_centrelines_relpath', type=str, default=NAME_RAW_CENTRELINES_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
+    parser.add_argument('--name_input_coarse_airways_relpath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)
     args = parser.parse_args()
 
     print("Print input arguments...")

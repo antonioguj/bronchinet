@@ -8,7 +8,7 @@ from common.constant import DATADIR, IS_BINARY_TRAIN_MASKS, IS_MASK_REGION_INTER
     IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_TWO_BOUNDBOXES_EACH_LUNG, NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, \
     NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_RAW_EXTRALABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
     NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_RAW_ROIMASKS_RELPATH, \
-    NAME_RESCALE_FACTORS_FILE, NAME_CROP_BOUNDBOXES_FILE
+    NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE
 from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, str2bool, \
     read_dictionary, save_dictionary, save_dictionary_csv
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
