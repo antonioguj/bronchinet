@@ -46,32 +46,14 @@ class GeneralDirManager(object):
 
 
 class TrainDirManager(GeneralDirManager):
-
     basedata_rel_path_default = 'BaseData/'
-    traindata_rel_path_default = 'TrainingData/'
-    validdata_rel_path_default = 'ValidationData/'
-    testdata_rel_path_default = 'TestingData/'
-    models_rel_path_default = 'Models/'
 
-    def __init__(self,
-                 base_path: str,
-                 basedata_rel_path: str = basedata_rel_path_default,
-                 traindata_rel_path: str = traindata_rel_path_default,
-                 validdata_rel_path: str = validdata_rel_path_default,
-                 testdata_rel_path: str = testdata_rel_path_default,
-                 models_rel_path: str = models_rel_path_default,
-                 is_restart_models: bool = False) -> None:
-
+    def __init__(self, base_path: str,
+                 basedata_rel_path: str = basedata_rel_path_default
+                 ) -> None:
         super(TrainDirManager, self).__init__(base_path)
         self._basedata_relpath = basedata_rel_path
         self._basedata_path = self.get_pathdir_exist(basedata_rel_path)
-        self._traindata_path = self.get_pathdir_exist(traindata_rel_path)
-        self._validdata_path = self.get_pathdir_exist(validdata_rel_path)
-        self._testdata_path = self.get_pathdir_exist(testdata_rel_path)
-        if is_restart_models:
-            self._models_path = self.get_pathdir_exist(models_rel_path)
-        else:
-            self._models_path = self.get_pathdir_update(models_rel_path)
 
     def get_datadir_exist(self, rel_path: str) -> str:
         return self.get_pathdir_exist(join_path_names(self._basedata_relpath, rel_path))
@@ -84,15 +66,3 @@ class TrainDirManager(GeneralDirManager):
 
     def get_datafile_new(self, filename: str) -> str:
         return self.get_pathfile_new(join_path_names(self._basedata_relpath, filename))
-
-    def get_trainingdata_path(self) -> str:
-        return self._traindata_path
-
-    def get_validationdata_path(self) -> str:
-        return self._validdata_path
-
-    def get_testingdata_path(self) -> str:
-        return self._testdata_path
-
-    def get_models_path(self) -> str:
-        return self._models_path

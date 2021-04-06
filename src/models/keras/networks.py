@@ -67,69 +67,69 @@ class UNet3DOriginal(UNet):
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
 
         num_featmaps_lev1 = self._num_featmaps_in
-        convols_down_lev1_1 = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation='relu',
-                                            padding='same')(input_layer)
-        convols_down_lev1_2 = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation='relu',
-                                            padding='same')(convols_down_lev1_1)
-        pooling_down_lev1 = MaxPooling3D(pool_size=(2, 2, 2))(convols_down_lev1_2)
+        convolution_down_lev1_1 = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation='relu',
+                                                padding='same')(input_layer)
+        convolution_down_lev1_2 = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation='relu',
+                                                padding='same')(convolution_down_lev1_1)
+        pooling_down_lev1 = MaxPooling3D(pool_size=(2, 2, 2))(convolution_down_lev1_2)
 
         num_featmaps_lev2 = 2 * num_featmaps_lev1
-        convols_down_lev2_1 = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation='relu',
-                                            padding='same')(pooling_down_lev1)
-        convols_down_lev2_2 = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation='relu',
-                                            padding='same')(convols_down_lev2_1)
-        pooling_down_lev2 = MaxPooling3D(pool_size=(2, 2, 2))(convols_down_lev2_2)
+        convolution_down_lev2_1 = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation='relu',
+                                                padding='same')(pooling_down_lev1)
+        convolution_down_lev2_2 = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation='relu',
+                                                padding='same')(convolution_down_lev2_1)
+        pooling_down_lev2 = MaxPooling3D(pool_size=(2, 2, 2))(convolution_down_lev2_2)
 
         num_featmaps_lev3 = 2 * num_featmaps_lev2
-        convols_down_lev3_1 = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation='relu',
-                                            padding='same')(pooling_down_lev2)
-        convols_down_lev3_2 = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation='relu',
-                                            padding='same')(convols_down_lev3_1)
-        pooling_down_lev3 = MaxPooling3D(pool_size=(2, 2, 2))(convols_down_lev3_2)
+        convolution_down_lev3_1 = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation='relu',
+                                                padding='same')(pooling_down_lev2)
+        convolution_down_lev3_2 = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation='relu',
+                                                padding='same')(convolution_down_lev3_1)
+        pooling_down_lev3 = MaxPooling3D(pool_size=(2, 2, 2))(convolution_down_lev3_2)
 
         num_featmaps_lev4 = 2 * num_featmaps_lev3
-        convols_down_lev4_1 = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation='relu',
-                                            padding='same')(pooling_down_lev3)
-        convols_down_lev4_2 = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation='relu',
-                                            padding='same')(convols_down_lev4_1)
-        pooling_down_lev4 = MaxPooling3D(pool_size=(2, 2, 2))(convols_down_lev4_2)
+        convolution_down_lev4_1 = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation='relu',
+                                                padding='same')(pooling_down_lev3)
+        convolution_down_lev4_2 = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation='relu',
+                                                padding='same')(convolution_down_lev4_1)
+        pooling_down_lev4 = MaxPooling3D(pool_size=(2, 2, 2))(convolution_down_lev4_2)
 
         num_featmaps_lev5 = 2 * num_featmaps_lev4
-        convols_down_lev5_1 = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 3), activation='relu',
-                                            padding='same')(pooling_down_lev4)
-        convols_down_lev5_2 = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 3), activation='relu',
-                                            padding='same')(convols_down_lev5_1)
-        upsample_up_lev5 = UpSampling3D(size=(2, 2, 2))(convols_down_lev5_2)
+        convolution_down_lev5_1 = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 3), activation='relu',
+                                                padding='same')(pooling_down_lev4)
+        convolution_down_lev5_2 = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 3), activation='relu',
+                                                padding='same')(convolution_down_lev5_1)
+        upsample_up_lev5 = UpSampling3D(size=(2, 2, 2))(convolution_down_lev5_2)
 
-        upsample_up_lev5 = concatenate([upsample_up_lev5, convols_down_lev4_2], axis=-1)
-        convols_up_lev4_1 = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation='relu',
-                                          padding='same')(upsample_up_lev5)
-        convols_up_lev4_2 = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation='relu',
-                                          padding='same')(convols_up_lev4_1)
-        upsample_up_lev4 = UpSampling3D(size=(2, 2, 2))(convols_up_lev4_2)
+        upsample_up_lev5 = concatenate([upsample_up_lev5, convolution_down_lev4_2], axis=-1)
+        convolution_up_lev4_1 = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation='relu',
+                                              padding='same')(upsample_up_lev5)
+        convolution_up_lev4_2 = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation='relu',
+                                              padding='same')(convolution_up_lev4_1)
+        upsample_up_lev4 = UpSampling3D(size=(2, 2, 2))(convolution_up_lev4_2)
 
-        upsample_up_lev4 = concatenate([upsample_up_lev4, convols_down_lev3_2], axis=-1)
-        convols_up_lev3_1 = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation='relu',
-                                          padding='same')(upsample_up_lev4)
-        convols_up_lev3_2 = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation='relu',
-                                          padding='same')(convols_up_lev3_1)
-        upsample_up_lev3 = UpSampling3D(size=(2, 2, 2))(convols_up_lev3_2)
+        upsample_up_lev4 = concatenate([upsample_up_lev4, convolution_down_lev3_2], axis=-1)
+        convolution_up_lev3_1 = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation='relu',
+                                              padding='same')(upsample_up_lev4)
+        convolution_up_lev3_2 = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation='relu',
+                                              padding='same')(convolution_up_lev3_1)
+        upsample_up_lev3 = UpSampling3D(size=(2, 2, 2))(convolution_up_lev3_2)
 
-        upsample_up_lev3 = concatenate([upsample_up_lev3, convols_down_lev2_2], axis=-1)
-        convols_up_lev2_1 = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation='relu',
-                                          padding='same')(upsample_up_lev3)
-        convols_up_lev2_2 = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation='relu',
-                                          padding='same')(convols_up_lev2_1)
-        upsample_up_lev2 = UpSampling3D(size=(2, 2, 2))(convols_up_lev2_2)
+        upsample_up_lev3 = concatenate([upsample_up_lev3, convolution_down_lev2_2], axis=-1)
+        convolution_up_lev2_1 = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation='relu',
+                                              padding='same')(upsample_up_lev3)
+        convolution_up_lev2_2 = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation='relu',
+                                              padding='same')(convolution_up_lev2_1)
+        upsample_up_lev2 = UpSampling3D(size=(2, 2, 2))(convolution_up_lev2_2)
 
-        upsample_up_lev2 = concatenate([upsample_up_lev2, convols_down_lev1_2], axis=-1)
-        convols_up_lev1_1 = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation='relu',
-                                          padding='same')(upsample_up_lev2)
-        convols_up_lev1_2 = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation='relu',
-                                          padding='same')(convols_up_lev1_1)
+        upsample_up_lev2 = concatenate([upsample_up_lev2, convolution_down_lev1_2], axis=-1)
+        convolution_up_lev1_1 = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation='relu',
+                                              padding='same')(upsample_up_lev2)
+        convolution_up_lev1_2 = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation='relu',
+                                              padding='same')(convolution_up_lev1_1)
 
         output_layer = Convolution3D(self._num_classes_out, kernel_size=(1, 1, 1),
-                                     activation='sigmoid')(convols_up_lev1_2)
+                                     activation='sigmoid')(convolution_up_lev1_2)
 
         output_model = Model(inputs=input_layer, outputs=output_layer)
         return output_model
@@ -146,8 +146,8 @@ class UNet3DGeneral(UNet):
     _type_activate_output_default = 'sigmoid'
     _num_convols_levels_down_default = 2
     _num_convols_levels_up_default = 2
-    _sizes_kernel_convol_levels_down_default = (3, 3, 3)
-    _sizes_kernel_convol_levels_up_default = (3, 3, 3)
+    _sizes_kernel_convols_levels_down_default = (3, 3, 3)
+    _sizes_kernel_convols_levels_up_default = (3, 3, 3)
     _sizes_pooling_levels_default = (2, 2, 2)
 
     def __init__(self,
@@ -162,10 +162,10 @@ class UNet3DGeneral(UNet):
                  num_featmaps_levels: List[int] = None,
                  num_convols_levels_down: Union[int, Tuple[int, ...]] = _num_convols_levels_down_default,
                  num_convols_levels_up: Union[int, Tuple[int, ...]] = _num_convols_levels_up_default,
-                 sizes_kernel_convol_levels_down: Union[Tuple[int, int, int], List[Tuple[int, int, int]]] =
-                 _sizes_kernel_convol_levels_down_default,
-                 sizes_kernel_convol_levels_up: Union[Tuple[int, int, int], List[Tuple[int, int, int]]] =
-                 _sizes_kernel_convol_levels_up_default,
+                 sizes_kernel_convols_levels_down: Union[Tuple[int, int, int], List[Tuple[int, int, int]]] =
+                 _sizes_kernel_convols_levels_down_default,
+                 sizes_kernel_convols_levels_up: Union[Tuple[int, int, int], List[Tuple[int, int, int]]] =
+                 _sizes_kernel_convols_levels_up_default,
                  sizes_pooling_levels: Union[Tuple[int, int, int], List[Tuple[int, int, int]]] =
                  _sizes_pooling_levels_default,
                  is_disable_convol_pooling_axialdim_lastlevel: bool = False,
@@ -199,14 +199,14 @@ class UNet3DGeneral(UNet):
         else:
             self._num_convols_levels_up = num_convols_levels_up
 
-        if type(sizes_kernel_convol_levels_down) == tuple:
-            self._sizes_kernel_convol_levels_down = [sizes_kernel_convol_levels_down] * self._num_levels
+        if type(sizes_kernel_convols_levels_down) == tuple:
+            self._sizes_kernel_convols_levels_down = [sizes_kernel_convols_levels_down] * self._num_levels
         else:
-            self._sizes_kernel_convol_levels_down = sizes_kernel_convol_levels_down
-        if type(sizes_kernel_convol_levels_up) == tuple:
-            self._sizes_kernel_convol_levels_up = [sizes_kernel_convol_levels_up] * (self._num_levels - 1)
+            self._sizes_kernel_convols_levels_down = sizes_kernel_convols_levels_down
+        if type(sizes_kernel_convols_levels_up) == tuple:
+            self._sizes_kernel_convols_levels_up = [sizes_kernel_convols_levels_up] * (self._num_levels - 1)
         else:
-            self._sizes_kernel_convol_levels_up = sizes_kernel_convol_levels_up
+            self._sizes_kernel_convols_levels_up = sizes_kernel_convols_levels_up
 
         if type(sizes_pooling_levels) == tuple:
             self._sizes_pooling_levels = [sizes_pooling_levels] * self._num_levels
@@ -215,9 +215,9 @@ class UNet3DGeneral(UNet):
         self._sizes_upsample_levels = self._sizes_pooling_levels[:-1]
 
         if is_disable_convol_pooling_axialdim_lastlevel:
-            size_kernel_convol_lastlevel = self._sizes_kernel_convol_levels_down[-1]
-            self._sizes_kernel_convol_levels_down[-1] = (1, size_kernel_convol_lastlevel[1],
-                                                         size_kernel_convol_lastlevel[2])
+            size_kernel_convol_lastlevel = self._sizes_kernel_convols_levels_down[-1]
+            self._sizes_kernel_convols_levels_down[-1] = (1, size_kernel_convol_lastlevel[1],
+                                                          size_kernel_convol_lastlevel[2])
             size_pooling_lastlevel = self._sizes_pooling_levels[-1]
             self._sizes_pooling_levels[-1] = (1, size_pooling_lastlevel[1], size_pooling_lastlevel[2])
 
@@ -258,7 +258,7 @@ class UNet3DGeneral(UNet):
         for i_lev in range(self._num_levels):
             for i_con in range(self._num_convols_levels_down[i_lev]):
                 hidden_next = Convolution3D(self._num_featmaps_levels[i_lev],
-                                            kernel_size=self._sizes_kernel_convol_levels_down[i_lev],
+                                            kernel_size=self._sizes_kernel_convols_levels_down[i_lev],
                                             activation=self._type_activate_hidden,
                                             padding=type_padding_convols)(hidden_next)
 
@@ -284,7 +284,7 @@ class UNet3DGeneral(UNet):
 
             for i_con in range(self._num_convols_levels_up[i_lev]):
                 hidden_next = Convolution3D(self._num_featmaps_levels[i_lev],
-                                            kernel_size=self._sizes_kernel_convol_levels_up[i_lev],
+                                            kernel_size=self._sizes_kernel_convols_levels_up[i_lev],
                                             activation=self._type_activate_hidden,
                                             padding=type_padding_convols)(hidden_next)
 

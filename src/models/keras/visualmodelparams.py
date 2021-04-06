@@ -5,6 +5,7 @@ import numpy as np
 from tensorflow.keras import backend as K
 
 from common.exceptionmanager import catch_error_exception
+from models.networks import ConvNetBase
 from models.visualmodelparams import VisualModelParamsBase
 from preprocessing.imagegenerator import ImageGenerator
 
@@ -12,7 +13,7 @@ from preprocessing.imagegenerator import ImageGenerator
 class VisualModelParams(VisualModelParamsBase):
 
     def __init__(self,
-                 network,
+                 network: ConvNetBase,
                  size_image: Tuple[int, ...]
                  ) -> None:
         super(VisualModelParams, self).__init__(network, size_image)

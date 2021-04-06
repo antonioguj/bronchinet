@@ -1,5 +1,5 @@
 
-from typing import Tuple
+from typing import Tuple, Callable
 
 from common.constant import TYPE_DNNLIB_USED
 from common.exceptionmanager import catch_error_exception
@@ -20,6 +20,7 @@ if TYPE_DNNLIB_USED == 'Pytorch':
         LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
     from models.pytorch.optimizers import get_sgd, get_sgd_mom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
+    from models.pytorch.visualmodelparams import VisualModelParams
 elif TYPE_DNNLIB_USED == 'Keras':
     from models.keras.metrics import Metric as Metric_train, \
         CombineTwoMetricsModified as CombineTwoMetrics_train, \
@@ -44,6 +45,7 @@ elif TYPE_DNNLIB_USED == 'Keras':
         UNet3DPluginNoSkipConn5levels, UNet3DPluginNoSkipConn3levels
     from models.keras.optimizers import get_sgd, get_sgd_mom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
+    from models.keras.visualmodelparams import VisualModelParams
 from models.metrics import MetricBase, MeanSquaredError, MeanSquaredErrorLogarithmic, \
     BinaryCrossEntropy, WeightedBinaryCrossEntropy, WeightedBinaryCrossEntropyFixedWeights, \
     DiceCoefficient, TruePositiveRate, TrueNegativeRate, FalsePositiveRate, FalseNegativeRate, \
@@ -266,7 +268,7 @@ def get_network(type_network: str,
         catch_error_exception(message)
 
 
-def get_optimizer(type_optimizer: str, learn_rate: float, **kwargs):
+def get_optimizer(type_optimizer: str, learn_rate: float, **kwargs) -> Callable:
     if type_optimizer == 'SGD':
         return get_sgd(learn_rate, **kwargs)
     elif type_optimizer == 'SGD_mom':
@@ -283,3 +285,17 @@ def get_optimizer(type_optimizer: str, learn_rate: float, **kwargs):
         message = 'Choice Optimizer not found: %s. Optimizers available: %s' \
                   % (type_optimizer, ', '.join(LIST_AVAIL_OPTIMIZERS))
         catch_error_exception(message)
+
+
+def get_visual_model_params(in_network: ConvNetBase, in_size_image: Tuple[int, ...]) -> VisualModelParams:
+    return VisualModelParams(in_network, in_size_image)
+
+
+if TYPE_DNNLIB_USED == 'Pytorch':
+    from models.pytorch.modeltrainer import ModelTrainer
+elif TYPE_DNNLIB_USED == 'Keras':
+    from models.keras.modeltrainer import ModelTrainer
+
+
+def get_model_trainer() -> ModelTrainer:
+    return ModelTrainer()
