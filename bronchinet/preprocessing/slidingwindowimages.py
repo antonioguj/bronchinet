@@ -35,12 +35,12 @@ class SlidingWindowImages(ImageGenerator):
             self._func_get_indexes_local = self.get_indexes_local_2dim
             self._func_crop_images = CropImage._compute2d
             self._func_setpatch_images = SetPatchInImage._compute2d
-            self._func_setpatch_images_byadding = SetPatchInImage._compute2d_byadding
+            self._func_setpatch_add_images = SetPatchInImage._compute_add2d
         elif self._ndims == 3:
             self._func_get_indexes_local = self.get_indexes_local_3dim
             self._func_crop_images = CropImage._compute3d
             self._func_setpatch_images = SetPatchInImage._compute3d
-            self._func_setpatch_images_byadding = SetPatchInImage._compute3d_byadding
+            self._func_setpatch_add_images = SetPatchInImage._compute_add3d
         else:
             message = 'SlidingWindowImages:__init__: wrong \'ndims\': %s...' % (self._ndims)
             catch_error_exception(message)
@@ -138,7 +138,7 @@ class SlidingWindowImages(ImageGenerator):
 
     def set_add_image_patch(self, in_image: np.ndarray, out_volume_image: np.ndarray, index: int) -> np.ndarray:
         crop_boundbox = self._get_crop_boundbox_image(index)
-        self._func_setpatch_images_byadding(in_image, out_volume_image, crop_boundbox)
+        self._func_setpatch_add_images(in_image, out_volume_image, crop_boundbox)
 
     def get_limits_sliding_window_image(self) -> List[List[Tuple[int, int]]]:
         limits_window_image = []
