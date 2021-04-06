@@ -236,7 +236,7 @@ def main(args):
         else:
             restart_epoch = get_restart_epoch_from_model_filename(model_restart_file)
 
-        print('Restarting training from epoch \'%s\'...' % (restart_epoch))
+        print("Restarting training from epoch \'%s\'..." % (restart_epoch))
         initial_epoch = restart_epoch
         args.num_epochs += initial_epoch
     else:

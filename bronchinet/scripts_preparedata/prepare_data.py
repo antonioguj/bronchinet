@@ -133,7 +133,7 @@ def main(args):
             print("And ROI Mask for labels: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)
-            if args.is_roilabels_multi_roimasks:
+            if (args.is_roilabels_multi_roimasks):
                 in_list_roimasks = MaskOperator.get_list_masks_all_labels(in_roimask)
                 list_inout_data += in_list_roimasks
                 list_type_inout_data += ['roimask'] * len(in_list_roimasks)
@@ -167,7 +167,7 @@ def main(args):
             for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
                 if (type_in_data == 'image') or \
                         (type_in_data == 'label' and not args.is_binary_train_masks):
-                    print('Normalize input data \'%s\' of type \'%s\'...' % (idata, type_in_data))
+                    print("Normalize input data \'%s\' of type \'%s\'..." % (idata, type_in_data))
                     out_data = NormaliseImage.compute(in_data)
                     list_inout_data[idata] = out_data
             # endfor
@@ -181,12 +181,12 @@ def main(args):
 
             if in_rescale_factor != (1.0, 1.0, 1.0):
                 for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
-                    print('Rescale input data \'%s\' of type \'%s\'...' % (idata, type_in_data))
-                    if type_in_data == 'image':
+                    print("Rescale input data \'%s\' of type \'%s\'..." % (idata, type_in_data))
+                    if (type_in_data == 'image'):
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3)
-                    elif type_in_data == 'label':
+                    elif (type_in_data == 'label'):
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3, is_inlabels=True)
-                    elif type_in_data == 'roimask':
+                    elif (type_in_data == 'roimask'):
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3, is_inlabels=True,
                                                         is_binarise_output=True)
                     list_inout_data[idata] = out_data
@@ -204,7 +204,7 @@ def main(args):
             for imask, index_roimask in enumerate(list_indexes_roimasks):
                 for jdata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
                     if (type_in_data == 'label'):
-                        print('Mask input label \'%s\' to ROI mask \'%s\'...' % (jdata, imask))
+                        print("Mask input label \'%s\' to ROI mask \'%s\'..." % (jdata, imask))
                         out_data = MaskOperator.mask_image_exclude_regions(in_data, list_inout_data[index_roimask])
                         list_inout_data[idata] = out_data
                 # endfor
@@ -262,7 +262,7 @@ def main(args):
                         BoundingBoxes.calc_boundboxes_crop_extend_image(in_crop_boundbox, size_in_image)
 
                     for jimage in range(num_images_per_crop_boundbox):
-                        print('Crop input image \'%s\' of type \'%s\'...' % (icount, list_type_inout_data[icount]))
+                        print("Crop input image \'%s\' of type \'%s\'..." % (icount, list_type_inout_data[icount]))
                         out_data = CropAndExtendImage.compute(list_inout_data[icount],
                                                               croppartial_boundbox,
                                                               extendimg_boundbox,
@@ -272,7 +272,7 @@ def main(args):
                     # endfor
                 else:
                     for jimage in range(num_images_per_crop_boundbox):
-                        print('Crop input image \'%s\' of type \'%s\'...' % (icount, list_type_inout_data[icount]))
+                        print("Crop input image \'%s\' of type \'%s\'..." % (icount, list_type_inout_data[icount]))
                         out_data = CropImage.compute(list_inout_data[icount], in_crop_boundbox)
                         list_inout_data[icount] = out_data
                         icount += 1

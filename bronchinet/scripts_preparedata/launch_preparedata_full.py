@@ -133,7 +133,7 @@ def main(args):
             traceback.print_exc(file=sys.stdout)
             message = 'Call failed. Stop pipeline...'
             catch_error_exception(message)
-        print('\n')
+        print("\n")
     # endfor
 
     # ******************************
@@ -317,7 +317,7 @@ def main(args):
             traceback.print_exc(file=sys.stdout)
             message = 'Call failed. Stop pipeline...'
             catch_error_exception(message)
-        print('\n')
+        print("\n")
     # endfor
 
 

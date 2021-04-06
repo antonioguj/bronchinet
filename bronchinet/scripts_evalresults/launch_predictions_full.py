@@ -86,14 +86,14 @@ def main(args):
                       % (len(list_input_modeldirs), len(list_testing_datadirs))
             catch_error_exception(message)
 
-        print('\nCompute Predictions from \'%s\' models dirs in a Cross-Val setting...' % (len(list_input_modeldirs)))
+        print("\nCompute Predictions from \'%s\' models dirs in a Cross-Val setting..." % (len(list_input_modeldirs)))
 
         list_predict_reference_keys_files_cvfolds = []
 
         for i, inputdir in enumerate(list_input_modeldirs):
             input_model_file = join_path_names(inputdir, input_model_relfile)
             in_config_params_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
-            print('For CV-fold %s: load model file: %s' % (i + 1, input_model_file))
+            print("For CV-fold %s: load model file: %s" % (i + 1, input_model_file))
 
             inout_predict_reference_keys_file_this \
                 = set_filename_suffix(inout_predict_reference_keys_file, 'CV%0.2i' % (i + 1))
@@ -262,7 +262,7 @@ def main(args):
             traceback.print_exc(file=sys.stdout)
             message = 'Call failed. Stop pipeline...'
             catch_error_exception(message)
-        print('\n')
+        print("\n")
     # endfor
 
 

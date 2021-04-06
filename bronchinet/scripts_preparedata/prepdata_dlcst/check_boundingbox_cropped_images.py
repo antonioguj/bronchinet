@@ -37,11 +37,11 @@ def main(args):
                 print("GOOD: Images are equal voxelwise...")
             else:
                 names_files_different.append(basename(in_cropimage_file))
-                message = "ERROR: Images are different..."
+                message = 'ERROR: Images are different...'
                 catch_warning_exception(message)
         else:
             names_files_different.append(basename(in_cropimage_file))
-            message = "ERROR: Images are different..."
+            message = 'ERROR: Images are different...'
             catch_warning_exception(message)
     # endfor
 

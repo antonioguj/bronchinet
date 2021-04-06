@@ -32,7 +32,7 @@ def get_images_reconstructor(size_images: Tuple[int, ...],
 
     if is_filter_output_nnet:
         size_filter_output_nnet = tuple([int(prop_filter_output_nnet * elem) for elem in size_images])
-        print('Filter output probability maps of Nnet, with final output size: \'%s\'...'
+        print("Filter output probability maps of Nnet, with final output size: \'%s\'..."
               % (str(size_filter_output_nnet)))
 
         ndims = len(size_images)

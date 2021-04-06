@@ -179,7 +179,7 @@ def main(args):
                                               outfilename=out_histo_filename)
 
             if len(dict_func_checks_further_compare) > 0:
-                print('Do further checks to compare images of different size...')
+                print("Do further checks to compare images of different size...")
                 img1_voxel_size = ImageFileReader.get_image_voxelsize(in_file_1)
                 img2_voxel_size = ImageFileReader.get_image_voxelsize(in_file_2)
 
