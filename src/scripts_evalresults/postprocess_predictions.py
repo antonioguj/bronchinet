@@ -39,6 +39,10 @@ def main(args):
         input_crop_boundboxes_file = workdir_manager.get_datafile_exist(args.name_crop_boundboxes_file)
         indict_crop_boundboxes = read_dictionary(input_crop_boundboxes_file)
 
+    # if (args.is_rescale_images):
+    #     input_rescale_factors_file = workdir_manager.get_datafile_exist(args.name_rescale_factors_file)
+    #     indict_rescale_factors = read_dictionary(input_rescale_factors_file)
+
     # *****************************************************
 
     for i, in_prediction_file in enumerate(list_input_predictions_files):

@@ -250,7 +250,7 @@ def main(args):
                     list_inout_data[idata] = out_data
             # endfor
 
-            # remove the ROI mask from the list of processing data
+            # remove the roimasks from the list of processing data
             list_type_inout_data.pop(index_roimask)
             list_inout_data.pop(index_roimask)
 
@@ -260,10 +260,10 @@ def main(args):
             in_reference_key = list_in_reference_files[ifile]
             in_crop_boundbox = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
 
-            for j, in_data in enumerate(list_inout_data):
-                print("Crop input Image \'%s\' to bounding-box: \'%s\'..." % (j, str(in_crop_boundbox)))
+            for idata, in_data in enumerate(list_inout_data):
+                print("Crop input image \'%s\' to bounding-box: \'%s\'..." % (idata, str(in_crop_boundbox)))
                 out_data = CropImage.compute(in_data, in_crop_boundbox)
-                list_inout_data[j] = out_data
+                list_inout_data[idata] = out_data
             # endfor
 
             print("Final dims: %s..." % (str(list_inout_data[0].shape)))
@@ -272,9 +272,9 @@ def main(args):
 
         # if args.is_prepare_data_stack_images:
         #     print("Prepare data as stack images: roll axis to place the images index as first dimension...")
-        #     for j, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
+        #     for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
         #         out_data = np.rollaxis(in_data, 2, start=0)
-        #         list_inout_data[j] = out_data
+        #         list_inout_data[idata] = out_data
         #     # endfor
         #
         #     print("Final dims: %s..." % (str(list_inout_data[0].shape)))
