@@ -5,15 +5,9 @@ name: Python application
 
 on:
   push:
-<<<<<<< HEAD
-    branches: [ mri_enhance ]
+    branches: [ master, dev, mri_enhance ]
   pull_request:
-    branches: [ mri_enhance ]
-=======
-    branches: [ master, dev ]
-  pull_request:
-    branches: [ master, dev ]
->>>>>>> origin/master
+    branches: [ master, dev, mri_enhance ]
 
 jobs:
   build:
