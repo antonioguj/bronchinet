@@ -21,8 +21,8 @@ def main(args):
 
         if args.is_simulated_images:
             if len(in_file_list_splitname) != 7:
-                print('WARNING. Expected a filename with 7 strings separated by \'_\'. '
-                      'Found %s... Rename this file by hand' % (len(in_file_list_splitname)))
+                print("WARNING. Expected a filename with 7 strings separated by \'_\'. "
+                      "Found %s... Rename this file by hand" % (len(in_file_list_splitname)))
                 list_files_failed_rename_by_hand.append(in_file)
                 continue
 
@@ -46,8 +46,8 @@ def main(args):
         else:
             # normal images / labels
             if len(in_file_list_splitname) != 5:
-                print('WARNING. Expected a filename with 5 strings separated by \'_\'. Found %s... '
-                      'Rename this file by hand' % (len(in_file_list_splitname)))
+                print("WARNING. Expected a filename with 5 strings separated by \'_\'. Found %s... "
+                      "Rename this file by hand" % (len(in_file_list_splitname)))
                 list_files_failed_rename_by_hand.append(in_file)
                 continue
 
@@ -71,7 +71,7 @@ def main(args):
         # movefile(in_file, out_file)
     # endfor
 
-    print('\nFound %s files that failed and need to be renamed by hand:\n' % (len(list_files_failed_rename_by_hand)))
+    print("\nFound %s files that failed and need to be renamed by hand:\n" % (len(list_files_failed_rename_by_hand)))
     print(list_files_failed_rename_by_hand)
 
 

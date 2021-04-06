@@ -489,10 +489,10 @@ class Perceptual(MetricModified):
                         break
                 self._list_num_pooling_until_layers_vgg16_calcloss.append(num_pooling_until_layer_this)
 
-        print('\nUse Pretrained VGG16 model to compute the loss...')
+        print("\nUse Pretrained VGG16 model to compute the loss...")
         # print(self._modelVGG16.summary())
-        print('1: Evaluate the prediction and ground-truth on the VGG16 model...')
-        print('2: Compute loss as the L2 norm of the difference of feature maps from VGG16 layers: %s\n'
+        print("1: Evaluate the prediction and ground-truth on the VGG16 model...")
+        print("2: Compute loss as the L2 norm of the difference of feature maps from VGG16 layers: %s\n"
               % (self._layers_vgg16_calcloss))
 
         self._counter_call_compute_vec = 0
