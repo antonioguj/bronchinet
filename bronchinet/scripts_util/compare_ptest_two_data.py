@@ -15,7 +15,7 @@ def main(args):
     elif args.type_ptest == 'related':
         fun_ttest = ttest_rel
 
-    print('\nCompare the field \'%s\' between two data, using \'%s\' P-test...' % (args.in_fieldname, args.type_ptest))
+    print("\nCompare the field \'%s\' between two data, using \'%s\' P-test..." % (args.in_fieldname, args.type_ptest))
 
     list_input_files = [args.inputfile_1, args.inputfile_2]
     list_input_data = []
@@ -45,9 +45,9 @@ def main(args):
 
     (pstats_diff, pvalue_diff) = fun_ttest(list_input_data[0], list_input_data[1])
 
-    print('data 1: %.3f (%.3f - %.3f)...' % (list_calc_stats_data[0][:]))
-    print('data 2: %.3f (%.3f - %.3f)...' % (list_calc_stats_data[1][:]))
-    print('Computed P-value (d1 - d2): %.6f...' % (pvalue_diff))
+    print("data 1: %.3f (%.3f - %.3f)..." % (list_calc_stats_data[0][:]))
+    print("data 2: %.3f (%.3f - %.3f)..." % (list_calc_stats_data[1][:]))
+    print("Computed P-value (d1 - d2): %.6f..." % (pvalue_diff))
 
 
 if __name__ == "__main__":
