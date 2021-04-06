@@ -31,10 +31,10 @@ def main(args):
 
     print("Files to plot data from: \'%s\'..." % (num_input_files))
     for i, ifile in enumerate(list_input_files):
-        print("%s: \'%s\'" % (i+1, ifile))
+        print("%s: \'%s\'" % (i + 1, ifile))
     # endfor
 
-    labels_files = ['model_%i' % (i+1) for i in range(num_input_files)]
+    labels_files = ['model_%i' % (i + 1) for i in range(num_input_files)]
 
     # ******************************
 
@@ -102,13 +102,13 @@ def main(args):
 
         if args.type == 'plot':
             for i, idata in enumerate(data_files):
-                xrange = range(1, len(idata)+1)
+                xrange = range(1, len(idata) + 1)
                 plt.plot(xrange, idata, label=labels_files[i])
             # endfor
 
         elif args.type == 'scatter':
             for i, idata in enumerate(data_files):
-                xrange = range(1, len(idata)+1)
+                xrange = range(1, len(idata) + 1)
                 plt.scatter(xrange, idata, label=labels_files[i])
             # endfor
 

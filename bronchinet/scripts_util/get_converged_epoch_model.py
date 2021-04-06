@@ -73,8 +73,8 @@ def main(args):
 
     # ******************************
 
-    valid_loss = data_fields[:, index_valid_loss-1]
-    evalarr_valid_loss = evalarr_data_fields[:, index_valid_loss-1]
+    valid_loss = data_fields[:, index_valid_loss - 1]
+    evalarr_valid_loss = evalarr_data_fields[:, index_valid_loss - 1]
 
     jump_elems_patience = int(num_epochs_patience / num_epochs_jumpeval)
     # is_converge_found = False
@@ -96,8 +96,8 @@ def main(args):
                 ind_epoch_lastavail = ind_epoch + jump_elems_patience
                 epoch_converged = ind_epoch_lastavail
                 epoch_minvalidloss = 1 + np.argmin(valid_loss[:ind_epoch_lastavail])
-                validloss_converged = valid_loss[epoch_converged-1]
-                validloss_min = valid_loss[epoch_minvalidloss-1]
+                validloss_converged = valid_loss[epoch_converged - 1]
+                validloss_min = valid_loss[epoch_minvalidloss - 1]
                 print("CONVERGED at EPOCH \'%s\' WITH VALIDLOSS \'%s\' AND RELDIFF_LOSS \'%s\'. "
                       "MIN VALIDLOSS at EPOCH \'%s\': \'%s\'..."
                       % (epoch_converged, validloss_converged, reldiff_valid_loss, epoch_minvalidloss, validloss_min))
@@ -107,8 +107,8 @@ def main(args):
                 ind_epoch_lastavail = ind_epoch + jump_elems_patience
                 epoch_diverged = ind_epoch_lastavail
                 epoch_minvalidloss = 1 + np.argmin(valid_loss[:ind_epoch_lastavail])
-                validloss_diverged = valid_loss[epoch_diverged-1]
-                validloss_min = valid_loss[epoch_minvalidloss-1]
+                validloss_diverged = valid_loss[epoch_diverged - 1]
+                validloss_min = valid_loss[epoch_minvalidloss - 1]
                 print("DIVERGED at EPOCH \'%s\' WITH VALIDLOSS \'%s\' AND RELDIFF_LOSS \'%s\'. "
                       "MIN VALIDLOSS at EPOCH \'%s\': \'%s\'..."
                       % (epoch_diverged, validloss_diverged, reldiff_valid_loss, epoch_minvalidloss, validloss_min))

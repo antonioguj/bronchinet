@@ -81,9 +81,9 @@ class SetPatchInImage(ImageOperator):
         return out_image
 
     @staticmethod
-    def _compute2d_byadding(in_image: np.ndarray, out_image: np.ndarray,
-                            in_boundbox: BoundBox2DType
-                            ) -> np.ndarray:
+    def _compute_add2d(in_image: np.ndarray, out_image: np.ndarray,
+                       in_boundbox: BoundBox2DType
+                       ) -> np.ndarray:
         out_image[in_boundbox[0][0]:in_boundbox[0][1], in_boundbox[1][0]:in_boundbox[1][1],
                   ...] += in_image  # last dim for channels
         return out_image
@@ -97,9 +97,9 @@ class SetPatchInImage(ImageOperator):
         return out_image
 
     @staticmethod
-    def _compute3d_byadding(in_image: np.ndarray, out_image: np.ndarray,
-                            in_boundbox: BoundBox3DType
-                            ) -> np.ndarray:
+    def _compute_add3d(in_image: np.ndarray, out_image: np.ndarray,
+                       in_boundbox: BoundBox3DType
+                       ) -> np.ndarray:
         out_image[in_boundbox[0][0]:in_boundbox[0][1], in_boundbox[1][0]:in_boundbox[1][1],
                   in_boundbox[2][0]:in_boundbox[2][1], ...] += in_image  # last dim for channels
         return out_image
@@ -107,15 +107,15 @@ class SetPatchInImage(ImageOperator):
     @classmethod
     def compute(cls, in_image: np.ndarray, *args, **kwargs) -> np.ndarray:
         is_image2d = kwargs['is_image_2D'] if 'is_image_2D' in kwargs.keys() else False
-        iscalc_byadding = kwargs['iscalc_byadding'] if 'iscalc_byadding' in kwargs.keys() else False
+        is_calc_add = kwargs['is_calc_add'] if 'is_calc_add' in kwargs.keys() else False
         if is_image2d:
-            if iscalc_byadding:
-                return cls._compute2d_byadding(in_image, *args)
+            if is_calc_add:
+                return cls._compute_add2d(in_image, *args)
             else:
                 return cls._compute2d(in_image, *args)
         else:
-            if iscalc_byadding:
-                return cls._compute3d_byadding(in_image, *args)
+            if is_calc_add:
+                return cls._compute_add3d(in_image, *args)
             else:
                 return cls._compute3d(in_image, *args)
 
@@ -398,10 +398,10 @@ class FirstConnectedRegionMask(ImageOperator):
         out_image = None
         for ireg in range(num_regs):
             # volume = count voxels for the the conn. region with label "i+1"
-            iconreg_vol = np.count_nonzero(all_regions == ireg+1)
+            iconreg_vol = np.count_nonzero(all_regions == ireg + 1)
             if iconreg_vol > max_vol_regs:
                 # extract the conn. region with label "i+1"
-                out_image = np.where(all_regions == ireg+1, 1, 0).astype(in_image.dtype)
+                out_image = np.where(all_regions == ireg + 1, 1, 0).astype(in_image.dtype)
                 max_vol_regs = iconreg_vol
 
         return out_image

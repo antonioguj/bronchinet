@@ -11,7 +11,7 @@ def create_sphere_in_image(inout_image: np.ndarray,
                            radius: float = 50
                            ) -> np.ndarray:
     if not coords0:
-        coords0 = (int(inout_image.shape[0]/2), int(inout_image.shape[1]/2), int(inout_image.shape[2]/2))
+        coords0 = (int(inout_image.shape[0] / 2), int(inout_image.shape[1] / 2), int(inout_image.shape[2] / 2))
 
     (z_min, z_max) = (coords0[0] - radius, coords0[0] + radius)
     (x_min, x_max) = (coords0[1] - radius, coords0[1] + radius)

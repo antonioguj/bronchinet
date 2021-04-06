@@ -2,12 +2,10 @@
 import argparse
 
 from common.constant import BASEDIR, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_BINARY_TRAIN_MASKS,\
-                            NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
-                            NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, \
-                            NAME_CROP_BOUNDBOXES_FILE
+    NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, \
+    NAME_REFERENCE_FILES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE
 from common.functionutil import is_exist_file, join_path_names, basename, basename_filenoext, list_files_dir, \
-                                find_file_inlist_same_prefix, str2bool, read_dictionary, \
-                                read_dictionary_configparams
+    get_pattern_refer_filename, find_file_inlist_same_prefix, str2bool, read_dictionary, read_dictionary_configparams
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
@@ -69,6 +67,12 @@ def main(args):
 
         # ******************************
 
+        if (args.is_rescale_images):
+            message = 'Rescaling at Post-process time not implemented yet'
+            catch_warning_exception(message)
+
+        # ******************************
+
         if (args.is_mask_region_interest):
             print("Reverse mask to RoI (lungs) in predictions...")
             in_roimask_file = find_file_inlist_same_prefix(basename(in_reference_file), list_input_roimasks_files,
@@ -107,10 +111,11 @@ if __name__ == "__main__":
     parser.add_argument('--is_binary_predictions', type=str2bool, default=IS_BINARY_TRAIN_MASKS)
     parser.add_argument('--name_input_predictions_relpath', type=str, default=NAME_TEMPO_POSTERIORS_RELPATH)
     parser.add_argument('--name_output_posteriors_relpath', type=str, default=NAME_POSTERIORS_RELPATH)
-    parser.add_argument('--name_input_roimasks_relpath', type=str, default=NAME_RAW_ROIMASKS_RELPATH)
     parser.add_argument('--name_input_reference_files_relpath', type=str, default=NAME_REFERENCE_FILES_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_POSTERIORS_FILE)
+    parser.add_argument('--name_input_roimasks_relpath', type=str, default=NAME_RAW_ROIMASKS_RELPATH)
     parser.add_argument('--name_crop_boundboxes_file', type=str, default=NAME_CROP_BOUNDBOXES_FILE)
+    parser.add_argument('--name_rescale_factors_file', type=str, default=NAME_RESCALE_FACTORS_FILE)
     parser.add_argument('--is_binary_predictions', type=str2bool, default=IS_BINARY_TRAIN_MASKS)
     # parser.add_argument('--is_process_data_stack_images', type=str2bool, default=False)
     args = parser.parse_args()

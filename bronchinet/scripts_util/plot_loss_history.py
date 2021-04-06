@@ -23,11 +23,11 @@ def main(args):
 
     print("Files to plot the loss history from: \'%s\'..." % (num_input_files))
     for i, ifile in enumerate(list_input_files):
-        print("%s: \'%s\'" % (i+1, ifile))
+        print("%s: \'%s\'" % (i + 1, ifile))
     # endfor
 
-    labels_train = ['train_%i' % (i+1) for i in range(num_input_files)]
-    labels_valid = ['valid_%i' % (i+1) for i in range(num_input_files)]
+    labels_train = ['train_%i' % (i + 1) for i in range(num_input_files)]
+    labels_valid = ['valid_%i' % (i + 1) for i in range(num_input_files)]
 
     # ******************************
 

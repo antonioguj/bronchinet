@@ -4,13 +4,11 @@ import numpy as np
 import math
 import argparse
 
-from common.constant import BASEDIR, DIST_PROPDATA_TRAINVALIDTEST, \
-                            NAME_TRAININGDATA_RELPATH, NAME_VALIDATIONDATA_RELPATH, NAME_TESTINGDATA_RELPATH, \
-                            NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
-                            NAME_REFERENCE_KEYS_PROCIMAGE_FILE
+from common.constant import BASEDIR, DIST_PROPDATA_TRAINVALIDTEST, NAME_TRAININGDATA_RELPATH, \
+    NAME_VALIDATIONDATA_RELPATH, NAME_TESTINGDATA_RELPATH, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, \
+    NAME_PROC_EXTRALABELS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE
 from common.functionutil import makelink, set_dirname_suffix, is_exist_file, join_path_names, list_files_dir, basename,\
-                                basename_filenoext, get_substring_filename, str2bool, str2tuple_float, read_dictionary,\
-                                find_intersection_3lists
+    basename_filenoext, str2tuple_float, read_dictionary, find_intersection_3lists, get_substring_filename, str2bool
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.workdirmanager import TrainDirManager
 
@@ -120,18 +118,18 @@ def main(args):
         indict_reference_keys = read_dictionary(in_reference_keys_file)
         list_in_reference_keys = list(indict_reference_keys.values())
 
-        indexes_training_files \
-            = search_indexes_in_files_from_reference_keys(args.infile_order_train, list_in_reference_keys)
-        indexes_validation_files\
-            = search_indexes_in_files_from_reference_keys(args.infile_valid_order, list_in_reference_keys)
-        indexes_testing_files \
-            = search_indexes_in_files_from_reference_keys(args.infile_test_order,  list_in_reference_keys)
+        indexes_training_files = \
+            search_indexes_in_files_from_reference_keys(args.infile_order_train, list_in_reference_keys)
+        indexes_validation_files = \
+            search_indexes_in_files_from_reference_keys(args.infile_valid_order, list_in_reference_keys)
+        indexes_testing_files = \
+            search_indexes_in_files_from_reference_keys(args.infile_test_order, list_in_reference_keys)
 
         # Check whether there are files assigned to more than one set (Training / Validation / Testing)
-        intersection_check =\
+        intersection_check = \
             find_intersection_3lists(indexes_training_files, indexes_validation_files, indexes_testing_files)
         if intersection_check != []:
-            list_intersect_files =\
+            list_intersect_files = \
                 [indict_reference_keys[basename_filenoext(list_input_images_files[ind])] for ind in intersection_check]
             message = 'Found files assigned to more than one set (Training / Validation / Testing): %s...' \
                       % (list_intersect_files)
@@ -206,11 +204,11 @@ def main(args):
                     fout.write('%s\n' % (in_reference_key))
 
         for i in range(args.num_folds_crossval):
-            out_file_cvfold_info_train = out_filename_cvfold_info_train % (i+1)
-            out_file_cvfold_info_valid = out_filename_cvfold_info_valid % (i+1)
-            out_file_cvfold_info_test = out_filename_cvfold_info_test % (i+1)
+            out_file_cvfold_info_train = out_filename_cvfold_info_train % (i + 1)
+            out_file_cvfold_info_valid = out_filename_cvfold_info_valid % (i + 1)
+            out_file_cvfold_info_test = out_filename_cvfold_info_test % (i + 1)
             print("For cv-fold %s, write distribution of files for Training / Validation / Testing in: %s, %s, %s..."
-                  % (i+1, basename(out_file_cvfold_info_train), basename(out_file_cvfold_info_valid),
+                  % (i + 1, basename(out_file_cvfold_info_train), basename(out_file_cvfold_info_valid),
                      basename(out_file_cvfold_info_test)))
 
             write_file_cvfold_info(out_file_cvfold_info_train, list_indexes_training_files_cvfolds[i])
@@ -252,19 +250,19 @@ def main(args):
 
     if args.type_distribute == 'crossval' or args.type_distribute == 'crossval_random':
         for i in range(args.num_folds_crossval):
-            print("\nFor cv-fold %s: Files assigned to Training Data:" % (i+1))
-            training_data_path = workdir_manager.get_pathdir_new(args.name_training_data_relpath % (i+1))
+            print("\nFor cv-fold %s: Files assigned to Training Data:" % (i + 1))
+            training_data_path = workdir_manager.get_pathdir_new(args.name_training_data_relpath % (i + 1))
 
             create_links_images_files_assigned_group(list_indexes_training_files_cvfolds[i], training_data_path,
                                                      is_many_images_per_label=args.is_prepare_many_images_per_label)
 
-            print("For cv-fold %s: Files assigned to Validation Data:" % (i+1))
-            validation_data_path = workdir_manager.get_pathdir_new(args.name_validation_data_relpath % (i+1))
+            print("For cv-fold %s: Files assigned to Validation Data:" % (i + 1))
+            validation_data_path = workdir_manager.get_pathdir_new(args.name_validation_data_relpath % (i + 1))
 
             create_links_images_files_assigned_group(list_indexes_validation_files_cvfolds[i], validation_data_path)
 
-            print("For cv-fold %s: Files assigned to Testing Data:" % (i+1))
-            testing_data_path = workdir_manager.get_pathdir_new(args.name_testing_data_relpath % (i+1))
+            print("For cv-fold %s: Files assigned to Testing Data:" % (i + 1))
+            testing_data_path = workdir_manager.get_pathdir_new(args.name_testing_data_relpath % (i + 1))
 
             create_links_images_files_assigned_group(list_indexes_testing_files_cvfolds[i], testing_data_path)
         # endfor

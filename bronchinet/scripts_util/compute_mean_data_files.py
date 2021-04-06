@@ -21,7 +21,7 @@ def main(args):
 
     print("Files to compute the mean from: \'%s\'..." % (num_input_files))
     for i, ifile in enumerate(list_input_files):
-        print("%s: \'%s\'" % (i+1, ifile))
+        print("%s: \'%s\'" % (i + 1, ifile))
     # endfor
 
     # ******************************
@@ -68,7 +68,7 @@ def main(args):
                 num_cols = len(header_file)
 
                 # allocate vars to store data in files and compute the mean
-                data_fileslist = np.zeros((num_input_files, num_rows-1, num_cols-1))
+                data_fileslist = np.zeros((num_input_files, num_rows - 1, num_cols - 1))
             else:
                 if header_this != header_file:
                     message = 'header in file: \'%s\' not equal to header found previously: \'%s\'' \
@@ -92,9 +92,9 @@ def main(args):
         strheader = ', '.join(header_file) + '\n'
         fout.write(strheader)
 
-        for i in range(num_rows-1):
+        for i in range(num_rows - 1):
             data_thisrow = mean_data_fileslist[i]
-            strdata = ', '.join([rows1elem_file[i+1]] + ['%0.6f' % (elem) for elem in data_thisrow]) + '\n'
+            strdata = ', '.join([rows1elem_file[i + 1]] + ['%0.6f' % (elem) for elem in data_thisrow]) + '\n'
             fout.write(strdata)
         # endfor
 

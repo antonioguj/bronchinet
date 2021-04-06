@@ -12,8 +12,8 @@ np.random.seed(2017)
 
 
 class ElasticDeformImages(ImageGenerator):
-    _order_inter_image = 3
-    _order_inter_mask = 0
+    _order_interp_image = 3
+    _order_interp_mask = 0
 
     def __init__(self,
                  size_image: Tuple[int, ...],
@@ -49,10 +49,10 @@ class ElasticDeformImages(ImageGenerator):
 
     def _get_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         if is_type_input_image:
-            return map_coordinates(in_image, self._gendata_elastic_deform, order=self._order_inter_image,
+            return map_coordinates(in_image, self._gendata_elastic_deform, order=self._order_interp_image,
                                    mode=self._fill_mode, cval=self._cval).reshape(self._size_image)
         else:
-            return map_coordinates(in_image, self._gendata_elastic_deform, order=self._order_inter_mask,
+            return map_coordinates(in_image, self._gendata_elastic_deform, order=self._order_interp_mask,
                                    mode=self._fill_mode, cval=self._cval).reshape(self._size_image)
 
     def _get_inverse_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
@@ -191,7 +191,7 @@ class ElasticDeformGridwiseImagesGijs(ElasticDeformImages):
         pass
 
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:
-        out_image = deform_random_grid(in_image, sigma=self._sigma, points=self._points, order=self._order_inter_image,
+        out_image = deform_random_grid(in_image, sigma=self._sigma, points=self._points, order=self._order_interp_image,
                                        mode=self._fill_mode, cval=self._cval)
         return out_image
 
@@ -199,15 +199,15 @@ class ElasticDeformGridwiseImagesGijs(ElasticDeformImages):
         (out_image_1, out_image_2) = deform_random_grid([in_image_1, in_image_2],
                                                         sigma=self._sigma,
                                                         points=self._points,
-                                                        order=[self._order_inter_image, self._order_inter_mask],
+                                                        order=[self._order_interp_image, self._order_interp_mask],
                                                         mode=self._fill_mode, cval=self._cval)
         return (out_image_1, out_image_2)
 
     def get_many_images(self, in_list_images: List[np.ndarray], **kwargs) -> List[np.ndarray]:
-        num_images = len(in_list_images)
         out_list_images = deform_random_grid(in_list_images,
                                              sigma=self._sigma,
                                              points=self._points,
-                                             order=[self._order_inter_image] + [self._order_inter_mask]*(num_images-1),
+                                             order=[self._order_interp_image]
+                                             + [self._order_interp_mask] * (len(in_list_images) - 1),
                                              mode=self._fill_mode, cval=self._cval)
         return out_list_images

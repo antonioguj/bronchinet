@@ -5,12 +5,12 @@ import argparse
 
 from common.constant import DATADIR
 from common.functionutil import makedir, join_path_names, list_files_dir, basename, basename_filenoext, fileextension, \
-                                str2bool, read_dictionary
+    str2bool, read_dictionary
 from common.exceptionmanager import catch_error_exception
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.imageoperator import CropImage, RescaleImage, MorphoDilateMask, MorphoErodeMask, MorphoOpenMask, \
-                                         MorphoCloseMask, MorphoFillHolesMask, ThinningMask, ConnectedRegionsMask, \
-                                         FirstConnectedRegionMask, ThresholdImage, NormaliseImage
+    MorphoCloseMask, MorphoFillHolesMask, ThinningMask, ConnectedRegionsMask, FirstConnectedRegionMask, ThresholdImage,\
+    NormaliseImage
 from imageoperators.maskoperator import MaskOperator
 
 
@@ -414,7 +414,7 @@ if __name__ == "__main__":
                        'normalise': 'normalise images to have voxels in the range (0, 1)',
                        'power': 'compute power of mask values',
                        'exponential': 'compute exponential of mask values'}
-    string_opers_help = '\n'.join([(key+': '+val) for key, val in dict_opers_help.items()])
+    string_opers_help = '\n'.join([(key + ': ' + val) for key, val in dict_opers_help.items()])
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--datadir', type=str, default=DATADIR)

@@ -2,17 +2,16 @@
 from typing import Tuple
 
 from common.constant import TRANS_ROTATION_XY_RANGE, TRANS_ROTATION_XZ_RANGE, TRANS_ROTATION_YZ_RANGE, \
-                            TRANS_HEIGHT_SHIFT_RANGE, TRANS_WIDTH_SHIFT_RANGE, \
-                            TRANS_DEPTH_SHIFT_RANGE, TRANS_HORIZONTAL_FLIP, TRANS_VERTICAL_FLIP, \
-                            TRANS_AXIALDIR_FLIP,  TRANS_ZOOM_RANGE, TRANS_FILL_MODE_TRANSFORM, \
-                            TYPE_TRANSFORM_ELASTICDEFORM_IMAGES
+    TRANS_HEIGHT_SHIFT_RANGE, TRANS_WIDTH_SHIFT_RANGE, TRANS_DEPTH_SHIFT_RANGE, TRANS_HORIZONTAL_FLIP, \
+    TRANS_VERTICAL_FLIP, TRANS_AXIALDIR_FLIP, TRANS_ZOOM_RANGE, TRANS_FILL_MODE_TRANSFORM, \
+    TYPE_TRANSFORM_ELASTIC_IMAGES
 from common.exceptionmanager import catch_error_exception
 from preprocessing.imagegenerator import ImageGenerator, NullGenerator, CombinedImagesGenerator
 from preprocessing.randomwindowimages import RandomWindowImages
 from preprocessing.slidingwindowimages import SlidingWindowImages
 from preprocessing.transformrigidimages import TransformRigidImages2D, TransformRigidImages3D
 from preprocessing.elasticdeformimages import ElasticDeformGridwiseImages, ElasticDeformPixelwiseImages, \
-                                              ElasticDeformGridwiseImagesGijs
+    ElasticDeformGridwiseImagesGijs
 
 
 def get_images_generator(size_images: Tuple[int, ...],
@@ -21,7 +20,7 @@ def get_images_generator(size_images: Tuple[int, ...],
                          use_random_window_images: bool,
                          num_random_patches_epoch: int,
                          use_transform_rigid_images: bool,
-                         use_transform_elasticdeform_images: bool,
+                         use_transform_elastic_images: bool,
                          size_volume_image: Tuple[int, ...] = (0,)
                          ) -> ImageGenerator:
     list_images_generators = []
@@ -71,24 +70,24 @@ def get_images_generator(size_images: Tuple[int, ...],
             message = 'Wrong value of \'ndims\': %s' % (ndims)
             catch_error_exception(message)
 
-    if use_transform_elasticdeform_images:
-        if TYPE_TRANSFORM_ELASTICDEFORM_IMAGES == 'gridwise':
+    if use_transform_elastic_images:
+        if TYPE_TRANSFORM_ELASTIC_IMAGES == 'gridwise':
             new_images_generator = ElasticDeformGridwiseImages(size_images,
                                                                fill_mode=TRANS_FILL_MODE_TRANSFORM)
             list_images_generators.append(new_images_generator)
 
-        elif TYPE_TRANSFORM_ELASTICDEFORM_IMAGES == 'pixelwise':
+        elif TYPE_TRANSFORM_ELASTIC_IMAGES == 'pixelwise':
             new_images_generator = ElasticDeformPixelwiseImages(size_images,
                                                                 fill_mode=TRANS_FILL_MODE_TRANSFORM)
             list_images_generators.append(new_images_generator)
 
-        elif TYPE_TRANSFORM_ELASTICDEFORM_IMAGES == 'gridwiseGijs':
+        elif TYPE_TRANSFORM_ELASTIC_IMAGES == 'gridwiseGijs':
             new_images_generator = ElasticDeformGridwiseImagesGijs(size_images,
                                                                    fill_mode=TRANS_FILL_MODE_TRANSFORM)
             list_images_generators.append(new_images_generator)
 
         else:
-            message = 'Wrong value for type of Elastic Deformations: %s' % (TYPE_TRANSFORM_ELASTICDEFORM_IMAGES)
+            message = 'Wrong value for type of Elastic Deformations: %s' % (TYPE_TRANSFORM_ELASTIC_IMAGES)
             catch_error_exception(message)
 
     num_created_images_generators = len(list_images_generators)

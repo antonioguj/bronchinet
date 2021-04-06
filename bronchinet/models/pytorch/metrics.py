@@ -66,12 +66,12 @@ class MetricWithUncertainty(Metric):
         self._name_fun_out = self._metrics_loss._name_fun_out + '_uncertain'
 
     def _compute(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
-        return (1.0 - self._epsilon) * self._metrics_loss._compute(target, input) + \
-               self._epsilon * self._metrics_loss._compute(torch.ones_like(input) / 3, input)
+        return (1.0 - self._epsilon) * self._metrics_loss._compute(target, input) \
+            + self._epsilon * self._metrics_loss._compute(torch.ones_like(input) / 3, input)
 
     def _compute_masked(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
-        return (1.0 - self._epsilon) * self._metrics_loss.__compute_masked(target, input) + \
-               self._epsilon * self._metrics_loss.__compute_masked(torch.ones_like(input) / 3, input)
+        return (1.0 - self._epsilon) * self._metrics_loss.__compute_masked(target, input) \
+            + self._epsilon * self._metrics_loss.__compute_masked(torch.ones_like(input) / 3, input)
 
 
 class CombineTwoMetrics(Metric):
@@ -84,12 +84,12 @@ class CombineTwoMetrics(Metric):
         self._name_fun_out = '_'.join(['combi', metrics_1._name_fun_out, metrics_2._name_fun_out])
 
     def compute(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
-        return self._metrics_1.compute(target, input) + \
-               self._weight_metric2over1 * self._metrics_2.compute(target, input)
+        return self._metrics_1.compute(target, input) \
+            + self._weight_metric2over1 * self._metrics_2.compute(target, input)
 
     def forward(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
-        return self._metrics_1.forward(target, input) + \
-               self._weight_metric2over1 * self._metrics_2.forward(target, input)
+        return self._metrics_1.forward(target, input) \
+            + self._weight_metric2over1 * self._metrics_2.forward(target, input)
 
 
 class MeanSquaredError(Metric):
@@ -113,13 +113,13 @@ class MeanSquaredErrorLogarithmic(Metric):
         self._name_fun_out = 'mean_squared_log'
 
     def _compute(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
-        return torch.mean(torch.square(torch.log(torch.clip(input, _EPS, None) + 1.0) -
-                                       torch.log(torch.clip(target, _EPS, None) + 1.0)), axis=-1)
+        return torch.mean(torch.square(torch.log(torch.clip(input, _EPS, None) + 1.0)
+                                       - torch.log(torch.clip(target, _EPS, None) + 1.0)), axis=-1)
 
     def _compute_masked(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
         mask = self._get_mask(target)
-        return torch.mean(torch.square(torch.log(torch.clip(input, _EPS, None) + 1.0) -
-                                       torch.log(torch.clip(target, _EPS, None) + 1.0)) * mask, axis=-1)
+        return torch.mean(torch.square(torch.log(torch.clip(input, _EPS, None) + 1.0)
+                                       - torch.log(torch.clip(target, _EPS, None) + 1.0)) * mask, axis=-1)
 
 
 class BinaryCrossEntropy(Metric):
@@ -149,8 +149,8 @@ class WeightedBinaryCrossEntropy(Metric):
                                           dtype=torch.int32)
         num_class_0 = torch.count_nonzero(torch.where(target == 0.0, torch.ones_like(target), torch.zeros_like(target)),
                                           dtype=torch.int32)
-        return (1.0, torch.cast(num_class_0, dtype=torch.float32) /
-                (torch.cast(num_class_1, dtype=torch.float32) + torch.variable(_EPS)))
+        return (1.0, torch.cast(num_class_0, dtype=torch.float32)
+                / (torch.cast(num_class_1, dtype=torch.float32) + torch.variable(_EPS)))
 
     def _compute(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
         weights = self._get_weights(target)

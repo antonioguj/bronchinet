@@ -2,7 +2,7 @@
 from collections import OrderedDict
 import argparse
 
-from common.constant import BASEDIR, LIST_TYPE_METRICS_RESULT, NAME_RAW_LABELS_RELPATH, NAME_PRED_RESULT_METRICS_FILE
+from common.constant import BASEDIR, LIST_TYPE_METRICS_RESULT, NAME_PRED_RESULT_METRICS_FILE, NAME_RAW_LABELS_RELPATH
 from common.functionutil import basename, list_files_dir, get_substring_filename, find_file_inlist_same_prefix
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
@@ -76,8 +76,8 @@ if __name__ == "__main__":
     parser.add_argument('input_predicted_masks_dir', type=str)
     parser.add_argument('--output_file', type=str, default=NAME_PRED_RESULT_METRICS_FILE)
     parser.add_argument('--list_type_metrics', nargs='+', type=str, default=LIST_TYPE_METRICS_RESULT)
-    parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     parser.add_argument('--output_file', type=str, default=NAME_PRED_RESULT_METRICS_FILE)
+    parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     args = parser.parse_args()
 
     print("Print input arguments...")

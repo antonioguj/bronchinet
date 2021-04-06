@@ -392,11 +392,11 @@ def split_string_list_or_tuple(in_str: str) -> List[str]:
     if ('[' in in_str_content) and (']' in in_str_content):
         in_str_content_split = in_str_content.rsplit('],')
         num_elems = len(in_str_content_split)
-        return [(elem+']') if i < (num_elems-1) else elem for i, elem in enumerate(in_str_content_split)]
+        return [(elem + ']') if i < (num_elems - 1) else elem for i, elem in enumerate(in_str_content_split)]
     elif ('(' in in_str_content) and (')' in in_str_content):
         in_str_content_split = in_str_content.rsplit('),')
         num_elems = len(in_str_content_split)
-        return [(elem+')') if i < (num_elems-1) else elem for i, elem in enumerate(in_str_content_split)]
+        return [(elem + ')') if i < (num_elems - 1) else elem for i, elem in enumerate(in_str_content_split)]
     else:
         return in_str_content.rsplit(',')
 

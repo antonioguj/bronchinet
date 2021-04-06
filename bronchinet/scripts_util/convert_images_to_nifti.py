@@ -3,8 +3,8 @@ import argparse
 import os
 
 from common.functionutil import makedir, removefile, removedir, join_path_names, is_exist_exec, is_exists_hexec, \
-                                list_files_dir, basename, basename_filenoext, fileextension, \
-                                get_pattern_refer_filename, find_file_inlist_same_prefix
+    list_files_dir, basename, basename_filenoext, fileextension, get_pattern_refer_filename, \
+    find_file_inlist_same_prefix
 from common.exceptionmanager import catch_error_exception
 from dataloaders.imagefilereader import ImageFileReader, NiftiReader, DicomReader
 

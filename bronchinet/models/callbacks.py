@@ -44,7 +44,7 @@ class RecordLossHistoryBase(CallbackBase):
         fout.close()
 
     def on_epoch_end(self, epoch: int, data_output: List[float]) -> None:
-        list_data_line = ['%d' % (epoch+1)] + ['%0.6f' % (elem) for elem in data_output]
+        list_data_line = ['%d' % (epoch + 1)] + ['%0.6f' % (elem) for elem in data_output]
         str_data_line = ' '.join(list_data_line) + '\n'
 
         fout = open(self._loss_filename, 'a')
@@ -97,7 +97,7 @@ class ModelCheckpointBase(CallbackBase):
     def on_epoch_end(self, epoch: int) -> None:
         if (epoch % self._freq_save_model == 0):
             if self._update_filename_epoch:
-                model_filename_this = self._model_filename % (epoch+1)
+                model_filename_this = self._model_filename % (epoch + 1)
             else:
                 model_filename_this = self._model_filename
             if self._type_save_model == 'only_weights':

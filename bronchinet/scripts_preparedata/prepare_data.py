@@ -5,15 +5,12 @@ import numpy as np
 import argparse
 
 from common.constant import DATADIR, IS_BINARY_TRAIN_MASKS, IS_MASK_REGION_INTEREST, IS_NORMALIZE_DATA, \
-                            IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_TWO_BOUNDBOXES_EACH_LUNG, NAME_RAW_IMAGES_RELPATH, \
-                            NAME_RAW_LABELS_RELPATH, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, \
-                            NAME_RAW_ROIMASKS_RELPATH, NAME_RAW_EXTRALABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
-                            NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-                            NAME_RESCALE_FACTORS_FILE, NAME_CROP_BOUNDBOXES_FILE, \
-                            IS_MERGE_TWO_IMAGES_AS_CHANNELS, NAME_RAW_EXTRAIMAGES_RELPATH
+    IS_CROP_IMAGES, IS_RESCALE_IMAGES, NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, \
+    NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_RAW_EXTRALABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
+    NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_RAW_ROIMASKS_RELPATH, \
+    NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE, IS_TWO_BOUNDBOXES_EACH_LUNG
 from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, str2bool, \
-                                read_dictionary, save_dictionary, save_dictionary_csv, \
-                                get_substring_filename
+    read_dictionary, save_dictionary, save_dictionary_csv   #, get_substring_filename
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.workdirmanager import GeneralDirManager
 from dataloaders.imagefilereader import ImageFileReader
@@ -254,6 +251,8 @@ def main(args):
         #
         #     print("Final dims: %s..." % (str(list_inout_data[0].shape)))
 
+        # ******************************
+
         # Output processed images
         if (args.is_prepare_many_images_per_label):
             num_output_files_per_image = num_extra_images_files + 1
@@ -270,12 +269,12 @@ def main(args):
 
             if is_output_multiple_files_per_image:
                 output_image_file = join_path_names(output_images_path,
-                                                    name_template_output_images_files % (ifile+1, isubfile+1))
+                                                    name_template_output_images_files % (ifile + 1, isubfile + 1))
             else:
                 output_image_file = join_path_names(output_images_path,
-                                                    name_template_output_images_files % (ifile+1))
+                                                    name_template_output_images_files % (ifile + 1))
             print("Output \'%s\' image, of type \'%s\': \'%s\'..."
-                  % (icount+1, list_type_inout_data[icount], basename(output_image_file)))
+                  % (icount + 1, list_type_inout_data[icount], basename(output_image_file)))
 
             ImageFileReader.write_image(output_image_file, list_inout_data[icount])
             icount += 1
@@ -294,12 +293,12 @@ def main(args):
 
                 if is_output_multiple_files_per_label:
                     output_label_file = join_path_names(output_labels_path,
-                                                        name_template_output_labels_files % (ifile+1, isubfile+1))
+                                                        name_template_output_labels_files % (ifile + 1, isubfile + 1))
                 else:
                     output_label_file = join_path_names(output_labels_path,
-                                                        name_template_output_labels_files % (ifile+1))
+                                                        name_template_output_labels_files % (ifile + 1))
                 print("Output \'%s\' label, of type \'%s\': \'%s\'..."
-                      % (icount+1, list_type_inout_data[icount], basename(output_label_file)))
+                      % (icount + 1, list_type_inout_data[icount], basename(output_label_file)))
 
                 ImageFileReader.write_image(output_label_file, list_inout_data[icount])
                 icount += 1
@@ -310,15 +309,15 @@ def main(args):
                     catch_error_exception(message)
 
                 if is_output_multiple_files_per_label:
-                    output_extra_label_file = join_path_names(output_labels_path,
-                                                              name_template_output_labels_files % (ifile+1, isubfile+1))
+                    output_label_file = join_path_names(output_labels_path,
+                                                        name_template_output_labels_files % (ifile + 1, isubfile + 1))
                 else:
-                    output_extra_label_file = join_path_names(output_labels_path,
-                                                              name_template_output_labels_files % (ifile+1))
+                    output_label_file = join_path_names(output_labels_path,
+                                                        name_template_output_labels_files % (ifile + 1))
                 print("Output \'%s\' extra label, of type \'%s\': \'%s\'..."
-                      % (icount+1, list_type_inout_data[icount], basename(output_extra_label_file)))
+                      % (icount + 1, list_type_inout_data[icount], basename(output_label_file)))
 
-                ImageFileReader.write_image(output_extra_label_file, list_inout_data[icount])
+                ImageFileReader.write_image(output_label_file, list_inout_data[icount])
                 icount += 1
         # endfor
     # endfor
@@ -338,7 +337,6 @@ if __name__ == "__main__":
     parser.add_argument('--is_normalize_data', type=str2bool, default=IS_NORMALIZE_DATA)
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
-    parser.add_argument('--is_roilabels_multi_roimasks', type=str2bool, default=IS_TWO_BOUNDBOXES_EACH_LUNG)
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_RAW_IMAGES_RELPATH)
     parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     parser.add_argument('--name_output_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
