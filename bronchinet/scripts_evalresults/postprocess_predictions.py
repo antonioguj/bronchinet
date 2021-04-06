@@ -5,8 +5,8 @@ from common.constant import BASEDIR, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS
     NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, \
     NAME_REFERENCE_FILES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE
 from common.functionutil import is_exist_file, join_path_names, basename, basename_filenoext, list_files_dir, \
-    get_pattern_refer_filename, find_file_inlist_same_prefix, str2bool, read_dictionary, read_dictionary_configparams
-from common.exceptionmanager import catch_error_exception
+    find_file_inlist_same_prefix, str2bool, read_dictionary, read_dictionary_configparams
+from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.imageoperator import ExtendImage
@@ -68,7 +68,7 @@ def main(args):
         # ******************************
 
         if (args.is_rescale_images):
-            message = 'Rescaling at Post-process time not implemented yet'
+            message = 'Rescaling at Postprocessing time not implemented yet'
             catch_warning_exception(message)
 
         # ******************************

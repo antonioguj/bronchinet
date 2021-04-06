@@ -69,12 +69,12 @@ def main(args):
         list_validation_files = [list_input_files[ind] for ind in indexes_validation_files]
         list_testing_files = [list_input_files[ind] for ind in indexes_testing_files]
 
-        out_file_cvfold_info_train = out_filename_cvfold_info_train % (i+1)
-        out_file_cvfold_info_valid = out_filename_cvfold_info_valid % (i+1)
-        out_file_cvfold_info_test = out_filename_cvfold_info_test % (i+1)
+        out_file_cvfold_info_train = out_filename_cvfold_info_train % (i + 1)
+        out_file_cvfold_info_valid = out_filename_cvfold_info_valid % (i + 1)
+        out_file_cvfold_info_test = out_filename_cvfold_info_test % (i + 1)
 
         print("For cv-fold %s, write distribution of files for Training / Validation / Testing in: %s, %s, %s..."
-              % (i+1, out_file_cvfold_info_train, out_file_cvfold_info_valid, out_file_cvfold_info_test))
+              % (i + 1, out_file_cvfold_info_train, out_file_cvfold_info_valid, out_file_cvfold_info_test))
 
         with open(out_file_cvfold_info_train, 'w') as fout:
             for in_unique_subject_file in list_training_files:

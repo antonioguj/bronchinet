@@ -7,7 +7,7 @@ import torch
 
 from common.functionutil import ImagesUtil
 from dataloaders.batchdatagenerator import BatchImageDataGenerator1Image, BatchImageDataGenerator2Images, \
-                                           BatchImageDataGeneratorManyImagesPerLabel
+    BatchImageDataGeneratorManyImagesPerLabel
 from preprocessing.imagegenerator import ImageGenerator
 
 

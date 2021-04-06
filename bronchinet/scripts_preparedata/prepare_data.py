@@ -8,9 +8,9 @@ from common.constant import DATADIR, IS_BINARY_TRAIN_MASKS, IS_MASK_REGION_INTER
     IS_CROP_IMAGES, IS_RESCALE_IMAGES, NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, \
     NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_RAW_EXTRALABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
     NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_RAW_ROIMASKS_RELPATH, \
-    NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE, IS_TWO_BOUNDBOXES_EACH_LUNG
+    NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE, IS_MERGE_TWO_IMAGES_AS_CHANNELS, NAME_RAW_EXTRAIMAGES_RELPATH
 from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, str2bool, \
-    read_dictionary, save_dictionary, save_dictionary_csv   #, get_substring_filename
+    read_dictionary, save_dictionary, save_dictionary_csv, get_substring_filename
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.workdirmanager import GeneralDirManager
 from dataloaders.imagefilereader import ImageFileReader
@@ -145,7 +145,7 @@ def main(args):
             print("And \'%s\' extra input images:..." % (num_extra_images_files))
 
             for i, in_extra_image_file in enumerate(in_list_group_extra_images_files):
-                print("\'%s\': \'%s\'..." % (i+1, basename(in_extra_image_file)))
+                print("\'%s\': \'%s\'..." % (i + 1, basename(in_extra_image_file)))
 
                 inout_extra_image = ImageFileReader.get_image(in_extra_image_file)
                 list_inout_data.append(inout_extra_image)
@@ -280,7 +280,7 @@ def main(args):
             icount += 1
 
             if (args.is_prepare_many_images_per_label) and (isubfile > 0):
-                in_image_file = list_groups_extra_images_files_all[ifile][isubfile-1]
+                in_image_file = list_groups_extra_images_files_all[ifile][isubfile - 1]
 
             outdict_reference_keys[basename_filenoext(output_image_file)] = basename(in_image_file)
         # endfor

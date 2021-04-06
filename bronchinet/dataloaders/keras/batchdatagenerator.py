@@ -4,8 +4,8 @@ import numpy as np
 
 from tensorflow.keras.utils import Sequence as Sequence_keras
 
-from dataloaders.batchdatagenerator import BatchImageDataGenerator1Image, BatchImageDataGenerator2Images,\
-                                           BatchImageDataGeneratorManyImagesPerLabel
+from dataloaders.batchdatagenerator import BatchImageDataGenerator1Image, BatchImageDataGenerator2Images, \
+    BatchImageDataGeneratorManyImagesPerLabel
 from preprocessing.imagegenerator import ImageGenerator
 
 

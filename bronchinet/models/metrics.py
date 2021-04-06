@@ -433,8 +433,8 @@ class SSIMHomemade(MetricModifiedBase):
         cons_k1 = 0.01
         cons_k2 = 0.03
         range_l = 255.0
-        cons_c1 = (cons_k1*range_l)**2
-        cons_c2 = (cons_k2*range_l)**2
+        cons_c1 = (cons_k1 * range_l)**2
+        cons_c2 = (cons_k2 * range_l)**2
         target = target.flatten()
         input = input.flatten()
         mean_target = np.mean(target, axis=-1)
@@ -442,15 +442,15 @@ class SSIMHomemade(MetricModifiedBase):
         std_target = np.sqrt(np.mean(np.square(target - mean_target), axis=-1))
         std_input = np.sqrt(np.mean(np.square(input - mean_input), axis=-1))
         std_target_input = np.mean((target - mean_target) * (input - mean_input), axis=-1)
-        return (2*mean_target*mean_input + cons_c1) / (mean_target**2 + mean_input**2 + cons_c1) *\
-               (2*std_target_input + cons_c2) / (std_target**2 + std_input**2 + cons_c2)
+        return (2 * mean_target * mean_input + cons_c1) / (mean_target**2 + mean_input**2 + cons_c1) \
+            * (2 * std_target_input + cons_c2) / (std_target**2 + std_input**2 + cons_c2)
 
     def _compute_masked(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
         cons_k1 = 0.01
         cons_k2 = 0.03
         range_l = 255.0
-        cons_c1 = (cons_k1*range_l)**2
-        cons_c2 = (cons_k2*range_l)**2
+        cons_c1 = (cons_k1 * range_l)**2
+        cons_c2 = (cons_k2 * range_l)**2
         target = target.flatten()
         input = input.flatten()
         mask = self._get_mask(target)
@@ -459,5 +459,5 @@ class SSIMHomemade(MetricModifiedBase):
         std_target = np.sqrt(np.mean(np.square(target - mean_target) * mask, axis=-1))
         std_input = np.sqrt(np.mean(np.square(input - mean_input) * mask, axis=-1))
         std_target_input = np.mean((target - mean_target) * (input - mean_input) * mask, axis=-1)
-        return (2*mean_target*mean_input + cons_c1) / (mean_target**2 + mean_input**2 + cons_c1) *\
-               (2*std_target_input + cons_c2) / (std_target**2 + std_input**2 + cons_c2)
+        return (2 * mean_target * mean_input + cons_c1) / (mean_target**2 + mean_input**2 + cons_c1) \
+            * (2 * std_target_input + cons_c2) / (std_target**2 + std_input**2 + cons_c2)

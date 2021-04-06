@@ -451,7 +451,7 @@ class Perceptual(MetricModified):
             self._is_calcloss_feats_alllayer = True
 
         # use smaller input to the VGG16 net, centered from the input image, to reduce memory footprint
-        reduced_size_dim1_input_vgg16 = int(self._size_slice_image[0]*(1.0-prop_reduce_insize_vgg16_calcloss))
+        reduced_size_dim1_input_vgg16 = int(self._size_slice_image[0] * (1.0 - prop_reduce_insize_vgg16_calcloss))
         self._size_input_vgg16 = (reduced_size_dim1_input_vgg16, self._size_slice_image[1])
         self._input_vgg16_shape = (*self._size_input_vgg16, 3)
         self._model_vgg16 = VGG16(include_top=False, weights='imagenet', input_shape=self._input_vgg16_shape)
