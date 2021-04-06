@@ -182,20 +182,9 @@ def main(args):
             print("And ROI Mask for labels: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)
-<<<<<<< HEAD
             in_roimask = MaskOperator.binarise(in_roimask)
             list_inout_data.append(in_roimask)
             list_type_inout_data.append('roimask')
-=======
-            if (args.is_roilabels_multi_roimasks):
-                in_list_roimasks = MaskOperator.get_list_masks_all_labels(in_roimask)
-                list_inout_data += in_list_roimasks
-                list_type_inout_data += ['roimask'] * len(in_list_roimasks)
-            else:
-                in_roimask = MaskOperator.binarise(in_roimask)
-                list_inout_data.append(in_roimask)
-                list_type_inout_data.append('roimask')
->>>>>>> origin/master
 
             if check_same_size_images(in_roimask, inout_image):
                 continue
@@ -252,26 +241,14 @@ def main(args):
         # ******************************
 
         if (args.is_mask_region_interest):
-<<<<<<< HEAD
             index_roimask = list_type_inout_data.index('roimask')
 
             for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
                 if (type_in_data == 'label'):
-                    print('Mask input data \'%s\' of type \'%s\' to ROI mask...' % (idata, type_in_data))
+                    print("Mask input data \'%s\' of type \'%s\' to ROI mask..." % (idata, type_in_data))
                     out_data = MaskOperator.mask_image_exclude_regions(in_data, list_inout_data[index_roimask])
                     list_inout_data[idata] = out_data
             # endfor
-=======
-            list_indexes_roimasks = [j for j, type_data in enumerate(list_type_inout_data) if type_data == 'roimask']
-
-            for imask, index_roimask in enumerate(list_indexes_roimasks):
-                for jdata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
-                    if (type_in_data == 'label'):
-                        print("Mask input label \'%s\' to ROI mask \'%s\'..." % (jdata, imask))
-                        out_data = MaskOperator.mask_image_exclude_regions(in_data, list_inout_data[index_roimask])
-                        list_inout_data[idata] = out_data
-                # endfor
->>>>>>> origin/master
 
             # remove the ROI mask from the list of processing data
             list_type_inout_data.pop(index_roimask)
@@ -283,60 +260,10 @@ def main(args):
             in_reference_key = list_in_reference_files[ifile]
             in_crop_boundbox = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
 
-<<<<<<< HEAD
             for j, in_data in enumerate(list_inout_data):
-                print('Crop input Image \'%s\' to bounding-box: \'%s\'...' % (j, str(in_crop_boundbox)))
+                print("Crop input Image \'%s\' to bounding-box: \'%s\'..." % (j, str(in_crop_boundbox)))
                 out_data = CropImage.compute(in_data, in_crop_boundbox)
                 list_inout_data[j] = out_data
-=======
-                # In this set-up, there is already computed the input ROI-masked label per cropping bounding-box
-                # Insert input image in the right place: before each set of ROI-masked labels
-                in_image = list_inout_data[0]
-                for icrop in range(1, num_crop_boundboxes):
-                    pos_insert = icrop * (num_init_labels + 1)
-                    list_inout_data.insert(pos_insert, in_image)
-                    list_type_inout_data.insert(pos_insert, 'image')
-                # endfor
-            else:
-                # Concatenate as many input images and labels as num cropping bounding-boxes
-                list_inout_data = list_inout_data * num_crop_boundboxes
-                list_type_inout_data = list_type_inout_data * num_crop_boundboxes
-
-            num_images_per_crop_boundbox = len(list_inout_data) // num_crop_boundboxes
-
-            icount = 0
-            for icrop, in_crop_boundbox in enumerate(list_in_crop_boundboxes):
-                print("Crop input images to bounding-box \'%s\' out of total \'%s\': \'%s\'..."
-                      % (icrop, num_crop_boundboxes, str(in_crop_boundbox)))
-
-                size_in_image = list_inout_data[icount].shape
-                size_in_crop_boundbox = BoundingBoxes.get_size_boundbox(in_crop_boundbox)
-
-                if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_boundbox, size_in_image):
-                    print("Bounding-box is larger than image size: : \'%s\' > \'%s\'. Combine cropping with "
-                          "extending images..." % (str(size_in_crop_boundbox), str(size_in_image)))
-
-                    new_size_in_image = size_in_crop_boundbox
-                    (croppartial_boundbox, extendimg_boundbox) = \
-                        BoundingBoxes.calc_boundboxes_crop_extend_image(in_crop_boundbox, size_in_image)
-
-                    for jimage in range(num_images_per_crop_boundbox):
-                        print("Crop input image \'%s\' of type \'%s\'..." % (icount, list_type_inout_data[icount]))
-                        out_data = CropAndExtendImage.compute(list_inout_data[icount],
-                                                              croppartial_boundbox,
-                                                              extendimg_boundbox,
-                                                              new_size_in_image)
-                        list_inout_data[icount] = out_data
-                        icount += 1
-                    # endfor
-                else:
-                    for jimage in range(num_images_per_crop_boundbox):
-                        print("Crop input image \'%s\' of type \'%s\'..." % (icount, list_type_inout_data[icount]))
-                        out_data = CropImage.compute(list_inout_data[icount], in_crop_boundbox)
-                        list_inout_data[icount] = out_data
-                        icount += 1
-                    # endfor
->>>>>>> origin/master
             # endfor
 
             print("Final dims: %s..." % (str(list_inout_data[0].shape)))
