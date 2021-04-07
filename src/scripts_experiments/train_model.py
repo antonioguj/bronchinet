@@ -13,7 +13,7 @@ from common.constant import BASEDIR, SIZE_IN_IMAGES, NAME_TRAININGDATA_RELPATH, 
     NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
     MANUAL_SEED_TRAIN, IS_SHUFFLE_TRAINDATA, WRITE_OUT_DESC_MODEL_TEXT, NAME_DESCRIPT_MODEL_LOGFILE, TYPE_DNNLIB_USED,\
     IS_RESTART_ONLY_WEIGHTS, IS_MERGE_TWO_IMAGES_AS_CHANNELS, LAYERS_VGG16_LOSS_PERCEPTUAL, \
-    WEIGHTS_VGG16_LOSS_PERCEPTUAL, PROP_REDUSIZE_VGG16_LOSS_PERCEPTUAL
+    WEIGHTS_VGG16_LOSS_PERCEPTUAL, PROP_REDSIZE_VGG16_LOSS_PERCEPTUAL
 if TYPE_DNNLIB_USED == 'Pytorch':
     from common.constant import NAME_SAVEDMODEL_LAST_TORCH as NAME_SAVEDMODEL_LAST
 elif TYPE_DNNLIB_USED == 'Keras':
@@ -316,7 +316,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_restart_weights_diffmodel', type=str2bool, default=False)
     parser.add_argument('--layers_vgg16_loss_perceptual', type=str2list_str, default=LAYERS_VGG16_LOSS_PERCEPTUAL)
     parser.add_argument('--weights_vgg16_loss_perceptual', type=str2list_float, default=WEIGHTS_VGG16_LOSS_PERCEPTUAL)
-    parser.add_argument('--prop_redsize_vgg16_loss_perceptual', type=float, default=PROP_REDUSIZE_VGG16_LOSS_PERCEPTUAL)
+    parser.add_argument('--prop_redsize_vgg16_loss_perceptual', type=float, default=PROP_REDSIZE_VGG16_LOSS_PERCEPTUAL)
     args = parser.parse_args()
 
     if args.is_restart_weights_diffmodel and not args.is_restart_only_weights:
