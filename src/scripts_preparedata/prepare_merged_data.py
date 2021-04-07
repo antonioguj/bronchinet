@@ -104,7 +104,7 @@ def main(args):
 
     # Create new base dir with merged data
     homedir = dirnamedir(args.list_merge_data_paths[0])
-    datadir = '+'.join(basenamedir(idir).split('_')[0] for idir in args.list_merge_data_paths) + '_Processed'
+    datadir = '-'.join(basenamedir(idir).split('_')[0] for idir in args.list_merge_data_paths) + '_Processed'
     datadir = join_path_names(homedir, datadir)
 
     output_datadir = update_dirname(datadir)

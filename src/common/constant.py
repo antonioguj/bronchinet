@@ -128,11 +128,6 @@ LIST_TYPE_METRICS_RESULT = ['DiceCoefficient',
                             'AirwayTreeLength',
                             'AirwayCentrelineDistanceFalsePositiveError',
                             'AirwayCentrelineDistanceFalseNegativeError']
-LIST_TYPE_METRICS_ROC_CURVE = ['DiceCoefficient',
-                               'AirwayCompleteness',
-                               'AirwayVolumeLeakage',
-                               'AirwayCentrelineDistanceFalsePositiveError',
-                               'AirwayCentrelineDistanceFalseNegativeError']
 METRIC_EVALUATE_THRESHOLD = 'AirwayVolumeLeakage'
 IS_SAVE_FEATMAPS_LAYER = False
 NAME_LAYER_SAVE_FEATS = 'convU12'

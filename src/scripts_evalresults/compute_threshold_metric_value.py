@@ -26,9 +26,9 @@ def main(args):
     init_threshold_value = args.init_threshold_value
 
     ref0_threshold_value = 0.0
-    if (metric_eval_threshold == 'DiceCoefficient' or metric_eval_threshold == 'AirwayCompleteness'):
+    if metric_eval_threshold in ['DiceCoefficient', 'AirwayCompleteness']:
         ref0_metrics_value = 0.0
-    elif (metric_eval_threshold == 'AirwayVolumeLeakage'):
+    elif metric_eval_threshold in ['AirwayVolumeLeakage', 'AirwayCentrelineLeakage']:
         ref0_metrics_value = 1.0
     else:
         message = 'MetricsEvalThreshold \'%s\' not found...' % (metric_eval_threshold)
@@ -73,14 +73,14 @@ def main(args):
             in_posteriors = ImageFileReader.get_image(in_posteriors_file)
             list_in_posteriors.append(in_posteriors)
 
-            in_reference_mask = find_file_inlist_same_prefix(basename(in_posteriors_file),
-                                                             list_input_reference_masks_files,
-                                                             pattern_prefix=pattern_search_input_files)
+            in_reference_mask_file = find_file_inlist_same_prefix(basename(in_posteriors_file),
+                                                                  list_input_reference_masks_files,
+                                                                  pattern_prefix=pattern_search_input_files)
             in_reference_cenline_file = find_file_inlist_same_prefix(basename(in_posteriors_file),
                                                                      list_input_reference_cenlines_files,
                                                                      pattern_prefix=pattern_search_input_files)
 
-            in_reference_mask = ImageFileReader.get_image(in_reference_mask)
+            in_reference_mask = ImageFileReader.get_image(in_reference_mask_file)
             in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
 
             if (args.is_remove_trachea_calc_metrics):
@@ -108,7 +108,7 @@ def main(args):
         # Loop over all prediction files and compute the mean metrics over the dataset
         with tqdm(total=num_valid_predict_files) as progressbar:
             sumrun_res_metrics = 0.0
-            for i, (in_posteriors, in_reference_data) in enumerate(zip(list_in_posteriors, list_in_reference_masks)):
+            for ipos, (in_posteriors, in_reference_mask) in enumerate(zip(list_in_posteriors, list_in_reference_masks)):
 
                 # Compute the binary masks by thresholding the posteriors
                 in_predicted_mask = ThresholdImage.compute(in_posteriors, curr_thres_value)
@@ -117,17 +117,24 @@ def main(args):
                     # Compute the first connected component from the binary masks
                     in_predicted_mask = FirstConnectedRegionMask.compute(in_predicted_mask, connectivity_dim=1)
 
-                try:
-                    in_predicted_cenline = ThinningMask.compute(in_predicted_mask)
+                if calc_metric._is_airway_metric:
+                    in_reference_cenline = list_in_reference_cenlines[ipos]
 
-                except Exception:
-                    # 'catch' issues when predictions are 'weird' (for extreme threshold values)
-                    in_predicted_cenline = np.zeros_like(in_predicted_mask)
+                    try:
+                        in_predicted_cenline = ThinningMask.compute(in_predicted_mask)
+
+                    except Exception:
+                        # 'catch' issues when predictions are 'weird' (for extreme threshold values)
+                        in_predicted_cenline = np.zeros_like(in_predicted_mask)
 
                 if (args.is_remove_trachea_calc_metrics):
+                    in_coarse_airways = list_in_coarse_airways[ipos]
+
                     # Remove the trachea and main bronchi from the binary masks
                     in_predicted_mask = MaskOperator.substract_two_masks(in_predicted_mask, in_coarse_airways)
-                    in_predicted_cenline = MaskOperator.substract_two_masks(in_predicted_cenline, in_coarse_airways)
+
+                    if calc_metric._is_airway_metric:
+                        in_predicted_cenline = MaskOperator.substract_two_masks(in_predicted_cenline, in_coarse_airways)
 
                 try:
                     if calc_metric._is_airway_metric:

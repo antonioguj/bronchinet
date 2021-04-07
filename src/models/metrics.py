@@ -257,8 +257,8 @@ class AirwayMetricBase(MetricBase):
                       input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
-    def compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
-                     input_cenline: np.ndarray) -> np.ndarray:
+    def compute_airs(self, target: np.ndarray, target_cenline: np.ndarray,
+                     input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
         return self._compute_airs(target, target_cenline, input, input_cenline)
 
     def set_voxel_size(self, voxel_size: np.ndarray) -> None:
@@ -271,8 +271,8 @@ class AirwayCompleteness(AirwayMetricBase):
         super(AirwayCompleteness, self).__init__(is_mask_exclude)
         self._name_fun_out = 'completeness'
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
-                      input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray,
+                      input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
         return np.sum(target_cenline * input) / (np.sum(target_cenline) + _SMOOTH)
 
 
@@ -282,8 +282,8 @@ class AirwayVolumeLeakage(AirwayMetricBase):
         super(AirwayVolumeLeakage, self).__init__(is_mask_exclude)
         self._name_fun_out = 'volume_leakage'
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
-                      input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray,
+                      input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
         return np.sum((1.0 - target) * input) / (np.sum(target) + _SMOOTH)
 
 
@@ -293,8 +293,8 @@ class AirwayCentrelineLeakage(AirwayMetricBase):
         super(AirwayCentrelineLeakage, self).__init__(is_mask_exclude)
         self._name_fun_out = 'cenline_leakage'
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
-                      input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray,
+                      input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
         return np.sum((1.0 - target) * input_cenline) / (np.sum(target_cenline) + _SMOOTH)
 
 
@@ -308,8 +308,8 @@ class AirwayTreeLength(AirwayMetricBase):
     def _get_voxel_length_unit(self) -> np.ndarray:
         return np.prod(self._voxel_size) ** (1.0 / len(self._voxel_size))
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
-                      input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray,
+                      input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
         return np.sum(target_cenline * input) * self._get_voxel_length_unit()
 
 
@@ -323,8 +323,8 @@ class AirwayCentrelineDistanceFalsePositiveError(AirwayMetricBase):
     def _get_cenline_coords(self, input_cenline: np.ndarray) -> np.ndarray:
         return np.asarray(np.argwhere(input_cenline > 0)) * self._voxel_size
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
-                      input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray,
+                      input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
         target_coords = self._get_cenline_coords(target_cenline)
         input_coords = self._get_cenline_coords(input_cenline)
         dists = distance.cdist(input_coords, target_coords)
@@ -341,8 +341,8 @@ class AirwayCentrelineDistanceFalseNegativeError(AirwayMetricBase):
     def _get_cenline_coords(self, input_cenline: np.ndarray) -> np.ndarray:
         return np.asarray(np.argwhere(input_cenline > 0)) * self._voxel_size
 
-    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray, input: np.ndarray,
-                      input_cenline: np.ndarray) -> np.ndarray:
+    def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray,
+                      input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
         target_coords = self._get_cenline_coords(target_cenline)
         input_coords = self._get_cenline_coords(input_cenline)
         dists = distance.cdist(input_coords, target_coords)

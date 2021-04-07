@@ -4,9 +4,8 @@ import numpy as np
 from tqdm import tqdm
 import argparse
 
-from common.constant import BASEDIR, LIST_TYPE_METRICS_ROC_CURVE, IS_REMOVE_TRACHEA_CALC_METRICS, \
-    NAME_RAW_LABELS_RELPATH, NAME_RAW_CENTRELINES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    NAME_RAW_COARSEAIRWAYS_RELPATH
+from common.constant import BASEDIR, LIST_TYPE_METRICS_RESULT, IS_REMOVE_TRACHEA_CALC_METRICS, NAME_RAW_LABELS_RELPATH,\
+    NAME_RAW_CENTRELINES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_RAW_COARSEAIRWAYS_RELPATH
 from common.functionutil import is_exist_file, join_path_names, basename, list_files_dir, get_substring_filename, \
     get_pattern_refer_filename, find_file_inlist_same_prefix, str2bool, read_dictionary
 from common.workdirmanager import TrainDirManager
@@ -25,19 +24,16 @@ def main(args):
     outfilename_metrics_meanall = 'meanAllcases_results_metrics_diffThres.csv'
 
     # parameters to draw ROC curve
-    inlist_thresholds = [0.0]
-    # num_thresholds = 9
-    range_threshold = [-6, -2]
-    inlist_thresholds += (np.logspace(range_threshold[0], range_threshold[1], 5)).tolist()
-    # num_thresholds = 9
-    range_threshold = [0.1, 0.5]
-    inlist_thresholds += (np.linspace(range_threshold[0], range_threshold[1], 5)).tolist()
-    # num_thresholds = 9
-    # range_threshold = [-2, -10]
-    # inlist_thresholds \
-    #     += [1.0 - elem for elem in (np.logspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()]
-    # #allowedDistance = 0
+    # inlist_thresholds = [0.0]
+    # range_threshold = [-6, -2]
+    # inlist_thresholds += (np.logspace(range_threshold[0], range_threshold[1], 5)).tolist()
+    # range_threshold = [0.1, 0.5]
+    # inlist_thresholds += (np.linspace(range_threshold[0], range_threshold[1], 5)).tolist()
     # inlist_thresholds += [1.0]
+    num_thresholds = 11
+    range_threshold = [0.0, 1.0]
+    inlist_thresholds = [el for el in (np.linspace(range_threshold[0], range_threshold[1], num_thresholds)).tolist()]
+    # allowedDistance = 0
     print("List of Threshold values: %s" % (inlist_thresholds))
     # --------
 
@@ -217,7 +213,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_posteriors_dir', type=str)
     parser.add_argument('--output_dir', type=str, default=None)
-    parser.add_argument('--list_type_metrics', nargs='+', type=str, default=LIST_TYPE_METRICS_ROC_CURVE)
+    parser.add_argument('--list_type_metrics', nargs='+', type=str, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)

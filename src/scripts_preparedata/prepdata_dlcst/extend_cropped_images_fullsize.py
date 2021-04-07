@@ -40,8 +40,8 @@ def main(args):
         in_crop_image = FlipImage.compute(in_crop_image, axis=0)
         # 2 step: extend image
         in_boundbox = dict_input_boundboxes[basename_filenoext(in_reference_file)]
-        out_shape_fullimage = ImageFileReader.get_image_size(in_reference_file)
-        out_full_image = ExtendImage.compute(in_crop_image, in_boundbox, out_shape_fullimage)
+        out_fullimage_shape = ImageFileReader.get_image_size(in_reference_file)
+        out_full_image = ExtendImage.compute(in_crop_image, in_boundbox, out_fullimage_shape)
 
         out_image_file = join_path_names(args.outputdir, name_output_images_files(in_image_file))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_image_file), str(out_full_image.shape)))

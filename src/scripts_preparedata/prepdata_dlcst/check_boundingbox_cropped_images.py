@@ -31,9 +31,9 @@ def main(args):
         new_crop_image = FlipImage.compute(new_crop_image, axis=0)
 
         if (in_crop_image.shape == new_crop_image.shape):
-            res_voxels_equal = np.array_equal(in_crop_image, new_crop_image)
+            is_images_equal_voxelwise = np.array_equal(in_crop_image, new_crop_image)
 
-            if res_voxels_equal:
+            if is_images_equal_voxelwise:
                 print("GOOD: Images are equal voxelwise...")
             else:
                 names_files_different.append(basename(in_cropimage_file))
