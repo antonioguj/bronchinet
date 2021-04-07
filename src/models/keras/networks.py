@@ -14,8 +14,8 @@ LIST_AVAIL_NETWORKS = ['UNet3D_Original',
                        'UNet3D_Plugin3levels',
                        'UNet3D_Plugin5levels',
                        'UNet2D_Plugin3levels',
-                       'UNet3D_PluginNoSkipConn5levels',
-                       'UNet3D_PluginNoSkipConn3levels',
+                       'UNet3D_Plugin5levelsNoSkipConn',
+                       'UNet3D_Plugin3levelsNoSkipConn',
                        ]
 
 
@@ -655,7 +655,7 @@ class UNet2DPlugin3levels(UNet):
         return output_model
 
 
-class UNet3DPluginNoSkipConn5levels(UNet):
+class UNet3DPlugin5levelsNoSkipConn(UNet):
 
     def __init__(self,
                  size_image_in: Tuple[int, int, int],
@@ -665,7 +665,7 @@ class UNet3DPluginNoSkipConn5levels(UNet):
                  num_classes_out: int = 1,
                  is_use_valid_convols: bool = False
                  ) -> None:
-        super(UNet3DPluginNoSkipConn5levels, self).__init__(size_image_in, num_levels, num_featmaps_in,
+        super(UNet3DPlugin5levelsNoSkipConn, self).__init__(size_image_in, num_levels, num_featmaps_in,
                                                             num_channels_in, num_classes_out,
                                                             is_use_valid_convols=is_use_valid_convols)
         self._type_activate_hidden = 'relu'
@@ -743,7 +743,7 @@ class UNet3DPluginNoSkipConn5levels(UNet):
         return output_model
 
 
-class UNet3DPluginNoSkipConn3levels(UNet):
+class UNet3DPlugin3levelsNoSkipConn(UNet):
 
     def __init__(self,
                  size_image_in: Tuple[int, int, int],
@@ -753,7 +753,7 @@ class UNet3DPluginNoSkipConn3levels(UNet):
                  num_classes_out: int = 1,
                  is_use_valid_convols: bool = False
                  ) -> None:
-        super(UNet3DPluginNoSkipConn3levels, self).__init__(size_image_in, num_levels, num_featmaps_in,
+        super(UNet3DPlugin3levelsNoSkipConn, self).__init__(size_image_in, num_levels, num_featmaps_in,
                                                             num_channels_in, num_classes_out,
                                                             is_use_valid_convols=is_use_valid_convols)
         self._type_activate_hidden = 'relu'

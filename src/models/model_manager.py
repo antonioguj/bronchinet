@@ -18,6 +18,7 @@ if TYPE_DNNLIB_USED == 'Pytorch':
         FalsePositiveRate as FalsePositiveRate_train, \
         FalseNegativeRate as FalseNegativeRate_train, \
         LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
+    from models.pytorch.networks import UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS
     from models.pytorch.optimizers import get_sgd, get_sgd_mom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
     from models.pytorch.visualmodelparams import VisualModelParams
@@ -41,8 +42,9 @@ elif TYPE_DNNLIB_USED == 'Keras':
         MultiScaleSSIM as MultiScaleSSIM_train, \
         Perceptual as Perceptual_train, \
         LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
-    from models.keras.networks import UNet3DPlugin5levels, UNet3DPlugin3levels, UNet2DPlugin3levels, \
-        UNet3DPluginNoSkipConn5levels, UNet3DPluginNoSkipConn3levels
+    from models.keras.networks import UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS, \
+        UNet3DPlugin5levels, UNet3DPlugin3levels, UNet2DPlugin3levels, \
+        UNet3DPlugin5levelsNoSkipConn, UNet3DPlugin3levelsNoSkipConn
     from models.keras.optimizers import get_sgd, get_sgd_mom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
     from models.keras.visualmodelparams import VisualModelParams
@@ -53,9 +55,6 @@ from models.metrics import MetricBase, MeanSquaredError, MeanSquaredErrorLogarit
     AirwayCentrelineDistanceFalseNegativeError, AirwayCentrelineDistanceFalsePositiveError, \
     LIST_AVAIL_METRICS, SNR, PSNR, SSIM
 from models.networks import ConvNetBase
-
-LIST_AVAIL_NETWORKS = ['UNet3D_5levels', 'UNet3D_3levels', 'UNet2D_3levels',
-                       'UNet3D_NoSkipConn_5levels', 'UNet3D_NoSkipConn_3levels']
 
 
 def get_metric(type_metric: str,
@@ -182,11 +181,11 @@ def get_network(type_network: str,
                 num_classes_out: int = 1,
                 is_use_valid_convols: bool = False,
                 **kwargs) -> ConvNetBase:
-    '''if type_network == 'UNet3D_Original':
-        return UNet3D_Original(size_image_in,
-                               num_featmaps_in=num_featmaps_in,
-                               num_channels_in=num_channels_in,
-                               num_classes_out=num_classes_out)
+    if type_network == 'UNet3D_Original':
+        return UNet3DOriginal(size_image_in,
+                              num_featmaps_in=num_featmaps_in,
+                              num_channels_in=num_channels_in,
+                              num_classes_out=num_classes_out)
 
     elif type_network == 'UNet3D_General':
         type_activate_hidden = kwargs['type_activate_hidden'] \
@@ -222,41 +221,41 @@ def get_network(type_network: str,
                             num_channels_in=num_channels_in,
                             num_classes_out=num_classes_out,
                             is_use_valid_convols=is_use_valid_convols)
-    else:
-        message = 'Choice Network not found: %s. Networks available: %s'
-                    % (type_network, ', '.join(LIST_AVAIL_NETWORKS))
-        catch_error_exception(message)'''
 
-    if type_network == 'UNet3D_5levels':
+    elif type_network == 'UNet3D_Plugin5levels':
         return UNet3DPlugin5levels(size_image_in,
                                    num_levels,
                                    num_featmaps_in=num_featmaps_in,
                                    num_channels_in=num_channels_in,
                                    num_classes_out=num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols)
-    elif type_network == 'UNet3D_3levels':
+
+    elif type_network == 'UNet3D_Plugin3levels':
         return UNet3DPlugin3levels(size_image_in,
                                    num_levels,
                                    num_featmaps_in=num_featmaps_in,
                                    num_channels_in=num_channels_in,
                                    num_classes_out=num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols)
-    elif type_network == 'UNet2D_3levels':
+
+    elif type_network == 'UNet2D_Plugin3levels':
         return UNet2DPlugin3levels(size_image_in,
                                    num_levels,
                                    num_featmaps_in=num_featmaps_in,
                                    num_channels_in=num_channels_in,
                                    num_classes_out=num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols)
-    elif type_network == 'UNet3D_NoSkipConn_5levels':
-        return UNet3DPluginNoSkipConn5levels(size_image_in,
+
+    elif type_network == 'UNet3D_Plugin5levelsNoSkipConn':
+        return UNet3DPlugin5levelsNoSkipConn(size_image_in,
                                              num_levels,
                                              num_featmaps_in=num_featmaps_in,
                                              num_channels_in=num_channels_in,
                                              num_classes_out=num_classes_out,
                                              is_use_valid_convols=is_use_valid_convols)
-    elif type_network == 'UNet3D_NoSkipConn_3levels':
-        return UNet3DPluginNoSkipConn3levels(size_image_in,
+
+    elif type_network == 'UNet3D_Plugin3levelsNoSkipConn':
+        return UNet3DPlugin3levelsNoSkipConn(size_image_in,
                                              num_levels,
                                              num_featmaps_in=num_featmaps_in,
                                              num_channels_in=num_channels_in,
