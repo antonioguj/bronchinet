@@ -115,6 +115,6 @@ Citations
 
 If using this software influences positively your project(s), please cite [1]:
 
-[1] Garcia-Uceda, A., Selvan, R., Saghir, Z., Tiddens, H.A.W.M., de Bruijne M. Automatic airway segmentation from Computed Tomography using robust and efficient 3-D convolutional neural networks. ArXiv e-prints (2021). arXiv:2103.16328.
+[1] Garcia-Uceda, A., Selvan, R., Saghir, Z. de Bruijne, M. A joint 3D UNet-graph neural network-based method for airway segmentation from chest CTs. Int. Work. on Mach. Learn. Med. Imaging 583–591 (2019).
 
-[2] Garcia-Uceda, A., Tiddens, H., de Bruijne, M. Automatic airway segmentation in chest CT using convolutional neural networks. In Image Analysis for Mov. Organ, Breast, Thorac. Images 238–250 (2018).
+[2] Garcia-Uceda, A., Selvan, R., Saghir, Z., Tiddens, H.A.W.M., de Bruijne M. Automatic airway segmentation from Computed Tomography using robust and efficient 3-D convolutional neural networks. ArXiv e-prints (2021). arXiv:2103.16328.
