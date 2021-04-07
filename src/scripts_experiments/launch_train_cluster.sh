@@ -37,7 +37,7 @@ NET_NUM_FEATMAPS="16"
 TYPE_LOSS="Perceptual"
 LAYERS_VGG16_LOSS_PERCEPTUAL="[block1_conv1,block2_conv1,block3_conv1]"
 WEIGHTS_VGG16_LOSS_PERCEPTUAL="[0.65,0.30,0.05]"
-PROP_REDUCE_INSIZE_VGG16_LOSS_PERCEPTUAL="0.0"
+PROP_REDSIZE_VGG16_LOSS_PERCEPTUAL="0.0"
 # Use approx. the ratio between the CONVERGED TRAIN LOSSES from an experiment running ONLY the FIRST over an experiment running ONLY the SECOND loss
 #WEIGHT_COMBINED_LOSS="0.003"   # for DSSIM + L1
 WEIGHT_COMBINED_LOSS="0.00006"   # for DSSIM + L2
@@ -80,7 +80,7 @@ python "${WORKDIR}/Code/scripts_experiments/train_model.py" \
 	--is_train_network_2D=${IS_TRAIN_NETWORK_2D} \
 	--layers_vgg16_loss_perceptual=${LAYERS_VGG16_LOSS_PERCEPTUAL} \
 	--weights_vgg16_loss_perceptual=${WEIGHTS_VGG16_LOSS_PERCEPTUAL} \
-	--prop_reduce_insize_vgg16_loss_perceptual=${PROP_REDUCE_INSIZE_VGG16_LOSS_PERCEPTUAL} #\
+	--prop_redsize_vgg16_loss_perceptual=${PROP_REDSIZE_VGG16_LOSS_PERCEPTUAL} #\
 	#--is_restart_model="True" \
 	#--in_config_file="${MODELS_DIR}/configparams.txt" \
 	#--is_restart_weights_diffmodel="True"
