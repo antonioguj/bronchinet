@@ -93,3 +93,8 @@ Test models
 
 3) Compute results metrics / accuracy:
 - python ./Code/scripts_evalresults/compute_result_metrics.py <dir_output_predictions> --basedir=[path_dir_workdir]
+
+Citations
+------------
+
+If using this software influences positively your project(s), please cite [x]:
