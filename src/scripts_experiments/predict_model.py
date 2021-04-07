@@ -195,7 +195,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_save_featmaps_layer', type=str2bool, default=IS_SAVE_FEATMAPS_LAYER)
     parser.add_argument('--name_layer_save_feats', type=str, default=NAME_LAYER_SAVE_FEATS)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
-    parser.add_argument('--is_train_network_2D', type=str2bool, default=False)
+    parser.add_argument('--is_test_network_2D', type=str2bool, default=False)
     args = parser.parse_args()
 
     if args.in_config_file:
@@ -214,7 +214,7 @@ if __name__ == "__main__":
         args.is_reconstruct_pred_patches = str2bool(input_args_file['use_sliding_window_images']) or \
             str2bool(input_args_file['use_random_window_images'])
 
-    if args.is_train_network_2D:
+    if args.is_test_network_2D:
         print("Test 2D model, with images as slices from volume scans...")
         args.is_test_images_slices = True
         if len(args.size_in_images) != 2:
