@@ -7,36 +7,36 @@ Project Organization
 ------------
 
     ├── LICENSE
-    ├── Makefile           <- Makefile with commands like `make data` or `make train`
-    ├── README.md          <- The top-level README for developers using this project.
+    ├── Makefile           	<- Makefile with commands like `make data` or `make train`
+    ├── README.md          	<- The top-level README for developers using this project.
     │
-    ├── docs               <- A default Sphinx project; see sphinx-doc.org for details
+    ├── docs               	<- A default Sphinx project; see sphinx-doc.org for details
     │
-    ├── models             <- Trained and serialized models, model predictions, or model summaries
+    ├── models             	<- Trained and serialized models, model predictions, or model summaries
     │
-    ├── requirements.txt   <- The requirements file for reproducing the analysis environment, e.g.
-    │                         generated with `pip freeze > requirements.txt`
+    ├── requirements.txt   	<- The requirements file for reproducing the analysis environment, e.g.
+    │                         	   generated with `pip freeze > requirements.txt`
     │
-    ├── setup.py           <- makes project pip installable (pip install -e .) so src can be imported
-    ├── bronchinet         <- Source code for use in this project.
+    ├── setup.py           	<- makes project pip installable (pip install -e .) so src can be imported
+    ├── src         	   	<- Source code for use in this project.
     │   │
-    │   ├── common         <- General files and utilities
-    │   ├── dataloaders    <- Modules to load data and batch generators
-    │   ├── imageoperators <- Various image operations
-    │   ├── models 	   <- All modules to define networks, metrics and optimizers
-    │   ├── plotting       <- Various plotting modules
-    │   ├── postprocessing <- Modules to postprocess the output of networks
-    │   ├── preprocessing  <- Modules to preprocess the images to feed to networks
+    │   ├── common         	<- General files and utilities
+    │   ├── dataloaders    	<- Modules to load data and batch generators
+    │   ├── imageoperators 	<- Various image operations
+    │   ├── models 	   	<- All modules to define networks, metrics and optimizers
+    │   ├── plotting       	<- Various plotting modules
+    │   ├── postprocessing 	<- Modules to postprocess the output of networks
+    │   ├── preprocessing  	<- Modules to preprocess the images to feed to networks
     │   │
     │   ├── scripts_evalresults	<- Scripts to evaluate results from models
     │   ├── scripts_experiments	<- Scripts to train and test models
-    │   ├── scripts_prepdata  	<- Scripts to prepare data to train models
+    │   ├── scripts_preparedata	<- Scripts to prepare data to train models
     │   └── scripts_util	<- Scripts for various utilities
     │
-    └── tox.ini            <- tox file with settings for running tox; see tox.readthedocs.io
+    └── tox.ini            	<- tox file with settings for running tox; see tox.readthedocs.io
 
 
---------
+------------
 
 <p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
 
@@ -59,9 +59,9 @@ Create working directory
 - ln -s <dir_data_stored> BaseData
 - ln -s <dir_this_framework> Code
 
-(Default settings for all scripts below are in file ./bronchinet/common/constants.py)
+(Default settings for all scripts below are in file ./src/common/constants.py)
 
-[IF NEEDED] (in "~/.bashrc" file: export PYTHONPATH=<dir_this_framework>/bronchinet/")
+[IF NEEDED] (in "~/.bashrc" file: export PYTHONPATH=<dir_this_framework>/src/")
 
 Prepare data
 ------------
@@ -69,11 +69,11 @@ Prepare data
 1) [IF NEEDED] Preprocess data: apply various operations to input images / masks: rescaling, binarise masks
 - python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[various option]
 
-2) [IF NEEDED] Compute bounding-boxes around lung masks, for input images:
-- python ./Code/scripts_prepdata/compute_boundingbox_images.py --datadir=[path_dir_dataset]
+2) Compute bounding-boxes around lung masks, for input images:
+- python ./Code/scripts_preparedata/compute_boundingbox_images.py --datadir=[path_dir_dataset]
 
 3) Prepare data: include i) crop images, ii) mask ground-truth to lung regions, iii) rescale images.
-- python ./Code/scripts_prepdata/prepare_data.py --datadir=[path_dir_dataset]
+- python ./Code/scripts_preparedata/prepare_data.py --datadir=[path_dir_dataset]
 
 Train models
 ------------
@@ -97,15 +97,15 @@ Test models
 - python ./Code/scripts_evalresults/process_predicted_airway_tree.py <dir_output_probmaps> <dir_output_binmasks> --basedir=[path_dir_workdir]
 - rm -r <dir_output_predictions>
 
-4) [IF NEEDED] Compute largest connected component of airway binary masks:
+4) Compute largest connected component of airway binary masks:
 - python ./Code/scripts_util/apply_operation_images.py <dir_output_binmasks> <dir_output_conn_binmasks> --type=firstconreg
 - rm -r <dir_output_binmasks> && mv <dir_output_conn_binmasks> <dir_output_binmasks>
 
-5) [IF NEEDED] Compute centrelines from airway binary masks:
+5) Compute centrelines from airway binary masks:
 - python ./Code/scripts_util/apply_operation_images.py <dir_output_binmasks> <dir_output_centrelines> --type=thinning
 
 6) Compute results metrics / accuracy:
-- python ./Code/scripts_evalresults/compute_result_metrics.py <dir_output_binmasks> --basedir=[path_dir_workdir] [IF NEEDED:--inputcentrelinesdir=<dir_output_centrelines>]
+- python ./Code/scripts_evalresults/compute_result_metrics.py <dir_output_binmasks> <dir_output_centrelines> --basedir=[path_dir_workdir]
 
 [ALTERNATIVE] Do steps 1-6 at once:
 - python ./Code/scripts_evalresults/launch_predictions_full.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir]
