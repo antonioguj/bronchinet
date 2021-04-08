@@ -27,13 +27,13 @@ INFILE_ORDER_TRAIN="${WORKDIR}/train.txt"
 # --------
 
 python3 "${WORKDIR}/Code/scripts_experiments/distribute_data.py" \
-    --basedir=${WORKDIR} \
-    --type_data=${TYPE_DATA} \
-    --type_distribute=${TYPE_DISTRIBUTE} \
-    --dist_propdata_train_valid_test=${DIST_PROPDATA_TRAIN_VALID_TEST} \
-    --infile_order_train=${INFILE_ORDER_TRAIN} \
-    --name_input_images_relpath=${IMAGESDATA_DIR} \
-    --name_input_labels_relpath=${LABELSDATA_DIR} \
-    --name_training_data_relpath=${TRAINDATA_OUTDIR} \
-    --name_validation_data_relpath=${VALIDDATA_OUTDIR} \
-    --name_testing_data_relpath=${TESTDATA_OUTDIR}
+	--basedir=${WORKDIR} \
+	--type_data=${TYPE_DATA} \
+	--type_distribute=${TYPE_DISTRIBUTE} \
+	--dist_propdata_train_valid_test=${DIST_PROPDATA_TRAIN_VALID_TEST} \
+	--infile_order_train=${INFILE_ORDER_TRAIN} \
+	--name_input_images_relpath=${IMAGESDATA_DIR} \
+	--name_input_labels_relpath=${LABELSDATA_DIR} \
+	--name_training_data_relpath=${TRAINDATA_OUTDIR} \
+	--name_validation_data_relpath=${VALIDDATA_OUTDIR} \
+	--name_testing_data_relpath=${TESTDATA_OUTDIR}
