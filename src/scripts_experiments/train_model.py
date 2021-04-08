@@ -5,14 +5,13 @@ import numpy as np
 import argparse
 
 from common.constant import BASEDIR, SIZE_IN_IMAGES, NAME_TRAININGDATA_RELPATH, NAME_VALIDATIONDATA_RELPATH, \
-    MAX_TRAIN_IMAGES, MAX_VALID_IMAGES, BATCH_SIZE, NUM_EPOCHS, TYPE_NETWORK, NET_NUM_LEVELS, NET_NUM_FEATMAPS, \
-    TYPE_OPTIMIZER, LEARN_RATE, TYPE_LOSS, WEIGHT_COMBINED_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, \
-    IS_MASK_REGION_INTEREST, USE_SLIDING_WINDOW_IMAGES, PROP_OVERLAP_SLIDING_WINDOW, USE_RANDOM_WINDOW_IMAGES, \
-    NUM_RANDOM_PATCHES_EPOCH, USE_TRANSFORM_RIGID_IMAGES, USE_TRANSFORM_VALIDATION_DATA, USE_VALIDATION_DATA, \
-    USE_TRANSFORM_ELASTIC_IMAGES, FREQ_SAVE_INTER_MODELS, FREQ_VALIDATE_MODEL, NAME_LOSSHISTORY_FILE, \
-    NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    MANUAL_SEED_TRAIN, IS_SHUFFLE_TRAINDATA, WRITE_OUT_DESC_MODEL_TEXT, NAME_DESCRIPT_MODEL_LOGFILE, TYPE_DNNLIB_USED,\
-    IS_RESTART_ONLY_WEIGHTS
+    MAX_TRAIN_IMAGES, MAX_VALID_IMAGES, TYPE_NETWORK, NET_NUM_FEATMAPS, TYPE_OPTIMIZER, LEARN_RATE, TYPE_LOSS, \
+    WEIGHT_COMBINED_LOSS, LIST_TYPE_METRICS, BATCH_SIZE, NUM_EPOCHS, IS_USE_VALIDATION_DATA, IS_VALID_CONVOLUTIONS, \
+    IS_MASK_REGION_INTEREST, IS_SLIDING_WINDOW_IMAGES, PROP_OVERLAP_SLIDING_WINDOW, IS_RANDOM_WINDOW_IMAGES, \
+    NUM_RANDOM_PATCHES_EPOCH, IS_TRANSFORM_RIGID_IMAGES, IS_TRANSFORM_VALIDATION_DATA, IS_TRANSFORM_ELASTIC_IMAGES, \
+    FREQ_SAVE_INTER_MODELS, FREQ_VALIDATE_MODEL, IS_SHUFFLE_TRAINDATA, NAME_LOSSHISTORY_FILE, NAME_CONFIG_PARAMS_FILE,\
+    NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, IS_WRITEOUT_DESCMODEL_TEXT, \
+    NAME_DESCRIPT_MODEL_LOGFILE, TYPE_DNNLIB_USED, IS_RESTART_ONLY_WEIGHTS
 if TYPE_DNNLIB_USED == 'Pytorch':
     from common.constant import NAME_SAVEDMODEL_LAST_TORCH as NAME_SAVEDMODEL_LAST
 elif TYPE_DNNLIB_USED == 'Keras':
@@ -69,39 +68,31 @@ def main(args):
     list_train_labels_files = list_files_dir(training_data_path, name_input_labels_files)[0:args.max_train_images]
     indict_reference_keys = read_dictionary(in_reference_keys_file)
 
-    if args.is_restart_model:
+    if args.is_restart:
         models_path = workdir_manager.get_pathdir_exist(args.modelsdir)
     else:
         models_path = workdir_manager.get_pathdir_update(args.modelsdir)
 
-    if USE_VALIDATION_DATA:
+    if IS_USE_VALIDATION_DATA:
         validation_data_path = workdir_manager.get_pathdir_exist(args.validation_datadir)
         list_valid_images_files = list_files_dir(validation_data_path, name_input_images_files)[0:args.max_valid_images]
         list_valid_labels_files = list_files_dir(validation_data_path, name_input_labels_files)[0:args.max_valid_images]
-        if not list_valid_images_files or not list_valid_labels_files:
-            use_validation_data = False
-            print("No validation data used for Training the model...")
-        else:
-            use_validation_data = True
-    else:
-        use_validation_data = False
 
-    # write out logs with the training and validation files files used
-    out_traindata_logfile = join_path_names(models_path, NAME_TRAINDATA_LOGFILE)
-    write_train_valid_data_logfile(out_traindata_logfile, list_train_images_files,
-                                   indict_reference_keys, 'training')
-
-    if use_validation_data:
-        out_validdata_logfile = join_path_names(models_path, NAME_VALIDDATA_LOGFILE)
-        write_train_valid_data_logfile(out_validdata_logfile, list_valid_images_files,
-                                       indict_reference_keys, 'validation')
-
-    # write out experiment parameters in config file
+    # write out config parameters in config file
     out_config_params_file = join_path_names(models_path, NAME_CONFIG_PARAMS_FILE)
-    if not args.is_restart_model or (args.is_restart_model and args.is_restart_only_weights):
+    if not args.is_restart or (args.is_restart and args.is_restart_only_weights):
         print("Write configuration parameters in file: \'%s\'..." % (out_config_params_file))
         dict_args = OrderedDict(sorted(vars(args).items()))
         save_dictionary_configparams(out_config_params_file, dict_args)
+
+    # write out logs with the training and validation files used
+    out_traindata_logfile = join_path_names(models_path, NAME_TRAINDATA_LOGFILE)
+    write_train_valid_data_logfile(out_traindata_logfile, list_train_images_files,
+                                   indict_reference_keys, 'training')
+    if IS_USE_VALIDATION_DATA:
+        out_validdata_logfile = join_path_names(models_path, NAME_VALIDDATA_LOGFILE)
+        write_train_valid_data_logfile(out_validdata_logfile, list_valid_images_files,
+                                       indict_reference_keys, 'validation')
 
     # *****************************************************
 
@@ -111,10 +102,9 @@ def main(args):
 
     model_trainer = get_model_trainer()
 
-    if not args.is_restart_model or (args.is_restart_model and args.is_restart_only_weights):
+    if not args.is_restart or (args.is_restart and args.is_restart_only_weights):
         model_trainer.create_network(type_network=args.type_network,
                                      size_image_in=args.size_in_images,
-                                     num_levels=args.net_num_levels,
                                      num_featmaps_in=args.net_num_featmaps,
                                      num_channels_in=1,
                                      num_classes_out=1,
@@ -129,7 +119,7 @@ def main(args):
                                           is_mask_to_region_interest=args.is_mask_region_interest)
         model_trainer.finalise_model()
 
-    if args.is_restart_model:
+    if args.is_restart:
         model_restart_file = join_path_names(models_path, args.restart_file)
         print("Restart Model from file: \'%s\'..." % (model_restart_file))
 
@@ -151,13 +141,13 @@ def main(args):
                 model_trainer.load_model_full(model_restart_file)
 
     model_trainer.create_callbacks(models_path=models_path,
-                                   is_restart_model=args.is_restart_model,
-                                   is_validation_data=use_validation_data,
+                                   is_restart_model=args.is_restart,
+                                   is_validation_data=IS_USE_VALIDATION_DATA,
                                    freq_save_check_model=FREQ_SAVE_INTER_MODELS,
                                    freq_validate_model=FREQ_VALIDATE_MODEL)
     # model_trainer.summary_model()
 
-    if (WRITE_OUT_DESC_MODEL_TEXT):
+    if (IS_WRITEOUT_DESCMODEL_TEXT):
         out_descript_model_logfile = join_path_names(models_path, NAME_DESCRIPT_MODEL_LOGFILE)
         print("Write out descriptive model source model in text file: \'%s\'" % (out_descript_model_logfile))
         descmodel_text = model_trainer._networks.get_descmodel_sourcecode()
@@ -182,12 +172,12 @@ def main(args):
         get_train_imagedataloader_2images(list_train_images_files,
                                           list_train_labels_files,
                                           size_in_images=args.size_in_images,
-                                          use_sliding_window_images=args.use_sliding_window_images,
+                                          is_sliding_window_images=args.is_sliding_window_images,
                                           prop_overlap_slide_window=args.prop_overlap_sliding_window,
-                                          use_transform_rigid_images=args.use_transform_rigid_images,
-                                          use_transform_elastic_images=args.use_transform_elastic_images,
-                                          use_random_window_images=args.use_random_window_images,
+                                          is_random_window_images=args.is_random_window_images,
                                           num_random_patches_epoch=args.num_random_patches_epoch,
+                                          is_transform_rigid_images=args.is_transform_rigid_images,
+                                          is_transform_elastic_images=args.is_transform_elastic_images,
                                           is_nnet_validconvs=args.is_valid_convolutions,
                                           size_output_images=size_out_image_model,
                                           batch_size=args.batch_size,
@@ -196,23 +186,23 @@ def main(args):
     print("Loaded \'%s\' files. Total batches generated: %s..."
           % (len(list_train_images_files), len(training_data_loader)))
 
-    if use_validation_data:
+    if IS_USE_VALIDATION_DATA:
         print("\nLoading Validation data...")
-        args.use_transform_rigid_images = \
-            args.use_transform_rigid_images and USE_TRANSFORM_VALIDATION_DATA
-        args.use_transform_elastic_images = \
-            args.use_transform_elastic_images and USE_TRANSFORM_VALIDATION_DATA
+        args.is_transform_rigid_images = \
+            args.is_transform_rigid_images and IS_TRANSFORM_VALIDATION_DATA
+        args.is_transform_elastic_images = \
+            args.is_transform_elastic_images and IS_TRANSFORM_VALIDATION_DATA
 
         validation_data_loader = \
             get_train_imagedataloader_2images(list_valid_images_files,
                                               list_valid_labels_files,
                                               size_in_images=args.size_in_images,
-                                              use_sliding_window_images=args.use_sliding_window_images,
+                                              is_sliding_window_images=args.is_sliding_window_images,
                                               prop_overlap_slide_window=args.prop_overlap_sliding_window,
-                                              use_transform_rigid_images=args.use_transform_rigid_images,
-                                              use_transform_elastic_images=args.use_transform_elastic_images,
-                                              use_random_window_images=args.use_random_window_images,
+                                              is_random_window_images=args.is_random_window_images,
                                               num_random_patches_epoch=args.num_random_patches_epoch,
+                                              is_transform_rigid_images=args.is_transform_rigid_images,
+                                              is_transform_elastic_images=args.is_transform_elastic_images,
                                               is_nnet_validconvs=args.is_valid_convolutions,
                                               size_output_images=size_out_image_model,
                                               batch_size=args.batch_size,
@@ -229,7 +219,7 @@ def main(args):
     print("\nTraining model...")
     print("-" * 30)
 
-    if args.is_restart_model:
+    if args.is_restart:
         if 'last' in basename(model_restart_file):
             loss_history_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
             restart_epoch = get_restart_epoch_from_loss_history_file(loss_history_filename)
@@ -260,34 +250,33 @@ if __name__ == "__main__":
     parser.add_argument('--validation_datadir', type=str, default=NAME_VALIDATIONDATA_RELPATH)
     parser.add_argument('--max_train_images', type=int, default=MAX_TRAIN_IMAGES)
     parser.add_argument('--max_valid_images', type=int, default=MAX_VALID_IMAGES)
-    parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
-    parser.add_argument('--num_epochs', type=int, default=NUM_EPOCHS)
-    parser.add_argument('--max_steps_epoch', type=int, default=None)
     parser.add_argument('--type_network', type=str, default=TYPE_NETWORK)
-    parser.add_argument('--net_num_levels', type=int, default=NET_NUM_LEVELS)
     parser.add_argument('--net_num_featmaps', type=int, default=NET_NUM_FEATMAPS)
     parser.add_argument('--type_optimizer', type=str, default=TYPE_OPTIMIZER)
     parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
     parser.add_argument('--weight_combined_loss', type=float, default=WEIGHT_COMBINED_LOSS)
     parser.add_argument('--list_type_metrics', type=str2list_str, default=LIST_TYPE_METRICS)
+    parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
+    parser.add_argument('--num_epochs', type=int, default=NUM_EPOCHS)
+    parser.add_argument('--max_steps_epoch', type=int, default=None)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
-    parser.add_argument('--use_sliding_window_images', type=str2bool, default=USE_SLIDING_WINDOW_IMAGES)
+    parser.add_argument('--is_sliding_window_images', type=str2bool, default=IS_SLIDING_WINDOW_IMAGES)
     parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW)
-    parser.add_argument('--use_random_window_images', type=str2bool, default=USE_RANDOM_WINDOW_IMAGES)
+    parser.add_argument('--is_random_window_images', type=str2bool, default=IS_RANDOM_WINDOW_IMAGES)
     parser.add_argument('--num_random_patches_epoch', type=str2int, default=NUM_RANDOM_PATCHES_EPOCH)
-    parser.add_argument('--use_transform_rigid_images', type=str2bool, default=USE_TRANSFORM_RIGID_IMAGES)
-    parser.add_argument('--use_transform_elastic_images', type=str2bool, default=USE_TRANSFORM_ELASTIC_IMAGES)
-    parser.add_argument('--manual_seed_train', type=int, default=MANUAL_SEED_TRAIN)
+    parser.add_argument('--is_transform_rigid_images', type=str2bool, default=IS_TRANSFORM_RIGID_IMAGES)
+    parser.add_argument('--is_transform_elastic_images', type=str2bool, default=IS_TRANSFORM_ELASTIC_IMAGES)
     parser.add_argument('--name_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
-    parser.add_argument('--is_restart_model', type=str2bool, default=False)
+    parser.add_argument('--manual_seed_train', type=int, default=None)
+    parser.add_argument('--is_restart', type=str2bool, default=False)
     parser.add_argument('--restart_file', type=str, default=NAME_SAVEDMODEL_LAST)
     parser.add_argument('--is_restart_only_weights', type=str2bool, default=IS_RESTART_ONLY_WEIGHTS)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 
-    if (args.is_restart_model and not args.is_restart_only_weights) and not args.in_config_file:
+    if (args.is_restart and not args.is_restart_only_weights) and not args.in_config_file:
         args.in_config_file = join_path_names(args.modelsdir, NAME_CONFIG_PARAMS_FILE)
         print("Restarting model: input config file is not given. Use the default path: %s" % (args.in_config_file))
 
@@ -304,26 +293,24 @@ if __name__ == "__main__":
         args.validation_datadir = str(input_args_file['validation_datadir'])
         args.max_train_images = int(input_args_file['max_train_images'])
         args.max_valid_images = int(input_args_file['max_valid_images'])
-        args.batch_size = int(input_args_file['batch_size'])
-        args.num_epochs = int(input_args_file['num_epochs'])
-        args.max_steps_epoch = None     # CHECK THIS OUT!
         args.type_network = str(input_args_file['type_network'])
-        args.net_num_levels = int(input_args_file['net_num_levels'])
         args.net_num_featmaps = int(input_args_file['net_num_featmaps'])
         args.type_optimizer = str(input_args_file['type_optimizer'])
         args.learn_rate = float(input_args_file['learn_rate'])
         args.type_loss = str(input_args_file['type_loss'])
         args.weight_combined_loss = float(input_args_file['weight_combined_loss'])
         args.list_type_metrics = str2list_str(input_args_file['list_type_metrics'])
+        args.batch_size = int(input_args_file['batch_size'])
+        args.num_epochs = int(input_args_file['num_epochs'])
+        args.max_steps_epoch = None     # CHECK THIS OUT!
         args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
         args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
-        args.use_sliding_window_images = str2bool(input_args_file['use_sliding_window_images'])
+        args.is_sliding_window_images = str2bool(input_args_file['is_sliding_window_images'])
         args.prop_overlap_sliding_window = str2tuple_float(input_args_file['prop_overlap_sliding_window'])
-        args.use_random_window_images = str2bool(input_args_file['use_random_window_images'])
+        args.is_random_window_images = str2bool(input_args_file['is_random_window_images'])
         args.num_random_patches_epoch = str2int(input_args_file['num_random_patches_epoch'])
-        args.use_transform_rigid_images = str2bool(input_args_file['use_transform_rigid_images'])
-        args.use_transform_elastic_images = str2bool(input_args_file['use_transform_elastic_images'])
-        args.manual_seed_train = str2int(input_args_file['manual_seed_train'])
+        args.is_transform_rigid_images = str2bool(input_args_file['is_transform_rigid_images'])
+        args.is_transform_elastic_images = str2bool(input_args_file['is_transform_elastic_images'])
         args.name_reference_keys_file = str(input_args_file['name_reference_keys_file'])
 
     print("Print input arguments...")

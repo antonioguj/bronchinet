@@ -15,31 +15,31 @@ from preprocessing.elasticdeformimages import ElasticDeformGridwiseImages, Elast
 
 
 def get_images_generator(size_images: Tuple[int, ...],
-                         use_sliding_window_images: bool,
+                         is_sliding_window_images: bool,
                          prop_overlap_slide_window: Tuple[int, ...],
-                         use_random_window_images: bool,
+                         is_random_window_images: bool,
                          num_random_patches_epoch: int,
-                         use_transform_rigid_images: bool,
-                         use_transform_elastic_images: bool,
+                         is_transform_rigid_images: bool,
+                         is_transform_elastic_images: bool,
                          size_volume_image: Tuple[int, ...] = (0,)
                          ) -> ImageGenerator:
     list_images_generators = []
 
-    if (use_sliding_window_images):
+    if (is_sliding_window_images):
         # generator of image patches by sliding-window...
         new_images_generator = SlidingWindowImages(size_images,
                                                    prop_overlap_slide_window,
                                                    size_volume_image)
         list_images_generators.append(new_images_generator)
 
-    elif (use_random_window_images):
+    elif (is_random_window_images):
         # generator of image patches by random cropping window...
         new_images_generator = RandomWindowImages(size_images,
                                                   num_random_patches_epoch,
                                                   size_volume_image)
         list_images_generators.append(new_images_generator)
 
-    if use_transform_rigid_images:
+    if is_transform_rigid_images:
         # generator of images by random rigid transformations of input images...
         ndims = len(size_images)
         if ndims == 2:
@@ -70,7 +70,7 @@ def get_images_generator(size_images: Tuple[int, ...],
             message = 'Wrong value of \'ndims\': %s' % (ndims)
             catch_error_exception(message)
 
-    if use_transform_elastic_images:
+    if is_transform_elastic_images:
         if TYPE_TRANSFORM_ELASTIC_IMAGES == 'gridwise':
             new_images_generator = ElasticDeformGridwiseImages(size_images,
                                                                fill_mode=TRANS_FILL_MODE_TRANSFORM)

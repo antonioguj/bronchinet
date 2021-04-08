@@ -43,12 +43,12 @@ class ModelTrainer(ModelTrainerBase):
     def create_callbacks(self, models_path: str, **kwargs) -> None:
         self._list_callbacks = []
 
-        is_validation_data = kwargs['is_validation_data'] \
-            if 'is_validation_data' in kwargs.keys() else True
-        freq_save_check_model = kwargs['freq_save_check_model'] \
-            if 'freq_save_check_model' in kwargs.keys() else 1
-        freq_validate_model = kwargs['freq_validate_model'] \
-            if 'freq_validate_model' in kwargs.keys() else 1
+        is_validation_data = kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() \
+            else True
+        freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() \
+            else 1
+        freq_validate_model = kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() \
+            else 1
 
         losshistory_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
         new_callback = RecordLossHistory(losshistory_filename, self._list_metrics,
@@ -83,26 +83,32 @@ class ModelTrainer(ModelTrainerBase):
         type_network = model_full['network_desc'][0]
         network_input_args = model_full['network_desc'][1]
 
-        update_net_input_args = kwargs['update_net_input_args'] \
-            if 'update_net_input_args' in kwargs.keys() else None
+        update_net_input_args = kwargs['update_net_input_args'] if 'update_net_input_args' in kwargs.keys() \
+            else None
         if update_net_input_args:
             network_input_args.update(update_net_input_args)
 
         self.create_network(type_network, **network_input_args)
         self._network.load_state_dict(model_full['network_state_dict'])
 
+        # ----------------
+
         # create optimizer
         type_optimizer = model_full['optimizer_desc']
         self.create_optimizer(type_optimizer, learn_rate=0.0)
         self._optimizer.load_state_dict(model_full['optimizer_state_dict'])
 
+        # ----------------
+
         # create loss
         type_loss = model_full['loss_desc'][0]
         loss_input_args = model_full['loss_desc'][1]
-        weight_combined_loss = kwargs['weight_combined_loss'] \
-            if 'weight_combined_loss' in kwargs.keys() else 1.0
+        weight_combined_loss = kwargs['weight_combined_loss'] if 'weight_combined_loss' in kwargs.keys() \
+            else 1.0
         self.create_loss(type_loss, is_mask_to_region_interest=loss_input_args['is_masks_exclude'],
                          weight_combined_loss=weight_combined_loss)
+
+        # ----------------
 
         # create list of metrics
         list_type_metrics = model_full['metrics_desc']
@@ -114,52 +120,68 @@ class ModelTrainer(ModelTrainerBase):
         model_full = torch.load(model_filename, map_location=self._device)
 
         # create network
-        type_network = 'UNet3D_Plugin'
-        network_input_args_orig = model_full['model_desc'][1]
+        type_network = 'UNet3DPlugin'
+        try:
+            network_input_args_original = model_full['network_desc'][1]
+            network_state_dict_original = model_full['network_state_dict']
+        except KeyError:
+            # try the naming from an older code version
+            network_input_args_original = model_full['model_desc'][1]
+            network_state_dict_original = model_full['model_state_dict']
+
         # replace the network arguments that were renamed in the new version
-        network_input_args = {}
-        network_input_args['size_image_in'] = network_input_args_orig['size_image']
-        network_input_args['num_levels'] = network_input_args_orig['num_levels'] \
-            if 'num_levels' in network_input_args_orig.keys() else 5
-        network_input_args['num_featmaps_in'] = network_input_args_orig['num_featmaps_in'] \
-            if 'num_featmaps_in' in network_input_args_orig.keys() else 16
-        network_input_args['num_channels_in'] = network_input_args_orig['num_channels_in'] \
-            if 'num_channels_in' in network_input_args_orig.keys() else 1
-        network_input_args['num_classes_out'] = network_input_args_orig['num_classes_out'] \
-            if 'num_classes_out' in network_input_args_orig.keys() else 1
-        network_input_args['is_use_valid_convols'] = network_input_args_orig['isUse_valid_convols'] \
-            if 'isUse_valid_convols' in network_input_args_orig.keys() else False
+        network_input_args_new = {}
+        for (key, value) in network_input_args_original.items():
+            if key == 'size_image':
+                new_key = 'size_image_in'
+            elif key == 'isUse_valid_convols':
+                new_key = 'is_use_valid_convols'
+            else:
+                new_key = key
+            network_input_args_new[new_key] = value
 
-        update_net_input_args = kwargs['update_net_input_args'] \
-            if 'update_net_input_args' in kwargs.keys() else None
+        update_net_input_args = kwargs['update_net_input_args'] if 'update_net_input_args' in kwargs.keys() \
+            else None
         if update_net_input_args:
-            network_input_args.update(update_net_input_args)
+            network_input_args_new.update(update_net_input_args)
 
-        self.create_network(type_network, **network_input_args)
-
-        network_state_dict_orig = model_full['model_state_dict']
         # replace the network state class variables that were renamed in the new version
-        network_state_dict = {}
-        for (key, value) in network_state_dict_orig.items():
-            new_key = key.replace('convolution_downlay', '_convolution_down_lev')
-            new_key = new_key.replace('convolution_uplay', '_convolution_up_lev')
-            new_key = new_key.replace('classification_layer', '_classification_last')
-            network_state_dict[new_key] = value
+        network_state_dict_new = {}
+        for (key, value) in network_state_dict_original.items():
+            if 'convolution_downlay' in key:
+                new_key = key.replace('convolution_downlay', '_convolution_down_lev')
+            elif 'convolution_uplay' in key:
+                new_key = key.replace('convolution_uplay', '_convolution_up_lev')
+            elif 'classification_layer' in key:
+                new_key = key.replace('classification_layer', '_classification_last')
+            else:
+                new_key = key
+            network_state_dict_new[new_key] = value
 
-        self._network.load_state_dict(network_state_dict)
+        self.create_network(type_network, **network_input_args_new)
+        self._network.load_state_dict(network_state_dict_new)
+
+        # ----------------
 
         # create optimizer
         type_optimizer = model_full['optimizer_desc']
         self.create_optimizer(type_optimizer, learn_rate=0.0)
         self._optimizer.load_state_dict(model_full['optimizer_state_dict'])
 
+        # ----------------
+
         # create loss
-        type_loss = model_full['loss_fun_desc'][0]
-        loss_input_args = model_full['loss_fun_desc'][1]
-        weight_combined_loss = kwargs['weight_combined_loss'] \
-            if 'weight_combined_loss' in kwargs.keys() else 1.0
-        self.create_loss(type_loss, is_mask_to_region_interest=loss_input_args['is_masks_exclude'],
-                         weight_combined_loss=weight_combined_loss)
+        try:
+            type_loss = model_full['loss_desc'][0]
+            loss_input_args = model_full['loss_desc'][1]
+        except KeyError:
+            # try the naming from an older code version
+            type_loss = model_full['loss_fun_desc'][0]
+            loss_input_args = model_full['loss_fun_desc'][1]
+
+        self.create_loss(type_loss, is_mask_to_region_interest=loss_input_args['is_masks_exclude'])
+
+        # ----------------
 
         # create 'dummy' empty list of metrics
         list_type_metrics = []
@@ -268,11 +290,6 @@ class ModelTrainer(ModelTrainerBase):
 
         self._run_callbacks_on_epoch_end(self._epoch_count, data_output)
 
-        # write loss history
-        # print("\ntrain loss = {0:.3f}".format(self.train_loss))
-        # if self.valid_data_generator:
-        # print("valid loss = {0:.3f}".format(self.valid_loss))
-
     def _train_epoch(self) -> Tuple[float, List[float]]:
         if self._max_steps_epoch and self._max_steps_epoch < len(self._train_data_loader):
             num_batches = self._max_steps_epoch
@@ -283,8 +300,6 @@ class ModelTrainer(ModelTrainerBase):
                            desc='Epochs {}/{}'.format(self._epoch_count + 1, self._num_epochs),
                            bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{remaining}{postfix}]')
 
-        # time_compute = 0.0
-        # time_total_ini = dt.now()
         sumrun_loss = 0.0
         sumrun_metrics = [0.0] * self._num_metrics
 
@@ -292,8 +307,6 @@ class ModelTrainer(ModelTrainerBase):
         for (in_batch_xdata, in_batch_ydata) in self._train_data_loader:
             in_batch_xdata.to(self._device)
             in_batch_ydata.to(self._device)
-
-            # time_ini = dt.now()
 
             self._optimizer.zero_grad()
             batch_prediction = self._network(in_batch_xdata)
@@ -306,9 +319,6 @@ class ModelTrainer(ModelTrainerBase):
             metrics_this = self._compute_list_metrics(batch_prediction, in_batch_ydata)
             sumrun_metrics = [val1 + val2 for (val1, val2) in zip(sumrun_metrics, metrics_this)]
 
-            # time_now = dt.now()
-            # time_compute += (time_now - time_ini).seconds
-
             loss_partial = sumrun_loss / (i_batch + 1)
             progressbar.set_postfix(loss='{0:1.5f}'.format(loss_partial))
             progressbar.update(1)
@@ -316,12 +326,6 @@ class ModelTrainer(ModelTrainerBase):
             i_batch += 1
             if i_batch > num_batches:
                 break
-
-        # time_now = dt.now()
-        # time_total = (time_now - time_total_ini).seconds
-        # time_loaddata = time_total - time_compute
-        # print("\ntime total = {0:.3f}".format(time_total))
-        # print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
         total_loss = sumrun_loss / float(num_batches)
         total_metrics = [value / float(num_batches) for value in sumrun_metrics]
@@ -336,8 +340,6 @@ class ModelTrainer(ModelTrainerBase):
 
         progressbar = tqdm(total=num_batches, desc='Validation', leave=False)
 
-        # time_compute = 0.0
-        # time_total_ini = dt.now()
         sumrun_loss = 0.0
         sumrun_metrics = [0.0] * self._num_metrics
 
@@ -345,8 +347,6 @@ class ModelTrainer(ModelTrainerBase):
         for (in_batch_xdata, in_batch_ydata) in self._valid_data_loader:
             in_batch_xdata.to(self._device)
             in_batch_ydata.to(self._device)
-
-            # time_ini = dt.now()
 
             with torch.no_grad():
                 batch_prediction = self._network(in_batch_xdata)
@@ -357,20 +357,11 @@ class ModelTrainer(ModelTrainerBase):
             metrics_this = self._compute_list_metrics(batch_prediction, in_batch_ydata)
             sumrun_metrics = [val1 + val2 for (val1, val2) in zip(sumrun_metrics, metrics_this)]
 
-            # time_now = dt.now()
-            # time_compute += (time_now - time_ini).seconds
-
             progressbar.update(1)
 
             i_batch += 1
             if i_batch > num_batches:
                 break
-
-        # time_now = dt.now()
-        # time_total = (time_now - time_total_ini).seconds
-        # time_loaddata = time_total - time_compute
-        # print("\ntime total = {0:.3f}".format(time_total))
-        # print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
         total_loss = sumrun_loss / float(num_batches)
         total_metrics = [value / float(num_batches) for value in sumrun_metrics]
@@ -385,13 +376,8 @@ class ModelTrainer(ModelTrainerBase):
 
         progressbar = tqdm(total=num_batches, desc='Prediction')
 
-        # time_compute = 0.0
-        # time_total_ini = dt.now()
-
         for i_batch, in_batch_xdata in enumerate(self._test_data_loader):
             in_batch_xdata.to(self._device)
-
-            # time_ini = dt.now()
 
             with torch.no_grad():
                 batch_prediction = self._network(in_batch_xdata)
@@ -399,16 +385,6 @@ class ModelTrainer(ModelTrainerBase):
 
             output_prediction[i_batch] = batch_prediction.cpu()     # dispatch prediction to 'cpu'
 
-            # time_now = dt.now()
-            # time_compute_i = (time_now - time_ini).seconds
-            # time_compute += time_compute_i
-
             progressbar.update(1)
-
-        # time_now = dt.now()
-        # time_total = (time_now - time_total_ini).seconds
-        # time_loaddata = time_total - time_compute
-        # print("\ntime total = {0:.3f}".format(time_total))
-        # print("time loaddata / compute = {0:.3f} / {1:.3f}".format(time_loaddata, time_compute))
 
         return ImagesUtil.reshape_channels_last(output_prediction)  # output format "channels_last"

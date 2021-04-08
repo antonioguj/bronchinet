@@ -6,7 +6,6 @@ module load Python/3.7.4-GCCcore-8.3.0
 
 source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
 
-
 HOME="/trinity/home/agarcia/"
 WORKDIR="${HOME}/Results/AirwaySegmentation_DLCST-LUVAR/"
 
@@ -15,27 +14,26 @@ export PYTHONPATH="${WORKDIR}/Code/:${PYTHONPATH}"
 # Load python virtual environment
 source "${HOME}/Pyvenv-v.3.7.4/bin/activate"
 
-
-# ---------- SETTINGS ----------
-#
+# SETTINGS
 IMAGESDATA_DIR="${WORKDIR}/BaseData/ImagesWorkData/"
 LABELSDATA_DIR="${WORKDIR}/BaseData/LabelsWorkData/"
 TRAINDATA_OUTDIR="${WORKDIR}/TrainingData/"
 VALIDDATA_OUTDIR="${WORKDIR}/ValidationData/"
 TESTDATA_OUTDIR="${WORKDIR}/TestingData/"
+TYPE_DATA="training"
 TYPE_DISTRIBUTE="original"
-DIST_PROPDATA_TRAIN_VALID_TEST="(0.65,0.15,0.20)"
-#
-# ---------- SETTINGS ----------
+DIST_PROPDATA_TRAIN_VALID_TEST="(0.50,0.15,0.35)"
+INFILE_ORDER_TRAIN="${WORKDIR}/train.txt"
+# --------
 
-python "${WORKDIR}/Code/scripts_experiments/distribute_data.py" \
-	--basedir=${WORKDIR} \
-	--type_data="training" \
-	--type_distribute=${TYPE_DISTRIBUTE} \
-	--dist_propdata_train_valid_test=${DIST_PROPDATA_TRAIN_VALID_TEST} \
-	--infile_order_train="${WORKDIR}/train.txt" \
-	--name_input_images_relpath=${IMAGESDATA_DIR} \
-	--name_input_labels_relpath=${LABELSDATA_DIR} \
-	--name_training_data_relpath=${TRAINDATA_OUTDIR} \
-	--name_validation_data_relpath=${VALIDDATA_OUTDIR} \
-	--name_testing_data_relpath=${TESTDATA_OUTDIR}
+python3 "${WORKDIR}/Code/scripts_experiments/distribute_data.py" \
+    --basedir=${WORKDIR} \
+    --type_data=${TYPE_DATA} \
+    --type_distribute=${TYPE_DISTRIBUTE} \
+    --dist_propdata_train_valid_test=${DIST_PROPDATA_TRAIN_VALID_TEST} \
+    --infile_order_train=${INFILE_ORDER_TRAIN} \
+    --name_input_images_relpath=${IMAGESDATA_DIR} \
+    --name_input_labels_relpath=${LABELSDATA_DIR} \
+    --name_training_data_relpath=${TRAINDATA_OUTDIR} \
+    --name_validation_data_relpath=${VALIDDATA_OUTDIR} \
+    --name_testing_data_relpath=${TESTDATA_OUTDIR}

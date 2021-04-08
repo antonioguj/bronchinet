@@ -7,9 +7,9 @@ from tensorflow.keras.models import Model
 
 from models.networks import UNetBase
 
-LIST_AVAIL_NETWORKS = ['UNet3D_Original',
-                       'UNet3D_General',
-                       'UNet3D_Plugin',
+LIST_AVAIL_NETWORKS = ['UNet3DOriginal',
+                       'UNet3DGeneral',
+                       'UNet3DPlugin',
                        ]
 
 
@@ -44,6 +44,7 @@ class UNet(UNetBase):
 
 
 class UNet3DOriginal(UNet):
+    _num_levels_fixed = 5
 
     def __init__(self,
                  size_image_in: Tuple[int, int, int],
@@ -51,8 +52,7 @@ class UNet3DOriginal(UNet):
                  num_channels_in: int = 1,
                  num_classes_out: int = 1
                  ) -> None:
-        num_levels = 5
-        super(UNet3DOriginal, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in,
+        super(UNet3DOriginal, self).__init__(size_image_in, self._num_levels_fixed, num_featmaps_in, num_channels_in,
                                              num_classes_out, is_use_valid_convols=False)
 
         self._compiled_model = self._build_model()
@@ -131,7 +131,6 @@ class UNet3DOriginal(UNet):
 
 class UNet3DGeneral(UNet):
     _num_levels_default = 5
-    _num_levels_non_padded = 3
     _num_featmaps_in_default = 16
     _num_channels_in_default = 1
     _num_classes_out_default = 1
@@ -296,8 +295,7 @@ class UNet3DGeneral(UNet):
 
 
 class UNet3DPlugin(UNet):
-    _num_levels_default = 5
-    _num_levels_non_padded = 3
+    _num_levels_fixed = 5
     _num_featmaps_in_default = 16
     _num_channels_in_default = 1
     _num_classes_out_default = 1
@@ -307,13 +305,12 @@ class UNet3DPlugin(UNet):
 
     def __init__(self,
                  size_image_in: Tuple[int, int, int],
-                 num_levels: int = _num_levels_default,
                  num_featmaps_in: int = _num_featmaps_in_default,
                  num_channels_in: int = _num_channels_in_default,
                  num_classes_out: int = _num_classes_out_default,
                  is_use_valid_convols: bool = False
                  ) -> None:
-        super(UNet3DPlugin, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in,
+        super(UNet3DPlugin, self).__init__(size_image_in, self._num_levels_fixed, num_featmaps_in, num_channels_in,
                                            num_classes_out, is_use_valid_convols=is_use_valid_convols)
         self._type_activate_hidden = self._type_activate_hidden_default
         self._type_activate_output = self._type_activate_output_default
