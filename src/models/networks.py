@@ -123,7 +123,7 @@ class ConvNetBase(NeuralNetwork):
 
 
 class UNetBase(ConvNetBase):
-    _num_levels_non_padded = 3
+    _num_levels_nonpadded_default = 3
 
     def __init__(self,
                  size_image_in: Tuple[int, ...],
@@ -150,15 +150,15 @@ class UNetBase(ConvNetBase):
         if self._num_levels == 1:
             self._list_opers_names_layers_all = ['convols'] * 4 + ['classify']
 
-        elif self._is_use_valid_convols and self._num_levels > self._num_levels_non_padded:
+        elif self._is_use_valid_convols and self._num_levels > self._num_levels_nonpadded_default:
             # Assume that last convolutions have padding, to avoid large reduction of image dims
-            num_levels_with_padding = self._num_levels - self._num_levels_non_padded - 1
+            num_levels_with_padding = self._num_levels - self._num_levels_nonpadded_default - 1
             self._list_opers_names_layers_all = \
-                self._num_levels_non_padded * (['convols'] * 2 + ['pooling']) \
+                self._num_levels_nonpadded_default * (['convols'] * 2 + ['pooling']) \
                 + num_levels_with_padding * (['convols_padded'] * 2 + ['pooling']) \
                 + ['convols_padded'] * 2 \
                 + num_levels_with_padding * (['upsample'] + ['convols_padded'] * 2) \
-                + self._num_levels_non_padded * (['upsample'] + ['convols'] * 2) \
+                + self._num_levels_nonpadded_default * (['upsample'] + ['convols'] * 2) \
                 + ['classify']
         else:
             self._list_opers_names_layers_all = \

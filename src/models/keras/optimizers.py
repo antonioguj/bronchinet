@@ -6,7 +6,7 @@ from tensorflow.keras.optimizers import SGD as SGD_keras, \
     Adam as Adam_keras
 
 LIST_AVAIL_OPTIMIZERS = ['SGD',
-                         'SGD_mom',
+                         'SGDmom',
                          'Adagrad',
                          'RMSprop',
                          'Adadelta',
@@ -18,7 +18,7 @@ def get_sgd(learn_rate: float, **kwargs):
     return SGD_keras(lr=learn_rate)
 
 
-def get_sgd_mom(learn_rate: float, momentum: float = 0.9, **kwargs):
+def get_sgdmom(learn_rate: float, momentum: float = 0.9, **kwargs):
     return SGD_keras(lr=learn_rate, momentum=momentum)
 
 

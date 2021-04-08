@@ -8,12 +8,12 @@ from preprocessing.preprocessing_manager import get_images_generator
 
 
 def get_images_reconstructor(size_images: Tuple[int, ...],
-                             use_sliding_window_images: bool,
+                             is_sliding_window_images: bool,
                              prop_overlap_slide_window: Tuple[int, ...],
-                             use_random_window_images: bool,
+                             is_random_window_images: bool,
                              num_random_patches_epoch: int,
-                             use_transform_rigid_images: bool = False,
-                             use_transform_elastic_images: bool = False,
+                             is_transform_rigid_images: bool = False,
+                             is_transform_elastic_images: bool = False,
                              size_volume_image: Tuple[int, ...] = (0, 0, 0),
                              is_nnet_validconvs: bool = False,
                              size_output_image: Tuple[int, ...] = None,
@@ -22,12 +22,12 @@ def get_images_reconstructor(size_images: Tuple[int, ...],
                              num_trans_per_sample: int = 1
                              ) -> ImageReconstructor:
     images_generator = get_images_generator(size_images,
-                                            use_sliding_window_images=use_sliding_window_images,
+                                            is_sliding_window_images=is_sliding_window_images,
                                             prop_overlap_slide_window=prop_overlap_slide_window,
-                                            use_random_window_images=use_random_window_images,
+                                            is_random_window_images=is_random_window_images,
                                             num_random_patches_epoch=num_random_patches_epoch,
-                                            use_transform_rigid_images=use_transform_rigid_images,
-                                            use_transform_elastic_images=use_transform_elastic_images,
+                                            is_transform_rigid_images=is_transform_rigid_images,
+                                            is_transform_elastic_images=is_transform_elastic_images,
                                             size_volume_image=size_volume_image)
 
     if is_filter_output_nnet:
@@ -46,11 +46,11 @@ def get_images_reconstructor(size_images: Tuple[int, ...],
     else:
         filter_image_generator = None
 
-    if not use_sliding_window_images and not use_random_window_images:
+    if not is_sliding_window_images and not is_random_window_images:
         message = 'Image Reconstructor without Sliding-window generation of Image patches not implemented yet'
         catch_error_exception(message)
 
-    if not use_transform_rigid_images:
+    if not is_transform_rigid_images:
         # reconstructor of images following the sliding-window generator of input patches
         images_reconstructor = ImageReconstructor(size_images,
                                                   images_generator,
