@@ -82,4 +82,4 @@ python3 "${WORKDIR}/Code/scripts_experiments/train_model.py" \
 	--is_train_network_2D=${IS_TRAIN_NETWORK_2D} #\
 	# --is_restart="True" \
 	# --in_config_file="${MODELS_DIR}/configparams.txt" \
-	# --is_restart_weights_diffmodel="True"
+	# --is_restart_weights_diffmodel="False"
