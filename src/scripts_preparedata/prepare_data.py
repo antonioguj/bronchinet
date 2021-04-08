@@ -6,8 +6,8 @@ import argparse
 
 from common.constant import DATADIR, IS_BINARY_TRAIN_MASKS, IS_MASK_REGION_INTEREST, IS_NORMALIZE_DATA, \
     IS_CROP_IMAGES, IS_RESCALE_IMAGES, NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, \
-    NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_RAW_EXTRALABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
-    NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_RAW_ROIMASKS_RELPATH, \
+    NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, NAME_RAW_EXTRALABELS_RELPATH, \
+    NAME_PROC_EXTRALABELS_RELPATH, NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
     NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE, IS_MERGE_TWO_IMAGES_AS_CHANNELS, NAME_RAW_EXTRAIMAGES_RELPATH
 from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, str2bool, \
     read_dictionary, save_dictionary, save_dictionary_csv, get_substring_filename
@@ -56,7 +56,7 @@ def main(args):
     # SETTINGS
     name_template_output_images_files = 'images_proc-%0.2i.nii.gz'
     name_template_output_labels_files = 'labels_proc-%0.2i.nii.gz'
-    # name_template_output_extra_labels_files = 'cenlines_proc-%0.2i.nii.gz'
+    name_template_output_extra_labels_files = 'cenlines_proc-%0.2i.nii.gz'
     # --------
 
     workdir_manager = GeneralDirManager(args.datadir)
@@ -89,7 +89,7 @@ def main(args):
 
     if (args.is_input_extra_labels):
         input_extra_labels_path = workdir_manager.get_pathdir_exist(args.name_input_extra_labels_relpath)
-        # output_extra_labels_path = workdir_manager.get_pathdir_new  (args.name_output_extra_labels_relpath)
+        output_extra_labels_path = workdir_manager.get_pathdir_new(args.name_output_extra_labels_relpath)
         list_input_extra_labels_files = list_files_dir(input_extra_labels_path)
         check_same_number_files_in_list(list_input_images_files, list_input_extra_labels_files)
 
@@ -296,11 +296,11 @@ def main(args):
                 catch_error_exception(message)
 
             if is_output_multiple_files_per_image:
-                output_image_file = join_path_names(output_images_path,
-                                                    name_template_output_images_files % (ifile + 1, isubfile + 1))
+                output_image_file = name_template_output_images_files % (ifile + 1, isubfile + 1)
             else:
-                output_image_file = join_path_names(output_images_path,
-                                                    name_template_output_images_files % (ifile + 1))
+                output_image_file = name_template_output_images_files % (ifile + 1)
+            output_image_file = join_path_names(output_images_path, output_image_file)
+
             print("Output \'%s\' image, of type \'%s\': \'%s\'..."
                   % (icount + 1, list_type_inout_data[icount], basename(output_image_file)))
 
@@ -320,11 +320,11 @@ def main(args):
                     catch_error_exception(message)
 
                 if is_output_multiple_files_per_label:
-                    output_label_file = join_path_names(output_labels_path,
-                                                        name_template_output_labels_files % (ifile + 1, isubfile + 1))
+                    output_label_file = name_template_output_labels_files % (ifile + 1, isubfile + 1)
                 else:
-                    output_label_file = join_path_names(output_labels_path,
-                                                        name_template_output_labels_files % (ifile + 1))
+                    output_label_file = name_template_output_labels_files % (ifile + 1)
+                output_label_file = join_path_names(output_labels_path, output_label_file)
+
                 print("Output \'%s\' label, of type \'%s\': \'%s\'..."
                       % (icount + 1, list_type_inout_data[icount], basename(output_label_file)))
 
@@ -337,11 +337,11 @@ def main(args):
                     catch_error_exception(message)
 
                 if is_output_multiple_files_per_label:
-                    output_label_file = join_path_names(output_labels_path,
-                                                        name_template_output_labels_files % (ifile + 1, isubfile + 1))
+                    output_label_file = name_template_output_extra_labels_files % (ifile + 1, isubfile + 1)
                 else:
-                    output_label_file = join_path_names(output_labels_path,
-                                                        name_template_output_labels_files % (ifile + 1))
+                    output_label_file = name_template_output_extra_labels_files % (ifile + 1)
+                output_label_file = join_path_names(output_extra_labels_path, output_label_file)
+
                 print("Output \'%s\' extra label, of type \'%s\': \'%s\'..."
                       % (icount + 1, list_type_inout_data[icount], basename(output_label_file)))
 

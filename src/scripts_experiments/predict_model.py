@@ -6,8 +6,7 @@ import argparse
 from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, SIZE_IN_IMAGES, PROP_OVERLAP_SLIDING_WINDOW_PRED, \
     IS_SLIDING_WINDOW_IMAGES, IS_RANDOM_WINDOW_IMAGES, TYPE_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, \
     IS_MASK_REGION_INTEREST, NAME_TEMPO_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    NAME_REFERENCE_KEYS_POSTERIORS_FILE, IS_SAVE_FEATMAPS_LAYER, NAME_LAYER_SAVE_FEATS, TYPE_DNNLIB_USED, \
-    IS_FILTER_PRED_PROBMAPS, PROP_VALID_OUTPUT_NNET
+    NAME_REFERENCE_KEYS_POSTERIORS_FILE, TYPE_DNNLIB_USED, IS_FILTER_PRED_PROBMAPS, PROP_VALID_OUTPUT_NNET
 from common.functionutil import join_path_names, is_exist_file, basename, basename_filenoext, list_files_dir, str2bool,\
     str2list_str, str2tuple_int, read_dictionary, read_dictionary_configparams, save_dictionary, save_dictionary_csv
 from common.exceptionmanager import catch_error_exception
@@ -192,8 +191,8 @@ if __name__ == "__main__":
     parser.add_argument('--name_output_predictions_relpath', type=str, default=NAME_TEMPO_POSTERIORS_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--name_output_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_POSTERIORS_FILE)
-    parser.add_argument('--is_save_featmaps_layer', type=str2bool, default=IS_SAVE_FEATMAPS_LAYER)
-    parser.add_argument('--name_layer_save_feats', type=str, default=NAME_LAYER_SAVE_FEATS)
+    parser.add_argument('--is_save_featmaps_layer', type=str2bool, default=False)
+    parser.add_argument('--name_layer_save_feats', type=str, default=None)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     parser.add_argument('--is_test_network_2D', type=str2bool, default=False)
     args = parser.parse_args()
@@ -209,8 +208,8 @@ if __name__ == "__main__":
         args.size_in_images = str2tuple_int(input_args_file['size_in_images'])
         args.type_loss = str(input_args_file['type_loss'])
         args.list_type_metrics = str2list_str(input_args_file['list_type_metrics'])
-        args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
         args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
+        args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
         args.is_reconstruct_pred_patches = str2bool(input_args_file['is_sliding_window_images']) or \
             str2bool(input_args_file['is_random_window_images'])
 
