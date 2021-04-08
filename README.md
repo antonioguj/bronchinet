@@ -82,7 +82,7 @@ Train models
 - python ./Code/scripts_experiments/distribute_data.py --basedir=[path_dir_workdir]
 
 2) Train models:
-- python ./Code/scripts_experiments/train_model.py --basedir=[path_dir_workdir] --modelsdir=<dir_output_models> [IF RESTART: --in_config_file=<file_config> --is_restart_model=True]
+- python ./Code/scripts_experiments/train_model.py --basedir=[path_dir_workdir] --modelsdir=<dir_output_models> [IF RESTART: --is_restart=True --in_config_file=<file_config>]
 
 Test models
 ------------

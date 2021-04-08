@@ -4,7 +4,7 @@ import numpy as np
 import argparse
 
 from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, SIZE_IN_IMAGES, PROP_OVERLAP_SLIDING_WINDOW_PRED, \
-    USE_SLIDING_WINDOW_IMAGES, USE_RANDOM_WINDOW_IMAGES, TYPE_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, \
+    IS_SLIDING_WINDOW_IMAGES, IS_RANDOM_WINDOW_IMAGES, TYPE_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, \
     IS_MASK_REGION_INTEREST, NAME_TEMPO_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
     NAME_REFERENCE_KEYS_POSTERIORS_FILE, IS_SAVE_FEATMAPS_LAYER, NAME_LAYER_SAVE_FEATS, TYPE_DNNLIB_USED, \
     IS_FILTER_PRED_PROBMAPS, PROP_VALID_OUTPUT_NNET
@@ -78,12 +78,12 @@ def main(args):
     if args.is_reconstruct_pred_patches:
         # Create Image Reconstructor
         images_reconstructor = get_images_reconstructor(args.size_in_images,
-                                                        use_sliding_window_images=True,
+                                                        is_sliding_window_images=True,
                                                         prop_overlap_slide_window=PROP_OVERLAP_SLIDING_WINDOW_PRED,
-                                                        use_random_window_images=False,
+                                                        is_random_window_images=False,
                                                         num_random_patches_epoch=0,
-                                                        use_transform_rigid_images=False,
-                                                        use_transform_elastic_images=False,
+                                                        is_transform_rigid_images=False,
+                                                        is_transform_elastic_images=False,
                                                         is_nnet_validconvs=args.is_valid_convolutions,
                                                         size_output_image=size_out_image_model,
                                                         is_filter_output_nnet=IS_FILTER_PRED_PROBMAPS,
@@ -103,12 +103,12 @@ def main(args):
         image_data_loader = \
             get_train_imagedataloader_1image([in_image_file],
                                              size_in_images=args.size_in_images,
-                                             use_sliding_window_images=args.is_reconstruct_pred_patches,
+                                             is_sliding_window_images=args.is_reconstruct_pred_patches,
                                              prop_overlap_slide_window=PROP_OVERLAP_SLIDING_WINDOW_PRED,
-                                             use_transform_rigid_images=False,
-                                             use_transform_elastic_images=False,
-                                             use_random_window_images=False,
+                                             is_random_window_images=False,
                                              num_random_patches_epoch=0,
+                                             is_transform_rigid_images=False,
+                                             is_transform_elastic_images=False,
                                              batch_size=1,
                                              is_shuffle=False)
         print("Loaded \'%s\' files. Total batches generated: %s..." % (1, len(image_data_loader)))
@@ -179,8 +179,8 @@ if __name__ == "__main__":
     parser.add_argument('--in_config_file', type=str, default=None)
     parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
-    parser.add_argument('--is_reconstruct_pred_patches', type=str2bool, default=(USE_SLIDING_WINDOW_IMAGES
-                                                                                 or USE_RANDOM_WINDOW_IMAGES))
+    parser.add_argument('--is_reconstruct_pred_patches', type=str2bool, default=(IS_SLIDING_WINDOW_IMAGES
+                                                                                 or IS_RANDOM_WINDOW_IMAGES))
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
     parser.add_argument('--list_type_metrics', type=str2list_str, default=LIST_TYPE_METRICS)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
@@ -206,8 +206,8 @@ if __name__ == "__main__":
         args.list_type_metrics = str2list_str(input_args_file['list_type_metrics'])
         args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
         args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
-        args.is_reconstruct_pred_patches = str2bool(input_args_file['use_sliding_window_images']) or \
-            str2bool(input_args_file['use_random_window_images'])
+        args.is_reconstruct_pred_patches = str2bool(input_args_file['is_sliding_window_images']) or \
+            str2bool(input_args_file['is_random_window_images'])
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).items()):
