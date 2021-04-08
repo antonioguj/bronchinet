@@ -9,9 +9,9 @@ from common.exceptionmanager import catch_error_exception
 from common.functionutil import ImagesUtil
 from models.networks import UNetBase
 
-LIST_AVAIL_NETWORKS = ['UNet3D_Original',
-                       'UNet3D_General',
-                       'UNet3D_Plugin',
+LIST_AVAIL_NETWORKS = ['UNet3DOriginal',
+                       'UNet3DGeneral',
+                       'UNet3DPlugin',
                        ]
 
 
@@ -25,8 +25,8 @@ class UNet(UNetBase, nn.Module):
                  num_classes_out: int,
                  is_use_valid_convols: bool = False
                  ) -> None:
-        super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in, num_classes_out,
-                                   is_use_valid_convols=is_use_valid_convols)
+        super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in,
+                                   num_classes_out, is_use_valid_convols=is_use_valid_convols)
         nn.Module.__init__(self)
         self._size_input = ImagesUtil.get_shape_channels_first(self._size_input)
         self._size_output = ImagesUtil.get_shape_channels_first(self._size_output)
@@ -56,6 +56,7 @@ class UNet(UNetBase, nn.Module):
 
 
 class UNet3DOriginal(UNet):
+    _num_levels_fixed = 5
 
     def __init__(self,
                  size_image_in: Tuple[int, int, int],
@@ -63,8 +64,7 @@ class UNet3DOriginal(UNet):
                  num_channels_in: int = 1,
                  num_classes_out: int = 1
                  ) -> None:
-        num_levels = 5
-        super(UNet3DOriginal, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in,
+        super(UNet3DOriginal, self).__init__(size_image_in, self._num_levels_fixed, num_featmaps_in, num_channels_in,
                                              num_classes_out, is_use_valid_convols=False)
         self._build_model()
 
@@ -174,7 +174,6 @@ class UNet3DOriginal(UNet):
 
 class UNet3DGeneral(UNet):
     _num_levels_default = 5
-    _num_levels_non_padded = 3
     _num_featmaps_in_default = 16
     _num_channels_in_default = 1
     _num_classes_out_default = 1
@@ -293,7 +292,7 @@ class UNet3DGeneral(UNet):
                 'is_use_valid_convols': self._is_use_valid_convols}
 
     def _build_model(self) -> None:
-        value_padding_convols = 0 if self._is_use_valid_convols else 1
+        val_padding_convols = 0 if self._is_use_valid_convols else 1
 
         self._convolutions_levels_down = [[] for i in range(self._num_levels)]
         self._convolutions_levels_up = [[] for i in range(self._num_levels - 1)]
@@ -313,7 +312,7 @@ class UNet3DGeneral(UNet):
 
                 new_convolution = Conv3d(num_featmaps_in_convol, num_featmaps_out_convol,
                                          kernel_size=self._sizes_kernel_convols_levels_down[i_lev],
-                                         padding=value_padding_convols)
+                                         padding=val_padding_convols)
                 self._convolutions_levels_down[i_lev].append(new_convolution)
 
                 if self._is_use_batchnormalize and self._is_use_batchnormalize_levels_down[i_lev]:
@@ -338,7 +337,7 @@ class UNet3DGeneral(UNet):
 
                 new_convolution = Conv3d(num_featmaps_in_convol, num_featmaps_out_convol,
                                          kernel_size=self._sizes_kernel_convols_levels_up[i_lev],
-                                         padding=value_padding_convols)
+                                         padding=val_padding_convols)
                 self._convolutions_levels_up[i_lev].append(new_convolution)
 
                 if self._is_use_batchnormalize and self._is_use_batchnormalize_levels_up[i_lev]:
@@ -412,8 +411,7 @@ class UNet3DGeneral(UNet):
 
 
 class UNet3DPlugin(UNet):
-    _num_levels_default = 5
-    _num_levels_non_padded = 3
+    _num_levels_fixed = 5
     _num_featmaps_in_default = 16
     _num_channels_in_default = 1
     _num_classes_out_default = 1
@@ -423,13 +421,12 @@ class UNet3DPlugin(UNet):
 
     def __init__(self,
                  size_image_in: Tuple[int, int, int],
-                 num_levels: int = _num_levels_default,
                  num_featmaps_in: int = _num_featmaps_in_default,
                  num_channels_in: int = _num_channels_in_default,
                  num_classes_out: int = _num_classes_out_default,
                  is_use_valid_convols: bool = False
                  ) -> None:
-        super(UNet3DPlugin, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in,
+        super(UNet3DPlugin, self).__init__(size_image_in, self._num_levels_fixed, num_featmaps_in, num_channels_in,
                                            num_classes_out, is_use_valid_convols=is_use_valid_convols)
         self._type_activate_hidden = self._type_activate_hidden_default
         self._type_activate_output = self._type_activate_output_default
@@ -438,28 +435,28 @@ class UNet3DPlugin(UNet):
 
     def get_network_input_args(self) -> Dict[str, Any]:
         return {'size_image_in': self._size_image_in,
-                'num_levels': self._num_levels,
                 'num_featmaps_in': self._num_featmaps_in,
                 'num_channels_in': self._num_channels_in,
                 'num_classes_out': self._num_classes_out,
                 'is_use_valid_convols': self._is_use_valid_convols}
 
     def _build_model(self) -> None:
-        padding = 0 if self._is_use_valid_convols else 1
+        val_padding = 0 if self._is_use_valid_convols else 1
 
         num_featmaps_lev1 = self._num_featmaps_in
-        self._convolution_down_lev1_1 = Conv3d(self._num_channels_in, num_featmaps_lev1, kernel_size=3, padding=padding)
-        self._convolution_down_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=padding)
+        self._convolution_down_lev1_1 = Conv3d(self._num_channels_in, num_featmaps_lev1, kernel_size=3,
+                                               padding=val_padding)
+        self._convolution_down_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=val_padding)
         self._pooling_down_lev1 = MaxPool3d(kernel_size=2, padding=0)
 
         num_featmaps_lev2 = 2 * num_featmaps_lev1
-        self._convolution_down_lev2_1 = Conv3d(num_featmaps_lev1, num_featmaps_lev2, kernel_size=3, padding=padding)
-        self._convolution_down_lev2_2 = Conv3d(num_featmaps_lev2, num_featmaps_lev2, kernel_size=3, padding=padding)
+        self._convolution_down_lev2_1 = Conv3d(num_featmaps_lev1, num_featmaps_lev2, kernel_size=3, padding=val_padding)
+        self._convolution_down_lev2_2 = Conv3d(num_featmaps_lev2, num_featmaps_lev2, kernel_size=3, padding=val_padding)
         self._pooling_down_lev2 = MaxPool3d(kernel_size=2, padding=0)
 
         num_featmaps_lev3 = 2 * num_featmaps_lev2
-        self._convolution_down_lev3_1 = Conv3d(num_featmaps_lev2, num_featmaps_lev3, kernel_size=3, padding=padding)
-        self._convolution_down_lev3_2 = Conv3d(num_featmaps_lev3, num_featmaps_lev3, kernel_size=3, padding=padding)
+        self._convolution_down_lev3_1 = Conv3d(num_featmaps_lev2, num_featmaps_lev3, kernel_size=3, padding=val_padding)
+        self._convolution_down_lev3_2 = Conv3d(num_featmaps_lev3, num_featmaps_lev3, kernel_size=3, padding=val_padding)
         self._pooling_down_lev3 = MaxPool3d(kernel_size=2, padding=0)
 
         num_featmaps_lev4 = 2 * num_featmaps_lev3
@@ -478,18 +475,18 @@ class UNet3DPlugin(UNet):
         self._upsample_up_lev4 = Upsample(scale_factor=2, mode='nearest')
 
         num_feats_lev3pl4 = num_featmaps_lev3 + num_featmaps_lev4
-        self._convolution_up_lev3_1 = Conv3d(num_feats_lev3pl4, num_featmaps_lev3, kernel_size=3, padding=padding)
-        self._convolution_up_lev3_2 = Conv3d(num_featmaps_lev3, num_featmaps_lev3, kernel_size=3, padding=padding)
+        self._convolution_up_lev3_1 = Conv3d(num_feats_lev3pl4, num_featmaps_lev3, kernel_size=3, padding=val_padding)
+        self._convolution_up_lev3_2 = Conv3d(num_featmaps_lev3, num_featmaps_lev3, kernel_size=3, padding=val_padding)
         self._upsample_up_lev3 = Upsample(scale_factor=2, mode='nearest')
 
         num_feats_lev2pl3 = num_featmaps_lev2 + num_featmaps_lev3
-        self._convolution_up_lev2_1 = Conv3d(num_feats_lev2pl3, num_featmaps_lev2, kernel_size=3, padding=padding)
-        self._convolution_up_lev2_2 = Conv3d(num_featmaps_lev2, num_featmaps_lev2, kernel_size=3, padding=padding)
+        self._convolution_up_lev2_1 = Conv3d(num_feats_lev2pl3, num_featmaps_lev2, kernel_size=3, padding=val_padding)
+        self._convolution_up_lev2_2 = Conv3d(num_featmaps_lev2, num_featmaps_lev2, kernel_size=3, padding=val_padding)
         self._upsample_up_lev2 = Upsample(scale_factor=2, mode='nearest')
 
         num_feats_lay1pl2 = num_featmaps_lev1 + num_featmaps_lev2
-        self._convolution_up_lev1_1 = Conv3d(num_feats_lay1pl2, num_featmaps_lev1, kernel_size=3, padding=padding)
-        self._convolution_up_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=padding)
+        self._convolution_up_lev1_1 = Conv3d(num_feats_lay1pl2, num_featmaps_lev1, kernel_size=3, padding=val_padding)
+        self._convolution_up_lev1_2 = Conv3d(num_featmaps_lev1, num_featmaps_lev1, kernel_size=3, padding=val_padding)
 
         self._classification_last = Conv3d(num_featmaps_lev1, self._num_classes_out, kernel_size=1, padding=0)
 

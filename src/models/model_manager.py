@@ -19,7 +19,7 @@ if TYPE_DNNLIB_USED == 'Pytorch':
         FalseNegativeRate as FalseNegativeRate_train, \
         LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
     from models.pytorch.networks import UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS
-    from models.pytorch.optimizers import get_sgd, get_sgd_mom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
+    from models.pytorch.optimizers import get_sgd, get_sgdmom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
     from models.pytorch.visualmodelparams import VisualModelParams
 elif TYPE_DNNLIB_USED == 'Keras':
@@ -45,7 +45,7 @@ elif TYPE_DNNLIB_USED == 'Keras':
     from models.keras.networks import UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS, \
         UNet3DPlugin5levels, UNet3DPlugin3levels, UNet2DPlugin3levels, \
         UNet3DPlugin5levelsNoSkipConn, UNet3DPlugin3levelsNoSkipConn
-    from models.keras.optimizers import get_sgd, get_sgd_mom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
+    from models.keras.optimizers import get_sgd, get_sgdmom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
     from models.keras.visualmodelparams import VisualModelParams
 from models.metrics import MetricBase, MeanSquaredError, MeanSquaredErrorLogarithmic, \
@@ -175,88 +175,80 @@ def get_metric_train(type_metric: str,
 
 def get_network(type_network: str,
                 size_image_in: Tuple[int, int, int],
-                num_levels: int = 5,
                 num_featmaps_in: int = 16,
                 num_channels_in: int = 1,
                 num_classes_out: int = 1,
                 is_use_valid_convols: bool = False,
                 **kwargs) -> ConvNetBase:
-    if type_network == 'UNet3D_Original':
+    if type_network == 'UNet3DOriginal':
         return UNet3DOriginal(size_image_in,
                               num_featmaps_in=num_featmaps_in,
                               num_channels_in=num_channels_in,
                               num_classes_out=num_classes_out)
 
-    elif type_network == 'UNet3D_General':
-        type_activate_hidden = kwargs['type_activate_hidden'] \
-            if 'type_activate_hidden' in kwargs.keys() else 'relu'
-        type_activate_output = kwargs['type_activate_output'] \
-            if 'type_activate_output' in kwargs.keys() else 'sigmoid'
-        num_featmaps_levels = kwargs['num_featmaps_levels'] \
-            if 'num_featmaps_levels' in kwargs.keys() else None
-        is_use_dropout = kwargs['is_use_dropout'] \
-            if 'is_use_dropout' in kwargs.keys() else False
-        dropout_rate = kwargs['dropout_rate'] \
-            if 'dropout_rate' in kwargs.keys() else 0.2
-        is_use_batchnormalize = kwargs['is_use_batchnormalize'] \
-            if 'is_use_batchnormalize' in kwargs.keys() else False
+    elif type_network == 'UNet3DGeneral':
+        num_levels = kwargs['num_levels'] if 'num_levels' in kwargs.keys() \
+            else UNet3DGeneral._num_levels_default
+        type_activate_hidden = kwargs['type_activate_hidden'] if 'type_activate_hidden' in kwargs.keys() \
+            else UNet3DGeneral._type_activate_hidden_default
+        type_activate_output = kwargs['type_activate_output'] if 'type_activate_output' in kwargs.keys() \
+            else UNet3DGeneral._type_activate_output_default
+        is_use_dropout = kwargs['is_use_dropout'] if 'is_use_dropout' in kwargs.keys() \
+            else False
+        dropout_rate = kwargs['dropout_rate'] if 'dropout_rate' in kwargs.keys() \
+            else UNet3DGeneral._dropout_rate_default
+        is_use_batchnormalize = kwargs['is_use_batchnormalize'] if 'is_use_batchnormalize' in kwargs.keys() \
+            else False
 
         return UNet3DGeneral(size_image_in,
-                             num_levels,
+                             num_levels=num_levels,
                              num_featmaps_in=num_featmaps_in,
                              num_channels_in=num_channels_in,
                              num_classes_out=num_classes_out,
                              is_use_valid_convols=is_use_valid_convols,
                              type_activate_hidden=type_activate_hidden,
                              type_activate_output=type_activate_output,
-                             num_featmaps_levels=num_featmaps_levels,
                              is_use_dropout=is_use_dropout,
                              dropout_rate=dropout_rate,
                              is_use_batchnormalize=is_use_batchnormalize)
 
-    elif type_network == 'UNet3D_Plugin':
+    elif type_network == 'UNet3DPlugin':
         return UNet3DPlugin(size_image_in,
-                            num_levels,
                             num_featmaps_in=num_featmaps_in,
                             num_channels_in=num_channels_in,
                             num_classes_out=num_classes_out,
                             is_use_valid_convols=is_use_valid_convols)
 
-    elif type_network == 'UNet3D_Plugin5levels':
+    elif type_network == 'UNet3DPlugin5levels':
         return UNet3DPlugin5levels(size_image_in,
-                                   num_levels,
                                    num_featmaps_in=num_featmaps_in,
                                    num_channels_in=num_channels_in,
                                    num_classes_out=num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols)
 
-    elif type_network == 'UNet3D_Plugin3levels':
+    elif type_network == 'UNet3DPlugin3levels':
         return UNet3DPlugin3levels(size_image_in,
-                                   num_levels,
                                    num_featmaps_in=num_featmaps_in,
                                    num_channels_in=num_channels_in,
                                    num_classes_out=num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols)
 
-    elif type_network == 'UNet2D_Plugin3levels':
+    elif type_network == 'UNet2DPlugin3levels':
         return UNet2DPlugin3levels(size_image_in,
-                                   num_levels,
                                    num_featmaps_in=num_featmaps_in,
                                    num_channels_in=num_channels_in,
                                    num_classes_out=num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols)
 
-    elif type_network == 'UNet3D_Plugin5levelsNoSkipConn':
+    elif type_network == 'UNet3DPlugin5levelsNoSkipConn':
         return UNet3DPlugin5levelsNoSkipConn(size_image_in,
-                                             num_levels,
                                              num_featmaps_in=num_featmaps_in,
                                              num_channels_in=num_channels_in,
                                              num_classes_out=num_classes_out,
                                              is_use_valid_convols=is_use_valid_convols)
 
-    elif type_network == 'UNet3D_Plugin3levelsNoSkipConn':
+    elif type_network == 'UNet3DPlugin3levelsNoSkipConn':
         return UNet3DPlugin3levelsNoSkipConn(size_image_in,
-                                             num_levels,
                                              num_featmaps_in=num_featmaps_in,
                                              num_channels_in=num_channels_in,
                                              num_classes_out=num_classes_out,
@@ -270,8 +262,8 @@ def get_network(type_network: str,
 def get_optimizer(type_optimizer: str, learn_rate: float, **kwargs) -> Callable:
     if type_optimizer == 'SGD':
         return get_sgd(learn_rate, **kwargs)
-    elif type_optimizer == 'SGD_mom':
-        return get_sgd_mom(learn_rate, **kwargs)
+    elif type_optimizer == 'SGDmom':
+        return get_sgdmom(learn_rate, **kwargs)
     elif type_optimizer == 'Adagrad':
         return get_adagrad(learn_rate, **kwargs)
     elif type_optimizer == 'RMSprop':

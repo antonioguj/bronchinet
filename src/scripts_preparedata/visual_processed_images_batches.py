@@ -3,8 +3,8 @@ import numpy as np
 import argparse
 
 from common.constant import DATADIR, SIZE_IN_IMAGES, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, \
-    USE_SLIDING_WINDOW_IMAGES, PROP_OVERLAP_SLIDING_WINDOW, USE_RANDOM_WINDOW_IMAGES, NUM_RANDOM_PATCHES_EPOCH, \
-    USE_TRANSFORM_RIGID_IMAGES, USE_TRANSFORM_ELASTIC_IMAGES, NAME_REFERENCE_KEYS_PROCIMAGE_FILE
+    IS_SLIDING_WINDOW_IMAGES, PROP_OVERLAP_SLIDING_WINDOW, IS_RANDOM_WINDOW_IMAGES, NUM_RANDOM_PATCHES_EPOCH, \
+    IS_TRANSFORM_RIGID_IMAGES, IS_TRANSFORM_ELASTIC_IMAGES, NAME_REFERENCE_KEYS_PROCIMAGE_FILE
 from common.functionutil import join_path_names, basename, list_files_dir, str2bool, str2int, str2tuple_int, \
     str2tuple_float
 from common.exceptionmanager import catch_error_exception
@@ -45,12 +45,12 @@ def main(args):
         image_data_loader = get_imagedataloader_2images([in_image_file],
                                                         [in_label_file],
                                                         size_in_images=args.size_in_images,
-                                                        use_sliding_window_images=args.use_sliding_window_images,
+                                                        is_sliding_window_images=args.is_sliding_window_images,
                                                         prop_overlap_slide_window=args.prop_overlap_sliding_window,
-                                                        use_transform_rigid_images=args.use_transform_rigid_images,
-                                                        use_transform_elastic_images=args.use_transform_elastic_images,
-                                                        use_random_window_images=args.use_random_window_images,
+                                                        is_random_window_images=args.is_random_window_images,
                                                         num_random_patches_epoch=args.num_random_patches_epoch,
+                                                        is_transform_rigid_images=args.is_transform_rigid_images,
+                                                        is_transform_elastic_images=args.is_transform_elastic_images,
                                                         batch_size=1,
                                                         is_shuffle=False)
         (image_data_batches, label_data_batches) = image_data_loader.get_full_data()
@@ -79,12 +79,12 @@ if __name__ == "__main__":
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
     parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
-    parser.add_argument('--use_sliding_window_images', type=str2bool, default=USE_SLIDING_WINDOW_IMAGES)
+    parser.add_argument('--is_sliding_window_images', type=str2bool, default=IS_SLIDING_WINDOW_IMAGES)
     parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW)
-    parser.add_argument('--use_random_window_images', type=str2bool, default=USE_RANDOM_WINDOW_IMAGES)
+    parser.add_argument('--is_random_window_images', type=str2bool, default=IS_RANDOM_WINDOW_IMAGES)
     parser.add_argument('--num_random_patches_epoch', type=str2int, default=NUM_RANDOM_PATCHES_EPOCH)
-    parser.add_argument('--use_transform_rigid_images', type=str2bool, default=USE_TRANSFORM_RIGID_IMAGES)
-    parser.add_argument('--use_transform_elastic_images', type=str2bool, default=USE_TRANSFORM_ELASTIC_IMAGES)
+    parser.add_argument('--is_transform_rigid_images', type=str2bool, default=IS_TRANSFORM_RIGID_IMAGES)
+    parser.add_argument('--is_transform_elastic_images', type=str2bool, default=IS_TRANSFORM_ELASTIC_IMAGES)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     args = parser.parse_args()
 
