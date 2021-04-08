@@ -11,7 +11,7 @@ from common.constant import BASEDIR, SIZE_IN_IMAGES, NAME_TRAININGDATA_RELPATH, 
     NUM_RANDOM_PATCHES_EPOCH, IS_TRANSFORM_RIGID_IMAGES, IS_TRANSFORM_VALIDATION_DATA, IS_TRANSFORM_ELASTIC_IMAGES, \
     FREQ_SAVE_INTER_MODELS, FREQ_VALIDATE_MODEL, IS_SHUFFLE_TRAINDATA, NAME_LOSSHISTORY_FILE, NAME_CONFIG_PARAMS_FILE,\
     NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, IS_WRITEOUT_DESCMODEL_TEXT, \
-    NAME_DESCRIPT_MODEL_LOGFILE, TYPE_DNNLIB_USED, IS_RESTART_ONLY_WEIGHTS
+    NAME_DESCRIPT_MODEL_LOGFILE, TYPE_DNNLIB_USED
 if TYPE_DNNLIB_USED == 'Pytorch':
     from common.constant import NAME_SAVEDMODEL_LAST_TORCH as NAME_SAVEDMODEL_LAST
 elif TYPE_DNNLIB_USED == 'Keras':
@@ -272,7 +272,7 @@ if __name__ == "__main__":
     parser.add_argument('--manual_seed_train', type=int, default=None)
     parser.add_argument('--is_restart', type=str2bool, default=False)
     parser.add_argument('--restart_file', type=str, default=NAME_SAVEDMODEL_LAST)
-    parser.add_argument('--is_restart_only_weights', type=str2bool, default=IS_RESTART_ONLY_WEIGHTS)
+    parser.add_argument('--is_restart_only_weights', type=str2bool, default=False)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 
