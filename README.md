@@ -1,7 +1,7 @@
 BronchiNet - UNet-GNN method
 ==============================
 
-Airway segmentation from chest CTs using a novel method as combination of the U-Net and Graph Neural Networks (GNNs) 
+Airway segmentation from chest CTs using a novel method as combination of the U-Net and Graph Neural Networks (GNNs). 
 
 Contact: Antonio Garcia-Uceda Juarez (antonio.garciauceda89@gmail.com)
 
@@ -12,7 +12,7 @@ This software provides functionality to segment airways from CT scans, using the
 
 [1] Garcia-Uceda, A., Selvan, R., Saghir, Z. de Bruijne, M. A joint 3D UNet-graph neural network-based method for airway segmentation from chest CTs. Int. Work. on Mach. Learn. Med. Imaging 583–591 (2019).
 
-If using this software influences positively your project, please cite the above paper
+If using this software influences positively your project, please cite the above paper.
 
 This software includes tools to i) prepare the CT data to use with DL models, ii) perform DL experiments for training and testing, and iii) process the output of DL models to obtain the binary airway segmentation. The tools are entirely implemented in Python, and the UNet-GNN method is developed in Pytorch.
 
