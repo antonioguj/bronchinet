@@ -5,12 +5,12 @@ import sys
 import argparse
 
 from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, POST_THRESHOLD_VALUE, LIST_TYPE_METRICS_RESULT, \
-    IS_REMOVE_TRACHEA_CALC_METRICS, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, \
-    IS_ATTACH_COARSE_AIRWAYS, NAME_CONFIG_PARAMS_FILE, NAME_RAW_LABELS_RELPATH, NAME_TEMPO_POSTERIORS_RELPATH, \
+    IS_ATTACH_COARSE_AIRWAYS, IS_REMOVE_TRACHEA_CALC_METRICS, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, \
+    IS_RESCALE_IMAGES, NAME_CONFIG_PARAMS_FILE, NAME_RAW_LABELS_RELPATH, NAME_TEMPO_POSTERIORS_RELPATH, \
     NAME_POSTERIORS_RELPATH, NAME_PRED_BINARYMASKS_RELPATH, NAME_PRED_CENTRELINES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
     NAME_RAW_COARSEAIRWAYS_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_PRED_RESULT_METRICS_FILE
 from common.functionutil import currentdir, makedir, set_filename_suffix, set_dirname_suffix, is_exist_file, \
-    join_path_names, basename, basenamedir, dirname, list_dirs_dir, str2bool
+    join_path_names, basename, basenamedir, dirname, list_dirs_dir, str2bool, str2list_str
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 
@@ -158,7 +158,7 @@ def main(args):
                 '--basedir', basedir,
                 '--name_input_posteriors_relpath', output_posteriors_path,
                 '--name_output_binary_masks_relpath', output_predict_binary_masks_path,
-                '--post_threshold_values', ' '.join([str(el) for el in args.post_thresholds_values]),
+                '--post_threshold_value', str(args.post_threshold_value),
                 '--is_attach_coarse_airways', str(args.is_attach_coarse_airways)]
     list_calls_all.append(new_call)
 
@@ -189,50 +189,51 @@ def main(args):
 
     # ******************************
 
-    if args.is_conservative_remove_trachea_calc_metrics:
-        # get a conversative coarse airways masks to remove trachea and main bronchi in the computation of metrics
+    if len(args.list_type_metrics_result) > 0:
+        if args.is_conservative_remove_trachea_calc_metrics:
+            # get a conversative coarse airways masks to remove trachea and main bronchi in the computation of metrics
 
-        workdir_manager = TrainDirManager(basedir)
-        input_reference_masks_path = workdir_manager.get_datadir_exist(NAME_RAW_LABELS_RELPATH)
-        input_roimasks_path = workdir_manager.get_datadir_exist(NAME_RAW_ROIMASKS_RELPATH)
-        input_coarse_airways_path = workdir_manager.get_datadir_exist(NAME_RAW_COARSEAIRWAYS_RELPATH)
+            workdir_manager = TrainDirManager(basedir)
+            input_reference_masks_path = workdir_manager.get_datadir_exist(NAME_RAW_LABELS_RELPATH)
+            input_roimasks_path = workdir_manager.get_datadir_exist(NAME_RAW_ROIMASKS_RELPATH)
+            input_coarse_airways_path = workdir_manager.get_datadir_exist(NAME_RAW_COARSEAIRWAYS_RELPATH)
 
-        output_tempo_refer_coarse_airways_path = workdir_manager.get_datadir_new('CoarseAirways_ReferMasks')
-        output_conser_coarse_airways_path = workdir_manager.get_datadir_new('CoarseAirways_Conservative')
+            output_tempo_refer_coarse_airways_path = workdir_manager.get_datadir_new('CoarseAirways_ReferMasks')
+            output_conser_coarse_airways_path = workdir_manager.get_datadir_new('CoarseAirways_Conservative')
 
-        # Mask reference airways masks with the lung mask to compute reference trachea and main bronchi
-        new_call = ['python3', SCRIPT_CALC_CONSER_COARSEAIRWAYS_MASK,
-                    input_reference_masks_path, output_tempo_refer_coarse_airways_path,
-                    '--type', 'substract',
-                    '--in_2ndmask_dir', input_roimasks_path]
+            # Mask reference airways masks with the lung mask to compute reference trachea and main bronchi
+            new_call = ['python3', SCRIPT_CALC_CONSER_COARSEAIRWAYS_MASK,
+                        input_reference_masks_path, output_tempo_refer_coarse_airways_path,
+                        '--type', 'substract',
+                        '--in_2ndmask_dir', input_roimasks_path]
+            list_calls_all.append(new_call)
+
+            # Merge original coarse airways with those coming from the reference masks
+            new_call = ['python3', SCRIPT_CALC_CONSER_COARSEAIRWAYS_MASK,
+                        input_coarse_airways_path,
+                        output_conser_coarse_airways_path,
+                        '--type', 'merge',
+                        '--in_2ndmask_dir', output_tempo_refer_coarse_airways_path]
+            list_calls_all.append(new_call)
+
+            new_call = ['rm', '-r', output_tempo_refer_coarse_airways_path]
+            list_calls_all.append(new_call)
+
+            name_input_coarse_airways_relpath = basenamedir(output_conser_coarse_airways_path)
+        else:
+            name_input_coarse_airways_relpath = NAME_RAW_COARSEAIRWAYS_RELPATH
+
+        # ******************************
+
+        # 5th: Compute testing metrics from predicted binary masks and centrelines
+        new_call = ['python3', SCRIPT_COMPUTE_RESULT_METRICS,
+                    output_predict_binary_masks_path, output_predict_centrelines_path,
+                    '--basedir', basedir,
+                    '--list_type_metrics', str(args.list_type_metrics_result),
+                    '--is_remove_trachea_calc_metrics', str(args.is_remove_trachea_calc_metrics),
+                    '--output_file', output_result_metrics_file,
+                    '--name_input_coarse_airways_relpath', name_input_coarse_airways_relpath]
         list_calls_all.append(new_call)
-
-        # Merge original coarse airways with those coming from the reference masks
-        new_call = ['python3', SCRIPT_CALC_CONSER_COARSEAIRWAYS_MASK,
-                    input_coarse_airways_path,
-                    output_conser_coarse_airways_path,
-                    '--type', 'merge',
-                    '--in_2ndmask_dir', output_tempo_refer_coarse_airways_path]
-        list_calls_all.append(new_call)
-
-        new_call = ['rm', '-r', output_tempo_refer_coarse_airways_path]
-        list_calls_all.append(new_call)
-
-        name_input_coarse_airways_relpath = basenamedir(output_conser_coarse_airways_path)
-    else:
-        name_input_coarse_airways_relpath = NAME_RAW_COARSEAIRWAYS_RELPATH
-
-    # ******************************
-
-    # 5th: Compute testing metrics from predicted binary masks and centrelines
-    new_call = ['python3', SCRIPT_COMPUTE_RESULT_METRICS,
-                output_predict_binary_masks_path, output_predict_centrelines_path,
-                '--basedir', basedir,
-                # '--list_type_metrics', ' '.join([el for el in args.list_type_metrics_result]),
-                '--is_remove_trachea_calc_metrics', str(IS_REMOVE_TRACHEA_CALC_METRICS),
-                '--output_file', output_result_metrics_file,
-                '--name_input_coarse_airways_relpath', name_input_coarse_airways_relpath]
-    list_calls_all.append(new_call)
 
     # ******************************
 
@@ -247,7 +248,8 @@ def main(args):
             [elem.replace('.npy', '.csv') for elem in list_predict_reference_keys_files_cvfolds]
         new_call = ['rm', *list_predict_reference_keys_files_cvfolds, *list_predict_reference_keys_files_cvfolds_csvs]
         list_calls_all.append(new_call)
-    if args.is_conservative_remove_trachea_calc_metrics:
+
+    if len(args.list_type_metrics_result) > 0 and args.is_conservative_remove_trachea_calc_metrics:
         new_call = ['rm', '-r', output_conser_coarse_airways_path]
         list_calls_all.append(new_call)
 
@@ -270,14 +272,14 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('input_model_file', type=str)
     parser.add_argument('output_basedir', type=str)
-    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--is_preds_crossval', type=str2bool, default=False)
-    parser.add_argument('--post_thresholds_values', type=str, nargs='*', default=[POST_THRESHOLD_VALUE])
-    parser.add_argument('--list_type_metrics_result', nargs='+', type=str, default=LIST_TYPE_METRICS_RESULT)
+    parser.add_argument('--post_threshold_value', type=float, default=POST_THRESHOLD_VALUE)
     parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)
     parser.add_argument('--in_connregions_dim', type=int, default=3)
+    parser.add_argument('--list_type_metrics_result', type=str2list_str, default=LIST_TYPE_METRICS_RESULT)
+    parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--is_conservative_remove_trachea_calc_metrics', type=str2bool, default=True)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()

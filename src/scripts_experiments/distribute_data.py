@@ -4,9 +4,9 @@ import numpy as np
 import math
 import argparse
 
-from common.constant import BASEDIR, DIST_PROPDATA_TRAINVALIDTEST, NAME_TRAININGDATA_RELPATH, \
-    NAME_VALIDATIONDATA_RELPATH, NAME_TESTINGDATA_RELPATH, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, \
-    NAME_PROC_EXTRALABELS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE
+from common.constant import BASEDIR, PROPDATA_TRAIN_VALID_TEST, NAME_TRAININGDATA_RELPATH, NAME_VALIDATIONDATA_RELPATH,\
+    NAME_TESTINGDATA_RELPATH, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
+    NAME_REFERENCE_KEYS_PROCIMAGE_FILE
 from common.functionutil import makelink, set_dirname_suffix, is_exist_file, join_path_names, list_files_dir, basename,\
     basename_filenoext, str2tuple_float, read_dictionary, find_intersection_3lists
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
@@ -65,15 +65,15 @@ def main(args):
 
     # Assign indexes for training / validation / testing data (randomly or with fixed order)
     if args.type_distribute == 'original' or args.type_distribute == 'random':
-        sum_prop_data = sum(args.dist_propdata_train_valid_test)
+        sum_prop_data = sum(args.propdata_train_valid_test)
         if sum_prop_data != 1.0:
             message = 'Sum of proportions of Training / Validation / Testing data != 1.0 (%s)... ' \
                       'Change input param...' % (sum_prop_data)
             catch_error_exception(message)
 
         num_total_files = len(list_input_images_files)
-        num_training_files = int(math.ceil(args.dist_propdata_train_valid_test[0] * num_total_files))
-        num_validation_files = int(math.ceil(args.dist_propdata_train_valid_test[1] * num_total_files))
+        num_training_files = int(math.ceil(args.propdata_train_valid_test[0] * num_total_files))
+        num_validation_files = int(math.ceil(args.propdata_train_valid_test[1] * num_total_files))
         num_testing_files = max(0, num_total_files - num_training_files - num_validation_files)
 
         print("Num files assigned for Training (%s) / Validation (%s) / Testing (%s)..."
@@ -137,12 +137,12 @@ def main(args):
         num_testing_files_cvfolds = len(list_indexes_files_split_cvfolds[0])
         num_trainvalid_files_cvfolds = num_total_files - num_testing_files_cvfolds
         prop_valid_in_training_cvfolds = \
-            args.dist_propdata_train_valid_test[1] * (num_total_files / (num_trainvalid_files_cvfolds + 1.0e-06))
+            args.propdata_train_valid_test[1] * (num_total_files / (num_trainvalid_files_cvfolds + 1.0e-06))
         num_validation_files_cvfolds = int(math.ceil(prop_valid_in_training_cvfolds * num_trainvalid_files_cvfolds))
         num_training_files_cvfolds = num_trainvalid_files_cvfolds - num_validation_files_cvfolds
 
         print("Use prop. of valid files in each training cv-fold \'%s\', from input "
-              "\'dist_propdata_train_valid_test\'..." % (args.dist_propdata_train_valid_test[1]))
+              "\'propdata_train_valid_test\'..." % (args.propdata_train_valid_test[1]))
         print("For each cv-fold, num files assigned for Training (%s) / Validation (%s) / Testing (%s)..."
               % (num_training_files_cvfolds, num_validation_files_cvfolds, num_testing_files_cvfolds))
 
@@ -255,7 +255,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--type_data', type=str, default='training')
     parser.add_argument('--type_distribute', type=str, default='original')
-    parser.add_argument('--dist_propdata_train_valid_test', type=str2tuple_float, default=DIST_PROPDATA_TRAINVALIDTEST)
+    parser.add_argument('--propdata_train_valid_test', type=str2tuple_float, default=PROPDATA_TRAIN_VALID_TEST)
     parser.add_argument('--infile_order_train', type=str, default=None)
     parser.add_argument('--num_folds_crossval', type=int, default=None)
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)

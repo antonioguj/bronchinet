@@ -7,7 +7,7 @@ import argparse
 from common.constant import BASEDIR, LIST_TYPE_METRICS_RESULT, IS_REMOVE_TRACHEA_CALC_METRICS, NAME_RAW_LABELS_RELPATH,\
     NAME_RAW_CENTRELINES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_RAW_COARSEAIRWAYS_RELPATH
 from common.functionutil import is_exist_file, join_path_names, basename, list_files_dir, get_substring_filename, \
-    get_regex_pattern_filename, find_file_inlist_with_pattern, str2bool, read_dictionary
+    get_regex_pattern_filename, find_file_inlist_with_pattern, str2bool, str2list_str, read_dictionary
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
 from models.model_manager import get_metric
@@ -212,7 +212,7 @@ if __name__ == "__main__":
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_posteriors_dir', type=str)
     parser.add_argument('--output_dir', type=str, default=None)
-    parser.add_argument('--list_type_metrics', nargs='+', type=str, default=LIST_TYPE_METRICS_RESULT)
+    parser.add_argument('--list_type_metrics', type=str2list_str, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
