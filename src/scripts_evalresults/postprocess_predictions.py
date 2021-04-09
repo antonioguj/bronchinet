@@ -5,7 +5,7 @@ from common.constant import BASEDIR, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS
     NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, \
     NAME_REFERENCE_FILES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE
 from common.functionutil import is_exist_file, join_path_names, basename, basename_filenoext, list_files_dir, \
-    get_pattern_refer_filename, find_file_inlist_same_prefix, str2bool, read_dictionary, read_dictionary_configparams
+    get_regex_pattern_filename, find_file_inlist_with_pattern, str2bool, read_dictionary, read_dictionary_configparams
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
@@ -29,7 +29,7 @@ def main(args):
 
     list_input_predictions_files = list_files_dir(input_predictions_path)
     indict_reference_keys = read_dictionary(in_reference_keys_file)
-    pattern_search_input_files = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
+    pattern_search_infiles = get_regex_pattern_filename(list(indict_reference_keys.values())[0])
 
     if (args.is_mask_region_interest):
         input_roimasks_path = workdir_manager.get_datadir_exist(args.name_input_roimasks_relpath)
@@ -159,8 +159,8 @@ def main(args):
 
         if (args.is_mask_region_interest):
             print("Reverse mask to RoI (lungs) in predictions...")
-            in_roimask_file = find_file_inlist_same_prefix(basename(in_reference_file), list_input_roimasks_files,
-                                                           pattern_prefix=pattern_search_input_files)
+            in_roimask_file = find_file_inlist_with_pattern(basename(in_reference_file), list_input_roimasks_files,
+                                                            pattern_search=pattern_search_infiles)
             print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)

@@ -200,80 +200,48 @@ def list_links_dir(dirname: str) -> List[str]:
 
 
 # to manipulate substrings in a filename:
-def get_substring_filename(filename: str, substr_pattern: str) -> str:
-    sreobj_substring_filename = re.search(substr_pattern, filename)
-    if sreobj_substring_filename:
-        return sreobj_substring_filename.group(0)
+def get_substring_filename(filename: str, pattern_search: str) -> str:
+    sre_substring_filename = re.search(pattern_search, filename)
+    if sre_substring_filename:
+        return sre_substring_filename.group(0)
     else:
         return None
 
 
-def get_pattern_refer_filename(filename: str) -> str:
-    basefilename_noext = basename_filenoext(filename)
-    pattern_filename = ''.join(['[0-9]' if s.isdigit() else s for s in basefilename_noext])
-    return pattern_filename
+def get_regex_pattern_filename(filename: str) -> str:
+    # regex pattern by replacing the groups of digits with '[0-9]+'
+    basefilename = basename_filenoext(filename)
+    list_substrdigits_filename = re.findall('[0-9]+', basefilename)
+    if list_substrdigits_filename:
+        out_regex_pattern_filename = basefilename
+        for i_substrdigits in list_substrdigits_filename:
+            out_regex_pattern_filename = out_regex_pattern_filename.replace(i_substrdigits, '[0-9]+', 1)
+    else:
+        out_regex_pattern_filename = basefilename
+    return out_regex_pattern_filename
 
 
-def get_pattern_prefix_filename(filename: str, char_split_name: str = '_') -> str:
-    basefilename_noext = basename_filenoext(filename)
-    prefix_filename = basefilename_noext.split(char_split_name)[0]
-    pattern_prefix = ''.join(['[0-9]' if s.isdigit() else s for s in prefix_filename])
+def find_file_inlist_with_pattern(in_filename: str, inlist_files: List[str], pattern_search: str = None) -> str:
+    if not pattern_search:
+        # if not input search pattern, get it from the first file in list
+        pattern_search = get_regex_pattern_filename(inlist_files[0])
 
-    if prefix_filename != basefilename_noext:
-        pattern_prefix += char_split_name
-    return pattern_prefix
-
-
-def find_file_inlist_same_prefix(in_filename: str,
-                                 list_files: List[str],
-                                 pattern_prefix: str = None) -> str:
-    if not pattern_prefix:
-        # if not input pattern, get it from the first file in list
-        pattern_prefix = get_pattern_prefix_filename(list_files[0])
-
-    prefix_filename = get_substring_filename(in_filename, pattern_prefix)
-    if not prefix_filename:
-        message = 'Cannot find the prefix with pattern (\'%s\') of the file \'%s\'' % (pattern_prefix, in_filename)
+    substring_filename = get_substring_filename(in_filename, pattern_search)
+    if not substring_filename:
+        message = 'Cannot find a substring with pattern (\'%s\') in the file \'%s\'' % (pattern_search, in_filename)
         catch_error_exception(message)
 
-    if_file_found = False
-    for it_file in list_files:
-        if prefix_filename in it_file:
+    is_file_found = False
+    for it_file in inlist_files:
+        if substring_filename in it_file:
             return it_file
 
-    if not if_file_found:
-        dir_files_list = dirname(list_files[0])
-        list_basefiles = [basename(elem) for elem in list_files]
-        message = 'Cannot find a file with the same prefix (\'%s\') as file \'%s\', in the list of files from dir ' \
-                  '\'%s\': \'%s\'' % (prefix_filename, in_filename, dir_files_list, list_basefiles)
+    if not is_file_found:
+        dir_files_list = dirname(inlist_files[0])
+        list_basefiles = [basename(elem) for elem in inlist_files]
+        message = 'Cannot find a file with pattern (\'%s\') as file \'%s\', in the list of files from dir ' \
+                  '\'%s\': \'%s\'' % (substring_filename, in_filename, dir_files_list, list_basefiles)
         catch_error_exception(message)
-
-
-def find_listfiles_inlist_same_prefix(in_filename: str,
-                                      list_files: List[str],
-                                      pattern_prefix: str = None) -> List[str]:
-    if not pattern_prefix:
-        # if not input pattern, get it from the first file in list
-        pattern_prefix = get_pattern_prefix_filename(list_files[0])
-
-    prefix_filename = get_substring_filename(in_filename, pattern_prefix)
-    if not prefix_filename:
-        message = 'Cannot find the prefix with pattern (\'%s\') of the file \'%s\'' % (pattern_prefix, in_filename)
-        catch_error_exception(message)
-
-    list_out_files = []
-    for it_file in list_files:
-        if prefix_filename in it_file:
-            list_out_files.append(it_file)
-
-    if len(list_out_files) == 0:
-        dir_files_list = dirname(list_files[0])
-        list_basefiles = [basename(elem) for elem in list_files]
-        message = 'Cannot find any file with the same prefix (\'%s\') as file \'%s\', in the list of files from dir ' \
-                  '\'%s\': \'%s\'' % (prefix_filename, in_filename, dir_files_list, list_basefiles)
-        catch_error_exception(message)
-    else:
-        return list_out_files
 
 
 def flatten_listoflists(in_list: List[List[Any]]) -> List[Any]:

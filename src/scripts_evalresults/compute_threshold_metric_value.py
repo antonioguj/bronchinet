@@ -6,7 +6,7 @@ import argparse
 from common.constant import BASEDIR, METRIC_EVALUATE_THRESHOLD, IS_REMOVE_TRACHEA_CALC_METRICS, \
     NAME_RAW_LABELS_RELPATH, NAME_RAW_CENTRELINES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
     NAME_RAW_COARSEAIRWAYS_RELPATH
-from common.functionutil import basename, list_files_dir, get_pattern_refer_filename, find_file_inlist_same_prefix, \
+from common.functionutil import basename, list_files_dir, get_regex_pattern_filename, find_file_inlist_with_pattern, \
     str2bool, read_dictionary
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
@@ -46,7 +46,7 @@ def main(args):
     list_input_reference_masks_files = list_files_dir(input_reference_masks_path)
     list_input_reference_cenlines_files = list_files_dir(input_reference_cenlines_path)
     indict_reference_keys = read_dictionary(in_reference_keys_file)
-    pattern_search_input_files = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
+    pattern_search_infiles = get_regex_pattern_filename(list(indict_reference_keys.values())[0])
 
     if (args.is_remove_trachea_calc_metrics):
         input_coarse_airways_path = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
@@ -73,20 +73,20 @@ def main(args):
             in_posteriors = ImageFileReader.get_image(in_posteriors_file)
             list_in_posteriors.append(in_posteriors)
 
-            in_reference_mask_file = find_file_inlist_same_prefix(basename(in_posteriors_file),
-                                                                  list_input_reference_masks_files,
-                                                                  pattern_prefix=pattern_search_input_files)
-            in_reference_cenline_file = find_file_inlist_same_prefix(basename(in_posteriors_file),
-                                                                     list_input_reference_cenlines_files,
-                                                                     pattern_prefix=pattern_search_input_files)
+            in_reference_mask_file = find_file_inlist_with_pattern(basename(in_posteriors_file),
+                                                                   list_input_reference_masks_files,
+                                                                   pattern_search=pattern_search_infiles)
+            in_reference_cenline_file = find_file_inlist_with_pattern(basename(in_posteriors_file),
+                                                                      list_input_reference_cenlines_files,
+                                                                      pattern_search=pattern_search_infiles)
 
             in_reference_mask = ImageFileReader.get_image(in_reference_mask_file)
             in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
 
             if (args.is_remove_trachea_calc_metrics):
-                in_coarse_airways_file = find_file_inlist_same_prefix(basename(in_posteriors_file),
-                                                                      list_input_coarse_airways_files,
-                                                                      pattern_prefix=pattern_search_input_files)
+                in_coarse_airways_file = find_file_inlist_with_pattern(basename(in_posteriors_file),
+                                                                       list_input_coarse_airways_files,
+                                                                       pattern_search=pattern_search_infiles)
                 in_coarse_airways = ImageFileReader.get_image(in_coarse_airways_file)
 
                 in_coarse_airways = MorphoDilateMask.compute(in_coarse_airways, num_iters=4)
