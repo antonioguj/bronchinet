@@ -20,7 +20,7 @@ modeltest="${modeldir}/model_converged.pt"
 outputdir="./Test_Predictions_EXACT/"
 
 python3 "./Code/scripts_launch/launch_predictions_full.py" $modeltest $outputdir \
-	--post_thresholds_values="0.1" \
+	--post_threshold_value="0.1" \
 	--is_connected_masks="True" \
 	--in_connregions_dim="1" \
 	--list_type_metrics_result="[]" \
