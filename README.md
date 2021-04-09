@@ -1,7 +1,7 @@
 BronchiNet
 ==============================
 
-Airway segmentation from chest CTs using deep Convolutional Neural Networks
+Airway segmentation from chest CTs using deep Convolutional Neural Networks.
 
 Contact: Antonio Garcia-Uceda Juarez (antonio.garciauceda89@gmail.com)
 
@@ -12,7 +12,7 @@ This software provides functionality to segment airways from CT scans, using dee
 
 Garcia-Uceda, A., Selvan, R., Saghir, Z., Tiddens, H.A.W.M., de Bruijne M. Automatic airway segmentation from Computed Tomography using robust and efficient 3-D convolutional neural networks. ArXiv e-prints (2021). arXiv:2103.16328.
 
-If using this software influences positively your project, please cite the above paper
+If using this software influences positively your project, please cite the above paper.
 
 This software includes tools to i) prepare the CT data to use with DL models, ii) perform DL experiments for training and testing, and iii) process the output of DL models to obtain the binary airway segmentation. The tools are entirely implemented in Python, and both Pytorch and Keras/tensorflow libraries can be used to run DL experiments.
 

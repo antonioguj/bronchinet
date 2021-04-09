@@ -90,7 +90,7 @@ def main(args):
 
     # *****************************************************
 
-    print("\nCompute Predictiions, from \'%s\' files..." % (len(list_test_images_files)))
+    print("\nCompute Predictions, from \'%s\' files..." % (len(list_test_images_files)))
     print("-" * 30)
 
     outdict_reference_keys = OrderedDict()
