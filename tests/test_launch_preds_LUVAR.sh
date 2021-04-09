@@ -24,9 +24,9 @@ done
 
 # 2: run predictions
 modeltest="${modelbasedir}/Models_LUVAR_CV1/model_converged.pt"
-outputdir="./PredictionsTEST_LUVAR/"
+outputdir="./Test_Predictions_LUVAR/"
 
-python3 "./Code/scripts_evalresults/launch_predictions_full.py" $modeltest $outputdir \
+python3 "./Code/scripts_launch/launch_predictions_full.py" $modeltest $outputdir \
 	--testing_datadir="./TestingData_CV1/" \
 	--is_preds_crossval="True" \
 	--post_thresholds_values="0.5" \
