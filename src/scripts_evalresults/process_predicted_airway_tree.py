@@ -3,8 +3,8 @@ import argparse
 
 from common.constant import BASEDIR, POST_THRESHOLD_VALUE, IS_ATTACH_COARSE_AIRWAYS, NAME_POSTERIORS_RELPATH, \
     NAME_PRED_BINARYMASKS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_RAW_COARSEAIRWAYS_RELPATH
-from common.functionutil import join_path_names, basename, list_files_dir, get_pattern_refer_filename, \
-    find_file_inlist_same_prefix, str2bool, read_dictionary
+from common.functionutil import join_path_names, basename, list_files_dir, get_regex_pattern_filename, \
+    find_file_inlist_with_pattern, str2bool, read_dictionary
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.imageoperator import ThresholdImage
@@ -24,7 +24,7 @@ def main(args):
     output_binary_masks_path = workdir_manager.get_pathdir_new(args.name_output_binary_masks_relpath)
     list_input_posteriors_files = list_files_dir(input_posteriors_path)
     indict_reference_keys = read_dictionary(in_reference_keys_file)
-    pattern_search_input_files = get_pattern_refer_filename(list(indict_reference_keys.values())[0])
+    pattern_search_infiles = get_regex_pattern_filename(list(indict_reference_keys.values())[0])
 
     if (args.is_attach_coarse_airways):
         input_coarse_airways_path = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
@@ -45,9 +45,9 @@ def main(args):
 
         if (args.is_attach_coarse_airways):
             print("Attach Trachea and Main Bronchi mask to complete the computed Binary Masks...")
-            in_coarse_airways_file = find_file_inlist_same_prefix(basename(in_posterior_file),
-                                                                  list_input_coarse_airways_files,
-                                                                  pattern_prefix=pattern_search_input_files)
+            in_coarse_airways_file = find_file_inlist_with_pattern(basename(in_posterior_file),
+                                                                   list_input_coarse_airways_files,
+                                                                   pattern_search=pattern_search_infiles)
             print("Coarse Airways mask file: \'%s\'..." % (basename(in_coarse_airways_file)))
 
             in_coarse_airways = ImageFileReader.get_image(in_coarse_airways_file)

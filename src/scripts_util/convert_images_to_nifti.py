@@ -3,8 +3,8 @@ import argparse
 import os
 
 from common.functionutil import makedir, removefile, removedir, join_path_names, is_exist_exec, is_exists_hexec, \
-    list_files_dir, basename, basename_filenoext, fileextension, get_pattern_refer_filename, \
-    find_file_inlist_same_prefix
+    list_files_dir, basename, basename_filenoext, fileextension, get_regex_pattern_filename, \
+    find_file_inlist_with_pattern
 from common.exceptionmanager import catch_error_exception
 from dataloaders.imagefilereader import ImageFileReader, NiftiReader, DicomReader
 
@@ -50,7 +50,7 @@ def main(args):
 
         list_input_files = list_files_dir(args.input_dir, '*.mhd')
         list_reference_files = list_files_dir(args.input_refdir)
-        pattern_search_input_files = get_pattern_refer_filename(list_reference_files[0])
+        pattern_search_infiles = get_regex_pattern_filename(list_reference_files[0])
 
         if not is_exist_exec(bin_hr22nifti):
             message = 'Executable to convert hr2 to nifti not found in: %s' % (bin_hr22nifti)
@@ -108,8 +108,8 @@ def main(args):
         elif files_type == 'mhd':
             inout_image = ImageFileReader.get_image(in_file)
 
-            in_reference_file = find_file_inlist_same_prefix(basename(in_file), list_reference_files,
-                                                             pattern_prefix=pattern_search_input_files)
+            in_reference_file = find_file_inlist_with_pattern(basename(in_file), list_reference_files,
+                                                              pattern_search=pattern_search_infiles)
             in_metadata = ImageFileReader.get_image_metadata_info(in_reference_file)
             print("Metadata from file: \'%s\'..." % (basename(in_reference_file)))
 

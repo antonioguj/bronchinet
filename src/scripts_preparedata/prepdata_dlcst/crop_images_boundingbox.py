@@ -2,7 +2,7 @@
 import argparse
 
 from common.functionutil import makedir, list_files_dir, join_path_names, basename, basename_filenoext, fileextension,\
-    get_pattern_prefix_filename, find_file_inlist_same_prefix, read_dictionary
+    get_regex_pattern_filename, find_file_inlist_with_pattern, read_dictionary
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.imageoperator import CropImage, FlipImage
 
@@ -17,7 +17,7 @@ def main(args):
     list_input_images_files = list_files_dir(args.inputdir)
     list_input_reference_files = list_files_dir(args.reference_dir)
     dict_input_boundboxes = read_dictionary(args.boundboxes_file)
-    pattern_search_input_files = get_pattern_prefix_filename(list_input_reference_files[0])
+    pattern_search_input_files = get_regex_pattern_filename(list_input_reference_files[0])
 
     makedir(args.outputdir)
 
@@ -32,8 +32,8 @@ def main(args):
         else:
             inout_metadata = None
 
-        in_reference_file = find_file_inlist_same_prefix(basename(in_image_file), list_input_reference_files,
-                                                         pattern_prefix=pattern_search_input_files)
+        in_reference_file = find_file_inlist_with_pattern(basename(in_image_file), list_input_reference_files,
+                                                          pattern_search=pattern_search_input_files)
         print("Reference file: \'%s\'..." % (basename(in_reference_file)))
 
         # 1 step: crop image
