@@ -22,7 +22,7 @@ VALIDDATA_OUTDIR="${WORKDIR}/ValidationData/"
 TESTDATA_OUTDIR="${WORKDIR}/TestingData/"
 TYPE_DATA="training"
 TYPE_DISTRIBUTE="original"
-DIST_PROPDATA_TRAIN_VALID_TEST="(0.50,0.15,0.35)"
+PROPDATA_TRAIN_VALID_TEST="(0.50,0.15,0.35)"
 INFILE_ORDER_TRAIN="${WORKDIR}/train.txt"
 # --------
 
@@ -30,7 +30,7 @@ python3 "${WORKDIR}/Code/scripts_experiments/distribute_data.py" \
 	--basedir=${WORKDIR} \
 	--type_data=${TYPE_DATA} \
 	--type_distribute=${TYPE_DISTRIBUTE} \
-	--dist_propdata_train_valid_test=${DIST_PROPDATA_TRAIN_VALID_TEST} \
+	--propdata_train_valid_test=${PROPDATA_TRAIN_VALID_TEST} \
 	--infile_order_train=${INFILE_ORDER_TRAIN} \
 	--name_input_images_relpath=${IMAGESDATA_DIR} \
 	--name_input_labels_relpath=${LABELSDATA_DIR} \
