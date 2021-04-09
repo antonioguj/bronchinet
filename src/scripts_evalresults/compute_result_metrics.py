@@ -5,7 +5,7 @@ import argparse
 from common.constant import BASEDIR, LIST_TYPE_METRICS_RESULT, NAME_PRED_RESULT_METRICS_FILE, NAME_RAW_LABELS_RELPATH,\
     NAME_REFERENCE_KEYS_PROCIMAGE_FILE
 from common.functionutil import basename, list_files_dir, get_substring_filename, get_regex_pattern_filename, \
-    find_file_inlist_with_pattern, read_dictionary
+    find_file_inlist_with_pattern, str2list_str, read_dictionary
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
 from models.model_manager import get_metric
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_predicted_masks_dir', type=str)
-    parser.add_argument('--list_type_metrics', nargs='+', type=str, default=LIST_TYPE_METRICS_RESULT)
+    parser.add_argument('--list_type_metrics', type=str2list_str, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--output_file', type=str, default=NAME_PRED_RESULT_METRICS_FILE)
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)

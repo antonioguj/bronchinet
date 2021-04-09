@@ -22,7 +22,7 @@ VALIDDATA_OUTDIR="${WORKDIR}/ValidationData_Masked/"
 TESTDATA_OUTDIR="${WORKDIR}/TestingData_Masked/"
 TYPE_DATA="training"
 TYPE_DISTRIBUTE="original"
-DIST_PROPDATA_TRAIN_VALID_TEST="(0.65,0.15,0.20)"
+PROPDATA_TRAIN_VALID_TEST="(0.65,0.15,0.20)"
 INFILE_ORDER_TRAIN="${WORKDIR}/train.txt"
 IS_PREPARE_MANY_IMAGES_PER_LABEL="False"
 # --------
@@ -31,7 +31,7 @@ python3 "${WORKDIR}/Code/scripts_experiments/distribute_data.py" \
 	--basedir=${WORKDIR} \
 	--type_data=${TYPE_DATA} \
 	--type_distribute=${TYPE_DISTRIBUTE} \
-	--dist_propdata_train_valid_test=${DIST_PROPDATA_TRAIN_VALID_TEST} \
+	--propdata_train_valid_test=${PROPDATA_TRAIN_VALID_TEST} \
 	--infile_order_train=${INFILE_ORDER_TRAIN} \
 	--is_prepare_many_images_per_label=${IS_PREPARE_MANY_IMAGES_PER_LABEL} \
 	--name_input_images_relpath=${IMAGESDATA_DIR} \

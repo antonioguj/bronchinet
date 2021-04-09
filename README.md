@@ -1,7 +1,20 @@
-(Derived from master BronchiNet)
+MRI_enhance (Derived from BronchiNet)
 ================================
 
-Enhancement / reconstruction of MRI images using deep Convolutional Neural Networks
+Enhancement method of knee MRI images using deep Convolutional Neural Networks
+
+Contact: Antonio Garcia-Uceda Juarez (antonio.garciauceda89@gmail.com)
+
+Introduction
+------------
+
+This software provides functionality to enhance MRI images from Gradient-Echo and Spin-Echo (3D-GRASE) MRI sequence, to resemble Fast Spin-Echo (3D-FSE) modality. The method is based on deep CNN models, and in particular the U-Net. The implementation of the segmentation method is described in:
+
+[PUT PAPER REFERENCE WHEN SUBMITTED]
+
+If using this software influences positively your project, please cite the above paper
+
+This software includes tools to i) prepare the MRI data to use with DL models, ii) perform DL experiments for training and testing. The tools are entirely implemented in Python, and models are developed in Keras/tensorflow.
 
 Project Organization
 ------------
@@ -30,11 +43,12 @@ Project Organization
     │   │
     │   ├── scripts_evalresults	<- Scripts to evaluate results from models
     │   ├── scripts_experiments	<- Scripts to train and test models
+    │   ├── scripts_launch 	<- Scripts with pipelines and PBS scripts to run in clusters
     │   ├── scripts_preparedata	<- Scripts to prepare data to train models
     │   └── scripts_util	<- Scripts for various utilities
     │
+    ├── tests			<- Tests to validate the method implementation (to be run locally)
     └── tox.ini            	<- tox file with settings for running tox; see tox.readthedocs.io
-
 
 ------------
 
@@ -43,11 +57,15 @@ Project Organization
 Requirements
 ------------
 
-(Recommended to use python virtualenv)
-- pip install -r requirements.txt
-
+- python packages required are in "requirements.txt"
 - cuda >= 10.2 (https://developer.nvidia.com/cuda-zone)
 - cuDNN >= 7.6.5 (https://developer.nvidia.com/rdp/cudnn-download)
+
+(Recommended to use python virtualenv)
+
+- python -m venv <dir_your_pyvenv>
+- source <dir_your_pyvenv>/bin/activate
+- pip install -r requirements.txt
 
 Instructions
 ------------
@@ -56,12 +74,10 @@ Create working directory
 ------------
 
 - mkdir <working_dir> && cd <working_dir>
-- ln -s <dir_data_stored> BaseData
-- ln -s <dir_this_framework> Code
+- ln -s <dir_where_data_stored> BaseData
+- ln -s <dir_where_thiscode_stored> Code
 
-(Default settings for all scripts below are in file ./src/common/constants.py)
-
-[IF NEEDED] (in "~/.bashrc" file: export PYTHONPATH=<dir_this_framework>/src/")
+[IF NEEDED] (include in "~/.bashrc" file: export PYTHONPATH=<dir_where_thiscode_stored>/src/")
 
 Prepare data
 ------------
@@ -93,8 +109,3 @@ Test models
 
 3) Compute results metrics / accuracy:
 - python ./Code/scripts_evalresults/compute_result_metrics.py <dir_output_predictions> --basedir=[path_dir_workdir]
-
-Citations
-------------
-
-If using this software influences positively your project(s), please cite [x]:
