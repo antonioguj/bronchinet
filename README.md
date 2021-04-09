@@ -10,7 +10,7 @@ Introduction
 
 This software provides functionality to segment airways from CT scans, using the novel joint UNet-GNN method. The implementation of the segmentation method is described in:
 
-[1] Garcia-Uceda, A., Selvan, R., Saghir, Z. de Bruijne, M. A joint 3D UNet-graph neural network-based method for airway segmentation from chest CTs. Int. Work. on Mach. Learn. Med. Imaging 583–591 (2019).
+Garcia-Uceda, A., Selvan, R., Saghir, Z. de Bruijne, M. A joint 3D UNet-graph neural network-based method for airway segmentation from chest CTs. Int. Work. on Mach. Learn. Med. Imaging 583–591 (2019).
 
 If using this software influences positively your project, please cite the above paper.
 
