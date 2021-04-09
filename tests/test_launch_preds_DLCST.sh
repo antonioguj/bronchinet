@@ -29,7 +29,7 @@ outputdir="./Test_Predictions_DLCST/"
 python3 "./Code/scripts_launch/launch_predictions_full.py" $modeltest $outputdir \
 	--testing_datadir="./TestingData_CV1/" \
 	--is_preds_crossval="True" \
-	--post_thresholds_values="0.5" \
+	--post_threshold_value="0.5" \
 	--is_connected_masks="True" \
 	--in_connregions_dim="3" \
 	--is_backward_compat="True"
