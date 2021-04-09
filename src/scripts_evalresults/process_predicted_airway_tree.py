@@ -32,9 +32,6 @@ def main(args):
 
     # *****************************************************
 
-    print("Compute \'%s\' Binary Masks from the Posteriors, using thresholding values: \'%s\'..."
-          % (len(args.post_threshold_values), args.post_threshold_values))
-
     for i, in_posterior_file in enumerate(list_input_posteriors_files):
         print("\nInput: \'%s\'..." % (basename(in_posterior_file)))
 
@@ -42,6 +39,10 @@ def main(args):
         print("Original dims : \'%s\'..." % (str(inout_posterior.shape)))
 
         in_metadata_file = ImageFileReader.get_image_metadata_info(in_posterior_file)
+
+        print("Compute Binary Masks thresholded to \'%s\'..." % (args.post_threshold_value))
+
+        out_binary_mask = ThresholdImage.compute(inout_posterior, args.post_threshold_value)
 
         if (args.is_attach_coarse_airways):
             print("Attach Trachea and Main Bronchi mask to complete the computed Binary Masks...")
@@ -52,38 +53,29 @@ def main(args):
 
             in_coarse_airways = ImageFileReader.get_image(in_coarse_airways_file)
 
-        for ithreshold in args.post_threshold_values:
-            print("Compute Binary Masks thresholded to \'%s\'..." % (ithreshold))
+            out_binary_mask = MaskOperator.merge_two_masks(out_binary_mask, in_coarse_airways)
+            # isNot_intersect_masks=True)
 
-            out_binary_mask = ThresholdImage.compute(inout_posterior, ithreshold)
+        # Output predicted binary masks
+        output_binary_mask_file = \
+            join_path_names(output_binary_masks_path,
+                            name_output_binary_masks_files(in_posterior_file, args.post_threshold_value))
+        print("Output: \'%s\', of dims \'%s\'..." % (basename(output_binary_mask_file), str(out_binary_mask.shape)))
 
-            if (args.is_attach_coarse_airways):
-                out_binary_mask = MaskOperator.merge_two_masks(out_binary_mask, in_coarse_airways)
-                # isNot_intersect_masks=True)
-
-            # Output predicted binary masks
-            output_binary_mask_file = join_path_names(output_binary_masks_path,
-                                                      name_output_binary_masks_files(in_posterior_file, ithreshold))
-            print("Output: \'%s\', of dims \'%s\'..." % (basename(output_binary_mask_file), str(out_binary_mask.shape)))
-
-            ImageFileReader.write_image(output_binary_mask_file, out_binary_mask, metadata=in_metadata_file)
-        # endfor
+        ImageFileReader.write_image(output_binary_mask_file, out_binary_mask, metadata=in_metadata_file)
     # endfor
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('--post_threshold_values', type=float, default=POST_THRESHOLD_VALUE)
+    parser.add_argument('--post_threshold_value', type=float, default=POST_THRESHOLD_VALUE)
     parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
     parser.add_argument('--name_input_posteriors_relpath', type=str, default=NAME_POSTERIORS_RELPATH)
     parser.add_argument('--name_output_binary_masks_relpath', type=str, default=NAME_PRED_BINARYMASKS_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--name_input_coarse_airways_relpath', type=str, default=NAME_RAW_COARSEAIRWAYS_RELPATH)
     args = parser.parse_args()
-
-    if type(args.post_threshold_values) in [int, float]:
-        args.post_threshold_values = [args.post_threshold_values]
 
     print("Print input arguments...")
     for key, value in vars(args).items():

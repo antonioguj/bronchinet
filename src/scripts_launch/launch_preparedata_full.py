@@ -267,8 +267,8 @@ def main(args):
                     '--is_two_boundboxes_each_lung', str(args.is_two_boundboxes_each_lung),
                     '--size_train_images', str(args.size_train_images),
                     '--is_same_size_boundbox_all_images', str(args.is_same_size_boundbox_all_images),
-                    '--name_output_boundboxes_file', name_input_crop_boundboxes_file]
-        # '--size_fixed_boundbox_all', str(args.size_fixed_boundbox_all)]
+                    '--name_output_boundboxes_file', name_input_crop_boundboxes_file,
+                    '--size_fixed_boundbox_all', str(args.size_fixed_boundbox_all)]
         list_calls_all.append(new_call)
 
     # ******************************
