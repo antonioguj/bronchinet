@@ -3,7 +3,7 @@ import numpy as np
 import argparse
 
 from common.functionutil import makedir, join_path_names, list_files_dir, basename, get_substring_filename, \
-    get_pattern_refer_filename, find_file_inlist_same_prefix
+    get_regex_pattern_filename, find_file_inlist_with_pattern
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.imageoperator import NormaliseImage
 
@@ -28,7 +28,7 @@ def main(args):
     list_input_images_files = list_files_dir(args.input_images_dir)
     list_input_predictions_files = list_files_dir(args.input_predictions_dir)
     list_input_reference_files = list_files_dir(args.inputrefermasksdir)
-    pattern_search_input_files = get_pattern_refer_filename(list_input_images_files[0])
+    pattern_search_infile = get_regex_pattern_filename(list_input_images_files[0])
     template_outvideo_filename = 'video_%s_preds.gif'
 
     makedir(args.output_dir)
@@ -36,10 +36,10 @@ def main(args):
     for i, in_prediction_file in enumerate(list_input_predictions_files):
         print("\nInput: \'%s\'..." % (in_prediction_file))
 
-        in_image_file = find_file_inlist_same_prefix(basename(in_prediction_file), list_input_images_files,
-                                                     pattern_prefix=pattern_search_input_files)
-        in_reference_file = find_file_inlist_same_prefix(basename(in_prediction_file), list_input_reference_files,
-                                                         pattern_prefix=pattern_search_input_files)
+        in_image_file = find_file_inlist_with_pattern(basename(in_prediction_file), list_input_images_files,
+                                                      pattern_search=pattern_search_infile)
+        in_reference_file = find_file_inlist_with_pattern(basename(in_prediction_file), list_input_reference_files,
+                                                          pattern_search=pattern_search_infile)
         print("Assigned to \'%s\' and \'%s\'..." % (basename(in_image_file), basename(in_reference_file)))
 
         in_image = ImageFileReader.get_image(in_image_file)
@@ -96,9 +96,7 @@ def main(args):
 
         if len(out_list_frames) > 0:
             print("Create movie containing \'%s\' frames..." % (len(out_list_frames)))
-            suffix_casename = get_substring_filename(basename(in_prediction_file),
-                                                     substr_pattern=pattern_search_input_files)
-
+            suffix_casename = get_substring_filename(basename(in_prediction_file), pattern_search=pattern_search_infile)
             out_filename = template_outvideo_filename % (suffix_casename)
             out_filename = join_path_names(args.output_dir, out_filename)
             imageio.mimsave(out_filename, out_list_frames, fps=20)
