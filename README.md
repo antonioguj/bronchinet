@@ -1,7 +1,7 @@
 MRI_enhance (Derived from BronchiNet)
 ================================
 
-Enhancement method of knee MRI images using deep Convolutional Neural Networks
+Enhancement method of knee MRI images using deep Convolutional Neural Networks.
 
 Contact: Antonio Garcia-Uceda Juarez (antonio.garciauceda89@gmail.com)
 
@@ -12,7 +12,7 @@ This software provides functionality to enhance MRI images from Gradient-Echo an
 
 [PUT PAPER REFERENCE WHEN SUBMITTED]
 
-If using this software influences positively your project, please cite the above paper
+If using this software influences positively your project, please cite the above paper.
 
 This software includes tools to i) prepare the MRI data to use with DL models, ii) perform DL experiments for training and testing. The tools are entirely implemented in Python, and models are developed in Keras/tensorflow.
 
