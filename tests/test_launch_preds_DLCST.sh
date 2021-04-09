@@ -24,9 +24,9 @@ done
 
 # 2: run predictions
 modeltest="${modelbasedir}/Models_DLCST_CV1/model_converged.pt"
-outputdir="./PredictionsTEST_DLCST/"
+outputdir="./Test_Predictions_DLCST/"
 
-python3 "./Code/scripts_evalresults/launch_predictions_full.py" $modeltest $outputdir \
+python3 "./Code/scripts_launch/launch_predictions_full.py" $modeltest $outputdir \
 	--testing_datadir="./TestingData_CV1/" \
 	--is_preds_crossval="True" \
 	--post_thresholds_values="0.5" \
