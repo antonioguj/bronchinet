@@ -7,7 +7,6 @@ from common.exceptionmanager import catch_error_exception
 from common.functionutil import ImagesUtil
 from preprocessing.imagegenerator import ImageGenerator
 
-np.random.seed(2017)
 _epsilon = 1e-6
 
 

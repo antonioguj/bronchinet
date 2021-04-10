@@ -14,8 +14,6 @@ from models.model_manager import get_metric
 from imageoperators.imageoperator import MorphoDilateMask, ThresholdImage, ThinningMask, FirstConnectedRegionMask
 from imageoperators.maskoperator import MaskOperator
 
-np.random.seed(2017)
-
 
 def main(args):
 

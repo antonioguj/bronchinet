@@ -267,24 +267,12 @@ def str2bool(in_str: str) -> bool:
     return in_str.lower() in ('yes', 'true', 't', '1')
 
 
-def is_string_bool(in_str: str) -> bool:
-    return in_str.lower() in ('yes', 'true', 'no', 'false')
-
-
 def str2int(in_str: str) -> int:
     return int(in_str)
 
 
-def is_string_int(in_str: str) -> bool:
-    return in_str.isdigit()
-
-
 def str2float(in_str: str) -> float:
     return float(in_str)
-
-
-def is_string_float(in_str: str) -> bool:
-    return (in_str.count('.') == 1) and (in_str.replace('.', '', 1).isdigit())
 
 
 def str2list_str(in_str: str) -> List[str]:
@@ -300,7 +288,7 @@ def str2list_int(in_str: str) -> List[int]:
         return None
     in_str = in_str.replace('[', '').replace(']', '')
     list_elems_instr = in_str.split(',')
-    return [int(elem) for elem in list_elems_instr]
+    return [str2int(elem) for elem in list_elems_instr]
 
 
 def str2list_float(in_str: str) -> List[float]:
@@ -308,11 +296,15 @@ def str2list_float(in_str: str) -> List[float]:
         return None
     in_str = in_str.replace('[', '').replace(']', '')
     list_elems_instr = in_str.split(',')
-    return [float(elem) for elem in list_elems_instr]
+    return [str2float(elem) for elem in list_elems_instr]
 
 
-def is_string_list(in_str: str) -> bool:
-    return (in_str[0] == '[') and (in_str[-1] == ']')
+def str2tuple_bool(in_str: str) -> Tuple[int, ...]:
+    if in_str == 'None':
+        return None
+    in_str = in_str.replace('(', '').replace(')', '')
+    list_elems_instr = in_str.split(',')
+    return tuple([str2bool(elem) for elem in list_elems_instr])
 
 
 def str2tuple_int(in_str: str) -> Tuple[int, ...]:
@@ -320,7 +312,7 @@ def str2tuple_int(in_str: str) -> Tuple[int, ...]:
         return None
     in_str = in_str.replace('(', '').replace(')', '')
     list_elems_instr = in_str.split(',')
-    return tuple([int(elem) for elem in list_elems_instr])
+    return tuple([str2int(elem) for elem in list_elems_instr])
 
 
 def str2tuple_float(in_str: str) -> Tuple[float, ...]:
@@ -328,11 +320,7 @@ def str2tuple_float(in_str: str) -> Tuple[float, ...]:
         return None
     in_str = in_str.replace('(', '').replace(')', '')
     list_elems_instr = in_str.split(',')
-    return tuple([float(elem) for elem in list_elems_instr])
-
-
-def is_string_tuple(in_str: str) -> bool:
-    return (in_str[0] == '(') and (in_str[-1] == ')')
+    return tuple([str2float(elem) for elem in list_elems_instr])
 
 
 def list2str(in_list: List[Any]) -> str:
@@ -367,6 +355,26 @@ def split_string_list_or_tuple(in_str: str) -> List[str]:
         return [(elem + ')') if i < (num_elems - 1) else elem for i, elem in enumerate(in_str_content_split)]
     else:
         return in_str_content.rsplit(',')
+
+
+def is_string_bool(in_str: str) -> bool:
+    return in_str.lower() in ('yes', 'true', 'no', 'false')
+
+
+def is_string_int(in_str: str) -> bool:
+    return in_str.isdigit()
+
+
+def is_string_float(in_str: str) -> bool:
+    return (in_str.count('.') == 1) and (in_str.replace('.', '', 1).isdigit())
+
+
+def is_string_list(in_str: str) -> bool:
+    return (in_str[0] == '[') and (in_str[-1] == ']')
+
+
+def is_string_tuple(in_str: str) -> bool:
+    return (in_str[0] == '(') and (in_str[-1] == ')')
 
 
 def get_string_datatype(in_str: str) -> str:

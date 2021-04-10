@@ -73,7 +73,7 @@ class ModelTrainerBase(object):
     def finalise_model(self) -> None:
         raise NotImplementedError
 
-    def create_callbacks(self, models_path: str, **kwargs) -> None:
+    def create_callbacks(self, models_path: str, losshist_filename: str, **kwargs) -> None:
         raise NotImplementedError
 
     def summary_model(self) -> None:

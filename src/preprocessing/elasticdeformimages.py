@@ -8,8 +8,6 @@ from elasticdeform import deform_random_grid
 from common.exceptionmanager import catch_error_exception
 from preprocessing.imagegenerator import ImageGenerator
 
-np.random.seed(2017)
-
 
 class ElasticDeformImages(ImageGenerator):
     _order_interp_image = 3

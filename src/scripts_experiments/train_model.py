@@ -4,25 +4,27 @@ from collections import OrderedDict
 import numpy as np
 import argparse
 
-from common.constant import BASEDIR, SIZE_IN_IMAGES, NAME_TRAININGDATA_RELPATH, NAME_VALIDATIONDATA_RELPATH, \
-    MAX_TRAIN_IMAGES, MAX_VALID_IMAGES, TYPE_NETWORK, NET_NUM_FEATMAPS, TYPE_OPTIMIZER, LEARN_RATE, TYPE_LOSS, \
-    WEIGHT_COMBINED_LOSS, LIST_TYPE_METRICS, BATCH_SIZE, NUM_EPOCHS, IS_USE_VALIDATION_DATA, IS_VALID_CONVOLUTIONS, \
+from common.constant import BASEDIR, NAME_MODELSRUN_RELPATH, SIZE_IN_IMAGES, NAME_TRAININGDATA_RELPATH, \
+    NAME_VALIDATIONDATA_RELPATH, MAX_TRAIN_IMAGES, MAX_VALID_IMAGES, TYPE_NETWORK, NET_NUM_FEATMAPS, TYPE_OPTIMIZER, \
+    LEARN_RATE, TYPE_LOSS, WEIGHT_COMBINED_LOSS, LIST_TYPE_METRICS, BATCH_SIZE, NUM_EPOCHS, IS_VALID_CONVOLUTIONS, \
     IS_MASK_REGION_INTEREST, IS_SLIDING_WINDOW_IMAGES, PROP_OVERLAP_SLIDING_WINDOW, IS_RANDOM_WINDOW_IMAGES, \
-    NUM_RANDOM_PATCHES_EPOCH, IS_TRANSFORM_RIGID_IMAGES, IS_TRANSFORM_VALIDATION_DATA, IS_TRANSFORM_ELASTIC_IMAGES, \
-    FREQ_SAVE_INTER_MODELS, FREQ_VALIDATE_MODEL, IS_SHUFFLE_TRAINDATA, NAME_LOSSHISTORY_FILE, NAME_CONFIG_PARAMS_FILE,\
-    NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, IS_WRITEOUT_DESCMODEL_TEXT, \
-    NAME_DESCRIPT_MODEL_LOGFILE, TYPE_DNNLIB_USED
-if TYPE_DNNLIB_USED == 'Pytorch':
-    from common.constant import NAME_SAVEDMODEL_LAST_TORCH as NAME_SAVEDMODEL_LAST
-elif TYPE_DNNLIB_USED == 'Keras':
-    from common.constant import NAME_SAVEDMODEL_LAST_KERAS as NAME_SAVEDMODEL_LAST
+    NUM_RANDOM_PATCHES_EPOCH, IS_TRANSFORM_RIGID_IMAGES, TRANS_RIGID_ROTATION_RANGE, TRANS_RIGID_SHIFT_RANGE, \
+    TRANS_RIGID_FLIP_DIRS, TRANS_RIGID_ZOOM_RANGE, TRANS_RIGID_FILL_MODE, IS_TRANSFORM_ELASTIC_IMAGES, \
+    TYPE_TRANS_ELASTIC_DEFORM, FREQ_SAVE_CHECK_MODELS, FREQ_VALIDATE_MODELS, IS_SHUFFLE_TRAINDATA, \
+    IS_USE_VALIDATION_DATA, IS_TRANSFORM_VALIDATION_DATA, MANUAL_SEED_TRAIN, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
+    NAME_LOSSHISTORY_FILE, NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, \
+    IS_WRITEOUT_DESCMODEL_TEXT, NAME_DESCRIPT_MODEL_LOGFILE, TYPE_DNNLIB_USED, IS_MODEL_GPU, IS_MODEL_HALFPREC
 from common.functionutil import join_path_names, is_exist_file, update_filename, basename, basename_filenoext, \
-    list_files_dir, get_substring_filename, str2bool, str2int, str2list_str, str2tuple_int, str2tuple_float, \
-    read_dictionary, read_dictionary_configparams, save_dictionary_configparams
+    list_files_dir, get_substring_filename, str2bool, str2int, str2float, str2list_str, str2tuple_bool, str2tuple_int,\
+    str2tuple_float, read_dictionary, read_dictionary_configparams, save_dictionary_configparams
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.dataloader_manager import get_train_imagedataloader_2images
 from models.model_manager import get_model_trainer
+if TYPE_DNNLIB_USED == 'Pytorch':
+    from models.pytorch.modeltrainer import NAME_SAVEDMODEL_LAST
+elif TYPE_DNNLIB_USED == 'Keras':
+    from models.keras.modeltrainer import NAME_SAVEDMODEL_LAST
 
 
 def write_train_valid_data_logfile(out_filename: str,
@@ -73,7 +75,7 @@ def main(args):
     else:
         models_path = workdir_manager.get_pathdir_update(args.modelsdir)
 
-    if IS_USE_VALIDATION_DATA:
+    if args.is_use_validation_data:
         validation_data_path = workdir_manager.get_pathdir_exist(args.validation_datadir)
         list_valid_images_files = list_files_dir(validation_data_path, name_input_images_files)[0:args.max_valid_images]
         list_valid_labels_files = list_files_dir(validation_data_path, name_input_labels_files)[0:args.max_valid_images]
@@ -89,7 +91,7 @@ def main(args):
     out_traindata_logfile = join_path_names(models_path, NAME_TRAINDATA_LOGFILE)
     write_train_valid_data_logfile(out_traindata_logfile, list_train_images_files,
                                    indict_reference_keys, 'training')
-    if IS_USE_VALIDATION_DATA:
+    if args.is_use_validation_data:
         out_validdata_logfile = join_path_names(models_path, NAME_VALIDDATA_LOGFILE)
         write_train_valid_data_logfile(out_validdata_logfile, list_valid_images_files,
                                        indict_reference_keys, 'validation')
@@ -141,10 +143,11 @@ def main(args):
                 model_trainer.load_model_full(model_restart_file)
 
     model_trainer.create_callbacks(models_path=models_path,
-                                   is_restart_model=args.is_restart,
-                                   is_validation_data=IS_USE_VALIDATION_DATA,
-                                   freq_save_check_model=FREQ_SAVE_INTER_MODELS,
-                                   freq_validate_model=FREQ_VALIDATE_MODEL)
+                                   losshist_filename=NAME_LOSSHISTORY_FILE,
+                                   is_validation_data=args.is_use_validation_data,
+                                   freq_save_check_model=args.freq_save_check_models,
+                                   freq_validate_model=args.freq_validate_models,
+                                   is_restart_model=args.is_restart)
     # model_trainer.summary_model()
 
     if (IS_WRITEOUT_DESCMODEL_TEXT):
@@ -171,43 +174,51 @@ def main(args):
     training_data_loader = \
         get_train_imagedataloader_2images(list_train_images_files,
                                           list_train_labels_files,
-                                          size_in_images=args.size_in_images,
-                                          is_sliding_window_images=args.is_sliding_window_images,
-                                          prop_overlap_slide_window=args.prop_overlap_sliding_window,
-                                          is_random_window_images=args.is_random_window_images,
-                                          num_random_patches_epoch=args.num_random_patches_epoch,
-                                          is_transform_rigid_images=args.is_transform_rigid_images,
-                                          is_transform_elastic_images=args.is_transform_elastic_images,
+                                          size_images=args.size_in_images,
+                                          is_sliding_window=args.is_sliding_window_images,
+                                          prop_overlap_slide_images=args.prop_overlap_sliding_window,
+                                          is_random_window=args.is_random_window_images,
+                                          num_random_images=args.num_random_patches_epoch,
+                                          is_transform_rigid=args.is_transform_rigid_images,
+                                          trans_rigid_params=args.dict_trans_rigid_parameters,
+                                          is_transform_elastic=args.is_transform_elastic_images,
+                                          type_trans_elastic=args.type_trans_elastic_deform,
                                           is_nnet_validconvs=args.is_valid_convolutions,
                                           size_output_images=size_out_image_model,
                                           batch_size=args.batch_size,
-                                          is_shuffle=IS_SHUFFLE_TRAINDATA,
-                                          manual_seed=args.manual_seed_train)
+                                          is_shuffle=args.is_shuffle_traindata,
+                                          manual_seed=args.manual_seed_train,
+                                          is_datagen_gpu=args.is_model_gpu,
+                                          is_datagen_halfprec=args.is_model_halfprec)
     print("Loaded \'%s\' files. Total batches generated: %s..."
           % (len(list_train_images_files), len(training_data_loader)))
 
-    if IS_USE_VALIDATION_DATA:
+    if args.is_use_validation_data:
         print("\nLoading Validation data...")
         args.is_transform_rigid_images = \
-            args.is_transform_rigid_images and IS_TRANSFORM_VALIDATION_DATA
+            args.is_transform_rigid_images and args.is_transform_validation_data
         args.is_transform_elastic_images = \
-            args.is_transform_elastic_images and IS_TRANSFORM_VALIDATION_DATA
+            args.is_transform_elastic_images and args.is_transform_validation_data
 
         validation_data_loader = \
             get_train_imagedataloader_2images(list_valid_images_files,
                                               list_valid_labels_files,
-                                              size_in_images=args.size_in_images,
-                                              is_sliding_window_images=args.is_sliding_window_images,
-                                              prop_overlap_slide_window=args.prop_overlap_sliding_window,
-                                              is_random_window_images=args.is_random_window_images,
-                                              num_random_patches_epoch=args.num_random_patches_epoch,
-                                              is_transform_rigid_images=args.is_transform_rigid_images,
-                                              is_transform_elastic_images=args.is_transform_elastic_images,
+                                              size_images=args.size_in_images,
+                                              is_sliding_window=args.is_sliding_window_images,
+                                              prop_overlap_slide_images=args.prop_overlap_sliding_window,
+                                              is_random_window=args.is_random_window_images,
+                                              num_random_images=args.num_random_patches_epoch,
+                                              is_transform_rigid=args.is_transform_rigid_images,
+                                              trans_rigid_params=args.dict_trans_rigid_parameters,
+                                              is_transform_elastic=args.is_transform_elastic_images,
+                                              type_trans_elastic=args.type_trans_elastic_deform,
                                               is_nnet_validconvs=args.is_valid_convolutions,
                                               size_output_images=size_out_image_model,
                                               batch_size=args.batch_size,
-                                              is_shuffle=IS_SHUFFLE_TRAINDATA,
-                                              manual_seed=args.manual_seed_train)
+                                              is_shuffle=args.is_shuffle_traindata,
+                                              manual_seed=args.manual_seed_train,
+                                              is_datagen_gpu=args.is_model_gpu,
+                                              is_datagen_halfprec=args.is_model_halfprec)
         print("Loaded \'%s\' files. Total batches generated: %s..."
               % (len(list_valid_images_files), len(validation_data_loader)))
     else:
@@ -237,29 +248,29 @@ def main(args):
                         num_epochs=args.num_epochs,
                         max_steps_epoch=args.max_steps_epoch,
                         initial_epoch=initial_epoch,
-                        is_shuffle_data=IS_SHUFFLE_TRAINDATA)
+                        is_shuffle_data=args.is_shuffle_traindata)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('--modelsdir', type=str, default='Models')
+    parser.add_argument('--modelsdir', type=str, default=NAME_MODELSRUN_RELPATH)
     parser.add_argument('--in_config_file', type=str, default=None)
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--training_datadir', type=str, default=NAME_TRAININGDATA_RELPATH)
     parser.add_argument('--validation_datadir', type=str, default=NAME_VALIDATIONDATA_RELPATH)
-    parser.add_argument('--max_train_images', type=int, default=MAX_TRAIN_IMAGES)
-    parser.add_argument('--max_valid_images', type=int, default=MAX_VALID_IMAGES)
+    parser.add_argument('--max_train_images', type=str2int, default=MAX_TRAIN_IMAGES)
+    parser.add_argument('--max_valid_images', type=str2int, default=MAX_VALID_IMAGES)
     parser.add_argument('--type_network', type=str, default=TYPE_NETWORK)
-    parser.add_argument('--net_num_featmaps', type=int, default=NET_NUM_FEATMAPS)
+    parser.add_argument('--net_num_featmaps', type=str2int, default=NET_NUM_FEATMAPS)
     parser.add_argument('--type_optimizer', type=str, default=TYPE_OPTIMIZER)
-    parser.add_argument('--learn_rate', type=float, default=LEARN_RATE)
+    parser.add_argument('--learn_rate', type=str2float, default=LEARN_RATE)
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
-    parser.add_argument('--weight_combined_loss', type=float, default=WEIGHT_COMBINED_LOSS)
+    parser.add_argument('--weight_combined_loss', type=str2float, default=WEIGHT_COMBINED_LOSS)
     parser.add_argument('--list_type_metrics', type=str2list_str, default=LIST_TYPE_METRICS)
-    parser.add_argument('--batch_size', type=int, default=BATCH_SIZE)
-    parser.add_argument('--num_epochs', type=int, default=NUM_EPOCHS)
-    parser.add_argument('--max_steps_epoch', type=int, default=None)
+    parser.add_argument('--batch_size', type=str2int, default=BATCH_SIZE)
+    parser.add_argument('--num_epochs', type=str2int, default=NUM_EPOCHS)
+    parser.add_argument('--max_steps_epoch', type=str2int, default=None)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_sliding_window_images', type=str2bool, default=IS_SLIDING_WINDOW_IMAGES)
@@ -267,14 +278,33 @@ if __name__ == "__main__":
     parser.add_argument('--is_random_window_images', type=str2bool, default=IS_RANDOM_WINDOW_IMAGES)
     parser.add_argument('--num_random_patches_epoch', type=str2int, default=NUM_RANDOM_PATCHES_EPOCH)
     parser.add_argument('--is_transform_rigid_images', type=str2bool, default=IS_TRANSFORM_RIGID_IMAGES)
+    parser.add_argument('--trans_rigid_rotation_range', type=str2tuple_float, default=TRANS_RIGID_ROTATION_RANGE)
+    parser.add_argument('--trans_rigid_shift_range', type=str2tuple_float, default=TRANS_RIGID_SHIFT_RANGE)
+    parser.add_argument('--trans_rigid_flip_dirs', type=str2tuple_bool, default=TRANS_RIGID_FLIP_DIRS)
+    parser.add_argument('--trans_rigid_zoom_range', type=str2float, default=TRANS_RIGID_ZOOM_RANGE)
+    parser.add_argument('--trans_rigid_fill_mode', type=str, default=TRANS_RIGID_FILL_MODE)
     parser.add_argument('--is_transform_elastic_images', type=str2bool, default=IS_TRANSFORM_ELASTIC_IMAGES)
+    parser.add_argument('--type_trans_elastic_deform', type=str, default=TYPE_TRANS_ELASTIC_DEFORM)
+    parser.add_argument('--freq_save_check_models', type=str2int, default=FREQ_SAVE_CHECK_MODELS)
+    parser.add_argument('--freq_validate_models', type=str2int, default=FREQ_VALIDATE_MODELS)
+    parser.add_argument('--is_use_validation_data', type=str2bool, default=IS_USE_VALIDATION_DATA)
+    parser.add_argument('--is_transform_validation_data', type=str2bool, default=IS_TRANSFORM_VALIDATION_DATA)
+    parser.add_argument('--is_shuffle_traindata', type=str2bool, default=IS_SHUFFLE_TRAINDATA)
+    parser.add_argument('--manual_seed_train', type=str2int, default=MANUAL_SEED_TRAIN)
     parser.add_argument('--name_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
-    parser.add_argument('--manual_seed_train', type=int, default=None)
+    parser.add_argument('--is_model_gpu', type=str2bool, default=IS_MODEL_GPU)
+    parser.add_argument('--is_model_halfprec', type=str2bool, default=IS_MODEL_HALFPREC)
     parser.add_argument('--is_restart', type=str2bool, default=False)
     parser.add_argument('--restart_file', type=str, default=NAME_SAVEDMODEL_LAST)
     parser.add_argument('--is_restart_only_weights', type=str2bool, default=False)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
+
+    args.dict_trans_rigid_parameters = {'rotation_range': args.trans_rigid_rotation_range,
+                                        'shift_range': args.trans_rigid_shift_range,
+                                        'flip_dirs': args.trans_rigid_flip_dirs,
+                                        'zoom_range': args.trans_rigid_zoom_range,
+                                        'fill_mode': args.trans_rigid_fill_mode}
 
     if (args.is_restart and not args.is_restart_only_weights) and not args.in_config_file:
         args.in_config_file = join_path_names(args.modelsdir, NAME_CONFIG_PARAMS_FILE)
@@ -291,17 +321,17 @@ if __name__ == "__main__":
         args.size_in_images = str2tuple_int(input_args_file['size_in_images'])
         args.training_datadir = str(input_args_file['training_datadir'])
         args.validation_datadir = str(input_args_file['validation_datadir'])
-        args.max_train_images = int(input_args_file['max_train_images'])
-        args.max_valid_images = int(input_args_file['max_valid_images'])
+        args.max_train_images = str2int(input_args_file['max_train_images'])
+        args.max_valid_images = str2int(input_args_file['max_valid_images'])
         args.type_network = str(input_args_file['type_network'])
-        args.net_num_featmaps = int(input_args_file['net_num_featmaps'])
+        args.net_num_featmaps = str2int(input_args_file['net_num_featmaps'])
         args.type_optimizer = str(input_args_file['type_optimizer'])
-        args.learn_rate = float(input_args_file['learn_rate'])
+        args.learn_rate = str2float(input_args_file['learn_rate'])
         args.type_loss = str(input_args_file['type_loss'])
-        args.weight_combined_loss = float(input_args_file['weight_combined_loss'])
+        args.weight_combined_loss = str2float(input_args_file['weight_combined_loss'])
         args.list_type_metrics = str2list_str(input_args_file['list_type_metrics'])
-        args.batch_size = int(input_args_file['batch_size'])
-        args.num_epochs = int(input_args_file['num_epochs'])
+        args.batch_size = str2int(input_args_file['batch_size'])
+        args.num_epochs = str2int(input_args_file['num_epochs'])
         args.max_steps_epoch = None     # CHECK THIS OUT!
         args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
         args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])

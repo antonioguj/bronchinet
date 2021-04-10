@@ -4,11 +4,11 @@ import numpy as np
 import math
 import argparse
 
-from common.constant import BASEDIR, PROPDATA_TRAIN_VALID_TEST, NAME_TRAININGDATA_RELPATH, NAME_VALIDATIONDATA_RELPATH,\
-    NAME_TESTINGDATA_RELPATH, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
+from common.constant import BASEDIR, PROPDATA_TRAIN_VALID_TEST, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, \
+    NAME_TRAININGDATA_RELPATH, NAME_VALIDATIONDATA_RELPATH, NAME_TESTINGDATA_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
     NAME_REFERENCE_KEYS_PROCIMAGE_FILE
 from common.functionutil import makelink, set_dirname_suffix, is_exist_file, join_path_names, list_files_dir, basename,\
-    basename_filenoext, str2tuple_float, read_dictionary, find_intersection_3lists
+    basename_filenoext, str2int, str2tuple_float, read_dictionary, find_intersection_3lists
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.workdirmanager import TrainDirManager
 
@@ -257,7 +257,7 @@ if __name__ == "__main__":
     parser.add_argument('--type_distribute', type=str, default='original')
     parser.add_argument('--propdata_train_valid_test', type=str2tuple_float, default=PROPDATA_TRAIN_VALID_TEST)
     parser.add_argument('--infile_order_train', type=str, default=None)
-    parser.add_argument('--num_folds_crossval', type=int, default=None)
+    parser.add_argument('--num_folds_crossval', type=str2int, default=None)
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
     parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
     parser.add_argument('--name_training_data_relpath', type=str, default=NAME_TRAININGDATA_RELPATH)

@@ -4,7 +4,7 @@ import argparse
 from common.constant import BASEDIR, POST_THRESHOLD_VALUE, IS_ATTACH_COARSE_AIRWAYS, NAME_POSTERIORS_RELPATH, \
     NAME_PRED_BINARYMASKS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_RAW_COARSEAIRWAYS_RELPATH
 from common.functionutil import join_path_names, basename, list_files_dir, get_regex_pattern_filename, \
-    find_file_inlist_with_pattern, str2bool, read_dictionary
+    find_file_inlist_with_pattern, str2bool, str2float, read_dictionary
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.imageoperator import ThresholdImage
@@ -69,7 +69,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
-    parser.add_argument('--post_threshold_value', type=float, default=POST_THRESHOLD_VALUE)
+    parser.add_argument('--post_threshold_value', type=str2float, default=POST_THRESHOLD_VALUE)
     parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
     parser.add_argument('--name_input_posteriors_relpath', type=str, default=NAME_POSTERIORS_RELPATH)
     parser.add_argument('--name_output_binary_masks_relpath', type=str, default=NAME_PRED_BINARYMASKS_RELPATH)

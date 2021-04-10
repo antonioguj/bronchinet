@@ -5,11 +5,13 @@ import numpy as np
 from tensorflow.keras.models import load_model
 import tensorflow as tf
 
-from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_EPOCH_KERAS, NAME_SAVEDMODEL_LAST_KERAS
 from common.functionutil import join_path_names
 from dataloaders.batchdatagenerator import BatchDataGenerator
 from models.modeltrainer import ModelTrainerBase
 from models.keras.callbacks import RecordLossHistory, ModelCheckpoint
+
+NAME_SAVEDMODEL_EPOCH = 'model_e%0.2d.hdf5'
+NAME_SAVEDMODEL_LAST = 'model_last.hdf5'
 
 
 class ModelTrainer(ModelTrainerBase):
@@ -34,30 +36,32 @@ class ModelTrainer(ModelTrainerBase):
                                      loss=self._loss.lossfun,
                                      metrics=list_metrics_funs)
 
-    def create_callbacks(self, models_path: str, **kwargs) -> None:
+    def create_callbacks(self, models_path: str, losshist_filename: str, **kwargs) -> None:
         self._list_callbacks = []
 
-        is_restart_model = kwargs['is_restart_model'] if 'is_restart_model' in kwargs.keys() \
-            else False
         is_validation_data = kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() \
             else True
         freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() \
             else 1
+        # freq_validate_model = kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() \
+        #     else 1
+        is_restart_model = kwargs['is_restart_model'] if 'is_restart_model' in kwargs.keys() \
+            else False
 
-        losshistory_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
-        new_callback = RecordLossHistory(losshistory_filename, self._list_metrics,
-                                         is_restart_model=is_restart_model,
-                                         is_hist_validation=is_validation_data)
+        losshist_filename = join_path_names(models_path, losshist_filename)
+        new_callback = RecordLossHistory(losshist_filename, self._list_metrics,
+                                         is_hist_validation=is_validation_data,
+                                         is_restart_model=is_restart_model)
         self._list_callbacks.append(new_callback)
 
-        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_EPOCH_KERAS)
+        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_EPOCH)
         new_callback = ModelCheckpoint(model_filename, self,
                                        freq_save_model=freq_save_check_model,
                                        type_save_model='full_model',
                                        update_filename_epoch=True)
         self._list_callbacks.append(new_callback)
 
-        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_LAST_KERAS)
+        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_LAST)
         new_callback = ModelCheckpoint(model_filename, self,
                                        type_save_model='full_model')
         self._list_callbacks.append(new_callback)

@@ -3,12 +3,14 @@ from collections import OrderedDict
 import numpy as np
 import argparse
 
-from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, SIZE_IN_IMAGES, PROP_OVERLAP_SLIDING_WINDOW_PRED, \
+from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, SIZE_IN_IMAGES, PROP_OVERLAP_SLIDING_WINDOW_TEST, \
     IS_SLIDING_WINDOW_IMAGES, IS_RANDOM_WINDOW_IMAGES, TYPE_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, \
     IS_MASK_REGION_INTEREST, NAME_TEMPO_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    NAME_REFERENCE_KEYS_POSTERIORS_FILE, TYPE_DNNLIB_USED, IS_FILTER_PRED_PROBMAPS, PROP_VALID_OUTPUT_NNET
-from common.functionutil import join_path_names, is_exist_file, basename, basename_filenoext, list_files_dir, str2bool,\
-    str2list_str, str2tuple_int, read_dictionary, read_dictionary_configparams, save_dictionary, save_dictionary_csv
+    NAME_REFERENCE_KEYS_POSTERIORS_FILE, IS_FILTER_OUT_PROBMAPS_NNET, PROP_FILTER_OUT_PROBMAPS_NNET, \
+    TYPE_DNNLIB_USED, IS_MODEL_GPU, IS_MODEL_HALFPREC
+from common.functionutil import join_path_names, is_exist_file, basename, basename_filenoext, list_files_dir, \
+    str2bool, str2float, str2list_str, str2tuple_int, str2tuple_float, read_dictionary, read_dictionary_configparams, \
+    save_dictionary, save_dictionary_csv
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.dataloader_manager import get_train_imagedataloader_1image
@@ -47,7 +49,7 @@ def main(args):
     print("\nLoad Saved model...")
     print("-" * 30)
 
-    print("Compute Predictions from file: \'%s\'..." % (args.preds_model_file))
+    print("Compute Predictions from file: \'%s\'..." % (args.input_model_file))
     model_trainer = get_model_trainer()
 
     print("Load full model (model weights and description, optimizer, loss and metrics) to restart model...")
@@ -58,9 +60,9 @@ def main(args):
         model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
                                           is_mask_to_region_interest=args.is_mask_region_interest)
     if args.is_backward_compat:
-        model_trainer.load_model_full_backward_compat(args.preds_model_file)
+        model_trainer.load_model_full_backward_compat(args.input_model_file)
     else:
-        model_trainer.load_model_full(args.preds_model_file)
+        model_trainer.load_model_full(args.input_model_file)
 
     # model_trainer.summary_model()
 
@@ -77,16 +79,18 @@ def main(args):
     if args.is_reconstruct_pred_patches:
         # Create Image Reconstructor
         images_reconstructor = get_images_reconstructor(args.size_in_images,
-                                                        is_sliding_window_images=True,
-                                                        prop_overlap_slide_window=PROP_OVERLAP_SLIDING_WINDOW_PRED,
-                                                        is_random_window_images=False,
-                                                        num_random_patches_epoch=0,
-                                                        is_transform_rigid_images=False,
-                                                        is_transform_elastic_images=False,
+                                                        is_sliding_window=True,
+                                                        prop_overlap_slide_images=args.prop_overlap_sliding_window,
+                                                        is_random_window=False,
+                                                        num_random_images=0,
+                                                        is_transform_rigid=False,
+                                                        trans_rigid_params=None,
+                                                        is_transform_elastic=False,
+                                                        type_trans_elastic=None,
                                                         is_nnet_validconvs=args.is_valid_convolutions,
-                                                        size_output_image=size_out_image_model,
-                                                        is_filter_output_nnet=IS_FILTER_PRED_PROBMAPS,
-                                                        prop_filter_output_nnet=PROP_VALID_OUTPUT_NNET)
+                                                        size_output_images=size_out_image_model,
+                                                        is_filter_output_nnet=args.is_filter_out_probmaps_nnet,
+                                                        prop_filter_output_nnet=args.prop_filter_out_probmaps_nnet)
 
     # *****************************************************
 
@@ -101,15 +105,20 @@ def main(args):
         print("Loading data...")
         image_data_loader = \
             get_train_imagedataloader_1image([in_image_file],
-                                             size_in_images=args.size_in_images,
-                                             is_sliding_window_images=args.is_reconstruct_pred_patches,
-                                             prop_overlap_slide_window=PROP_OVERLAP_SLIDING_WINDOW_PRED,
-                                             is_random_window_images=False,
-                                             num_random_patches_epoch=0,
-                                             is_transform_rigid_images=False,
-                                             is_transform_elastic_images=False,
+                                             size_images=args.size_in_images,
+                                             is_sliding_window=args.is_reconstruct_pred_patches,
+                                             prop_overlap_slide_images=args.prop_overlap_sliding_window,
+                                             is_random_window=False,
+                                             num_random_images=0,
+                                             is_transform_rigid=False,
+                                             trans_rigid_params=None,
+                                             is_transform_elastic=False,
+                                             type_trans_elastic=None,
                                              batch_size=1,
-                                             is_shuffle=False)
+                                             is_shuffle=False,
+                                             manual_seed=None,
+                                             is_datagen_gpu=args.is_model_gpu,
+                                             is_datagen_halfprec=args.is_model_halfprec)
         print("Loaded \'%s\' files. Total batches generated: %s..." % (1, len(image_data_loader)))
 
         # ******************************
@@ -173,13 +182,14 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('preds_model_file', type=str)
+    parser.add_argument('input_model_file', type=str)
     parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--in_config_file', type=str, default=None)
     parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--is_reconstruct_pred_patches', type=str2bool, default=(IS_SLIDING_WINDOW_IMAGES
                                                                                  or IS_RANDOM_WINDOW_IMAGES))
+    parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW_TEST)
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
     parser.add_argument('--list_type_metrics', type=str2list_str, default=LIST_TYPE_METRICS)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
@@ -187,8 +197,12 @@ if __name__ == "__main__":
     parser.add_argument('--name_output_predictions_relpath', type=str, default=NAME_TEMPO_POSTERIORS_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--name_output_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_POSTERIORS_FILE)
+    parser.add_argument('--is_filter_out_probmaps_nnet', type=str2bool, default=IS_FILTER_OUT_PROBMAPS_NNET)
+    parser.add_argument('--prop_filter_out_probmaps_nnet', type=str2float, default=PROP_FILTER_OUT_PROBMAPS_NNET)
     parser.add_argument('--is_save_featmaps_layer', type=str2bool, default=False)
     parser.add_argument('--name_layer_save_feats', type=str, default=None)
+    parser.add_argument('--is_model_gpu', type=str2bool, default=IS_MODEL_GPU)
+    parser.add_argument('--is_model_halfprec', type=str2bool, default=IS_MODEL_HALFPREC)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 

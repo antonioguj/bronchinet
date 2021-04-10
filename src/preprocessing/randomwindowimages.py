@@ -7,7 +7,6 @@ from imageoperators.imageoperator import CropImage
 from preprocessing.imagegenerator import ImageGenerator
 
 BoundBoxNDType = Tuple[Tuple[int, int], ...]
-np.random.seed(2017)
 
 
 class RandomWindowImages(ImageGenerator):

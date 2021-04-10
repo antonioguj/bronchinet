@@ -8,8 +8,6 @@ from imageoperators.boundingboxes import BoundingBoxes
 from imageoperators.imageoperator import CropImage
 from preprocessing.imagegenerator import ImageGenerator
 
-np.random.seed(2017)
-
 
 class BatchDataGenerator(object):
 
