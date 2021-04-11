@@ -150,7 +150,7 @@ def main(args):
                                    is_restart_model=args.is_restart)
     # model_trainer.summary_model()
 
-    if (IS_WRITEOUT_DESCMODEL_TEXT):
+    if IS_WRITEOUT_DESCMODEL_TEXT:
         out_descript_model_logfile = join_path_names(models_path, NAME_DESCRIPT_MODEL_LOGFILE)
         print("Write out descriptive model source model in text file: \'%s\'" % (out_descript_model_logfile))
         descmodel_text = model_trainer._networks.get_descmodel_sourcecode()

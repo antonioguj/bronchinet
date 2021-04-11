@@ -49,17 +49,17 @@ class ImageFileReader(object):
     @staticmethod
     def _get_filereader_class(filename: str) -> Any:
         extension = fileextension(filename)
-        if (extension == '.nii' or extension == '.nii.gz'):
+        if extension == '.nii' or extension == '.nii.gz':
             return NiftiReader
-        elif (extension == '.npy'):
+        elif extension == '.npy':
             return NumpyReader
-        elif (extension == '.npz'):
+        elif extension == '.npz':
             return NumpyZReader
-        elif (extension == '.hdf5'):
+        elif extension == '.hdf5':
             return Hdf5Reader
-        elif (extension == '.mhd'):
+        elif extension == '.mhd':
             return MHDRawReader
-        elif (extension == '.dcm'):
+        elif extension == '.dcm':
             return DicomReader
         else:
             message = "Not valid file extension: %s..." % (extension)

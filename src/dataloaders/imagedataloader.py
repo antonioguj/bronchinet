@@ -104,7 +104,7 @@ class ImageDataBatchesLoader(ImageDataLoader):
         else:
             out_batch_images = in_stack_images
 
-        if (is_shuffle):
+        if is_shuffle:
             (out_batch_images, _) = self._shuffle_data(out_batch_images)
 
         return out_batch_images
@@ -130,7 +130,7 @@ class ImageDataBatchesLoader(ImageDataLoader):
             out_batch_images_1 = in_stack_images_1
             out_batch_images_2 = in_stack_images_2
 
-        if (is_shuffle):
+        if is_shuffle:
             (out_batch_images_1, out_batch_images_2) = self._shuffle_data(out_batch_images_1, out_batch_images_2)
 
         return (out_batch_images_1, out_batch_images_2)
@@ -155,7 +155,7 @@ class ImageDataBatchesLoader(ImageDataLoader):
 
             out_batch_images = np.concatenate((out_batch_images, in_stack_images), axis=0)
 
-        if (is_shuffle):
+        if is_shuffle:
             (out_batch_images, _) = self._shuffle_data(out_batch_images)
 
         return out_batch_images
@@ -190,7 +190,7 @@ class ImageDataBatchesLoader(ImageDataLoader):
             out_batch_images_1 = np.concatenate((out_batch_images_1, in_stack_images_1), axis=0)
             out_batch_images_2 = np.concatenate((out_batch_images_2, in_stack_images_2), axis=0)
 
-        if (is_shuffle):
+        if is_shuffle:
             (out_batch_images_1, out_batch_images_2) = self._shuffle_data(out_batch_images_1, out_batch_images_2)
 
         return (out_batch_images_1, out_batch_images_2)

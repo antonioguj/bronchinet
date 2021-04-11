@@ -24,7 +24,7 @@ SCRIPT_CALC_RESCALE_FACTOR_IMAGES = join_path_names(CODEDIR, 'scripts_preparedat
 SCRIPT_CALC_BOUNDING_BOX_IMAGES = join_path_names(CODEDIR, 'scripts_preparedata/compute_boundingbox_images.py')
 SCRIPT_PREPARE_DATA = join_path_names(CODEDIR, 'scripts_preparedata/prepare_data.py')
 
-CLUSTER_ARCHIVE_DIR = 'agarcia@bigr-app001:/scratch/agarcia/Data/'
+SOURCE_REMOTE_BASEDIR = 'agarcia@bigr-app001:/scratch/agarcia/Data/'
 
 LIST_TYPE_DATA_AVAIL = ['training', 'testing']
 
@@ -75,15 +75,15 @@ def main(args):
     output_datadir = args.output_datadir
     makedir(output_datadir)
 
-    source_cluster_data_dir = join_path_names(CLUSTER_ARCHIVE_DIR, args.in_cluster_casedir)
+    source_remote_datadir = join_path_names(SOURCE_REMOTE_BASEDIR, args.source_remote_datadir)
 
-    name_source_raw_images_path = join_path_names(source_cluster_data_dir, 'CTs/')
-    name_source_raw_labels_path = join_path_names(source_cluster_data_dir, 'Airways/')
-    name_source_raw_roimasks_path = join_path_names(source_cluster_data_dir, 'Lungs/')
+    name_remote_raw_images_path = join_path_names(source_remote_datadir, 'CTs/')
+    name_remote_raw_labels_path = join_path_names(source_remote_datadir, 'Airways/')
+    name_remote_raw_roimasks_path = join_path_names(source_remote_datadir, 'Lungs/')
     if args.is_prepare_coarse_airways:
-        name_source_raw_coarse_airways_path = join_path_names(source_cluster_data_dir, 'CoarseAirways/')
-    if args.in_cluster_casedir in ['DLCST', 'DLCST/']:
-        name_source_found_boundboxes_file = join_path_names(source_cluster_data_dir,
+        name_remote_raw_coarse_airways_path = join_path_names(source_remote_datadir, 'CoarseAirways/')
+    if args.source_remote_datadir in ['DLCST', 'DLCST/']:
+        name_remote_found_boundboxes_file = join_path_names(source_remote_datadir,
                                                             'Others/found_boundingBox_croppedCTinFull.npy')
 
     output_datadir = join_path_names(currentdir(), output_datadir)
@@ -97,29 +97,29 @@ def main(args):
         name_input_raw_centrelines_path = join_path_names(output_datadir, NAME_RAW_CENTRELINES_RELPATH)
     if args.is_prepare_coarse_airways:
         name_input_raw_coarse_airways_path = join_path_names(output_datadir, NAME_RAW_COARSEAIRWAYS_RELPATH)
-    if args.in_cluster_casedir in ['DLCST', 'DLCST/']:
-        name_input_found_boundboxes_file = join_path_names(output_datadir, basename(name_source_found_boundboxes_file))
+    if args.source_remote_datadir in ['DLCST', 'DLCST/']:
+        name_input_found_boundboxes_file = join_path_names(output_datadir, basename(name_remote_found_boundboxes_file))
 
     # *****************************************************
 
     list_calls_all = []
 
     # 1st: Download data from the cluster
-    new_call = ['rsync', '-avr', name_source_raw_images_path, name_input_raw_images_path]
+    new_call = ['rsync', '-avr', name_remote_raw_images_path, name_input_raw_images_path]
     list_calls_all.append(new_call)
 
-    new_call = ['rsync', '-avr', name_source_raw_labels_path, name_input_raw_labels_path]
+    new_call = ['rsync', '-avr', name_remote_raw_labels_path, name_input_raw_labels_path]
     list_calls_all.append(new_call)
 
-    new_call = ['rsync', '-avr', name_source_raw_roimasks_path, name_input_raw_roimasks_path]
+    new_call = ['rsync', '-avr', name_remote_raw_roimasks_path, name_input_raw_roimasks_path]
     list_calls_all.append(new_call)
 
     if args.is_prepare_coarse_airways:
-        new_call = ['rsync', '-avr', name_source_raw_coarse_airways_path, name_input_raw_coarse_airways_path]
+        new_call = ['rsync', '-avr', name_remote_raw_coarse_airways_path, name_input_raw_coarse_airways_path]
         list_calls_all.append(new_call)
 
-    if args.in_cluster_casedir in ['DLCST', 'DLCST/']:
-        new_call = ['rsync', '-avr', name_source_found_boundboxes_file, name_input_found_boundboxes_file]
+    if args.source_remote_datadir in ['DLCST', 'DLCST/']:
+        new_call = ['rsync', '-avr', name_remote_found_boundboxes_file, name_input_found_boundboxes_file]
         list_calls_all.append(new_call)
 
     # Iterate over the list and carry out call serially
@@ -159,11 +159,13 @@ def main(args):
         name_tempo_binary_labels_path = set_dirname_suffix(name_input_raw_labels_path, 'Binary')
         name_tempo_binary_roimasks_path = set_dirname_suffix(name_input_raw_roimasks_path, 'Binary')
 
-        new_call = ['python3', SCRIPT_BINARISE_MASKS, name_input_raw_labels_path, name_tempo_binary_labels_path,
+        new_call = ['python3', SCRIPT_BINARISE_MASKS,
+                    name_input_raw_labels_path, name_tempo_binary_labels_path,
                     '--type', 'binarise']
         list_calls_all.append(new_call)
 
-        new_call = ['python3', SCRIPT_BINARISE_MASKS, name_input_raw_roimasks_path, name_tempo_binary_roimasks_path,
+        new_call = ['python3', SCRIPT_BINARISE_MASKS,
+                    name_input_raw_roimasks_path, name_tempo_binary_roimasks_path,
                     '--type', 'binarise']
         list_calls_all.append(new_call)
 
@@ -175,8 +177,8 @@ def main(args):
 
     # Extract the labels for trachea and main bronchi from the coarse airways (AND FILL HOLES INSIDE THE TRACHEA)
     if args.is_prepare_coarse_airways:
-        name_tempo_trachea_main_bronchi_path \
-            = set_dirname_suffix(name_input_raw_coarse_airways_path, 'TracheaMainBronchi')
+        name_tempo_trachea_main_bronchi_path = \
+            set_dirname_suffix(name_input_raw_coarse_airways_path, 'TracheaMainBronchi')
 
         new_call = ['python3', SCRIPT_GET_TRACHEA_MAIN_BRONCHI,
                     name_input_raw_coarse_airways_path, name_tempo_trachea_main_bronchi_path,
@@ -192,7 +194,7 @@ def main(args):
     # ******************************
 
     # 3rd (for DLCST data): Extend the raw images from the cropped and flipped format found in the cluster
-    if args.in_cluster_casedir in ['DLCST', 'DLCST/']:
+    if args.source_remote_datadir in ['DLCST', 'DLCST/']:
         name_tempo_extended_labels_path = set_dirname_suffix(name_input_raw_labels_path, 'Extended')
         name_tempo_extended_roimasks_path = set_dirname_suffix(name_input_raw_roimasks_path, 'Extended')
 
@@ -300,7 +302,7 @@ def main(args):
         new_call = ['rm', '-r', name_input_raw_roimasks_path]
         list_calls_all.append(new_call)
 
-        if args.in_cluster_casedir in ['DLCST', 'DLCST/']:
+        if args.source_remote_datadir in ['DLCST', 'DLCST/']:
             new_call = ['rm', name_input_found_boundboxes_file]
             list_calls_all.append(new_call)
 
@@ -321,7 +323,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('in_cluster_casedir', type=str)
+    parser.add_argument('source_remote_datadir', type=str)
     parser.add_argument('output_datadir', type=str)
     parser.add_argument('--type_data', type=str, default='training')
     parser.add_argument('--size_train_images', type=str2tuple_int, default=SIZE_IN_IMAGES)

@@ -34,7 +34,7 @@ def main(args):
 
         in_mask = ImageFileReader.get_image(in_mask_file)
 
-        if (args.is_mask_region_interest):
+        if args.is_mask_region_interest:
             print("Compute ratio foreground / background masks with exclusion to Region of Interest...")
             (num_foregrnd_cls, num_backgrnd_cls) = compute_balance_classes_with_exclusion(in_mask)
         else:

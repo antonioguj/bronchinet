@@ -47,7 +47,7 @@ def main(args):
     indict_reference_keys = read_dictionary(in_reference_keys_file)
     pattern_search_infiles = get_regex_pattern_filename(list(indict_reference_keys.values())[0])
 
-    if (args.is_remove_trachea_calc_metrics):
+    if args.is_remove_trachea_calc_metrics:
         input_coarse_airways_path = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
 
@@ -82,7 +82,7 @@ def main(args):
             in_reference_mask = ImageFileReader.get_image(in_reference_mask_file)
             in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
 
-            if (args.is_remove_trachea_calc_metrics):
+            if args.is_remove_trachea_calc_metrics:
                 in_coarse_airways_file = find_file_inlist_with_pattern(basename(in_posteriors_file),
                                                                        list_input_coarse_airways_files,
                                                                        pattern_search=pattern_search_infiles)
@@ -112,7 +112,7 @@ def main(args):
                 # Compute the binary masks by thresholding the posteriors
                 in_predicted_mask = ThresholdImage.compute(in_posteriors, curr_thres_value)
 
-                if (args.is_connected_masks):
+                if args.is_connected_masks:
                     # Compute the first connected component from the binary masks
                     in_predicted_mask = FirstConnectedRegionMask.compute(in_predicted_mask, connectivity_dim=1)
 
@@ -126,7 +126,7 @@ def main(args):
                         # 'catch' issues when predictions are 'weird' (for extreme threshold values)
                         in_predicted_cenline = np.zeros_like(in_predicted_mask)
 
-                if (args.is_remove_trachea_calc_metrics):
+                if args.is_remove_trachea_calc_metrics:
                     in_coarse_airways = list_in_coarse_airways[ipos]
 
                     # Remove the trachea and main bronchi from the binary masks

@@ -31,7 +31,7 @@ def main(args):
     indict_reference_keys = read_dictionary(in_reference_keys_file)
     pattern_search_infiles = get_regex_pattern_filename(list(indict_reference_keys.values())[0])
 
-    if (args.is_remove_trachea_calc_metrics):
+    if args.is_remove_trachea_calc_metrics:
         input_coarse_airways_path = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
 
@@ -69,7 +69,7 @@ def main(args):
         in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
         print("Predictions of size: %s..." % (str(in_predicted_mask.shape)))
 
-        if (args.is_remove_trachea_calc_metrics):
+        if args.is_remove_trachea_calc_metrics:
             print("Remove trachea and main bronchi masks in computed metrics...")
             in_coarse_airways_file = find_file_inlist_with_pattern(basename(in_predicted_mask_file),
                                                                    list_input_coarse_airways_files,

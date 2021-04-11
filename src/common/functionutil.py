@@ -179,7 +179,7 @@ def basename_filenoext(filename: str, is_split_recursive: bool = True) -> str:
 def list_files_dir(dirname: str, filename_pattern: str = '*', is_check: bool = True) -> List[str]:
     listfiles = sorted(glob.glob(join_path_names(dirname, filename_pattern)))
     if is_check:
-        if (len(listfiles) == 0):
+        if len(listfiles) == 0:
             message = 'No files found in \'%s\' with \'%s\'' % (dirname, filename_pattern)
             catch_error_exception(message)
     return listfiles
@@ -379,7 +379,6 @@ def is_string_tuple(in_str: str) -> bool:
 
 
 def get_string_datatype(in_str: str) -> str:
-    out_datatype = 0
     if is_string_bool(in_str):
         out_datatype = 'bool'
     elif is_string_int(in_str):
@@ -521,7 +520,7 @@ class ImagesUtil:
         return len(in_shape_image) == len(in_size_image)
 
     @classmethod
-    def get_num_channels(cls, in_size_image: Tuple[int, ...], in_shape_image: Tuple[int, ...]) -> int:
+    def get_num_channels(cls, in_size_image: Tuple[int, ...], in_shape_image: Tuple[int, ...]) -> Union[int, None]:
         if cls.is_without_channels(in_size_image, in_shape_image):
             return None
         else:

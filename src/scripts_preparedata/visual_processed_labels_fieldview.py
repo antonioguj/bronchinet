@@ -120,7 +120,7 @@ def main(args):
         ImageFileReader.write_image(out_filename, out_fieldview_reconstructed)
     # endfor
 
-    if (len(names_files_different) == 0):
+    if len(names_files_different) == 0:
         print("\nGOOD: ALL IMAGE FILES ARE EQUAL...")
     else:
         print("\nWARNING: Found \'%s\' files that are different. Names of files: \'%s\'..."

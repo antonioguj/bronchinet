@@ -19,7 +19,7 @@ from models.model_manager import get_model_trainer, get_visual_model_params
 from postprocessing.postprocessing_manager import get_images_reconstructor
 
 
-def func_extract_caseprocname_filename(in_filename: str) -> str:
+def func_extract_caseprocname(in_filename: str) -> str:
     return basename_filenoext(in_filename).replace('images_proc', '')
 
 
@@ -29,7 +29,7 @@ def main(args):
     name_input_images_files = 'images_proc*.nii.gz'
     # name_input_labels_files = 'labels_proc*.nii.gz'
     # name_input_extra_labels_files = 'cenlines_proc*.nii.gz'
-    if (args.is_save_featmaps_layer):
+    if args.is_save_featmaps_layer:
         name_output_prediction_files = 'featmaps_proc%s_lay-%s_feat%0.2i.nii.gz'
     else:
         name_output_prediction_files = 'probmaps_proc%s.nii.gz'
@@ -66,7 +66,7 @@ def main(args):
 
     # model_trainer.summary_model()
 
-    if (args.is_save_featmaps_layer):
+    if args.is_save_featmaps_layer:
         print("Compute and store Feature Maps from the Model layer \'%s\'..." % (args.name_layer_save_feats))
         visual_model_params = get_visual_model_params(model_trainer._network, args.size_in_images)
 
@@ -123,7 +123,7 @@ def main(args):
 
         # ******************************
 
-        if (args.is_save_featmaps_layer):
+        if args.is_save_featmaps_layer:
             print("Evaluate Model feature maps...")
             out_prediction_batches = visual_model_params.get_feature_maps(image_data_loader,
                                                                           args.name_layer_save_feats)
@@ -146,15 +146,15 @@ def main(args):
 
         # Output predictions
         in_reference_key = indict_reference_keys[basename_filenoext(in_image_file)]
-        in_caseprocname_file = func_extract_caseprocname_filename(in_image_file)
+        in_caseproc_name = func_extract_caseprocname(in_image_file)
 
-        if (args.is_save_featmaps_layer):
+        if args.is_save_featmaps_layer:
             num_featmaps = out_prediction_reconstructed.shape[-1]
             print("Output model Feature maps (\'%s\' in total)..." % (num_featmaps))
 
             for ifeat in range(num_featmaps):
                 output_prediction_file = join_path_names(output_predictions_path,
-                                                         name_output_prediction_files % (in_caseprocname_file,
+                                                         name_output_prediction_files % (in_caseproc_name,
                                                                                          args.name_layer_save_feats,
                                                                                          ifeat + 1))
                 print("Output: \'%s\', of dims \'%s\'..." % (basename(output_prediction_file),
@@ -166,7 +166,7 @@ def main(args):
             # endfor
         else:
             output_prediction_file = join_path_names(output_predictions_path,
-                                                     name_output_prediction_files % (in_caseprocname_file))
+                                                     name_output_prediction_files % (in_caseproc_name))
             print("Output: \'%s\', of dims \'%s\'..." % (basename(output_prediction_file),
                                                          out_prediction_reconstructed.shape))
 

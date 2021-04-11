@@ -19,7 +19,7 @@ class VisualModelParams(VisualModelParamsBase):
 
     def _is_exist_name_layer_model(self, in_name_layer: str) -> bool:
         for ilayer_key, _ in self._network._modules.items():
-            if (ilayer_key == in_name_layer):
+            if ilayer_key == in_name_layer:
                 return True
         return False
 

@@ -70,7 +70,7 @@ def main(args):
     list_input_files_1 = list_files_dir(args.inputdir_1)
     list_input_files_2 = list_files_dir(args.inputdir_2)
 
-    if (len(list_input_files_1) != len(list_input_files_2)):
+    if len(list_input_files_1) != len(list_input_files_2):
         message = 'num files in dir 1 \'%s\', not equal to num files in dir 2 \'%i\'...' \
                   % (len(list_input_files_1), len(list_input_files_2))
         catch_error_exception(message)
@@ -109,7 +109,7 @@ def main(args):
         # in_image_1 = MaskOperator.binarise(in_image_1)
         # in_image_2 = MaskOperator.binarise(in_image_2)
 
-        if (in_image_1.shape == in_image_2.shape):
+        if in_image_1.shape == in_image_2.shape:
             is_images_equal_voxelwise = np.array_equal(in_image_1, in_image_2)
 
             if is_images_equal_voxelwise:
@@ -194,7 +194,7 @@ def main(args):
                 # endfor
     # endfor
 
-    if (len(names_files_different) == 0):
+    if len(names_files_different) == 0:
         print("\nGOOD: ALL IMAGE FILES ARE EQUAL...")
     else:
         print("\nWARNING: Found \'%s\' files that are different. Names of files: \'%s\'..."

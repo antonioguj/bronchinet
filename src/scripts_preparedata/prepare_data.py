@@ -20,7 +20,7 @@ from imageoperators.maskoperator import MaskOperator
 
 
 def check_same_number_files_in_list(list_files_1: List[str], list_files_2: List[str]):
-    if (len(list_files_1) != len(list_files_2)):
+    if len(list_files_1) != len(list_files_2):
         message = 'num files in two lists not equal: \'%s\' != \'%s\'...' \
                   % (len(list_files_1), len(list_files_2))
         catch_error_exception(message)
@@ -52,32 +52,32 @@ def main(args):
     list_input_images_files = list_files_dir(input_images_path)
     list_in_reference_files = list_files_dir(in_reference_files_path)
 
-    if (args.is_prepare_labels):
+    if args.is_prepare_labels:
         input_labels_path = workdir_manager.get_pathdir_exist(args.name_input_labels_relpath)
         output_labels_path = workdir_manager.get_pathdir_new(args.name_output_labels_relpath)
         list_input_labels_files = list_files_dir(input_labels_path)
         check_same_number_files_in_list(list_input_images_files, list_input_labels_files)
 
-    if (args.is_mask_region_interest):
+    if args.is_mask_region_interest:
         input_roimasks_path = workdir_manager.get_pathdir_exist(args.name_input_roimasks_relpath)
         list_input_roimasks_files = list_files_dir(input_roimasks_path)
         check_same_number_files_in_list(list_input_images_files, list_input_roimasks_files)
 
-    if (args.is_input_extra_labels):
+    if args.is_input_extra_labels:
         input_extra_labels_path = workdir_manager.get_pathdir_exist(args.name_input_extra_labels_relpath)
         output_extra_labels_path = workdir_manager.get_pathdir_new(args.name_output_extra_labels_relpath)
         list_input_extra_labels_files = list_files_dir(input_extra_labels_path)
         check_same_number_files_in_list(list_input_images_files, list_input_extra_labels_files)
 
-    if (args.is_rescale_images):
+    if args.is_rescale_images:
         input_rescale_factors_file = workdir_manager.get_pathfile_exist(args.name_rescale_factors_file)
         indict_rescale_factors = read_dictionary(input_rescale_factors_file)
 
-    if (args.is_crop_images):
+    if args.is_crop_images:
         input_crop_boundboxes_file = workdir_manager.get_pathfile_exist(args.name_crop_boundboxes_file)
         indict_crop_boundboxes = read_dictionary(input_crop_boundboxes_file)
 
-    if (args.is_crop_images):
+    if args.is_crop_images:
         first_elem_dict_crop_boundboxes = list(indict_crop_boundboxes.values())[0]
         if type(first_elem_dict_crop_boundboxes) == list:
             is_output_multiple_files_per_image = True
@@ -111,12 +111,12 @@ def main(args):
 
         # ******************************
 
-        if (args.is_prepare_labels):
+        if args.is_prepare_labels:
             in_label_file = list_input_labels_files[ifile]
             print("And Labels: \'%s\'..." % (basename(in_label_file)))
 
             inout_label = ImageFileReader.get_image(in_label_file)
-            if (args.is_binary_train_masks):
+            if args.is_binary_train_masks:
                 print("Convert masks to binary (0, 1)...")
                 inout_label = MaskOperator.binarise(inout_label)
 
@@ -128,12 +128,12 @@ def main(args):
 
         # ******************************
 
-        if (args.is_mask_region_interest):
+        if args.is_mask_region_interest:
             in_roimask_file = list_input_roimasks_files[ifile]
             print("And ROI Mask for labels: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)
-            if (args.is_roilabels_multi_roimasks):
+            if args.is_roilabels_multi_roimasks:
                 in_list_roimasks = MaskOperator.get_list_masks_all_labels(in_roimask)
                 list_inout_data += in_list_roimasks
                 list_type_inout_data += ['roimask'] * len(in_list_roimasks)
@@ -147,7 +147,7 @@ def main(args):
 
         # ******************************
 
-        if (args.is_input_extra_labels):
+        if args.is_input_extra_labels:
             in_extra_label_file = list_input_extra_labels_files[ifile]
             print("And extra labels: \'%s\'..." % (basename(in_extra_label_file)))
 
@@ -163,10 +163,9 @@ def main(args):
 
         # ******************************
 
-        if (args.is_normalize_data):
+        if args.is_normalize_data:
             for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
-                if (type_in_data == 'image') or \
-                        (type_in_data == 'label' and not args.is_binary_train_masks):
+                if (type_in_data == 'image') or (type_in_data == 'label' and not args.is_binary_train_masks):
                     print("Normalize input data \'%s\' of type \'%s\'..." % (idata, type_in_data))
                     out_data = NormaliseImage.compute(in_data)
                     list_inout_data[idata] = out_data
@@ -174,7 +173,7 @@ def main(args):
 
         # ******************************
 
-        if (args.is_rescale_images):
+        if args.is_rescale_images:
             in_reference_key = list_in_reference_files[ifile]
             in_rescale_factor = indict_rescale_factors[basename_filenoext(in_reference_key)]
             print("Rescale image with a factor: \'%s\'..." % (str(in_rescale_factor)))
@@ -182,11 +181,11 @@ def main(args):
             if in_rescale_factor != (1.0, 1.0, 1.0):
                 for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
                     print("Rescale input data \'%s\' of type \'%s\'..." % (idata, type_in_data))
-                    if (type_in_data == 'image'):
+                    if type_in_data == 'image':
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3)
-                    elif (type_in_data == 'label'):
+                    elif type_in_data == 'label':
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3, is_inlabels=True)
-                    elif (type_in_data == 'roimask'):
+                    elif type_in_data == 'roimask':
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3, is_inlabels=True,
                                                         is_binarise_output=True)
                     list_inout_data[idata] = out_data
@@ -198,12 +197,12 @@ def main(args):
 
         # ******************************
 
-        if (args.is_mask_region_interest):
+        if args.is_mask_region_interest:
             list_indexes_roimasks = [j for j, type_data in enumerate(list_type_inout_data) if type_data == 'roimask']
 
             for imask, index_roimask in enumerate(list_indexes_roimasks):
                 for jdata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
-                    if (type_in_data == 'label'):
+                    if type_in_data == 'label':
                         print("Mask input label \'%s\' to ROI mask \'%s\'..." % (jdata, imask))
                         out_data = MaskOperator.mask_image_exclude_regions(in_data, list_inout_data[index_roimask])
                         list_inout_data[jdata] = out_data
@@ -216,16 +215,17 @@ def main(args):
 
         # ******************************
 
-        if (args.is_crop_images):
+        if args.is_crop_images:
             in_reference_key = list_in_reference_files[ifile]
             list_in_crop_boundboxes = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
             num_crop_boundboxes = len(list_in_crop_boundboxes)
             print("Compute \'%s\' cropped images for this raw image:" % (num_crop_boundboxes))
 
-            if (args.is_mask_region_interest and args.is_roilabels_multi_roimasks):
+            if args.is_mask_region_interest and args.is_roilabels_multi_roimasks:
                 num_total_labels = list_type_inout_data.count('label')
                 num_total_labels_tocrop = num_crop_boundboxes * num_init_labels
-                if (num_total_labels_tocrop != num_total_labels):
+
+                if num_total_labels_tocrop != num_total_labels:
                     message = 'num labels to crop to bounding boxes is wrong: \'%s\' != \'%s\' (expected)...' \
                               % (num_total_labels, num_total_labels_tocrop)
                     catch_error_exception(message)
@@ -284,7 +284,7 @@ def main(args):
         # ******************************
 
         # Output processed images
-        if (args.is_crop_images):
+        if args.is_crop_images:
             num_output_files_per_image = num_crop_boundboxes
         else:
             num_output_files_per_image = 1
@@ -312,7 +312,7 @@ def main(args):
         # endfor
 
         for isubfile in range(num_output_files_per_label):
-            if (args.is_prepare_labels):
+            if args.is_prepare_labels:
                 if list_type_inout_data[icount] != 'label':
                     message = 'Expected to output an image, but found data of type %s' % (list_type_inout_data[icount])
                     catch_error_exception(message)
@@ -329,7 +329,7 @@ def main(args):
                 ImageFileReader.write_image(output_label_file, list_inout_data[icount])
                 icount += 1
 
-            if (args.is_input_extra_labels):
+            if args.is_input_extra_labels:
                 if list_type_inout_data[icount] != 'label':
                     message = 'Expected to output an image, but found data of type %s' % (list_type_inout_data[icount])
                     catch_error_exception(message)

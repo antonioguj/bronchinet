@@ -17,9 +17,9 @@ class VisualModelParamsBase(object):
         self._size_image = size_image
 
     def _is_list_images_patches(self, in_shape_image: Tuple[int, ...]) -> bool:
-        if(len(in_shape_image) == len(self._size_image) + 1):
+        if (len(in_shape_image) == len(self._size_image) + 1):
             return False
-        elif(len(in_shape_image) == len(self._size_image) + 2):
+        elif (len(in_shape_image) == len(self._size_image) + 2):
             return True
         else:
             message = 'wrong \'in_shape_image\': %s...' % (in_shape_image)

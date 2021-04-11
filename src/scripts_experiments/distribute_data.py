@@ -35,7 +35,7 @@ def search_indexes_in_files_from_reference_keys(in_readfile: str, list_in_refere
 
 
 def check_same_number_files_in_list(list_files_1: List[str], list_files_2: List[str]):
-    if (len(list_files_1) != len(list_files_2)):
+    if len(list_files_1) != len(list_files_2):
         message = 'num files in two lists not equal: \'%s\' != \'%s\'...' % (len(list_files_1), len(list_files_2))
         catch_error_exception(message)
 
@@ -51,12 +51,12 @@ def main(args):
     in_reference_keys_file = workdir_manager.get_datafile_exist(args.name_input_reference_keys_file)
     list_input_images_files = list_files_dir(input_images_data_path)
 
-    if (args.is_prepare_labels):
+    if args.is_prepare_labels:
         input_labels_data_path = workdir_manager.get_datadir_exist(args.name_input_labels_relpath)
         list_input_labels_files = list_files_dir(input_labels_data_path)
         check_same_number_files_in_list(list_input_images_files, list_input_labels_files)
 
-    if (args.is_input_extra_labels):
+    if args.is_input_extra_labels:
         input_extra_labels_data_path = workdir_manager.get_datadir_exist(args.name_input_extra_labels_relpath)
         list_input_extra_labels_files = list_files_dir(input_extra_labels_data_path)
         check_same_number_files_in_list(list_input_images_files, list_input_extra_labels_files)

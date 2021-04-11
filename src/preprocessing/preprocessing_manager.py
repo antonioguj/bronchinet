@@ -27,14 +27,14 @@ def get_images_generator(size_images: Tuple[int, ...],
                          ) -> ImageGenerator:
     list_images_generators = []
 
-    if (is_sliding_window):
+    if is_sliding_window:
         # generator of image patches by sliding-window...
         new_images_generator = SlidingWindowImages(size_images,
                                                    prop_overlap_slide_images,
                                                    size_volume_images)
         list_images_generators.append(new_images_generator)
 
-    elif (is_random_window):
+    elif is_random_window:
         # generator of image patches by random cropping window...
         new_images_generator = RandomWindowImages(size_images,
                                                   num_random_images,

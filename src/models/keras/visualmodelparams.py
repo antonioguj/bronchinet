@@ -20,7 +20,7 @@ class VisualModelParams(VisualModelParamsBase):
 
     def _find_layer_index_from_name(self, in_name_layer: str) -> int:
         for index_layer, name_layer in enumerate(self._network.layers):
-            if (name_layer.name == in_name_layer):
+            if name_layer.name == in_name_layer:
                 return index_layer
         return None
 
@@ -55,7 +55,7 @@ class VisualModelParams(VisualModelParamsBase):
             get_feat_maps_layer_func = K.function([self._network.input],
                                                   [model_layer_class.output])
 
-        if (self._is_list_images_patches(in_images.shape)):
+        if self._is_list_images_patches(in_images.shape):
             # Input: list of image patches
             num_patches = in_images.shape[0]
             out_shape_featmaps = [num_patches] + list(self._size_image) + [num_featmaps]
