@@ -55,6 +55,8 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
                                             is_transform_elastic=is_transform_elastic,
                                             type_trans_elastic=type_trans_elastic,
                                             size_volume_images=size_volume_images)
+    print(images_generator.get_text_description())
+
     return BatchImageDataGenerator1Image(size_images,
                                          list_xdata,
                                          images_generator,
@@ -108,6 +110,8 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
                                             is_transform_elastic=is_transform_elastic,
                                             type_trans_elastic=type_trans_elastic,
                                             size_volume_images=size_volume_images)
+    print(images_generator.get_text_description())
+
     return BatchImageDataGenerator2Images(size_images,
                                           list_xdata,
                                           list_ydata,
@@ -160,6 +164,8 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                             is_transform_elastic=is_transform_elastic,
                                             type_trans_elastic=type_trans_elastic,
                                             size_volume_images=size_volume_images)
+    print(images_generator.get_text_description())
+
     return TrainBatchImageDataGenerator1Image(size_images,
                                               list_xdata,
                                               images_generator,
@@ -215,6 +221,8 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                             is_transform_elastic=is_transform_elastic,
                                             type_trans_elastic=type_trans_elastic,
                                             size_volume_images=size_volume_images)
+    print(images_generator.get_text_description())
+
     return TrainBatchImageDataGenerator2Images(size_images,
                                                list_xdata,
                                                list_ydata,

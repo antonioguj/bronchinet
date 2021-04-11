@@ -81,6 +81,6 @@ class RandomWindowImages(ImageGenerator):
 
     def get_text_description(self) -> str:
         message = 'Random-window generation of images:\n'
-        message += 'size image: \'%s\', size volume image: \'%s\'. Num random patches per volume: \'%s\'...\n' \
+        message += 'size image: \'%s\', size volume: \'%s\', num random patches: \'%s\'...\n' \
                    % (str(self._size_image), str(self._size_volume_image), self._num_images)
         return message

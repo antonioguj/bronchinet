@@ -54,6 +54,7 @@ def get_images_generator(size_images: Union[Tuple[int, int, int], Tuple[int, int
                                                           zoom_range=trans_zoom_range,
                                                           fill_mode=trans_fill_mode)
             list_images_generators.append(new_images_generator)
+
         elif ndims == 3:
             new_images_generator = TransformRigidImages3D(size_images,
                                                           rotation_xy_range=trans_rotation_range[0],
@@ -68,6 +69,7 @@ def get_images_generator(size_images: Union[Tuple[int, int, int], Tuple[int, int
                                                           zoom_range=trans_zoom_range,
                                                           fill_mode=trans_fill_mode)
             list_images_generators.append(new_images_generator)
+
         else:
             message = 'Wrong value of \'ndims\': %s' % (ndims)
             catch_error_exception(message)

@@ -61,7 +61,7 @@ class BatchImageDataGenerator1Image(BatchDataGenerator):
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_print_datagen_info: bool = True
+                 is_print_datagen_info: bool = False
                  ) -> None:
         self._size_image = size_image
         self._list_xdata = list_xdata
@@ -156,7 +156,7 @@ class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_print_datagen_info: bool = True
+                 is_print_datagen_info: bool = False
                  ) -> None:
         super(BatchImageDataGenerator2Images, self).__init__(size_image,
                                                              list_xdata,

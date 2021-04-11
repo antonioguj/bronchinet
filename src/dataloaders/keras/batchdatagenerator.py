@@ -18,9 +18,9 @@ class TrainBatchImageDataGenerator1Image(BatchImageDataGenerator1Image, Sequence
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_print_datagen_info: bool = True,
                  is_datagen_gpu: bool = True,
-                 is_datagen_halfprec: bool = False
+                 is_datagen_halfprec: bool = False,
+                 is_print_datagen_info: bool = False
                  ) -> None:
         super(TrainBatchImageDataGenerator1Image, self).__init__(size_image,
                                                                  list_xdata,
@@ -59,9 +59,9 @@ class TrainBatchImageDataGenerator2Images(BatchImageDataGenerator2Images, Sequen
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_print_datagen_info: bool = True,
                  is_datagen_gpu: bool = True,
-                 is_datagen_halfprec: bool = False
+                 is_datagen_halfprec: bool = False,
+                 is_print_datagen_info: bool = False
                  ) -> None:
         super(TrainBatchImageDataGenerator2Images, self).__init__(size_image,
                                                                   list_xdata,

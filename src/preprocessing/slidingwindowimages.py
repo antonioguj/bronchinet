@@ -159,7 +159,7 @@ class SlidingWindowImages(ImageGenerator):
 
     def get_text_description(self) -> str:
         message = 'Sliding-window generation of images:\n'
-        message += 'size image: \'%s\', prop. overlap: \'%s\', size volume image: \'%s\'...\n' \
+        message += 'size image: \'%s\', prop. overlap: \'%s\', size volume: \'%s\'...\n' \
                    % (str(self._size_image), str(self._prop_overlap_images), str(self._size_volume_image))
         message += 'num images total: \'%s\', and num images in each direction: \'%s\'...\n' \
                    % (self._num_images, str(self._num_images_dirs))
