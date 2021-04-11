@@ -70,7 +70,9 @@ Requirements
 Instructions
 ------------
 
-The user needs only to run the scripts provided: the python files with a 'main()' function. Each script performs a given operation, either to i) prepare data, ii) run experiments, or iii) evaluate results. Typically, the scripts take as arguments i) the path with the input files, ii) the path to store the output files, and iii) a series of optional settings that control the performed operation. All arguments are parsed to the script from the command line. The typical way to launch the scripts is:
+The user needs only to run the scripts provided: the python files with a 'main()' function. Each script performs a given operation, either to i) prepare data, ii) run experiments, or iii) evaluate results. Typically, the scripts take as arguments i) the path with the input files, ii) the path to store the output files, and iii) a series of optional settings that control the performed operation. All arguments are parsed to the script from the command line.
+
+The typical way to launch the scripts is:
 
 - python <path_script> <path_input_files> <path_output_files> --<option_arg_1>=<value> --<option_arg_2>=<value> ...
 
@@ -78,7 +80,7 @@ The names for the optional input arguments of the given script can be displayed 
 
 - python <path_script> --help
 
-For the optional arguments that are not indicated in the command line, they take a default value given in the source file: "<path_thiscode_stored>/src/common/constant.py"
+For the optional arguments that are not given in the command line, they take the default value given in the source file: "src/common/constant.py"
 
 Create working directory
 ------------
