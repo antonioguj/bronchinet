@@ -27,7 +27,7 @@ def get_images_reconstructor(size_images: Union[Tuple[int, int, int], Tuple[int,
         message = 'Image Reconstructor without Sliding-window generation of Image patches not implemented yet'
         catch_error_exception(message)
 
-    fill_missing_trans_rigid_params(trans_rigid_params)
+    trans_rigid_params = fill_missing_trans_rigid_params(trans_rigid_params)
 
     images_generator = get_images_generator(size_images,
                                             is_sliding_window=is_sliding_window,

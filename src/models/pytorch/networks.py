@@ -28,8 +28,9 @@ class UNet(UNetBase, nn.Module):
         super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in,
                                    num_classes_out, is_use_valid_convols=is_use_valid_convols)
         nn.Module.__init__(self)
-        self._size_input = ImagesUtil.get_shape_channels_first(self._size_input)
-        self._size_output = ImagesUtil.get_shape_channels_first(self._size_output)
+
+        self._shape_input = ImagesUtil.get_shape_channels_first(self._shape_input)
+        self._shape_output = ImagesUtil.get_shape_channels_first(self._shape_output)
 
     def preprocess(self, *args, **kwargs) -> None:
         pass

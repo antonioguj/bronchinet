@@ -101,7 +101,7 @@ def get_images_generator(size_images: Union[Tuple[int, int, int], Tuple[int, int
         return CombinedImagesGenerator(list_images_generators)
 
 
-def fill_missing_trans_rigid_params(in_trans_params: Union[Dict[str, Any], None]) -> None:
+def fill_missing_trans_rigid_params(in_trans_params: Union[Dict[str, Any], None]) -> Dict[str, Any]:
     rotation_range_default = (0.0, 0.0, 0.0)
     shift_range_default = (0.0, 0.0, 0.0)
     flip_dirs_default = (False, False, False)
@@ -123,3 +123,5 @@ def fill_missing_trans_rigid_params(in_trans_params: Union[Dict[str, Any], None]
         in_trans_params['zoom_range'] = zoom_range_default
     if 'fill_mode' not in in_trans_params_keys:
         in_trans_params['fill_mode'] = fill_mode_default
+
+    return in_trans_params

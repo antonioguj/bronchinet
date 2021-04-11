@@ -39,7 +39,7 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
     size_volume_images = list_xdata[0].shape if len(list_xdata) == 1 else (0, 0, 0)
     num_channels_in = 1
 
-    fill_missing_trans_rigid_params(trans_rigid_params)
+    trans_rigid_params = fill_missing_trans_rigid_params(trans_rigid_params)
 
     images_generator = get_images_generator(size_images,
                                             is_sliding_window=is_sliding_window,
@@ -92,7 +92,7 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
     num_channels_in = 1
     num_classes_out = 1
 
-    fill_missing_trans_rigid_params(trans_rigid_params)
+    trans_rigid_params = fill_missing_trans_rigid_params(trans_rigid_params)
 
     images_generator = get_images_generator(size_images,
                                             is_sliding_window=is_sliding_window,
@@ -144,7 +144,7 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
     size_volume_images = list_xdata[0].shape if len(list_xdata) == 1 else (0, 0, 0)
     num_channels_in = 1
 
-    fill_missing_trans_rigid_params(trans_rigid_params)
+    trans_rigid_params = fill_missing_trans_rigid_params(trans_rigid_params)
 
     images_generator = get_images_generator(size_images,
                                             is_sliding_window=is_sliding_window,
@@ -199,7 +199,7 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
     num_channels_in = 1
     num_classes_out = 1
 
-    fill_missing_trans_rigid_params(trans_rigid_params)
+    trans_rigid_params = fill_missing_trans_rigid_params(trans_rigid_params)
 
     images_generator = get_images_generator(size_images,
                                             is_sliding_window=is_sliding_window,
