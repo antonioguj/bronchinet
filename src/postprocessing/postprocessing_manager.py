@@ -1,10 +1,10 @@
 
-from typing import Tuple, Dict, Any
+from typing import Tuple, Dict, Union, Any
 
 from common.exceptionmanager import catch_error_exception
 from postprocessing.imagereconstructor import ImageReconstructor, ImageReconstructorWithTransformation
 from preprocessing.filternnetoutput_validconvs import FilteringNnetOutputValidConvs2D, FilteringNnetOutputValidConvs3D
-from preprocessing.preprocessing_manager import get_images_generator, complete_missing_trans_rigid_params
+from preprocessing.preprocessing_manager import get_images_generator, fill_missing_trans_rigid_params
 
 
 def get_images_reconstructor(size_images: Tuple[int, ...],
@@ -13,7 +13,7 @@ def get_images_reconstructor(size_images: Tuple[int, ...],
                              is_random_window: bool,
                              num_random_images: int,
                              is_transform_rigid: bool,
-                             trans_rigid_params: Dict[str, Any],
+                             trans_rigid_params: Union[Dict[str, Any], None],
                              is_transform_elastic: bool,
                              type_trans_elastic: str,
                              num_trans_per_sample: int = 1,
@@ -21,9 +21,9 @@ def get_images_reconstructor(size_images: Tuple[int, ...],
                              is_nnet_validconvs: bool = False,
                              size_output_images: Tuple[int, ...] = None,
                              is_filter_output_nnet: bool = False,
-                             prop_filter_output_nnet: Tuple[float, ...] = None,
+                             prop_filter_output_nnet: float = None,
                              ) -> ImageReconstructor:
-    trans_rigid_params = complete_missing_trans_rigid_params(trans_rigid_params)
+    fill_missing_trans_rigid_params(trans_rigid_params)
 
     images_generator = get_images_generator(size_images,
                                             is_sliding_window=is_sliding_window,

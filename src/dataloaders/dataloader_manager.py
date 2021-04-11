@@ -12,7 +12,7 @@ elif TYPE_DNNLIB_USED == 'Keras':
         TrainBatchImageDataGenerator2Images
 from dataloaders.batchdatagenerator import BatchImageDataGenerator1Image, BatchImageDataGenerator2Images
 from dataloaders.imagedataloader import ImageDataLoader
-from preprocessing.preprocessing_manager import get_images_generator, complete_missing_trans_rigid_params
+from preprocessing.preprocessing_manager import get_images_generator, fill_missing_trans_rigid_params
 
 
 def get_imagedataloader_1image(list_filenames_1: List[str],
@@ -22,7 +22,7 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
                                is_random_window: bool,
                                num_random_images: int,
                                is_transform_rigid: bool,
-                               trans_rigid_params: Dict[str, Any],
+                               trans_rigid_params: Union[Dict[str, Any], None],
                                is_transform_elastic: bool,
                                type_trans_elastic: str,
                                batch_size: int = 1,
@@ -39,7 +39,7 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
     size_volume_images = list_xdata[0].shape if len(list_xdata) == 1 else (0, 0, 0)
     num_channels_in = 1
 
-    trans_rigid_params = complete_missing_trans_rigid_params(trans_rigid_params)
+    fill_missing_trans_rigid_params(trans_rigid_params)
 
     images_generator = get_images_generator(size_images,
                                             is_sliding_window=is_sliding_window,
@@ -72,7 +72,7 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
                                 is_random_window: bool,
                                 num_random_images: int,
                                 is_transform_rigid: bool,
-                                trans_rigid_params: Dict[str, Any],
+                                trans_rigid_params: Union[Dict[str, Any], None],
                                 is_transform_elastic: bool,
                                 type_trans_elastic: str,
                                 is_nnet_validconvs: bool = False,
@@ -92,7 +92,7 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
     num_channels_in = 1
     num_classes_out = 1
 
-    trans_rigid_params = complete_missing_trans_rigid_params(trans_rigid_params)
+    fill_missing_trans_rigid_params(trans_rigid_params)
 
     images_generator = get_images_generator(size_images,
                                             is_sliding_window=is_sliding_window,
@@ -128,7 +128,7 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                      is_random_window: bool,
                                      num_random_images: int,
                                      is_transform_rigid: bool,
-                                     trans_rigid_params: Dict[str, Any],
+                                     trans_rigid_params: Union[Dict[str, Any], None],
                                      is_transform_elastic: bool,
                                      type_trans_elastic: str,
                                      batch_size: int = 1,
@@ -144,7 +144,7 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
     size_volume_images = list_xdata[0].shape if len(list_xdata) == 1 else (0, 0, 0)
     num_channels_in = 1
 
-    trans_rigid_params = complete_missing_trans_rigid_params(trans_rigid_params)
+    fill_missing_trans_rigid_params(trans_rigid_params)
 
     images_generator = get_images_generator(size_images,
                                             is_sliding_window=is_sliding_window,
@@ -179,7 +179,7 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                       is_random_window: bool,
                                       num_random_images: int,
                                       is_transform_rigid: bool,
-                                      trans_rigid_params: Dict[str, Any],
+                                      trans_rigid_params: Union[Dict[str, Any], None],
                                       is_transform_elastic: bool,
                                       type_trans_elastic: str,
                                       is_nnet_validconvs: bool = False,
@@ -199,7 +199,7 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
     num_channels_in = 1
     num_classes_out = 1
 
-    trans_rigid_params = complete_missing_trans_rigid_params(trans_rigid_params)
+    fill_missing_trans_rigid_params(trans_rigid_params)
 
     images_generator = get_images_generator(size_images,
                                             is_sliding_window=is_sliding_window,

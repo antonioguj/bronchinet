@@ -16,9 +16,9 @@ def get_images_generator(size_images: Tuple[int, ...],
                          is_random_window: bool,
                          num_random_images: int,
                          is_transform_rigid: bool,
-                         trans_rotation_range: Tuple[float, float, float],
-                         trans_shift_range: Tuple[float, float, float],
-                         trans_flip_dirs: Tuple[bool, bool, bool],
+                         trans_rotation_range: Union[float, Tuple[float, float, float]],
+                         trans_shift_range: Union[Tuple[float, float], Tuple[float, float, float]],
+                         trans_flip_dirs: Union[Tuple[bool, bool], Tuple[bool, bool, bool]],
                          trans_zoom_range: Union[float, Tuple[float, float]],
                          trans_fill_mode: str,
                          is_transform_elastic: bool,
@@ -101,7 +101,7 @@ def get_images_generator(size_images: Tuple[int, ...],
         return CombinedImagesGenerator(list_images_generators)
 
 
-def complete_missing_trans_rigid_params(in_trans_params: Dict[str, Any]) -> Dict[str, Any]:
+def fill_missing_trans_rigid_params(in_trans_params: Union[Dict[str, Any], None]) -> None:
     rotation_range_default = (0.0, 0.0, 0.0)
     shift_range_default = (0.0, 0.0, 0.0)
     flip_dirs_default = (False, False, False)
@@ -123,4 +123,3 @@ def complete_missing_trans_rigid_params(in_trans_params: Dict[str, Any]) -> Dict
         in_trans_params['zoom_range'] = zoom_range_default
     if 'fill_mode' not in in_trans_params_keys:
         in_trans_params['fill_mode'] = fill_mode_default
-    return in_trans_params

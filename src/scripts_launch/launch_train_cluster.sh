@@ -53,8 +53,8 @@ IS_TRANSFORM_ELASTIC_IMAGES="False"
 TYPE_TRANS_ELASTIC_DEFORM="gridwise"
 FREQ_SAVE_CHECK_MODELS="2"
 FREQ_VALIDATE_MODELS="2"
+IS_USE_VALIDATION_DATA="True"
 IS_SHUFFLE_TRAINDATA="True"
-MANUAL_SEED_TRAIN="None"
 # --------
 
 python3 "${WORKDIR}/Code/scripts_experiments/train_model.py" \
@@ -87,7 +87,7 @@ python3 "${WORKDIR}/Code/scripts_experiments/train_model.py" \
 	--type_trans_elastic_deform=${TYPE_TRANS_ELASTIC_DEFORM} \
 	--freq_save_check_models=${FREQ_SAVE_CHECK_MODELS} \
 	--freq_validate_models=${FREQ_VALIDATE_MODELS} \
-	--is_shuffle_traindata=${IS_SHUFFLE_TRAINDATA} \
-	--manual_seed_train=${MANUAL_SEED_TRAIN} #\
+	--is_use_validation_data=${IS_USE_VALIDATION_DATA} \
+	--is_shuffle_traindata=${IS_SHUFFLE_TRAINDATA} #\
 	# --is_restart="True" \
 	# --in_config_file="${MODELS_DIR}/configparams.txt"

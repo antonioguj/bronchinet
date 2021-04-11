@@ -5,7 +5,7 @@ import argparse
 
 from common.constant import DATADIR, FIXED_RESCALE_RESOL, NAME_RAW_IMAGES_RELPATH, NAME_RESCALE_FACTORS_FILE, \
     NAME_REFERENCE_FILES_RELPATH
-from common.functionutil import basename, basename_filenoext, list_files_dir, str2tuple_float, \
+from common.functionutil import basename, basename_filenoext, list_files_dir, str2tuple_float_none, \
     save_dictionary, save_dictionary_csv
 from common.workdirmanager import GeneralDirManager
 from dataloaders.imagefilereader import DicomReader
@@ -71,7 +71,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
-    parser.add_argument('--fixed_rescale_resol', type=str2tuple_float, default=FIXED_RESCALE_RESOL)
+    parser.add_argument('--fixed_rescale_resol', type=str2tuple_float_none, default=FIXED_RESCALE_RESOL)
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_RAW_IMAGES_RELPATH)
     parser.add_argument('--name_output_rescale_factors_file', type=str, default=NAME_RESCALE_FACTORS_FILE)
     parser.add_argument('--name_output_original_voxelsize_file', type=str, default='original_voxelSize.npy')

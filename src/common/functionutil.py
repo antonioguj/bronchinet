@@ -1,5 +1,5 @@
 
-from typing import List, Tuple, Dict, Callable, Any
+from typing import List, Tuple, Dict, Callable, Union, Any
 import numpy as np
 import itertools
 import shutil
@@ -200,7 +200,7 @@ def list_links_dir(dirname: str) -> List[str]:
 
 
 # to manipulate substrings in a filename:
-def get_substring_filename(filename: str, pattern_search: str) -> str:
+def get_substring_filename(filename: str, pattern_search: str) -> Union[str, None]:
     sre_substring_filename = re.search(pattern_search, filename)
     if sre_substring_filename:
         return sre_substring_filename.group(0)
@@ -248,14 +248,11 @@ def flatten_listoflists(in_list: List[List[Any]]) -> List[Any]:
     return list(itertools.chain(*in_list))
 
 
-def find_intersection_2lists(list_1: List[Any],
-                             list_2: List[Any]) -> List[Any]:
+def find_intersection_2lists(list_1: List[Any], list_2: List[Any]) -> List[Any]:
     return [elem for elem in list_1 if elem in list_2]
 
 
-def find_intersection_3lists(list_1: List[Any],
-                             list_2: List[Any],
-                             list_3: List[Any]) -> List[Any]:
+def find_intersection_3lists(list_1: List[Any], list_2: List[Any], list_3: List[Any]) -> List[Any]:
     intersection = find_intersection_2lists(list_1, list_2)
     intersection += find_intersection_2lists(list_1, list_3)
     intersection += find_intersection_2lists(list_2, list_3)
@@ -284,43 +281,47 @@ def str2list_str(in_str: str) -> List[str]:
 
 
 def str2list_int(in_str: str) -> List[int]:
-    if in_str == 'None':
-        return None
     in_str = in_str.replace('[', '').replace(']', '')
     list_elems_instr = in_str.split(',')
     return [str2int(elem) for elem in list_elems_instr]
 
 
 def str2list_float(in_str: str) -> List[float]:
-    if in_str == 'None':
-        return None
     in_str = in_str.replace('[', '').replace(']', '')
     list_elems_instr = in_str.split(',')
     return [str2float(elem) for elem in list_elems_instr]
 
 
 def str2tuple_bool(in_str: str) -> Tuple[int, ...]:
-    if in_str == 'None':
-        return None
     in_str = in_str.replace('(', '').replace(')', '')
     list_elems_instr = in_str.split(',')
     return tuple([str2bool(elem) for elem in list_elems_instr])
 
 
 def str2tuple_int(in_str: str) -> Tuple[int, ...]:
-    if in_str == 'None':
-        return None
     in_str = in_str.replace('(', '').replace(')', '')
     list_elems_instr = in_str.split(',')
     return tuple([str2int(elem) for elem in list_elems_instr])
 
 
 def str2tuple_float(in_str: str) -> Tuple[float, ...]:
-    if in_str == 'None':
-        return None
     in_str = in_str.replace('(', '').replace(')', '')
     list_elems_instr = in_str.split(',')
     return tuple([str2float(elem) for elem in list_elems_instr])
+
+
+def str2tuple_int_none(in_str: str) -> Union[Tuple[int, ...], None]:
+    if in_str == 'None':
+        return None
+    else:
+        return str2tuple_int(in_str)
+
+
+def str2tuple_float_none(in_str: str) -> Union[Tuple[float, ...], None]:
+    if in_str == 'None':
+        return None
+    else:
+        return str2tuple_float(in_str)
 
 
 def list2str(in_list: List[Any]) -> str:

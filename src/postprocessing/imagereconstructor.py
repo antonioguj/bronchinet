@@ -7,7 +7,6 @@ from common.functionutil import ImagesUtil
 from imageoperators.boundingboxes import BoundingBoxes
 from imageoperators.imageoperator import ExtendImage
 from preprocessing.imagegenerator import ImageGenerator
-from preprocessing.transformrigidimages import TransformRigidImages
 
 
 class ImageReconstructor(object):
@@ -167,7 +166,7 @@ class ImageReconstructorWithTransformation(ImageReconstructor):
     # PROTOTYPE OF RECONSTRUCTOR WITH TRANSFORMATION AT TESTING TIME. NIT TESTED YET
     def __init__(self,
                  size_image: Tuple[int, ...],
-                 image_transform_generator: TransformRigidImages,
+                 image_transform_generator: ImageGenerator,
                  num_trans_per_patch: int = 1,
                  size_volume_image: Tuple[int, ...] = (0,),
                  is_nnet_validconvs: bool = False,
