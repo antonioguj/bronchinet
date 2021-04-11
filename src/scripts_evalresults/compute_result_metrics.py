@@ -131,9 +131,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_predicted_masks_dir', type=str)
     parser.add_argument('input_pred_centrelines_dir', type=str)
+    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--list_type_metrics', type=str2list_str, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--output_file', type=str, default=NAME_PRED_RESULT_METRICS_FILE)
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)

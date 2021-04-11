@@ -186,8 +186,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_posteriors_dir', type=str)
+    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--metric_eval_threshold', type=str, default=METRIC_EVALUATE_THRESHOLD)
     parser.add_argument('--metric_value_sought', type=str2float, default=0.13)
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)

@@ -38,9 +38,10 @@ class UNet(UNetBase, nn.Module):
         raise NotImplementedError
 
     def _build_list_info_crop_where_merge(self) -> None:
-        indexes_output_where_merge = [i for i, el in enumerate(self._list_operation_names_layers_all) if el == 'upsample']
-        self._list_sizes_crop_where_merge = [self._list_sizes_output_all_layers[i]
-                                             for i in indexes_output_where_merge][::-1]
+        indexes_output_where_merge = \
+            [i for i, el in enumerate(self._list_operation_names_layers_all) if el == 'upsample']
+        self._list_sizes_crop_where_merge = \
+            [self._list_sizes_output_all_layers[i] for i in indexes_output_where_merge][::-1]
 
     def _crop_image_2d(self, input: torch.FloatTensor, size_crop) -> torch.FloatTensor:
         size_input_image = input.shape[-2:]

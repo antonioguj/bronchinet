@@ -1,6 +1,4 @@
 
-from typing import Callable
-
 from tensorflow.keras.optimizers import SGD as SGD_keras, \
     Adagrad as Adagrad_keras, \
     RMSprop as RMSprop_keras, \

@@ -108,7 +108,7 @@ def main(args):
         indict_rescale_factors = None
 
     # *****************************************************
-    
+
     # *****************************************************
 
     outdict_reference_keys = OrderedDict()

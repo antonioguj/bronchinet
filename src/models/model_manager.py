@@ -47,6 +47,7 @@ from models.metrics import MetricBase, MeanSquaredError, MeanSquaredErrorLogarit
     AirwayCompleteness, AirwayVolumeLeakage, AirwayCentrelineLeakage, AirwayTreeLength, \
     AirwayCentrelineDistanceFalseNegativeError, AirwayCentrelineDistanceFalsePositiveError, \
     LIST_AVAIL_METRICS
+from models.networks import ConvNetBase
 
 
 def get_metric(type_metric: str,

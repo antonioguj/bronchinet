@@ -225,7 +225,7 @@ if __name__ == "__main__":
             args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
             args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
             args.is_reconstruct_pred_patches = str2bool(input_args_file['is_sliding_window_images']) or \
-                                               str2bool(input_args_file['is_random_window_images'])
+                str2bool(input_args_file['is_random_window_images'])
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).items()):
