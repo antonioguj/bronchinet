@@ -14,8 +14,6 @@ from models.model_manager import get_metric
 from imageoperators.imageoperator import MorphoDilateMask, ThresholdImage, ThinningMask, FirstConnectedRegionMask
 from imageoperators.maskoperator import MaskOperator
 
-np.random.seed(2017)
-
 
 def main(args):
 
@@ -50,15 +48,19 @@ def main(args):
     indict_reference_keys = read_dictionary(in_reference_keys_file)
     pattern_search_infiles = get_regex_pattern_filename(list(indict_reference_keys.values())[0])
 
-    if (args.is_remove_trachea_calc_metrics):
+    if args.is_remove_trachea_calc_metrics:
         input_coarse_airways_path = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
+    else:
+        list_input_coarse_airways_files = None
 
     list_metrics = OrderedDict()
     for itype_metric in args.list_type_metrics:
         new_metric = get_metric(itype_metric)
         list_metrics[new_metric._name_fun_out] = new_metric
     # endfor
+
+    # *****************************************************
 
     # *****************************************************
 
@@ -84,7 +86,7 @@ def main(args):
         in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
         print("Predictions of size: %s..." % (str(in_posteriors.shape)))
 
-        if (args.is_remove_trachea_calc_metrics):
+        if args.is_remove_trachea_calc_metrics:
             print("Remove trachea and main bronchi masks in computed metrics...")
             in_coarse_airways_file = find_file_inlist_with_pattern(basename(in_posteriors_file),
                                                                    list_input_coarse_airways_files,
@@ -100,6 +102,8 @@ def main(args):
             in_reference_mask = MaskOperator.substract_two_masks(in_reference_mask, in_coarse_airways)
             in_reference_cenline = MaskOperator.substract_two_masks(in_reference_cenline, in_coarse_airways)
 
+        else:
+            in_coarse_airways = None
         # ******************************
 
         # Compute and store Metrics at all thresholds
@@ -121,7 +125,7 @@ def main(args):
                 # Compute the binary masks by thresholding the posteriors
                 in_predicted_mask = ThresholdImage.compute(in_posteriors, in_thres_value)
 
-                if (args.is_connected_masks):
+                if args.is_connected_masks:
                     # First, attach the trachea and main bronchi to the binary masks,
                     # to be able to compute the largest connected component
                     in_predicted_mask = MaskOperator.merge_two_masks(in_predicted_mask,
@@ -138,7 +142,7 @@ def main(args):
                     # 'catch' issues when predictions are 'weird' (for extreme threshold values)
                     in_predicted_cenline = np.zeros_like(in_predicted_mask)
 
-                if (args.is_remove_trachea_calc_metrics):
+                if args.is_remove_trachea_calc_metrics:
                     # Remove the trachea and main bronchi from the binary masks and centrelines
                     in_predicted_mask = MaskOperator.substract_two_masks(in_predicted_mask, in_coarse_airways)
                     in_predicted_cenline = MaskOperator.substract_two_masks(in_predicted_cenline, in_coarse_airways)
@@ -209,8 +213,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_posteriors_dir', type=str)
+    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--output_dir', type=str, default=None)
     parser.add_argument('--list_type_metrics', type=str2list_str, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)

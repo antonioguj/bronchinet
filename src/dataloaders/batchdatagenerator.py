@@ -1,5 +1,5 @@
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import numpy as np
 
 from common.exceptionmanager import catch_error_exception
@@ -7,8 +7,6 @@ from common.functionutil import ImagesUtil
 from imageoperators.boundingboxes import BoundingBoxes
 from imageoperators.imageoperator import CropImage
 from preprocessing.imagegenerator import ImageGenerator
-
-np.random.seed(2017)
 
 
 class BatchDataGenerator(object):
@@ -55,7 +53,7 @@ class BatchDataGenerator(object):
 class BatchImageDataGenerator1Image(BatchDataGenerator):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
@@ -63,7 +61,7 @@ class BatchImageDataGenerator1Image(BatchDataGenerator):
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_print_datagen_info: bool = True
+                 is_print_datagen_info: bool = False
                  ) -> None:
         self._size_image = size_image
         self._list_xdata = list_xdata
@@ -146,7 +144,7 @@ class BatchImageDataGenerator1Image(BatchDataGenerator):
 class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  list_ydata: List[np.ndarray],
                  images_generator: ImageGenerator,
@@ -154,11 +152,11 @@ class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
                  num_classes_out: int = 1,
                  type_image_format: str = 'channels_last',
                  is_nnet_validconvs: bool = False,
-                 size_output_image: Tuple[int, ...] = None,
+                 size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_print_datagen_info: bool = True
+                 is_print_datagen_info: bool = False
                  ) -> None:
         super(BatchImageDataGenerator2Images, self).__init__(size_image,
                                                              list_xdata,

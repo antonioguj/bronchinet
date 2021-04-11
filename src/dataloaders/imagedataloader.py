@@ -1,5 +1,5 @@
 
-from typing import List, Tuple, Any
+from typing import List, Tuple, Union
 import numpy as np
 
 from common.exceptionmanager import catch_error_exception
@@ -71,13 +71,13 @@ class ImageDataLoader(object):
 class ImageDataBatchesLoader(ImageDataLoader):
     _max_load_images_default = None
 
-    def __init__(self, size_image: Tuple[int, ...]) -> None:
+    def __init__(self, size_image: Union[Tuple[int, int, int], Tuple[int, int]]) -> None:
         self._size_image = size_image
 
     @staticmethod
     def _shuffle_data(in_imagedata_1: np.ndarray,
                       in_imagedata_2: np.ndarray = None
-                      ) -> Tuple[np.ndarray, Any]:
+                      ) -> Tuple[np.ndarray, None]:
         # randomly shuffle the elements in image data
         indexes_shuffled = np.arange(in_imagedata_1.shape[0])
         np.random.shuffle(indexes_shuffled)
@@ -104,7 +104,7 @@ class ImageDataBatchesLoader(ImageDataLoader):
         else:
             out_batch_images = in_stack_images
 
-        if (is_shuffle):
+        if is_shuffle:
             (out_batch_images, _) = self._shuffle_data(out_batch_images)
 
         return out_batch_images
@@ -130,7 +130,7 @@ class ImageDataBatchesLoader(ImageDataLoader):
             out_batch_images_1 = in_stack_images_1
             out_batch_images_2 = in_stack_images_2
 
-        if (is_shuffle):
+        if is_shuffle:
             (out_batch_images_1, out_batch_images_2) = self._shuffle_data(out_batch_images_1, out_batch_images_2)
 
         return (out_batch_images_1, out_batch_images_2)
@@ -155,7 +155,7 @@ class ImageDataBatchesLoader(ImageDataLoader):
 
             out_batch_images = np.concatenate((out_batch_images, in_stack_images), axis=0)
 
-        if (is_shuffle):
+        if is_shuffle:
             (out_batch_images, _) = self._shuffle_data(out_batch_images)
 
         return out_batch_images
@@ -190,7 +190,7 @@ class ImageDataBatchesLoader(ImageDataLoader):
             out_batch_images_1 = np.concatenate((out_batch_images_1, in_stack_images_1), axis=0)
             out_batch_images_2 = np.concatenate((out_batch_images_2, in_stack_images_2), axis=0)
 
-        if (is_shuffle):
+        if is_shuffle:
             (out_batch_images_1, out_batch_images_2) = self._shuffle_data(out_batch_images_1, out_batch_images_2)
 
         return (out_batch_images_1, out_batch_images_2)

@@ -11,8 +11,8 @@ class RecordLossHistory(RecordLossHistoryBase, callbacks_keras.Callback):
     def __init__(self,
                  loss_filename: str,
                  list_metrics: List[MetricBase] = None,
-                 is_restart_model: bool = False,
-                 is_hist_validation: bool = True
+                 is_hist_validation: bool = True,
+                 is_restart_model: bool = False
                  ) -> None:
         super(RecordLossHistory, self).__init__(loss_filename, list_metrics,
                                                 is_hist_validation=is_hist_validation)

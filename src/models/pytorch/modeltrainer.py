@@ -1,16 +1,18 @@
 
-from typing import Tuple, List
+from typing import Tuple, List, Union
 import numpy as np
 
 import torch
 from torchsummary import summary
 from tqdm import tqdm
 
-from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_EPOCH_TORCH, NAME_SAVEDMODEL_LAST_TORCH
 from common.functionutil import ImagesUtil, join_path_names
 from dataloaders.batchdatagenerator import BatchDataGenerator
 from models.modeltrainer import ModelTrainerBase
 from models.pytorch.callbacks import RecordLossHistory, ModelCheckpoint
+
+NAME_SAVEDMODEL_EPOCH = 'model_e%0.2d.pt'
+NAME_SAVEDMODEL_LAST = 'model_last.pt'
 
 
 class ModelTrainer(ModelTrainerBase):
@@ -40,7 +42,7 @@ class ModelTrainer(ModelTrainerBase):
     def finalise_model(self) -> None:
         pass
 
-    def create_callbacks(self, models_path: str, **kwargs) -> None:
+    def create_callbacks(self, models_path: str, losshist_filename: str, **kwargs) -> None:
         self._list_callbacks = []
 
         is_validation_data = kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() \
@@ -50,19 +52,19 @@ class ModelTrainer(ModelTrainerBase):
         freq_validate_model = kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() \
             else 1
 
-        losshistory_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
-        new_callback = RecordLossHistory(losshistory_filename, self._list_metrics,
+        losshist_filename = join_path_names(models_path, losshist_filename)
+        new_callback = RecordLossHistory(losshist_filename, self._list_metrics,
                                          is_hist_validation=is_validation_data)
         self._list_callbacks.append(new_callback)
 
-        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_EPOCH_TORCH)
+        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_EPOCH)
         new_callback = ModelCheckpoint(model_filename, self,
                                        freq_save_model=freq_save_check_model,
                                        type_save_model='full_model',
                                        update_filename_epoch=True)
         self._list_callbacks.append(new_callback)
 
-        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_LAST_TORCH)
+        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_LAST)
         new_callback = ModelCheckpoint(model_filename, self,
                                        type_save_model='full_model')
         self._list_callbacks.append(new_callback)
@@ -70,7 +72,7 @@ class ModelTrainer(ModelTrainerBase):
         self.freq_validate_model = freq_validate_model
 
     def summary_model(self) -> None:
-        summary(self._network, self._network.get_size_input())
+        summary(self._network, self._network.get_shape_input())
 
     def load_model_only_weights(self, model_filename: str) -> None:
         model_state_dict = torch.load(model_filename, map_location=self._device)
@@ -220,11 +222,11 @@ class ModelTrainer(ModelTrainerBase):
         for icallback in self._list_callbacks:
             icallback.on_epoch_end(epoch, data_output)
 
-    def get_size_output_model(self) -> Tuple[int, ...]:
-        return self._network.get_size_output()
+    def get_shape_output_model(self) -> Tuple[int, ...]:
+        return self._network.get_shape_output()
 
-    def get_size_output_image_model(self) -> Tuple[int, ...]:
-        return self.get_size_output_model()[1:]
+    def get_size_output_image_model(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
+        return self.get_shape_output_model()[1:]
 
     def train(self,
               train_data_loader: BatchDataGenerator,
@@ -370,7 +372,7 @@ class ModelTrainer(ModelTrainerBase):
 
     def _run_prediction(self) -> np.ndarray:
         num_batches = len(self._test_data_loader)
-        size_output_batch = self._network.get_size_output()
+        size_output_batch = self._network.get_shape_output()
         out_shape_prediction = (num_batches,) + size_output_batch
         output_prediction = np.ndarray(out_shape_prediction, dtype=np.float32)
 

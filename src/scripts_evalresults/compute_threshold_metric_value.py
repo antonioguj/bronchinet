@@ -3,11 +3,10 @@ import numpy as np
 from tqdm import tqdm
 import argparse
 
-from common.constant import BASEDIR, METRIC_EVALUATE_THRESHOLD, IS_REMOVE_TRACHEA_CALC_METRICS, \
-    NAME_RAW_LABELS_RELPATH, NAME_RAW_CENTRELINES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    NAME_RAW_COARSEAIRWAYS_RELPATH
+from common.constant import BASEDIR, METRIC_EVALUATE_THRESHOLD, NAME_RAW_LABELS_RELPATH, NAME_RAW_CENTRELINES_RELPATH,\
+    IS_REMOVE_TRACHEA_CALC_METRICS, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_RAW_COARSEAIRWAYS_RELPATH
 from common.functionutil import basename, list_files_dir, get_regex_pattern_filename, find_file_inlist_with_pattern, \
-    str2bool, read_dictionary
+    str2bool, str2int, str2float, read_dictionary
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
@@ -33,6 +32,7 @@ def main(args):
     else:
         message = 'MetricsEvalThreshold \'%s\' not found...' % (metric_eval_threshold)
         catch_error_exception(message)
+        ref0_metrics_value = None
     _epsilon = 1.0e-06
     # --------
 
@@ -48,9 +48,11 @@ def main(args):
     indict_reference_keys = read_dictionary(in_reference_keys_file)
     pattern_search_infiles = get_regex_pattern_filename(list(indict_reference_keys.values())[0])
 
-    if (args.is_remove_trachea_calc_metrics):
+    if args.is_remove_trachea_calc_metrics:
         input_coarse_airways_path = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
+    else:
+        list_input_coarse_airways_files = None
 
     calc_metric = get_metric(metric_eval_threshold)
     num_valid_predict_files = len(list_input_posteriors_files)
@@ -58,6 +60,8 @@ def main(args):
     old_thres_value = ref0_threshold_value
     old_metrics_value = ref0_metrics_value
     is_comp_converged = False
+
+    # *****************************************************
 
     # *****************************************************
 
@@ -83,7 +87,7 @@ def main(args):
             in_reference_mask = ImageFileReader.get_image(in_reference_mask_file)
             in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
 
-            if (args.is_remove_trachea_calc_metrics):
+            if args.is_remove_trachea_calc_metrics:
                 in_coarse_airways_file = find_file_inlist_with_pattern(basename(in_posteriors_file),
                                                                        list_input_coarse_airways_files,
                                                                        pattern_search=pattern_search_infiles)
@@ -113,7 +117,7 @@ def main(args):
                 # Compute the binary masks by thresholding the posteriors
                 in_predicted_mask = ThresholdImage.compute(in_posteriors, curr_thres_value)
 
-                if (args.is_connected_masks):
+                if args.is_connected_masks:
                     # Compute the first connected component from the binary masks
                     in_predicted_mask = FirstConnectedRegionMask.compute(in_predicted_mask, connectivity_dim=1)
 
@@ -127,7 +131,7 @@ def main(args):
                         # 'catch' issues when predictions are 'weird' (for extreme threshold values)
                         in_predicted_cenline = np.zeros_like(in_predicted_mask)
 
-                if (args.is_remove_trachea_calc_metrics):
+                if args.is_remove_trachea_calc_metrics:
                     in_coarse_airways = list_in_coarse_airways[ipos]
 
                     # Remove the trachea and main bronchi from the binary masks
@@ -182,15 +186,15 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_posteriors_dir', type=str)
+    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--metric_eval_threshold', type=str, default=METRIC_EVALUATE_THRESHOLD)
-    parser.add_argument('--metric_value_sought', type=float, default=0.13)
+    parser.add_argument('--metric_value_sought', type=str2float, default=0.13)
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)
-    parser.add_argument('--num_iter_evaluate_max', type=int, default=20)
-    parser.add_argument('--rel_error_eval_max', type=float, default=1.0e-04)
-    parser.add_argument('--init_threshold_value', type=float, default=0.5)
+    parser.add_argument('--num_iter_evaluate_max', type=str2int, default=20)
+    parser.add_argument('--rel_error_eval_max', type=str2float, default=1.0e-04)
+    parser.add_argument('--init_threshold_value', type=str2float, default=0.5)
     parser.add_argument('--name_input_reference_masks_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     parser.add_argument('--name_input_reference_centrelines_relpath', type=str, default=NAME_RAW_CENTRELINES_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)

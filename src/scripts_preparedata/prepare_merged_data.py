@@ -1,5 +1,5 @@
 
-from typing import List
+from typing import List, Tuple
 from collections import OrderedDict
 import numpy as np
 import argparse
@@ -14,7 +14,8 @@ from common.workdirmanager import GeneralDirManager
 
 
 def search_indexes_input_files_from_reference_keys_in_file(in_readfile: str,
-                                                           list_in_reference_files_all_data: List[str]) -> List[int]:
+                                                           list_in_reference_files_all_data: List[List[str]]
+                                                           ) -> List[Tuple[int, int]]:
     if not is_exist_file(in_readfile):
         message = 'File for fixed-order distribution of data \'infile_order\' not found: \'%s\'...' % (in_readfile)
         catch_error_exception(message)
@@ -37,7 +38,7 @@ def search_indexes_input_files_from_reference_keys_in_file(in_readfile: str,
                 message = '\'%s\' not found in list of Input Reference Keys: \'%s\'...' % \
                           (in_reference_file, list_all_in_reference_files)
                 catch_error_exception(message)
-    # --------------------------------------
+
     return out_indexes_input_files
 
 
@@ -100,6 +101,9 @@ def main(args):
         indexes_merge_input_files = \
             search_indexes_input_files_from_reference_keys_in_file(args.infile_order, list_in_reference_keys_all_data)
 
+    else:
+        indexes_merge_input_files = None
+
     # *****************************************************
 
     # Create new base dir with merged data
@@ -117,9 +121,15 @@ def main(args):
 
     if args.is_prepare_labels:
         output_labels_data_path = workdir_manager.get_pathdir_new(args.name_inout_labels_relpath)
+    else:
+        output_labels_data_path = None
 
     if args.is_input_extra_labels:
         output_extra_labels_data_path = workdir_manager.get_pathdir_new(args.name_inout_extra_labels_relpath)
+    else:
+        output_extra_labels_data_path = None
+
+    # *****************************************************
 
     outdict_reference_keys = OrderedDict()
 

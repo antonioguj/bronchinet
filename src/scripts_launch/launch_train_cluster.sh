@@ -44,7 +44,17 @@ PROP_OVERLAP_SLIDING_WINDOW="(0.25,0.0,0.0)"
 IS_RANDOM_WINDOW_IMAGES="True"
 NUM_RANDOM_PATCHES_EPOCH="8"
 IS_TRANSFORM_RIGID_IMAGES="True"
+TRANS_RIGID_ROTATION_RANGE="(10.0,7.0,7.0)"   # (plane_XY, plane_XZ, plane_YZ)
+TRANS_RIGID_SHIFT_RANGE="(0.0,0.0,0.0)"       # (width, height, depth)
+TRANS_RIGID_FLIP_DIRS="(True,True,True)"      # (horizontal, vertical, axialdir)
+TRANS_RIGID_ZOOM_RANGE="0.25"                 # scale between (1 - val, 1 + val)
+TRANS_RIGID_FILL_MODE="reflect"
 IS_TRANSFORM_ELASTIC_IMAGES="False"
+TYPE_TRANS_ELASTIC_DEFORM="gridwise"
+FREQ_SAVE_CHECK_MODELS="2"
+FREQ_VALIDATE_MODELS="2"
+IS_USE_VALIDATION_DATA="True"
+IS_SHUFFLE_TRAINDATA="True"
 # --------
 
 python3 "${WORKDIR}/Code/scripts_experiments/train_model.py" \
@@ -68,6 +78,16 @@ python3 "${WORKDIR}/Code/scripts_experiments/train_model.py" \
 	--is_random_window_images=${IS_RANDOM_WINDOW_IMAGES} \
 	--num_random_patches_epoch=${NUM_RANDOM_PATCHES_EPOCH} \
 	--is_transform_rigid_images=${IS_TRANSFORM_RIGID_IMAGES} \
-	--is_transform_elastic_images=${IS_TRANSFORM_ELASTIC_IMAGES} #\
+	--trans_rigid_rotation_range=${TRANS_RIGID_ROTATION_RANGE} \
+	--trans_rigid_shift_range=${TRANS_RIGID_SHIFT_RANGE} \
+	--trans_rigid_flip_dirs=${TRANS_RIGID_FLIP_DIRS} \
+	--trans_rigid_zoom_range=${TRANS_RIGID_ZOOM_RANGE} \
+	--trans_rigid_fill_mode=${TRANS_RIGID_FILL_MODE} \
+	--is_transform_elastic_images=${IS_TRANSFORM_ELASTIC_IMAGES} \
+	--type_trans_elastic_deform=${TYPE_TRANS_ELASTIC_DEFORM} \
+	--freq_save_check_models=${FREQ_SAVE_CHECK_MODELS} \
+	--freq_validate_models=${FREQ_VALIDATE_MODELS} \
+	--is_use_validation_data=${IS_USE_VALIDATION_DATA} \
+	--is_shuffle_traindata=${IS_SHUFFLE_TRAINDATA} #\
 	# --is_restart="True" \
 	# --in_config_file="${MODELS_DIR}/configparams.txt"

@@ -1,5 +1,5 @@
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import numpy as np
 
 from tensorflow.keras.utils import Sequence as Sequence_keras
@@ -11,16 +11,16 @@ from preprocessing.imagegenerator import ImageGenerator
 class TrainBatchImageDataGenerator1Image(BatchImageDataGenerator1Image, Sequence_keras):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_print_datagen_info: bool = True,
                  is_datagen_gpu: bool = True,
-                 is_datagen_halfprec: bool = False
+                 is_datagen_halfprec: bool = False,
+                 is_print_datagen_info: bool = False
                  ) -> None:
         super(TrainBatchImageDataGenerator1Image, self).__init__(size_image,
                                                                  list_xdata,
@@ -48,20 +48,20 @@ class TrainBatchImageDataGenerator1Image(BatchImageDataGenerator1Image, Sequence
 class TrainBatchImageDataGenerator2Images(BatchImageDataGenerator2Images, Sequence_keras):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  list_ydata: List[np.ndarray],
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
                  num_classes_out: int = 1,
                  is_nnet_validconvs: bool = False,
-                 size_output_image: Tuple[int, ...] = None,
+                 size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_print_datagen_info: bool = True,
                  is_datagen_gpu: bool = True,
-                 is_datagen_halfprec: bool = False
+                 is_datagen_halfprec: bool = False,
+                 is_print_datagen_info: bool = False
                  ) -> None:
         super(TrainBatchImageDataGenerator2Images, self).__init__(size_image,
                                                                   list_xdata,

@@ -5,7 +5,7 @@ import numpy as np
 from tensorflow.keras import backend as K
 
 from common.exceptionmanager import catch_error_exception
-from models.networks import ConvNetBase
+from models.keras.networks import UNet
 from models.visualmodelparams import VisualModelParamsBase
 from preprocessing.imagegenerator import ImageGenerator
 
@@ -13,30 +13,34 @@ from preprocessing.imagegenerator import ImageGenerator
 class VisualModelParams(VisualModelParamsBase):
 
     def __init__(self,
-                 network: ConvNetBase,
-                 size_image: Tuple[int, ...]
+                 network: UNet,
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]]
                  ) -> None:
         super(VisualModelParams, self).__init__(network, size_image)
+        self._built_model = network.get_built_model()
 
-    def _find_layer_index_from_name(self, in_name_layer: str) -> int:
-        for index_layer, name_layer in enumerate(self._network.layers):
-            if (name_layer.name == in_name_layer):
-                return index_layer
+    def _find_layer_index_from_name(self, in_layer_name: str) -> Union[int, None]:
+        for idx_layer, i_layer in enumerate(self._built_model.layers):
+            if i_layer.name == in_layer_name:
+                return idx_layer
         return None
+
+    def get_network_layers_names_all(self) -> List[str]:
+        return [it_layer.name for it_layer in self._built_model.layers]
 
     def _compute_feature_maps(self,
                               in_images: Union[np.ndarray, List[np.ndarray], ImageGenerator],
-                              in_name_layer: str,
+                              in_layer_name: str,
                               index_first_featmap: int = None,
                               max_num_featmaps: int = None
                               ) -> np.ndarray:
         # find index for "name_layer"
-        index_layer = self._find_layer_index_from_name(in_name_layer)
+        index_layer = self._find_layer_index_from_name(in_layer_name)
         if not index_layer:
-            message = 'Layer \'%s\' does not exist in model...' % (in_name_layer)
+            message = 'Layer \'%s\' does not exist in model...' % (in_layer_name)
             catch_error_exception(message)
 
-        model_layer_class = self._network.layers[index_layer]
+        model_layer_class = self._built_model.layers[index_layer]
         num_featmaps = model_layer_class.output.shape[-1].value
 
         if max_num_featmaps:
@@ -48,14 +52,14 @@ class VisualModelParams(VisualModelParamsBase):
 
             # define function to retrieve the feature maps for "index_layer"
             get_feat_maps_layer_func = K.function(
-                [self.model.input],
+                [self._built_model.input],
                 [model_layer_class.output[..., index_first_featmap:index_last_featmap]])
         else:
             # define function to retrieve the feature maps for "index_layer"
-            get_feat_maps_layer_func = K.function([self._network.input],
+            get_feat_maps_layer_func = K.function([self._built_model.input],
                                                   [model_layer_class.output])
 
-        if (self._is_list_images_patches(in_images.shape)):
+        if self._is_list_images_patches(in_images.shape):
             # Input: list of image patches
             num_patches = in_images.shape[0]
             out_shape_featmaps = [num_patches] + list(self._size_image) + [num_featmaps]

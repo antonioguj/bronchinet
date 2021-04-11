@@ -4,7 +4,7 @@ import numpy as np
 
 from common.exceptionmanager import catch_error_exception
 from common.functionutil import ImagesUtil
-from models.networks import ConvNetBase
+from models.pytorch.networks import UNet
 from models.visualmodelparams import VisualModelParamsBase
 from preprocessing.imagegenerator import ImageGenerator
 
@@ -12,26 +12,29 @@ from preprocessing.imagegenerator import ImageGenerator
 class VisualModelParams(VisualModelParamsBase):
 
     def __init__(self,
-                 network: ConvNetBase,
-                 size_image: Tuple[int, ...]
+                 network: UNet,
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]]
                  ) -> None:
         super(VisualModelParams, self).__init__(network, size_image)
 
-    def _is_exist_name_layer_model(self, in_name_layer: str) -> bool:
-        for ilayer_key, _ in self._network._modules.items():
-            if (ilayer_key == in_name_layer):
+    def _is_exist_name_layer_model(self, in_layer_name: str) -> bool:
+        for ikey_layer_name, _ in self._network._modules.items():
+            if ikey_layer_name == in_layer_name:
                 return True
         return False
 
+    def get_network_layers_names_all(self) -> List[str]:
+        return [ikey_layer_name for ikey_layer_name, _ in self._network._modules.items()]
+
     def _compute_feature_maps(self,
                               in_images_generator: Union[np.ndarray, List[np.ndarray], ImageGenerator],
-                              in_name_layer: str,
+                              in_layer_name: str,
                               index_first_featmap: int = None,
                               max_num_featmaps: int = None
                               ) -> np.ndarray:
         # check that "name_layer" exists in model
-        if not self._is_exist_name_layer_model(in_name_layer):
-            message = 'Layer \'%s\' does not exist in model...' % (in_name_layer)
+        if not self._is_exist_name_layer_model(in_layer_name):
+            message = 'Layer \'%s\' does not exist in model...' % (in_layer_name)
             catch_error_exception(message)
 
         num_featmaps = 8
@@ -46,7 +49,7 @@ class VisualModelParams(VisualModelParamsBase):
             return None
 
         # attach hook to the corresponding module layer
-        self._network._modules[in_name_layer].register_forward_hook(hook)
+        self._network._modules[in_layer_name].register_forward_hook(hook)
 
         num_patches = len(in_images_generator)
         out_shape_featmaps = [num_patches, num_featmaps] + list(self._size_image)

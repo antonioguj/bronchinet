@@ -1,5 +1,5 @@
 
-from typing import Tuple
+from typing import Tuple, Union
 import numpy as np
 
 from scipy.ndimage.morphology import binary_fill_holes, binary_erosion, binary_dilation, binary_opening, binary_closing
@@ -8,8 +8,7 @@ from skimage.morphology import skeletonize_3d
 from skimage.measure import label
 # from scipy.misc import imresize
 
-BoundBox2DType = Tuple[Tuple[int, int], Tuple[int, int]]
-BoundBox3DType = Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]]
+from imageoperators.boundingboxes import BoundBox3DType, BoundBox2DType
 
 
 class ImageOperator(object):
@@ -150,22 +149,25 @@ class CropImageAndSetPatchInImage(ImageOperator):
 class ExtendImage(ImageOperator):
 
     @staticmethod
-    def _get_init_output(out_shape: Tuple[int, ...], out_dtype: np.dtype, value_backgrnd: float = None) -> np.ndarray:
+    def _get_init_output(size_output: Union[Tuple[int, int, int], Tuple[int, int]],
+                         out_dtype: np.dtype,
+                         value_backgrnd: float = None
+                         ) -> np.ndarray:
         if value_backgrnd is None:
-            return np.zeros(out_shape, dtype=out_dtype)
+            return np.zeros(size_output, dtype=out_dtype)
         else:
-            return np.full(out_shape, value_backgrnd, dtype=out_dtype)
+            return np.full(size_output, value_backgrnd, dtype=out_dtype)
 
     @classmethod
     def _compute2d(cls, in_image: np.ndarray,
                    in_boundbox: BoundBox2DType,
-                   out_shape_image: Tuple[int, int],
+                   size_output: Tuple[int, int],
                    value_backgrnd: float = None
                    ) -> np.ndarray:
         if value_backgrnd is None:
             value_backgrnd = in_image[0][0]
 
-        out_image = cls._get_init_output(out_shape_image, in_image.dtype, value_backgrnd)
+        out_image = cls._get_init_output(size_output, in_image.dtype, value_backgrnd)
         SetPatchInImage._compute2d(in_image, out_image, in_boundbox)
         return out_image
 
@@ -173,13 +175,13 @@ class ExtendImage(ImageOperator):
     def _compute3d(cls,
                    in_image: np.ndarray,
                    in_boundbox: BoundBox3DType,
-                   out_shape_image: Tuple[int, int, int],
+                   size_output: Tuple[int, int, int],
                    value_backgrnd: float = None
                    ) -> np.ndarray:
         if value_backgrnd is None:
             value_backgrnd = in_image[0][0][0]
 
-        out_image = cls._get_init_output(out_shape_image, in_image.dtype, value_backgrnd)
+        out_image = cls._get_init_output(size_output, in_image.dtype, value_backgrnd)
         SetPatchInImage._compute3d(in_image, out_image, in_boundbox)
         return out_image
 
@@ -198,28 +200,28 @@ class CropAndExtendImage(ImageOperator):
     def _compute2d(in_image: np.ndarray,
                    in_crop_boundbox: BoundBox2DType,
                    in_extend_boundbox: BoundBox2DType,
-                   out_shape_image: Tuple[int, int],
+                   size_output: Tuple[int, int],
                    value_backgrnd: float = None
                    ) -> np.ndarray:
         if value_backgrnd is None:
             value_backgrnd = in_image[0][0]
         return ExtendImage._compute2d(CropImage._compute2d(in_image, in_crop_boundbox),
                                       in_extend_boundbox,
-                                      out_shape_image,
+                                      size_output,
                                       value_backgrnd)
 
     @staticmethod
     def _compute3d(in_image: np.ndarray,
                    in_crop_boundbox: BoundBox3DType,
                    in_extend_boundbox: BoundBox3DType,
-                   out_shape_image: Tuple[int, int, int],
+                   size_output: Tuple[int, int, int],
                    value_backgrnd: float = None
                    ) -> np.ndarray:
         if value_backgrnd is None:
             value_backgrnd = in_image[0][0][0]
         return ExtendImage._compute3d(CropImage._compute3d(in_image, in_crop_boundbox),
                                       in_extend_boundbox,
-                                      out_shape_image,
+                                      size_output,
                                       value_backgrnd)
 
     @classmethod
@@ -236,7 +238,7 @@ class RescaleImage(ImageOperator):
 
     @staticmethod
     def _compute(in_image: np.ndarray,
-                 scale_factor: Tuple[int, ...],
+                 scale_factor: Union[Tuple[int, int, int], Tuple[int, int]],
                  order: int = _order_default,
                  is_inlabels: bool = False,
                  is_binary_output: bool = False
@@ -262,16 +264,16 @@ class RescaleImage(ImageOperator):
 class FlipImage(ImageOperator):
 
     @staticmethod
-    def _compute2d(in_image: np.ndarray, axis: int) -> np.ndarray:
+    def _compute2d(in_image: np.ndarray, axis: int) -> Union[np.ndarray, None]:
         if axis == 0:
             return in_image[::-1, :]
         elif axis == 1:
             return in_image[:, ::-1]
         else:
-            return False
+            return None
 
     @staticmethod
-    def _compute3d(in_image: np.ndarray, axis: int) -> np.ndarray:
+    def _compute3d(in_image: np.ndarray, axis: int) -> Union[np.ndarray, None]:
         if axis == 0:
             return in_image[::-1, :, :]
         elif axis == 1:
@@ -279,7 +281,7 @@ class FlipImage(ImageOperator):
         elif axis == 2:
             return in_image[:, :, ::-1]
         else:
-            return False
+            return None
 
     @classmethod
     def compute(cls, in_image: np.ndarray, *args, **kwargs) -> np.ndarray:

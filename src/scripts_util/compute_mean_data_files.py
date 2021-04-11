@@ -52,6 +52,10 @@ def main(args):
     else:
         print("Compute the mean of all data from \'%s\' files: %s..." % (num_input_files, list_input_files))
 
+        header_1stfile = None
+        rows1elem_1stfile = None
+        list_data_files = None
+
         for (i, in_file) in enumerate(list_input_files):
 
             raw_data_this_string = np.genfromtxt(in_file, dtype=str, delimiter=', ')
@@ -62,39 +66,40 @@ def main(args):
             data_this = raw_data_this_float[1:, 1:]
 
             if i == 0:
-                header_file = header_this
-                rows1elem_file = rows1elem_this
-                num_rows = len(rows1elem_file)
-                num_cols = len(header_file)
-
+                header_1stfile = header_this
+                rows1elem_1stfile = rows1elem_this
                 # allocate vars to store data in files and compute the mean
-                data_fileslist = np.zeros((num_input_files, num_rows - 1, num_cols - 1))
-            else:
-                if header_this != header_file:
-                    message = 'header in file: \'%s\' not equal to header found previously: \'%s\'' \
-                              % (header_this, header_file)
-                    catch_error_exception(message)
-                if rows1elem_this != rows1elem_file:
-                    message = '1st column in file: \'%s\' not equal to 1st column found previously: \'%s\'' \
-                              % (rows1elem_this, rows1elem_file)
-                    catch_error_exception(message)
+                num_rows = len(rows1elem_this)
+                num_cols = len(header_this)
+                list_data_files = np.zeros((num_input_files, num_rows - 1, num_cols - 1))
+
+            if header_this != header_1stfile:
+                message = 'header in file: \'%s\' not equal to header found previously: \'%s\'' \
+                          % (header_this, header_1stfile)
+                catch_error_exception(message)
+            if rows1elem_this != rows1elem_1stfile:
+                message = '1st column in file: \'%s\' not equal to 1st column found previously: \'%s\'' \
+                          % (rows1elem_this, rows1elem_1stfile)
+                catch_error_exception(message)
 
             # store data corresponding to this file
-            data_fileslist[i, :, :] = data_this
+            list_data_files[i, :, :] = data_this
         # endfor
 
         # Compute mean of data along the first dimension of array (input files)
-        mean_data_fileslist = np.mean(data_fileslist, axis=0)
+        mean_data_fileslist = np.mean(list_data_files, axis=0)
 
         print("Save mean results in file: \'%s\'..." % (args.output_file))
         fout = open(args.output_file, 'w')
 
-        strheader = ', '.join(header_file) + '\n'
+        strheader = ', '.join(header_1stfile) + '\n'
         fout.write(strheader)
+
+        num_rows = len(rows1elem_1stfile)
 
         for i in range(num_rows - 1):
             data_thisrow = mean_data_fileslist[i]
-            strdata = ', '.join([rows1elem_file[i + 1]] + ['%0.6f' % (elem) for elem in data_thisrow]) + '\n'
+            strdata = ', '.join([rows1elem_1stfile[i + 1]] + ['%0.6f' % (elem) for elem in data_thisrow]) + '\n'
             fout.write(strdata)
         # endfor
 

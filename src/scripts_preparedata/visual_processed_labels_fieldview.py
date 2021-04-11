@@ -3,10 +3,10 @@ import numpy as np
 import argparse
 
 from common.constant import DATADIR, SIZE_IN_IMAGES, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, \
-    IS_VALID_CONVOLUTIONS, IS_FILTER_PRED_PROBMAPS, PROP_VALID_OUTPUT_NNET, PROP_OVERLAP_SLIDING_WINDOW_PRED, \
-    NAME_REFERENCE_KEYS_PROCIMAGE_FILE
-from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, str2bool, \
-    str2tuple_int, str2tuple_float
+    IS_VALID_CONVOLUTIONS, PROP_OVERLAP_SLIDING_WINDOW_TEST, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
+    IS_FILTER_OUT_PROBMAPS_NNET, PROP_FILTER_OUT_PROBMAPS_NNET
+from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, str2bool, str2int, \
+    str2float, str2tuple_int, str2tuple_float
 from common.workdirmanager import GeneralDirManager
 from dataloaders.dataloader_manager import get_imagedataloader_2images
 from dataloaders.imagefilereader import ImageFileReader
@@ -40,24 +40,26 @@ def main(args):
                                 num_classes_out=1,
                                 is_use_valid_convols=args.is_valid_convolutions)
 
-    size_out_image_network = model_network.get_size_output()[1:]
+    size_output_image_network = model_network.get_shape_output()[1:]
 
     if args.is_valid_convolutions:
         print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..."
-              % (str(args.size_in_images), str(size_out_image_network)))
+              % (str(args.size_in_images), str(size_output_image_network)))
 
     # Create Image Reconstructor
     images_reconstructor = get_images_reconstructor(args.size_in_images,
-                                                    is_sliding_window_images=args.is_sliding_window_images,
-                                                    prop_overlap_slide_window=args.prop_overlap_sliding_window,
-                                                    is_random_window_images=False,
-                                                    num_random_patches_epoch=0,
-                                                    is_transform_rigid_images=False,
-                                                    is_transform_elastic_images=False,
+                                                    is_sliding_window=args.is_sliding_window_images,
+                                                    prop_overlap_slide_images=args.prop_overlap_sliding_window,
+                                                    is_random_window=False,
+                                                    num_random_images=0,
+                                                    is_transform_rigid=False,
+                                                    trans_rigid_params=None,
+                                                    is_transform_elastic=False,
+                                                    type_trans_elastic='',
                                                     is_nnet_validconvs=args.is_valid_convolutions,
-                                                    size_output_image=size_out_image_network,
-                                                    is_filter_output_nnet=IS_FILTER_PRED_PROBMAPS,
-                                                    prop_filter_output_nnet=PROP_VALID_OUTPUT_NNET)
+                                                    size_output_images=size_output_image_network,
+                                                    is_filter_output_nnet=args.is_filter_out_probmaps_nnet,
+                                                    prop_filter_output_nnet=args.prop_filter_out_probmaps_nnet)
 
     # *****************************************************
 
@@ -69,15 +71,17 @@ def main(args):
         print("Loading data...")
         label_data_loader = get_imagedataloader_2images([in_label_file],
                                                         [in_label_file],
-                                                        size_in_images=args.size_in_images,
-                                                        is_sliding_window_images=args.is_sliding_window_images,
-                                                        prop_overlap_slide_window=args.prop_overlap_sliding_window,
-                                                        is_random_window_images=False,
-                                                        num_random_patches_epoch=0,
-                                                        is_transform_rigid_images=False,
-                                                        is_transform_elastic_images=False,
+                                                        size_images=args.size_in_images,
+                                                        is_sliding_window=args.is_sliding_window_images,
+                                                        prop_overlap_slide_images=args.prop_overlap_sliding_window,
+                                                        is_random_window=False,
+                                                        num_random_images=0,
+                                                        is_transform_rigid=False,
+                                                        trans_rigid_params=None,
+                                                        is_transform_elastic=False,
+                                                        type_trans_elastic='',
                                                         is_nnet_validconvs=args.is_valid_convolutions,
-                                                        size_output_images=size_out_image_network,
+                                                        size_output_images=size_output_image_network,
                                                         batch_size=1,
                                                         is_shuffle=False)
         (_, label_data_batches) = label_data_loader.get_full_data()
@@ -110,13 +114,13 @@ def main(args):
             names_files_different.append(basename(in_label_file))
 
         # Output computed field of view
-        out_filename = join_path_names(output_files_path, name_output_files(in_label_file, size_out_image_network))
+        out_filename = join_path_names(output_files_path, name_output_files(in_label_file, size_output_image_network))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), out_fieldview_reconstructed.shape))
 
         ImageFileReader.write_image(out_filename, out_fieldview_reconstructed)
     # endfor
 
-    if (len(names_files_different) == 0):
+    if len(names_files_different) == 0:
         print("\nGOOD: ALL IMAGE FILES ARE EQUAL...")
     else:
         print("\nWARNING: Found \'%s\' files that are different. Names of files: \'%s\'..."
@@ -133,9 +137,11 @@ if __name__ == "__main__":
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
     parser.add_argument('--is_sliding_window_images', type=str2bool, default=True)
-    parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW_PRED)
-    parser.add_argument('--is_random_window_images', type=str2tuple_float, default=False)
-    parser.add_argument('--num_random_patches_epoch', type=str2tuple_float, default=0)
+    parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW_TEST)
+    parser.add_argument('--is_random_window_images', type=str2bool, default=False)
+    parser.add_argument('--num_random_patches_epoch', type=str2int, default=0)
+    parser.add_argument('--is_filter_out_probmaps_nnet', type=str2bool, default=IS_FILTER_OUT_PROBMAPS_NNET)
+    parser.add_argument('--prop_filter_out_probmaps_nnet', type=str2float, default=PROP_FILTER_OUT_PROBMAPS_NNET)
     args = parser.parse_args()
 
     print("Print input arguments...")

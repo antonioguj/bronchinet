@@ -1,5 +1,5 @@
 
-from typing import Tuple, List
+from typing import Tuple, List, Union
 import numpy as np
 
 from scipy.ndimage import map_coordinates, gaussian_filter
@@ -8,15 +8,13 @@ from elasticdeform import deform_random_grid
 from common.exceptionmanager import catch_error_exception
 from preprocessing.imagegenerator import ImageGenerator
 
-np.random.seed(2017)
-
 
 class ElasticDeformImages(ImageGenerator):
     _order_interp_image = 3
     _order_interp_mask = 0
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  fill_mode: str = 'nearest',
                  cval: float = 0.0
                  ) -> None:
@@ -62,17 +60,23 @@ class ElasticDeformImages(ImageGenerator):
     def _get_calcgendata_elastic_deform(self, seed: int = None) -> np.ndarray:
         raise NotImplementedError
 
+    @classmethod
+    def _get_type_elastic_deform(cls) -> str:
+        raise NotImplementedError
+
     def get_text_description(self) -> str:
-        return 'Elastic Deformations of Image patches...\n'
+        message = 'Elastic deformations of images...\n'
+        message += '- type of elastic deformation: \'%s\'...\n' % (self._get_type_elastic_deform())
+        return message
 
 
 class ElasticDeformGridwiseImages(ElasticDeformImages):
-    # Taken from by Florian Calvet: florian.calvet@centrale-marseille.fr
     _sigma_default = 25
     _points_default = 3
+    _type_elastic_deform = 'Grid-wise'
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  sigma: int = _sigma_default,
                  points: int = _points_default,
                  fill_mode: str = 'nearest',
@@ -125,14 +129,18 @@ class ElasticDeformGridwiseImages(ElasticDeformImages):
 
         return np.asarray(coordinates)
 
+    @classmethod
+    def _get_type_elastic_deform(cls) -> str:
+        return cls._type_elastic_deform
+
 
 class ElasticDeformPixelwiseImages(ElasticDeformImages):
-    # Take from Florian Calvet: florian.calvet@centrale-marseille.fr
     _alpha_default = 15
     _sigma_default = 3
+    _type_elastic_deform = 'Pixel-wise'
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  alpha: int = _alpha_default,
                  sigma: int = _sigma_default,
                  fill_mode: str = 'nearest',
@@ -169,14 +177,18 @@ class ElasticDeformPixelwiseImages(ElasticDeformImages):
 
         return np.asarray(indices)
 
+    @classmethod
+    def _get_type_elastic_deform(cls) -> str:
+        return cls._type_elastic_deform
+
 
 class ElasticDeformGridwiseImagesGijs(ElasticDeformImages):
-    # Wrapper around tool from Gijs van Tulder: gijs@vantulder.net
     _sigma_default = 25
     _points_default = 3
+    _type_elastic_deform = 'Grid-wise_Gijs'
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  sigma: int = _sigma_default,
                  points: int = _points_default,
                  fill_mode: str = 'nearest',
@@ -211,3 +223,7 @@ class ElasticDeformGridwiseImagesGijs(ElasticDeformImages):
                                              + [self._order_interp_mask] * (len(in_list_images) - 1),
                                              mode=self._fill_mode, cval=self._cval)
         return out_list_images
+
+    @classmethod
+    def _get_type_elastic_deform(cls) -> str:
+        return cls._type_elastic_deform

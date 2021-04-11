@@ -30,7 +30,7 @@ def main(args):
         # 2 step: invert image
         new_crop_image = FlipImage.compute(new_crop_image, axis=0)
 
-        if (in_crop_image.shape == new_crop_image.shape):
+        if in_crop_image.shape == new_crop_image.shape:
             is_images_equal_voxelwise = np.array_equal(in_crop_image, new_crop_image)
 
             if is_images_equal_voxelwise:
@@ -45,7 +45,7 @@ def main(args):
             catch_warning_exception(message)
     # endfor
 
-    if (len(names_files_different) == 0):
+    if len(names_files_different) == 0:
         print("\nGOOD: ALL IMAGE FILES ARE EQUAL...")
     else:
         print("\nERROR: Found \'%s\' files that are different. Names of files: \'%s\'..."

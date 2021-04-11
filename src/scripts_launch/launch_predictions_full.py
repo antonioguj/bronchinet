@@ -90,13 +90,13 @@ def main(args):
 
         list_predict_reference_keys_files_cvfolds = []
 
-        for i, inputdir in enumerate(list_input_modeldirs):
-            input_model_file = join_path_names(inputdir, input_model_relfile)
-            in_config_params_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
+        for i, i_inputdir in enumerate(list_input_modeldirs):
+            input_model_file = join_path_names(i_inputdir, input_model_relfile)
+            in_config_params_file = join_path_names(i_inputdir, NAME_CONFIG_PARAMS_FILE)
             print("For CV-fold %s: load model file: %s" % (i + 1, input_model_file))
 
-            inout_predict_reference_keys_file_this \
-                = set_filename_suffix(inout_predict_reference_keys_file, 'CV%0.2i' % (i + 1))
+            inout_predict_reference_keys_file_this = \
+                set_filename_suffix(inout_predict_reference_keys_file, 'CV%0.2i' % (i + 1))
             list_predict_reference_keys_files_cvfolds.append(inout_predict_reference_keys_file_this)
 
             if not is_exist_file(in_config_params_file):
@@ -138,16 +138,19 @@ def main(args):
                     '--is_backward_compat', str(args.is_backward_compat)]
         list_calls_all.append(new_call)
 
+        list_predict_reference_keys_files_cvfolds = None
+
     # ******************************
 
     # 2nd: Compute post-processed posteriors from work predictions
     new_call = ['python3', SCRIPT_POSTPROCESS_PREDICTIONS,
                 '--basedir', basedir,
+                '--is_mask_region_interest', str(args.is_mask_region_interest),
+                '--is_crop_images', str(args.is_crop_images),
+                '--is_rescale_images', str(args.is_rescale_images),
+                '--is_binary_predictions', 'True',
                 '--name_input_predictions_relpath', inout_tempo_posteriors_path,
                 '--name_output_posteriors_relpath', output_posteriors_path,
-                '--is_mask_region_interest', str(IS_MASK_REGION_INTEREST),
-                '--is_crop_images', str(IS_CROP_IMAGES),
-                '--is_rescale_images', str(IS_RESCALE_IMAGES),
                 '--name_input_reference_keys_file', inout_predict_reference_keys_file]
     list_calls_all.append(new_call)
 
@@ -156,10 +159,10 @@ def main(args):
     # 3rd: Compute the predicted binary masks from the posteriors
     new_call = ['python3', SCRIPT_PROCESS_PREDICT_AIRWAY_TREE,
                 '--basedir', basedir,
-                '--name_input_posteriors_relpath', output_posteriors_path,
-                '--name_output_binary_masks_relpath', output_predict_binary_masks_path,
                 '--post_threshold_value', str(args.post_threshold_value),
-                '--is_attach_coarse_airways', str(args.is_attach_coarse_airways)]
+                '--is_attach_coarse_airways', str(args.is_attach_coarse_airways),
+                '--name_input_posteriors_relpath', output_posteriors_path,
+                '--name_output_binary_masks_relpath', output_predict_binary_masks_path]
     list_calls_all.append(new_call)
 
     # ******************************
@@ -182,8 +185,7 @@ def main(args):
 
     # 4th: Compute centrelines by thinning the binary masks
     new_call = ['python3', SCRIPT_CALC_CENTRELINES_FROM_MASK,
-                output_predict_binary_masks_path,
-                output_predict_centrelines_path,
+                output_predict_binary_masks_path, output_predict_centrelines_path,
                 '--type', 'thinning']
     list_calls_all.append(new_call)
 
@@ -222,6 +224,7 @@ def main(args):
             name_input_coarse_airways_relpath = basenamedir(output_conser_coarse_airways_path)
         else:
             name_input_coarse_airways_relpath = NAME_RAW_COARSEAIRWAYS_RELPATH
+            output_conser_coarse_airways_path = None
 
         # ******************************
 
@@ -230,10 +233,16 @@ def main(args):
                     output_predict_binary_masks_path, output_predict_centrelines_path,
                     '--basedir', basedir,
                     '--list_type_metrics', str(args.list_type_metrics_result),
-                    '--is_remove_trachea_calc_metrics', str(args.is_remove_trachea_calc_metrics),
                     '--output_file', output_result_metrics_file,
+                    '--is_remove_trachea_calc_metrics', str(args.is_remove_trachea_calc_metrics),
                     '--name_input_coarse_airways_relpath', name_input_coarse_airways_relpath]
         list_calls_all.append(new_call)
+
+        # ******************************
+
+        if args.is_conservative_remove_trachea_calc_metrics:
+            new_call = ['rm', '-r', output_conser_coarse_airways_path]
+            list_calls_all.append(new_call)
 
     # ******************************
 
@@ -247,10 +256,6 @@ def main(args):
         list_predict_reference_keys_files_cvfolds_csvs = \
             [elem.replace('.npy', '.csv') for elem in list_predict_reference_keys_files_cvfolds]
         new_call = ['rm', *list_predict_reference_keys_files_cvfolds, *list_predict_reference_keys_files_cvfolds_csvs]
-        list_calls_all.append(new_call)
-
-    if len(args.list_type_metrics_result) > 0 and args.is_conservative_remove_trachea_calc_metrics:
-        new_call = ['rm', '-r', output_conser_coarse_airways_path]
         list_calls_all.append(new_call)
 
     # ******************************
@@ -274,6 +279,9 @@ if __name__ == "__main__":
     parser.add_argument('output_basedir', type=str)
     parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--is_preds_crossval', type=str2bool, default=False)
+    parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
+    parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
+    parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
     parser.add_argument('--post_threshold_value', type=float, default=POST_THRESHOLD_VALUE)
     parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)

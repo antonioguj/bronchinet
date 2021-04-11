@@ -6,7 +6,7 @@ from common.constant import DATADIR, SIZE_BUFFER_BOUNDBOX_BORDERS, IS_TWO_BOUNDB
     IS_SAME_SIZE_BOUNDBOX_ALL_IMAGES, SIZE_FIXED_BOUNDBOX_ALL, IS_CALC_BOUNDBOX_IN_SLICES, NAME_RAW_ROIMASKS_RELPATH, \
     NAME_CROP_BOUNDBOXES_FILE, NAME_REFERENCE_FILES_RELPATH
 from common.functionutil import basename, basename_filenoext, list_files_dir, str2bool, str2tuple_int, \
-    save_dictionary, save_dictionary_csv
+    str2tuple_int_none, save_dictionary, save_dictionary_csv
 from common.workdirmanager import GeneralDirManager
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.boundingboxes import BoundingBoxes
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_two_boundboxes_each_lung', type=str2bool, default=IS_TWO_BOUNDBOXES_EACH_LUNG)
     parser.add_argument('--size_train_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--is_same_size_boundbox_all_images', type=str2bool, default=IS_SAME_SIZE_BOUNDBOX_ALL_IMAGES)
-    parser.add_argument('--size_fixed_boundbox_all', type=str2tuple_int, default=SIZE_FIXED_BOUNDBOX_ALL)
+    parser.add_argument('--size_fixed_boundbox_all', type=str2tuple_int_none, default=SIZE_FIXED_BOUNDBOX_ALL)
     parser.add_argument('--is_calc_boundbox_in_slices', type=str2bool, default=IS_CALC_BOUNDBOX_IN_SLICES)
     parser.add_argument('--name_input_roimasks_relpath', type=str, default=NAME_RAW_ROIMASKS_RELPATH)
     parser.add_argument('--name_output_boundboxes_file', type=str, default=NAME_CROP_BOUNDBOXES_FILE)

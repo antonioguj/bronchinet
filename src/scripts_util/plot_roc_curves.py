@@ -79,6 +79,9 @@ def main(args):
         for i, ifile in enumerate(list_input_annotate_files):
             print("%s: \'%s\'" % (i + 1, ifile))
         # endfor
+    else:
+        num_annotate_files = None
+        list_input_annotate_files = None
 
     # ******************************
 
@@ -116,6 +119,9 @@ def main(args):
             list_annotation_xaxis.append(data_xaxis)
             list_annotation_yaxis.append(data_yaxis)
         # endfor
+    else:
+        list_annotation_xaxis = None
+        list_annotation_yaxis = None
 
     if num_input_files == 1:
         plt.plot(data_xaxis_list[0], data_yaxis_list[0], 'o-', color='b')

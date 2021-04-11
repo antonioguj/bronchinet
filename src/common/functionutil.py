@@ -1,5 +1,5 @@
 
-from typing import List, Tuple, Dict, Callable, Any
+from typing import List, Tuple, Dict, Callable, Union, Any
 import numpy as np
 import itertools
 import shutil
@@ -179,7 +179,7 @@ def basename_filenoext(filename: str, is_split_recursive: bool = True) -> str:
 def list_files_dir(dirname: str, filename_pattern: str = '*', is_check: bool = True) -> List[str]:
     listfiles = sorted(glob.glob(join_path_names(dirname, filename_pattern)))
     if is_check:
-        if (len(listfiles) == 0):
+        if len(listfiles) == 0:
             message = 'No files found in \'%s\' with \'%s\'' % (dirname, filename_pattern)
             catch_error_exception(message)
     return listfiles
@@ -200,7 +200,7 @@ def list_links_dir(dirname: str) -> List[str]:
 
 
 # to manipulate substrings in a filename:
-def get_substring_filename(filename: str, pattern_search: str) -> str:
+def get_substring_filename(filename: str, pattern_search: str) -> Union[str, None]:
     sre_substring_filename = re.search(pattern_search, filename)
     if sre_substring_filename:
         return sre_substring_filename.group(0)
@@ -248,14 +248,11 @@ def flatten_listoflists(in_list: List[List[Any]]) -> List[Any]:
     return list(itertools.chain(*in_list))
 
 
-def find_intersection_2lists(list_1: List[Any],
-                             list_2: List[Any]) -> List[Any]:
+def find_intersection_2lists(list_1: List[Any], list_2: List[Any]) -> List[Any]:
     return [elem for elem in list_1 if elem in list_2]
 
 
-def find_intersection_3lists(list_1: List[Any],
-                             list_2: List[Any],
-                             list_3: List[Any]) -> List[Any]:
+def find_intersection_3lists(list_1: List[Any], list_2: List[Any], list_3: List[Any]) -> List[Any]:
     intersection = find_intersection_2lists(list_1, list_2)
     intersection += find_intersection_2lists(list_1, list_3)
     intersection += find_intersection_2lists(list_2, list_3)
@@ -267,24 +264,12 @@ def str2bool(in_str: str) -> bool:
     return in_str.lower() in ('yes', 'true', 't', '1')
 
 
-def is_string_bool(in_str: str) -> bool:
-    return in_str.lower() in ('yes', 'true', 'no', 'false')
-
-
 def str2int(in_str: str) -> int:
     return int(in_str)
 
 
-def is_string_int(in_str: str) -> bool:
-    return in_str.isdigit()
-
-
 def str2float(in_str: str) -> float:
     return float(in_str)
-
-
-def is_string_float(in_str: str) -> bool:
-    return (in_str.count('.') == 1) and (in_str.replace('.', '', 1).isdigit())
 
 
 def str2list_str(in_str: str) -> List[str]:
@@ -296,43 +281,47 @@ def str2list_str(in_str: str) -> List[str]:
 
 
 def str2list_int(in_str: str) -> List[int]:
-    if in_str == 'None':
-        return None
     in_str = in_str.replace('[', '').replace(']', '')
     list_elems_instr = in_str.split(',')
-    return [int(elem) for elem in list_elems_instr]
+    return [str2int(elem) for elem in list_elems_instr]
 
 
 def str2list_float(in_str: str) -> List[float]:
-    if in_str == 'None':
-        return None
     in_str = in_str.replace('[', '').replace(']', '')
     list_elems_instr = in_str.split(',')
-    return [float(elem) for elem in list_elems_instr]
+    return [str2float(elem) for elem in list_elems_instr]
 
 
-def is_string_list(in_str: str) -> bool:
-    return (in_str[0] == '[') and (in_str[-1] == ']')
+def str2tuple_bool(in_str: str) -> Tuple[int, ...]:
+    in_str = in_str.replace('(', '').replace(')', '')
+    list_elems_instr = in_str.split(',')
+    return tuple([str2bool(elem) for elem in list_elems_instr])
 
 
 def str2tuple_int(in_str: str) -> Tuple[int, ...]:
-    if in_str == 'None':
-        return None
     in_str = in_str.replace('(', '').replace(')', '')
     list_elems_instr = in_str.split(',')
-    return tuple([int(elem) for elem in list_elems_instr])
+    return tuple([str2int(elem) for elem in list_elems_instr])
 
 
 def str2tuple_float(in_str: str) -> Tuple[float, ...]:
-    if in_str == 'None':
-        return None
     in_str = in_str.replace('(', '').replace(')', '')
     list_elems_instr = in_str.split(',')
-    return tuple([float(elem) for elem in list_elems_instr])
+    return tuple([str2float(elem) for elem in list_elems_instr])
 
 
-def is_string_tuple(in_str: str) -> bool:
-    return (in_str[0] == '(') and (in_str[-1] == ')')
+def str2tuple_int_none(in_str: str) -> Union[Tuple[int, ...], None]:
+    if in_str == 'None':
+        return None
+    else:
+        return str2tuple_int(in_str)
+
+
+def str2tuple_float_none(in_str: str) -> Union[Tuple[float, ...], None]:
+    if in_str == 'None':
+        return None
+    else:
+        return str2tuple_float(in_str)
 
 
 def list2str(in_list: List[Any]) -> str:
@@ -369,8 +358,27 @@ def split_string_list_or_tuple(in_str: str) -> List[str]:
         return in_str_content.rsplit(',')
 
 
+def is_string_bool(in_str: str) -> bool:
+    return in_str.lower() in ('yes', 'true', 'no', 'false')
+
+
+def is_string_int(in_str: str) -> bool:
+    return in_str.isdigit()
+
+
+def is_string_float(in_str: str) -> bool:
+    return (in_str.count('.') == 1) and (in_str.replace('.', '', 1).isdigit())
+
+
+def is_string_list(in_str: str) -> bool:
+    return (in_str[0] == '[') and (in_str[-1] == ']')
+
+
+def is_string_tuple(in_str: str) -> bool:
+    return (in_str[0] == '(') and (in_str[-1] == ')')
+
+
 def get_string_datatype(in_str: str) -> str:
-    out_datatype = 0
     if is_string_bool(in_str):
         out_datatype = 'bool'
     elif is_string_int(in_str):
@@ -508,11 +516,15 @@ class ImagesUtil:
     # shape_image: full shape or image array
 
     @staticmethod
-    def is_without_channels(in_size_image: Tuple[int, ...], in_shape_image: Tuple[int, ...]) -> bool:
+    def is_without_channels(in_size_image: Union[Tuple[int, int, int], Tuple[int, int]],
+                            in_shape_image: Tuple[int, ...]
+                            ) -> bool:
         return len(in_shape_image) == len(in_size_image)
 
     @classmethod
-    def get_num_channels(cls, in_size_image: Tuple[int, ...], in_shape_image: Tuple[int, ...]) -> int:
+    def get_num_channels(cls, in_size_image: Union[Tuple[int, int, int], Tuple[int, int]],
+                         in_shape_image: Tuple[int, ...]
+                         ) -> Union[int, None]:
         if cls.is_without_channels(in_size_image, in_shape_image):
             return None
         else:

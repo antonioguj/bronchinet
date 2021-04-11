@@ -31,9 +31,11 @@ def main(args):
     indict_reference_keys = read_dictionary(in_reference_keys_file)
     pattern_search_infiles = get_regex_pattern_filename(list(indict_reference_keys.values())[0])
 
-    if (args.is_remove_trachea_calc_metrics):
+    if args.is_remove_trachea_calc_metrics:
         input_coarse_airways_path = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
+    else:
+        list_input_coarse_airways_files = None
 
     if len(list_input_predicted_masks_files) != len(list_input_predicted_cenlines_files):
         message = 'Input dirs for predicted masks and centrelines have different number of files...'
@@ -44,6 +46,8 @@ def main(args):
         new_metric = get_metric(itype_metric)
         list_metrics[new_metric._name_fun_out] = new_metric
     # endfor
+
+    # *****************************************************
 
     # *****************************************************
 
@@ -69,7 +73,7 @@ def main(args):
         in_reference_cenline = ImageFileReader.get_image(in_reference_cenline_file)
         print("Predictions of size: %s..." % (str(in_predicted_mask.shape)))
 
-        if (args.is_remove_trachea_calc_metrics):
+        if args.is_remove_trachea_calc_metrics:
             print("Remove trachea and main bronchi masks in computed metrics...")
             in_coarse_airways_file = find_file_inlist_with_pattern(basename(in_predicted_mask_file),
                                                                    list_input_coarse_airways_files,
@@ -127,9 +131,9 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('input_predicted_masks_dir', type=str)
     parser.add_argument('input_pred_centrelines_dir', type=str)
+    parser.add_argument('--basedir', type=str, default=BASEDIR)
     parser.add_argument('--list_type_metrics', type=str2list_str, default=LIST_TYPE_METRICS_RESULT)
     parser.add_argument('--output_file', type=str, default=NAME_PRED_RESULT_METRICS_FILE)
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
