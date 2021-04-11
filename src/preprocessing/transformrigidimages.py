@@ -13,7 +13,7 @@ _epsilon = 1e-6
 class TransformRigidImages(ImageGenerator):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  is_normalize_data: bool = False,
                  type_normalize_data: str = 'samplewise',
                  is_zca_whitening: bool = False,
@@ -105,8 +105,7 @@ class TransformRigidImages(ImageGenerator):
             in_image = np.squeeze(in_image, axis=-1)
         return in_image
 
-    def _get_calc_transformed_image(self, in_array: np.ndarray,
-                                    is_type_input_image: bool = False) -> np.ndarray:
+    def _get_calc_transformed_image(self, in_array: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         raise NotImplementedError
 
     def _get_calc_inverse_transformed_image(self, in_array: np.ndarray,
@@ -278,8 +277,7 @@ class TransformRigidImages2D(TransformRigidImages):
                                                      rescale_factor=rescale_factor,
                                                      preprocessing_function=preprocessing_function)
 
-    def _get_calc_transformed_image(self, in_image: np.ndarray,
-                                    is_type_input_image: bool = False) -> np.ndarray:
+    def _get_calc_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         # Apply: 1st: rigid transformations
         #        2nd: channel shift intensity / flipping
         if self._transform_matrix is not None:
@@ -586,8 +584,7 @@ class TransformRigidImages3D(TransformRigidImages):
                                                      rescale_factor=rescale_factor,
                                                      preprocessing_function=preprocessing_function)
 
-    def _get_calc_transformed_image(self, in_image: np.ndarray,
-                                    is_type_input_image: bool = False) -> np.ndarray:
+    def _get_calc_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         # Apply: 1st: rigid transformations
         #        2nd: channel shift intensity / flipping
         if self._transform_matrix is not None:

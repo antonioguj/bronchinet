@@ -2,6 +2,8 @@
 import numpy as np
 import argparse
 
+from common.exceptionmanager import catch_error_exception
+
 
 def main(args):
 
@@ -31,8 +33,10 @@ def main(args):
     first_epoch_eval = num_epochs_average
     first_epoch_compare = first_epoch_eval + num_epochs_patience
     if len(epochs) < first_epoch_compare:
-        print("ERROR: loss history not long enough: %s < %s... EXIT" % (len(epochs), first_epoch_compare))
-        exit(0)
+        message = 'loss history not long enough: %s < %s' % (len(epochs), first_epoch_compare)
+        catch_error_exception(message)
+        last_epoch_compare = None
+        last_epoch_eval = None
     else:
         last_epoch_compare = len(epochs)
         last_epoch_eval = last_epoch_compare - num_epochs_patience

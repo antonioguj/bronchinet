@@ -1,5 +1,5 @@
 
-from typing import Tuple, Callable
+from typing import Tuple, Union, Callable
 
 from common.constant import TYPE_DNNLIB_USED
 from common.exceptionmanager import catch_error_exception
@@ -18,7 +18,7 @@ if TYPE_DNNLIB_USED == 'Pytorch':
         FalsePositiveRate as FalsePositiveRate_train, \
         FalseNegativeRate as FalseNegativeRate_train, \
         LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
-    from models.pytorch.networks import UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS
+    from models.pytorch.networks import UNet, UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS
     from models.pytorch.optimizers import get_sgd, get_sgdmom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
     from models.pytorch.visualmodelparams import VisualModelParams
@@ -37,7 +37,7 @@ elif TYPE_DNNLIB_USED == 'Keras':
         FalsePositiveRate as FalsePositiveRate_train, \
         FalseNegativeRate as FalseNegativeRate_train, \
         LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
-    from models.keras.networks import UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS
+    from models.keras.networks import UNet, UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS
     from models.keras.optimizers import get_sgd, get_sgdmom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
     from models.keras.visualmodelparams import VisualModelParams
@@ -47,7 +47,6 @@ from models.metrics import MetricBase, MeanSquaredError, MeanSquaredErrorLogarit
     AirwayCompleteness, AirwayVolumeLeakage, AirwayCentrelineLeakage, AirwayTreeLength, \
     AirwayCentrelineDistanceFalseNegativeError, AirwayCentrelineDistanceFalsePositiveError, \
     LIST_AVAIL_METRICS
-from models.networks import ConvNetBase
 
 
 def get_metric(type_metric: str,
@@ -208,7 +207,9 @@ def get_optimizer(type_optimizer: str, learn_rate: float, **kwargs) -> Callable:
         catch_error_exception(message)
 
 
-def get_visual_model_params(in_network: ConvNetBase, in_size_image: Tuple[int, ...]) -> VisualModelParams:
+def get_visual_model_params(in_network: UNet,
+                            in_size_image: Union[Tuple[int, int, int], Tuple[int, int]]
+                            ) -> VisualModelParams:
     return VisualModelParams(in_network, in_size_image)
 
 

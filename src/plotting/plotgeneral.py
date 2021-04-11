@@ -85,6 +85,9 @@ class PlotGeneral(object):
         elif type_output == 2:
             num_figures_saved = cls._num_figures_saved
             range_slices_figure = num_total_slices // cls._num_figures_saved
+        else:
+            num_figures_saved = 0
+            range_slices_figure = None
 
         count_slice = 0
         for n in range(num_figures_saved):
@@ -129,6 +132,9 @@ class PlotGeneral(object):
         elif type_output == 2:
             num_figures_saved = cls._num_figures_saved
             range_slices_figure = num_total_slices // cls._num_figures_saved
+        else:
+            num_figures_saved = 0
+            range_slices_figure = None
 
         count_slice = 0
         for n in range(num_figures_saved):
@@ -177,6 +183,9 @@ class PlotGeneral(object):
         elif type_output == 2:
             num_figures_saved = cls._num_figures_saved
             range_slices_figure = num_total_slices // cls._num_figures_saved
+        else:
+            num_figures_saved = 0
+            range_slices_figure = None
 
         count_slice = 0
         for n in range(num_figures_saved):

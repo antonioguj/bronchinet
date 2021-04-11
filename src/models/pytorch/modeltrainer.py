@@ -1,5 +1,5 @@
 
-from typing import Tuple, List
+from typing import Tuple, List, Union
 import numpy as np
 
 import torch
@@ -72,7 +72,7 @@ class ModelTrainer(ModelTrainerBase):
         self.freq_validate_model = freq_validate_model
 
     def summary_model(self) -> None:
-        summary(self._network, self._network.get_size_input())
+        summary(self._network, self._network.get_shape_input())
 
     def load_model_only_weights(self, model_filename: str) -> None:
         model_state_dict = torch.load(model_filename, map_location=self._device)
@@ -222,11 +222,11 @@ class ModelTrainer(ModelTrainerBase):
         for icallback in self._list_callbacks:
             icallback.on_epoch_end(epoch, data_output)
 
-    def get_size_output_model(self) -> Tuple[int, ...]:
-        return self._network.get_size_output()
+    def get_shape_output_model(self) -> Tuple[int, ...]:
+        return self._network.get_shape_output()
 
-    def get_size_output_image_model(self) -> Tuple[int, ...]:
-        return self.get_size_output_model()[1:]
+    def get_size_output_image_model(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
+        return self.get_shape_output_model()[1:]
 
     def train(self,
               train_data_loader: BatchDataGenerator,
@@ -372,7 +372,7 @@ class ModelTrainer(ModelTrainerBase):
 
     def _run_prediction(self) -> np.ndarray:
         num_batches = len(self._test_data_loader)
-        size_output_batch = self._network.get_size_output()
+        size_output_batch = self._network.get_shape_output()
         out_shape_prediction = (num_batches,) + size_output_batch
         output_prediction = np.ndarray(out_shape_prediction, dtype=np.float32)
 

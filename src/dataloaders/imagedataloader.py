@@ -1,5 +1,5 @@
 
-from typing import List, Tuple, Any
+from typing import List, Tuple, Union
 import numpy as np
 
 from common.exceptionmanager import catch_error_exception
@@ -71,13 +71,13 @@ class ImageDataLoader(object):
 class ImageDataBatchesLoader(ImageDataLoader):
     _max_load_images_default = None
 
-    def __init__(self, size_image: Tuple[int, ...]) -> None:
+    def __init__(self, size_image: Union[Tuple[int, int, int], Tuple[int, int]]) -> None:
         self._size_image = size_image
 
     @staticmethod
     def _shuffle_data(in_imagedata_1: np.ndarray,
                       in_imagedata_2: np.ndarray = None
-                      ) -> Tuple[np.ndarray, Any]:
+                      ) -> Tuple[np.ndarray, None]:
         # randomly shuffle the elements in image data
         indexes_shuffled = np.arange(in_imagedata_1.shape[0])
         np.random.shuffle(indexes_shuffled)

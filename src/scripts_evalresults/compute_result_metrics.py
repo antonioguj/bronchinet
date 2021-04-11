@@ -34,6 +34,8 @@ def main(args):
     if args.is_remove_trachea_calc_metrics:
         input_coarse_airways_path = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
+    else:
+        list_input_coarse_airways_files = None
 
     if len(list_input_predicted_masks_files) != len(list_input_predicted_cenlines_files):
         message = 'Input dirs for predicted masks and centrelines have different number of files...'
@@ -44,6 +46,8 @@ def main(args):
         new_metric = get_metric(itype_metric)
         list_metrics[new_metric._name_fun_out] = new_metric
     # endfor
+
+    # *****************************************************
 
     # *****************************************************
 

@@ -18,7 +18,7 @@ LIST_AVAIL_NETWORKS = ['UNet3DOriginal',
 class UNet(UNetBase, nn.Module):
 
     def __init__(self,
-                 size_image_in: Tuple[int, ...],
+                 size_image_in: Union[Tuple[int, int, int], Tuple[int, int]],
                  num_levels: int,
                  num_featmaps_in: int,
                  num_channels_in: int,
@@ -38,21 +38,24 @@ class UNet(UNetBase, nn.Module):
         raise NotImplementedError
 
     def _build_list_info_crop_where_merge(self) -> None:
-        indexes_output_where_merge = [i for i, el in enumerate(self._list_opers_names_layers_all) if el == 'upsample']
+        indexes_output_where_merge = [i for i, el in enumerate(self._list_operation_names_layers_all) if el == 'upsample']
         self._list_sizes_crop_where_merge = [self._list_sizes_output_all_layers[i]
                                              for i in indexes_output_where_merge][::-1]
 
     def _crop_image_2d(self, input: torch.FloatTensor, size_crop) -> torch.FloatTensor:
-        size_input = input.shape[-2:]
-        out_limit = self._get_limits_output_crop(size_input, size_crop)
+        size_input_image = input.shape[-2:]
+        limits_out_image = self._get_limits_output_crop(size_input_image, size_crop)
         return input[:, :,  # dims for input and output features
-                     out_limit[0][0]:out_limit[0][1], out_limit[1][0]:out_limit[1][1]]
+                     limits_out_image[0][0]:limits_out_image[0][1],
+                     limits_out_image[1][0]:limits_out_image[1][1]]
 
     def _crop_image_3d(self, input: torch.FloatTensor, size_crop) -> torch.FloatTensor:
-        size_input = input.shape[-3:]
-        out_limit = self._get_limits_output_crop(size_input, size_crop)
+        size_input_image = input.shape[-3:]
+        limits_out_image = self._get_limits_output_crop(size_input_image, size_crop)
         return input[:, :,  # dims for input and output features
-                     out_limit[0][0]:out_limit[0][1], out_limit[1][0]:out_limit[1][1], out_limit[2][0]:out_limit[2][1]]
+                     limits_out_image[0][0]:limits_out_image[0][1],
+                     limits_out_image[1][0]:limits_out_image[1][1],
+                     limits_out_image[2][0]:limits_out_image[2][1]]
 
 
 class UNet3DOriginal(UNet):

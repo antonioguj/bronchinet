@@ -29,6 +29,8 @@ def main(args):
     if args.is_attach_coarse_airways:
         input_coarse_airways_path = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
+    else:
+        list_input_coarse_airways_files = None
 
     # *****************************************************
 

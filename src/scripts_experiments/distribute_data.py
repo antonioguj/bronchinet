@@ -31,7 +31,7 @@ def search_indexes_in_files_from_reference_keys(in_readfile: str, list_in_refere
                           % (in_reference_file, list_in_reference_files)
                 catch_error_exception(message)
 
-    return np.array(out_indexes_in_files)
+    return out_indexes_in_files
 
 
 def check_same_number_files_in_list(list_files_1: List[str], list_files_2: List[str]):
@@ -55,11 +55,17 @@ def main(args):
         input_labels_data_path = workdir_manager.get_datadir_exist(args.name_input_labels_relpath)
         list_input_labels_files = list_files_dir(input_labels_data_path)
         check_same_number_files_in_list(list_input_images_files, list_input_labels_files)
+    else:
+        list_input_labels_files = None
 
     if args.is_input_extra_labels:
         input_extra_labels_data_path = workdir_manager.get_datadir_exist(args.name_input_extra_labels_relpath)
         list_input_extra_labels_files = list_files_dir(input_extra_labels_data_path)
         check_same_number_files_in_list(list_input_images_files, list_input_extra_labels_files)
+    else:
+        list_input_extra_labels_files = None
+
+    # *****************************************************
 
     # *****************************************************
 
@@ -79,7 +85,7 @@ def main(args):
         print("Num files assigned for Training (%s) / Validation (%s) / Testing (%s)..."
               % (num_training_files, num_validation_files, num_testing_files))
 
-        indexes_input_files = np.arange(num_total_files)
+        indexes_input_files = list(range(num_total_files))
         if args.type_distribute == 'random':
             print("Randomly shuffle the data before distributing...")
             np.random.shuffle(indexes_input_files)
@@ -111,9 +117,14 @@ def main(args):
                       % (list_intersect_files)
             catch_error_exception(message)
 
-    # ******************************
+    else:
+        indexes_training_files = None
+        indexes_validation_files = None
+        indexes_testing_files = None
 
-    elif args.type_distribute == 'crossval' or args.type_distribute == 'crossval_random':
+    # *****************************************************
+
+    if args.type_distribute == 'crossval' or args.type_distribute == 'crossval_random':
         cvfolds_info_path = workdir_manager.get_pathdir_new(args.name_cvfolds_info_relpath)
         out_filename_cvfold_info_train = join_path_names(cvfolds_info_path, 'train%0.2i.txt')
         out_filename_cvfold_info_valid = join_path_names(cvfolds_info_path, 'valid%0.2i.txt')
@@ -122,7 +133,7 @@ def main(args):
         indict_reference_keys = read_dictionary(in_reference_keys_file)
 
         num_total_files = len(list_input_images_files)
-        indexes_input_files = np.arange(num_total_files)
+        indexes_input_files = list(range(num_total_files))
         if args.type_distribute == 'crossval_random':
             print("Randomly shuffle the data before distributing, across all cv-folds...")
             np.random.shuffle(indexes_input_files)
@@ -133,6 +144,7 @@ def main(args):
             catch_error_exception(message)
 
         list_indexes_files_split_cvfolds = np.array_split(indexes_input_files, args.num_folds_crossval)
+        list_indexes_files_split_cvfolds = [list(elem) for elem in list_indexes_files_split_cvfolds]
 
         num_testing_files_cvfolds = len(list_indexes_files_split_cvfolds[0])
         num_trainvalid_files_cvfolds = num_total_files - num_testing_files_cvfolds
@@ -149,14 +161,14 @@ def main(args):
         # ******************************
 
         # to get ORDERED indexes for training + validation files in cv-folds
-        indexes_input_files_repeated = np.concatenate((indexes_input_files, indexes_input_files))
+        indexes_input_files_repeated = list(np.concatenate((indexes_input_files, indexes_input_files)))
 
         list_indexes_training_files_cvfolds = []
         list_indexes_validation_files_cvfolds = []
         list_indexes_testing_files_cvfolds = []
 
         for indexes_files_split_cvfold in list_indexes_files_split_cvfolds:
-            pos_last_file_split_in_indexes = list(indexes_input_files).index(indexes_files_split_cvfold[-1])
+            pos_last_file_split_in_indexes = indexes_input_files.index(indexes_files_split_cvfold[-1])
 
             indexes_testing_files = indexes_files_split_cvfold
             indexes_trainvalid_files = \
@@ -191,6 +203,11 @@ def main(args):
             write_file_cvfold_info(out_file_cvfold_info_valid, list_indexes_validation_files_cvfolds[i])
             write_file_cvfold_info(out_file_cvfold_info_test, list_indexes_testing_files_cvfolds[i])
         # endfor
+
+    else:
+        list_indexes_training_files_cvfolds = None
+        list_indexes_validation_files_cvfolds = None
+        list_indexes_testing_files_cvfolds = None
 
     # *****************************************************
 

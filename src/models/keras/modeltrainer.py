@@ -1,5 +1,5 @@
 
-from typing import Tuple
+from typing import Tuple, Union
 import numpy as np
 
 from tensorflow.keras.models import load_model
@@ -29,12 +29,12 @@ class ModelTrainer(ModelTrainerBase):
         tf.random.set_seed(seed)
 
     def finalise_model(self) -> None:
-        self._compiled_model = self._network.get_compiled_model()
+        self._built_model = self._network.get_built_model()
 
         list_metrics_funs = [imetric.renamed_compute() for imetric in self._list_metrics]
-        self._compiled_model.compile(optimizer=self._optimizer,
-                                     loss=self._loss.lossfun,
-                                     metrics=list_metrics_funs)
+        self._built_model.compile(optimizer=self._optimizer,
+                                  loss=self._loss.lossfun,
+                                  metrics=list_metrics_funs)
 
     def create_callbacks(self, models_path: str, losshist_filename: str, **kwargs) -> None:
         self._list_callbacks = []
@@ -67,35 +67,35 @@ class ModelTrainer(ModelTrainerBase):
         self._list_callbacks.append(new_callback)
 
     def summary_model(self) -> None:
-        self._compiled_model.summary()
+        self._built_model.summary()
 
     def load_model_only_weights(self, model_filename: str) -> None:
-        self._compiled_model.load_weights(model_filename)
+        self._built_model.load_weights(model_filename)
 
     def load_model_full(self, model_filename: str, **kwargs) -> None:
         custom_loss = self._loss.lossfun
         custom_metrics = [imetric.renamed_compute() for imetric in self._list_metrics]
         custom_objects = dict(map(lambda fun: (fun.__name__, fun), [custom_loss] + custom_metrics))
-        self._compiled_model = load_model(model_filename, custom_objects=custom_objects)
+        self._built_model = load_model(model_filename, custom_objects=custom_objects)
 
     def load_model_full_backward_compat(self, model_filename: str, **kwargs) -> None:
         custom_loss = self._loss.renamed_lossfun_backward_compat()
         custom_metrics = [imetric.renamed_compute() for imetric in self._list_metrics]
         custom_objects = dict(map(lambda fun: (fun.__name__, fun), [custom_loss] + custom_metrics))
-        self._compiled_model = load_model(model_filename, custom_objects=custom_objects)
+        self._built_model = load_model(model_filename, custom_objects=custom_objects)
 
     def save_model_only_weights(self, model_filename: str) -> None:
-        self._compiled_model.save_weights(model_filename)
+        self._built_model.save_weights(model_filename)
 
     def save_model_full(self, model_filename: str) -> None:
-        self._compiled_model.save(model_filename)
+        self._built_model.save(model_filename)
 
-    def get_size_output_model(self) -> Tuple[int, ...]:
-        return self._compiled_model.outputs[0].shape[1:]
-        # return self._network.get_size_output()
+    def get_shape_output_model(self) -> Tuple[int, ...]:
+        return self._built_model.outputs[0].shape[1:]
+        # return self._network.get_shape_output()
 
-    def get_size_output_image_model(self) -> Tuple[int, ...]:
-        return self.get_size_output_model()[:-1]
+    def get_size_output_image_model(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
+        return self.get_shape_output_model()[:-1]
 
     def train(self,
               train_data_loader: BatchDataGenerator,
@@ -105,16 +105,16 @@ class ModelTrainer(ModelTrainerBase):
               initial_epoch: int = 0,
               is_shuffle_data: bool = False
               ) -> None:
-        self._compiled_model.fit_generator(generator=train_data_loader,
-                                           steps_per_epoch=max_steps_epoch,
-                                           epochs=num_epochs,
-                                           verbose=1,
-                                           callbacks=self._list_callbacks,
-                                           validation_data=valid_data_loader,
-                                           shuffle=is_shuffle_data,
-                                           initial_epoch=initial_epoch)
+        self._built_model.fit_generator(generator=train_data_loader,
+                                        steps_per_epoch=max_steps_epoch,
+                                        epochs=num_epochs,
+                                        verbose=1,
+                                        callbacks=self._list_callbacks,
+                                        validation_data=valid_data_loader,
+                                        shuffle=is_shuffle_data,
+                                        initial_epoch=initial_epoch)
 
     def predict(self, test_data_loader: BatchDataGenerator) -> np.ndarray:
-        output_prediction = self._compiled_model.predict(test_data_loader.get_full_data(),
-                                                         batch_size=1)
+        output_prediction = self._built_model.predict(test_data_loader.get_full_data(),
+                                                      batch_size=1)
         return output_prediction

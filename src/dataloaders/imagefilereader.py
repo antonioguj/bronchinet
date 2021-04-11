@@ -239,9 +239,7 @@ class DicomReader(ImageFileReader):
         return in_image
 
     @staticmethod
-    def _update_headertags_physical_info(inout_metadata: Any,
-                                         target_metadata: Any
-                                         ) -> Any:
+    def _update_headertags_physical_info(inout_metadata: Any, target_metadata: Any) -> Any:
         # Dicom header tags for info of i) world coordinates and ii) voxel size
         tag_image_position = '0020|0032'
         tag_image_orientation = '0020|0037'

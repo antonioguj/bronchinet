@@ -1,5 +1,5 @@
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import numpy as np
 
 from common.exceptionmanager import catch_error_exception
@@ -53,7 +53,7 @@ class BatchDataGenerator(object):
 class BatchImageDataGenerator1Image(BatchDataGenerator):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
@@ -144,7 +144,7 @@ class BatchImageDataGenerator1Image(BatchDataGenerator):
 class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  list_ydata: List[np.ndarray],
                  images_generator: ImageGenerator,
@@ -152,7 +152,7 @@ class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
                  num_classes_out: int = 1,
                  type_image_format: str = 'channels_last',
                  is_nnet_validconvs: bool = False,
-                 size_output_image: Tuple[int, ...] = None,
+                 size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,

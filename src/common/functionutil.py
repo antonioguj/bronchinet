@@ -516,11 +516,15 @@ class ImagesUtil:
     # shape_image: full shape or image array
 
     @staticmethod
-    def is_without_channels(in_size_image: Tuple[int, ...], in_shape_image: Tuple[int, ...]) -> bool:
+    def is_without_channels(in_size_image: Union[Tuple[int, int, int], Tuple[int, int]],
+                            in_shape_image: Tuple[int, ...]
+                            ) -> bool:
         return len(in_shape_image) == len(in_size_image)
 
     @classmethod
-    def get_num_channels(cls, in_size_image: Tuple[int, ...], in_shape_image: Tuple[int, ...]) -> Union[int, None]:
+    def get_num_channels(cls, in_size_image: Union[Tuple[int, int, int], Tuple[int, int]],
+                         in_shape_image: Tuple[int, ...]
+                         ) -> Union[int, None]:
         if cls.is_without_channels(in_size_image, in_shape_image):
             return None
         else:

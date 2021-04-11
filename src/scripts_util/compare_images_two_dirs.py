@@ -78,9 +78,8 @@ def main(args):
     if not is_exist_dir(args.tempdir):
         makedir(args.tempdir)
 
+    dict_func_checks_further_compare = OrderedDict()
     if args.type_checks_further:
-        dict_func_checks_further_compare = OrderedDict()
-
         for name_check_fun in args.type_checks_further:
             if name_check_fun not in LIST_CHECKS_FURTHER_COMPARE:
                 message = 'Check \'%s\' not yet implemented...' % (name_check_fun)

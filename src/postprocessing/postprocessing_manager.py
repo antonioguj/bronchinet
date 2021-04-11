@@ -7,9 +7,9 @@ from preprocessing.filternnetoutput_validconvs import FilteringNnetOutputValidCo
 from preprocessing.preprocessing_manager import get_images_generator, fill_missing_trans_rigid_params
 
 
-def get_images_reconstructor(size_images: Tuple[int, ...],
+def get_images_reconstructor(size_images: Union[Tuple[int, int, int], Tuple[int, int]],
                              is_sliding_window: bool,
-                             prop_overlap_slide_images: Tuple[int, ...],
+                             prop_overlap_slide_images: Union[Tuple[float, float, float], Tuple[float, float]],
                              is_random_window: bool,
                              num_random_images: int,
                              is_transform_rigid: bool,
@@ -17,12 +17,16 @@ def get_images_reconstructor(size_images: Tuple[int, ...],
                              is_transform_elastic: bool,
                              type_trans_elastic: str,
                              num_trans_per_sample: int = 1,
-                             size_volume_images: Tuple[int, ...] = (0, 0, 0),
+                             size_volume_images: Union[Tuple[int, int, int], Tuple[int, int]] = (0, 0, 0),
                              is_nnet_validconvs: bool = False,
-                             size_output_images: Tuple[int, ...] = None,
+                             size_output_images: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                              is_filter_output_nnet: bool = False,
                              prop_filter_output_nnet: float = None,
                              ) -> ImageReconstructor:
+    if not is_sliding_window:
+        message = 'Image Reconstructor without Sliding-window generation of Image patches not implemented yet'
+        catch_error_exception(message)
+
     fill_missing_trans_rigid_params(trans_rigid_params)
 
     images_generator = get_images_generator(size_images,
@@ -41,24 +45,29 @@ def get_images_reconstructor(size_images: Tuple[int, ...],
                                             size_volume_images=size_volume_images)
 
     if is_filter_output_nnet:
-        size_filter_output_nnet = tuple([int(prop_filter_output_nnet * elem) for elem in size_images])
-        print("Filter output probability maps of Nnet, with final output size: \'%s\'..."
-              % (str(size_filter_output_nnet)))
-
         ndims = len(size_images)
         if ndims == 2:
+            size_filter_output_nnet = (int(prop_filter_output_nnet * size_images[0]),
+                                       int(prop_filter_output_nnet * size_images[1]))
+            print("Filter output probability maps of Nnet, with final output size: \'%s\'..."
+                  % (str(size_filter_output_nnet)))
+
             filter_image_generator = FilteringNnetOutputValidConvs2D(size_images, size_filter_output_nnet)
+
         elif ndims == 3:
+            size_filter_output_nnet = (int(prop_filter_output_nnet * size_images[0]),
+                                       int(prop_filter_output_nnet * size_images[1]),
+                                       int(prop_filter_output_nnet * size_images[2]))
+            print("Filter output probability maps of Nnet, with final output size: \'%s\'..."
+                  % (str(size_filter_output_nnet)))
+
             filter_image_generator = FilteringNnetOutputValidConvs3D(size_images, size_filter_output_nnet)
         else:
             message = 'get_images_reconstructor:__init__: wrong \'ndims\': %s...' % (ndims)
             catch_error_exception(message)
+            filter_image_generator = None
     else:
         filter_image_generator = None
-
-    if not is_sliding_window and not is_random_window:
-        message = 'Image Reconstructor without Sliding-window or Random generation of Image patches not implemented yet'
-        catch_error_exception(message)
 
     if not (is_transform_rigid or is_transform_elastic):
         # reconstructor of images following the sliding-window generator of input patches

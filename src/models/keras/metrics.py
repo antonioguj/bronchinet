@@ -1,5 +1,5 @@
 
-from typing import Tuple, Callable
+from typing import Tuple, Callable, Union
 
 from tensorflow.keras import backend as K
 import tensorflow as tf
@@ -56,14 +56,14 @@ class Metric(MetricBase):
         out_fun_renamed.__func__.__name__ = 'loss'
         return out_fun_renamed
 
-    def renamed_compute(self) -> Callable:
+    def renamed_compute(self) -> Union[Callable, None]:
         if self._name_fun_out:
             setattr(self, self._name_fun_out, self.compute)
             out_fun_renamed = getattr(self, self._name_fun_out)
             out_fun_renamed.__func__.__name__ = self._name_fun_out
             return out_fun_renamed
         else:
-            None
+            return None
 
 
 class MetricWithUncertainty(Metric):

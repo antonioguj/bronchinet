@@ -1,5 +1,5 @@
 
-from typing import Tuple, List
+from typing import Tuple, List, Union
 import numpy as np
 
 from scipy.ndimage import map_coordinates, gaussian_filter
@@ -14,7 +14,7 @@ class ElasticDeformImages(ImageGenerator):
     _order_interp_mask = 0
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  fill_mode: str = 'nearest',
                  cval: float = 0.0
                  ) -> None:
@@ -70,7 +70,7 @@ class ElasticDeformGridwiseImages(ElasticDeformImages):
     _points_default = 3
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  sigma: int = _sigma_default,
                  points: int = _points_default,
                  fill_mode: str = 'nearest',
@@ -130,7 +130,7 @@ class ElasticDeformPixelwiseImages(ElasticDeformImages):
     _sigma_default = 3
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  alpha: int = _alpha_default,
                  sigma: int = _sigma_default,
                  fill_mode: str = 'nearest',
@@ -174,7 +174,7 @@ class ElasticDeformGridwiseImagesGijs(ElasticDeformImages):
     _points_default = 3
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  sigma: int = _sigma_default,
                  points: int = _points_default,
                  fill_mode: str = 'nearest',

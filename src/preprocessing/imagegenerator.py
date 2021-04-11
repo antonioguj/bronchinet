@@ -1,5 +1,5 @@
 
-from typing import Tuple, List
+from typing import Tuple, List, Union
 import numpy as np
 
 from common.functionutil import ImagesUtil
@@ -8,14 +8,14 @@ from common.functionutil import ImagesUtil
 class ImageGenerator(object):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  num_images: int
                  ) -> None:
         self._size_image = size_image
         self._num_images = num_images
         self._is_compute_gendata = True
 
-    def get_size_image(self) -> Tuple[int, ...]:
+    def get_size_image(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
         return self._size_image
 
     def get_num_images(self) -> int:
@@ -93,7 +93,7 @@ class ImageGenerator(object):
     def get_text_description(self) -> str:
         raise NotImplementedError
 
-    def update_seed_with_index(self, seed: int, index: int) -> int:
+    def update_seed_with_index(self, seed: int, index: int) -> Union[int, None]:
         if seed:
             return seed + index
         else:
@@ -103,7 +103,8 @@ class ImageGenerator(object):
 class NullGenerator(ImageGenerator):
 
     def __init__(self) -> None:
-        super(NullGenerator, self).__init__((0,), 1)
+        super(NullGenerator, self).__init__(size_image=(0, 0, 0),
+                                            num_images=1)
 
     def update_image_data(self, in_shape_image: Tuple[int, ...]) -> None:
         pass
@@ -152,7 +153,7 @@ class CombinedImagesGenerator(ImageGenerator):
 
         return out_image
 
-    def _get_compute_num_images(self):
+    def _get_compute_num_images(self) -> int:
         num_images_prodrun = 1
         for images_generator in self._list_images_generators:
             num_images_prodrun *= images_generator.get_num_images()

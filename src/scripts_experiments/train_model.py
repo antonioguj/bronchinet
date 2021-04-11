@@ -13,7 +13,7 @@ from common.constant import BASEDIR, NAME_MODELSRUN_RELPATH, SIZE_IN_IMAGES, NAM
     TYPE_TRANS_ELASTIC_DEFORM, IS_TRANSFORM_VALIDATION_DATA, FREQ_SAVE_CHECK_MODELS, FREQ_VALIDATE_MODELS, \
     IS_USE_VALIDATION_DATA, IS_SHUFFLE_TRAINDATA, MANUAL_SEED_TRAIN, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
     NAME_LOSSHISTORY_FILE, NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, \
-    IS_WRITEOUT_DESCMODEL_TEXT, NAME_DESCRIPT_MODEL_LOGFILE, TYPE_DNNLIB_USED, IS_MODEL_GPU, IS_MODEL_HALFPREC
+    TYPE_DNNLIB_USED, IS_MODEL_GPU, IS_MODEL_HALFPREC
 from common.functionutil import join_path_names, is_exist_file, update_filename, basename, basename_filenoext, \
     list_files_dir, get_substring_filename, str2bool, str2int, str2float, str2list_str, str2tuple_bool, str2tuple_int,\
     str2tuple_float, read_dictionary, read_dictionary_configparams, save_dictionary_configparams
@@ -79,6 +79,9 @@ def main(args):
         validation_data_path = workdir_manager.get_pathdir_exist(args.validation_datadir)
         list_valid_images_files = list_files_dir(validation_data_path, name_input_images_files)[0:args.max_valid_images]
         list_valid_labels_files = list_files_dir(validation_data_path, name_input_labels_files)[0:args.max_valid_images]
+    else:
+        list_valid_images_files = None
+        list_valid_labels_files = None
 
     # write out config parameters in config file
     out_config_params_file = join_path_names(models_path, NAME_CONFIG_PARAMS_FILE)
@@ -141,6 +144,8 @@ def main(args):
                 model_trainer.load_model_full_backward_compat(model_restart_file)
             else:
                 model_trainer.load_model_full(model_restart_file)
+    else:
+        model_restart_file = None
 
     model_trainer.create_callbacks(models_path=models_path,
                                    losshist_filename=NAME_LOSSHISTORY_FILE,
@@ -150,25 +155,17 @@ def main(args):
                                    is_restart_model=args.is_restart)
     # model_trainer.summary_model()
 
-    if IS_WRITEOUT_DESCMODEL_TEXT:
-        out_descript_model_logfile = join_path_names(models_path, NAME_DESCRIPT_MODEL_LOGFILE)
-        print("Write out descriptive model source model in text file: \'%s\'" % (out_descript_model_logfile))
-        descmodel_text = model_trainer._networks.get_descmodel_sourcecode()
-        fout = open(out_descript_model_logfile, 'w')
-        fout.write(descmodel_text)
-        fout.close()
-
     # *****************************************************
 
     # LOADING DATA
     print("\nLoading data...")
     print("-" * 30)
 
-    size_out_image_model = model_trainer.get_size_output_image_model()
+    size_output_image_model = model_trainer.get_size_output_image_model()
 
     if args.is_valid_convolutions:
         print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..."
-              % (str(args.size_in_images), str(size_out_image_model)))
+              % (str(args.size_in_images), str(size_output_image_model)))
 
     print("Loading Training data...")
     training_data_loader = \
@@ -184,7 +181,7 @@ def main(args):
                                           is_transform_elastic=args.is_transform_elastic_images,
                                           type_trans_elastic=args.type_trans_elastic_deform,
                                           is_nnet_validconvs=args.is_valid_convolutions,
-                                          size_output_images=size_out_image_model,
+                                          size_output_images=size_output_image_model,
                                           batch_size=args.batch_size,
                                           is_shuffle=args.is_shuffle_traindata,
                                           manual_seed=args.manual_seed_train,
@@ -211,7 +208,7 @@ def main(args):
                                               is_transform_elastic=args.is_transform_elastic_images,
                                               type_trans_elastic=args.type_trans_elastic_deform,
                                               is_nnet_validconvs=args.is_valid_convolutions,
-                                              size_output_images=size_out_image_model,
+                                              size_output_images=size_output_image_model,
                                               batch_size=args.batch_size,
                                               is_shuffle=args.is_shuffle_traindata,
                                               manual_seed=args.manual_seed_train,
@@ -313,42 +310,43 @@ if __name__ == "__main__":
             catch_error_exception(message)
         else:
             input_args_file = read_dictionary_configparams(args.in_config_file)
-        print("Set up experiments with parameters from file: \'%s\'" % (args.in_config_file))
-        # args.basedir = str(input_args_file['basedir'])
-        args.size_in_images = str2tuple_int(input_args_file['size_in_images'])
-        args.training_datadir = str(input_args_file['training_datadir'])
-        args.validation_datadir = str(input_args_file['validation_datadir'])
-        args.max_train_images = str2int(input_args_file['max_train_images'])
-        args.max_valid_images = str2int(input_args_file['max_valid_images'])
-        args.type_network = str(input_args_file['type_network'])
-        args.net_num_featmaps = str2int(input_args_file['net_num_featmaps'])
-        args.type_optimizer = str(input_args_file['type_optimizer'])
-        args.learn_rate = str2float(input_args_file['learn_rate'])
-        args.type_loss = str(input_args_file['type_loss'])
-        args.weight_combined_loss = str2float(input_args_file['weight_combined_loss'])
-        args.list_type_metrics = str2list_str(input_args_file['list_type_metrics'])
-        args.batch_size = str2int(input_args_file['batch_size'])
-        args.num_epochs = str2int(input_args_file['num_epochs'])
-        args.max_steps_epoch = None     # CHECK THIS OUT!
-        args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
-        args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
-        args.is_sliding_window_images = str2bool(input_args_file['is_sliding_window_images'])
-        args.prop_overlap_sliding_window = str2tuple_float(input_args_file['prop_overlap_sliding_window'])
-        args.is_random_window_images = str2bool(input_args_file['is_random_window_images'])
-        args.num_random_patches_epoch = str2int(input_args_file['num_random_patches_epoch'])
-        args.is_transform_rigid_images = str2bool(input_args_file['is_transform_rigid_images'])
-        # args.trans_rigid_rotation_range = str2tuple_float(input_args_file['trans_rigid_rotation_range'])
-        # args.trans_rigid_shift_range = str2tuple_float(input_args_file['trans_rigid_shift_range'])
-        # args.trans_rigid_flip_dirs = str2tuple_bool(input_args_file['trans_rigid_flip_dirs'])
-        # args.trans_rigid_zoom_range = str2float(input_args_file['trans_rigid_zoom_range'])
-        # args.trans_rigid_fill_mode = str(input_args_file['trans_rigid_fill_mode'])
-        args.is_transform_elastic_images = str2bool(input_args_file['is_transform_elastic_images'])
-        # args.type_trans_elastic_deform = str(input_args_file['type_trans_elastic_deform'])
-        # args.freq_save_check_models = str2int(input_args_file['freq_save_check_models'])
-        # args.freq_validate_models = str2int(input_args_file['freq_validate_models'])
-        # args.is_use_validation_data = str2bool(input_args_file['is_use_validation_data'])
-        # args.is_shuffle_traindata = str2bool(input_args_file['is_shuffle_traindata'])
-        args.name_reference_keys_file = str(input_args_file['name_reference_keys_file'])
+            print("Set up experiments with parameters from file: \'%s\'" % (args.in_config_file))
+
+            # args.basedir = str(input_args_file['basedir'])
+            args.size_in_images = str2tuple_int(input_args_file['size_in_images'])
+            args.training_datadir = str(input_args_file['training_datadir'])
+            args.validation_datadir = str(input_args_file['validation_datadir'])
+            args.max_train_images = str2int(input_args_file['max_train_images'])
+            args.max_valid_images = str2int(input_args_file['max_valid_images'])
+            args.type_network = str(input_args_file['type_network'])
+            args.net_num_featmaps = str2int(input_args_file['net_num_featmaps'])
+            args.type_optimizer = str(input_args_file['type_optimizer'])
+            args.learn_rate = str2float(input_args_file['learn_rate'])
+            args.type_loss = str(input_args_file['type_loss'])
+            args.weight_combined_loss = str2float(input_args_file['weight_combined_loss'])
+            args.list_type_metrics = str2list_str(input_args_file['list_type_metrics'])
+            args.batch_size = str2int(input_args_file['batch_size'])
+            args.num_epochs = str2int(input_args_file['num_epochs'])
+            args.max_steps_epoch = None  # CHECK THIS OUT!
+            args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
+            args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
+            args.is_sliding_window_images = str2bool(input_args_file['is_sliding_window_images'])
+            args.prop_overlap_sliding_window = str2tuple_float(input_args_file['prop_overlap_sliding_window'])
+            args.is_random_window_images = str2bool(input_args_file['is_random_window_images'])
+            args.num_random_patches_epoch = str2int(input_args_file['num_random_patches_epoch'])
+            args.is_transform_rigid_images = str2bool(input_args_file['is_transform_rigid_images'])
+            # args.trans_rigid_rotation_range = str2tuple_float(input_args_file['trans_rigid_rotation_range'])
+            # args.trans_rigid_shift_range = str2tuple_float(input_args_file['trans_rigid_shift_range'])
+            # args.trans_rigid_flip_dirs = str2tuple_bool(input_args_file['trans_rigid_flip_dirs'])
+            # args.trans_rigid_zoom_range = str2float(input_args_file['trans_rigid_zoom_range'])
+            # args.trans_rigid_fill_mode = str(input_args_file['trans_rigid_fill_mode'])
+            args.is_transform_elastic_images = str2bool(input_args_file['is_transform_elastic_images'])
+            # args.type_trans_elastic_deform = str(input_args_file['type_trans_elastic_deform'])
+            # args.freq_save_check_models = str2int(input_args_file['freq_save_check_models'])
+            # args.freq_validate_models = str2int(input_args_file['freq_validate_models'])
+            # args.is_use_validation_data = str2bool(input_args_file['is_use_validation_data'])
+            # args.is_shuffle_traindata = str2bool(input_args_file['is_shuffle_traindata'])
+            args.name_reference_keys_file = str(input_args_file['name_reference_keys_file'])
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).items()):

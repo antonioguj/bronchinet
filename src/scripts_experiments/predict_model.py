@@ -69,12 +69,14 @@ def main(args):
     if args.is_save_featmaps_layer:
         print("Compute and store Feature Maps from the Model layer \'%s\'..." % (args.name_layer_save_feats))
         visual_model_params = get_visual_model_params(model_trainer._network, args.size_in_images)
+    else:
+        visual_model_params = None
 
-    size_out_image_model = model_trainer.get_size_output_image_model()
+    size_output_image_model = model_trainer.get_size_output_image_model()
 
     if args.is_valid_convolutions:
         print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..."
-              % (str(args.size_in_images), str(size_out_image_model)))
+              % (str(args.size_in_images), str(size_output_image_model)))
 
     if args.is_reconstruct_pred_patches:
         # Create Image Reconstructor
@@ -88,9 +90,11 @@ def main(args):
                                                         is_transform_elastic=False,
                                                         type_trans_elastic='',
                                                         is_nnet_validconvs=args.is_valid_convolutions,
-                                                        size_output_images=size_out_image_model,
+                                                        size_output_images=size_output_image_model,
                                                         is_filter_output_nnet=args.is_filter_out_probmaps_nnet,
                                                         prop_filter_output_nnet=args.prop_filter_out_probmaps_nnet)
+    else:
+        images_reconstructor = None
 
     # *****************************************************
 
@@ -212,15 +216,16 @@ if __name__ == "__main__":
             catch_error_exception(message)
         else:
             input_args_file = read_dictionary_configparams(args.in_config_file)
-        print("Set up experiments with parameters from file: \'%s\'" % (args.in_config_file))
-        # args.basedir = str(input_args_file['workdir'])
-        args.size_in_images = str2tuple_int(input_args_file['size_in_images'])
-        args.type_loss = str(input_args_file['type_loss'])
-        args.list_type_metrics = str2list_str(input_args_file['list_type_metrics'])
-        args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
-        args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
-        args.is_reconstruct_pred_patches = str2bool(input_args_file['is_sliding_window_images']) or \
-            str2bool(input_args_file['is_random_window_images'])
+            print("Set up experiments with parameters from file: \'%s\'" % (args.in_config_file))
+
+            # args.basedir = str(input_args_file['workdir'])
+            args.size_in_images = str2tuple_int(input_args_file['size_in_images'])
+            args.type_loss = str(input_args_file['type_loss'])
+            args.list_type_metrics = str2list_str(input_args_file['list_type_metrics'])
+            args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
+            args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
+            args.is_reconstruct_pred_patches = str2bool(input_args_file['is_sliding_window_images']) or \
+                                               str2bool(input_args_file['is_random_window_images'])
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).items()):

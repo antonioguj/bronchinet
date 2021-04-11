@@ -24,6 +24,8 @@ def main(args):
 
     if args.type_plot == 'histogram':
         template_outfigname = 'fig_hist_%s.png'
+    else:
+        template_outfigname = None
 
     # ******************************
 

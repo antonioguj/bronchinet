@@ -80,11 +80,17 @@ def main(args):
     name_remote_raw_images_path = join_path_names(source_remote_datadir, 'CTs/')
     name_remote_raw_labels_path = join_path_names(source_remote_datadir, 'Airways/')
     name_remote_raw_roimasks_path = join_path_names(source_remote_datadir, 'Lungs/')
+
     if args.is_prepare_coarse_airways:
         name_remote_raw_coarse_airways_path = join_path_names(source_remote_datadir, 'CoarseAirways/')
+    else:
+        name_remote_raw_coarse_airways_path = None
+
     if args.source_remote_datadir in ['DLCST', 'DLCST/']:
-        name_remote_found_boundboxes_file = join_path_names(source_remote_datadir,
-                                                            'Others/found_boundingBox_croppedCTinFull.npy')
+        name_remote_found_boundboxes_file = \
+            join_path_names(source_remote_datadir, 'Others/found_boundingBox_croppedCTinFull.npy')
+    else:
+        name_remote_found_boundboxes_file = None
 
     output_datadir = join_path_names(currentdir(), output_datadir)
     name_input_raw_images_path = join_path_names(output_datadir, NAME_RAW_IMAGES_RELPATH)
@@ -93,12 +99,21 @@ def main(args):
     name_input_reference_files_path = join_path_names(output_datadir, NAME_REFERENCE_FILES_RELPATH)
     name_input_crop_boundboxes_file = join_path_names(output_datadir, NAME_CROP_BOUNDBOXES_FILE)
     name_input_rescale_factors_file = join_path_names(output_datadir, NAME_RESCALE_FACTORS_FILE)
+
     if args.is_prepare_centrelines:
         name_input_raw_centrelines_path = join_path_names(output_datadir, NAME_RAW_CENTRELINES_RELPATH)
+    else:
+        name_input_raw_centrelines_path = None
+
     if args.is_prepare_coarse_airways:
         name_input_raw_coarse_airways_path = join_path_names(output_datadir, NAME_RAW_COARSEAIRWAYS_RELPATH)
+    else:
+        name_input_raw_coarse_airways_path = None
+
     if args.source_remote_datadir in ['DLCST', 'DLCST/']:
         name_input_found_boundboxes_file = join_path_names(output_datadir, basename(name_remote_found_boundboxes_file))
+    else:
+        name_input_found_boundboxes_file = None
 
     # *****************************************************
 

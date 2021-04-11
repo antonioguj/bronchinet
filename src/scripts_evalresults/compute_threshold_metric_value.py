@@ -32,6 +32,7 @@ def main(args):
     else:
         message = 'MetricsEvalThreshold \'%s\' not found...' % (metric_eval_threshold)
         catch_error_exception(message)
+        ref0_metrics_value = None
     _epsilon = 1.0e-06
     # --------
 
@@ -50,6 +51,8 @@ def main(args):
     if args.is_remove_trachea_calc_metrics:
         input_coarse_airways_path = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
+    else:
+        list_input_coarse_airways_files = None
 
     calc_metric = get_metric(metric_eval_threshold)
     num_valid_predict_files = len(list_input_posteriors_files)
@@ -57,6 +60,8 @@ def main(args):
     old_thres_value = ref0_threshold_value
     old_metrics_value = ref0_metrics_value
     is_comp_converged = False
+
+    # *****************************************************
 
     # *****************************************************
 

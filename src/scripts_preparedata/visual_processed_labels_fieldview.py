@@ -40,11 +40,11 @@ def main(args):
                                 num_classes_out=1,
                                 is_use_valid_convols=args.is_valid_convolutions)
 
-    size_out_image_network = model_network.get_size_output()[1:]
+    size_output_image_network = model_network.get_shape_output()[1:]
 
     if args.is_valid_convolutions:
         print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..."
-              % (str(args.size_in_images), str(size_out_image_network)))
+              % (str(args.size_in_images), str(size_output_image_network)))
 
     # Create Image Reconstructor
     images_reconstructor = get_images_reconstructor(args.size_in_images,
@@ -57,7 +57,7 @@ def main(args):
                                                     is_transform_elastic=False,
                                                     type_trans_elastic='',
                                                     is_nnet_validconvs=args.is_valid_convolutions,
-                                                    size_output_images=size_out_image_network,
+                                                    size_output_images=size_output_image_network,
                                                     is_filter_output_nnet=args.is_filter_out_probmaps_nnet,
                                                     prop_filter_output_nnet=args.prop_filter_out_probmaps_nnet)
 
@@ -81,7 +81,7 @@ def main(args):
                                                         is_transform_elastic=False,
                                                         type_trans_elastic='',
                                                         is_nnet_validconvs=args.is_valid_convolutions,
-                                                        size_output_images=size_out_image_network,
+                                                        size_output_images=size_output_image_network,
                                                         batch_size=1,
                                                         is_shuffle=False)
         (_, label_data_batches) = label_data_loader.get_full_data()
@@ -114,7 +114,7 @@ def main(args):
             names_files_different.append(basename(in_label_file))
 
         # Output computed field of view
-        out_filename = join_path_names(output_files_path, name_output_files(in_label_file, size_out_image_network))
+        out_filename = join_path_names(output_files_path, name_output_files(in_label_file, size_output_image_network))
         print("Output: \'%s\', of dims \'%s\'..." % (basename(out_filename), out_fieldview_reconstructed.shape))
 
         ImageFileReader.write_image(out_filename, out_fieldview_reconstructed)

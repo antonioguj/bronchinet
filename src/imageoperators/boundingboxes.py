@@ -3,6 +3,7 @@ from typing import Tuple, Union
 import numpy as np
 
 BoundBox3DType = Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]]
+BoundBox2DType = Tuple[Tuple[int, int], Tuple[int, int]]
 
 
 class BoundingBoxes(object):

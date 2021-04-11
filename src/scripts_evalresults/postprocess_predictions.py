@@ -34,16 +34,13 @@ def main(args):
     if args.is_mask_region_interest:
         input_roimasks_path = workdir_manager.get_datadir_exist(args.name_input_roimasks_relpath)
         list_input_roimasks_files = list_files_dir(input_roimasks_path)
+    else:
+        list_input_roimasks_files = None
 
     if args.is_crop_images:
         input_crop_boundboxes_file = workdir_manager.get_datafile_exist(args.name_crop_boundboxes_file)
         indict_crop_boundboxes = read_dictionary(input_crop_boundboxes_file)
 
-    # if args.is_rescale_images:
-    #     input_rescale_factors_file = workdir_manager.get_datafile_exist(args.name_rescale_factors_file)
-    #     indict_rescale_factors = read_dictionary(input_rescale_factors_file)
-
-    if args.is_crop_images:
         first_elem_dict_crop_boundboxes = list(indict_crop_boundboxes.values())[0]
         if type(first_elem_dict_crop_boundboxes) != list:
             # for new developments, store input dict boundary-boxes per raw images as a list
@@ -51,6 +48,14 @@ def main(args):
             for key, value in indict_crop_boundboxes.items():
                 indict_crop_boundboxes[key] = [value]
             # endfor
+    else:
+        indict_crop_boundboxes = None
+
+    # if args.is_rescale_images:
+    #     input_rescale_factors_file = workdir_manager.get_datafile_exist(args.name_rescale_factors_file)
+    #     indict_rescale_factors = read_dictionary(input_rescale_factors_file)
+
+    # *****************************************************
 
     # *****************************************************
 
@@ -87,6 +92,8 @@ def main(args):
                         in_next_prediction = ImageFileReader.get_image(in_next_prediction_file)
                         print("Next input: \'%s\', of dims: \'%s\'..." % (basename(in_next_prediction_file),
                                                                           str(in_next_prediction.shape)))
+                    else:
+                        in_next_prediction = None
 
                     size_in_crop_boundbox = BoundingBoxes.get_size_boundbox(in_crop_boundox)
                     if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_boundox,
@@ -201,13 +208,14 @@ if __name__ == "__main__":
             catch_error_exception(message)
         else:
             input_args_file = read_dictionary_configparams(args.in_config_file)
-        print("Set up experiments with parameters from file: \'%s\'" % (args.in_config_file))
-        # args.basedir = str(input_args_file['basedir'])
-        args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
-        args.is_crop_images = str2bool(input_args_file['is_crop_images'])
-        args.name_crop_boundboxes_file = str(input_args_file['name_crop_boundboxes_file'])
-        args.is_rescale_images = str2bool(input_args_file['is_rescale_images'])
-        args.name_rescale_factors_file = str(input_args_file['name_rescale_factors_file'])
+            print("Set up experiments with parameters from file: \'%s\'" % (args.in_config_file))
+
+            # args.basedir = str(input_args_file['basedir'])
+            args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
+            args.is_crop_images = str2bool(input_args_file['is_crop_images'])
+            args.name_crop_boundboxes_file = str(input_args_file['name_crop_boundboxes_file'])
+            args.is_rescale_images = str2bool(input_args_file['is_rescale_images'])
+            args.name_rescale_factors_file = str(input_args_file['name_rescale_factors_file'])
 
     print("Print input arguments...")
     for key, value in vars(args).items():

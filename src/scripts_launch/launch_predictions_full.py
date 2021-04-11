@@ -138,6 +138,8 @@ def main(args):
                     '--is_backward_compat', str(args.is_backward_compat)]
         list_calls_all.append(new_call)
 
+        list_predict_reference_keys_files_cvfolds = None
+
     # ******************************
 
     # 2nd: Compute post-processed posteriors from work predictions
@@ -220,6 +222,7 @@ def main(args):
             name_input_coarse_airways_relpath = basenamedir(output_conser_coarse_airways_path)
         else:
             name_input_coarse_airways_relpath = NAME_RAW_COARSEAIRWAYS_RELPATH
+            output_conser_coarse_airways_path = None
 
         # ******************************
 
@@ -233,6 +236,12 @@ def main(args):
                     '--name_input_coarse_airways_relpath', name_input_coarse_airways_relpath]
         list_calls_all.append(new_call)
 
+        # ******************************
+
+        if args.is_conservative_remove_trachea_calc_metrics:
+            new_call = ['rm', '-r', output_conser_coarse_airways_path]
+            list_calls_all.append(new_call)
+
     # ******************************
 
     # Remove temporary data for posteriors not needed
@@ -245,10 +254,6 @@ def main(args):
         list_predict_reference_keys_files_cvfolds_csvs = \
             [elem.replace('.npy', '.csv') for elem in list_predict_reference_keys_files_cvfolds]
         new_call = ['rm', *list_predict_reference_keys_files_cvfolds, *list_predict_reference_keys_files_cvfolds_csvs]
-        list_calls_all.append(new_call)
-
-    if len(args.list_type_metrics_result) > 0 and args.is_conservative_remove_trachea_calc_metrics:
-        new_call = ['rm', '-r', output_conser_coarse_airways_path]
         list_calls_all.append(new_call)
 
     # ******************************

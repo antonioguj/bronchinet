@@ -51,12 +51,16 @@ def main(args):
     if args.is_remove_trachea_calc_metrics:
         input_coarse_airways_path = workdir_manager.get_datadir_exist(args.name_input_coarse_airways_relpath)
         list_input_coarse_airways_files = list_files_dir(input_coarse_airways_path)
+    else:
+        list_input_coarse_airways_files = None
 
     list_metrics = OrderedDict()
     for itype_metric in args.list_type_metrics:
         new_metric = get_metric(itype_metric)
         list_metrics[new_metric._name_fun_out] = new_metric
     # endfor
+
+    # *****************************************************
 
     # *****************************************************
 
@@ -98,6 +102,8 @@ def main(args):
             in_reference_mask = MaskOperator.substract_two_masks(in_reference_mask, in_coarse_airways)
             in_reference_cenline = MaskOperator.substract_two_masks(in_reference_cenline, in_coarse_airways)
 
+        else:
+            in_coarse_airways = None
         # ******************************
 
         # Compute and store Metrics at all thresholds

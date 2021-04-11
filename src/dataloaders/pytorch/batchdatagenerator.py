@@ -1,5 +1,5 @@
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import numpy as np
 
 from torch.utils import data as data_torch
@@ -13,7 +13,7 @@ from preprocessing.imagegenerator import ImageGenerator
 class TrainBatchImageDataGenerator1Image(BatchImageDataGenerator1Image):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
@@ -54,14 +54,14 @@ class TrainBatchImageDataGenerator1Image(BatchImageDataGenerator1Image):
 class TrainBatchImageDataGenerator2Images(BatchImageDataGenerator2Images):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  list_ydata: List[np.ndarray],
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
                  num_classes_out: int = 1,
                  is_nnet_validconvs: bool = False,
-                 size_output_image: Tuple[int, ...] = None,
+                 size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
@@ -106,7 +106,7 @@ class TrainBatchImageDataGenerator2Images(BatchImageDataGenerator2Images):
 class WrapperTrainBatchImageDataGenerator1Image(data_torch.DataLoader):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
@@ -138,14 +138,14 @@ class WrapperTrainBatchImageDataGenerator1Image(data_torch.DataLoader):
 class WrapperTrainBatchImageDataGenerator2Images(data_torch.DataLoader):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  list_ydata: List[np.ndarray],
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
                  num_classes_out: int = 1,
                  is_nnet_validconvs: bool = False,
-                 size_output_image: Tuple[int, ...] = None,
+                 size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,

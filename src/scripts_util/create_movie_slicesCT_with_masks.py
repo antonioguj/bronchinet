@@ -89,6 +89,9 @@ def main(args):
                 # only accept frames that contain any (prediction or reference) mask
                 is_valid_frame = len(index_frame_prediction_bound_mask) > 0 or len(index_frame_reference_bound_mask) > 0
 
+            else:
+                is_valid_frame = None
+
             # skip frames that do not contain any masks
             if is_valid_frame:
                 out_list_frames.append(frame_new)

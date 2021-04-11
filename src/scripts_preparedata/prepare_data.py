@@ -57,27 +57,30 @@ def main(args):
         output_labels_path = workdir_manager.get_pathdir_new(args.name_output_labels_relpath)
         list_input_labels_files = list_files_dir(input_labels_path)
         check_same_number_files_in_list(list_input_images_files, list_input_labels_files)
+    else:
+        output_labels_path = None
+        list_input_labels_files = None
 
     if args.is_mask_region_interest:
         input_roimasks_path = workdir_manager.get_pathdir_exist(args.name_input_roimasks_relpath)
         list_input_roimasks_files = list_files_dir(input_roimasks_path)
         check_same_number_files_in_list(list_input_images_files, list_input_roimasks_files)
+    else:
+        list_input_roimasks_files = None
 
     if args.is_input_extra_labels:
         input_extra_labels_path = workdir_manager.get_pathdir_exist(args.name_input_extra_labels_relpath)
         output_extra_labels_path = workdir_manager.get_pathdir_new(args.name_output_extra_labels_relpath)
         list_input_extra_labels_files = list_files_dir(input_extra_labels_path)
         check_same_number_files_in_list(list_input_images_files, list_input_extra_labels_files)
-
-    if args.is_rescale_images:
-        input_rescale_factors_file = workdir_manager.get_pathfile_exist(args.name_rescale_factors_file)
-        indict_rescale_factors = read_dictionary(input_rescale_factors_file)
+    else:
+        output_extra_labels_path = None
+        list_input_extra_labels_files = None
 
     if args.is_crop_images:
         input_crop_boundboxes_file = workdir_manager.get_pathfile_exist(args.name_crop_boundboxes_file)
         indict_crop_boundboxes = read_dictionary(input_crop_boundboxes_file)
 
-    if args.is_crop_images:
         first_elem_dict_crop_boundboxes = list(indict_crop_boundboxes.values())[0]
         if type(first_elem_dict_crop_boundboxes) == list:
             is_output_multiple_files_per_image = True
@@ -93,9 +96,19 @@ def main(args):
             # endfor
             is_output_multiple_files_per_image = False
     else:
+        indict_crop_boundboxes = None
         is_output_multiple_files_per_image = False
+
     is_output_multiple_files_per_label = is_output_multiple_files_per_image
 
+    if args.is_rescale_images:
+        input_rescale_factors_file = workdir_manager.get_pathfile_exist(args.name_rescale_factors_file)
+        indict_rescale_factors = read_dictionary(input_rescale_factors_file)
+    else:
+        indict_rescale_factors = None
+
+    # *****************************************************
+    
     # *****************************************************
 
     outdict_reference_keys = OrderedDict()
@@ -183,12 +196,14 @@ def main(args):
                     print("Rescale input data \'%s\' of type \'%s\'..." % (idata, type_in_data))
                     if type_in_data == 'image':
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3)
+                        list_inout_data[idata] = out_data
                     elif type_in_data == 'label':
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3, is_inlabels=True)
+                        list_inout_data[idata] = out_data
                     elif type_in_data == 'roimask':
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3, is_inlabels=True,
                                                         is_binarise_output=True)
-                    list_inout_data[idata] = out_data
+                        list_inout_data[idata] = out_data
                 # endfor
             else:
                 print("Rescale factor (\'%s\'). Skip rescaling..." % (str(in_rescale_factor)))
@@ -280,6 +295,8 @@ def main(args):
             # endfor
 
             print("Final dims: %s..." % (str(list_inout_data[0].shape)))
+        else:
+            num_crop_boundboxes = None
 
         # ******************************
 

@@ -10,9 +10,9 @@ from preprocessing.elasticdeformimages import ElasticDeformGridwiseImages, Elast
     ElasticDeformGridwiseImagesGijs
 
 
-def get_images_generator(size_images: Tuple[int, ...],
+def get_images_generator(size_images: Union[Tuple[int, int, int], Tuple[int, int]],
                          is_sliding_window: bool,
-                         prop_overlap_slide_images: Tuple[int, ...],
+                         prop_overlap_slide_images: Union[Tuple[float, float, float], Tuple[float, float]],
                          is_random_window: bool,
                          num_random_images: int,
                          is_transform_rigid: bool,
@@ -23,7 +23,7 @@ def get_images_generator(size_images: Tuple[int, ...],
                          trans_fill_mode: str,
                          is_transform_elastic: bool,
                          type_trans_elastic: str,
-                         size_volume_images: Tuple[int, ...] = (0,)
+                         size_volume_images: Union[Tuple[int, int, int], Tuple[int, int]] = (0, 0, 0)
                          ) -> ImageGenerator:
     list_images_generators = []
 

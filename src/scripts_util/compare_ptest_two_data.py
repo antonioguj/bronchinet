@@ -14,6 +14,8 @@ def main(args):
         fun_ttest = ttest_ind
     elif args.type_ptest == 'related':
         fun_ttest = ttest_rel
+    else:
+        fun_ttest = None
 
     print("\nCompare the field \'%s\' between two data, using \'%s\' P-test..." % (args.in_fieldname, args.type_ptest))
 
