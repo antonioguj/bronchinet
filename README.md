@@ -63,73 +63,83 @@ Requirements
 
 (Recommended to use python virtualenv)
 
-- python -m venv <dir_your_pyvenv>
-- source <dir_your_pyvenv>/bin/activate
+- python -m venv <path_new_pyvenv>
+- source <path_new_pyvenv>/bin/activate
 - pip install -r requirements.txt
 
 Instructions
 ------------
 
+The user needs only to run the scripts provided: the python files with a 'main()' function. Each script performs a given operation, either to i) prepare data, ii) run experiments, or iii) evaluate results. Typically, the scripts take as arguments i) the path with the input files, ii) the path to store the output files, and iii) a series of optional settings that control the performed operation. All arguments are parsed to the script from the command line. The typical way to launch the scripts is:
+
+- python <path_script> <path_input_files> <path_output_files> --<option_arg_1>=<value> --<option_arg_2>=<value> ...
+
+The names for the optional input arguments of the given script can be displayed by:
+
+- python <path_script> --help
+
+For the optional arguments that are not indicated in the command line, they take a default value given in the source file: "<path_thiscode_stored>/src/common/constant.py"
+
 Create working directory
 ------------
 
 - mkdir <working_dir> && cd <working_dir>
-- ln -s <dir_where_data_stored> BaseData
-- ln -s <dir_where_thiscode_stored> Code
+- ln -s <path_data_stored> BaseData
+- ln -s <path_thiscode_stored> Code
 
-[IF NEEDED] (include in "~/.bashrc" file: export PYTHONPATH=<dir_where_thiscode_stored>/src/")
+[IF NEEDED] (include in "~/.bashrc" file: export PYTHONPATH=<path_thiscode_stored>/src/")
 
 Prepare data
 ------------
 
 1) [IF NEEDED] Preprocess data: apply various operations to input images / masks: rescaling, binarise masks
-- python ./Code/scripts_util/apply_operation_images.py <dir_input_data> <dir_output_data> --type=[various option]
+- python ./Code/scripts_util/apply_operation_images.py <path_input_files> <path_output_files> --type=[various option]
 
 2) Compute bounding-boxes around lung masks, for input images:
-- python ./Code/scripts_preparedata/compute_boundingbox_images.py --datadir=[path_dir_dataset]
+- python ./Code/scripts_preparedata/compute_boundingbox_images.py --datadir=[path_dataset]
 
 3) Prepare data: include i) crop images, ii) mask ground-truth to lung regions, iii) rescale images
-- python ./Code/scripts_preparedata/prepare_data.py --datadir=[path_dir_dataset]
+- python ./Code/scripts_preparedata/prepare_data.py --datadir=[path_dataset]
 
 Train models
 ------------
 
 1) Distribute data in training / validation / testing:
-- python ./Code/scripts_experiments/distribute_data.py --basedir=[path_dir_workdir]
+- python ./Code/scripts_experiments/distribute_data.py --basedir=[path_workdir]
 
 2) Train models:
-- python ./Code/scripts_experiments/train_model.py --basedir=[path_dir_workdir] --modelsdir=<dir_output_models> [IF RESTART: --is_restart=True --in_config_file=<file_config>]
+- python ./Code/scripts_experiments/train_model.py --basedir=[path_workdir] --modelsdir=<path_output_models> [IF RESTART: --is_restart=True --in_config_file=<path_file_config>]
 
 Test models
 ------------
 
 1) Compute predictions form trained model:
-- python ./Code/scripts_experiments/predict_model.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir] --in_config_file=<file_config>
+- python ./Code/scripts_experiments/predict_model.py <path_trained_model> <path_output_predictions> --basedir=[path_workdir] --in_config_file=<path_file_config>
 
 2) Compute full-size probability maps from predictions:
-- python ./Code/scripts_evalresults/postprocess_predictions.py <dir_output_predictions> <dir_output_probmaps> --basedir=[path_dir_workdir]
+- python ./Code/scripts_evalresults/postprocess_predictions.py <path_output_predictions> <path_output_probmaps> --basedir=[path_workdir]
 
 3) Compute airway binary mask from probability maps:
-- python ./Code/scripts_evalresults/process_predicted_airway_tree.py <dir_output_probmaps> <dir_output_binmasks> --basedir=[path_dir_workdir]
-- rm -r <dir_output_predictions>
+- python ./Code/scripts_evalresults/process_predicted_airway_tree.py <path_output_probmaps> <path_output_binmasks> --basedir=[path_workdir]
+- rm -r <path_output_predictions>
 
-4) Compute largest connected component of airway binary masks:
-- python ./Code/scripts_util/apply_operation_images.py <dir_output_binmasks> <dir_output_conn_binmasks> --type=firstconreg
-- rm -r <dir_output_binmasks> && mv <dir_output_conn_binmasks> <dir_output_binmasks>
+4) [IF NEEDED] Compute largest connected component of airway binary masks:
+- python ./Code/scripts_util/apply_operation_images.py <path_output_binmasks> <path_output_conn_binmasks> --type=firstconreg
+- rm -r <path_output_binmasks> && mv <path_output_conn_binmasks> <path_output_binmasks>
 
 5) Compute centrelines from airway binary masks:
-- python ./Code/scripts_util/apply_operation_images.py <dir_output_binmasks> <dir_output_centrelines> --type=thinning
+- python ./Code/scripts_util/apply_operation_images.py <path_output_binmasks> <path_output_centrelines> --type=thinning
 
 6) Compute results metrics / accuracy:
-- python ./Code/scripts_evalresults/compute_result_metrics.py <dir_output_binmasks> <dir_output_centrelines> --basedir=[path_dir_workdir]
+- python ./Code/scripts_evalresults/compute_result_metrics.py <path_output_binmasks> <path_output_centrelines> --basedir=[path_workdir]
 
 [ALTERNATIVE] Do steps 1-6 altogether:
-- python ./Code/scripts_launch/launch_predictions_full.py <file_trained_model> <dir_output_predictions> --basedir=[path_dir_workdir]
+- python ./Code/scripts_launch/launch_predictions_full.py <path_trained_model> <path_output_predictions> --basedir=[path_workdir]
 
 Example usage
 ------------
 
 We provide a trained U-Net model with this software, which was used in the above paper for evaluation on the public EXACT'09 dataset. You can use this model to compute airway segmentations on your own CT data. To do this:
-1) copy the subdir 'models/' to your desired location
-2) fill the script 'script_evalEXACT.sh' with the correct paths for your data
+1) copy '<path_thiscode_stored>/models/' to your desired location
+2) fill the script 'script_evalEXACT.sh' with the right paths for your test data
 3) run the script: 'bash script_evalEXACT.sh'
