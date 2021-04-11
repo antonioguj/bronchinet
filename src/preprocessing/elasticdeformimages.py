@@ -65,9 +65,8 @@ class ElasticDeformImages(ImageGenerator):
         raise NotImplementedError
 
     def get_text_description(self) -> str:
-        message = 'Elastic Deformations of Image patches...\n'
-        message += 'size image: \'%s\', type of elastic deform: \'%s\'...\n' \
-                   % (str(self._size_image), self._get_type_elastic_deform())
+        message = 'Elastic deformations of images...\n'
+        message += '- type of elastic deformation: \'%s\'...\n' % (self._get_type_elastic_deform())
         return message
 
 

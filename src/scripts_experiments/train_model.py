@@ -167,7 +167,7 @@ def main(args):
         print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..."
               % (str(args.size_in_images), str(size_output_image_model)))
 
-    print("Loading Training data...")
+    print("\nLoading Training data...")
     training_data_loader = \
         get_train_imagedataloader_2images(list_train_images_files,
                                           list_train_labels_files,

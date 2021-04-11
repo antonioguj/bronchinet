@@ -80,7 +80,7 @@ class RandomWindowImages(ImageGenerator):
         return self._func_crop_images(in_image, crop_boundbox)
 
     def get_text_description(self) -> str:
-        message = 'Random-window generation of images:\n'
-        message += 'size image: \'%s\', size volume: \'%s\', num random patches: \'%s\'...\n' \
+        message = 'Random-window generation of image patches:\n'
+        message += '- size image: \'%s\', size volume: \'%s\', num random patches: \'%s\'...\n' \
                    % (str(self._size_image), str(self._size_volume_image), self._num_images)
         return message

@@ -158,14 +158,14 @@ class SlidingWindowImages(ImageGenerator):
         return limits_window_image
 
     def get_text_description(self) -> str:
-        message = 'Sliding-window generation of images:\n'
-        message += 'size image: \'%s\', prop. overlap: \'%s\', size volume: \'%s\'...\n' \
+        message = 'Sliding-window generation of image patches:\n'
+        message += '- size image: \'%s\', prop. overlap: \'%s\', size volume: \'%s\'...\n' \
                    % (str(self._size_image), str(self._prop_overlap_images), str(self._size_volume_image))
-        message += 'num images total: \'%s\', and num images in each direction: \'%s\'...\n' \
+        message += '- num images total: \'%s\', and num images in each direction: \'%s\'...\n' \
                    % (self._num_images, str(self._num_images_dirs))
         limits_window_image = self.get_limits_sliding_window_image()
         for i in range(self._ndims):
-            message += 'limits images in dir \'%s\': \'%s\'...\n' % (i, str(limits_window_image[i]))
+            message += '- limits bound-boxes in dir \'%s\': \'%s\'...\n' % (i, str(limits_window_image[i]))
 
         return message
 

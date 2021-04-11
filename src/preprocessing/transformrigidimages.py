@@ -516,15 +516,13 @@ class TransformRigidImages2D(TransformRigidImages):
         return in_image
 
     def get_text_description(self) -> str:
-        message = 'Rigid Transformations of Image patches...\n'
-        message += 'size image: \'%s\'. Parameters of 2D transformation:\n'
-        message += 'rotation (plane_XY) range: %s...\n' % (self._rotation_range)
-        message += 'shift (height, width) range: (%s, %s)...\n' % (self._width_shift_range, self._height_shift_range)
-        message += 'flip (horizontal, vertical): (%s, %s)...\n' % (self._horizontal_flip, self._vertical_flip)
-        message += 'shear (plane_XY) range: (%s)...\n' % (self._shear_range)
-        message += 'zoom (min, max) range: (%s, %s)...\n' % (self._zoom_range[0], self._zoom_range[1])
-        message += 'brightness (min, max) range: (%s, %s)...\n' % (self._brightness_range[0], self._brightness_range[1])
-        message += 'fill mode, when applied transformation: %s...\n' % (self._fill_mode)
+        message = 'Rigid 2D transformations of images, with parameters...\n'
+        message += 'rotation (plane_XY) range: \'%s\'...\n' % (self._rotation_range)
+        message += 'shift (height, width) range: \'(%s, %s)\'...\n' % (self._width_shift_range, self._height_shift_range)
+        message += 'flip (horizontal, vertical): \'(%s, %s)\'...\n' % (self._horizontal_flip, self._vertical_flip)
+        message += 'zoom (min, max) range: \'(%s, %s)\'...\n' % (self._zoom_range[0], self._zoom_range[1])
+        message += 'shear (plane_XY) range: \'%s\'...\n' % (self._shear_range)
+        message += 'fill mode, when applied transformation: \'%s\'...\n' % (self._fill_mode)
         return message
 
 
@@ -953,17 +951,15 @@ class TransformRigidImages3D(TransformRigidImages):
         return in_image
 
     def get_text_description(self) -> str:
-        message = 'Rigid Transformations of Image patches...\n'
-        message += 'size image: \'%s\'. Parameters of 3D transformation:\n'
-        message += 'rotation (plane_XY, plane_XZ, plane_YZ) range: (%s, %s, %s)...\n' \
+        message = 'Rigid 3D transformations of images, with parameters...\n'
+        message += '- rotation (plane_XY, plane_XZ, plane_YZ) range: \'(%s, %s, %s)\'...\n' \
                    % (self._rotation_xy_range, self._rotation_xz_range, self._rotation_yz_range)
-        message += 'shift (height, width, depth) range: (%s, %s, %s)...\n' \
+        message += '- shift (height, width, depth) range: \'(%s, %s, %s)\'...\n' \
                    % (self._width_shift_range, self._height_shift_range, self._depth_shift_range)
-        message += 'flip (horizontal, vertical, axialdir): (%s, %s, %s)...\n' \
+        message += '- flip (horizontal, vertical, axialdir): \'(%s, %s, %s)\'...\n' \
                    % (self._horizontal_flip, self._vertical_flip, self._axialdir_flip)
-        message += 'shear (plane_XY, plane_XZ, plane_YZ) range: (%s, %s, %s)...\n' \
+        message += '- zoom (min, max) range: \'(%s, %s)\'...\n' % (self._zoom_range[0], self._zoom_range[1])
+        message += '- shear (plane_XY, plane_XZ, plane_YZ) range: \'(%s, %s, %s)\'...\n' \
                    % (self._shear_xy_range, self._shear_xz_range, self._shear_yz_range)
-        message += 'zoom (min, max) range: (%s, %s)...\n' % (self._zoom_range[0], self._zoom_range[1])
-        message += 'brightness (min, max) range: (%s, %s)...\n' % (self._brightness_range[0], self._brightness_range[1])
-        message += 'fill mode, when applied transformation: %s...\n' % (self._fill_mode)
+        message += '- fill mode, when applied transformation: \'%s\'...\n' % (self._fill_mode)
         return message
