@@ -29,6 +29,17 @@ def main(args):
     labels_train = ['train_%i' % (i + 1) for i in range(num_input_files)]
     labels_valid = ['valid_%i' % (i + 1) for i in range(num_input_files)]
 
+    if args.is_move_aver:
+        if (len(args.size_aver) == 1) and (num_input_files > 1):
+            # only one size of average window provided: apply the same size to all input files
+            args.size_aver = args.size_aver * num_input_files
+
+        elif len(args.size_aver) != num_input_files:
+            # several sizes of average window provided: check that there are as many as input files
+            message = 'number of input sizes of average window (\'%s\') not equal to number of input files (\'%s\')' \
+                      % (len(args.size_aver), num_input_files)
+            catch_error_exception(message)
+
     # ******************************
 
     dict_data_loss_fields_files = OrderedDict()
@@ -90,8 +101,9 @@ def main(args):
 
     # ******************************
 
-    if args.is_mov_aver:
-        print('Compute the moving average of the losses, with size of average window \'%s\'...' % (args.size_aver))
+    if args.is_move_aver:
+        print('Compute the moving average of the losses, with sizes of average window (for each input file): '
+              '\'%s\'...' % (args.size_aver))
         for ifield, data_files in dict_data_loss_fields_files.items():
             num_data_files = len(data_files)
 
@@ -99,13 +111,13 @@ def main(args):
                 # for field 'epochs': decrease the num epochs by the size of average window
                 for i in range(num_data_files):
                     num_epochs = len(data_files[i])
-                    final_size_epochs = num_epochs - args.size_aver + 1
+                    final_size_epochs = num_epochs - args.size_aver[i] + 1
                     data_files[i] = data_files[i][0:final_size_epochs]
                 # endfor
             else:
                 # for other fields: compute the moving average of the list of values
                 for i in range(num_data_files):
-                    data_files[i] = calc_moving_average(data_files[i], args.size_aver)
+                    data_files[i] = calc_moving_average(data_files[i], args.size_aver[i])
         # endfor
 
     # ******************************
@@ -161,15 +173,15 @@ if __name__ == "__main__":
     parser.add_argument('input_files', type=str, nargs='*')
     parser.add_argument('--fromfile', type=bool, default=False)
     parser.add_argument('--list_input_files', type=str, default='list_input_files.txt')
-    parser.add_argument('--is_mov_aver', type=bool, default=True)
-    parser.add_argument('--size_aver', type=int, default=None)
+    parser.add_argument('--is_move_aver', type=bool, default=False)
+    parser.add_argument('--size_aver', type=int, nargs='+', default=None)
     args = parser.parse_args()
 
     if args.fromfile and not args.list_input_files:
         message = 'need to input \'list_input_files\' with filenames to plot'
         catch_error_exception(message)
 
-    if args.is_mov_aver and not args.size_aver:
+    if args.is_move_aver and not args.size_aver:
         message = 'need to input the size of average window \'size_aver\' when computing the moving average'
         catch_error_exception(message)
 
