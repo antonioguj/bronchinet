@@ -15,18 +15,6 @@ def main(args):
         out_aver_losshist_filename = None
     # --------
 
-    # type_eval_loss = 'mean'
-    # # type_converged_epoch = 'last'
-    # tolerance_converge = 0.001
-    # tolerance_diverge = 0.05
-    # num_epochs_average = 50
-    # num_epochs_patience = 20
-    # num_epochs_jumpeval = 1
-    # writeout_meanlosshistory = False
-    # filename_meanlosshistory = basename_filenoext(args.input_loss_file) + '_%s_aver%s_jump%s.txt' \
-    #     % (type_eval_loss, num_epochs_average, num_epochs_jumpeval)
-    # --------
-
     epochs = None
     data_fields = None
     index_field_eval_conver = None
@@ -65,7 +53,7 @@ def main(args):
         data_fields = aver_data_fields
 
     if args.is_output_move_aver_loss and args.is_move_aver:
-        print("Write out the computed moving average of the losses in file: %s..." % (out_aver_losshist_filename))
+        print("Write out the computed moving average of the losses in file: %s...\n" % (out_aver_losshist_filename))
         fout = open(out_aver_losshist_filename, 'w')
 
         with open(args.input_loss_file, 'r') as infile:
@@ -74,8 +62,9 @@ def main(args):
 
         num_aver_epochs = len(epochs)
         for i in range(num_aver_epochs):
-            strdata = '%s ' % (epochs[i]) + ' '.join(list(data_fields[i, :])) + '\n'
-            fout.write(strdata)
+            list_strdata = ['%d ' % (epochs[i])] + ['%0.6f' % (elem) for elem in list(data_fields[i, :])]
+            writeline = ' '.join(list_strdata) + '\n'
+            fout.write(writeline)
         # endfor
         fout.close()
 
@@ -102,8 +91,8 @@ def main(args):
 
         relerror_diff_values = abs((value_eval_this - value_eval_compare) / (value_eval_this + 1.0e-12))
 
-        print("epoch \'%s\' (original \'%s\'): averaged value \'%s\' (original \'%s\'), relative error \'%0.6f\' ..."
-              % (i_epoch_eval, i_epoch_original, value_eval_this, value_original, relerror_diff_values))
+        # print("epoch \'%s\' (original \'%s\'): averaged value \'%s\' (original \'%s\'), relative error \'%0.6f\' ..."
+        #       % (i_epoch_eval, i_epoch_original, value_eval_this, value_original, relerror_diff_values))
 
         if relerror_diff_values > 0.0:
             if relerror_diff_values < args.thres_converge:
