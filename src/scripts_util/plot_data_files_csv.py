@@ -97,10 +97,10 @@ def main(args):
             # endfor
         # endfor
 
-    list_fields_plot_data = list(dict_data_fields_files.keys())
-    print("Found fields to plot data from: %s..." % (list_fields_plot_data))
-
     # ******************************
+
+    list_fields_plot = list(dict_data_fields_files.keys())
+    print("Found fields to plot data from: %s..." % (list_fields_plot))
 
     for i, (ifield, data_files) in enumerate(dict_data_fields_files.items()):
 

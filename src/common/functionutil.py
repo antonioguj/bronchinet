@@ -511,6 +511,12 @@ class WallClockTime(object):
 
 
 # others:
+def calc_moving_average(in_vals: List[float], N: int) -> List[float]:
+    cumsum = np.cumsum(np.insert(in_vals, 0, 0))
+    return (cumsum[N:] - cumsum[:-N]) / float(N)
+    # return np.convolve(in_vals, np.ones((N,))/N, mode='valid')
+
+
 class ImagesUtil:
     # size_image: physical dims (dz, dx, dy)
     # shape_image: full shape or image array
