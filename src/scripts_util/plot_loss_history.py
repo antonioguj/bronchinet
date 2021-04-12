@@ -111,8 +111,8 @@ def main(args):
                 # for field 'epochs': decrease the num epochs by the size of average window
                 for i in range(num_data_files):
                     num_epochs = len(data_files[i])
-                    final_size_epochs = num_epochs - args.size_aver[i] + 1
-                    data_files[i] = data_files[i][0:final_size_epochs]
+                    num_aver_epochs = num_epochs - args.size_aver[i] + 1
+                    data_files[i] = data_files[i][0:num_aver_epochs]
                 # endfor
             else:
                 # for other fields: compute the moving average of the list of values
