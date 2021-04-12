@@ -87,7 +87,7 @@ def main(args):
 
         value_eval_this = data_eval_conver[i_epoch_eval - 1]
         value_eval_compare = data_eval_conver[i_epoch_eval - args.patience_eval_conver - 1]
-        value_original = data_eval_conver_original[i_epoch_original - 1]
+        # value_original = data_eval_conver_original[i_epoch_original - 1]
 
         relerror_diff_values = abs((value_eval_this - value_eval_compare) / (value_eval_this + 1.0e-12))
 
