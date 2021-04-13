@@ -40,18 +40,18 @@ class UNet(UNetBase, nn.Module):
 
     def _build_list_info_crop_where_merge(self) -> None:
         indexes_output_where_merge = \
-            [i for i, el in enumerate(self._list_operation_names_layers_all) if el == 'upsample']
+            [i for i, elem in enumerate(self._list_operation_names_layers_all) if elem == 'upsample']
         self._list_sizes_crop_where_merge = \
-            [self._list_sizes_output_all_layers[i] for i in indexes_output_where_merge][::-1]
+            [self._list_sizes_output_all_layers[ind] for ind in indexes_output_where_merge][::-1]
 
-    def _crop_image_2d(self, input: torch.FloatTensor, size_crop) -> torch.FloatTensor:
+    def _crop_image_2d(self, input: torch.Tensor, size_crop: Tuple[int, int]) -> torch.Tensor:
         size_input_image = input.shape[-2:]
         limits_out_image = self._get_limits_output_crop(size_input_image, size_crop)
         return input[:, :,  # dims for input and output features
                      limits_out_image[0][0]:limits_out_image[0][1],
                      limits_out_image[1][0]:limits_out_image[1][1]]
 
-    def _crop_image_3d(self, input: torch.FloatTensor, size_crop) -> torch.FloatTensor:
+    def _crop_image_3d(self, input: torch.Tensor, size_crop: Tuple[int, int, int]) -> torch.Tensor:
         size_input_image = input.shape[-3:]
         limits_out_image = self._get_limits_output_crop(size_input_image, size_crop)
         return input[:, :,  # dims for input and output features
@@ -128,7 +128,7 @@ class UNet3DOriginal(UNet):
         self._classification_last = Conv3d(num_featmaps_lev1, self._num_classes_out, kernel_size=1, padding=0)
         self._activation_last = Sigmoid()
 
-    def forward(self, input: torch.FloatTensor) -> torch.FloatTensor:
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
 
         hidden_next = self._convolution_down_lev1_1(input)
         hidden_next = self._convolution_down_lev1_2(hidden_next)
@@ -357,7 +357,7 @@ class UNet3DGeneral(UNet):
         if self._type_activate_hidden == 'relu':
             self._activation_hidden = ReLU(inplace=True)
         elif self._type_activate_hidden == 'none':
-            def func_activation_none(input: torch.FloatTensor) -> torch.FloatTensor:
+            def func_activation_none(input: torch.Tensor) -> torch.Tensor:
                 return input
             self._activation_hidden = func_activation_none
         else:
@@ -367,14 +367,14 @@ class UNet3DGeneral(UNet):
         if self._type_activate_output == 'sigmoid':
             self._activation_last = Sigmoid()
         elif self._type_activate_output == 'linear':
-            def func_activation_linear(input: torch.FloatTensor) -> torch.FloatTensor:
+            def func_activation_linear(input: torch.Tensor) -> torch.Tensor:
                 return input
             self._activation_last = func_activation_linear
         else:
             message = 'Type activation output not existing: \'%s\' ' % (self._type_activate_output)
             catch_error_exception(message)
 
-    def forward(self, input: torch.FloatTensor) -> torch.FloatTensor:
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
         hidden_next = input
         list_skipconn_levels = []
 
@@ -497,10 +497,10 @@ class UNet3DPlugin(UNet):
 
         if self._type_activate_hidden == 'relu':
             self._activation_hidden = ReLU(inplace=True)
-        elif self._type_activate_hidden == 'none':
-            def func_activation_none(input: torch.FloatTensor) -> torch.FloatTensor:
+        elif self._type_activate_hidden == 'linear':
+            def func_activation_linear(input: torch.Tensor) -> torch.Tensor:
                 return input
-            self._activation_hidden = func_activation_none
+            self._activation_hidden = func_activation_linear
         else:
             message = 'Type activation hidden not existing: \'%s\'' % (self._type_activate_hidden)
             catch_error_exception(message)
@@ -508,14 +508,14 @@ class UNet3DPlugin(UNet):
         if self._type_activate_output == 'sigmoid':
             self._activation_last = Sigmoid()
         elif self._type_activate_output == 'linear':
-            def func_activation_linear(input: torch.FloatTensor) -> torch.FloatTensor:
+            def func_activation_linear(input: torch.Tensor) -> torch.Tensor:
                 return input
             self._activation_last = func_activation_linear
         else:
             message = 'Type activation output not existing: \'%s\' ' % (self._type_activate_output)
             catch_error_exception(message)
 
-    def forward(self, input: torch.FloatTensor) -> torch.FloatTensor:
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
 
         hidden_next = self._activation_hidden(self._convolution_down_lev1_1(input))
         hidden_next = self._activation_hidden(self._convolution_down_lev1_2(hidden_next))

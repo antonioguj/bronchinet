@@ -89,7 +89,7 @@ def main(args):
     data_xaxis_list = []
     data_yaxis_list = []
 
-    for (i, in_data_file) in enumerate(list_input_files):
+    for in_data_file in list_input_files:
 
         data_this = np.loadtxt(in_data_file, dtype=float, skiprows=1, delimiter=',')
         thresholds = data_this[:, 0]
@@ -111,7 +111,7 @@ def main(args):
         list_annotation_xaxis = []
         list_annotation_yaxis = []
 
-        for (i, in_annot_file) in enumerate(list_input_annotate_files):
+        for in_annot_file in list_input_annotate_files:
             data_this = np.genfromtxt(in_annot_file, dtype=float, delimiter=',')
             data_xaxis = np.mean(data_this[1:, 1 + index_field_xaxis] * 100)
             data_yaxis = np.mean(data_this[1:, 1 + index_field_yaxis] * 100)

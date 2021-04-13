@@ -29,7 +29,7 @@ def main(args):
 
     # ******************************
 
-    for i, in_file in enumerate(list_input_files):
+    for in_file in list_input_files:
         print("\nInput: \'%s\'..." % (in_file))
 
         case_name = basename_filenoext(in_file).split()[0]

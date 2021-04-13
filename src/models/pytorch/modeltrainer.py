@@ -203,13 +203,13 @@ class ModelTrainer(ModelTrainerBase):
                       'metrics_desc': [imetric.__class__.__name__ for imetric in self._list_metrics]}
         torch.save(model_full, model_filename)
 
-    def _criterion(self, in_prediction: torch.FloatTensor, in_groundtruth: torch.FloatTensor) -> torch.FloatTensor:
-        return self._loss.forward(in_groundtruth, in_prediction)
+    def _criterion(self, in_predic: torch.Tensor, in_target: torch.Tensor) -> torch.Tensor:
+        return self._loss.forward(in_target, in_predic)
 
-    def _compute_list_metrics(self, in_prediction: torch.FloatTensor, in_groundtruth: torch.FloatTensor) -> List[float]:
+    def _compute_list_metrics(self, in_predic: torch.Tensor, in_target: torch.Tensor) -> List[float]:
         out_list_metrics = []
         for imetric_fun in self._list_metrics:
-            out_metric = imetric_fun.compute(in_groundtruth, in_prediction)
+            out_metric = imetric_fun.compute(in_target, in_predic)
             out_list_metrics.append(out_metric.item())
 
         return out_list_metrics
@@ -305,14 +305,14 @@ class ModelTrainer(ModelTrainerBase):
             in_batch_ydata.to(self._device)
 
             self._optimizer.zero_grad()
-            batch_prediction = self._network(in_batch_xdata)
-            loss = self._criterion(batch_prediction, in_batch_ydata)
+            out_batch_predic = self._network(in_batch_xdata)
+            loss = self._criterion(out_batch_predic, in_batch_ydata)
             loss.backward()             # run backprop
             self._optimizer.step()      # optimize grads one step
             loss.detach()
             sumrun_loss += loss.item()
 
-            metrics_this = self._compute_list_metrics(batch_prediction, in_batch_ydata)
+            metrics_this = self._compute_list_metrics(out_batch_predic, in_batch_ydata)
             sumrun_metrics = [val1 + val2 for (val1, val2) in zip(sumrun_metrics, metrics_this)]
 
             loss_partial = sumrun_loss / (i_batch + 1)
@@ -345,12 +345,12 @@ class ModelTrainer(ModelTrainerBase):
             in_batch_ydata.to(self._device)
 
             with torch.no_grad():
-                batch_prediction = self._network(in_batch_xdata)
-                loss = self._criterion(batch_prediction, in_batch_ydata)
+                out_batch_predic = self._network(in_batch_xdata)
+                loss = self._criterion(out_batch_predic, in_batch_ydata)
                 loss.detach()
             sumrun_loss += loss.item()
 
-            metrics_this = self._compute_list_metrics(batch_prediction, in_batch_ydata)
+            metrics_this = self._compute_list_metrics(out_batch_predic, in_batch_ydata)
             sumrun_metrics = [val1 + val2 for (val1, val2) in zip(sumrun_metrics, metrics_this)]
 
             progressbar.update(1)
@@ -376,10 +376,10 @@ class ModelTrainer(ModelTrainerBase):
             in_batch_xdata.to(self._device)
 
             with torch.no_grad():
-                batch_prediction = self._network(in_batch_xdata)
-                batch_prediction.detach()
+                out_batch_predic = self._network(in_batch_xdata)
+                out_batch_predic.detach()
 
-            output_prediction[i_batch] = batch_prediction.cpu()     # dispatch prediction to 'cpu'
+            output_prediction[i_batch] = out_batch_predic.cpu()     # dispatch prediction to 'cpu'
 
             progressbar.update(1)
 

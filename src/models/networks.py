@@ -48,7 +48,6 @@ class ConvNetBase(NeuralNetwork):
             self._build_list_sizes_output_all_layers()
 
         shape_input = self._size_image_in + (self._num_channels_in,)
-
         shape_output = self.get_size_output_last_layer() + (self._num_classes_out,)
 
         super(ConvNetBase, self).__init__(shape_input, shape_output)
@@ -63,8 +62,7 @@ class ConvNetBase(NeuralNetwork):
         else:
             return self._size_image_in
 
-    def _get_size_output_layer(self,
-                               size_input: Union[Tuple[int, int, int], Tuple[int, int]],
+    def _get_size_output_layer(self, size_input: Union[Tuple[int, int, int], Tuple[int, int]],
                                operation_name: str
                                ) -> Union[Tuple[int, int, int], Tuple[int, int]]:
         if operation_name == 'convols':
@@ -173,9 +171,9 @@ class UNetBase(ConvNetBase):
                  num_classes_out: int,
                  is_use_valid_convols: bool = False
                  ) -> None:
-        self._num_levels = num_levels
         super(UNetBase, self).__init__(size_image_in, num_featmaps_in, num_channels_in, num_classes_out,
                                        is_use_valid_convols=is_use_valid_convols)
+        self._num_levels = num_levels
 
         if self._is_use_valid_convols:
             self._build_list_info_crop_where_merge()

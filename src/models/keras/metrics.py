@@ -110,11 +110,11 @@ class MeanSquaredError(Metric):
         self._name_fun_out = 'mean_squared'
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return K.mean(K.square(input - target), axis=-1)
+        return K.mean(K.square(input - target))
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         mask = self._get_mask(target)
-        return K.mean(K.square(input - target) * mask, axis=-1)
+        return K.mean(K.square(input - target) * mask)
 
 
 class MeanSquaredErrorLogarithmic(Metric):
@@ -125,12 +125,12 @@ class MeanSquaredErrorLogarithmic(Metric):
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         return K.mean(K.square(K.log(K.clip(input, _EPS, None) + 1.0)
-                               - K.log(K.clip(target, _EPS, None) + 1.0)), axis=-1)
+                               - K.log(K.clip(target, _EPS, None) + 1.0)))
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         mask = self._get_mask(target)
         return K.mean(K.square(K.log(K.clip(input, _EPS, None) + 1.0)
-                               - K.log(K.clip(target, _EPS, None) + 1.0)) * mask, axis=-1)
+                               - K.log(K.clip(target, _EPS, None) + 1.0)) * mask)
 
 
 class BinaryCrossEntropy(Metric):
@@ -140,13 +140,13 @@ class BinaryCrossEntropy(Metric):
         self._name_fun_out = 'bin_cross'
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return K.mean(K.binary_crossentropy(target, input), axis=-1)
+        return K.mean(K.binary_crossentropy(target, input))
         # return K.mean(- target * K.log(input + _EPS)
         #               - (1.0 - target) * K.log(1.0 - input + _EPS))
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         mask = self._get_mask(target)
-        return K.mean(K.binary_crossentropy(target, input) * mask, axis=-1)
+        return K.mean(K.binary_crossentropy(target, input) * mask)
         # return K.mean((- target * K.log(input + _EPS)
         #                - (1.0 - target) * K.log(1.0 - input + _EPS)) * mask)
 
@@ -177,7 +177,7 @@ class WeightedBinaryCrossEntropy(Metric):
                        - weights[0] * (1.0 - target) * K.log(1.0 - input + _EPS)) * mask)
 
 
-class WeightedBinaryCrossEntropyFixedWeights(Metric):
+class WeightedBinaryCrossEntropyFixedWeights(WeightedBinaryCrossEntropy):
     weights_no_masks_exclude = (1.0, 80.0)
     weights_mask_exclude = (1.0, 300.0)  # for LUVAR data
     # weights_mask_exclude = (1.0, 361.0)  # for DLCST data
