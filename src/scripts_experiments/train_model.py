@@ -15,10 +15,6 @@ from common.constant import BASEDIR, NAME_MODELSRUN_RELPATH, SIZE_IN_IMAGES, NAM
     NAME_LOSSHISTORY_FILE, NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, TYPE_DNNLIB_USED, \
     IS_MERGE_TWO_IMAGES_AS_CHANNELS, LAYERS_VGG16_LOSS_PERCEPTUAL, WEIGHTS_VGG16_LOSS_PERCEPTUAL, \
     PROP_REDSIZE_VGG16_LOSS_PERCEPTUAL
-if TYPE_DNNLIB_USED == 'Pytorch':
-    from common.constant import NAME_SAVEDMODEL_LAST_TORCH as NAME_SAVEDMODEL_LAST
-elif TYPE_DNNLIB_USED == 'Keras':
-    from common.constant import NAME_SAVEDMODEL_LAST_KERAS as NAME_SAVEDMODEL_LAST
 from common.functionutil import join_path_names, is_exist_file, update_filename, basename, basename_filenoext, \
     list_files_dir, get_substring_filename, str2bool, str2int, str2float, str2list_str, str2tuple_bool, str2tuple_int,\
     str2tuple_float, read_dictionary, read_dictionary_configparams, save_dictionary_configparams, \

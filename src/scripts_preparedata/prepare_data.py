@@ -289,8 +289,6 @@ def main(args):
             # endfor
 
             print("Final dims: %s..." % (str(list_inout_data[0].shape)))
-        else:
-            num_crop_boundboxes = None
 
         # ******************************
 
