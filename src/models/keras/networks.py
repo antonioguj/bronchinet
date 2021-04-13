@@ -428,7 +428,7 @@ class UNet3DPlugin5levels(UNet):
 
         self._compiled_model = self._build_model()
 
-    def _build_model(self) -> None:
+    def _build_model(self) -> Model:
         type_padding = 'valid' if self._is_use_valid_convols else 'same'
 
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
@@ -531,7 +531,7 @@ class UNet3DPlugin3levels(UNet):
 
         self._compiled_model = self._build_model()
 
-    def _build_model(self) -> None:
+    def _build_model(self) -> Model:
         type_padding = 'valid' if self._is_use_valid_convols else 'same'
 
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
@@ -600,7 +600,7 @@ class UNet2DPlugin3levels(UNet):
 
         self._compiled_model = self._build_model()
 
-    def _build_model(self) -> None:
+    def _build_model(self) -> Model:
         type_padding = 'valid' if self._is_use_valid_convols else 'same'
 
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
@@ -670,7 +670,7 @@ class UNet3DPlugin5levelsNoSkipConn(UNet):
 
         self._compiled_model = self._build_model()
 
-    def _build_model(self) -> None:
+    def _build_model(self) -> Model:
         type_padding = 'valid' if self._is_use_valid_convols else 'same'
 
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
@@ -758,7 +758,7 @@ class UNet3DPlugin3levelsNoSkipConn(UNet):
 
         self._compiled_model = self._build_model()
 
-    def _build_model(self) -> None:
+    def _build_model(self) -> Model:
         type_padding = 'valid' if self._is_use_valid_convols else 'same'
 
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))

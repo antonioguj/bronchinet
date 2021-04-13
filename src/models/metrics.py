@@ -406,7 +406,7 @@ class PSNR(MetricModifiedBase):
     def _compute(self, target: np.ndarray, input: np.ndarray) -> np.ndarray:
         mse = np.mean(np.square(input.flatten() - target.flatten()))
         if mse == 0.0:
-            return 0.0
+            return np.array(0.0)
         else:
             return 20.0 * np.log10(self._max_value / np.sqrt(mse))
 
@@ -437,11 +437,11 @@ class SSIMHomemade(MetricModifiedBase):
         cons_c2 = (cons_k2 * range_l)**2
         target = target.flatten()
         input = input.flatten()
-        mean_target = np.mean(target, axis=-1)
-        mean_input = np.mean(input, axis=-1)
-        std_target = np.sqrt(np.mean(np.square(target - mean_target), axis=-1))
-        std_input = np.sqrt(np.mean(np.square(input - mean_input), axis=-1))
-        std_target_input = np.mean((target - mean_target) * (input - mean_input), axis=-1)
+        mean_target = np.mean(target)
+        mean_input = np.mean(input)
+        std_target = np.sqrt(np.mean(np.square(target - mean_target)))
+        std_input = np.sqrt(np.mean(np.square(input - mean_input)))
+        std_target_input = np.mean((target - mean_target) * (input - mean_input))
         return (2 * mean_target * mean_input + cons_c1) / (mean_target**2 + mean_input**2 + cons_c1) \
             * (2 * std_target_input + cons_c2) / (std_target**2 + std_input**2 + cons_c2)
 
@@ -454,10 +454,10 @@ class SSIMHomemade(MetricModifiedBase):
         target = target.flatten()
         input = input.flatten()
         mask = self._get_mask(target)
-        mean_target = np.mean(target * mask, axis=-1)
-        mean_input = np.mean(input * mask, axis=-1)
-        std_target = np.sqrt(np.mean(np.square(target - mean_target) * mask, axis=-1))
-        std_input = np.sqrt(np.mean(np.square(input - mean_input) * mask, axis=-1))
-        std_target_input = np.mean((target - mean_target) * (input - mean_input) * mask, axis=-1)
+        mean_target = np.mean(target * mask)
+        mean_input = np.mean(input * mask)
+        std_target = np.sqrt(np.mean(np.square(target - mean_target) * mask))
+        std_input = np.sqrt(np.mean(np.square(input - mean_input) * mask))
+        std_target_input = np.mean((target - mean_target) * (input - mean_input) * mask)
         return (2 * mean_target * mean_input + cons_c1) / (mean_target**2 + mean_input**2 + cons_c1) \
             * (2 * std_target_input + cons_c2) / (std_target**2 + std_input**2 + cons_c2)
