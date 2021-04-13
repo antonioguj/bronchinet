@@ -49,7 +49,6 @@ class TrainBatchImageDataGenerator1Image(BatchImageDataGenerator1Image):
         out_xdata = self._get_data_sample(index)
         out_xdata = ImagesUtil.reshape_channels_first(out_xdata, is_input_sample=True)
         return torch.from_numpy(out_xdata.copy()).type(OutputDataType)
-        # return torch.from_numpy(out_xdata).type(OutputDataType)
 
 
 class TrainBatchImageDataGenerator2Images(BatchImageDataGenerator2Images):
@@ -88,8 +87,6 @@ class TrainBatchImageDataGenerator2Images(BatchImageDataGenerator2Images):
         out_ydata = ImagesUtil.reshape_channels_first(out_ydata, is_input_sample=True)
         return (torch.from_numpy(out_xdata.copy()).type(OutputDataType),
                 torch.from_numpy(out_ydata.copy()).type(OutputDataType))
-        # return (torch.from_numpy(out_xdata).type(OutputDataType),
-        #         torch.from_numpy(out_ydata).type(OutputDataType))
 
 
 class TrainBatchImageDataGeneratorManyImagesPerLabel(BatchImageDataGeneratorManyImagesPerLabel):
@@ -131,8 +128,6 @@ class TrainBatchImageDataGeneratorManyImagesPerLabel(BatchImageDataGeneratorMany
         out_ydata = ImagesUtil.reshape_channels_first(out_ydata, is_input_sample=True)
         return (torch.from_numpy(out_xdata.copy()).type(OutputDataType),
                 torch.from_numpy(out_ydata.copy()).type(OutputDataType))
-        # return (torch.from_numpy(out_xdata).type(OutputDataType),
-        #         torch.from_numpy(out_ydata).type(OutputDataType))
 
 
 class WrapperTrainBatchImageDataGenerator1Image(data_torch.DataLoader):

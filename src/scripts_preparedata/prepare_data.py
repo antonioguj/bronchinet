@@ -267,7 +267,7 @@ def main(args):
 
             for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
                 if type_in_data == 'label':
-                    print("Mask input data \'%s\' of type \'%s\' to ROI mask..." % (idata, type_in_data))
+                    print("Mask input data \'%s\' of type \'%s\' to ROI..." % (idata, type_in_data))
                     out_data = MaskOperator.mask_image_exclude_regions(in_data, list_inout_data[index_roimask])
                     list_inout_data[idata] = out_data
             # endfor
