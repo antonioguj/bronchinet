@@ -20,7 +20,7 @@ class RecordLossHistory(RecordLossHistoryBase, callbacks_keras.Callback):
 
         self._is_restart_model = is_restart_model
 
-    def on_train_begin(self) -> None:
+    def on_train_begin(self, logs: Any = None) -> None:
         if not self._is_restart_model:
             super(RecordLossHistory, self).on_train_begin()
 
@@ -38,7 +38,7 @@ class EarlyStopping(EarlyStoppingBase, callbacks_keras.Callback):
         super(EarlyStoppingBase, self).__init__(delta, patience)
         callbacks_keras.Callback.__init__(self)
 
-    def on_train_begin(self) -> None:
+    def on_train_begin(self, logs: Any = None) -> None:
         super(EarlyStoppingBase, self).on_train_begin()
 
     def on_epoch_end(self, epoch: int, logs: Any) -> None:
@@ -66,29 +66,8 @@ class ModelCheckpoint(ModelCheckpointBase, callbacks_keras.Callback):
                                               update_filename_epoch=update_filename_epoch)
         callbacks_keras.Callback.__init__(self)
 
-    def on_train_begin(self) -> None:
+    def on_train_begin(self, logs: Any = None) -> None:
         super(ModelCheckpoint, self).on_train_begin()
 
-    def on_epoch_end(self, epoch: int) -> None:
+    def on_epoch_end(self, epoch: int, logs: Any = None) -> None:
         super(ModelCheckpoint, self).on_epoch_end(epoch)
-
-
-# class ModelCheckpoint(CallbackBase, callbacks_keras.ModelCheckpoint):
-#
-#     def __init__(self,
-#                  model_filename: str,
-#                  data_monitor: str = 'loss',
-#                  type_save_model: str = 'full_model'
-#                  ) -> None:
-#         super(ModelCheckpoint, self).__init__()
-#         callbacks_keras.ModelCheckpoint.__init__(self, model_filename,
-#                                                  monitor=data_monitor,
-#                                                  verbose=0,
-#                                                  save_weights_only=(type_save_model=='only_weights'),
-#                                                  save_freq='epoch')
-#
-#     def on_train_begin(self) -> None:
-#         callbacks_keras.ModelCheckpoint.on_train_begin(self, logs)
-#
-#     def on_epoch_end(self, epoch: int) -> None:
-#         callbacks_keras.ModelCheckpoint.on_epoch_end(self, epoch, logs)
