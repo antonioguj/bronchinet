@@ -139,7 +139,7 @@ def get_metric_train(type_metric: str,
 
 
 def get_network(type_network: str,
-                size_image_in: Tuple[int, int, int],
+                size_image_in: Union[Tuple[int, int, int], Tuple[int, int]],
                 num_featmaps_in: int = 16,
                 num_channels_in: int = 1,
                 num_classes_out: int = 1,
@@ -208,10 +208,10 @@ def get_optimizer(type_optimizer: str, learn_rate: float, **kwargs) -> Any:
         catch_error_exception(message)
 
 
-def get_network_checker(in_size_image: Union[Tuple[int, int, int], Tuple[int, int]],
+def get_network_checker(size_image_in: Union[Tuple[int, int, int], Tuple[int, int]],
                         in_network: UNet
                         ) -> NetworkChecker:
-    return NetworkChecker(in_size_image, in_network)
+    return NetworkChecker(size_image_in, in_network)
 
 
 if TYPE_DNNLIB_USED == 'Pytorch':
