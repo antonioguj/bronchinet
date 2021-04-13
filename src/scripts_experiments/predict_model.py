@@ -6,8 +6,7 @@ import argparse
 from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, SIZE_IN_IMAGES, PROP_OVERLAP_SLIDING_WINDOW_TEST, \
     IS_SLIDING_WINDOW_IMAGES, IS_RANDOM_WINDOW_IMAGES, TYPE_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, \
     IS_MASK_REGION_INTEREST, NAME_TEMPO_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    NAME_REFERENCE_KEYS_POSTERIORS_FILE, IS_FILTER_OUT_PROBMAPS_NNET, PROP_FILTER_OUT_PROBMAPS_NNET, \
-    TYPE_DNNLIB_USED, IS_MODEL_GPU, IS_MODEL_HALFPREC
+    NAME_REFERENCE_KEYS_POSTERIORS_FILE, IS_FILTER_OUT_PROBMAPS_NNET, PROP_FILTER_OUT_PROBMAPS_NNET, TYPE_DNNLIB_USED
 from common.functionutil import join_path_names, is_exist_file, basename, basename_filenoext, list_files_dir, \
     str2bool, str2float, str2list_str, str2tuple_int, str2tuple_float, read_dictionary, read_dictionary_configparams, \
     save_dictionary, save_dictionary_csv
@@ -15,7 +14,7 @@ from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.dataloader_manager import get_train_imagedataloader_1image
 from dataloaders.imagefilereader import ImageFileReader
-from models.model_manager import get_model_trainer, get_visual_model_params
+from models.model_manager import get_model_trainer, get_network_checker
 from postprocessing.postprocessing_manager import get_images_reconstructor
 
 
@@ -68,9 +67,9 @@ def main(args):
 
     if args.is_save_featmaps_layer:
         print("Compute and store Feature Maps from the Model layer \'%s\'..." % (args.name_layer_save_feats))
-        visual_model_params = get_visual_model_params(model_trainer._network, args.size_in_images)
+        network_checker = get_network_checker(args.size_in_images, model_trainer._network)
     else:
-        visual_model_params = None
+        network_checker = None
 
     size_output_image_model = model_trainer.get_size_output_image_model()
 
@@ -120,17 +119,14 @@ def main(args):
                                              type_trans_elastic='',
                                              batch_size=1,
                                              is_shuffle=False,
-                                             manual_seed=None,
-                                             is_datagen_gpu=args.is_model_gpu,
-                                             is_datagen_halfprec=args.is_model_halfprec)
+                                             manual_seed=None)
         print("Loaded \'%s\' files. Total batches generated: %s..." % (1, len(image_data_loader)))
 
         # ******************************
 
         if args.is_save_featmaps_layer:
             print("Evaluate Model feature maps...")
-            out_prediction_batches = visual_model_params.get_feature_maps(image_data_loader,
-                                                                          args.name_layer_save_feats)
+            out_prediction_batches = network_checker.get_feature_maps(image_data_loader, args.name_layer_save_feats)
         else:
             print("Evaluate Model...")
             out_prediction_batches = model_trainer.predict(image_data_loader)
@@ -205,8 +201,6 @@ if __name__ == "__main__":
     parser.add_argument('--prop_filter_out_probmaps_nnet', type=str2float, default=PROP_FILTER_OUT_PROBMAPS_NNET)
     parser.add_argument('--is_save_featmaps_layer', type=str2bool, default=False)
     parser.add_argument('--name_layer_save_feats', type=str, default=None)
-    parser.add_argument('--is_model_gpu', type=str2bool, default=IS_MODEL_GPU)
-    parser.add_argument('--is_model_halfprec', type=str2bool, default=IS_MODEL_HALFPREC)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 

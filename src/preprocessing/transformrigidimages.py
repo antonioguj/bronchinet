@@ -262,12 +262,12 @@ class TransformRigidImages2D(TransformRigidImages):
         elif len(zoom_range) == 2:
             self._zoom_range = (zoom_range[0], zoom_range[1])
         else:
-            message = '\'zoom_range\' should be a float or a tuple or list of two floats. Received %s' % (zoom_range)
+            message = '\'zoom_range\' should be a float or a tuple of two floats. Received %s' % (str(zoom_range))
             catch_error_exception(message)
 
         if self._brightness_range is not None:
             if len(self._brightness_range) != 2:
-                message = '\'brightness_range\' should be tuple or list of two floats. Received %s' % (brightness_range)
+                message = '\'brightness_range\' should be a tuple of two floats. Received %s' % (str(brightness_range))
                 catch_error_exception(message)
 
         super(TransformRigidImages2D, self).__init__(size_image,
@@ -581,12 +581,12 @@ class TransformRigidImages3D(TransformRigidImages):
         elif len(zoom_range) == 2:
             self._zoom_range = (zoom_range[0], zoom_range[1])
         else:
-            message = '\'zoom_range\' should be a float or a tuple or list of two floats. Received %s' % (zoom_range)
+            message = '\'zoom_range\' should be a float or a tuple of two floats. Received %s' % (str(zoom_range))
             catch_error_exception(message)
 
         if self._brightness_range is not None:
             if len(self._brightness_range) != 2:
-                message = '\'brightness_range\' should be tuple or list of two floats. Received %s' % (brightness_range)
+                message = '\'brightness_range\' should be a tuple of two floats. Received %s' % (str(brightness_range))
                 catch_error_exception(message)
 
         super(TransformRigidImages3D, self).__init__(size_image,

@@ -25,11 +25,7 @@ class ImageReconstructor(object):
         self._size_image = size_image
         self._ndims = len(size_image)
         self._image_generator = image_generator
-
-        if np.isscalar(size_volume_image):
-            self._size_volume_image = tuple([size_volume_image] * self._ndims)
-        else:
-            self._size_volume_image = size_volume_image
+        self._size_volume_image = size_volume_image
 
         self._is_nnet_validconvs = is_nnet_validconvs
         if is_nnet_validconvs and size_output_image and (size_image != size_output_image):
@@ -177,13 +173,13 @@ class ImageReconstructorWithTransformation(ImageReconstructor):
                  is_filter_output_nnet: bool = False,
                  filter_image_generator: Union[FilterNnetOutputValidConvs, None] = None
                  ) -> None:
-        super(ImageReconstructor, self).__init__(size_image,
-                                                 image_transform_generator,
-                                                 size_volume_image=size_volume_image,
-                                                 is_nnet_validconvs=is_nnet_validconvs,
-                                                 size_output_image=size_output_image,
-                                                 is_filter_output_unet=is_filter_output_nnet,
-                                                 filter_image_generator=filter_image_generator)
+        super(ImageReconstructorWithTransformation, self).__init__(size_image,
+                                                                   image_transform_generator,
+                                                                   size_volume_image=size_volume_image,
+                                                                   is_nnet_validconvs=is_nnet_validconvs,
+                                                                   size_output_image=size_output_image,
+                                                                   is_filter_output_nnet=is_filter_output_nnet,
+                                                                   filter_image_generator=filter_image_generator)
 
         # NEED SOMETHING LIKE THIS TO SET UP THE SAME TRANSFORMATION FOR ALL REPEATED TRANSFORMS PER PATCH
         self._image_transform_generator = image_transform_generator

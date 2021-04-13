@@ -1,6 +1,5 @@
 
 from typing import List, Dict, Tuple, Union, Any
-import numpy as np
 
 from common.constant import TYPE_DNNLIB_USED
 if TYPE_DNNLIB_USED == 'Pytorch':
@@ -28,7 +27,7 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
                                batch_size: int = 1,
                                is_shuffle: bool = True,
                                manual_seed: int = None
-                               ) -> Union[BatchImageDataGenerator1Image, List[np.ndarray]]:
+                               ) -> BatchImageDataGenerator1Image:
     print("Generate Data Loader with Batch Generator...")
 
     list_xdata = ImageDataLoader.load_1list_files(list_filenames_1)
@@ -82,7 +81,7 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
                                 batch_size: int = 1,
                                 is_shuffle: bool = True,
                                 manual_seed: int = None
-                                ) -> Union[BatchImageDataGenerator2Images, Tuple[List[np.ndarray], List[np.ndarray]]]:
+                                ) -> BatchImageDataGenerator2Images:
     print("Generate Data Loader with Batch Generator...")
 
     (list_xdata, list_ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
@@ -137,10 +136,8 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                      type_trans_elastic: str,
                                      batch_size: int = 1,
                                      is_shuffle: bool = True,
-                                     manual_seed: int = None,
-                                     is_datagen_gpu: bool = True,
-                                     is_datagen_halfprec: bool = False
-                                     ) -> Union[TrainBatchImageDataGenerator1Image, List[np.ndarray]]:
+                                     manual_seed: int = None
+                                     ) -> TrainBatchImageDataGenerator1Image:
     print("Generate Data Loader with Batch Generator...")
 
     list_xdata = ImageDataLoader.load_1list_files(list_filenames_1)
@@ -172,9 +169,7 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                               num_channels_in=num_channels_in,
                                               batch_size=batch_size,
                                               shuffle=is_shuffle,
-                                              seed=manual_seed,
-                                              is_datagen_gpu=is_datagen_gpu,
-                                              is_datagen_halfprec=is_datagen_halfprec)
+                                              seed=manual_seed)
 
 
 def get_train_imagedataloader_2images(list_filenames_1: List[str],
@@ -192,11 +187,8 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                       size_output_images: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                                       batch_size: int = 1,
                                       is_shuffle: bool = True,
-                                      manual_seed: int = None,
-                                      is_datagen_gpu: bool = True,
-                                      is_datagen_halfprec: bool = False
-                                      ) -> Union[TrainBatchImageDataGenerator2Images,
-                                                 Tuple[List[np.ndarray], List[np.ndarray]]]:
+                                      manual_seed: int = None
+                                      ) -> TrainBatchImageDataGenerator2Images:
     print("Generate Data Loader with Batch Generator...")
 
     (list_xdata, list_ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
@@ -233,6 +225,4 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                                size_output_image=size_output_images,
                                                batch_size=batch_size,
                                                shuffle=is_shuffle,
-                                               seed=manual_seed,
-                                               is_datagen_gpu=is_datagen_gpu,
-                                               is_datagen_halfprec=is_datagen_halfprec)
+                                               seed=manual_seed)

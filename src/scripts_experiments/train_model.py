@@ -12,8 +12,7 @@ from common.constant import BASEDIR, NAME_MODELSRUN_RELPATH, SIZE_IN_IMAGES, NAM
     TRANS_RIGID_FLIP_DIRS, TRANS_RIGID_ZOOM_RANGE, TRANS_RIGID_FILL_MODE, IS_TRANSFORM_ELASTIC_IMAGES, \
     TYPE_TRANS_ELASTIC_DEFORM, IS_TRANSFORM_VALIDATION_DATA, FREQ_SAVE_CHECK_MODELS, FREQ_VALIDATE_MODELS, \
     IS_USE_VALIDATION_DATA, IS_SHUFFLE_TRAINDATA, MANUAL_SEED_TRAIN, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    NAME_LOSSHISTORY_FILE, NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, \
-    TYPE_DNNLIB_USED, IS_MODEL_GPU, IS_MODEL_HALFPREC, \
+    NAME_LOSSHISTORY_FILE, NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, TYPE_DNNLIB_USED, \
     IS_WRITEOUT_DESCMODEL_TEXT, NAME_DESCRIPT_MODEL_LOGFILE
 from common.functionutil import join_path_names, is_exist_file, update_filename, basename, basename_filenoext, \
     list_files_dir, get_substring_filename, str2bool, str2int, str2float, str2list_str, str2tuple_bool, str2tuple_int,\
@@ -159,7 +158,7 @@ def main(args):
     if (IS_WRITEOUT_DESCMODEL_TEXT):
         out_descript_model_logfile = join_path_names(models_path, NAME_DESCRIPT_MODEL_LOGFILE)
         print("Write out descriptive model source model in text file: \'%s\'" % (out_descript_model_logfile))
-        descmodel_text = model_trainer._networks.get_descmodel_sourcecode()
+        descmodel_text = model_trainer._network.get_descmodel_sourcecode()
         fout = open(out_descript_model_logfile, 'w')
         fout.write(descmodel_text)
         fout.close()
@@ -193,9 +192,7 @@ def main(args):
                                           size_output_images=size_output_image_model,
                                           batch_size=args.batch_size,
                                           is_shuffle=args.is_shuffle_traindata,
-                                          manual_seed=args.manual_seed_train,
-                                          is_datagen_gpu=args.is_model_gpu,
-                                          is_datagen_halfprec=args.is_model_halfprec)
+                                          manual_seed=args.manual_seed_train)
     print("Loaded \'%s\' files. Total batches generated: %s..."
           % (len(list_train_images_files), len(training_data_loader)))
 
@@ -220,9 +217,7 @@ def main(args):
                                               size_output_images=size_output_image_model,
                                               batch_size=args.batch_size,
                                               is_shuffle=args.is_shuffle_traindata,
-                                              manual_seed=args.manual_seed_train,
-                                              is_datagen_gpu=args.is_model_gpu,
-                                              is_datagen_halfprec=args.is_model_halfprec)
+                                              manual_seed=args.manual_seed_train)
         print("Loaded \'%s\' files. Total batches generated: %s..."
               % (len(list_valid_images_files), len(validation_data_loader)))
     else:
@@ -295,8 +290,6 @@ if __name__ == "__main__":
     parser.add_argument('--is_shuffle_traindata', type=str2bool, default=IS_SHUFFLE_TRAINDATA)
     parser.add_argument('--manual_seed_train', type=str2int, default=MANUAL_SEED_TRAIN)
     parser.add_argument('--name_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
-    parser.add_argument('--is_model_gpu', type=str2bool, default=IS_MODEL_GPU)
-    parser.add_argument('--is_model_halfprec', type=str2bool, default=IS_MODEL_HALFPREC)
     parser.add_argument('--is_restart', type=str2bool, default=False)
     parser.add_argument('--restart_file', type=str, default=NAME_SAVEDMODEL_LAST)
     parser.add_argument('--is_restart_only_weights', type=str2bool, default=False)

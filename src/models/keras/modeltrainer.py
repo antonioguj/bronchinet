@@ -1,5 +1,4 @@
 
-from typing import Tuple, Union
 import numpy as np
 
 from tensorflow.keras.models import load_model
@@ -89,13 +88,6 @@ class ModelTrainer(ModelTrainerBase):
 
     def save_model_full(self, model_filename: str) -> None:
         self._built_model.save(model_filename)
-
-    def get_shape_output_model(self) -> Tuple[int, ...]:
-        return self._built_model.outputs[0].shape[1:]
-        # return self._network.get_shape_output()
-
-    def get_size_output_image_model(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
-        return self.get_shape_output_model()[:-1]
 
     def train(self,
               train_data_loader: BatchDataGenerator,

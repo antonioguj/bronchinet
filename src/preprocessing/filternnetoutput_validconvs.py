@@ -32,11 +32,11 @@ class FilterNnetOutputValidConvs(ImageGenerator):
         super(FilterNnetOutputValidConvs, self).__init__(size_image, 1)
 
     @staticmethod
-    def _calc_tensor_product_2d(a: int, b: int) -> np.ndarray:
+    def _calc_tensor_product_2d(a: np.ndarray, b: np.ndarray) -> np.ndarray:
         return np.einsum('i,j->ij', a, b)
 
     @staticmethod
-    def _calc_tensor_product_3d(a: int, b: int, c: int) -> np.ndarray:
+    def _calc_tensor_product_3d(a: np.ndarray, b: np.ndarray, c: np.ndarray) -> np.ndarray:
         return np.einsum('i,j,k->ijk', a, b, c)
 
     @staticmethod
@@ -73,7 +73,7 @@ class FilterNnetOutputValidConvs(ImageGenerator):
         else:
             return None
 
-    def _compute_progression_increasing(self, coord_0: int, coord_1: int) -> Union[np.ndarray, None]:
+    def _compute_progression_increasing(self, coord_0: int, coord_1: int) -> np.ndarray:
         if self._type_progression == 'linear':
             return self._calc_linear_progression(coord_0, coord_1)
         elif self._type_progression == 'quadratic':
@@ -85,8 +85,6 @@ class FilterNnetOutputValidConvs(ImageGenerator):
         elif self._type_progression == 'all_outputs_Unet':
             # assume piecewise quadratic progression
             return self._calc_quadratic_progression(coord_0, coord_1)
-        else:
-            return None
 
     def _compute_progression_decreasing(self, coord_0: int, coord_1: int) -> np.ndarray:
         return self._compute_progression_increasing(coord_0, coord_1)[::-1]

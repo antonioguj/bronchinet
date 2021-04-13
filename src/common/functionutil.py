@@ -397,8 +397,6 @@ def get_string_datatype(in_str: str) -> str:
         out_datatype += '_' + out_elem_datatype
     else:
         out_datatype = 'string'
-        # message = 'not found datatype from string: \'%s\'' % (in_str)
-        # catch_error_exception(message)
     return out_datatype
 
 
@@ -407,10 +405,6 @@ def get_func_convert_string_to_datatype(elem_type: str) -> Callable[[str], Any]:
         return str2int
     elif elem_type == 'float':
         return str2float
-    elif elem_type == 'string':
-        def func_dummy(in_str: str) -> str:
-            return in_str
-        return func_dummy
     elif 'list' in elem_type and (elem_type[0:5] == 'list_'):
         def func_convert_elem(in_str: str) -> List[Any]:
             return str2list_datatype(in_str, elem_type[5:])
@@ -420,20 +414,21 @@ def get_func_convert_string_to_datatype(elem_type: str) -> Callable[[str], Any]:
             return str2tuple_datatype(in_str, elem_type[6:])
         return func_convert_elem
     else:
-        message = 'not found datatype from elem: \'%s\'' % (elem_type)
-        catch_error_exception(message)
+        # elem_type == 'string':
+        def func_dummy(in_str: str) -> str:
+            return in_str
+        return func_dummy
 
 
 # to input / output different file formats:
-def read_dictionary(filename: str) -> Dict[str, Any]:
+def read_dictionary(filename: str) -> Union[Dict[str, Any], None]:
     extension = fileextension(filename, is_split_recursive=False)
     if extension == '.npy':
         return read_dictionary_numpy(filename)
     elif extension == '.csv':
         return read_dictionary_csv(filename)
     else:
-        message = 'Unknown file extension \'%s\' to read dictionary' % (extension)
-        catch_error_exception(message)
+        return None
 
 
 def read_dictionary_numpy(filename: str) -> Dict[str, Any]:
@@ -469,8 +464,7 @@ def save_dictionary(filename: str, in_dict: Dict[str, Any]) -> None:
     elif extension == '.csv':
         save_dictionary_csv(filename, in_dict)
     else:
-        message = 'Unknown file extension \'%s\' to save dictionary' % (extension)
-        catch_error_exception(message)
+        return None
 
 
 def save_dictionary_numpy(filename: str, in_dict: Dict[str, Any]) -> None:
@@ -511,6 +505,12 @@ class WallClockTime(object):
 
 
 # others:
+def calc_moving_average(in_vals: List[float], size: int) -> List[float]:
+    cumsum = np.cumsum(np.insert(in_vals, 0, 0))
+    return (cumsum[size:] - cumsum[:-size]) / float(size)
+    # return np.convolve(in_vals, np.ones((size,))/size, mode='valid')
+
+
 class ImagesUtil:
     # size_image: physical dims (dz, dx, dy)
     # shape_image: full shape or image array

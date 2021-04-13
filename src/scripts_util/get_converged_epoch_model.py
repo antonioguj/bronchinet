@@ -2,127 +2,136 @@
 import numpy as np
 import argparse
 
+from common.functionutil import calc_moving_average
 from common.exceptionmanager import catch_error_exception
 
 
 def main(args):
 
     # SETTINGS
-    type_eval_loss = 'mean'
-    # type_converged_epoch = 'last'
-    tolerance_converge = 0.001
-    tolerance_diverge = 0.05
-    num_epochs_average = 50
-    num_epochs_patience = 20
-    num_epochs_jumpeval = 1
-    writeout_meanlosshistory = False
-    filename_meanlosshistory = args.inloss_history_file.replace('.txt', '') + '_%s_aver%s_jump%s.txt' \
-        % (type_eval_loss, num_epochs_average, num_epochs_jumpeval)
-    index_valid_loss = 2
+    if args.is_output_aver_loss and args.is_move_aver:
+        out_aver_losshist_filename = args.input_loss_file.replace('.csv', '') + '_aver-%d.csv' % (args.size_aver)
+    else:
+        out_aver_losshist_filename = None
     # --------
 
-    with open(args.inloss_history_file, 'r') as infile:
+    epochs = None
+    data_fields = None
+    index_field_eval = None
+    data_eval_original = None
+
+    with open(args.input_loss_file, 'r') as infile:
         header_line = infile.readline()
-        header_items = map(lambda item: item.replace('/', '').replace('\n', ''), header_line.split(' '))
+        header_items = [elem.replace('/', '').replace('\n', '') for elem in header_line.split(' ')]
 
-    data_file = np.loadtxt(args.inloss_history_file, skiprows=1, delimiter=' ')
-    epochs = data_file[:, 0].astype(np.int)
-    data_fields = data_file[:, 1:]
-    num_fields = data_fields.shape[1]
+        if args.field_eval not in header_items:
+            message = 'field chosen to evaluate the convergence of losses (\'%s\') not found in loss file' \
+                      % (args.field_eval)
+            catch_error_exception(message)
+        else:
+            index_field_eval = header_items.index(args.field_eval) - 1
 
-    first_epoch_eval = num_epochs_average
-    first_epoch_compare = first_epoch_eval + num_epochs_patience
-    if len(epochs) < first_epoch_compare:
-        message = 'loss history not long enough: %s < %s' % (len(epochs), first_epoch_compare)
-        catch_error_exception(message)
-        last_epoch_compare = None
-        last_epoch_eval = None
-    else:
-        last_epoch_compare = len(epochs)
-        last_epoch_eval = last_epoch_compare - num_epochs_patience
+        data_loss_file = np.loadtxt(args.input_loss_file, skiprows=1, delimiter=' ')
+        epochs = data_loss_file[:, 0].astype(np.uint16)
+        data_fields = data_loss_file[:, 1:]
+        data_eval_original = data_fields[:, index_field_eval]
 
-    num_eval_epochs = int((last_epoch_compare - first_epoch_eval) / num_epochs_jumpeval)  # ..num_epochs_jumpeval + 1)
-    if num_epochs_jumpeval > 1:
-        num_eval_epochs += 1
+    if args.is_move_aver:
+        print('Compute the moving average of the losses, with size of average window \'%s\'...' % (args.size_aver))
+        # for 'epochs': decrease the num epochs by the size of average window
+        num_epochs = len(epochs)
+        num_aver_epochs = num_epochs - args.size_aver + 1
+        epochs = epochs[0:num_aver_epochs]
 
-    # ******************************
+        # for other fields: compute the moving average of the list of values
+        num_fields = data_fields.shape[1]
+        aver_data_fields = np.ndarray((num_aver_epochs, num_fields), dtype=np.float32)
+        for i in range(num_fields):
+            aver_data_fields[:, i] = calc_moving_average(data_fields[:, i], args.size_aver)
+        # endfor
 
-    evalarr_epochs = np.zeros(num_eval_epochs, dtype=int)
-    evalarr_data_fields = np.zeros((num_eval_epochs, num_fields), dtype=float)
+        data_fields = aver_data_fields
 
-    for count, ind_epoch in enumerate(range(first_epoch_eval, last_epoch_compare, num_epochs_jumpeval)):
-        beg_epoch_average = ind_epoch - num_epochs_average
-        end_epoch_average = ind_epoch
+    if args.is_output_aver_loss and args.is_move_aver:
+        print("Write out the computed moving average of the losses in file: %s...\n" % (out_aver_losshist_filename))
+        fout = open(out_aver_losshist_filename, 'w')
 
-        evalarr_epochs[count] = ind_epoch
-        if type_eval_loss == 'mean':
-            evalarr_data_fields[count] = np.mean(data_fields[beg_epoch_average:end_epoch_average], axis=0)
-        elif type_eval_loss == 'min':
-            evalarr_data_fields[count] = np.min(data_fields[beg_epoch_average:end_epoch_average], axis=0)
-        elif type_eval_loss == 'std':
-            evalarr_data_fields[count] = np.std(data_fields[beg_epoch_average:end_epoch_average], axis=0)
-    # endfor
+        with open(args.input_loss_file, 'r') as infile:
+            header_line = infile.readline()
+            fout.write(header_line)
 
-    if writeout_meanlosshistory:
-        print("Write out computed mean loss History in file: %s..." % (filename_meanlosshistory))
-        fout = open(filename_meanlosshistory, 'w')
-        strheader = ', '.join(['/%s/' % (elem) for elem in header_items]) + '\n'
-        fout.write(strheader)
-
-        for i in range(num_eval_epochs):
-            strdata = ', '.join([str(elem) for elem in [evalarr_epochs[i]] + list(evalarr_data_fields[i])]) + '\n'
-            fout.write(strdata)
+        num_aver_epochs = len(epochs)
+        for i in range(num_aver_epochs):
+            list_strdata = ['%d ' % (epochs[i])] + ['%0.6f' % (elem) for elem in list(data_fields[i, :])]
+            writeline = ' '.join(list_strdata) + '\n'
+            fout.write(writeline)
         # endfor
         fout.close()
 
     # ******************************
 
-    valid_loss = data_fields[:, index_valid_loss - 1]
-    evalarr_valid_loss = evalarr_data_fields[:, index_valid_loss - 1]
+    data_eval = data_fields[:, index_field_eval]
 
-    jump_elems_patience = int(num_epochs_patience / num_epochs_jumpeval)
-    # is_converge_found = False
-    # epoch_converged = None
-    # epoch_diverged = None
+    print('Evaluate the relative difference of the \'%s\' history, between epochs with patience \'%s\'...'
+          % (args.field_eval, args.patience_converge))
+    print('Thresholds to mark convergence: %s, and divergence: %s...' % (args.thres_converge, args.thres_diverge))
+    is_found_converge = False
+    is_found_diverge = False
+    epoch_converged = None
+    epoch_diverged = None
 
-    for count, ind_epoch in enumerate(range(first_epoch_eval, last_epoch_eval, num_epochs_jumpeval)):
-        count_compare = count + jump_elems_patience
-        eval_valid_loss = evalarr_valid_loss[count]
-        compare_valid_loss = evalarr_valid_loss[count_compare]
-        reldiff_valid_loss = abs((eval_valid_loss - compare_valid_loss) / (eval_valid_loss + 1.0e-12))
+    list_epochs_evaluate = list(epochs[args.patience_converge:])
 
-        print("Epoch \'%s\': \'%s\' valid loss \'%s\' (actual loss \'%s\'), rel diff loss \'%s\'..."
-              % (ind_epoch, type_eval_loss, eval_valid_loss, valid_loss[ind_epoch], reldiff_valid_loss))
+    for i_epoch_eval in list_epochs_evaluate:
+        i_epoch_original = i_epoch_eval + args.size_aver - 1
 
-        if reldiff_valid_loss > 0.0:
-            if reldiff_valid_loss < tolerance_converge:
-                # is_converge_found = True
-                ind_epoch_lastavail = ind_epoch + jump_elems_patience
-                epoch_converged = ind_epoch_lastavail
-                epoch_minvalidloss = 1 + np.argmin(valid_loss[:ind_epoch_lastavail])
-                validloss_converged = valid_loss[epoch_converged - 1]
-                validloss_min = valid_loss[epoch_minvalidloss - 1]
-                print("CONVERGED at EPOCH \'%s\' WITH VALIDLOSS \'%s\' AND RELDIFF_LOSS \'%s\'. "
-                      "MIN VALIDLOSS at EPOCH \'%s\': \'%s\'..."
-                      % (epoch_converged, validloss_converged, reldiff_valid_loss, epoch_minvalidloss, validloss_min))
+        value_eval_this = data_eval[i_epoch_eval - 1]
+        value_eval_compare = data_eval[i_epoch_eval - args.patience_converge - 1]
+        # value_original = data_eval_original[i_epoch_original - 1]
+
+        relerror_diff_values = abs((value_eval_this - value_eval_compare) / (value_eval_this + 1.0e-12))
+
+        # print("epoch \'%s\' (original \'%s\'): averaged value \'%s\' (original \'%s\'), relative error \'%0.6f\' ..."
+        #       % (i_epoch_eval, i_epoch_original, value_eval_this, value_original, relerror_diff_values))
+
+        if relerror_diff_values > 0.0:
+            if relerror_diff_values < args.thres_converge:
+                is_found_converge = True
+                epoch_converged = i_epoch_original
+                epoch_min_value = 1 + np.argmin(data_eval_original[:epoch_converged])
+                value_converged = data_eval_original[epoch_converged - 1]
+                value_min_found = data_eval_original[epoch_min_value - 1]
+
+                print("CONVERGED: at epoch \'%s\' with value \'%s\' and relative error \'%0.6f\'"
+                      ". Min value found until here: \'%s\', at epoch \'%s\'...\n"
+                      % (epoch_converged, value_converged, relerror_diff_values, value_min_found, epoch_min_value))
+                # break
         else:
-            if abs(reldiff_valid_loss) > tolerance_diverge:
-                # is_converge_found = False
-                ind_epoch_lastavail = ind_epoch + jump_elems_patience
-                epoch_diverged = ind_epoch_lastavail
-                epoch_minvalidloss = 1 + np.argmin(valid_loss[:ind_epoch_lastavail])
-                validloss_diverged = valid_loss[epoch_diverged - 1]
-                validloss_min = valid_loss[epoch_minvalidloss - 1]
-                print("DIVERGED at EPOCH \'%s\' WITH VALIDLOSS \'%s\' AND RELDIFF_LOSS \'%s\'. "
-                      "MIN VALIDLOSS at EPOCH \'%s\': \'%s\'..."
-                      % (epoch_diverged, validloss_diverged, reldiff_valid_loss, epoch_minvalidloss, validloss_min))
+            if relerror_diff_values > args.thres_diverge:
+                is_found_diverge = False
+                epoch_diverged = i_epoch_original
+                value_diverged = data_eval_original[epoch_diverged - 1]
+                print("DIVERGED: at epoch \'%s\' with value \'%s\' and relative error \'%0.6f\'...\n"
+                      % (epoch_diverged, value_diverged, relerror_diff_values))
                 # break
     # endfor
+
+    if is_found_converge:
+        print("\nGOOD: HISTORY OF \'%s\' IS CONVERGED AT EPOCH \'%s\'..." % (args.field_eval, epoch_converged))
+    elif is_found_diverge:
+        print("\nBAD: HISTORY OF \'%s\' IS DIVERGED AT EPOCH \'%s\'..." % (args.field_eval, epoch_diverged))
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('inloss_history_file', type=str)
+    parser.add_argument('input_loss_file', type=str)
+    parser.add_argument('--field_eval', type=str, default='val_loss')
+    parser.add_argument('--patience_converge', type=int, default=20)
+    parser.add_argument('--thres_converge', type=float, default=0.001)
+    parser.add_argument('--thres_diverge', type=float, default=0.05)
+    parser.add_argument('--is_move_aver', type=bool, default=True)
+    parser.add_argument('--size_aver', type=int, default=50)
+    parser.add_argument('--is_output_aver_loss', type=bool, default=False)
     args = parser.parse_args()
 
     print("Print input arguments...")

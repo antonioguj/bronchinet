@@ -70,8 +70,8 @@ class MetricWithUncertainty(Metric):
             + self._epsilon * self._metrics_loss._compute(torch.ones_like(input) / 3, input)
 
     def _compute_masked(self, target: torch.FloatTensor, input: torch.FloatTensor) -> torch.FloatTensor:
-        return (1.0 - self._epsilon) * self._metrics_loss.__compute_masked(target, input) \
-            + self._epsilon * self._metrics_loss.__compute_masked(torch.ones_like(input) / 3, input)
+        return (1.0 - self._epsilon) * self._metrics_loss._compute_masked(target, input) \
+            + self._epsilon * self._metrics_loss._compute_masked(torch.ones_like(input) / 3, input)
 
 
 class CombineTwoMetrics(Metric):
