@@ -86,8 +86,9 @@ def main(args):
     out_config_params_file = join_path_names(models_path, NAME_CONFIG_PARAMS_FILE)
     if not args.is_restart or (args.is_restart and args.is_restart_only_weights):
         print("Write configuration parameters in file: \'%s\'..." % (out_config_params_file))
-        dict_args = OrderedDict(sorted(vars(args).items()))
-        save_dictionary_configparams(out_config_params_file, dict_args)
+        dict_in_args = OrderedDict(sorted(vars(args).items()))
+        dict_in_args.pop('dict_trans_rigid_parameters')     # remove this in config file
+        save_dictionary_configparams(out_config_params_file, dict_in_args)
 
     # write out logs with the training and validation files used
     out_traindata_logfile = join_path_names(models_path, NAME_TRAINDATA_LOGFILE)
@@ -287,12 +288,6 @@ if __name__ == "__main__":
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     args = parser.parse_args()
 
-    args.dict_trans_rigid_parameters = {'rotation_range': args.trans_rigid_rotation_range,
-                                        'shift_range': args.trans_rigid_shift_range,
-                                        'flip_dirs': args.trans_rigid_flip_dirs,
-                                        'zoom_range': args.trans_rigid_zoom_range,
-                                        'fill_mode': args.trans_rigid_fill_mode}
-
     if (args.is_restart and not args.is_restart_only_weights) and not args.in_config_file:
         args.in_config_file = join_path_names(args.modelsdir, NAME_CONFIG_PARAMS_FILE)
         print("Restarting model: input config file is not given. Use the default path: %s" % (args.in_config_file))
@@ -340,6 +335,12 @@ if __name__ == "__main__":
             # args.is_use_validation_data = str2bool(input_args_file['is_use_validation_data'])
             # args.is_shuffle_traindata = str2bool(input_args_file['is_shuffle_traindata'])
             args.name_reference_keys_file = str(input_args_file['name_reference_keys_file'])
+
+    args.dict_trans_rigid_parameters = {'rotation_range': args.trans_rigid_rotation_range,
+                                        'shift_range': args.trans_rigid_shift_range,
+                                        'flip_dirs': args.trans_rigid_flip_dirs,
+                                        'zoom_range': args.trans_rigid_zoom_range,
+                                        'fill_mode': args.trans_rigid_fill_mode}
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).items()):
