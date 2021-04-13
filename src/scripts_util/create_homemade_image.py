@@ -8,7 +8,7 @@ from dataloaders.imagefilereader import ImageFileReader
 
 def create_sphere_in_image(inout_image: np.ndarray,
                            coords0: Tuple[int, int, int] = None,
-                           radius: float = 50
+                           radius: int = 50
                            ) -> np.ndarray:
     if not coords0:
         coords0 = (int(inout_image.shape[0] / 2), int(inout_image.shape[1] / 2), int(inout_image.shape[2] / 2))
@@ -24,7 +24,7 @@ def create_sphere_in_image(inout_image: np.ndarray,
         for ix in range(x_min, x_max, 1):
             for iy in range(y_min, y_max, 1):
                 dist = np.sqrt((iz - coords0[0]) ** 2 + (ix - coords0[1]) ** 2 + (iy - coords0[2]) ** 2)
-                if (dist < radius):
+                if dist < radius:
                     indexes_z_sphere.append(iz)
                     indexes_x_sphere.append(ix)
                     indexes_y_sphere.append(iy)

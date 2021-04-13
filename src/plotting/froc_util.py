@@ -316,5 +316,5 @@ def plot_froc(in_xdata: np.ndarray,
         plt.savefig(save_path)
         plt.close()
     else:
-        print("ploting figure...")
+        print("plotting figure...")
         plt.show()

@@ -1,8 +1,9 @@
 
-from typing import Tuple
+from typing import Tuple, Union
 import numpy as np
 
 BoundBox3DType = Tuple[Tuple[int, int], Tuple[int, int], Tuple[int, int]]
+BoundBox2DType = Tuple[Tuple[int, int], Tuple[int, int]]
 
 
 class BoundingBoxes(object):
@@ -164,16 +165,17 @@ class BoundingBoxes(object):
             else:
                 trans_dist[i] = cls.get_translate_distance_fixorigin(in_boundbox[i])
 
-        if (trans_dist != [0, 0, 0]):
+        trans_dist = (trans_dist[0], trans_dist[1], trans_dist[2])
+        if trans_dist != (0, 0, 0):
             return cls.translate_boundbox(in_boundbox, trans_dist)
         else:
             return in_boundbox
 
     @staticmethod
     def get_translate_distance_fitseg(bound_limits: Tuple[int, int], size_segment: int) -> int:
-        if (bound_limits[0] < 0):
+        if bound_limits[0] < 0:
             return -bound_limits[0]
-        elif (bound_limits[1] > size_segment):
+        elif bound_limits[1] > size_segment:
             return -(bound_limits[1] - size_segment)
         else:
             return 0
@@ -201,7 +203,8 @@ class BoundingBoxes(object):
         return (out_crop_boundbox, out_extend_boundbox)
 
     @staticmethod
-    def calc_split_boundboxes(in_boundbox: BoundBox3DType, axis: int = 0) -> Tuple[BoundBox3DType, BoundBox3DType]:
+    def calc_split_boundboxes(in_boundbox: BoundBox3DType, axis: int = 0
+                              ) -> Union[Tuple[BoundBox3DType, BoundBox3DType], None]:
         if axis == 0:
             half_boundbox_zdim = int((in_boundbox[0][1] + in_boundbox[0][0]) / 2)
             out_boundbox_1 = ((in_boundbox[0][0], half_boundbox_zdim),
@@ -230,7 +233,7 @@ class BoundingBoxes(object):
                               (half_boundbox_ydim, in_boundbox[2][1]))
             return (out_boundbox_1, out_boundbox_2)
         else:
-            return False
+            return None
 
     @classmethod
     def compute_boundbox_contain_mask(cls, in_mask: np.ndarray,

@@ -6,11 +6,13 @@ import torch
 from torchsummary import summary
 from tqdm import tqdm
 
-from common.constant import NAME_LOSSHISTORY_FILE, NAME_SAVEDMODEL_EPOCH_TORCH, NAME_SAVEDMODEL_LAST_TORCH
 from common.functionutil import ImagesUtil, join_path_names
 from dataloaders.batchdatagenerator import BatchDataGenerator
 from models.modeltrainer import ModelTrainerBase
 from models.pytorch.callbacks import RecordLossHistory, ModelCheckpoint
+
+NAME_SAVEDMODEL_EPOCH = 'model_e%0.2d.pt'
+NAME_SAVEDMODEL_LAST = 'model_last.pt'
 
 
 class ModelTrainer(ModelTrainerBase):
@@ -40,7 +42,7 @@ class ModelTrainer(ModelTrainerBase):
     def finalise_model(self) -> None:
         pass
 
-    def create_callbacks(self, models_path: str, **kwargs) -> None:
+    def create_callbacks(self, models_path: str, losshist_filename: str, **kwargs) -> None:
         self._list_callbacks = []
 
         is_validation_data = kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() \
@@ -50,19 +52,19 @@ class ModelTrainer(ModelTrainerBase):
         freq_validate_model = kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() \
             else 1
 
-        losshistory_filename = join_path_names(models_path, NAME_LOSSHISTORY_FILE)
-        new_callback = RecordLossHistory(losshistory_filename, self._list_metrics,
+        losshist_filename = join_path_names(models_path, losshist_filename)
+        new_callback = RecordLossHistory(losshist_filename, self._list_metrics,
                                          is_hist_validation=is_validation_data)
         self._list_callbacks.append(new_callback)
 
-        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_EPOCH_TORCH)
+        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_EPOCH)
         new_callback = ModelCheckpoint(model_filename, self,
                                        freq_save_model=freq_save_check_model,
                                        type_save_model='full_model',
                                        update_filename_epoch=True)
         self._list_callbacks.append(new_callback)
 
-        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_LAST_TORCH)
+        model_filename = join_path_names(models_path, NAME_SAVEDMODEL_LAST)
         new_callback = ModelCheckpoint(model_filename, self,
                                        type_save_model='full_model')
         self._list_callbacks.append(new_callback)
@@ -70,7 +72,7 @@ class ModelTrainer(ModelTrainerBase):
         self.freq_validate_model = freq_validate_model
 
     def summary_model(self) -> None:
-        summary(self._network, self._network.get_size_input())
+        summary(self._network, self._network.get_shape_input())
 
     def load_model_only_weights(self, model_filename: str) -> None:
         model_state_dict = torch.load(model_filename, map_location=self._device)
@@ -201,13 +203,13 @@ class ModelTrainer(ModelTrainerBase):
                       'metrics_desc': [imetric.__class__.__name__ for imetric in self._list_metrics]}
         torch.save(model_full, model_filename)
 
-    def _criterion(self, in_prediction: torch.FloatTensor, in_groundtruth: torch.FloatTensor) -> torch.FloatTensor:
-        return self._loss.forward(in_groundtruth, in_prediction)
+    def _criterion(self, in_predic: torch.Tensor, in_target: torch.Tensor) -> torch.Tensor:
+        return self._loss.forward(in_target, in_predic)
 
-    def _compute_list_metrics(self, in_prediction: torch.FloatTensor, in_groundtruth: torch.FloatTensor) -> List[float]:
+    def _compute_list_metrics(self, in_predic: torch.Tensor, in_target: torch.Tensor) -> List[float]:
         out_list_metrics = []
         for imetric_fun in self._list_metrics:
-            out_metric = imetric_fun.compute(in_groundtruth, in_prediction)
+            out_metric = imetric_fun.compute(in_target, in_predic)
             out_list_metrics.append(out_metric.item())
 
         return out_list_metrics
@@ -219,12 +221,6 @@ class ModelTrainer(ModelTrainerBase):
     def _run_callbacks_on_epoch_end(self, epoch: int, data_output: List[float]) -> None:
         for icallback in self._list_callbacks:
             icallback.on_epoch_end(epoch, data_output)
-
-    def get_size_output_model(self) -> Tuple[int, ...]:
-        return self._network.get_size_output()
-
-    def get_size_output_image_model(self) -> Tuple[int, ...]:
-        return self.get_size_output_model()[1:]
 
     def train(self,
               train_data_loader: BatchDataGenerator,
@@ -267,7 +263,7 @@ class ModelTrainer(ModelTrainerBase):
 
         (train_loss, train_metrics) = self._train_epoch()
 
-        if self._valid_data_loader:
+        if self._valid_data_loader is not None:
             if (self._epoch_count % self.freq_validate_model == 0) or (self._epoch_start_count == 0):
 
                 self._network.eval()  # switch to evaluate mode
@@ -283,7 +279,7 @@ class ModelTrainer(ModelTrainerBase):
             valid_loss = 0.0
             valid_metrics = [0.0] * self._num_metrics
 
-        if self._valid_data_loader:
+        if self._valid_data_loader is not None:
             data_output = [train_loss, valid_loss] + train_metrics + valid_metrics
         else:
             data_output = [train_loss] + train_metrics
@@ -291,7 +287,7 @@ class ModelTrainer(ModelTrainerBase):
         self._run_callbacks_on_epoch_end(self._epoch_count, data_output)
 
     def _train_epoch(self) -> Tuple[float, List[float]]:
-        if self._max_steps_epoch and self._max_steps_epoch < len(self._train_data_loader):
+        if self._max_steps_epoch and (self._max_steps_epoch < len(self._train_data_loader)):
             num_batches = self._max_steps_epoch
         else:
             num_batches = len(self._train_data_loader)
@@ -309,14 +305,14 @@ class ModelTrainer(ModelTrainerBase):
             in_batch_ydata.to(self._device)
 
             self._optimizer.zero_grad()
-            batch_prediction = self._network(in_batch_xdata)
-            loss = self._criterion(batch_prediction, in_batch_ydata)
+            out_batch_predic = self._network(in_batch_xdata)
+            loss = self._criterion(out_batch_predic, in_batch_ydata)
             loss.backward()             # run backprop
             self._optimizer.step()      # optimize grads one step
             loss.detach()
             sumrun_loss += loss.item()
 
-            metrics_this = self._compute_list_metrics(batch_prediction, in_batch_ydata)
+            metrics_this = self._compute_list_metrics(out_batch_predic, in_batch_ydata)
             sumrun_metrics = [val1 + val2 for (val1, val2) in zip(sumrun_metrics, metrics_this)]
 
             loss_partial = sumrun_loss / (i_batch + 1)
@@ -333,7 +329,7 @@ class ModelTrainer(ModelTrainerBase):
         return (total_loss, total_metrics)
 
     def _validation_epoch(self) -> Tuple[float, List[float]]:
-        if self._max_steps_epoch and self._max_steps_epoch < len(self._valid_data_loader):
+        if self._max_steps_epoch and (self._max_steps_epoch < len(self._valid_data_loader)):
             num_batches = self._max_steps_epoch
         else:
             num_batches = len(self._valid_data_loader)
@@ -349,12 +345,12 @@ class ModelTrainer(ModelTrainerBase):
             in_batch_ydata.to(self._device)
 
             with torch.no_grad():
-                batch_prediction = self._network(in_batch_xdata)
-                loss = self._criterion(batch_prediction, in_batch_ydata)
+                out_batch_predic = self._network(in_batch_xdata)
+                loss = self._criterion(out_batch_predic, in_batch_ydata)
                 loss.detach()
             sumrun_loss += loss.item()
 
-            metrics_this = self._compute_list_metrics(batch_prediction, in_batch_ydata)
+            metrics_this = self._compute_list_metrics(out_batch_predic, in_batch_ydata)
             sumrun_metrics = [val1 + val2 for (val1, val2) in zip(sumrun_metrics, metrics_this)]
 
             progressbar.update(1)
@@ -370,7 +366,7 @@ class ModelTrainer(ModelTrainerBase):
 
     def _run_prediction(self) -> np.ndarray:
         num_batches = len(self._test_data_loader)
-        size_output_batch = self._network.get_size_output()
+        size_output_batch = self._network.get_shape_output()
         out_shape_prediction = (num_batches,) + size_output_batch
         output_prediction = np.ndarray(out_shape_prediction, dtype=np.float32)
 
@@ -380,10 +376,10 @@ class ModelTrainer(ModelTrainerBase):
             in_batch_xdata.to(self._device)
 
             with torch.no_grad():
-                batch_prediction = self._network(in_batch_xdata)
-                batch_prediction.detach()
+                out_batch_predic = self._network(in_batch_xdata)
+                out_batch_predic.detach()
 
-            output_prediction[i_batch] = batch_prediction.cpu()     # dispatch prediction to 'cpu'
+            output_prediction[i_batch] = out_batch_predic.cpu()     # dispatch prediction to 'cpu'
 
             progressbar.update(1)
 

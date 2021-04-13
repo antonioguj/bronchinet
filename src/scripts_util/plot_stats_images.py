@@ -24,10 +24,12 @@ def main(args):
 
     if args.type_plot == 'histogram':
         template_outfigname = 'fig_hist_%s.png'
+    else:
+        template_outfigname = None
 
     # ******************************
 
-    for i, in_file in enumerate(list_input_files):
+    for in_file in list_input_files:
         print("\nInput: \'%s\'..." % (in_file))
 
         case_name = basename_filenoext(in_file).split()[0]

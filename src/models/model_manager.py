@@ -1,5 +1,5 @@
 
-from typing import Tuple, Callable
+from typing import Tuple, Union, Any
 
 from common.constant import TYPE_DNNLIB_USED
 from common.exceptionmanager import catch_error_exception
@@ -18,10 +18,10 @@ if TYPE_DNNLIB_USED == 'Pytorch':
         FalsePositiveRate as FalsePositiveRate_train, \
         FalseNegativeRate as FalseNegativeRate_train, \
         LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
-    from models.pytorch.networks import UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS
+    from models.pytorch.networks import UNet, UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS
     from models.pytorch.optimizers import get_sgd, get_sgdmom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
-    from models.pytorch.visualmodelparams import VisualModelParams
+    from models.pytorch.networkchecker import NetworkChecker
 elif TYPE_DNNLIB_USED == 'Keras':
     from models.keras.metrics import Metric as Metric_train, \
         CombineTwoMetricsModified as CombineTwoMetrics_train, \
@@ -42,12 +42,12 @@ elif TYPE_DNNLIB_USED == 'Keras':
         MultiScaleSSIM as MultiScaleSSIM_train, \
         Perceptual as Perceptual_train, \
         LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
-    from models.keras.networks import UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS, \
+    from models.keras.networks import UNet, UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS, \
         UNet3DPlugin5levels, UNet3DPlugin3levels, UNet2DPlugin3levels, \
         UNet3DPlugin5levelsNoSkipConn, UNet3DPlugin3levelsNoSkipConn
     from models.keras.optimizers import get_sgd, get_sgdmom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
-    from models.keras.visualmodelparams import VisualModelParams
+    from models.keras.networkchecker import NetworkChecker
 from models.metrics import MetricBase, MeanSquaredError, MeanSquaredErrorLogarithmic, \
     BinaryCrossEntropy, WeightedBinaryCrossEntropy, WeightedBinaryCrossEntropyFixedWeights, \
     DiceCoefficient, TruePositiveRate, TrueNegativeRate, FalsePositiveRate, FalseNegativeRate, \
@@ -259,7 +259,7 @@ def get_network(type_network: str,
         catch_error_exception(message)
 
 
-def get_optimizer(type_optimizer: str, learn_rate: float, **kwargs) -> Callable:
+def get_optimizer(type_optimizer: str, learn_rate: float, **kwargs) -> Any:
     if type_optimizer == 'SGD':
         return get_sgd(learn_rate, **kwargs)
     elif type_optimizer == 'SGDmom':
@@ -278,8 +278,10 @@ def get_optimizer(type_optimizer: str, learn_rate: float, **kwargs) -> Callable:
         catch_error_exception(message)
 
 
-def get_visual_model_params(in_network: ConvNetBase, in_size_image: Tuple[int, ...]) -> VisualModelParams:
-    return VisualModelParams(in_network, in_size_image)
+def get_network_checker(in_size_image: Union[Tuple[int, int, int], Tuple[int, int]],
+                        in_network: UNet
+                        ) -> NetworkChecker:
+    return NetworkChecker(in_size_image, in_network)
 
 
 if TYPE_DNNLIB_USED == 'Pytorch':

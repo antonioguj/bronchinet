@@ -22,7 +22,7 @@ LIST_AVAIL_NETWORKS = ['UNet3DOriginal',
 class UNet(UNetBase):
 
     def __init__(self,
-                 size_image_in: Tuple[int, ...],
+                 size_image_in: Union[Tuple[int, int, int], Tuple[int, int]],
                  num_levels: int,
                  num_featmaps_in: int,
                  num_channels_in: int,
@@ -31,15 +31,15 @@ class UNet(UNetBase):
                  ) -> None:
         super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in,
                                    num_classes_out, is_use_valid_convols=is_use_valid_convols)
-        self._compiled_model = 0
+        self._built_model = 0
 
-    def get_compiled_model(self):
-        return self._compiled_model
+    def get_built_model(self) -> Model:
+        return self._built_model
 
     def _build_list_info_crop_where_merge(self) -> None:
-        indexes_output_where_pooling = [(i - 1) for i, el in enumerate(self._list_opers_names_layers_all)
+        indexes_output_where_pooling = [(i - 1) for i, el in enumerate(self._list_operation_names_layers_all)
                                         if el == 'pooling']
-        indexes_output_where_merge = [i for i, el in enumerate(self._list_opers_names_layers_all)
+        indexes_output_where_merge = [i for i, el in enumerate(self._list_operation_names_layers_all)
                                       if el == 'upsample']
         self._list_sizes_borders_crop_where_merge = []
         for i_pool, i_merge in zip(indexes_output_where_pooling, indexes_output_where_merge[::-1]):
@@ -63,7 +63,7 @@ class UNet3DOriginal(UNet):
 
         self._compiled_model = self._build_model()
 
-    def _build_model(self) -> None:
+    def _build_model(self) -> Model:
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
 
         num_featmaps_lev1 = self._num_featmaps_in
@@ -244,9 +244,9 @@ class UNet3DGeneral(UNet):
             else:
                 self._is_use_batchnormalize_levels_up = is_use_batchnormalize_levels_up
 
-        self._compiled_model = self._build_model()
+        self._built_model = self._build_model()
 
-    def _build_model(self) -> None:
+    def _build_model(self) -> Model:
         type_padding_convols = 'valid' if self._is_use_valid_convols else 'same'
 
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
@@ -321,9 +321,9 @@ class UNet3DPlugin(UNet):
         self._type_activate_hidden = self._type_activate_hidden_default
         self._type_activate_output = self._type_activate_output_default
 
-        self._compiled_model = self._build_model()
+        self._built_model = self._build_model()
 
-    def _build_model(self) -> None:
+    def _build_model(self) -> Model:
         type_padding = 'valid' if self._is_use_valid_convols else 'same'
 
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))

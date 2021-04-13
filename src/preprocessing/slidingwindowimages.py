@@ -1,32 +1,25 @@
 
-from typing import Tuple, List
+from typing import Tuple, List, Union
 import numpy as np
 
 from common.exceptionmanager import catch_error_exception
+from imageoperators.boundingboxes import BoundBox3DType, BoundBox2DType
 from imageoperators.imageoperator import CropImage, SetPatchInImage
 from preprocessing.imagegenerator import ImageGenerator
-
-BoundBoxNDType = Tuple[Tuple[int, int], ...]
 
 
 class SlidingWindowImages(ImageGenerator):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
-                 prop_overlap_images: Tuple[float, ...],
-                 size_volume_image: Tuple[int, ...] = (0,)
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
+                 prop_overlap_images: Union[Tuple[float, float, float], Tuple[float, float]],
+                 size_volume_image: Union[Tuple[int, int, int], Tuple[int, int]] = (0, 0, 0)
                  ) -> None:
         super(SlidingWindowImages, self).__init__(size_image, num_images=1)
 
         self._ndims = len(size_image)
-        if np.isscalar(prop_overlap_images):
-            self._prop_overlap_images = tuple([prop_overlap_images] * self._ndims)
-        else:
-            self._prop_overlap_images = prop_overlap_images
-        if np.isscalar(size_volume_image):
-            self._size_volume_image = tuple([size_volume_image] * self._ndims)
-        else:
-            self._size_volume_image = size_volume_image
+        self._prop_overlap_images = prop_overlap_images
+        self._size_volume_image = size_volume_image
 
         self._num_images_dirs = self._get_num_images_dirs()
         self._num_images = np.prod(self._num_images_dirs)
@@ -36,6 +29,7 @@ class SlidingWindowImages(ImageGenerator):
             self._func_crop_images = CropImage._compute2d
             self._func_setpatch_images = SetPatchInImage._compute2d
             self._func_setpatch_add_images = SetPatchInImage._compute_add2d
+
         elif self._ndims == 3:
             self._func_get_indexes_local = self.get_indexes_local_3dim
             self._func_crop_images = CropImage._compute3d
@@ -107,7 +101,7 @@ class SlidingWindowImages(ImageGenerator):
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:
         return self._func_crop_images(in_image, self._crop_boundbox)
 
-    def _get_num_images_dirs(self) -> Tuple[int, ...]:
+    def _get_num_images_dirs(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
         num_images_dirs = []
         for i in range(self._ndims):
             num_images_1d = self.get_num_images_1d(self._size_image[i],
@@ -115,9 +109,12 @@ class SlidingWindowImages(ImageGenerator):
                                                    self._size_volume_image[i])
             num_images_dirs.append(num_images_1d)
 
-        return tuple(num_images_dirs)
+        if self._ndims == 3:
+            return (num_images_dirs[0], num_images_dirs[1], num_images_dirs[2])
+        else:
+            return (num_images_dirs[0], num_images_dirs[1])
 
-    def _get_crop_boundbox_image(self, index: int) -> BoundBoxNDType:
+    def _get_crop_boundbox_image(self, index: int) -> Union[BoundBox3DType, BoundBox2DType]:
         indexes_local = self._func_get_indexes_local(index, self._num_images_dirs)
         crop_boundbox = []
         for i in range(self._ndims):
@@ -126,17 +123,20 @@ class SlidingWindowImages(ImageGenerator):
                                                                  self._size_volume_image[i])
             crop_boundbox.append((limit_left, limit_right))
 
-        return tuple(crop_boundbox)
+        if self._ndims == 3:
+            return (crop_boundbox[0], crop_boundbox[1], crop_boundbox[2])
+        else:
+            return (crop_boundbox[0], crop_boundbox[1])
 
     def get_cropped_image(self, in_image: np.ndarray, index: int) -> np.ndarray:
         crop_boundbox = self._get_crop_boundbox_image(index)
         return self._func_crop_images(in_image, crop_boundbox)
 
-    def set_assign_image_patch(self, in_image: np.ndarray, out_volume_image: np.ndarray, index: int) -> np.ndarray:
+    def set_assign_image_patch(self, in_image: np.ndarray, out_volume_image: np.ndarray, index: int) -> None:
         crop_boundbox = self._get_crop_boundbox_image(index)
         self._func_setpatch_images(in_image, out_volume_image, crop_boundbox)
 
-    def set_add_image_patch(self, in_image: np.ndarray, out_volume_image: np.ndarray, index: int) -> np.ndarray:
+    def set_add_image_patch(self, in_image: np.ndarray, out_volume_image: np.ndarray, index: int) -> None:
         crop_boundbox = self._get_crop_boundbox_image(index)
         self._func_setpatch_add_images(in_image, out_volume_image, crop_boundbox)
 
@@ -152,21 +152,23 @@ class SlidingWindowImages(ImageGenerator):
         return limits_window_image
 
     def get_text_description(self) -> str:
-        message = 'Sliding-window generation of images:\n'
-        message += 'size image: \'%s\', prop. overlap: \'%s\', size volume image: \'%s\'...\n' \
+        message = 'Sliding-window generation of image patches:\n'
+        message += '- size image: \'%s\', prop. overlap: \'%s\', size volume: \'%s\'...\n' \
                    % (str(self._size_image), str(self._prop_overlap_images), str(self._size_volume_image))
-        message += 'num images total: \'%s\', and num images in each direction: \'%s\'...\n' \
+        message += '- num images total: \'%s\', and num images in each direction: \'%s\'...\n' \
                    % (self._num_images, str(self._num_images_dirs))
         limits_window_image = self.get_limits_sliding_window_image()
         for i in range(self._ndims):
-            message += 'limits images in dir \'%s\': \'%s\'...\n' % (i, str(limits_window_image[i]))
+            message += '- limits bound-boxes in dir \'%s\': \'%s\'...\n' % (i, str(limits_window_image[i]))
 
         return message
 
 
 class SlicingImages(SlidingWindowImages):
     def __init__(self,
-                 size_image: Tuple[int, ...],
-                 size_volume_image: Tuple[int, ...]
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
+                 size_volume_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  ) -> None:
-        super(SlicingImages, self).__init__(size_image, (0.0,), size_volume_image)
+        super(SlicingImages, self).__init__(size_image,
+                                            prop_overlap_images=(0.0, 0.0, 0.0),
+                                            size_volume_image=size_volume_image)

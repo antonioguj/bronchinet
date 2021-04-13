@@ -1,5 +1,5 @@
 
-from typing import List, Tuple
+from typing import List, Tuple, Union
 import numpy as np
 
 from tensorflow.keras.utils import Sequence as Sequence_keras
@@ -8,20 +8,20 @@ from dataloaders.batchdatagenerator import BatchImageDataGenerator1Image, BatchI
     BatchImageDataGeneratorManyImagesPerLabel
 from preprocessing.imagegenerator import ImageGenerator
 
+OutputDataType = np.float32
+
 
 class TrainBatchImageDataGenerator1Image(BatchImageDataGenerator1Image, Sequence_keras):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_print_datagen_info: bool = True,
-                 is_datagen_gpu: bool = True,
-                 is_datagen_halfprec: bool = False
+                 is_print_datagen_info: bool = False
                  ) -> None:
         super(TrainBatchImageDataGenerator1Image, self).__init__(size_image,
                                                                  list_xdata,
@@ -33,7 +33,6 @@ class TrainBatchImageDataGenerator1Image(BatchImageDataGenerator1Image, Sequence
                                                                  seed=seed,
                                                                  is_print_datagen_info=is_print_datagen_info)
         Sequence_keras.__init__(self)
-        self._type_data_generated = np.float32
 
     def __len__(self) -> int:
         return super(TrainBatchImageDataGenerator1Image, self).__len__()
@@ -43,26 +42,24 @@ class TrainBatchImageDataGenerator1Image(BatchImageDataGenerator1Image, Sequence
 
     def __getitem__(self, index: int) -> np.ndarray:
         out_xdata = super(TrainBatchImageDataGenerator1Image, self).__getitem__(index)
-        return out_xdata.astype(dtype=self._type_data_generated)
+        return out_xdata.astype(dtype=OutputDataType)
 
 
 class TrainBatchImageDataGenerator2Images(BatchImageDataGenerator2Images, Sequence_keras):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  list_ydata: List[np.ndarray],
                  images_generator: ImageGenerator,
                  num_channels_in: int = 1,
                  num_classes_out: int = 1,
                  is_nnet_validconvs: bool = False,
-                 size_output_image: Tuple[int, ...] = None,
+                 size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_print_datagen_info: bool = True,
-                 is_datagen_gpu: bool = True,
-                 is_datagen_halfprec: bool = False
+                 is_print_datagen_info: bool = False
                  ) -> None:
         super(TrainBatchImageDataGenerator2Images, self).__init__(size_image,
                                                                   list_xdata,
@@ -78,7 +75,6 @@ class TrainBatchImageDataGenerator2Images(BatchImageDataGenerator2Images, Sequen
                                                                   seed=seed,
                                                                   is_print_datagen_info=is_print_datagen_info)
         Sequence_keras.__init__(self)
-        self._type_data_generated = np.float32
 
     def __len__(self) -> int:
         return super(TrainBatchImageDataGenerator2Images, self).__len__()
@@ -88,14 +84,14 @@ class TrainBatchImageDataGenerator2Images(BatchImageDataGenerator2Images, Sequen
 
     def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
         (out_xdata, out_ydata) = super(TrainBatchImageDataGenerator2Images, self).__getitem__(index)
-        return (out_xdata.astype(dtype=self._type_data_generated),
-                out_ydata.astype(dtype=self._type_data_generated))
+        return (out_xdata.astype(dtype=OutputDataType),
+                out_ydata.astype(dtype=OutputDataType))
 
 
 class TrainBatchImageDataGeneratorManyImagesPerLabel(BatchImageDataGeneratorManyImagesPerLabel, Sequence_keras):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  num_images_per_label: int,
                  list_xdata: List[np.ndarray],
                  list_ydata: List[np.ndarray],
@@ -103,13 +99,11 @@ class TrainBatchImageDataGeneratorManyImagesPerLabel(BatchImageDataGeneratorMany
                  num_channels_in: int = 1,
                  num_classes_out: int = 1,
                  is_nnet_validconvs: bool = False,
-                 size_output_image: Tuple[int, ...] = None,
+                 size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_print_datagen_info: bool = True,
-                 is_datagen_gpu: bool = True,
-                 is_datagen_halfprec: bool = False
+                 is_print_datagen_info: bool = False
                  ) -> None:
         super(TrainBatchImageDataGeneratorManyImagesPerLabel, self).\
             __init__(size_image,
@@ -127,7 +121,6 @@ class TrainBatchImageDataGeneratorManyImagesPerLabel(BatchImageDataGeneratorMany
                      seed=seed,
                      is_print_datagen_info=is_print_datagen_info)
         Sequence_keras.__init__(self)
-        self._type_data_generated = np.float32
 
     def __len__(self) -> int:
         return super(TrainBatchImageDataGeneratorManyImagesPerLabel, self).__len__()
@@ -137,5 +130,5 @@ class TrainBatchImageDataGeneratorManyImagesPerLabel(BatchImageDataGeneratorMany
 
     def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
         (out_xdata, out_ydata) = super(TrainBatchImageDataGeneratorManyImagesPerLabel, self).__getitem__(index)
-        return (out_xdata.astype(dtype=self._type_data_generated),
-                out_ydata.astype(dtype=self._type_data_generated))
+        return (out_xdata.astype(dtype=OutputDataType),
+                out_ydata.astype(dtype=OutputDataType))

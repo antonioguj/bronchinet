@@ -7,14 +7,13 @@ from common.exceptionmanager import catch_error_exception
 from common.functionutil import ImagesUtil
 from preprocessing.imagegenerator import ImageGenerator
 
-np.random.seed(2017)
 _epsilon = 1e-6
 
 
 class TransformRigidImages(ImageGenerator):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  is_normalize_data: bool = False,
                  type_normalize_data: str = 'samplewise',
                  is_zca_whitening: bool = False,
@@ -106,8 +105,7 @@ class TransformRigidImages(ImageGenerator):
             in_image = np.squeeze(in_image, axis=-1)
         return in_image
 
-    def _get_calc_transformed_image(self, in_array: np.ndarray,
-                                    is_type_input_image: bool = False) -> np.ndarray:
+    def _get_calc_transformed_image(self, in_array: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         raise NotImplementedError
 
     def _get_calc_inverse_transformed_image(self, in_array: np.ndarray,
@@ -221,7 +219,7 @@ class TransformRigidImages(ImageGenerator):
         # in_image = img_to_array(in_image)
 
     def get_text_description(self) -> str:
-        return 'Rigid Transformations of Image patches...\n'
+        raise NotImplementedError
 
 
 class TransformRigidImages2D(TransformRigidImages):
@@ -264,12 +262,12 @@ class TransformRigidImages2D(TransformRigidImages):
         elif len(zoom_range) == 2:
             self._zoom_range = (zoom_range[0], zoom_range[1])
         else:
-            message = '\'zoom_range\' should be a float or a tuple or list of two floats. Received %s' % (zoom_range)
+            message = '\'zoom_range\' should be a float or a tuple of two floats. Received %s' % (str(zoom_range))
             catch_error_exception(message)
 
         if self._brightness_range is not None:
             if len(self._brightness_range) != 2:
-                message = '\'brightness_range\' should be tuple or list of two floats. Received %s' % (brightness_range)
+                message = '\'brightness_range\' should be a tuple of two floats. Received %s' % (str(brightness_range))
                 catch_error_exception(message)
 
         super(TransformRigidImages2D, self).__init__(size_image,
@@ -279,8 +277,7 @@ class TransformRigidImages2D(TransformRigidImages):
                                                      rescale_factor=rescale_factor,
                                                      preprocessing_function=preprocessing_function)
 
-    def _get_calc_transformed_image(self, in_image: np.ndarray,
-                                    is_type_input_image: bool = False) -> np.ndarray:
+    def _get_calc_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         # Apply: 1st: rigid transformations
         #        2nd: channel shift intensity / flipping
         if self._transform_matrix is not None:
@@ -518,6 +515,18 @@ class TransformRigidImages2D(TransformRigidImages):
         in_image = np.rollaxis(in_image, 0, channel_axis + 1)
         return in_image
 
+    def get_text_description(self) -> str:
+        message = 'Rigid 2D transformations of images, with parameters...\n'
+        message += 'rotation (plane_XY) range: \'%s\'...\n' % (self._rotation_range)
+        message += 'shift (width, height) range: \'(%s, %s)\'...\n' \
+                   % (self._width_shift_range, self._height_shift_range)
+        message += 'flip (horizontal, vertical): \'(%s, %s)\'...\n' \
+                   % (self._horizontal_flip, self._vertical_flip)
+        message += 'zoom (min, max) range: \'(%s, %s)\'...\n' % (self._zoom_range[0], self._zoom_range[1])
+        message += 'shear (plane_XY) range: \'%s\'...\n' % (self._shear_range)
+        message += 'fill mode, when applied transformation: \'%s\'...\n' % (self._fill_mode)
+        return message
+
 
 class TransformRigidImages3D(TransformRigidImages):
     _img_dep_axis = 0
@@ -572,12 +581,12 @@ class TransformRigidImages3D(TransformRigidImages):
         elif len(zoom_range) == 2:
             self._zoom_range = (zoom_range[0], zoom_range[1])
         else:
-            message = '\'zoom_range\' should be a float or a tuple or list of two floats. Received %s' % (zoom_range)
+            message = '\'zoom_range\' should be a float or a tuple of two floats. Received %s' % (str(zoom_range))
             catch_error_exception(message)
 
         if self._brightness_range is not None:
             if len(self._brightness_range) != 2:
-                message = '\'brightness_range\' should be tuple or list of two floats. Received %s' % (brightness_range)
+                message = '\'brightness_range\' should be a tuple of two floats. Received %s' % (str(brightness_range))
                 catch_error_exception(message)
 
         super(TransformRigidImages3D, self).__init__(size_image,
@@ -587,8 +596,7 @@ class TransformRigidImages3D(TransformRigidImages):
                                                      rescale_factor=rescale_factor,
                                                      preprocessing_function=preprocessing_function)
 
-    def _get_calc_transformed_image(self, in_image: np.ndarray,
-                                    is_type_input_image: bool = False) -> np.ndarray:
+    def _get_calc_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         # Apply: 1st: rigid transformations
         #        2nd: channel shift intensity / flipping
         if self._transform_matrix is not None:
@@ -943,3 +951,17 @@ class TransformRigidImages3D(TransformRigidImages):
         in_image = np.stack(channel_images, axis=0)
         in_image = np.rollaxis(in_image, 0, channel_axis + 1)
         return in_image
+
+    def get_text_description(self) -> str:
+        message = 'Rigid 3D transformations of images, with parameters...\n'
+        message += '- rotation (plane_XY, plane_XZ, plane_YZ) range: \'(%s, %s, %s)\'...\n' \
+                   % (self._rotation_xy_range, self._rotation_xz_range, self._rotation_yz_range)
+        message += '- shift (width, height, depth) range: \'(%s, %s, %s)\'...\n' \
+                   % (self._width_shift_range, self._height_shift_range, self._depth_shift_range)
+        message += '- flip (horizontal, vertical, axialdir): \'(%s, %s, %s)\'...\n' \
+                   % (self._horizontal_flip, self._vertical_flip, self._axialdir_flip)
+        message += '- zoom (min, max) range: \'(%s, %s)\'...\n' % (self._zoom_range[0], self._zoom_range[1])
+        message += '- shear (plane_XY, plane_XZ, plane_YZ) range: \'(%s, %s, %s)\'...\n' \
+                   % (self._shear_xy_range, self._shear_xz_range, self._shear_yz_range)
+        message += '- fill mode, when applied transformation: \'%s\'...\n' % (self._fill_mode)
+        return message

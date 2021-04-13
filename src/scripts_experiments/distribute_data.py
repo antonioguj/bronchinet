@@ -4,11 +4,12 @@ import numpy as np
 import math
 import argparse
 
-from common.constant import BASEDIR, PROPDATA_TRAIN_VALID_TEST, NAME_TRAININGDATA_RELPATH, NAME_VALIDATIONDATA_RELPATH,\
-    NAME_TESTINGDATA_RELPATH, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
+from common.constant import BASEDIR, PROPDATA_TRAIN_VALID_TEST, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, \
+    NAME_TRAININGDATA_RELPATH, NAME_VALIDATIONDATA_RELPATH, NAME_TESTINGDATA_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
     NAME_REFERENCE_KEYS_PROCIMAGE_FILE
 from common.functionutil import makelink, set_dirname_suffix, is_exist_file, join_path_names, list_files_dir, basename,\
-    basename_filenoext, str2tuple_float, read_dictionary, find_intersection_3lists, get_substring_filename, str2bool
+    basename_filenoext, str2int, str2tuple_float, read_dictionary, find_intersection_3lists, \
+    get_substring_filename, str2bool
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.workdirmanager import TrainDirManager
 
@@ -31,11 +32,11 @@ def search_indexes_in_files_from_reference_keys(in_readfile: str, list_in_refere
                           % (in_reference_file, list_in_reference_files)
                 catch_error_exception(message)
 
-    return np.array(out_indexes_in_files)
+    return out_indexes_in_files
 
 
 def check_same_number_files_in_list(list_files_1: List[str], list_files_2: List[str]):
-    if (len(list_files_1) != len(list_files_2)):
+    if len(list_files_1) != len(list_files_2):
         message = 'num files in two lists not equal: \'%s\' != \'%s\'...' % (len(list_files_1), len(list_files_2))
         catch_error_exception(message)
 
@@ -75,15 +76,21 @@ def main(args):
         list_input_images_files = \
             [list_group_files_this[0] for list_group_files_this in list_groups_extra_images_files_all]
 
-    if (args.is_prepare_labels):
+    if args.is_prepare_labels:
         input_labels_data_path = workdir_manager.get_datadir_exist(args.name_input_labels_relpath)
         list_input_labels_files = list_files_dir(input_labels_data_path)
         check_same_number_files_in_list(list_input_images_files, list_input_labels_files)
+    else:
+        list_input_labels_files = None
 
-    if (args.is_input_extra_labels):
+    if args.is_input_extra_labels:
         input_extra_labels_data_path = workdir_manager.get_datadir_exist(args.name_input_extra_labels_relpath)
         list_input_extra_labels_files = list_files_dir(input_extra_labels_data_path)
         check_same_number_files_in_list(list_input_images_files, list_input_extra_labels_files)
+    else:
+        list_input_extra_labels_files = None
+
+    # *****************************************************
 
     # *****************************************************
 
@@ -103,7 +110,7 @@ def main(args):
         print("Num files assigned for Training (%s) / Validation (%s) / Testing (%s)..."
               % (num_training_files, num_validation_files, num_testing_files))
 
-        indexes_input_files = np.arange(num_total_files)
+        indexes_input_files = list(range(num_total_files))
         if args.type_distribute == 'random':
             print("Randomly shuffle the data before distributing...")
             np.random.shuffle(indexes_input_files)
@@ -135,9 +142,14 @@ def main(args):
                       % (list_intersect_files)
             catch_error_exception(message)
 
-    # ******************************
+    else:
+        indexes_training_files = None
+        indexes_validation_files = None
+        indexes_testing_files = None
 
-    elif args.type_distribute == 'crossval' or args.type_distribute == 'crossval_random':
+    # *****************************************************
+
+    if args.type_distribute == 'crossval' or args.type_distribute == 'crossval_random':
         cvfolds_info_path = workdir_manager.get_pathdir_new(args.name_cvfolds_info_relpath)
         out_filename_cvfold_info_train = join_path_names(cvfolds_info_path, 'train%0.2i.txt')
         out_filename_cvfold_info_valid = join_path_names(cvfolds_info_path, 'valid%0.2i.txt')
@@ -146,7 +158,7 @@ def main(args):
         indict_reference_keys = read_dictionary(in_reference_keys_file)
 
         num_total_files = len(list_input_images_files)
-        indexes_input_files = np.arange(num_total_files)
+        indexes_input_files = list(range(num_total_files))
         if args.type_distribute == 'crossval_random':
             print("Randomly shuffle the data before distributing, across all cv-folds...")
             np.random.shuffle(indexes_input_files)
@@ -157,6 +169,7 @@ def main(args):
             catch_error_exception(message)
 
         list_indexes_files_split_cvfolds = np.array_split(indexes_input_files, args.num_folds_crossval)
+        list_indexes_files_split_cvfolds = [list(elem) for elem in list_indexes_files_split_cvfolds]
 
         num_testing_files_cvfolds = len(list_indexes_files_split_cvfolds[0])
         num_trainvalid_files_cvfolds = num_total_files - num_testing_files_cvfolds
@@ -173,14 +186,14 @@ def main(args):
         # ******************************
 
         # to get ORDERED indexes for training + validation files in cv-folds
-        indexes_input_files_repeated = np.concatenate((indexes_input_files, indexes_input_files))
+        indexes_input_files_repeated = list(np.concatenate((indexes_input_files, indexes_input_files)))
 
         list_indexes_training_files_cvfolds = []
         list_indexes_validation_files_cvfolds = []
         list_indexes_testing_files_cvfolds = []
 
         for indexes_files_split_cvfold in list_indexes_files_split_cvfolds:
-            pos_last_file_split_in_indexes = list(indexes_input_files).index(indexes_files_split_cvfold[-1])
+            pos_last_file_split_in_indexes = indexes_input_files.index(indexes_files_split_cvfold[-1])
 
             indexes_testing_files = indexes_files_split_cvfold
             indexes_trainvalid_files = \
@@ -215,6 +228,11 @@ def main(args):
             write_file_cvfold_info(out_file_cvfold_info_valid, list_indexes_validation_files_cvfolds[i])
             write_file_cvfold_info(out_file_cvfold_info_test, list_indexes_testing_files_cvfolds[i])
         # endfor
+
+    else:
+        list_indexes_training_files_cvfolds = None
+        list_indexes_validation_files_cvfolds = None
+        list_indexes_testing_files_cvfolds = None
 
     # *****************************************************
 
@@ -291,7 +309,7 @@ if __name__ == "__main__":
     parser.add_argument('--type_distribute', type=str, default='original')
     parser.add_argument('--propdata_train_valid_test', type=str2tuple_float, default=PROPDATA_TRAIN_VALID_TEST)
     parser.add_argument('--infile_order_train', type=str, default=None)
-    parser.add_argument('--num_folds_crossval', type=int, default=None)
+    parser.add_argument('--num_folds_crossval', type=str2int, default=None)
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
     parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
     parser.add_argument('--name_training_data_relpath', type=str, default=NAME_TRAININGDATA_RELPATH)

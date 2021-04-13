@@ -1,5 +1,5 @@
 
-from typing import List, Tuple, Callable
+from typing import List, Tuple, Callable, Union
 
 from tensorflow.keras import backend as K
 import tensorflow as tf
@@ -68,14 +68,14 @@ class Metric(MetricBase):
         out_fun_renamed.__func__.__name__ = 'loss'
         return out_fun_renamed
 
-    def renamed_compute(self) -> Callable:
+    def renamed_compute(self) -> Union[Callable, None]:
         if self._name_fun_out:
             setattr(self, self._name_fun_out, self.compute)
             out_fun_renamed = getattr(self, self._name_fun_out)
             out_fun_renamed.__func__.__name__ = self._name_fun_out
             return out_fun_renamed
         else:
-            None
+            return None
 
 
 class MetricWithUncertainty(Metric):
@@ -122,11 +122,11 @@ class MeanSquaredError(Metric):
         self._name_fun_out = 'mean_squared'
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return K.mean(K.square(input - target), axis=-1)
+        return K.mean(K.square(input - target))
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         mask = self._get_mask(target)
-        return K.mean(K.square(input - target) * mask, axis=-1)
+        return K.mean(K.square(input - target) * mask)
 
 
 class MeanSquaredErrorLogarithmic(Metric):
@@ -137,12 +137,12 @@ class MeanSquaredErrorLogarithmic(Metric):
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         return K.mean(K.square(K.log(K.clip(input, _EPS, None) + 1.0)
-                               - K.log(K.clip(target, _EPS, None) + 1.0)), axis=-1)
+                               - K.log(K.clip(target, _EPS, None) + 1.0)))
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         mask = self._get_mask(target)
         return K.mean(K.square(K.log(K.clip(input, _EPS, None) + 1.0)
-                               - K.log(K.clip(target, _EPS, None) + 1.0)) * mask, axis=-1)
+                               - K.log(K.clip(target, _EPS, None) + 1.0)) * mask)
 
 
 class BinaryCrossEntropy(Metric):
@@ -152,13 +152,13 @@ class BinaryCrossEntropy(Metric):
         self._name_fun_out = 'bin_cross'
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return K.mean(K.binary_crossentropy(target, input), axis=-1)
+        return K.mean(K.binary_crossentropy(target, input))
         # return K.mean(- target * K.log(input + _EPS)
         #               - (1.0 - target) * K.log(1.0 - input + _EPS))
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         mask = self._get_mask(target)
-        return K.mean(K.binary_crossentropy(target, input) * mask, axis=-1)
+        return K.mean(K.binary_crossentropy(target, input) * mask)
         # return K.mean((- target * K.log(input + _EPS)
         #                - (1.0 - target) * K.log(1.0 - input + _EPS)) * mask)
 
@@ -189,7 +189,7 @@ class WeightedBinaryCrossEntropy(Metric):
                        - weights[0] * (1.0 - target) * K.log(1.0 - input + _EPS)) * mask)
 
 
-class WeightedBinaryCrossEntropyFixedWeights(Metric):
+class WeightedBinaryCrossEntropyFixedWeights(WeightedBinaryCrossEntropy):
     weights_no_masks_exclude = (1.0, 80.0)
     weights_mask_exclude = (1.0, 300.0)  # for LUVAR data
     # weights_mask_exclude = (1.0, 361.0)  # for DLCST data
@@ -354,13 +354,13 @@ class L1(MetricModified):
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         target = K.flatten(target)
         input = K.flatten(input)
-        return K.mean(K.abs(input - target), axis=-1)
+        return K.mean(K.abs(input - target))
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         target = K.flatten(target)
         input = K.flatten(input)
         mask = self._get_mask(target)
-        return K.mean(K.abs(input - target) * mask, axis=-1)
+        return K.mean(K.abs(input - target) * mask)
 
     def _factor_normalize(self, target: tf.Tensor) -> float:
         return tf.reduce_max(target)
@@ -375,13 +375,13 @@ class L2(MetricModified):
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         target = K.flatten(target)
         input = K.flatten(input)
-        return K.mean(K.square(input - target), axis=-1)
+        return K.mean(K.square(input - target))
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         target = K.flatten(target)
         input = K.flatten(input)
         mask = self._get_mask(target)
-        return K.mean(K.square(input - target) * mask, axis=-1)
+        return K.mean(K.square(input - target) * mask)
 
     def _factor_normalize(self, target: tf.Tensor) -> float:
         return tf.reduce_max(target)
@@ -571,7 +571,7 @@ class Perceptual(MetricModified):
         featmaps_input = K.flatten(featmaps_input)
 
         # loss as the root mean squared error between the two feature maps
-        return K.mean(K.square(featmaps_target - featmaps_input), axis=-1)
+        return K.mean(K.square(featmaps_target - featmaps_input))
 
     def _compute_feats_alllayers(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         # preprocess input arrays to VGG16 net
@@ -584,7 +584,7 @@ class Perceptual(MetricModified):
         featmaps_input = [K.flatten(feats_ilayer) for feats_ilayer in featmaps_input]
 
         # list of root mean squared errors between the two feature maps on ALL layers
-        msqrt_error_featmaps = [K.mean(K.square(feats_target_ilay - feats_input_ilay), axis=-1)
+        msqrt_error_featmaps = [K.mean(K.square(feats_target_ilay - feats_input_ilay))
                                 for (feats_target_ilay, feats_input_ilay) in zip(featmaps_target, featmaps_input)]
         return K.sum(tf.multiply(msqrt_error_featmaps, self._weights_vgg16_calcloss))
 
@@ -600,7 +600,7 @@ class Perceptual(MetricModified):
         featmaps_input = self._func_get_featuremaps_vgg16(input)
 
         # loss as the root mean squared error between the two feature maps, with the squared error array being masked
-        return K.mean(K.flatten(tf.multiply(K.square(featmaps_target - featmaps_input), mask)), axis=-1)
+        return K.mean(K.flatten(tf.multiply(K.square(featmaps_target - featmaps_input), mask)))
 
     def _compute_masked_feats_alllayers(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         # preprocess input arrays to VGG16 net
@@ -616,6 +616,6 @@ class Perceptual(MetricModified):
         # list of root mean squared errors between the two feature maps on ALL layers,
         # with the squared error array being masked
         msqrt_error_featmaps = \
-            [K.mean(K.flatten(tf.multiply(K.square(feats_target_ilay - feats_input_ilay), mask_ilay)), axis=-1)
+            [K.mean(K.flatten(tf.multiply(K.square(feats_target_ilay - feats_input_ilay), mask_ilay)))
              for (feats_target_ilay, feats_input_ilay, mask_ilay) in zip(featmaps_target, featmaps_input, masks)]
         return K.sum(tf.multiply(msqrt_error_featmaps, self._weights_vgg16_calcloss))

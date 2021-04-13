@@ -1,5 +1,5 @@
 
-from typing import Tuple, List
+from typing import Tuple, List, Union
 import numpy as np
 
 from common.constant import TYPE_DNNLIB_USED
@@ -20,7 +20,7 @@ class ModelTrainerBase(object):
 
     def create_network(self,
                        type_network: str,
-                       size_image_in: Tuple[int, ...],
+                       size_image_in: Union[Tuple[int, int, int], Tuple[int, int]],
                        num_featmaps_in: int,
                        num_channels_in: int = 1,
                        num_classes_out: int = 1,
@@ -71,7 +71,7 @@ class ModelTrainerBase(object):
     def finalise_model(self) -> None:
         raise NotImplementedError
 
-    def create_callbacks(self, models_path: str, **kwargs) -> None:
+    def create_callbacks(self, models_path: str, losshist_filename: str, **kwargs) -> None:
         raise NotImplementedError
 
     def summary_model(self) -> None:
@@ -95,11 +95,8 @@ class ModelTrainerBase(object):
     def save_model_full(self, model_filename: str) -> None:
         raise NotImplementedError
 
-    def get_size_output_model(self) -> Tuple[int, ...]:
-        raise NotImplementedError
-
-    def get_size_output_image_model(self) -> Tuple[int, ...]:
-        raise NotImplementedError
+    def get_size_output_image_model(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
+        return self._network.get_size_output_last_layer()
 
     def train(self,
               train_data_loader: BatchDataGenerator,

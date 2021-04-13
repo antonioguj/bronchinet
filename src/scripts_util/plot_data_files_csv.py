@@ -60,45 +60,49 @@ def main(args):
         labels_files = list_fields
 
     else:
-        for i, in_file in enumerate(list_input_files):
+        header_1stfile = None
+        rows1elem_1stfile = None
+        list_fields_files = None
+
+        for count, in_file in enumerate(list_input_files):
 
             raw_data_this_string = np.genfromtxt(in_file, dtype=str, delimiter=', ')
             raw_data_this_float = np.genfromtxt(in_file, dtype=float, delimiter=', ')
 
             header_this = list(raw_data_this_string[0, :])
-            # rows1elem_this = list(raw_data_this_string[:, 0])
+            rows1elem_this = list(raw_data_this_string[:, 0])
             data_this = raw_data_this_float[1:, 1:]
 
-            if i == 0:
-                header_file = header_this
-                # rows1elem_file = rows1elem_this
-                list_fields_file = [elem.replace('/', '') for elem in header_file[1:]]
+            if count == 0:
+                header_1stfile = header_this
+                rows1elem_1stfile = rows1elem_this
+                list_fields_files = [elem.replace('/', '') for elem in header_1stfile[1:]]
 
-                for ifield in list_fields_file:
+                for ifield in list_fields_files:
                     dict_data_fields_files[ifield] = []
                 # endfor
-            else:
-                if header_this != header_file:
-                    message = 'header in file: \'%s\' not equal to header found previously: \'%s\'' \
-                              % (header_this, header_file)
-                    catch_error_exception(message)
-                # if rows1elem_this != rows1elem_file:
-                #     message = '1st column in file: \'%s\' not equal to 1st column found previously: \'%s\'' \
-                #               % (rows1elem_this, rows1elem_file)
-                #     catch_error_exception(message)
+
+            if header_this != header_1stfile:
+                message = 'header in file: \'%s\' not equal to header found previously: \'%s\'' \
+                          % (header_this, header_1stfile)
+                catch_error_exception(message)
+            if rows1elem_this != rows1elem_1stfile:
+                message = '1st column in file: \'%s\' not equal to 1st column found previously: \'%s\'' \
+                          % (rows1elem_this, rows1elem_1stfile)
+                catch_error_exception(message)
 
             # store data from this file
-            for i, ifield in enumerate(list_fields_file):
+            for i, ifield in enumerate(list_fields_files):
                 dict_data_fields_files[ifield].append(data_this[:, i])
             # endfor
         # endfor
 
-    list_fields_plot_data = list(dict_data_fields_files.keys())
-    print("Found fields to plot data from: %s..." % (list_fields_plot_data))
-
     # ******************************
 
-    for i, (ifield, data_files) in enumerate(dict_data_fields_files.items()):
+    list_fields_plot = list(dict_data_fields_files.keys())
+    print("Found fields to plot data from: %s..." % (list_fields_plot))
+
+    for (ifield, data_files) in dict_data_fields_files.items():
 
         if args.type == 'plot':
             for i, idata in enumerate(data_files):

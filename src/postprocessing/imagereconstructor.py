@@ -1,34 +1,31 @@
 
-from typing import Tuple
+from typing import Tuple, Union
 import numpy as np
 
 from common.exceptionmanager import catch_error_exception
 from common.functionutil import ImagesUtil
 from imageoperators.boundingboxes import BoundingBoxes
 from imageoperators.imageoperator import ExtendImage
-from preprocessing.imagegenerator import ImageGenerator
+from preprocessing.filternnetoutput_validconvs import FilterNnetOutputValidConvs
+from preprocessing.slidingwindowimages import SlidingWindowImages
 from preprocessing.transformrigidimages import TransformRigidImages
 
 
 class ImageReconstructor(object):
 
     def __init__(self,
-                 size_image: Tuple[int, ...],
-                 image_generator: ImageGenerator,
-                 size_volume_image: Tuple[int, ...] = (0,),
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
+                 image_generator: SlidingWindowImages,
+                 size_volume_image: Union[Tuple[int, int, int], Tuple[int, int]] = (0, 0, 0),
                  is_nnet_validconvs: bool = False,
-                 size_output_image: Tuple[int, ...] = None,
+                 size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                  is_filter_output_nnet: bool = False,
-                 filter_image_generator: ImageGenerator = None
+                 filter_image_generator: Union[FilterNnetOutputValidConvs, None] = None
                  ) -> None:
         self._size_image = size_image
         self._ndims = len(size_image)
         self._image_generator = image_generator
-
-        if np.isscalar(size_volume_image):
-            self._size_volume_image = tuple([size_volume_image] * self._ndims)
-        else:
-            self._size_volume_image = size_volume_image
+        self._size_volume_image = size_volume_image
 
         self._is_nnet_validconvs = is_nnet_validconvs
         if is_nnet_validconvs and size_output_image and (size_image != size_output_image):
@@ -66,9 +63,9 @@ class ImageReconstructor(object):
 
     def _get_processed_image_patch(self, in_image: np.ndarray) -> np.ndarray:
         if self._is_nnet_validconvs:
-            out_shape_image = self._get_shape_output_image(in_image.shape, self._size_image)
+            size_output_image = self._get_shape_output_image(in_image.shape, self._size_image)
             out_image = self._func_extend_image_patch(in_image, self._valid_output_boundbox,
-                                                      out_shape_image, value_backgrnd=0)
+                                                      size_output_image, value_backgrnd=0)
         else:
             out_image = in_image
 
@@ -93,7 +90,8 @@ class ImageReconstructor(object):
                                                                         self._normfact_overlap_image_patches)
         return self._get_reshaped_output_image(out_reconstructed_image)
 
-    def _multiply_matrixes_with_channels(self, matrix_1_withchannels: np.ndarray, matrix_2: np.ndarray) -> np.ndarray:
+    def _multiply_matrixes_with_channels(self, matrix_1_withchannels: np.ndarray, matrix_2: np.ndarray
+                                         ) -> Union[np.ndarray, None]:
         if self._ndims == 2:
             return np.einsum('ijk,ij->ijk', matrix_1_withchannels, matrix_2)
         elif self._ndims == 3:
@@ -102,7 +100,7 @@ class ImageReconstructor(object):
             return None
 
     def _get_shape_output_image(self, in_shape_image: Tuple[int, ...],
-                                out_size_image: Tuple[int, ...]
+                                out_size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                                 ) -> Tuple[int, ...]:
         if ImagesUtil.is_without_channels(self._size_image, in_shape_image):
             return tuple(out_size_image)
@@ -135,8 +133,8 @@ class ImageReconstructor(object):
 
     def compute_overlap_image_patches(self) -> np.ndarray:
         # compute normalizing factor to account for how many times the sliding-window batches image overlap
-        out_shape_image = self._size_volume_image
-        out_overlap_patches = np.zeros(out_shape_image, dtype=np.float32)
+        shape_output_image = self._size_volume_image
+        out_overlap_patches = np.zeros(shape_output_image, dtype=np.float32)
 
         if self._is_nnet_validconvs:
             weight_sample_shape = self._size_output_image
@@ -166,26 +164,25 @@ class ImageReconstructor(object):
 class ImageReconstructorWithTransformation(ImageReconstructor):
     # PROTOTYPE OF RECONSTRUCTOR WITH TRANSFORMATION AT TESTING TIME. NIT TESTED YET
     def __init__(self,
-                 size_image: Tuple[int, ...],
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  image_transform_generator: TransformRigidImages,
                  num_trans_per_patch: int = 1,
-                 size_volume_image: Tuple[int, ...] = (0,),
+                 size_volume_image: Union[Tuple[int, int, int], Tuple[int, int]] = (0, 0, 0),
                  is_nnet_validconvs: bool = False,
-                 size_output_image: Tuple[int, ...] = None,
+                 size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                  is_filter_output_nnet: bool = False,
-                 filter_image_generator: ImageGenerator = None
+                 filter_image_generator: Union[FilterNnetOutputValidConvs, None] = None
                  ) -> None:
-        super(ImageReconstructor, self).__init__(size_image,
-                                                 image_transform_generator,
-                                                 size_volume_image=size_volume_image,
-                                                 is_nnet_validconvs=is_nnet_validconvs,
-                                                 size_output_image=size_output_image,
-                                                 is_filter_output_unet=is_filter_output_nnet,
-                                                 filter_image_generator=filter_image_generator)
+        super(ImageReconstructorWithTransformation, self).__init__(size_image,
+                                                                   image_transform_generator,
+                                                                   size_volume_image=size_volume_image,
+                                                                   is_nnet_validconvs=is_nnet_validconvs,
+                                                                   size_output_image=size_output_image,
+                                                                   is_filter_output_nnet=is_filter_output_nnet,
+                                                                   filter_image_generator=filter_image_generator)
 
         # NEED SOMETHING LIKE THIS TO SET UP THE SAME TRANSFORMATION FOR ALL REPEATED TRANSFORMS PER PATCH
         self._image_transform_generator = image_transform_generator
-        self._image_transform_generator.initialize_fixed_seed_0()
         self._num_trans_per_patch = num_trans_per_patch
 
     def _get_processed_image_patch(self, in_image: np.ndarray) -> np.ndarray:

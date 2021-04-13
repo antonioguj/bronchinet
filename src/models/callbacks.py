@@ -66,7 +66,7 @@ class EarlyStoppingBase(CallbackBase):
         self._best_valid_loss = 1.0e+03
         self._waiting = -1.0e+03
 
-    def on_epoch_end(self, epoch: int, valid_loss) -> None:
+    def on_epoch_end(self, epoch: int, valid_loss: float) -> None:
         if (valid_loss < self._threshold * self._best_valid_loss):
             self._best_epoch = epoch
             self._best_valid_loss = valid_loss
