@@ -47,7 +47,7 @@ def main(args):
     dict_data_loss_fields_files['loss'] = []
     dict_data_loss_fields_files['val_loss'] = []
 
-    for i, in_file in enumerate(list_input_files):
+    for in_file in list_input_files:
 
         raw_data_this_string = np.genfromtxt(in_file, dtype=str, delimiter=' ')
         raw_data_this_float = np.genfromtxt(in_file, dtype=float, delimiter=' ')
@@ -133,15 +133,15 @@ def main(args):
     list_fields_plot_train = list(dict_data_loss_fields_files.keys())
     print("Found fields to plot loss history: %s..." % (list_fields_plot_train))
 
-    for (i_field, data_files_train), (_, data_files_valid) in zip(dict_data_loss_fields_files.items(),
-                                                                  dict_data_loss_fields_files_valid.items()):
+    for (ifield, data_files_train), (_, data_files_valid) in zip(dict_data_loss_fields_files.items(),
+                                                                 dict_data_loss_fields_files_valid.items()):
         num_data_files = len(data_files_train)
 
         if num_data_files == 1:
             plt.plot(epochs_files[0], data_files_train[0], color='b', label='train')
             plt.plot(epochs_files[0], data_files_valid[0], color='r', label='valid')
             plt.xlabel('Epoch')
-            plt.ylabel(i_field.title())
+            plt.ylabel(ifield.title())
             plt.ylim([0.0, 1.0])
             plt.legend(loc='best')
             plt.show()
@@ -157,11 +157,11 @@ def main(args):
             # endfor
 
             axs[0].set_xlabel('Epoch')
-            axs[0].set_ylabel(i_field.title())
+            axs[0].set_ylabel(ifield.title())
             axs[0].set_title('Training')
             axs[0].legend(loc='best')
             axs[1].set_xlabel('Epoch')
-            axs[1].set_ylabel(i_field.title())
+            axs[1].set_ylabel(ifield.title())
             axs[1].set_title('Validation')
             axs[1].legend(loc='best')
             plt.show()

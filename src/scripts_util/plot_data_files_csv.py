@@ -64,7 +64,7 @@ def main(args):
         rows1elem_1stfile = None
         list_fields_files = None
 
-        for i, in_file in enumerate(list_input_files):
+        for count, in_file in enumerate(list_input_files):
 
             raw_data_this_string = np.genfromtxt(in_file, dtype=str, delimiter=', ')
             raw_data_this_float = np.genfromtxt(in_file, dtype=float, delimiter=', ')
@@ -73,7 +73,7 @@ def main(args):
             rows1elem_this = list(raw_data_this_string[:, 0])
             data_this = raw_data_this_float[1:, 1:]
 
-            if i == 0:
+            if count == 0:
                 header_1stfile = header_this
                 rows1elem_1stfile = rows1elem_this
                 list_fields_files = [elem.replace('/', '') for elem in header_1stfile[1:]]
@@ -102,7 +102,7 @@ def main(args):
     list_fields_plot = list(dict_data_fields_files.keys())
     print("Found fields to plot data from: %s..." % (list_fields_plot))
 
-    for i, (ifield, data_files) in enumerate(dict_data_fields_files.items()):
+    for (ifield, data_files) in dict_data_fields_files.items():
 
         if args.type == 'plot':
             for i, idata in enumerate(data_files):
