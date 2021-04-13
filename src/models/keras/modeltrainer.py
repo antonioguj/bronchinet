@@ -129,7 +129,7 @@ class ModelTrainer(ModelTrainerBase):
         loaded_copyfrom_model = load_model(model_filename, custom_objects={'lossfun': lossfun_dummy_max})
 
         next_layer_convol_after_upsample = False
-        for i, model_layer in enumerate(self._compiled_model.layers):
+        for i, model_layer in enumerate(self._built_model.layers):
             layer_name = model_layer.name
 
             if 'concatenate' in layer_name:
