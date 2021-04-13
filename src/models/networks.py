@@ -171,9 +171,9 @@ class UNetBase(ConvNetBase):
                  num_classes_out: int,
                  is_use_valid_convols: bool = False
                  ) -> None:
+        self._num_levels = num_levels
         super(UNetBase, self).__init__(size_image_in, num_featmaps_in, num_channels_in, num_classes_out,
                                        is_use_valid_convols=is_use_valid_convols)
-        self._num_levels = num_levels
 
         if self._is_use_valid_convols:
             self._build_list_info_crop_where_merge()
