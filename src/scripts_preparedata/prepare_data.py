@@ -218,7 +218,7 @@ def main(args):
             for imask, index_roimask in enumerate(list_indexes_roimasks):
                 for jdata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
                     if type_in_data == 'label':
-                        print("Mask input label \'%s\' to ROI mask \'%s\'..." % (jdata, imask))
+                        print("Mask input data \'%s\' of type \'%s\' to ROI \'%s\'..." % (jdata, type_in_data, imask))
                         out_data = MaskOperator.mask_image_exclude_regions(in_data, list_inout_data[index_roimask])
                         list_inout_data[jdata] = out_data
                 # endfor
