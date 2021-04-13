@@ -4,18 +4,19 @@ import numpy as np
 
 from common.exceptionmanager import catch_error_exception
 from common.functionutil import ImagesUtil
+from dataloaders.batchdatagenerator import BatchDataGenerator
 from models.pytorch.networks import UNet
-from models.visualmodelparams import VisualModelParamsBase
-from preprocessing.imagegenerator import ImageGenerator
+from models.networkchecker import NetworkCheckerBase
 
 
-class VisualModelParams(VisualModelParamsBase):
+class NetworkChecker(NetworkCheckerBase):
 
     def __init__(self,
-                 network: UNet,
-                 size_image: Union[Tuple[int, int, int], Tuple[int, int]]
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
+                 network: UNet
                  ) -> None:
-        super(VisualModelParams, self).__init__(network, size_image)
+        super(NetworkChecker, self).__init__(size_image)
+        self._network = network
 
     def _is_exist_name_layer_model(self, in_layer_name: str) -> bool:
         for ikey_layer_name, _ in self._network._modules.items():
@@ -26,8 +27,7 @@ class VisualModelParams(VisualModelParamsBase):
     def get_network_layers_names_all(self) -> List[str]:
         return [ikey_layer_name for ikey_layer_name, _ in self._network._modules.items()]
 
-    def _compute_feature_maps(self,
-                              in_images_generator: Union[np.ndarray, List[np.ndarray], ImageGenerator],
+    def _compute_feature_maps(self, image_data_loader: BatchDataGenerator,
                               in_layer_name: str,
                               index_first_featmap: int = None,
                               max_num_featmaps: int = None
@@ -51,16 +51,16 @@ class VisualModelParams(VisualModelParamsBase):
         # attach hook to the corresponding module layer
         self._network._modules[in_layer_name].register_forward_hook(hook)
 
-        num_patches = len(in_images_generator)
+        num_patches = len(image_data_loader)
         out_shape_featmaps = [num_patches, num_featmaps] + list(self._size_image)
         out_featmaps = np.zeros(out_shape_featmaps, dtype=np.float32)
 
         self._network = self._network.eval()
         self._network.preprocess(-1)
 
-        for i_batch, (x_batch, y_batch) in enumerate(in_images_generator):
-            x_batch.cuda()
-            self._network(x_batch)
-            out_featmaps[i_batch] = out_featmaps_patch  # 'out_featmaps_patch' store inside the function 'hook' above
+        for i_img, x_image in enumerate(image_data_loader):
+            x_image.cuda()
+            self._network(x_image)
+            out_featmaps[i_img] = out_featmaps_patch  # 'out_featmaps_patch' store inside the function 'hook' above
 
         return ImagesUtil.reshape_channels_last(out_featmaps)   # output format "channels_last"

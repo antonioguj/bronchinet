@@ -49,15 +49,19 @@ class ConvNetBase(NeuralNetwork):
 
         shape_input = self._size_image_in + (self._num_channels_in,)
 
-        shape_output = self._get_size_output_last_layer() + (self._num_classes_out,)
+        shape_output = self.get_size_output_last_layer() + (self._num_classes_out,)
 
         super(ConvNetBase, self).__init__(shape_input, shape_output)
 
     def _build_list_operation_names_layers(self) -> None:
         raise NotImplementedError
 
-    def _get_size_output_last_layer(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
-        raise NotImplementedError
+    def get_size_output_last_layer(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
+        if self._is_use_valid_convols:
+            return self._get_size_output_group_layers(level_begin=0,
+                                                      level_end=len(self._list_operation_names_layers_all))
+        else:
+            return self._size_image_in
 
     def _get_size_output_layer(self,
                                size_input: Union[Tuple[int, int, int], Tuple[int, int]],
@@ -175,13 +179,6 @@ class UNetBase(ConvNetBase):
 
         if self._is_use_valid_convols:
             self._build_list_info_crop_where_merge()
-
-    def _get_size_output_last_layer(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
-        if self._is_use_valid_convols:
-            return self._get_size_output_group_layers(level_begin=0,
-                                                      level_end=len(self._list_operation_names_layers_all))
-        else:
-            return self._size_image_in
 
     def _build_list_operation_names_layers(self) -> None:
         if self._num_levels == 1:

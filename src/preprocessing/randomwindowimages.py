@@ -18,10 +18,7 @@ class RandomWindowImages(ImageGenerator):
         super(RandomWindowImages, self).__init__(size_image, num_images)
 
         self._ndims = len(self._size_image)
-        if np.isscalar(size_volume_image):
-            self._size_volume_image = tuple([size_volume_image] * self._ndims)
-        else:
-            self._size_volume_image = size_volume_image
+        self._size_volume_image = size_volume_image
 
         if self._ndims == 2:
             self._func_crop_images = CropImage._compute2d

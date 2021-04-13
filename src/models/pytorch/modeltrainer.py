@@ -1,5 +1,5 @@
 
-from typing import Tuple, List, Union
+from typing import Tuple, List
 import numpy as np
 
 import torch
@@ -222,12 +222,6 @@ class ModelTrainer(ModelTrainerBase):
         for icallback in self._list_callbacks:
             icallback.on_epoch_end(epoch, data_output)
 
-    def get_shape_output_model(self) -> Tuple[int, ...]:
-        return self._network.get_shape_output()
-
-    def get_size_output_image_model(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
-        return self.get_shape_output_model()[1:]
-
     def train(self,
               train_data_loader: BatchDataGenerator,
               valid_data_loader: BatchDataGenerator = None,
@@ -269,7 +263,7 @@ class ModelTrainer(ModelTrainerBase):
 
         (train_loss, train_metrics) = self._train_epoch()
 
-        if self._valid_data_loader:
+        if self._valid_data_loader is not None:
             if (self._epoch_count % self.freq_validate_model == 0) or (self._epoch_start_count == 0):
 
                 self._network.eval()  # switch to evaluate mode
@@ -285,7 +279,7 @@ class ModelTrainer(ModelTrainerBase):
             valid_loss = 0.0
             valid_metrics = [0.0] * self._num_metrics
 
-        if self._valid_data_loader:
+        if self._valid_data_loader is not None:
             data_output = [train_loss, valid_loss] + train_metrics + valid_metrics
         else:
             data_output = [train_loss] + train_metrics
@@ -293,7 +287,7 @@ class ModelTrainer(ModelTrainerBase):
         self._run_callbacks_on_epoch_end(self._epoch_count, data_output)
 
     def _train_epoch(self) -> Tuple[float, List[float]]:
-        if self._max_steps_epoch and self._max_steps_epoch < len(self._train_data_loader):
+        if self._max_steps_epoch and (self._max_steps_epoch < len(self._train_data_loader)):
             num_batches = self._max_steps_epoch
         else:
             num_batches = len(self._train_data_loader)
@@ -335,7 +329,7 @@ class ModelTrainer(ModelTrainerBase):
         return (total_loss, total_metrics)
 
     def _validation_epoch(self) -> Tuple[float, List[float]]:
-        if self._max_steps_epoch and self._max_steps_epoch < len(self._valid_data_loader):
+        if self._max_steps_epoch and (self._max_steps_epoch < len(self._valid_data_loader)):
             num_batches = self._max_steps_epoch
         else:
             num_batches = len(self._valid_data_loader)

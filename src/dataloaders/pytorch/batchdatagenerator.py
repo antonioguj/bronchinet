@@ -5,9 +5,21 @@ import numpy as np
 from torch.utils import data as data_torch
 import torch
 
+from common.constant import IS_MODEL_GPU, IS_MODEL_HALFPREC
 from common.functionutil import ImagesUtil
 from dataloaders.batchdatagenerator import BatchImageDataGenerator1Image, BatchImageDataGenerator2Images
 from preprocessing.imagegenerator import ImageGenerator
+
+if IS_MODEL_GPU:
+    if IS_MODEL_HALFPREC:
+        OutputDataType = torch.cuda.HalfTensor
+    else:
+        OutputDataType = torch.cuda.FloatTensor
+else:
+    if IS_MODEL_HALFPREC:
+        OutputDataType = torch.HalfTensor
+    else:
+        OutputDataType = torch.FloatTensor
 
 
 class TrainBatchImageDataGenerator1Image(BatchImageDataGenerator1Image):
@@ -20,8 +32,6 @@ class TrainBatchImageDataGenerator1Image(BatchImageDataGenerator1Image):
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_datagen_gpu: bool = True,
-                 is_datagen_halfprec: bool = False,
                  is_print_datagen_info: bool = False
                  ) -> None:
         super(TrainBatchImageDataGenerator1Image, self).__init__(size_image,
@@ -33,22 +43,12 @@ class TrainBatchImageDataGenerator1Image(BatchImageDataGenerator1Image):
                                                                  shuffle=shuffle,
                                                                  seed=seed,
                                                                  is_print_datagen_info=is_print_datagen_info)
-        if is_datagen_gpu:
-            if is_datagen_halfprec:
-                self._type_data_generated = torch.cuda.HalfTensor
-            else:
-                self._type_data_generated = torch.cuda.FloatTensor
-        else:
-            if is_datagen_halfprec:
-                self._type_data_generated = torch.HalfTensor
-            else:
-                self._type_data_generated = torch.FloatTensor
 
     def __getitem__(self, index: int) -> np.ndarray:
         out_xdata = self._get_data_sample(index)
         out_xdata = ImagesUtil.reshape_channels_first(out_xdata, is_input_sample=True)
-        return torch.from_numpy(out_xdata.copy()).type(self._type_data_generated)
-        # return torch.from_numpy(out_xdata).type(self._type_data_generated)
+        return torch.from_numpy(out_xdata.copy()).type(OutputDataType)
+        # return torch.from_numpy(out_xdata).type(OutputDataType)
 
 
 class TrainBatchImageDataGenerator2Images(BatchImageDataGenerator2Images):
@@ -65,8 +65,6 @@ class TrainBatchImageDataGenerator2Images(BatchImageDataGenerator2Images):
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_datagen_gpu: bool = True,
-                 is_datagen_halfprec: bool = False,
                  is_print_datagen_info: bool = False
                  ) -> None:
         super(TrainBatchImageDataGenerator2Images, self).__init__(size_image,
@@ -82,25 +80,15 @@ class TrainBatchImageDataGenerator2Images(BatchImageDataGenerator2Images):
                                                                   shuffle=shuffle,
                                                                   seed=seed,
                                                                   is_print_datagen_info=is_print_datagen_info)
-        if is_datagen_gpu:
-            if is_datagen_halfprec:
-                self._type_data_generated = torch.cuda.HalfTensor
-            else:
-                self._type_data_generated = torch.cuda.FloatTensor
-        else:
-            if is_datagen_halfprec:
-                self._type_data_generated = torch.HalfTensor
-            else:
-                self._type_data_generated = torch.FloatTensor
 
     def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
         (out_xdata, out_ydata) = self._get_data_sample(index)
         out_xdata = ImagesUtil.reshape_channels_first(out_xdata, is_input_sample=True)
         out_ydata = ImagesUtil.reshape_channels_first(out_ydata, is_input_sample=True)
-        return (torch.from_numpy(out_xdata.copy()).type(self._type_data_generated),
-                torch.from_numpy(out_ydata.copy()).type(self._type_data_generated))
-        # return (torch.from_numpy(out_xdata).type(self._type_data_generated),
-        #         torch.from_numpy(out_ydata).type(self._type_data_generated))
+        return (torch.from_numpy(out_xdata.copy()).type(OutputDataType),
+                torch.from_numpy(out_ydata.copy()).type(OutputDataType))
+        # return (torch.from_numpy(out_xdata).type(OutputDataType),
+        #         torch.from_numpy(out_ydata).type(OutputDataType))
 
 
 class WrapperTrainBatchImageDataGenerator1Image(data_torch.DataLoader):
@@ -113,8 +101,6 @@ class WrapperTrainBatchImageDataGenerator1Image(data_torch.DataLoader):
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_datagen_gpu: bool = True,
-                 is_datagen_halfprec: bool = False,
                  is_print_datagen_info: bool = False
                  ) -> None:
         self._batchdata_generator = TrainBatchImageDataGenerator1Image(size_image,
@@ -124,8 +110,6 @@ class WrapperTrainBatchImageDataGenerator1Image(data_torch.DataLoader):
                                                                        batch_size=batch_size,
                                                                        shuffle=shuffle,
                                                                        seed=seed,
-                                                                       is_datagen_gpu=is_datagen_gpu,
-                                                                       is_datagen_halfprec=is_datagen_halfprec,
                                                                        is_print_datagen_info=is_print_datagen_info)
         super(WrapperTrainBatchImageDataGenerator1Image, self).__init__(self._batchdata_generator,
                                                                         batch_size=batch_size,
@@ -149,8 +133,6 @@ class WrapperTrainBatchImageDataGenerator2Images(data_torch.DataLoader):
                  batch_size: int = 1,
                  shuffle: bool = True,
                  seed: int = None,
-                 is_datagen_gpu: bool = True,
-                 is_datagen_halfprec: bool = False,
                  is_print_datagen_info: bool = False
                  ) -> None:
         self._batchdata_generator = TrainBatchImageDataGenerator2Images(size_image,
@@ -164,8 +146,6 @@ class WrapperTrainBatchImageDataGenerator2Images(data_torch.DataLoader):
                                                                         batch_size=batch_size,
                                                                         shuffle=shuffle,
                                                                         seed=seed,
-                                                                        is_datagen_gpu=is_datagen_gpu,
-                                                                        is_datagen_halfprec=is_datagen_halfprec,
                                                                         is_print_datagen_info=is_print_datagen_info)
         super(WrapperTrainBatchImageDataGenerator2Images, self).__init__(self._batchdata_generator,
                                                                          batch_size=batch_size,

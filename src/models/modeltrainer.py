@@ -94,11 +94,8 @@ class ModelTrainerBase(object):
     def save_model_full(self, model_filename: str) -> None:
         raise NotImplementedError
 
-    def get_shape_output_model(self) -> Tuple[int, ...]:
-        raise NotImplementedError
-
     def get_size_output_image_model(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
-        raise NotImplementedError
+        return self._network.get_size_output_last_layer()
 
     def train(self,
               train_data_loader: BatchDataGenerator,

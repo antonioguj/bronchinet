@@ -40,7 +40,7 @@ def main(args):
                                 num_classes_out=1,
                                 is_use_valid_convols=args.is_valid_convolutions)
 
-    size_output_image_network = model_network.get_shape_output()[1:]
+    size_output_image_network = model_network.get_size_output_last_layer()
 
     if args.is_valid_convolutions:
         print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..."

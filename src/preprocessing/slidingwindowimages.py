@@ -18,14 +18,8 @@ class SlidingWindowImages(ImageGenerator):
         super(SlidingWindowImages, self).__init__(size_image, num_images=1)
 
         self._ndims = len(size_image)
-        if np.isscalar(prop_overlap_images):
-            self._prop_overlap_images = tuple([prop_overlap_images] * self._ndims)
-        else:
-            self._prop_overlap_images = prop_overlap_images
-        if np.isscalar(size_volume_image):
-            self._size_volume_image = tuple([size_volume_image] * self._ndims)
-        else:
-            self._size_volume_image = size_volume_image
+        self._prop_overlap_images = prop_overlap_images
+        self._size_volume_image = size_volume_image
 
         self._num_images_dirs = self._get_num_images_dirs()
         self._num_images = np.prod(self._num_images_dirs)

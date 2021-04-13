@@ -1,5 +1,5 @@
 
-from typing import List, Callable
+from typing import List, Any
 from tensorflow.keras import callbacks as callbacks_keras
 
 from models.callbacks import RecordLossHistoryBase, EarlyStoppingBase, ModelCheckpointBase
@@ -20,11 +20,11 @@ class RecordLossHistory(RecordLossHistoryBase, callbacks_keras.Callback):
 
         self._is_restart_model = is_restart_model
 
-    def on_train_begin(self, logs: Callable = None) -> None:
+    def on_train_begin(self) -> None:
         if not self._is_restart_model:
             super(RecordLossHistory, self).on_train_begin()
 
-    def on_epoch_end(self, epoch: int, logs: Callable = None) -> None:
+    def on_epoch_end(self, epoch: int, logs: Any) -> None:
         data_output = [logs.get(iname) for iname in self._names_hist_fields]
         super(RecordLossHistory, self).on_epoch_end(epoch, data_output)
 
@@ -38,10 +38,10 @@ class EarlyStopping(EarlyStoppingBase, callbacks_keras.Callback):
         super(EarlyStoppingBase, self).__init__(delta, patience)
         callbacks_keras.Callback.__init__(self)
 
-    def on_train_begin(self, logs: Callable = None) -> None:
+    def on_train_begin(self) -> None:
         super(EarlyStoppingBase, self).on_train_begin()
 
-    def on_epoch_end(self, epoch: int, logs: Callable = None) -> None:
+    def on_epoch_end(self, epoch: int, logs: Any) -> None:
         valid_loss = logs.get('val_loss')
         super(EarlyStoppingBase, self).on_epoch_end(epoch, valid_loss)
         if (self._waiting > self._patience):
@@ -66,10 +66,10 @@ class ModelCheckpoint(ModelCheckpointBase, callbacks_keras.Callback):
                                               update_filename_epoch=update_filename_epoch)
         callbacks_keras.Callback.__init__(self)
 
-    def on_train_begin(self, logs: Callable = None) -> None:
+    def on_train_begin(self) -> None:
         super(ModelCheckpoint, self).on_train_begin()
 
-    def on_epoch_end(self, epoch: int, logs: Callable = None) -> None:
+    def on_epoch_end(self, epoch: int) -> None:
         super(ModelCheckpoint, self).on_epoch_end(epoch)
 
 
@@ -87,8 +87,8 @@ class ModelCheckpoint(ModelCheckpointBase, callbacks_keras.Callback):
 #                                                  save_weights_only=(type_save_model=='only_weights'),
 #                                                  save_freq='epoch')
 #
-#     def on_train_begin(self, logs: Callable = None) -> None:
+#     def on_train_begin(self) -> None:
 #         callbacks_keras.ModelCheckpoint.on_train_begin(self, logs)
 #
-#     def on_epoch_end(self, epoch: int, logs: Callable = None) -> None:
+#     def on_epoch_end(self, epoch: int) -> None:
 #         callbacks_keras.ModelCheckpoint.on_epoch_end(self, epoch, logs)
