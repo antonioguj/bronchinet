@@ -3,7 +3,7 @@ import argparse
 
 from common.constant import BASEDIR, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_BINARY_TRAIN_MASKS,\
     NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, NAME_REFERENCE_FILES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
-    NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE, IS_TWO_BOUNDBOXES_LUNGS
+    NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE
 from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, \
     get_regex_pattern_filename, find_file_inlist_with_pattern, str2bool, read_dictionary
 from common.exceptionmanager import catch_warning_exception
@@ -118,7 +118,6 @@ if __name__ == "__main__":
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
     parser.add_argument('--is_binary_predictions', type=str2bool, default=IS_BINARY_TRAIN_MASKS)
-    parser.add_argument('--is_two_boundboxes_lungs', type=str2bool, default=IS_TWO_BOUNDBOXES_LUNGS)
     parser.add_argument('--name_input_predictions_relpath', type=str, default=NAME_TEMPO_POSTERIORS_RELPATH)
     parser.add_argument('--name_output_posteriors_relpath', type=str, default=NAME_POSTERIORS_RELPATH)
     parser.add_argument('--name_input_reference_files_relpath', type=str, default=NAME_REFERENCE_FILES_RELPATH)

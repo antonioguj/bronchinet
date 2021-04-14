@@ -1,5 +1,5 @@
 
-from typing import List, Tuple, Callable, Union
+from typing import Tuple, Callable, Union, List
 
 from tensorflow.keras import backend as K
 import tensorflow as tf

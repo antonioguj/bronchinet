@@ -17,8 +17,7 @@ from common.constant import BASEDIR, NAME_MODELSRUN_RELPATH, SIZE_IN_IMAGES, NAM
     PROP_REDSIZE_VGG16_LOSS_PERCEPTUAL
 from common.functionutil import join_path_names, is_exist_file, update_filename, basename, basename_filenoext, \
     list_files_dir, get_substring_filename, str2bool, str2int, str2float, str2list_str, str2tuple_bool, str2tuple_int,\
-    str2tuple_float, read_dictionary, read_dictionary_configparams, save_dictionary_configparams, \
-    str2list_float
+    str2tuple_float, read_dictionary, read_dictionary_configparams, save_dictionary_configparams, str2list_float
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.dataloader_manager import get_train_imagedataloader_2images
@@ -377,11 +376,11 @@ if __name__ == "__main__":
             args.weights_vgg16_loss_perceptual = str2list_float(input_args_file['weights_vgg16_loss_perceptual'])
             args.prop_redsize_vgg16_loss_perceptual = float(input_args_file['prop_redsize_vgg16_loss_perceptual'])
 
-        args.dict_trans_rigid_parameters = {'rotation_range': args.trans_rigid_rotation_range,
-                                            'shift_range': args.trans_rigid_shift_range,
-                                            'flip_dirs': args.trans_rigid_flip_dirs,
-                                            'zoom_range': args.trans_rigid_zoom_range,
-                                            'fill_mode': args.trans_rigid_fill_mode}
+    args.dict_trans_rigid_parameters = {'rotation_range': args.trans_rigid_rotation_range,
+                                        'shift_range': args.trans_rigid_shift_range,
+                                        'flip_dirs': args.trans_rigid_flip_dirs,
+                                        'zoom_range': args.trans_rigid_zoom_range,
+                                        'fill_mode': args.trans_rigid_fill_mode}
 
     if args.is_train_network_2D:
         print("Train 2D model, with images as slices from volume scans...")
