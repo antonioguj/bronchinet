@@ -25,7 +25,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
         in_crop_image = ImageFileReader.get_image(in_image_file)
-        print("Original dims: \'%s\'..." % (str(in_crop_image.shape)))
+        print("Input dims: \'%s\'..." % (str(in_crop_image.shape)))
 
         if fileextension(in_image_file) == '.nii.gz':
             inout_metadata = ImageFileReader.get_image_metadata_info(in_image_file)

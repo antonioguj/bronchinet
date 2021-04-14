@@ -38,7 +38,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_posterior_file)))
 
         inout_posterior = ImageFileReader.get_image(in_posterior_file)
-        print("Original dims : \'%s\'..." % (str(inout_posterior.shape)))
+        print("Input dims : \'%s\'..." % (str(inout_posterior.shape)))
 
         in_metadata_file = ImageFileReader.get_image_metadata_info(in_posterior_file)
 
