@@ -172,23 +172,28 @@ def main(args):
     # Binarise the input masks for airway and lungs
     if args.is_keep_raw_images:
         name_tempo_binary_labels_path = set_dirname_suffix(name_input_raw_labels_path, 'Binary')
-        name_tempo_binary_roimasks_path = set_dirname_suffix(name_input_raw_roimasks_path, 'Binary')
 
         new_call = ['python3', SCRIPT_BINARISE_MASKS,
                     name_input_raw_labels_path, name_tempo_binary_labels_path,
                     '--type', 'binarise']
         list_calls_all.append(new_call)
 
-        new_call = ['python3', SCRIPT_BINARISE_MASKS,
-                    name_input_raw_roimasks_path, name_tempo_binary_roimasks_path,
-                    '--type', 'binarise']
-        list_calls_all.append(new_call)
-
         new_sublist_calls = create_task_replace_dirs(name_input_raw_labels_path, name_tempo_binary_labels_path)
         list_calls_all += new_sublist_calls
 
-        new_sublist_calls = create_task_replace_dirs(name_input_raw_roimasks_path, name_tempo_binary_roimasks_path)
-        list_calls_all += new_sublist_calls
+        # 'is_two_boundboxes_lungs' needs the two labels of ROI masks to compute the two bounding-boxes for each lung
+        if not args.is_two_boundboxes_lungs:
+            name_tempo_binary_roimasks_path = set_dirname_suffix(name_input_raw_roimasks_path, 'Binary')
+
+            new_call = ['python3', SCRIPT_BINARISE_MASKS,
+                        name_input_raw_roimasks_path, name_tempo_binary_roimasks_path,
+                        '--type', 'binarise']
+            list_calls_all.append(new_call)
+
+            new_sublist_calls = create_task_replace_dirs(name_input_raw_roimasks_path, name_tempo_binary_roimasks_path)
+            list_calls_all += new_sublist_calls
+
+    # ******************************
 
     # Extract the labels for trachea and main bronchi from the coarse airways (AND FILL HOLES INSIDE THE TRACHEA)
     if args.is_prepare_coarse_airways:
@@ -276,7 +281,7 @@ def main(args):
 
     # ******************************
 
-    # 6th: Compute the bounding-boxes around the Roi masks
+    # 6th: Compute the bounding-boxes around the ROI masks
     if args.is_crop_images:
         new_call = ['python3', SCRIPT_CALC_BOUNDING_BOX_IMAGES,
                     '--datadir', output_datadir,
@@ -303,6 +308,20 @@ def main(args):
                 '--name_crop_boundboxes_file', name_input_crop_boundboxes_file,
                 '--name_rescale_factors_file', name_input_rescale_factors_file]
     list_calls_all.append(new_call)
+
+    # ******************************
+
+    # Binarise the ROI masks now, after being used to compute the two bounding-boxes for each lung
+    if args.is_two_boundboxes_lungs:
+        name_tempo_binary_roimasks_path = set_dirname_suffix(name_input_raw_roimasks_path, 'Binary')
+
+        new_call = ['python3', SCRIPT_BINARISE_MASKS,
+                    name_input_raw_roimasks_path, name_tempo_binary_roimasks_path,
+                    '--type', 'binarise']
+        list_calls_all.append(new_call)
+
+        new_sublist_calls = create_task_replace_dirs(name_input_raw_roimasks_path, name_tempo_binary_roimasks_path)
+        list_calls_all += new_sublist_calls
 
     # ******************************
 
