@@ -202,20 +202,6 @@ def main(args):
 
         # ******************************
 
-        if args.is_input_extra_labels:
-            in_extra_label_file = list_input_extra_labels_files[ifile]
-            print("And extra labels: \'%s\'..." % (basename(in_extra_label_file)))
-
-            inout_extra_label = ImageFileReader.get_image(in_extra_label_file)
-            inout_extra_label = MaskOperator.binarise(inout_extra_label)
-            list_inout_data.append(inout_extra_label)
-            list_type_inout_data.append('extralabel')
-
-            if check_same_size_images(inout_extra_label, inout_image):
-                continue
-
-        # ******************************
-
         if args.is_normalize_data:
             for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
                 if type_in_data == 'image' \
