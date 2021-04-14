@@ -1,6 +1,4 @@
 
-from typing import Tuple
-import numpy as np
 import argparse
 
 from common.constant import BASEDIR, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_BINARY_TRAIN_MASKS,\
