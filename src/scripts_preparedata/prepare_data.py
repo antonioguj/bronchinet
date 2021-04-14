@@ -15,7 +15,7 @@ from common.exceptionmanager import catch_error_exception, catch_warning_excepti
 from common.workdirmanager import GeneralDirManager
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.imageoperator import CropImage, RescaleImage, CropAndExtendImage, NormaliseImage
-from imageoperators.boundingboxes import BoundingBoxes
+from imageoperators.boundingboxes import BoundingBoxes, BoundBox3DType
 from imageoperators.maskoperator import MaskOperator
 
 
@@ -81,19 +81,16 @@ def main(args):
         input_crop_boundboxes_file = workdir_manager.get_pathfile_exist(args.name_crop_boundboxes_file)
         indict_crop_boundboxes = read_dictionary(input_crop_boundboxes_file)
 
-        first_elem_dict_crop_boundboxes = list(indict_crop_boundboxes.values())[0]
-        if type(first_elem_dict_crop_boundboxes) == list:
+        if args.is_two_boundboxes_each_lung:
+            print("Cropping input data to several bounding-boxes. Output several processed images per raw sample...")
             is_output_multiple_files_per_image = True
-            print("\nFound list of crop bounding-boxes per Raw image. Output several processed images...")
-            name_template_output_images_files = 'images_proc-%0.2i_crop-%0.2i.nii.gz'
-            name_template_output_labels_files = 'labels_proc-%0.2i_crop-%0.2i.nii.gz'
-            # name_template_output_extra_labels_files= 'cenlines_proc-%0.2i_crop-%0.2i.nii.gz'
+
+            def update_template_outfiles(template_name: str) -> str:
+                return template_name.replace('.nii.gz', '_crop-%0.2i.nii.gz')
+            name_template_output_images_files = update_template_outfiles(name_template_output_images_files)
+            name_template_output_labels_files = update_template_outfiles(name_template_output_labels_files)
+            name_template_output_extra_labels_files = update_template_outfiles(name_template_output_extra_labels_files)
         else:
-            # for new developments, store input dict boundary-boxes per raw images as a list
-            # but output only one processed image
-            for key, value in indict_crop_boundboxes.items():
-                indict_crop_boundboxes[key] = [value]
-            # endfor
             is_output_multiple_files_per_image = False
     else:
         indict_crop_boundboxes = None
@@ -146,14 +143,9 @@ def main(args):
             print("And ROI Mask for labels: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)
-            if args.is_roilabels_multi_roimasks:
-                in_list_roimasks = MaskOperator.get_list_masks_all_labels(in_roimask)
-                list_inout_data += in_list_roimasks
-                list_type_inout_data += ['roimask'] * len(in_list_roimasks)
-            else:
-                in_roimask = MaskOperator.binarise(in_roimask)
-                list_inout_data.append(in_roimask)
-                list_type_inout_data.append('roimask')
+            in_roimask = MaskOperator.binarise(in_roimask)
+            list_inout_data.append(in_roimask)
+            list_type_inout_data.append('roimask')
 
             if check_same_size_images(in_roimask, inout_image):
                 continue
@@ -167,19 +159,18 @@ def main(args):
             inout_extra_label = ImageFileReader.get_image(in_extra_label_file)
             inout_extra_label = MaskOperator.binarise(inout_extra_label)
             list_inout_data.append(inout_extra_label)
-            list_type_inout_data.append('label')
+            list_type_inout_data.append('extralabel')
 
             if check_same_size_images(inout_extra_label, inout_image):
                 continue
-
-        num_init_labels = list_type_inout_data.count('label')
 
         # ******************************
 
         if args.is_normalize_data:
             for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
-                if (type_in_data == 'image') or (type_in_data == 'label' and not args.is_binary_train_masks):
-                    print("Normalize input data \'%s\' of type \'%s\'..." % (idata, type_in_data))
+                if type_in_data == 'image' \
+                        or (type_in_data == 'label' and not args.is_binary_train_masks):
+                    print("Normalize input data \'%s\' (\'%s\')..." % (idata, type_in_data))
                     out_data = NormaliseImage.compute(in_data)
                     list_inout_data[idata] = out_data
             # endfor
@@ -193,14 +184,15 @@ def main(args):
 
             if in_rescale_factor != (1.0, 1.0, 1.0):
                 for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
-                    print("Rescale input data \'%s\' of type \'%s\'..." % (idata, type_in_data))
+                    print("Rescale input data \'%s\' (\'%s\')..." % (idata, type_in_data))
                     if type_in_data == 'image':
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3)
                         list_inout_data[idata] = out_data
                     elif type_in_data == 'label':
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3, is_inlabels=True)
                         list_inout_data[idata] = out_data
-                    elif type_in_data == 'roimask':
+                    elif type_in_data == 'roimask' \
+                            or type_in_data == 'extralabel':
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3, is_inlabels=True,
                                                         is_binarise_output=True)
                         list_inout_data[idata] = out_data
@@ -208,101 +200,109 @@ def main(args):
             else:
                 print("Rescale factor (\'%s\'). Skip rescaling..." % (str(in_rescale_factor)))
 
-            print("Final dims: %s..." % (str(list_inout_data[0].shape)))
-
         # ******************************
 
         if args.is_mask_region_interest:
-            list_indexes_roimasks = [j for j, type_data in enumerate(list_type_inout_data) if type_data == 'roimask']
+            index_roimask = list_type_inout_data.index('roimask')
 
-            for imask, index_roimask in enumerate(list_indexes_roimasks):
-                for jdata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
-                    if type_in_data == 'label':
-                        print("Mask input data \'%s\' of type \'%s\' to ROI \'%s\'..." % (jdata, type_in_data, imask))
-                        out_data = MaskOperator.mask_image_exclude_regions(in_data, list_inout_data[index_roimask])
-                        list_inout_data[jdata] = out_data
-                # endfor
+            for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
+                if type_in_data == 'label' \
+                        or type_in_data == 'extralabel':
+                    print("Mask input data \'%s\' (\'%s\') to ROI mask..." % (idata, type_in_data))
+                    out_data = MaskOperator.mask_image_exclude_regions(in_data, list_inout_data[index_roimask])
+                    list_inout_data[idata] = out_data
+            # endfor
 
-            # remove the roimasks from the list of processing data
-            for index_roimask in list_indexes_roimasks[::-1]:
-                list_type_inout_data.pop(index_roimask)
-                list_inout_data.pop(index_roimask)
+            # remove the ROI mask from the list of processing data
+            list_inout_data.pop(index_roimask)
+            list_type_inout_data.pop(index_roimask)
 
         # ******************************
 
         if args.is_crop_images:
-            in_reference_key = list_in_reference_files[ifile]
-            list_in_crop_boundboxes = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
-            num_crop_boundboxes = len(list_in_crop_boundboxes)
-            print("Compute \'%s\' cropped images for this raw image:" % (num_crop_boundboxes))
 
-            if args.is_mask_region_interest and args.is_roilabels_multi_roimasks:
-                num_total_labels = list_type_inout_data.count('label')
-                num_total_labels_tocrop = num_crop_boundboxes * num_init_labels
+            def compute_cropped_list_data(in_crop_boundbox: BoundBox3DType,
+                                          is_insert_new_data: bool = False
+                                          ) -> None:
+                index_image = list_type_inout_data.index('image')
+                size_image = list_inout_data[index_image].shape
+                size_crop_boundbox = BoundingBoxes.get_size_boundbox(in_crop_boundbox)
 
-                if num_total_labels_tocrop != num_total_labels:
-                    message = 'num labels to crop to bounding boxes is wrong: \'%s\' != \'%s\' (expected)...' \
-                              % (num_total_labels, num_total_labels_tocrop)
-                    catch_error_exception(message)
-
-                # In this set-up, there is already computed the input ROI-masked label per cropping bounding-box
-                # Insert input image in the right place: before each set of ROI-masked labels
-                in_image = list_inout_data[0]
-                for icrop in range(1, num_crop_boundboxes):
-                    pos_insert = icrop * (num_init_labels + 1)
-                    list_inout_data.insert(pos_insert, in_image)
-                    list_type_inout_data.insert(pos_insert, 'image')
-                # endfor
-            else:
-                # Concatenate as many input images and labels as num cropping bounding-boxes
-                list_inout_data = list_inout_data * num_crop_boundboxes
-                list_type_inout_data = list_type_inout_data * num_crop_boundboxes
-
-            num_images_per_crop_boundbox = len(list_inout_data) // num_crop_boundboxes
-
-            icount = 0
-            for icrop, in_crop_boundbox in enumerate(list_in_crop_boundboxes):
-                print("Crop input images to bounding-box \'%s\' out of total \'%s\': \'%s\'..."
-                      % (icrop, num_crop_boundboxes, str(in_crop_boundbox)))
-
-                size_in_image = list_inout_data[icount].shape
-                size_in_crop_boundbox = BoundingBoxes.get_size_boundbox(in_crop_boundbox)
-
-                if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_boundbox, size_in_image):
-                    print("Bounding-box is larger than image size: : \'%s\' > \'%s\'. Combine cropping with "
-                          "extending images..." % (str(size_in_crop_boundbox), str(size_in_image)))
-
-                    new_size_in_image = size_in_crop_boundbox
-                    (croppartial_boundbox, extendimg_boundbox) = \
-                        BoundingBoxes.calc_boundboxes_crop_extend_image(in_crop_boundbox, size_in_image)
-
-                    for jimage in range(num_images_per_crop_boundbox):
-                        print("Crop input image \'%s\' of type \'%s\'..." % (icount, list_type_inout_data[icount]))
-                        out_data = CropAndExtendImage.compute(list_inout_data[icount],
-                                                              croppartial_boundbox,
-                                                              extendimg_boundbox,
-                                                              new_size_in_image)
-                        list_inout_data[icount] = out_data
-                        icount += 1
-                    # endfor
+                if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_boundbox, size_image):
+                    print("Size of crop bounding-box is larger than the image size: \'%s\' > \'%s\'. "
+                          "Extend images after cropping..." % (str(size_crop_boundbox), str(size_image)))
+                    is_combine_crop_extend = True
+                    (in_crop_boundbox, in_extend_boundbox) = \
+                        BoundingBoxes.calc_boundboxes_crop_extend_image(in_crop_boundbox, size_image)
+                    size_out_image = size_crop_boundbox
                 else:
-                    for jimage in range(num_images_per_crop_boundbox):
-                        print("Crop input image \'%s\' of type \'%s\'..." % (icount, list_type_inout_data[icount]))
-                        out_data = CropImage.compute(list_inout_data[icount], in_crop_boundbox)
-                        list_inout_data[icount] = out_data
-                        icount += 1
-                    # endfor
-            # endfor
+                    is_combine_crop_extend = False
+                    in_extend_boundbox = None
+                    size_out_image = None
 
-            print("Final dims: %s..." % (str(list_inout_data[0].shape)))
-        else:
-            num_crop_boundboxes = None
+                for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
+                    if '_cropped' not in type_in_data:
+                        if is_combine_crop_extend:
+                            print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\', and extend with: \'%s\'..."
+                                  % (idata, type_in_data, str(in_crop_boundbox), str(in_extend_boundbox)))
+                            out_data = CropAndExtendImage.compute(list_inout_data[idata], in_crop_boundbox,
+                                                                  in_extend_boundbox, size_out_image)
+                        else:
+                            print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\'..."
+                                  % (idata, type_in_data, str(in_crop_boundbox)))
+                            out_data = CropImage.compute(list_inout_data[idata], in_crop_boundbox)
+
+                        if is_insert_new_data:
+                            list_inout_data.append(out_data)
+                            list_type_inout_data.append('%s_cropped' % (type_in_data))
+                        else:
+                            list_inout_data[idata] = out_data
+                # endfor
+            # -----------------------
+
+            if args.is_two_boundboxes_each_lung:
+                in_reference_key = list_in_reference_files[ifile]
+                inlist_crop_boundbox = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
+                num_crop_boundboxes = len(inlist_crop_boundbox)
+                print("Crop list of data to \'%s\' crop bounding-boxes: \'%s\' and \'%s\'..."
+                      % (num_crop_boundboxes, str(inlist_crop_boundbox[0]), str(inlist_crop_boundbox[1])))
+
+                for icrop in range(num_crop_boundboxes - 1, -1, -1):
+                    # loop in reverse order, and keep the original image / label until the last cropping,
+                    # where it'll be replaced by the new cropped data. Otherwise, insert new data in list
+                    if icrop == 0:
+                        compute_cropped_list_data(inlist_crop_boundbox[icrop], is_insert_new_data=False)
+                    else:
+                        compute_cropped_list_data(inlist_crop_boundbox[icrop], is_insert_new_data=True)
+                # endfor
+
+                # remove the suffixes for extra created data
+                list_type_inout_data = [elem.replace('_cropped', '') for elem in list_type_inout_data]
+
+                # images / labels created for extra cropping boxes are allocated at the end of 'list_inout_data'
+                # push all labels at the end. New order: ('image_0', ..., 'image_N', 'label_0', ..., 'label_N')
+                unique_type_data_ordered = ['image', 'label', 'extralabel']
+                indexes_reorder_data = []
+                for uniq_type in unique_type_data_ordered:
+                    indexes_reorder_data += [ind for ind, type in enumerate(list_type_inout_data) if uniq_type in type]
+
+                list_inout_data = [list_inout_data[index] for index in indexes_reorder_data]
+                list_type_inout_data = [list_type_inout_data[index] for index in indexes_reorder_data]
+
+            else:
+                in_reference_key = list_in_reference_files[ifile]
+                in_crop_boundbox = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
+                print("Crop list of data to bounding-box: \'%s\'..." % (str(in_crop_boundbox)))
+
+                compute_cropped_list_data(in_crop_boundbox)
 
         # ******************************
 
         # Output processed images
-        if args.is_crop_images:
-            num_output_files_per_image = num_crop_boundboxes
+        if args.is_crop_images and args.is_two_boundboxes_each_lung:
+            first_elem_dict_crop_boundboxes = list(indict_crop_boundboxes.values())[0]
+            num_crop_boundboxes_per_image = len(first_elem_dict_crop_boundboxes)
+            num_output_files_per_image = num_crop_boundboxes_per_image
         else:
             num_output_files_per_image = 1
         num_output_files_per_label = num_output_files_per_image
@@ -310,7 +310,7 @@ def main(args):
         icount = 0
         for isubfile in range(num_output_files_per_image):
             if list_type_inout_data[icount] != 'image':
-                message = 'Expected to output an image, but found data of type %s' % (list_type_inout_data[icount])
+                message = 'Expected output \'image\', but found type \'%s\'' % (list_type_inout_data[icount])
                 catch_error_exception(message)
 
             if is_output_multiple_files_per_image:
@@ -319,19 +319,17 @@ def main(args):
                 output_image_file = name_template_output_images_files % (ifile + 1)
             output_image_file = join_path_names(output_images_path, output_image_file)
 
-            print("Output \'%s\' image, of type \'%s\': \'%s\'..."
-                  % (icount + 1, list_type_inout_data[icount], basename(output_image_file)))
-
+            print("Output \'%s\' image: \'%s\'..." % (icount + 1, basename(output_image_file)))
             ImageFileReader.write_image(output_image_file, list_inout_data[icount])
             icount += 1
 
             outdict_reference_keys[basename_filenoext(output_image_file)] = basename(in_image_file)
         # endfor
 
-        for isubfile in range(num_output_files_per_label):
-            if args.is_prepare_labels:
+        if args.is_prepare_labels:
+            for isubfile in range(num_output_files_per_label):
                 if list_type_inout_data[icount] != 'label':
-                    message = 'Expected to output an image, but found data of type %s' % (list_type_inout_data[icount])
+                    message = 'Expected output \'label\', but found type \'%s\'' % (list_type_inout_data[icount])
                     catch_error_exception(message)
 
                 if is_output_multiple_files_per_label:
@@ -340,15 +338,15 @@ def main(args):
                     output_label_file = name_template_output_labels_files % (ifile + 1)
                 output_label_file = join_path_names(output_labels_path, output_label_file)
 
-                print("Output \'%s\' label, of type \'%s\': \'%s\'..."
-                      % (icount + 1, list_type_inout_data[icount], basename(output_label_file)))
-
+                print("Output \'%s\' label: \'%s\'..." % (icount + 1, basename(output_label_file)))
                 ImageFileReader.write_image(output_label_file, list_inout_data[icount])
                 icount += 1
+            # endfor
 
-            if args.is_input_extra_labels:
-                if list_type_inout_data[icount] != 'label':
-                    message = 'Expected to output an image, but found data of type %s' % (list_type_inout_data[icount])
+        if args.is_input_extra_labels:
+            for isubfile in range(num_output_files_per_label):
+                if list_type_inout_data[icount] != 'extralabel':
+                    message = 'Expected output \'extra_label\', but found type \'%s\'' % (list_type_inout_data[icount])
                     catch_error_exception(message)
 
                 if is_output_multiple_files_per_label:
@@ -357,12 +355,10 @@ def main(args):
                     output_label_file = name_template_output_extra_labels_files % (ifile + 1)
                 output_label_file = join_path_names(output_extra_labels_path, output_label_file)
 
-                print("Output \'%s\' extra label, of type \'%s\': \'%s\'..."
-                      % (icount + 1, list_type_inout_data[icount], basename(output_label_file)))
-
+                print("Output \'%s\' extra label: \'%s\'..." % (icount + 1, basename(output_label_file)))
                 ImageFileReader.write_image(output_label_file, list_inout_data[icount])
                 icount += 1
-        # endfor
+            # endfor
     # endfor
 
     # Save reference keys for processed data
@@ -380,7 +376,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
-    parser.add_argument('--is_roilabels_multi_roimasks', type=str2bool, default=IS_TWO_BOUNDBOXES_EACH_LUNG)
+    parser.add_argument('--is_two_boundboxes_each_lung', type=str2bool, default=IS_TWO_BOUNDBOXES_EACH_LUNG)
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_RAW_IMAGES_RELPATH)
     parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     parser.add_argument('--name_output_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)

@@ -102,7 +102,7 @@ def main(args):
             print("Fixed size bounding-box as the max. size of computed bounding-boxes: \'%s\'..."
                   % (str(size_fixed_boundbox_all)))
     else:
-        size_fixed_boundbox_all = False
+        size_fixed_boundbox_all = None
 
     for i, (in_key_file, in_list_boundboxes) in enumerate(outdict_crop_boundboxes.items()):
         print("\nInput Key file: \'%s\'..." % (in_key_file))

@@ -299,7 +299,7 @@ def main(args):
                 '--is_mask_region_interest', str(args.is_mask_region_interest),
                 '--is_crop_images', str(args.is_crop_images),
                 '--is_rescale_images', str(args.is_rescale_images),
-                '--is_roilabels_multi_roimasks', str(args.is_two_boundboxes_each_lung),
+                '--is_two_boundboxes_each_lung', str(args.is_two_boundboxes_each_lung),
                 '--name_crop_boundboxes_file', name_input_crop_boundboxes_file,
                 '--name_rescale_factors_file', name_input_rescale_factors_file]
     list_calls_all.append(new_call)
@@ -355,14 +355,9 @@ if __name__ == "__main__":
         args.is_prepare_centrelines = False
         args.is_prepare_coarse_airways = False
         if args.is_crop_images:
-            if args.is_two_boundboxes_each_lung:
-                args.size_buffer_in_borders = (0, 0, 0)
-                args.is_same_size_boundbox_all_images = True
-                args.size_fixed_boundbox_all = args.size_train_images
-            else:
-                args.size_buffer_in_borders = (20, 20, 20)
-                args.is_same_size_boundbox_all_images = False
-                args.size_fixed_boundbox_all = None
+            args.size_buffer_in_borders = (20, 20, 20)
+            args.is_same_size_boundbox_all_images = False
+            args.size_fixed_boundbox_all = None
 
     elif args.type_data == 'testing':
         print("Prepare Testing data: Only Processed Images. Keep raw Images and Labels for testing...")
@@ -374,6 +369,10 @@ if __name__ == "__main__":
             args.size_buffer_in_borders = (50, 50, 50)
             args.is_same_size_boundbox_all_images = False
             args.size_fixed_boundbox_all = None
+
+        if args.is_two_boundboxes_each_lung:
+            message = 'Option \'is_two_boundboxes_each_lung\' not available for type_data == \'testing\''
+            catch_error_exception(message)
     else:
         message = 'Input param \'type_data\' = \'%s\' not valid, must be inside: \'%s\'...' \
                   % (args.type_data, LIST_TYPE_DATA_AVAIL)
