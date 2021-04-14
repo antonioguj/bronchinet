@@ -1,9 +1,11 @@
 
+from typing import Tuple
+import numpy as np
 import argparse
 
 from common.constant import BASEDIR, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_BINARY_TRAIN_MASKS,\
-    NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, \
-    NAME_REFERENCE_FILES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE
+    NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, NAME_REFERENCE_FILES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
+    NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE, IS_TWO_BOUNDBOXES_LUNGS
 from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, \
     get_regex_pattern_filename, find_file_inlist_with_pattern, str2bool, read_dictionary
 from common.exceptionmanager import catch_warning_exception
@@ -46,6 +48,10 @@ def main(args):
     # if args.is_rescale_images:
     #     input_rescale_factors_file = workdir_manager.get_datafile_exist(args.name_rescale_factors_file)
     #     indict_rescale_factors = read_dictionary(input_rescale_factors_file)
+    # else:
+    #     indict_rescale_factors = None
+
+    # *****************************************************
 
     # *****************************************************
 
@@ -53,7 +59,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_prediction_file)))
 
         inout_prediction = ImageFileReader.get_image(in_prediction_file)
-        print("Original dims : \'%s\'..." % (str(inout_prediction.shape)))
+        print("Input dims : \'%s\'..." % (str(inout_prediction.shape)))
 
         in_reference_key = indict_reference_keys[basename_filenoext(in_prediction_file)]
         in_reference_file = join_path_names(in_reference_files_path, in_reference_key)
@@ -72,8 +78,6 @@ def main(args):
                   % (str(out_shape_fullimage), str(in_crop_boundbox)))
             inout_prediction = ExtendImage.compute(inout_prediction, in_crop_boundbox, out_shape_fullimage)
 
-            print("Final dims: %s..." % (str(inout_prediction.shape)))
-
         # ******************************
 
         if args.is_rescale_images:
@@ -83,10 +87,10 @@ def main(args):
         # ******************************
 
         if args.is_mask_region_interest:
-            print("Reverse mask to RoI (lungs) in predictions...")
+            print("Input data to Network were masked to ROI (lungs): Reverse mask in predictions...")
             in_roimask_file = find_file_inlist_with_pattern(basename(in_reference_file), list_input_roimasks_files,
                                                             pattern_search=pattern_search_infiles)
-            print("RoI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
+            print("ROI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)
             inout_prediction = MaskOperator.mask_image(inout_prediction, in_roimask,
@@ -97,7 +101,6 @@ def main(args):
         # if args.is_process_data_stack_images:
         #     print("Process data from stack images: roll axis to place the images index as last dimension...")
         #     inout_prediction = np.rollaxis(inout_prediction, 0, start=3)
-        #     print("Final dims: %s..." % (str(inout_prediction.shape)))
 
         # ******************************
 
@@ -117,6 +120,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
     parser.add_argument('--is_binary_predictions', type=str2bool, default=IS_BINARY_TRAIN_MASKS)
+    parser.add_argument('--is_two_boundboxes_lungs', type=str2bool, default=IS_TWO_BOUNDBOXES_LUNGS)
     parser.add_argument('--name_input_predictions_relpath', type=str, default=NAME_TEMPO_POSTERIORS_RELPATH)
     parser.add_argument('--name_output_posteriors_relpath', type=str, default=NAME_POSTERIORS_RELPATH)
     parser.add_argument('--name_input_reference_files_relpath', type=str, default=NAME_REFERENCE_FILES_RELPATH)

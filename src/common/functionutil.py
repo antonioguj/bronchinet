@@ -2,13 +2,14 @@
 from typing import List, Tuple, Dict, Callable, Union, Any
 import numpy as np
 import itertools
-import shutil
 import glob
-import datetime
-import time
+import pickle
 import csv
 import os
 import re
+import shutil
+import datetime
+import time
 
 from common.exceptionmanager import catch_error_exception
 
@@ -425,6 +426,8 @@ def read_dictionary(filename: str) -> Union[Dict[str, Any], None]:
     extension = fileextension(filename, is_split_recursive=False)
     if extension == '.npy':
         return read_dictionary_numpy(filename)
+    if extension == '.pkl':
+        return read_dictionary_pickle(filename)
     elif extension == '.csv':
         return read_dictionary_csv(filename)
     else:
@@ -432,7 +435,12 @@ def read_dictionary(filename: str) -> Union[Dict[str, Any], None]:
 
 
 def read_dictionary_numpy(filename: str) -> Dict[str, Any]:
-    return np.load(filename, allow_pickle=True).item()
+    return dict(np.load(filename, allow_pickle=True).item())
+
+
+def read_dictionary_pickle(filename: str) -> Dict[str, Any]:
+    with open(filename, 'r') as fin:
+        return pickle.load(fin)
 
 
 def read_dictionary_csv(filename: str) -> Dict[str, Any]:
@@ -457,30 +465,37 @@ def read_dictionary_configparams(filename: str) -> Dict[str, str]:
     return out_dict
 
 
-def save_dictionary(filename: str, in_dict: Dict[str, Any]) -> None:
+def save_dictionary(filename: str, in_dictionary: Dict[str, Any]) -> None:
     extension = fileextension(filename, is_split_recursive=False)
     if extension == '.npy':
-        save_dictionary_numpy(filename, in_dict)
+        save_dictionary_numpy(filename, in_dictionary)
+    if extension == '.pkl':
+        return save_dictionary_pickle(filename, in_dictionary)
     elif extension == '.csv':
-        save_dictionary_csv(filename, in_dict)
+        save_dictionary_csv(filename, in_dictionary)
     else:
         return None
 
 
-def save_dictionary_numpy(filename: str, in_dict: Dict[str, Any]) -> None:
-    np.save(filename, in_dict)
+def save_dictionary_numpy(filename: str, in_dictionary: Dict[str, Any]) -> None:
+    np.save(filename, in_dictionary)
 
 
-def save_dictionary_csv(filename: str, in_dict: Dict[str, Any]) -> None:
+def save_dictionary_pickle(filename: str, in_dictionary: Dict[str, Any]) -> None:
+    with open(filename, 'r') as fout:
+        pickle.dump(in_dictionary, fout, pickle.HIGHEST_PROTOCOL)
+
+
+def save_dictionary_csv(filename: str, in_dictionary: Dict[str, Any]) -> None:
     with open(filename, 'w') as fout:
         writer = csv.writer(fout)
-        for key, value in in_dict.items():
+        for key, value in in_dictionary.items():
             writer.writerow([key, value])
 
 
-def save_dictionary_configparams(filename: str, in_dict: Dict[str, Any]) -> None:
+def save_dictionary_configparams(filename: str, in_dictionary: Dict[str, Any]) -> None:
     with open(filename, 'w') as fout:
-        for key, value in in_dict.items():
+        for key, value in in_dictionary.items():
             strline = '%s = %s\n' % (key, value)
             fout.write(strline)
 

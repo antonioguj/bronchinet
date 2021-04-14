@@ -5,10 +5,10 @@ import numpy as np
 import argparse
 
 from common.constant import DATADIR, IS_BINARY_TRAIN_MASKS, IS_NORMALIZE_DATA, IS_MASK_REGION_INTEREST, \
-    IS_CROP_IMAGES, IS_RESCALE_IMAGES, NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, \
-    NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, NAME_RAW_EXTRALABELS_RELPATH, \
-    NAME_PROC_EXTRALABELS_RELPATH, NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE, IS_MERGE_TWO_IMAGES_AS_CHANNELS, NAME_RAW_EXTRAIMAGES_RELPATH
+    IS_CROP_IMAGES, IS_RESCALE_IMAGES, NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, NAME_PROC_IMAGES_RELPATH, \
+    NAME_PROC_LABELS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, NAME_RAW_EXTRAIMAGES_RELPATH, \
+    NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_CROP_BOUNDBOXES_FILE, \
+    NAME_RESCALE_FACTORS_FILE, IS_MERGE_TWO_IMAGES_AS_CHANNELS
 from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, str2bool, \
     read_dictionary, save_dictionary, save_dictionary_csv, get_substring_filename
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
@@ -56,7 +56,6 @@ def main(args):
     # SETTINGS
     name_template_output_images_files = 'images_proc-%0.2i.nii.gz'
     name_template_output_labels_files = 'labels_proc-%0.2i.nii.gz'
-    name_template_output_extra_labels_files = 'cenlines_proc-%0.2i.nii.gz'
     # --------
 
     workdir_manager = GeneralDirManager(args.datadir)
@@ -93,15 +92,6 @@ def main(args):
         check_same_number_files_in_list(list_input_images_files, list_input_roimasks_files)
     else:
         list_input_roimasks_files = None
-
-    if args.is_input_extra_labels:
-        input_extra_labels_path = workdir_manager.get_pathdir_exist(args.name_input_extra_labels_relpath)
-        output_extra_labels_path = workdir_manager.get_pathdir_new(args.name_output_extra_labels_relpath)
-        list_input_extra_labels_files = list_files_dir(input_extra_labels_path)
-        check_same_number_files_in_list(list_input_images_files, list_input_extra_labels_files)
-    else:
-        output_extra_labels_path = None
-        list_input_extra_labels_files = None
 
     if args.is_crop_images:
         input_crop_boundboxes_file = workdir_manager.get_pathfile_exist(args.name_crop_boundboxes_file)
@@ -141,7 +131,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
         inout_image = ImageFileReader.get_image(in_image_file)
-        print("Original dims : \'%s\'..." % (str(inout_image.shape)))
+        print("Input dims : \'%s\'..." % (str(inout_image.shape)))
 
         list_inout_data = [inout_image]
         list_type_inout_data = ['image']
@@ -219,7 +209,7 @@ def main(args):
             inout_extra_label = ImageFileReader.get_image(in_extra_label_file)
             inout_extra_label = MaskOperator.binarise(inout_extra_label)
             list_inout_data.append(inout_extra_label)
-            list_type_inout_data.append('label')
+            list_type_inout_data.append('extralabel')
 
             if check_same_size_images(inout_extra_label, inout_image):
                 continue
@@ -228,8 +218,9 @@ def main(args):
 
         if args.is_normalize_data:
             for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
-                if (type_in_data == 'image') or (type_in_data == 'label' and not args.is_binary_train_masks):
-                    print("Normalize input data \'%s\' of type \'%s\'..." % (idata, type_in_data))
+                if type_in_data == 'image' \
+                        or (type_in_data == 'label' and not args.is_binary_train_masks):
+                    print("Normalize input data \'%s\' (\'%s\')..." % (idata, type_in_data))
                     out_data = NormaliseImage.compute(in_data)
                     list_inout_data[idata] = out_data
             # endfor
@@ -243,22 +234,21 @@ def main(args):
 
             if in_rescale_factor != (1.0, 1.0, 1.0):
                 for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
-                    print("Rescale input data \'%s\' of type \'%s\'..." % (idata, type_in_data))
+                    print("Rescale input data \'%s\' (\'%s\')..." % (idata, type_in_data))
                     if type_in_data == 'image':
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3)
                         list_inout_data[idata] = out_data
                     elif type_in_data == 'label':
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3, is_inlabels=True)
                         list_inout_data[idata] = out_data
-                    elif type_in_data == 'roimask':
+                    elif type_in_data == 'roimask' \
+                            or type_in_data == 'extralabel':
                         out_data = RescaleImage.compute(in_data, in_rescale_factor, order=3, is_inlabels=True,
                                                         is_binarise_output=True)
                         list_inout_data[idata] = out_data
                 # endfor
             else:
                 print("Rescale factor (\'%s\'). Skip rescaling..." % (str(in_rescale_factor)))
-
-            print("Final dims: %s..." % (str(list_inout_data[0].shape)))
 
         # ******************************
 
@@ -267,14 +257,14 @@ def main(args):
 
             for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
                 if type_in_data == 'label':
-                    print("Mask input data \'%s\' of type \'%s\' to ROI..." % (idata, type_in_data))
+                    print("Mask input data \'%s\' (\'%s\') to ROI mask..." % (idata, type_in_data))
                     out_data = MaskOperator.mask_image_exclude_regions(in_data, list_inout_data[index_roimask])
                     list_inout_data[idata] = out_data
             # endfor
 
-            # remove the roimasks from the list of processing data
-            list_type_inout_data.pop(index_roimask)
+            # remove the ROI mask from the list of processing data
             list_inout_data.pop(index_roimask)
+            list_type_inout_data.pop(index_roimask)
 
         # ******************************
 
@@ -288,8 +278,6 @@ def main(args):
                 list_inout_data[idata] = out_data
             # endfor
 
-            print("Final dims: %s..." % (str(list_inout_data[0].shape)))
-
         # ******************************
 
         # if args.is_prepare_data_stack_images:
@@ -298,8 +286,6 @@ def main(args):
         #         out_data = np.rollaxis(in_data, 2, start=0)
         #         list_inout_data[idata] = out_data
         #     # endfor
-        #
-        #     print("Final dims: %s..." % (str(list_inout_data[0].shape)))
 
         # ******************************
 
@@ -314,7 +300,7 @@ def main(args):
         icount = 0
         for isubfile in range(num_output_files_per_image):
             if list_type_inout_data[icount] != 'image':
-                message = 'Expected to output an image, but found data of type %s' % (list_type_inout_data[icount])
+                message = 'Expected output \'image\', but found type \'%s\'' % (list_type_inout_data[icount])
                 catch_error_exception(message)
 
             if is_output_multiple_files_per_image:
@@ -323,9 +309,7 @@ def main(args):
                 output_image_file = name_template_output_images_files % (ifile + 1)
             output_image_file = join_path_names(output_images_path, output_image_file)
 
-            print("Output \'%s\' image, of type \'%s\': \'%s\'..."
-                  % (icount + 1, list_type_inout_data[icount], basename(output_image_file)))
-
+            print("Output \'%s\' image: \'%s\'..." % (icount + 1, basename(output_image_file)))
             ImageFileReader.write_image(output_image_file, list_inout_data[icount])
             icount += 1
 
@@ -335,10 +319,10 @@ def main(args):
             outdict_reference_keys[basename_filenoext(output_image_file)] = basename(in_image_file)
         # endfor
 
-        for isubfile in range(num_output_files_per_label):
-            if args.is_prepare_labels:
+        if args.is_prepare_labels:
+            for isubfile in range(num_output_files_per_label):
                 if list_type_inout_data[icount] != 'label':
-                    message = 'Expected to output an image, but found data of type %s' % (list_type_inout_data[icount])
+                    message = 'Expected output \'label\', but found type \'%s\'' % (list_type_inout_data[icount])
                     catch_error_exception(message)
 
                 if is_output_multiple_files_per_label:
@@ -347,29 +331,10 @@ def main(args):
                     output_label_file = name_template_output_labels_files % (ifile + 1)
                 output_label_file = join_path_names(output_labels_path, output_label_file)
 
-                print("Output \'%s\' label, of type \'%s\': \'%s\'..."
-                      % (icount + 1, list_type_inout_data[icount], basename(output_label_file)))
-
+                print("Output \'%s\' label: \'%s\'..." % (icount + 1, basename(output_label_file)))
                 ImageFileReader.write_image(output_label_file, list_inout_data[icount])
                 icount += 1
-
-            if args.is_input_extra_labels:
-                if list_type_inout_data[icount] != 'label':
-                    message = 'Expected to output an image, but found data of type %s' % (list_type_inout_data[icount])
-                    catch_error_exception(message)
-
-                if is_output_multiple_files_per_label:
-                    output_label_file = name_template_output_extra_labels_files % (ifile + 1, isubfile + 1)
-                else:
-                    output_label_file = name_template_output_extra_labels_files % (ifile + 1)
-                output_label_file = join_path_names(output_extra_labels_path, output_label_file)
-
-                print("Output \'%s\' extra label, of type \'%s\': \'%s\'..."
-                      % (icount + 1, list_type_inout_data[icount], basename(output_label_file)))
-
-                ImageFileReader.write_image(output_label_file, list_inout_data[icount])
-                icount += 1
-        # endfor
+            # endfor
     # endfor
 
     # Save reference keys for processed data
@@ -392,8 +357,6 @@ if __name__ == "__main__":
     parser.add_argument('--name_output_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
     parser.add_argument('--name_output_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
     parser.add_argument('--name_input_roimasks_relpath', type=str, default=NAME_RAW_ROIMASKS_RELPATH)
-    parser.add_argument('--name_input_extra_labels_relpath', type=str, default=NAME_RAW_EXTRALABELS_RELPATH)
-    parser.add_argument('--name_output_extra_labels_relpath', type=str, default=NAME_PROC_EXTRALABELS_RELPATH)
     parser.add_argument('--name_input_reference_files_relpath', type=str, default=NAME_REFERENCE_FILES_RELPATH)
     parser.add_argument('--name_output_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
     parser.add_argument('--name_crop_boundboxes_file', type=str, default=NAME_CROP_BOUNDBOXES_FILE)
