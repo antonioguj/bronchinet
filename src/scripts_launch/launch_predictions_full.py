@@ -8,7 +8,8 @@ from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, POST_THRESHOLD_VA
     IS_ATTACH_COARSE_AIRWAYS, IS_REMOVE_TRACHEA_CALC_METRICS, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, \
     IS_RESCALE_IMAGES, NAME_CONFIG_PARAMS_FILE, NAME_RAW_LABELS_RELPATH, NAME_TEMPO_POSTERIORS_RELPATH, \
     NAME_POSTERIORS_RELPATH, NAME_PRED_BINARYMASKS_RELPATH, NAME_PRED_CENTRELINES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
-    NAME_RAW_COARSEAIRWAYS_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_PRED_RESULT_METRICS_FILE
+    NAME_RAW_COARSEAIRWAYS_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_PRED_RESULT_METRICS_FILE, \
+    IS_TWO_BOUNDBOXES_LUNGS
 from common.functionutil import currentdir, makedir, set_filename_suffix, set_dirname_suffix, is_exist_file, \
     join_path_names, basename, basenamedir, dirname, list_dirs_dir, str2bool, str2list_str
 from common.exceptionmanager import catch_error_exception
@@ -149,6 +150,7 @@ def main(args):
                 '--is_crop_images', str(args.is_crop_images),
                 '--is_rescale_images', str(args.is_rescale_images),
                 '--is_binary_predictions', 'True',
+                '--is_two_boundboxes_lungs', str(args.is_two_boundboxes_lungs),
                 '--name_input_predictions_relpath', inout_tempo_posteriors_path,
                 '--name_output_posteriors_relpath', output_posteriors_path,
                 '--name_input_reference_keys_file', inout_predict_reference_keys_file]
@@ -282,6 +284,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
+    parser.add_argument('--is_two_boundboxes_lungs', type=str2bool, default=IS_TWO_BOUNDBOXES_LUNGS)
     parser.add_argument('--post_threshold_value', type=float, default=POST_THRESHOLD_VALUE)
     parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
     parser.add_argument('--is_connected_masks', type=str2bool, default=False)

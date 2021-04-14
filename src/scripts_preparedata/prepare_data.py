@@ -5,10 +5,10 @@ import numpy as np
 import argparse
 
 from common.constant import DATADIR, IS_BINARY_TRAIN_MASKS, IS_NORMALIZE_DATA, IS_MASK_REGION_INTEREST, \
-    IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_TWO_BOUNDBOXES_EACH_LUNG, NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, \
-    NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, NAME_RAW_CENTRELINES_RELPATH, \
-    NAME_PROC_EXTRALABELS_RELPATH, NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE
+    IS_CROP_IMAGES, IS_RESCALE_IMAGES, NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, NAME_PROC_IMAGES_RELPATH, \
+    NAME_PROC_LABELS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, NAME_RAW_CENTRELINES_RELPATH, NAME_PROC_EXTRALABELS_RELPATH, \
+    NAME_REFERENCE_FILES_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_CROP_BOUNDBOXES_FILE, \
+    NAME_RESCALE_FACTORS_FILE, IS_TWO_BOUNDBOXES_LUNGS
 from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, str2bool, \
     read_dictionary, save_dictionary, save_dictionary_csv
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
@@ -34,6 +34,48 @@ def check_same_size_images(in_image_1: np.ndarray, in_image_2: np.ndarray) -> bo
         return True
     else:
         return False
+
+
+def compute_cropped_list_data(list_inout_data: List[np.ndarray],
+                              list_type_inout_data: List[str],
+                              in_crop_boundbox: BoundBox3DType,
+                              is_insert_new_data: bool = False
+                              ) -> None:
+    index_image = list_type_inout_data.index('image')
+    size_image = list_inout_data[index_image].shape
+    size_crop_boundbox = BoundingBoxes.get_size_boundbox(in_crop_boundbox)
+
+    if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_boundbox, size_image):
+        print("Crop bounding-box is not contained in the size of input images: \'%s\' > \'%s\'. "
+              "Extend images after cropping..." % (str(size_crop_boundbox), str(size_image)))
+        is_combine_crop_extend = True
+
+        (in_crop_boundbox, in_extend_boundbox) = \
+            BoundingBoxes.calc_boundboxes_crop_extend_image(in_crop_boundbox, size_image)
+        size_output_image = size_crop_boundbox
+    else:
+        is_combine_crop_extend = False
+        in_extend_boundbox = None
+        size_output_image = None
+
+    for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
+        if '_cropped' not in type_in_data:
+            if is_combine_crop_extend:
+                print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\', and then extend with bou-box: \'%s\'..."
+                      % (idata, type_in_data, str(in_crop_boundbox), str(in_extend_boundbox)))
+                out_data = CropAndExtendImage.compute(list_inout_data[idata], in_crop_boundbox,
+                                                      in_extend_boundbox, size_output_image)
+            else:
+                print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\'..."
+                      % (idata, type_in_data, str(in_crop_boundbox)))
+                out_data = CropImage.compute(list_inout_data[idata], in_crop_boundbox)
+
+            if is_insert_new_data:
+                list_inout_data.append(out_data)
+                list_type_inout_data.append('%s_cropped' % (type_in_data))
+            else:
+                list_inout_data[idata] = out_data
+    # endfor
 
 
 def main(args):
@@ -81,7 +123,7 @@ def main(args):
         input_crop_boundboxes_file = workdir_manager.get_pathfile_exist(args.name_crop_boundboxes_file)
         indict_crop_boundboxes = read_dictionary(input_crop_boundboxes_file)
 
-        if args.is_two_boundboxes_each_lung:
+        if args.is_two_boundboxes_lungs:
             print("Cropping input data to several bounding-boxes. Output several processed images per raw sample...")
             is_output_multiple_files_per_image = True
 
@@ -114,7 +156,7 @@ def main(args):
         print("\nInput: \'%s\'..." % (basename(in_image_file)))
 
         inout_image = ImageFileReader.get_image(in_image_file)
-        print("Original dims : \'%s\'..." % (str(inout_image.shape)))
+        print("Input dims : \'%s\'..." % (str(inout_image.shape)))
 
         list_inout_data = [inout_image]
         list_type_inout_data = ['image']
@@ -221,59 +263,22 @@ def main(args):
 
         if args.is_crop_images:
 
-            def compute_cropped_list_data(in_crop_boundbox: BoundBox3DType,
-                                          is_insert_new_data: bool = False
-                                          ) -> None:
-                index_image = list_type_inout_data.index('image')
-                size_image = list_inout_data[index_image].shape
-                size_crop_boundbox = BoundingBoxes.get_size_boundbox(in_crop_boundbox)
-
-                if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_boundbox, size_image):
-                    print("Size of crop bounding-box is larger than the image size: \'%s\' > \'%s\'. "
-                          "Extend images after cropping..." % (str(size_crop_boundbox), str(size_image)))
-                    is_combine_crop_extend = True
-                    (in_crop_boundbox, in_extend_boundbox) = \
-                        BoundingBoxes.calc_boundboxes_crop_extend_image(in_crop_boundbox, size_image)
-                    size_out_image = size_crop_boundbox
-                else:
-                    is_combine_crop_extend = False
-                    in_extend_boundbox = None
-                    size_out_image = None
-
-                for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
-                    if '_cropped' not in type_in_data:
-                        if is_combine_crop_extend:
-                            print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\', and extend with: \'%s\'..."
-                                  % (idata, type_in_data, str(in_crop_boundbox), str(in_extend_boundbox)))
-                            out_data = CropAndExtendImage.compute(list_inout_data[idata], in_crop_boundbox,
-                                                                  in_extend_boundbox, size_out_image)
-                        else:
-                            print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\'..."
-                                  % (idata, type_in_data, str(in_crop_boundbox)))
-                            out_data = CropImage.compute(list_inout_data[idata], in_crop_boundbox)
-
-                        if is_insert_new_data:
-                            list_inout_data.append(out_data)
-                            list_type_inout_data.append('%s_cropped' % (type_in_data))
-                        else:
-                            list_inout_data[idata] = out_data
-                # endfor
-            # -----------------------
-
-            if args.is_two_boundboxes_each_lung:
+            if args.is_two_boundboxes_lungs:
                 in_reference_key = list_in_reference_files[ifile]
-                inlist_crop_boundbox = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
-                num_crop_boundboxes = len(inlist_crop_boundbox)
-                print("Crop list of data to \'%s\' crop bounding-boxes: \'%s\' and \'%s\'..."
-                      % (num_crop_boundboxes, str(inlist_crop_boundbox[0]), str(inlist_crop_boundbox[1])))
+                inlist_crop_boundboxes = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
+                num_crop_boundboxes = len(inlist_crop_boundboxes)
+                print("Crop all input data to \'%s\' crop bounding-boxes: \'%s\' and \'%s\'..."
+                      % (num_crop_boundboxes, str(inlist_crop_boundboxes[0]), str(inlist_crop_boundboxes[1])))
 
                 for icrop in range(num_crop_boundboxes - 1, -1, -1):
                     # loop in reverse order, and keep the original image / label until the last cropping,
                     # where it'll be replaced by the new cropped data. Otherwise, insert new data in list
                     if icrop == 0:
-                        compute_cropped_list_data(inlist_crop_boundbox[icrop], is_insert_new_data=False)
+                        compute_cropped_list_data(list_inout_data, list_type_inout_data, inlist_crop_boundboxes[icrop],
+                                                  is_insert_new_data=False)
                     else:
-                        compute_cropped_list_data(inlist_crop_boundbox[icrop], is_insert_new_data=True)
+                        compute_cropped_list_data(list_inout_data, list_type_inout_data, inlist_crop_boundboxes[icrop],
+                                                  is_insert_new_data=True)
                 # endfor
 
                 # remove the suffixes for extra created data
@@ -292,14 +297,14 @@ def main(args):
             else:
                 in_reference_key = list_in_reference_files[ifile]
                 in_crop_boundbox = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
-                print("Crop list of data to bounding-box: \'%s\'..." % (str(in_crop_boundbox)))
+                print("Crop all input data to bounding-box: \'%s\'..." % (str(in_crop_boundbox)))
 
-                compute_cropped_list_data(in_crop_boundbox)
+                compute_cropped_list_data(list_inout_data, list_type_inout_data, in_crop_boundbox)
 
         # ******************************
 
         # Output processed images
-        if args.is_crop_images and args.is_two_boundboxes_each_lung:
+        if args.is_crop_images and args.is_two_boundboxes_lungs:
             first_elem_dict_crop_boundboxes = list(indict_crop_boundboxes.values())[0]
             num_crop_boundboxes_per_image = len(first_elem_dict_crop_boundboxes)
             num_output_files_per_image = num_crop_boundboxes_per_image
@@ -376,7 +381,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
-    parser.add_argument('--is_two_boundboxes_each_lung', type=str2bool, default=IS_TWO_BOUNDBOXES_EACH_LUNG)
+    parser.add_argument('--is_two_boundboxes_lungs', type=str2bool, default=IS_TWO_BOUNDBOXES_LUNGS)
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_RAW_IMAGES_RELPATH)
     parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_RAW_LABELS_RELPATH)
     parser.add_argument('--name_output_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)

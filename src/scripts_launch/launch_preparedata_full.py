@@ -5,9 +5,9 @@ import sys
 import argparse
 
 from common.constant import SIZE_IN_IMAGES, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, \
-    IS_TWO_BOUNDBOXES_EACH_LUNG, NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
-    NAME_REFERENCE_FILES_RELPATH, NAME_RAW_CENTRELINES_RELPATH, NAME_RAW_COARSEAIRWAYS_RELPATH, \
-    NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE
+    NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, NAME_REFERENCE_FILES_RELPATH, \
+    NAME_RAW_CENTRELINES_RELPATH, NAME_RAW_COARSEAIRWAYS_RELPATH, NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE,\
+    IS_TWO_BOUNDBOXES_LUNGS
 from common.functionutil import currentdir, makedir, set_dirname_suffix, join_path_names, list_files_dir, \
     basename, fileextension, str2bool, str2tuple_int
 from common.exceptionmanager import catch_error_exception
@@ -281,7 +281,7 @@ def main(args):
         new_call = ['python3', SCRIPT_CALC_BOUNDING_BOX_IMAGES,
                     '--datadir', output_datadir,
                     '--size_buffer_in_borders', str(args.size_buffer_in_borders),
-                    '--is_two_boundboxes_each_lung', str(args.is_two_boundboxes_each_lung),
+                    '--is_two_boundboxes_lungs', str(args.is_two_boundboxes_lungs),
                     '--size_train_images', str(args.size_train_images),
                     '--is_same_size_boundbox_all_images', str(args.is_same_size_boundbox_all_images),
                     '--name_output_boundboxes_file', name_input_crop_boundboxes_file,
@@ -299,7 +299,7 @@ def main(args):
                 '--is_mask_region_interest', str(args.is_mask_region_interest),
                 '--is_crop_images', str(args.is_crop_images),
                 '--is_rescale_images', str(args.is_rescale_images),
-                '--is_two_boundboxes_each_lung', str(args.is_two_boundboxes_each_lung),
+                '--is_two_boundboxes_lungs', str(args.is_two_boundboxes_lungs),
                 '--name_crop_boundboxes_file', name_input_crop_boundboxes_file,
                 '--name_rescale_factors_file', name_input_rescale_factors_file]
     list_calls_all.append(new_call)
@@ -345,7 +345,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
-    parser.add_argument('--is_two_boundboxes_each_lung', type=str2bool, default=IS_TWO_BOUNDBOXES_EACH_LUNG)
+    parser.add_argument('--is_two_boundboxes_lungs', type=str2bool, default=IS_TWO_BOUNDBOXES_LUNGS)
     args = parser.parse_args()
 
     if args.type_data == 'training':
@@ -370,9 +370,6 @@ if __name__ == "__main__":
             args.is_same_size_boundbox_all_images = False
             args.size_fixed_boundbox_all = None
 
-        if args.is_two_boundboxes_each_lung:
-            message = 'Option \'is_two_boundboxes_each_lung\' not available for type_data == \'testing\''
-            catch_error_exception(message)
     else:
         message = 'Input param \'type_data\' = \'%s\' not valid, must be inside: \'%s\'...' \
                   % (args.type_data, LIST_TYPE_DATA_AVAIL)

@@ -2,7 +2,7 @@
 from collections import OrderedDict
 import argparse
 
-from common.constant import DATADIR, SIZE_BUFFER_BOUNDBOX_BORDERS, IS_TWO_BOUNDBOXES_EACH_LUNG, SIZE_IN_IMAGES, \
+from common.constant import DATADIR, SIZE_BUFFER_BOUNDBOX_BORDERS, IS_TWO_BOUNDBOXES_LUNGS, SIZE_IN_IMAGES, \
     IS_SAME_SIZE_BOUNDBOX_ALL_IMAGES, SIZE_FIXED_BOUNDBOX_ALL, IS_CALC_BOUNDBOX_IN_SLICES, NAME_RAW_ROIMASKS_RELPATH, \
     NAME_CROP_BOUNDBOXES_FILE, NAME_REFERENCE_FILES_RELPATH
 from common.functionutil import basename, basename_filenoext, list_files_dir, str2bool, str2tuple_int, \
@@ -28,13 +28,13 @@ def main(args):
     max_size_boundbox = (0, 0, 0)
     min_size_boundbox = (1.0e+03, 1.0e+03, 1.0e+03)
 
-    if args.is_two_boundboxes_each_lung:
+    if args.is_two_boundboxes_lungs:
         # compute two bounding-boxes separately, for both left and right lungs
         for i, in_roimask_file in enumerate(list_input_roimasks_files):
             print("\nInput: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)
-            print("Dims : \'%s\'..." % (str(in_roimask.shape)))
+            print("Input Dims : \'%s\'..." % (str(in_roimask.shape)))
 
             # extract masks corresponding to left (=1) and right (=2) lungs
             (in_roimask_left, in_roimask_right) = MaskOperator.get_list_masks_with_labels_list(in_roimask, [1, 2])
@@ -67,7 +67,7 @@ def main(args):
             print("\nInput: \'%s\'..." % (basename(in_roimask_file)))
 
             in_roimask = ImageFileReader.get_image(in_roimask_file)
-            print("Dims : \'%s\'..." % (str(in_roimask.shape)))
+            print("Input Dims : \'%s\'..." % (str(in_roimask.shape)))
 
             in_roimask = MaskOperator.binarise(in_roimask)  # convert masks to binary (0, 1)
 
@@ -111,7 +111,7 @@ def main(args):
         in_shape_roimask = ImageFileReader.get_image_size(in_roimask_file)
         print("Assigned to file: \'%s\', of Dims : \'%s\'..." % (basename(in_roimask_file), str(in_shape_roimask)))
 
-        if not args.is_two_boundboxes_each_lung:
+        if not args.is_two_boundboxes_lungs:
             in_list_boundboxes = [in_list_boundboxes]
 
         for j, in_boundbox in enumerate(in_list_boundboxes):
@@ -144,7 +144,7 @@ def main(args):
                 size_proc_boundbox = BoundingBoxes.get_size_boundbox(proc_boundbox)
                 print("New processed bounding-box: \'%s\', of size: \'%s\'" % (proc_boundbox, size_proc_boundbox))
 
-                if args.is_two_boundboxes_each_lung:
+                if args.is_two_boundboxes_lungs:
                     outdict_crop_boundboxes[in_key_file][j] = proc_boundbox
                 else:
                     outdict_crop_boundboxes[in_key_file] = proc_boundbox
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir', type=str, default=DATADIR)
     parser.add_argument('--size_buffer_in_borders', type=str2tuple_int, default=SIZE_BUFFER_BOUNDBOX_BORDERS)
-    parser.add_argument('--is_two_boundboxes_each_lung', type=str2bool, default=IS_TWO_BOUNDBOXES_EACH_LUNG)
+    parser.add_argument('--is_two_boundboxes_lungs', type=str2bool, default=IS_TWO_BOUNDBOXES_LUNGS)
     parser.add_argument('--size_train_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--is_same_size_boundbox_all_images', type=str2bool, default=IS_SAME_SIZE_BOUNDBOX_ALL_IMAGES)
     parser.add_argument('--size_fixed_boundbox_all', type=str2tuple_int_none, default=SIZE_FIXED_BOUNDBOX_ALL)
