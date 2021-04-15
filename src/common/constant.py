@@ -1,4 +1,5 @@
 
+CODEDIR = '/home/antonio/Codes/Antonio_repository/bronchinet/src/'
 DATADIR = '/home/antonio/Data/EXACT_Testing/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
 

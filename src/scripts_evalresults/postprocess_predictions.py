@@ -81,19 +81,19 @@ def main(args):
 
         if args.is_crop_images:
             if args.is_two_boundboxes_lungs:
-                print("Input data to Network were cropped -> Reconstruct cropped prediction patches from same image...")
+                print("Input data to Network were cropped -> Reconstruct all prediction patches from same volume...")
 
                 inlist_crop_boundboxes = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
                 num_crop_boundboxes = len(inlist_crop_boundboxes)
                 size_output_fullpred = ImageFileReader.get_image_size(in_reference_file)
-                print("Input data were cropped to \'%s\' crop bounding-boxes: \'%s\' and \'%s\'..."
+                print("Input data were cropped to \'%s\' bounding-boxes: \'%s\' and \'%s\'..."
                       % (num_crop_boundboxes, str(inlist_crop_boundboxes[0]), str(inlist_crop_boundboxes[1])))
 
                 print("Reconstruct full-size prediction of size: \'%s\'" % (str(size_output_fullpred)))
                 image_reconstructor_cropped_patches.initialize_recons_data(size_output_fullpred)
                 image_reconstructor_cropped_patches.initialize_recons_array(inout_prediction)
 
-                print("First Patch: Set-add cropped prediction in reconstructed array with bounding-box: \'%s\'..."
+                print("First Patch: Set-add in reconstructed prediction with bounding-box: \'%s\'..."
                       % (str(inlist_crop_boundboxes[0])))
                 image_reconstructor_cropped_patches.include_image_patch(inout_prediction,
                                                                         inlist_crop_boundboxes[0])
@@ -105,7 +105,7 @@ def main(args):
                     print("Next Input Patch: \'%s\'..." % (basename(in_prediction_file)))
                     print("Input dims : \'%s\'..." % (str(inout_prediction.shape)))
 
-                    print("Next Patch: Set-add cropped prediction in reconstructed array with bounding-box: \'%s\'..."
+                    print("Next Patch: Set-add in reconstructed prediction with bounding-box: \'%s\'..."
                           % (str(inlist_crop_boundboxes[icrop])))
                     image_reconstructor_cropped_patches.include_image_patch(inout_prediction,
                                                                             inlist_crop_boundboxes[icrop])
@@ -115,7 +115,7 @@ def main(args):
                 inout_prediction = image_reconstructor_cropped_patches.get_reconstructed_image()
 
             else:
-                print("Input data to Network were cropped -> Extend prediction to full image size...")
+                print("Input data to Network were cropped -> Extend prediction to full-size image...")
 
                 in_crop_boundbox = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
                 size_output_fullpred = ImageFileReader.get_image_size(in_reference_file)

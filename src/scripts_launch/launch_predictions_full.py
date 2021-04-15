@@ -4,7 +4,7 @@ import traceback
 import sys
 import argparse
 
-from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, POST_THRESHOLD_VALUE, LIST_TYPE_METRICS_RESULT, \
+from common.constant import CODEDIR, NAME_TESTINGDATA_RELPATH, POST_THRESHOLD_VALUE, LIST_TYPE_METRICS_RESULT, \
     IS_ATTACH_COARSE_AIRWAYS, IS_REMOVE_TRACHEA_CALC_METRICS, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, \
     IS_RESCALE_IMAGES, NAME_CONFIG_PARAMS_FILE, NAME_RAW_LABELS_RELPATH, NAME_TEMPO_POSTERIORS_RELPATH, \
     NAME_POSTERIORS_RELPATH, NAME_PRED_BINARYMASKS_RELPATH, NAME_PRED_CENTRELINES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
@@ -15,7 +15,6 @@ from common.functionutil import currentdir, makedir, set_filename_suffix, set_di
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 
-CODEDIR = join_path_names(BASEDIR, 'Code/')
 SCRIPT_PREDICT_MODEL = join_path_names(CODEDIR, 'scripts_experiments/predict_model.py')
 SCRIPT_MERGE_DICTIONARIES_PREDS = join_path_names(CODEDIR, 'scripts_evalresults/merge_pydictionaries_preds.py')
 SCRIPT_POSTPROCESS_PREDICTIONS = join_path_names(CODEDIR, 'scripts_evalresults/postprocess_predictions.py')
@@ -243,23 +242,26 @@ def main(args):
 
         # ******************************
 
-        if args.is_conservative_remove_trachea_calc_metrics:
+        # Remove data not needed anymore
+        if not args.is_keep_tempo_data and args.is_conservative_remove_trachea_calc_metrics:
             new_call = ['rm', '-r', output_conser_coarse_airways_path]
             list_calls_all.append(new_call)
 
     # ******************************
 
-    # Remove temporary data for posteriors not needed
-    new_call = ['rm', '-r', inout_tempo_posteriors_path]
-    list_calls_all.append(new_call)
-    new_call = ['rm', inout_predict_reference_keys_file, inout_predict_reference_keys_file.replace('.npy', '.csv')]
-    list_calls_all.append(new_call)
-
-    if args.is_preds_crossval:
-        list_predict_reference_keys_files_cvfolds_csvs = \
-            [elem.replace('.npy', '.csv') for elem in list_predict_reference_keys_files_cvfolds]
-        new_call = ['rm', *list_predict_reference_keys_files_cvfolds, *list_predict_reference_keys_files_cvfolds_csvs]
+    # Remove all the data not needed anymore
+    if not args.is_keep_tempo_data:
+        new_call = ['rm', '-r', inout_tempo_posteriors_path]
         list_calls_all.append(new_call)
+        new_call = ['rm', inout_predict_reference_keys_file, inout_predict_reference_keys_file.replace('.npy', '.csv')]
+        list_calls_all.append(new_call)
+
+        if args.is_preds_crossval:
+            list_predict_reference_keys_files_cvfolds_csvs = \
+                [elem.replace('.npy', '.csv') for elem in list_predict_reference_keys_files_cvfolds]
+            new_call = ['rm', *list_predict_reference_keys_files_cvfolds,
+                        *list_predict_reference_keys_files_cvfolds_csvs]
+            list_calls_all.append(new_call)
 
     # ******************************
 
@@ -294,6 +296,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
     parser.add_argument('--is_conservative_remove_trachea_calc_metrics', type=str2bool, default=True)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
+    parser.add_argument('--is_keep_tempo_data', type=str2bool, default=False)
     args = parser.parse_args()
 
     print("Print input arguments...")

@@ -63,8 +63,8 @@ def compute_cropped_patches_list_data(list_in_data: List[np.ndarray],
     for idata, (in_data, type_in_data) in enumerate(zip(list_in_data, list_type_in_data)):
         if '_cropped' not in type_in_data:
             if is_combine_crop_extend:
-                print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\', and then extend with bou-box: \'%s\'..."
-                      % (idata, type_in_data, str(in_crop_boundbox), str(in_extend_boundbox)))
+                print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\', and then Extend with bounding-box: "
+                      "\'%s\'..." % (idata, type_in_data, str(in_crop_boundbox), str(in_extend_boundbox)))
                 out_data = CropAndExtendImage.compute(list_in_data[idata], in_crop_boundbox,
                                                       in_extend_boundbox, size_output_image)
             else:
@@ -269,7 +269,7 @@ def main(args):
                 in_reference_key = list_in_reference_files[ifile]
                 inlist_crop_boundboxes = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
                 num_crop_boundboxes = len(inlist_crop_boundboxes)
-                print("Crop all input data to \'%s\' crop bounding-boxes: \'%s\' and \'%s\'..."
+                print("Crop all input data to \'%s\' bounding-boxes: \'%s\' and \'%s\'..."
                       % (num_crop_boundboxes, str(inlist_crop_boundboxes[0]), str(inlist_crop_boundboxes[1])))
 
                 size_inout_data_init = len(list_inout_data)
