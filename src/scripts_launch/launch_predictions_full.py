@@ -67,6 +67,12 @@ def main(args):
     output_predict_centrelines_path = join_path_names(output_basedir, name_predict_centrelines_relpath)
     output_result_metrics_file = join_path_names(output_basedir, name_output_result_metrics_file)
 
+    in_config_params_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
+
+    if not is_exist_file(in_config_params_file):
+        message = "Config params file not found: \'%s\'..." % (in_config_params_file)
+        catch_error_exception(message)
+
     # *****************************************************
 
     list_calls_all = []
@@ -122,12 +128,6 @@ def main(args):
         list_calls_all.append(new_call)
 
     else:
-        in_config_params_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
-
-        if not is_exist_file(in_config_params_file):
-            message = "Config params file not found: \'%s\'..." % (in_config_params_file)
-            catch_error_exception(message)
-
         # 1st: Compute model predictions, and posteriors for testing work data
         new_call = ['python3', SCRIPT_PREDICT_MODEL,
                     args.input_model_file,
@@ -146,6 +146,7 @@ def main(args):
     # 2nd: Compute post-processed posteriors from work predictions
     new_call = ['python3', SCRIPT_POSTPROCESS_PREDICTIONS,
                 '--basedir', basedir,
+                '--in_config_file', in_config_params_file,
                 '--is_mask_region_interest', str(args.is_mask_region_interest),
                 '--is_crop_images', str(args.is_crop_images),
                 '--is_rescale_images', str(args.is_rescale_images),

@@ -4,10 +4,11 @@ import numpy as np
 
 from common.exceptionmanager import catch_error_exception
 from common.functionutil import ImagesUtil
-from imageoperators.boundingboxes import BoundingBoxes
-from imageoperators.imageoperator import ExtendImage
+from imageoperators.boundingboxes import BoundingBoxes, BoundBox3DType, BoundBox2DType
+from imageoperators.imageoperator import ExtendImage, SetImageInVolume, CropImage
 from preprocessing.filternnetoutput_validconvs import FilterNnetOutputValidConvs
 from preprocessing.slidingwindowimages import SlidingWindowImages
+from preprocessing.randomwindowimages import RandomWindowImages
 from preprocessing.transformrigidimages import TransformRigidImages
 
 
@@ -15,89 +16,78 @@ class ImageReconstructor(object):
 
     def __init__(self,
                  size_image: Union[Tuple[int, int, int], Tuple[int, int]],
-                 image_generator: SlidingWindowImages,
                  size_volume_image: Union[Tuple[int, int, int], Tuple[int, int]] = (0, 0, 0),
-                 is_nnet_validconvs: bool = False,
-                 size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
-                 is_filter_output_nnet: bool = False,
-                 filter_image_generator: Union[FilterNnetOutputValidConvs, None] = None
                  ) -> None:
         self._size_image = size_image
         self._ndims = len(size_image)
-        self._image_generator = image_generator
         self._size_volume_image = size_volume_image
 
-        self._is_nnet_validconvs = is_nnet_validconvs
-        if is_nnet_validconvs and size_output_image and (size_image != size_output_image):
-            self._size_output_image = size_output_image
-            self._valid_output_boundbox = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_output_image,
-                                                                                            self._size_image)
-            if self._ndims == 2:
-                self._func_extend_image_patch = ExtendImage._compute2d
-            elif self._ndims == 3:
-                self._func_extend_image_patch = ExtendImage._compute3d
-            else:
-                message = 'ImageReconstructor:__init__: wrong \'ndims\': %s...' % (self._ndims)
-                catch_error_exception(message)
+        if self._ndims == 2:
+            self._func_add_images_volume = SetImageInVolume._compute_adding2d
+        elif self._ndims == 3:
+            self._func_add_images_volume = SetImageInVolume._compute_adding3d
         else:
-            self._is_nnet_validconvs = False
-
-        self._is_filter_output_nnet = is_filter_output_nnet
-        if is_filter_output_nnet:
-            self._filter_image_generator = filter_image_generator
-
-        self._num_patches_total = self._image_generator.get_num_images()
-
-    def update_image_data(self, in_shape_image: Tuple[int, ...], is_compute_normfact: bool = True) -> None:
-        self._update_image_data_step1(in_shape_image)
-        if is_compute_normfact:
-            self._update_image_data_step2()
-
-    def _update_image_data_step1(self, in_shape_image: Tuple[int, ...]) -> None:
-        self._size_volume_image = in_shape_image[0:self._ndims]
-        self._image_generator.update_image_data(in_shape_image)
-        self._num_patches_total = self._image_generator.get_num_images()
-
-    def _update_image_data_step2(self) -> None:
-        self._normfact_overlap_image_patches = self._compute_normfact_overlap_image_patches()
-
-    def _get_processed_image_patch(self, in_image: np.ndarray) -> np.ndarray:
-        if self._is_nnet_validconvs:
-            size_output_image = self._get_shape_output_image(in_image.shape, self._size_image)
-            out_image = self._func_extend_image_patch(in_image, self._valid_output_boundbox,
-                                                      size_output_image, value_backgrnd=0)
-        else:
-            out_image = in_image
-
-        if self._is_filter_output_nnet:
-            out_image = self._filter_image_generator._get_image(out_image)
-
-        return out_image
-
-    def compute(self, in_image_patches: np.ndarray) -> np.ndarray:
-        if not self._check_correct_shape_input_image(in_image_patches.shape):
-            message = "Wrong shape of input predictions data: \'%s\' " % (str(in_image_patches.shape))
+            message = 'ImageReconstructorGeneral:__init__: wrong \'ndims\': %s...' % (self._ndims)
             catch_error_exception(message)
 
-        out_shape_image = self._get_shape_output_image(in_image_patches.shape, self._size_volume_image)
-        out_reconstructed_image = np.zeros(out_shape_image, dtype=in_image_patches.dtype)
+        self._initialize_data()
 
-        for index in range(self._num_patches_total):
-            in_image_patch = self._get_processed_image_patch(in_image_patches[index])
-            self._image_generator.set_add_image_patch(in_image_patch, out_reconstructed_image, index)
+    def _initialize_data(self) -> None:
+        self._size_volume_image = None
+        self._reconstructed_image = None
+        self._reconstructed_factor_overlap = None
 
-        out_reconstructed_image = self._multiply_matrixes_with_channels(out_reconstructed_image,
-                                                                        self._normfact_overlap_image_patches)
-        return self._get_reshaped_output_image(out_reconstructed_image)
+    def get_reconstructed_image(self) -> np.ndarray:
+        return self._reconstructed_image
 
-    def _multiply_matrixes_with_channels(self, matrix_1_withchannels: np.ndarray, matrix_2: np.ndarray
-                                         ) -> Union[np.ndarray, None]:
-        if self._ndims == 2:
-            return np.einsum('ijk,ij->ijk', matrix_1_withchannels, matrix_2)
-        elif self._ndims == 3:
-            return np.einsum('ijkl,ijk->ijkl', matrix_1_withchannels, matrix_2)
+    def get_reconstructed_factor_overlap(self) -> np.ndarray:
+        return self._reconstructed_factor_overlap
+
+    def initialize_recons_data(self, in_shape_image_volume: Tuple[int, ...]) -> None:
+        self._size_volume_image = in_shape_image_volume[0:self._ndims]
+
+    def initialize_recons_array(self, in_image_patch_example: np.ndarray) -> None:
+        shape_volume_image = self._get_shape_output_image(in_image_patch_example.shape, self._size_volume_image)
+        self._reconstructed_image = np.zeros(shape_volume_image, dtype=in_image_patch_example.dtype)
+        # normalizing factor to account for the overlap between the sliding-window patches
+        self._reconstructed_factor_overlap = np.zeros(self._size_volume_image, dtype=np.float32)
+
+    def include_image_patch(self, in_image: np.ndarray,
+                            in_setadd_boundbox: Union[BoundBox3DType, BoundBox2DType]
+                            ) -> None:
+        # set input image patch in reconstructed image
+        self._func_add_images_volume(in_image, self._reconstructed_image, in_setadd_boundbox)
+
+        # set new patch of 'ones' in the full-size 'factor_overlap' array
+        factor_overlap_patch = self._get_factor_overlap_patch(in_image.shape)
+        self._func_add_images_volume(factor_overlap_patch, self._reconstructed_factor_overlap, in_setadd_boundbox)
+
+    def _get_factor_overlap_patch(self, in_shape_image_patch: Tuple[int, ...]) -> np.ndarray:
+        size_input_patch = in_shape_image_patch[0:self._ndims]
+        return np.ones(size_input_patch, dtype=np.float32)
+
+    def finalize_recons_array(self) -> None:
+        # compute the inverse of full-size 'factor_overlap' array, now containing the number of per-voxel overlaps
+        # - prevent the division by zero where there were no patches processed, by setting a very large overlap
+        val_infinity_overlap = 1.0e+010
+        self._reconstructed_factor_overlap = np.where(self._reconstructed_factor_overlap == 0.0,
+                                                      val_infinity_overlap,
+                                                      self._reconstructed_factor_overlap)
+        self._reconstructed_factor_overlap = np.reciprocal(self._reconstructed_factor_overlap)
+
+        # compute the reconstructed image by multiplying voxel-wise by the 'factor_overlap'
+        shape_out_recons_image = self._reconstructed_image.shape
+        if ImagesUtil.is_without_channels(self._size_image, shape_out_recons_image):
+            self._reconstructed_image = np.multiply(self._reconstructed_image, self._reconstructed_factor_overlap)
         else:
-            return None
+            if self._ndims == 2:
+                self._reconstructed_image = \
+                    np.einsum('ijk,ij->ijk', self._reconstructed_image, self._reconstructed_factor_overlap)
+            elif self._ndims == 3:
+                self._reconstructed_image = \
+                    np.einsum('ijkl,ijk->ijkl', self._reconstructed_image, self._reconstructed_factor_overlap)
+
+            self._reconstructed_image = self._get_reshaped_output_image(self._reconstructed_image)
 
     def _get_shape_output_image(self, in_shape_image: Tuple[int, ...],
                                 out_size_image: Union[Tuple[int, int, int], Tuple[int, int]],
@@ -121,6 +111,138 @@ class ImageReconstructor(object):
         else:
             return in_image
 
+
+class ImageReconstructorUnstructured(ImageReconstructor):
+
+    def __init__(self,
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
+                 size_volume_image: Union[Tuple[int, int, int], Tuple[int, int]] = (0, 0, 0),
+                 ) -> None:
+        super(ImageReconstructorUnstructured, self).__init__(size_image, size_volume_image)
+
+        if self._ndims == 2:
+            self._func_crop_images = CropImage._compute2d
+        elif self._ndims == 3:
+            self._func_crop_images = CropImage._compute3d
+        else:
+            message = 'ImageReconstructor:__init__: wrong \'ndims\': %s...' % (self._ndims)
+            catch_error_exception(message)
+
+        self._initialize_data()
+
+    def include_image_patch(self, in_image: np.ndarray,
+                            in_setadd_boundbox: Union[BoundBox3DType, BoundBox2DType]
+                            ) -> None:
+        size_setadd_boundbox = BoundingBoxes.get_size_boundbox(in_setadd_boundbox)
+
+        if not BoundingBoxes.is_boundbox_inside_image_size(in_setadd_boundbox, self._size_volume_image):
+            print("Set-add bounding-box is not contained in the size of reconstructed image: \'%s\' > \'%s\'. "
+                  "Crop images before adding patch..." % (str(size_setadd_boundbox), str(self._size_volume_image)))
+
+            (in_crop_boundbox, in_setadd_boundbox) = \
+                BoundingBoxes.calc_boundboxes_crop_extend_image_reverse(in_setadd_boundbox, self._size_volume_image)
+
+            print("Crop input image to bounding-box: \'%s\', and then Set in reconstructed image with "
+                  "bounding-box: \'%s\'.." % (str(in_crop_boundbox), str(in_setadd_boundbox)))
+
+            in_image = self._func_crop_images(in_image, in_crop_boundbox)
+
+        super(ImageReconstructorUnstructured, self).include_image_patch(in_image, in_setadd_boundbox)
+
+
+class ImageReconstructorWithGenerator(ImageReconstructor):
+
+    def __init__(self,
+                 size_image: Union[Tuple[int, int, int], Tuple[int, int]],
+                 image_patch_generator: Union[SlidingWindowImages, RandomWindowImages],
+                 size_volume_image: Union[Tuple[int, int, int], Tuple[int, int]] = (0, 0, 0),
+                 is_nnet_validconvs: bool = False,
+                 size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
+                 is_filter_output_nnet: bool = False,
+                 filter_image_generator: Union[FilterNnetOutputValidConvs, None] = None
+                 ) -> None:
+        super(ImageReconstructorWithGenerator, self).__init__(size_image, size_volume_image)
+
+        self._image_patch_generator = image_patch_generator
+
+        self._is_nnet_validconvs = is_nnet_validconvs
+        if is_nnet_validconvs and size_output_image and (size_image != size_output_image):
+            self._size_output_image = size_output_image
+
+            self._extend_boundbox_out_nnet_validconvs = \
+                BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_output_image, self._size_image)
+
+            if self._ndims == 2:
+                self._func_extend_images = ExtendImage._compute2d
+            elif self._ndims == 3:
+                self._func_extend_images = ExtendImage._compute3d
+            else:
+                message = 'ImageReconstructorStructured:__init__: wrong \'ndims\': %s...' % (self._ndims)
+                catch_error_exception(message)
+        else:
+            self._is_nnet_validconvs = False
+
+        self._is_filter_output_nnet = is_filter_output_nnet
+        if is_filter_output_nnet:
+            self._filter_image_generator = filter_image_generator
+
+        self._initialize_data()
+
+    def _initialize_data(self) -> None:
+        super(ImageReconstructorWithGenerator, self)._initialize_data()
+        self._num_patches_total = None
+
+    def initialize_recons_data(self, in_shape_image_volume: Tuple[int, ...]) -> None:
+        self._size_volume_image = in_shape_image_volume[0:self._ndims]
+        self._image_patch_generator.update_image_data(in_shape_image_volume)
+        self._num_patches_total = self._image_patch_generator.get_num_images()
+
+    def get_include_image_patch(self, in_image: np.ndarray, index: int) -> None:
+        in_setadd_boundbox = self._image_patch_generator._get_crop_boundbox_image(index)
+        in_processed_image = self._get_processed_image_patch(in_image)
+        super(ImageReconstructorWithGenerator, self).include_image_patch(in_processed_image, in_setadd_boundbox)
+
+    def _get_processed_image_patch(self, in_image: np.ndarray) -> np.ndarray:
+        if self._is_nnet_validconvs:
+            size_output_image = self._get_shape_output_image(in_image.shape, self._size_image)
+            out_image = self._func_extend_images(in_image, self._extend_boundbox_out_nnet_validconvs,
+                                                 size_output_image, value_backgrnd=0)
+        else:
+            out_image = in_image
+
+        if self._is_filter_output_nnet:
+            out_image = self._filter_image_generator._get_image(out_image)
+
+        return out_image
+
+    def _get_factor_overlap_patch(self, in_shape_image_patch: Tuple[int, ...]) -> np.ndarray:
+        if self._is_nnet_validconvs:
+            shape_factor_overlap_patch = self._size_output_image
+        else:
+            shape_factor_overlap_patch = self._size_image
+
+        out_factor_overlap_patch = np.ones(shape_factor_overlap_patch, dtype=np.float32)
+
+        if self._is_nnet_validconvs:
+            return self._func_extend_images(out_factor_overlap_patch, self._extend_boundbox_out_nnet_validconvs,
+                                            self._size_image, value_backgrnd=0.0)
+        else:
+            return out_factor_overlap_patch
+
+    def compute_full(self, in_images_all: np.ndarray) -> np.ndarray:
+        if not self._check_correct_shape_input_image(in_images_all.shape):
+            message = "Wrong shape of input data to be reconstructed: \'%s\' " % (str(in_images_all.shape))
+            catch_error_exception(message)
+
+        self.initialize_recons_array(in_images_all[0])
+
+        for index in range(self._num_patches_total):
+            self.get_include_image_patch(in_images_all[index], index)
+
+        self.finalize_recons_array()
+
+        return self._reconstructed_image
+
     def _check_correct_shape_input_image(self, in_shape_image: Tuple[int, ...]) -> bool:
         check1 = len(in_shape_image) == self._ndims + 2
         check2 = in_shape_image[0] == self._num_patches_total
@@ -131,38 +253,9 @@ class ImageReconstructor(object):
 
         return check1 and check2 and check3
 
-    def compute_overlap_image_patches(self) -> np.ndarray:
-        # compute normalizing factor to account for how many times the sliding-window batches image overlap
-        shape_output_image = self._size_volume_image
-        out_overlap_patches = np.zeros(shape_output_image, dtype=np.float32)
 
-        if self._is_nnet_validconvs:
-            weight_sample_shape = self._size_output_image
-        else:
-            weight_sample_shape = self._size_image
-
-        weight_sample = np.ones(weight_sample_shape, dtype=np.float32)
-        weight_sample = self._get_processed_image_patch(weight_sample)
-
-        for index in range(self._num_patches_total):
-            self._image_generator.set_add_image_patch(weight_sample, out_overlap_patches, index)
-
-        return out_overlap_patches
-
-    def _compute_normfact_overlap_image_patches(self) -> np.ndarray:
-        out_normfact_overlap_patches = self.compute_overlap_image_patches()
-
-        # set to very large overlap to avoid division by zero in those parts where there was no batch extracted
-        max_toler = 1.0e+010
-        out_normfact_overlap_patches = \
-            np.where(out_normfact_overlap_patches == 0.0, max_toler, out_normfact_overlap_patches)
-        out_normfact_overlap_patches = np.reciprocal(out_normfact_overlap_patches)
-
-        return out_normfact_overlap_patches
-
-
-class ImageReconstructorWithTransformation(ImageReconstructor):
-    # PROTOTYPE OF RECONSTRUCTOR WITH TRANSFORMATION AT TESTING TIME. NIT TESTED YET
+class ImageReconstructorWithTransformation(ImageReconstructorWithGenerator):
+    # WATCH OUT -> PROTOTYPE OF RECONSTRUCTOR WITH TRANSFORMATION AT TESTING TIME. NOT TESTED YET !!!
     def __init__(self,
                  size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  image_transform_generator: TransformRigidImages,
@@ -187,11 +280,11 @@ class ImageReconstructorWithTransformation(ImageReconstructor):
 
     def _get_processed_image_patch(self, in_image: np.ndarray) -> np.ndarray:
         # SEARCH FOR NUMPY FUNCTION TO DO SUMATION DIRECTLY
-        sumrun_in_images = in_image[0]
+        sumrun_images = in_image[0]
         for i in range(1, self._num_trans_per_patch):
-            sumrun_in_images += self._image_transform_generator._get_inverse_transformed_image(in_image[i])
+            sumrun_images += self._image_transform_generator._get_inverse_transformed_image(in_image[i])
 
-        out_image = np.divide(sumrun_in_images, self._num_trans_per_patch)
+        out_image = np.divide(sumrun_images, self._num_trans_per_patch)
 
         # Apply rest of processing operations from parent class
         out_image = super(ImageReconstructorWithTransformation, self)._get_processed_image_patch(out_image)

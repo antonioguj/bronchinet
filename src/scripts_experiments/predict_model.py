@@ -120,27 +120,29 @@ def main(args):
                                              batch_size=1,
                                              is_shuffle=False,
                                              manual_seed=None)
-        print("Loaded \'%s\' files. Total batches generated: %s..." % (1, len(image_data_loader)))
+        print("Loaded \'%s\' files. Total patches generated: \'%s\'..." % (1, len(image_data_loader)))
 
         # ******************************
 
         if args.is_save_featmaps_layer:
             print("Evaluate Model feature maps...")
-            out_prediction_batches = network_checker.get_feature_maps(image_data_loader, args.name_layer_save_feats)
+            out_prediction_patches = network_checker.get_feature_maps(image_data_loader, args.name_layer_save_feats)
         else:
             print("Evaluate Model...")
-            out_prediction_batches = model_trainer.predict(image_data_loader)
+            out_prediction_patches = model_trainer.predict(image_data_loader)
 
         # ******************************
 
         if args.is_reconstruct_pred_patches:
-            print("\nReconstruct full size Prediction from image patches...")
-            out_shape_reconstructed_image = ImageFileReader.get_image_size(in_image_file)
-            images_reconstructor.update_image_data(out_shape_reconstructed_image)
+            print("\nReconstruct full size Prediction from sliding-window image patches...")
+            shape_reconstructed_image = ImageFileReader.get_image_size(in_image_file)
 
-            out_prediction_reconstructed = images_reconstructor.compute(out_prediction_batches)
+            images_reconstructor.initialize_recons_data(shape_reconstructed_image)
+            images_reconstructor.initialize_recons_array(out_prediction_patches[0])
+
+            out_prediction_reconstructed = images_reconstructor.compute_full(out_prediction_patches)
         else:
-            out_prediction_reconstructed = np.squeeze(out_prediction_batches, axis=(0, -1))
+            out_prediction_reconstructed = np.squeeze(out_prediction_patches, axis=(0, -1))
 
         # ******************************
 

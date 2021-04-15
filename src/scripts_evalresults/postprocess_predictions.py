@@ -1,65 +1,20 @@
 
-from typing import Tuple
-import numpy as np
 import argparse
 
-from common.constant import BASEDIR, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_BINARY_TRAIN_MASKS,\
-    NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, NAME_REFERENCE_FILES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
-    NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE, IS_TWO_BOUNDBOXES_LUNGS
-from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, \
-    get_regex_pattern_filename, find_file_inlist_with_pattern, str2bool, read_dictionary
-from common.exceptionmanager import catch_warning_exception
+from common.constant import BASEDIR, SIZE_IN_IMAGES, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, \
+    IS_BINARY_TRAIN_MASKS, NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, NAME_REFERENCE_FILES_RELPATH, \
+    NAME_RAW_ROIMASKS_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_CROP_BOUNDBOXES_FILE, \
+    NAME_RESCALE_FACTORS_FILE, IS_TWO_BOUNDBOXES_LUNGS
+from common.functionutil import join_path_names, is_exist_file, basename, basename_filenoext, list_files_dir, \
+    get_regex_pattern_filename, find_file_inlist_with_pattern, str2bool, str2tuple_int, read_dictionary, \
+    read_dictionary_configparams
+from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
-from imageoperators.boundingboxes import BoundingBoxes, BoundBox3DType
-from imageoperators.imageoperator import ExtendImage, CropAndExtendImage, SetPatchInImage, CropImageAndSetPatchInImage
+from imageoperators.boundingboxes import BoundingBoxes
+from imageoperators.imageoperator import ExtendImage, CropAndExtendImage
 from imageoperators.maskoperator import MaskOperator
-
-
-def reconstruct_cropped_patches_first(in_prediction: np.ndarray,
-                                      in_crop_boundbox: BoundBox3DType,
-                                      size_output_image: Tuple[int, int, int]
-                                      ) -> np.ndarray:
-    size_crop_boundbox = BoundingBoxes.get_size_boundbox(in_crop_boundbox)
-
-    if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_boundbox, size_output_image):
-        print("Crop bounding-box is not contained in the size of output full-size array: \'%s\' > \'%s\'. "
-              "Extend images after cropping..." % (str(size_crop_boundbox), str(size_output_image)))
-
-        (in_crop_boundbox, in_extend_boundbox) = \
-            BoundingBoxes.calc_boundboxes_crop_extend_image_reverse(in_crop_boundbox, size_output_image)
-
-        print("Crop input prediction to bounding-box: \'%s\', and then extend with bou-box: \'%s\'..."
-              % (str(in_crop_boundbox), str(in_extend_boundbox)))
-        return CropAndExtendImage.compute(in_prediction, in_crop_boundbox, in_extend_boundbox, size_output_image)
-
-    else:
-        print("Extend input prediction with bounding-box: \'%s\'..." % str(in_crop_boundbox))
-        return ExtendImage.compute(in_prediction, in_crop_boundbox, size_output_image)
-
-
-def reconstruct_cropped_patches_next(in_prediction: np.ndarray,
-                                     out_fullsize_prediction: np.ndarray,
-                                     in_crop_boundbox: BoundBox3DType
-                                     ) -> None:
-    size_crop_boundbox = BoundingBoxes.get_size_boundbox(in_crop_boundbox)
-    size_output_image = out_fullsize_prediction.shape
-
-    if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_boundbox, size_output_image):
-        print("Crop bounding-box is not contained in the size of output full-size array: \'%s\' > \'%s\'. "
-              "Extend images after cropping..." % (str(size_crop_boundbox), str(size_output_image)))
-
-        (in_crop_boundbox, in_extend_boundbox) = \
-            BoundingBoxes.calc_boundboxes_crop_extend_image_reverse(in_crop_boundbox, size_output_image)
-
-        print("Crop input prediction to bounding-box: \'%s\', and then set in full-size array with bou-box: \'%s\'..."
-              % (str(in_crop_boundbox), str(in_extend_boundbox)))
-        CropImageAndSetPatchInImage.compute(in_prediction, out_fullsize_prediction,
-                                            in_crop_boundbox, in_extend_boundbox)
-
-    else:
-        print("Set input prediction in full-size array with bounding-box: \'%s\'..." % str(in_crop_boundbox))
-        SetPatchInImage.compute(in_prediction, out_fullsize_prediction, in_crop_boundbox)
+from postprocessing.imagereconstructor import ImageReconstructorUnstructured
 
 
 def main(args):
@@ -91,6 +46,11 @@ def main(args):
     else:
         indict_crop_boundboxes = None
 
+    if args.is_crop_images and args.is_two_boundboxes_lungs:
+        image_reconstructor_cropped_patches = ImageReconstructorUnstructured(args.size_in_images)
+    else:
+        image_reconstructor_cropped_patches = None
+
     # if args.is_rescale_images:
     #     input_rescale_factors_file = workdir_manager.get_datafile_exist(args.name_rescale_factors_file)
     #     indict_rescale_factors = read_dictionary(input_rescale_factors_file)
@@ -120,43 +80,63 @@ def main(args):
         # ******************************
 
         if args.is_crop_images:
-            print("Input data to Network were cropped: Extend prediction to full image size...")
-
             if args.is_two_boundboxes_lungs:
+                print("Input data to Network were cropped -> Reconstruct cropped prediction patches from same image...")
+
                 inlist_crop_boundboxes = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
                 num_crop_boundboxes = len(inlist_crop_boundboxes)
                 size_output_fullpred = ImageFileReader.get_image_size(in_reference_file)
-                print("Input data cropped to \'%s\' crop bounding-boxes: \'%s\' and \'%s\'..."
+                print("Input data were cropped to \'%s\' crop bounding-boxes: \'%s\' and \'%s\'..."
                       % (num_crop_boundboxes, str(inlist_crop_boundboxes[0]), str(inlist_crop_boundboxes[1])))
 
-                print("First Patch: Extend cropped prediction to full-size array of size: \'%s\'..."
-                      % (str(size_output_fullpred)))
-                out_full_prediction = reconstruct_cropped_patches_first(inout_prediction, inlist_crop_boundboxes[0],
-                                                                        size_output_fullpred)
+                print("Reconstruct full-size prediction of size: \'%s\'" % (str(size_output_fullpred)))
+                image_reconstructor_cropped_patches.initialize_recons_data(size_output_fullpred)
+                image_reconstructor_cropped_patches.initialize_recons_array(inout_prediction)
+
+                print("First Patch: Set-add cropped prediction in reconstructed array with bounding-box: \'%s\'..."
+                      % (str(inlist_crop_boundboxes[0])))
+                image_reconstructor_cropped_patches.include_image_patch(inout_prediction,
+                                                                        inlist_crop_boundboxes[0])
 
                 for icrop in range(1, num_crop_boundboxes):
                     # loop over next prediction patches in the list
                     in_prediction_file = next(list_input_predictions_files)
                     inout_prediction = ImageFileReader.get_image(in_prediction_file)
-                    print("\nNext Input: \'%s\'..." % (basename(in_prediction_file)))
+                    print("Next Input Patch: \'%s\'..." % (basename(in_prediction_file)))
                     print("Input dims : \'%s\'..." % (str(inout_prediction.shape)))
 
-                    print("Next Patch: Set cropped prediction in the full-size array, with bounding-box: \'%s\'..."
+                    print("Next Patch: Set-add cropped prediction in reconstructed array with bounding-box: \'%s\'..."
                           % (str(inlist_crop_boundboxes[icrop])))
-                    reconstruct_cropped_patches_next(inout_prediction, out_full_prediction,
-                                                     inlist_crop_boundboxes[icrop])
+                    image_reconstructor_cropped_patches.include_image_patch(inout_prediction,
+                                                                            inlist_crop_boundboxes[icrop])
                 # endfor
-                inout_prediction = out_full_prediction
+
+                image_reconstructor_cropped_patches.finalize_recons_array()
+                inout_prediction = image_reconstructor_cropped_patches.get_reconstructed_image()
 
             else:
+                print("Input data to Network were cropped -> Extend prediction to full image size...")
+
                 in_crop_boundbox = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
                 size_output_fullpred = ImageFileReader.get_image_size(in_reference_file)
-                print("Input data cropped to bounding-box: \'%s\'..." % (str(in_crop_boundbox)))
+                print("Input data were cropped to bounding-box: \'%s\'..." % (str(in_crop_boundbox)))
 
-                print("First Patch: Extend cropped prediction to full-size array of size: \'%s\'..."
-                      % (str(size_output_fullpred)))
-                inout_prediction = reconstruct_cropped_patches_first(inout_prediction, in_crop_boundbox,
-                                                                     size_output_fullpred)
+                size_crop_boundbox = BoundingBoxes.get_size_boundbox(in_crop_boundbox)
+
+                if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_boundbox, size_output_fullpred):
+                    print("Crop bounding-box is not contained in the size of output full-size array: \'%s\' > \'%s\'. "
+                          "Extend images after cropping..." % (str(size_crop_boundbox), str(size_output_fullpred)))
+
+                    (in_crop_boundbox, in_extend_boundbox) = \
+                        BoundingBoxes.calc_boundboxes_crop_extend_image_reverse(in_crop_boundbox, size_output_fullpred)
+
+                    print("Crop input prediction to bounding-box: \'%s\', and then Extend with bounding-box: \'%s\'..."
+                          % (str(in_crop_boundbox), str(in_extend_boundbox)))
+                    inout_prediction = CropAndExtendImage.compute(inout_prediction, in_crop_boundbox,
+                                                                  in_extend_boundbox, size_output_fullpred)
+                else:
+                    print("Extend input prediction with bounding-box: \'%s\'..." % str(in_crop_boundbox))
+                    inout_prediction = ExtendImage.compute(inout_prediction, in_crop_boundbox, size_output_fullpred)
 
         # ******************************
 
@@ -167,7 +147,7 @@ def main(args):
         # ******************************
 
         if args.is_mask_region_interest:
-            print("Input data to Network were masked to ROI (lungs): Reverse mask in predictions...")
+            print("Input data to Network were masked to ROI (lungs) -> Reverse mask in predictions...")
             in_roimask_file = find_file_inlist_with_pattern(basename(in_reference_file), list_input_roimasks_files,
                                                             pattern_search=pattern_search_infiles)
             print("ROI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
@@ -190,6 +170,8 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
+    parser.add_argument('--in_config_file', type=str, default=None)
+    parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
@@ -203,6 +185,17 @@ if __name__ == "__main__":
     parser.add_argument('--name_crop_boundboxes_file', type=str, default=NAME_CROP_BOUNDBOXES_FILE)
     parser.add_argument('--name_rescale_factors_file', type=str, default=NAME_RESCALE_FACTORS_FILE)
     args = parser.parse_args()
+
+    if args.in_config_file:
+        if not is_exist_file(args.in_config_file):
+            message = "Config params file not found: \'%s\'..." % (args.in_config_file)
+            catch_error_exception(message)
+        else:
+            input_args_file = read_dictionary_configparams(args.in_config_file)
+            print("Set up experiments with parameters from file: \'%s\'" % (args.in_config_file))
+
+            # args.basedir = str(input_args_file['basedir'])
+            args.size_in_images = str2tuple_int(input_args_file['size_in_images'])
 
     print("Print input arguments...")
     for key, value in vars(args).items():

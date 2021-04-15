@@ -57,21 +57,21 @@ def main(args):
                                                         type_trans_elastic=args.type_trans_elastic_deform,
                                                         batch_size=1,
                                                         is_shuffle=False)
-        (image_data_batches, label_data_batches) = image_data_loader.get_full_data()
+        (image_data_patches, label_data_patches) = image_data_loader.get_full_data()
 
-        num_batches = len(image_data_batches)
-        print("\nGenerated total image batches: %s..." % (num_batches))
+        num_patches = len(image_data_patches)
+        print("\nGenerated total image patches: \'%s\'..." % (num_patches))
 
-        for ibatch in range(num_batches):
-            out_image_batch = np.squeeze(image_data_batches[ibatch], axis=-1)
-            out_label_batch = np.squeeze(label_data_batches[ibatch], axis=-1)
+        for ipatch in range(num_patches):
+            out_image_patch = np.squeeze(image_data_patches[ipatch], axis=-1)
+            out_label_patch = np.squeeze(label_data_patches[ipatch], axis=-1)
 
-            out_image_filename = join_path_names(output_files_path, name_output_images_files % (ifile + 1, ibatch + 1))
-            out_label_filename = join_path_names(output_files_path, name_output_labels_files % (ifile + 1, ibatch + 1))
-            print("Output: \'%s\', of dims \'%s\'..." % (basename(out_image_filename), out_image_batch.shape))
+            out_image_filename = join_path_names(output_files_path, name_output_images_files % (ifile + 1, ipatch + 1))
+            out_label_filename = join_path_names(output_files_path, name_output_labels_files % (ifile + 1, ipatch + 1))
+            print("Output: \'%s\', of dims \'%s\'..." % (basename(out_image_filename), out_image_patch.shape))
 
-            ImageFileReader.write_image(out_image_filename, out_image_batch)
-            ImageFileReader.write_image(out_label_filename, out_label_batch)
+            ImageFileReader.write_image(out_image_filename, out_image_patch)
+            ImageFileReader.write_image(out_label_filename, out_label_patch)
         # endfor
     # endfor
 

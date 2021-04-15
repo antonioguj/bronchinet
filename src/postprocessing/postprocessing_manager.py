@@ -2,7 +2,7 @@
 from typing import Tuple, Dict, Union, Any
 
 from common.exceptionmanager import catch_error_exception
-from postprocessing.imagereconstructor import ImageReconstructor, ImageReconstructorWithTransformation
+from postprocessing.imagereconstructor import ImageReconstructorWithGenerator
 from preprocessing.filternnetoutput_validconvs import FilteringNnetOutputValidConvs2D, FilteringNnetOutputValidConvs3D
 from preprocessing.preprocessing_manager import get_images_generator, fill_missing_trans_rigid_params
 
@@ -22,10 +22,7 @@ def get_images_reconstructor(size_images: Union[Tuple[int, int, int], Tuple[int,
                              size_output_images: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                              is_filter_output_nnet: bool = False,
                              prop_filter_output_nnet: float = None,
-                             ) -> ImageReconstructor:
-    if not is_sliding_window:
-        message = 'Image Reconstructor without Sliding-window generation of Image patches not implemented yet'
-        catch_error_exception(message)
+                             ) -> ImageReconstructorWithGenerator:
 
     trans_rigid_params = fill_missing_trans_rigid_params(trans_rigid_params)
 
@@ -71,21 +68,16 @@ def get_images_reconstructor(size_images: Union[Tuple[int, int, int], Tuple[int,
 
     if not (is_transform_rigid or is_transform_elastic):
         # reconstructor of images following the sliding-window generator of input patches
-        images_reconstructor = ImageReconstructor(size_images,
-                                                  images_generator,
-                                                  size_volume_image=size_volume_images,
-                                                  is_nnet_validconvs=is_nnet_validconvs,
-                                                  size_output_image=size_output_images,
-                                                  is_filter_output_nnet=is_filter_output_nnet,
-                                                  filter_image_generator=filter_image_generator)
+        images_reconstructor = ImageReconstructorWithGenerator(size_images,
+                                                               images_generator,
+                                                               size_volume_image=size_volume_images,
+                                                               is_nnet_validconvs=is_nnet_validconvs,
+                                                               size_output_image=size_output_images,
+                                                               is_filter_output_nnet=is_filter_output_nnet,
+                                                               filter_image_generator=filter_image_generator)
     else:
-        # reconstructor of images accounting for transformations during testing (PROTOTYPE, NOT TESTED YET)
-        images_reconstructor = ImageReconstructorWithTransformation(size_images,
-                                                                    images_generator,
-                                                                    num_trans_per_patch=num_trans_per_sample,
-                                                                    size_volume_image=size_volume_images,
-                                                                    is_nnet_validconvs=is_nnet_validconvs,
-                                                                    size_output_image=size_output_images,
-                                                                    is_filter_output_nnet=is_filter_output_nnet,
-                                                                    filter_image_generator=filter_image_generator)
+        message = 'Image Reconstructor with Image Transformations not implemented yet'
+        catch_error_exception(message)
+        images_reconstructor = None
+
     return images_reconstructor
