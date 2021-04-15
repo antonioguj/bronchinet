@@ -194,7 +194,7 @@ def main(args):
                                           batch_size=args.batch_size,
                                           is_shuffle=args.is_shuffle_traindata,
                                           manual_seed=args.manual_seed_train)
-    print("Loaded \'%s\' files. Total batches generated: %s..."
+    print("Loaded \'%s\' files. Total batches generated: \'%s\'..."
           % (len(list_train_images_files), len(training_data_loader)))
 
     if args.is_use_validation_data:
@@ -219,7 +219,7 @@ def main(args):
                                               batch_size=args.batch_size,
                                               is_shuffle=args.is_shuffle_traindata,
                                               manual_seed=args.manual_seed_train)
-        print("Loaded \'%s\' files. Total batches generated: %s..."
+        print("Loaded \'%s\' files. Total batches generated: \'%s\'..."
               % (len(list_valid_images_files), len(validation_data_loader)))
     else:
         validation_data_loader = None

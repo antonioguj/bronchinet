@@ -4,7 +4,7 @@ import traceback
 import sys
 import argparse
 
-from common.constant import SIZE_IN_IMAGES, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, \
+from common.constant import CODEDIR, SIZE_IN_IMAGES, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, \
     NAME_RAW_IMAGES_RELPATH, NAME_RAW_LABELS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, NAME_REFERENCE_FILES_RELPATH, \
     NAME_RAW_CENTRELINES_RELPATH, NAME_RAW_COARSEAIRWAYS_RELPATH, NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE,\
     IS_TWO_BOUNDBOXES_LUNGS
@@ -12,7 +12,6 @@ from common.functionutil import currentdir, makedir, set_dirname_suffix, join_pa
     basename, fileextension, str2bool, str2tuple_int
 from common.exceptionmanager import catch_error_exception
 
-CODEDIR = '/home/antonio/Codes/Antonio_repository/bronchinet/src/'
 SCRIPT_CONVERT_TO_NIFTI = join_path_names(CODEDIR, 'scripts_util/convert_images_to_nifti.py')
 SCRIPT_BINARISE_MASKS = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
 SCRIPT_GET_TRACHEA_MAIN_BRONCHI = join_path_names(CODEDIR, 'scripts_util/apply_operation_images.py')
@@ -312,7 +311,7 @@ def main(args):
     # ******************************
 
     # Binarise the ROI masks now, after being used to compute the two bounding-boxes for each lung
-    if args.is_two_boundboxes_lungs:
+    if args.is_keep_raw_images and args.is_two_boundboxes_lungs:
         name_tempo_binary_roimasks_path = set_dirname_suffix(name_input_raw_roimasks_path, 'Binary')
 
         new_call = ['python3', SCRIPT_BINARISE_MASKS,
@@ -326,19 +325,20 @@ def main(args):
     # ******************************
 
     # Remove all the data not needed anymore
-    if args.type_data == 'training':
-        new_call = ['rm', '-r', name_input_raw_images_path]
-        list_calls_all.append(new_call)
-
-        new_call = ['rm', '-r', name_input_raw_labels_path]
-        list_calls_all.append(new_call)
-
-        new_call = ['rm', '-r', name_input_raw_roimasks_path]
-        list_calls_all.append(new_call)
-
-        if args.source_remote_datadir in ['DLCST', 'DLCST/']:
-            new_call = ['rm', name_input_found_boundboxes_file]
+    if not args.is_keep_tempo_data:
+        if args.type_data == 'training':
+            new_call = ['rm', '-r', name_input_raw_images_path]
             list_calls_all.append(new_call)
+
+            new_call = ['rm', '-r', name_input_raw_labels_path]
+            list_calls_all.append(new_call)
+
+            new_call = ['rm', '-r', name_input_raw_roimasks_path]
+            list_calls_all.append(new_call)
+
+            if args.source_remote_datadir in ['DLCST', 'DLCST/']:
+                new_call = ['rm', name_input_found_boundboxes_file]
+                list_calls_all.append(new_call)
 
     # ******************************
 
@@ -365,6 +365,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
     parser.add_argument('--is_two_boundboxes_lungs', type=str2bool, default=IS_TWO_BOUNDBOXES_LUNGS)
+    parser.add_argument('--is_keep_tempo_data', type=str2bool, default=False)
     args = parser.parse_args()
 
     if args.type_data == 'training':

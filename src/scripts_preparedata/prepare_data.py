@@ -36,13 +36,15 @@ def check_same_size_images(in_image_1: np.ndarray, in_image_2: np.ndarray) -> bo
         return False
 
 
-def compute_cropped_patches_list_data(list_inout_data: List[np.ndarray],
-                                      list_type_inout_data: List[str],
+def compute_cropped_patches_list_data(list_in_data: List[np.ndarray],
+                                      list_type_in_data: List[str],
                                       in_crop_boundbox: BoundBox3DType,
+                                      list_out_data: List[np.ndarray],
+                                      list_type_out_data: List[str],
                                       is_insert_new_data: bool = False
                                       ) -> None:
-    index_image = list_type_inout_data.index('image')
-    size_image = list_inout_data[index_image].shape
+    index_image = list_type_in_data.index('image')
+    size_image = list_in_data[index_image].shape
     size_crop_boundbox = BoundingBoxes.get_size_boundbox(in_crop_boundbox)
 
     if not BoundingBoxes.is_boundbox_inside_image_size(in_crop_boundbox, size_image):
@@ -58,23 +60,23 @@ def compute_cropped_patches_list_data(list_inout_data: List[np.ndarray],
         in_extend_boundbox = None
         size_output_image = None
 
-    for idata, (in_data, type_in_data) in enumerate(zip(list_inout_data, list_type_inout_data)):
+    for idata, (in_data, type_in_data) in enumerate(zip(list_in_data, list_type_in_data)):
         if '_cropped' not in type_in_data:
             if is_combine_crop_extend:
-                print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\', and then extend with bou-box: \'%s\'..."
-                      % (idata, type_in_data, str(in_crop_boundbox), str(in_extend_boundbox)))
-                out_data = CropAndExtendImage.compute(list_inout_data[idata], in_crop_boundbox,
+                print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\', and then Extend with bounding-box: "
+                      "\'%s\'..." % (idata, type_in_data, str(in_crop_boundbox), str(in_extend_boundbox)))
+                out_data = CropAndExtendImage.compute(list_in_data[idata], in_crop_boundbox,
                                                       in_extend_boundbox, size_output_image)
             else:
                 print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\'..."
                       % (idata, type_in_data, str(in_crop_boundbox)))
-                out_data = CropImage.compute(list_inout_data[idata], in_crop_boundbox)
+                out_data = CropImage.compute(list_in_data[idata], in_crop_boundbox)
 
             if is_insert_new_data:
-                list_inout_data.append(out_data)
-                list_type_inout_data.append('%s_cropped' % (type_in_data))
+                list_out_data.append(out_data)
+                list_type_out_data.append(type_in_data)
             else:
-                list_inout_data[idata] = out_data
+                list_out_data[idata] = out_data
     # endfor
 
 
@@ -267,24 +269,25 @@ def main(args):
                 in_reference_key = list_in_reference_files[ifile]
                 inlist_crop_boundboxes = indict_crop_boundboxes[basename_filenoext(in_reference_key)]
                 num_crop_boundboxes = len(inlist_crop_boundboxes)
-                print("Crop all input data to \'%s\' crop bounding-boxes: \'%s\' and \'%s\'..."
+                print("Crop all input data to \'%s\' bounding-boxes: \'%s\' and \'%s\'..."
                       % (num_crop_boundboxes, str(inlist_crop_boundboxes[0]), str(inlist_crop_boundboxes[1])))
 
-                for icrop in range(num_crop_boundboxes - 1, -1, -1):
-                    # loop in reverse order, and keep the original image / label until the last cropping,
-                    # where it'll be replaced by the new cropped data. Otherwise, insert new data in list
-                    if icrop == 0:
-                        compute_cropped_patches_list_data(list_inout_data, list_type_inout_data,
-                                                          inlist_crop_boundboxes[icrop],
-                                                          is_insert_new_data=False)
-                    else:
-                        compute_cropped_patches_list_data(list_inout_data, list_type_inout_data,
-                                                          inlist_crop_boundboxes[icrop],
-                                                          is_insert_new_data=True)
+                size_inout_data_init = len(list_inout_data)
+
+                for icrop in range(1, num_crop_boundboxes):
+                    compute_cropped_patches_list_data(list_inout_data[0:size_inout_data_init],
+                                                      list_type_inout_data[0:size_inout_data_init],
+                                                      inlist_crop_boundboxes[icrop],
+                                                      list_inout_data, list_type_inout_data,
+                                                      is_insert_new_data=True)
                 # endfor
 
-                # remove the suffixes for extra created data
-                list_type_inout_data = [elem.replace('_cropped', '') for elem in list_type_inout_data]
+                # keep the original input image / label until the last cropping, and replace it by the new cropped data
+                compute_cropped_patches_list_data(list_inout_data[0:size_inout_data_init],
+                                                  list_type_inout_data[0:size_inout_data_init],
+                                                  inlist_crop_boundboxes[0],
+                                                  list_inout_data, list_type_inout_data,
+                                                  is_insert_new_data=False)
 
                 # images / labels created for extra cropping boxes are allocated at the end of 'list_inout_data'
                 # push all labels at the end. New order: ('image_0', ..., 'image_N', 'label_0', ..., 'label_N')
@@ -302,7 +305,9 @@ def main(args):
                 print("Crop all input data to bounding-box: \'%s\'..." % (str(in_crop_boundbox)))
 
                 compute_cropped_patches_list_data(list_inout_data, list_type_inout_data,
-                                                  in_crop_boundbox)
+                                                  in_crop_boundbox,
+                                                  list_inout_data, list_type_inout_data,
+                                                  is_insert_new_data=False)
 
         # ******************************
 

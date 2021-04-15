@@ -84,15 +84,19 @@ def main(args):
                                                         size_output_images=size_output_image_network,
                                                         batch_size=1,
                                                         is_shuffle=False)
-        (_, label_data_batches) = label_data_loader.get_full_data()
-        print("Loaded \'%s\' files. Total batches generated: %s..." % (1, len(label_data_batches)))
+        (_, label_data_patches) = label_data_loader.get_full_data()
+        print("Loaded \'%s\' files. Total patches generated: \'%s\'..." % (1, len(label_data_patches)))
 
-        print("Reconstruct full size label from batches...")
-        out_shape_reconstructed_label = ImageFileReader.get_image_size(in_label_file)
-        images_reconstructor.update_image_data(out_shape_reconstructed_label)
+        # ******************************
 
-        out_label_reconstructed = images_reconstructor.compute(label_data_batches)
-        out_fieldview_reconstructed = images_reconstructor.compute_overlap_image_patches()
+        print("Reconstruct full size Label from sliding-window label patches...")
+        shape_reconstructed_label = ImageFileReader.get_image_size(in_label_file)
+
+        images_reconstructor.initialize_recons_data(shape_reconstructed_label)
+        images_reconstructor.initialize_recons_array(label_data_patches[0])
+
+        out_label_reconstructed = images_reconstructor.compute_full(label_data_patches)
+        out_fieldview_reconstructed = images_reconstructor.get_reconstructed_factor_overlap()
 
         # ******************************
 

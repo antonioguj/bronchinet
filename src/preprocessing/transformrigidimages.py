@@ -21,6 +21,8 @@ class TransformRigidImages(ImageGenerator):
                  rescale_factor: float = None,
                  preprocessing_function: Callable[[np.ndarray], np.ndarray] = None
                  ) -> None:
+        super(TransformRigidImages, self).__init__(size_image, num_images=1)
+
         if is_normalize_data:
             if type_normalize_data == 'featurewise':
                 self._featurewise_center = True
@@ -48,8 +50,6 @@ class TransformRigidImages(ImageGenerator):
         self._std = None
         self._principal_components = None
 
-        super(TransformRigidImages, self).__init__(size_image, num_images=1)
-
         self._is_inverse_transform = is_inverse_transform
         self._initialize_gendata()
 
@@ -57,15 +57,14 @@ class TransformRigidImages(ImageGenerator):
         # self._num_images = in_shape_image[0]
         pass
 
-    def _compute_gendata(self, **kwargs) -> None:
-        seed = kwargs['seed']
-        (self._transform_matrix, self._transform_params) = self._get_compute_random_transform_matrix(seed)
-        self._is_compute_gendata = False
-
     def _initialize_gendata(self) -> None:
-        self._is_compute_gendata = True
         self._transform_matrix = None
         self._transform_params = None
+        self._count_trans_in_images = 0
+
+    def _update_gendata(self, **kwargs) -> None:
+        seed = kwargs['seed']
+        (self._transform_matrix, self._transform_params) = self._get_compute_random_transform_matrix(seed)
         self._count_trans_in_images = 0
 
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:

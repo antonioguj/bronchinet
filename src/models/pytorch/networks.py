@@ -7,6 +7,7 @@ import torch
 
 from common.exceptionmanager import catch_error_exception
 from common.functionutil import ImagesUtil
+from imageoperators.imageoperator import CropImage
 from models.networks import UNetBase
 
 LIST_AVAIL_NETWORKS = ['UNet3DOriginal',
@@ -47,17 +48,12 @@ class UNet(UNetBase, nn.Module):
     def _crop_image_2d(self, input: torch.Tensor, size_crop: Tuple[int, int]) -> torch.Tensor:
         size_input_image = input.shape[-2:]
         limits_out_image = self._get_limits_output_crop(size_input_image, size_crop)
-        return input[:, :,  # dims for input and output features
-                     limits_out_image[0][0]:limits_out_image[0][1],
-                     limits_out_image[1][0]:limits_out_image[1][1]]
+        return CropImage._compute2d_channels_first(input, limits_out_image)
 
     def _crop_image_3d(self, input: torch.Tensor, size_crop: Tuple[int, int, int]) -> torch.Tensor:
         size_input_image = input.shape[-3:]
         limits_out_image = self._get_limits_output_crop(size_input_image, size_crop)
-        return input[:, :,  # dims for input and output features
-                     limits_out_image[0][0]:limits_out_image[0][1],
-                     limits_out_image[1][0]:limits_out_image[1][1],
-                     limits_out_image[2][0]:limits_out_image[2][1]]
+        return CropImage._compute3d_channels_first(input, limits_out_image)
 
 
 class UNet3DOriginal(UNet):
