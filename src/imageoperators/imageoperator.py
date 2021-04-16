@@ -168,7 +168,7 @@ class ExtendImage(ImageOperator):
                          out_dtype: np.dtype,
                          value_backgrnd: float = None
                          ) -> np.ndarray:
-        if value_backgrnd is None:
+        if value_backgrnd is None or (value_backgrnd == 0.0):
             return np.zeros(size_output, dtype=out_dtype)
         else:
             return np.full(size_output, value_backgrnd, dtype=out_dtype)

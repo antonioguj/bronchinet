@@ -16,10 +16,12 @@ class ImageReconstructorGeneral(object):
     def __init__(self,
                  size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  size_volume_image: Union[Tuple[int, int, int], Tuple[int, int]] = (0, 0, 0),
+                 type_combine_patches: str = 'average',
                  ) -> None:
         self._size_image = size_image
         self._ndims = len(size_image)
         self._size_volume_image = size_volume_image
+        self._type_combine_patches = type_combine_patches
 
         if self._ndims == 2:
             self._func_add_images_volume = SetImageInVolume._compute_adding2d
@@ -29,6 +31,11 @@ class ImageReconstructorGeneral(object):
             self._func_crop_images = CropImage._compute3d
         else:
             message = 'ImageReconstructorGeneral:__init__: wrong \'ndims\': %s...' % (self._ndims)
+            catch_error_exception(message)
+
+        if self._type_combine_patches not in ['average', 'max']:
+            message = '\'type_combine_patches\' must be either \'average\' or \'max\'... Received: \'%s\'' \
+                      % (self._type_combine_patches)
             catch_error_exception(message)
 
         self._initialize_data()
@@ -50,18 +57,19 @@ class ImageReconstructorGeneral(object):
     def initialize_recons_array(self, in_image_patch_example: np.ndarray) -> None:
         shape_volume_image = self._get_shape_output_image(in_image_patch_example.shape, self._size_volume_image)
         self._reconstructed_image = np.zeros(shape_volume_image, dtype=in_image_patch_example.dtype)
-        # normalizing factor to account for the overlap between the sliding-window patches
-        self._reconstructed_factor_overlap = np.zeros(self._size_volume_image, dtype=np.float32)
+
+        if self._type_combine_patches == 'average':
+            # normalizing factor to account for the overlap between the sliding-window patches
+            self._reconstructed_factor_overlap = np.zeros(self._size_volume_image, dtype=np.float32)
 
     def include_image_patch(self, in_image: np.ndarray,
                             in_setadd_boundbox: Union[BoundBox3DType, BoundBox2DType]
                             ) -> None:
-        # set input image patch in reconstructed image
-        self._func_add_images_volume(in_image, self._reconstructed_image, in_setadd_boundbox)
+        if self._type_combine_patches == 'average':
+            self._include_image_patch_type_average(in_image, in_setadd_boundbox)
 
-        # set new patch of 'ones' in the full-size 'factor_overlap' array
-        factor_overlap_patch = self._get_factor_overlap_patch(in_image.shape)
-        self._func_add_images_volume(factor_overlap_patch, self._reconstructed_factor_overlap, in_setadd_boundbox)
+        elif self._type_combine_patches == 'max':
+            self._include_image_patch_type_max(in_image, in_setadd_boundbox)
 
     def include_image_patch_with_checks(self, in_image: np.ndarray,
                                         in_setadd_boundbox: Union[BoundBox3DType, BoundBox2DType]
@@ -81,32 +89,55 @@ class ImageReconstructorGeneral(object):
 
         self.include_image_patch(in_image, in_setadd_boundbox)
 
+    def _include_image_patch_type_average(self, in_image: np.ndarray,
+                                          in_setadd_boundbox: Union[BoundBox3DType, BoundBox2DType]
+                                          ) -> None:
+        # set input image patch in reconstructed image
+        self._func_add_images_volume(in_image, self._reconstructed_image, in_setadd_boundbox)
+
+        # set new patch of 'ones' in the full-size 'factor_overlap' array
+        factor_overlap_patch = self._get_factor_overlap_patch(in_image.shape)
+        self._func_add_images_volume(factor_overlap_patch, self._reconstructed_factor_overlap, in_setadd_boundbox)
+
+    def _include_image_patch_type_max(self, in_image: np.ndarray,
+                                      in_setadd_boundbox: Union[BoundBox3DType, BoundBox2DType]
+                                      ) -> None:
+        # compare input image with a patch from reconstructed image at the same location (bounding-box)
+        patch_recons_image_same_boundbox = self._func_crop_images(self._reconstructed_image, in_setadd_boundbox)
+        # compute the element-wise maximum of the two images
+        in_image_calcmax_recons_image = np.maximum(in_image, patch_recons_image_same_boundbox)
+        # set element-wise maximum image in reconstructed image
+        self._func_add_images_volume(in_image_calcmax_recons_image, self._reconstructed_image, in_setadd_boundbox)
+
     def _get_factor_overlap_patch(self, in_shape_image_patch: Tuple[int, ...]) -> np.ndarray:
         size_input_patch = in_shape_image_patch[0:self._ndims]
         return np.ones(size_input_patch, dtype=np.float32)
 
     def finalize_recons_array(self) -> None:
-        # compute the inverse of full-size 'factor_overlap' array, now containing the number of per-voxel overlaps
-        # - prevent the division by zero where there were no patches processed, by setting a very large overlap
-        val_infinity_overlap = 1.0e+010
-        self._reconstructed_factor_overlap = np.where(self._reconstructed_factor_overlap == 0.0,
-                                                      val_infinity_overlap,
-                                                      self._reconstructed_factor_overlap)
-        self._reconstructed_factor_overlap = np.reciprocal(self._reconstructed_factor_overlap)
-
-        # compute the reconstructed image by multiplying voxel-wise by the 'factor_overlap'
         out_shape_recons_image = self._reconstructed_image.shape
-        if ImagesUtil.is_without_channels(self._size_image, out_shape_recons_image):
-            self._reconstructed_image = np.multiply(self._reconstructed_image, self._reconstructed_factor_overlap)
-        else:
-            if self._ndims == 2:
-                self._reconstructed_image = \
-                    np.einsum('ijk,ij->ijk', self._reconstructed_image, self._reconstructed_factor_overlap)
-            elif self._ndims == 3:
-                self._reconstructed_image = \
-                    np.einsum('ijkl,ijk->ijkl', self._reconstructed_image, self._reconstructed_factor_overlap)
 
-            self._reconstructed_image = self._get_reshaped_output_image(self._reconstructed_image)
+        if self._type_combine_patches == 'average':
+            # compute the inverse of full-size 'factor_overlap' array, now containing the number of per-voxel overlaps
+            # - prevent the division by zero where there were no patches processed, by setting a very large overlap
+            val_infinity_overlap = 1.0e+010
+            self._reconstructed_factor_overlap = np.where(self._reconstructed_factor_overlap == 0.0,
+                                                          val_infinity_overlap,
+                                                          self._reconstructed_factor_overlap)
+            self._reconstructed_factor_overlap = np.reciprocal(self._reconstructed_factor_overlap)
+
+            # compute the reconstructed image by multiplying voxel-wise with the 'factor_overlap'
+            if ImagesUtil.is_without_channels(self._size_image, out_shape_recons_image):
+                self._reconstructed_image = np.multiply(self._reconstructed_image, self._reconstructed_factor_overlap)
+            else:
+                # reconstructed image with several channels -> multiply each channel with the 'factor_overlap'
+                if self._ndims == 2:
+                    self._reconstructed_image = \
+                        np.einsum('ijk,ij->ijk', self._reconstructed_image, self._reconstructed_factor_overlap)
+                elif self._ndims == 3:
+                    self._reconstructed_image = \
+                        np.einsum('ijkl,ijk->ijkl', self._reconstructed_image, self._reconstructed_factor_overlap)
+
+        self._reconstructed_image = self._get_reshaped_output_image(self._reconstructed_image)
 
     def _get_shape_output_image(self, in_shape_image: Tuple[int, ...],
                                 out_size_image: Union[Tuple[int, int, int], Tuple[int, int]],
@@ -140,10 +171,11 @@ class ImageReconstructorWithGenerator(ImageReconstructorGeneral):
                  is_nnet_validconvs: bool = False,
                  size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                  is_filter_output_nnet: bool = False,
-                 filter_image_generator: Union[FilterNnetOutputValidConvs, None] = None
+                 filter_image_generator: Union[FilterNnetOutputValidConvs, None] = None,
+                 type_combine_patches: str = 'average'
                  ) -> None:
-        super(ImageReconstructorWithGenerator, self).__init__(size_image, size_volume_image)
-
+        super(ImageReconstructorWithGenerator, self).__init__(size_image, size_volume_image,
+                                                              type_combine_patches)
         self._image_patch_generator = image_patch_generator
 
         self._is_nnet_validconvs = is_nnet_validconvs
@@ -158,7 +190,7 @@ class ImageReconstructorWithGenerator(ImageReconstructorGeneral):
             elif self._ndims == 3:
                 self._func_extend_images = ExtendImage._compute3d
             else:
-                message = 'ImageReconstructorStructured:__init__: wrong \'ndims\': %s...' % (self._ndims)
+                message = 'ImageReconstructorWithGenerator:__init__: wrong \'ndims\': %s...' % (self._ndims)
                 catch_error_exception(message)
         else:
             self._is_nnet_validconvs = False

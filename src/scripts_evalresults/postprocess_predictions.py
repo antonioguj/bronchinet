@@ -47,7 +47,8 @@ def main(args):
         indict_crop_boundboxes = None
 
     if args.is_crop_images and args.is_two_boundboxes_lungs:
-        image_reconstructor_crop_patches = ImageReconstructorGeneral(args.size_in_images)
+        image_reconstructor_crop_patches = ImageReconstructorGeneral(args.size_in_images,
+                                                                     type_combine_patches='average')
     else:
         image_reconstructor_crop_patches = None
 
