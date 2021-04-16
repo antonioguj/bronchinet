@@ -61,22 +61,21 @@ def compute_cropped_patches_list_data(list_in_data: List[np.ndarray],
         size_output_image = None
 
     for idata, (in_data, type_in_data) in enumerate(zip(list_in_data, list_type_in_data)):
-        if '_cropped' not in type_in_data:
-            if is_combine_crop_extend:
-                print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\', and then Extend with bounding-box: "
-                      "\'%s\'..." % (idata, type_in_data, str(in_crop_boundbox), str(in_extend_boundbox)))
-                out_data = CropAndExtendImage.compute(list_in_data[idata], in_crop_boundbox,
-                                                      in_extend_boundbox, size_output_image)
-            else:
-                print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\'..."
-                      % (idata, type_in_data, str(in_crop_boundbox)))
-                out_data = CropImage.compute(list_in_data[idata], in_crop_boundbox)
+        if is_combine_crop_extend:
+            print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\', and then Extend with bounding-box: "
+                  "\'%s\'..." % (idata, type_in_data, str(in_crop_boundbox), str(in_extend_boundbox)))
+            out_data = CropAndExtendImage.compute(list_in_data[idata], in_crop_boundbox,
+                                                  in_extend_boundbox, size_output_image)
+        else:
+            print("Crop input data \'%s\' (\'%s\') to bounding-box: \'%s\'..."
+                  % (idata, type_in_data, str(in_crop_boundbox)))
+            out_data = CropImage.compute(list_in_data[idata], in_crop_boundbox)
 
-            if is_insert_new_data:
-                list_out_data.append(out_data)
-                list_type_out_data.append(type_in_data)
-            else:
-                list_out_data[idata] = out_data
+        if is_insert_new_data:
+            list_out_data.append(out_data)
+            list_type_out_data.append(type_in_data)
+        else:
+            list_out_data[idata] = out_data
     # endfor
 
 
