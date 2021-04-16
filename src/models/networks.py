@@ -42,12 +42,15 @@ class ConvNetBase(NeuralNetwork):
         self._num_classes_out = num_classes_out
         self._is_use_valid_convols = is_use_valid_convols
 
+        if self._is_use_valid_convols:
+            self._build_auxiliar_data_valid_convols()
+
         shape_input = self._size_image_in + (self._num_channels_in,)
         shape_output = self.get_size_output_last_layer() + (self._num_classes_out,)
 
         super(ConvNetBase, self).__init__(shape_input, shape_output)
 
-    def _build_auxiliar_data(self):
+    def _build_auxiliar_data_valid_convols(self):
         self._list_operation_names_layers_all = []
         self._build_list_operation_names_layers()
         self._build_list_sizes_output_layers_all()
@@ -89,7 +92,7 @@ class ConvNetBase(NeuralNetwork):
         if level_end < level_begin or \
                 level_begin >= len(self._list_operation_names_layers_all) or \
                 level_end > len(self._list_operation_names_layers_all):
-            message = 'Problem with input \'level_begin\' (%s) or \'level_end\' (%s)' % (level_begin, level_end)
+            message = 'ConvNetBase: wrong input \'level_begin\' (%s) or \'level_end\' (%s)' % (level_begin, level_end)
             catch_error_exception(message)
 
         in_list_operation_names_layers = self._list_operation_names_layers_all[level_begin:level_end]
@@ -172,22 +175,20 @@ class UNetBase(ConvNetBase):
                  is_use_valid_convols: bool = False,
                  num_levels_valid_convols: int = _num_levels_valid_convols_default,
                  ) -> None:
-        super(UNetBase, self).__init__(size_image_in, num_featmaps_in, num_channels_in, num_classes_out,
-                                       is_use_valid_convols=is_use_valid_convols)
         self._num_levels = num_levels
 
-        if self._is_use_valid_convols:
+        if is_use_valid_convols:
             # option to enable zero-padding in the deeper conv. layers of the UNet, to relax the reduction
             # of size of network output due to valid convolutions
             self._num_levels_valid_convols = num_levels_valid_convols
         else:
             self._num_levels_valid_convols = None
 
-        if self._is_use_valid_convols:
-            self._build_auxiliar_data()
+        super(UNetBase, self).__init__(size_image_in, num_featmaps_in, num_channels_in, num_classes_out,
+                                       is_use_valid_convols=is_use_valid_convols)
 
-    def _build_auxiliar_data(self):
-        super(UNetBase, self)._build_auxiliar_data()
+    def _build_auxiliar_data_valid_convols(self):
+        super(UNetBase, self)._build_auxiliar_data_valid_convols()
         self._build_list_info_crop_where_merge()
 
     def _build_list_operation_names_layers(self) -> None:
