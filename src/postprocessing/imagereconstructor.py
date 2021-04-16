@@ -9,7 +9,6 @@ from imageoperators.imageoperator import ExtendImage, SetImageInVolume, CropImag
 from preprocessing.filternnetoutput_validconvs import FilterNnetOutputValidConvs
 from preprocessing.slidingwindowimages import SlidingWindowImages
 from preprocessing.randomwindowimages import RandomWindowImages
-from preprocessing.transformrigidimages import TransformRigidImages
 
 
 class ImageReconstructorGeneral(object):
