@@ -3,7 +3,7 @@ from typing import Tuple, Dict, Union, Any
 
 from common.exceptionmanager import catch_error_exception
 from postprocessing.imagereconstructor import ImageReconstructorWithGenerator
-from preprocessing.filternnetoutput_validconvs import FilteringNnetOutputValidConvs2D, FilteringNnetOutputValidConvs3D
+from preprocessing.filteringbordersimages import FilteringBordersImages2D, FilteringBordersImages3D
 from preprocessing.preprocessing_manager import get_images_generator, fill_missing_trans_rigid_params
 
 
@@ -16,12 +16,11 @@ def get_images_reconstructor(size_images: Union[Tuple[int, int, int], Tuple[int,
                              trans_rigid_params: Union[Dict[str, Any], None],
                              is_transform_elastic: bool,
                              type_trans_elastic: str,
-                             num_trans_per_sample: int = 1,
                              size_volume_images: Union[Tuple[int, int, int], Tuple[int, int]] = (0, 0, 0),
                              is_nnet_validconvs: bool = False,
                              size_output_images: Union[Tuple[int, int, int], Tuple[int, int]] = None,
-                             is_filter_output_nnet: bool = False,
-                             prop_filter_output_nnet: float = None,
+                             is_filter_output_images: bool = False,
+                             prop_filter_output_images: float = None,
                              ) -> ImageReconstructorWithGenerator:
 
     trans_rigid_params = fill_missing_trans_rigid_params(trans_rigid_params)
@@ -41,24 +40,24 @@ def get_images_reconstructor(size_images: Union[Tuple[int, int, int], Tuple[int,
                                             type_trans_elastic=type_trans_elastic,
                                             size_volume_images=size_volume_images)
 
-    if is_filter_output_nnet:
+    if is_filter_output_images:
         ndims = len(size_images)
         if ndims == 2:
-            size_filter_output_nnet = (int(prop_filter_output_nnet * size_images[0]),
-                                       int(prop_filter_output_nnet * size_images[1]))
-            print("Filter output probability maps of Nnet, with final output size: \'%s\'..."
-                  % (str(size_filter_output_nnet)))
+            size_filter_output_images = (int(prop_filter_output_images * size_images[0]),
+                                         int(prop_filter_output_images * size_images[1]))
+            print("Filter output images (typically predictions of network), with filtered output size: \'%s\'..."
+                  % (str(size_filter_output_images)))
 
-            filter_image_generator = FilteringNnetOutputValidConvs2D(size_images, size_filter_output_nnet)
+            filter_image_generator = FilteringBordersImages2D(size_images, size_filter_output_images)
 
         elif ndims == 3:
-            size_filter_output_nnet = (int(prop_filter_output_nnet * size_images[0]),
-                                       int(prop_filter_output_nnet * size_images[1]),
-                                       int(prop_filter_output_nnet * size_images[2]))
-            print("Filter output probability maps of Nnet, with final output size: \'%s\'..."
-                  % (str(size_filter_output_nnet)))
+            size_filter_output_images = (int(prop_filter_output_images * size_images[0]),
+                                         int(prop_filter_output_images * size_images[1]),
+                                         int(prop_filter_output_images * size_images[2]))
+            print("Filter output images (typically predictions of network), with filtered output size: \'%s\'..."
+                  % (str(size_filter_output_images)))
 
-            filter_image_generator = FilteringNnetOutputValidConvs3D(size_images, size_filter_output_nnet)
+            filter_image_generator = FilteringBordersImages3D(size_images, size_filter_output_images)
         else:
             message = 'get_images_reconstructor:__init__: wrong \'ndims\': %s...' % (ndims)
             catch_error_exception(message)
@@ -73,7 +72,7 @@ def get_images_reconstructor(size_images: Union[Tuple[int, int, int], Tuple[int,
                                                                size_volume_image=size_volume_images,
                                                                is_nnet_validconvs=is_nnet_validconvs,
                                                                size_output_image=size_output_images,
-                                                               is_filter_output_nnet=is_filter_output_nnet,
+                                                               is_filter_output_image=is_filter_output_images,
                                                                filter_image_generator=filter_image_generator)
     else:
         message = 'Image Reconstructor with Image Transformations not implemented yet'

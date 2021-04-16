@@ -125,5 +125,5 @@ LIST_TYPE_METRICS_RESULT = ['DiceCoefficient',
                             'AirwayCentrelineDistanceFalsePositiveError',
                             'AirwayCentrelineDistanceFalseNegativeError']
 METRIC_EVALUATE_THRESHOLD = 'AirwayVolumeLeakage'
-IS_FILTER_OUT_PROBMAPS_NNET = False
-PROP_FILTER_OUT_PROBMAPS_NNET = 0.75
+IS_FILTER_OUTPUT_NETWORK = False
+PROP_FILTER_OUTPUT_NETWORK = 0.5

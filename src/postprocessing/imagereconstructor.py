@@ -2,11 +2,11 @@
 from typing import Tuple, Union
 import numpy as np
 
-from common.exceptionmanager import catch_error_exception
+from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.functionutil import ImagesUtil
 from imageoperators.boundingboxes import BoundingBoxes, BoundBox3DType, BoundBox2DType
 from imageoperators.imageoperator import ExtendImage, SetImageInVolume, CropImage
-from preprocessing.filternnetoutput_validconvs import FilterNnetOutputValidConvs
+from preprocessing.filteringbordersimages import FilteringBordersImages
 from preprocessing.slidingwindowimages import SlidingWindowImages
 from preprocessing.randomwindowimages import RandomWindowImages
 
@@ -170,8 +170,8 @@ class ImageReconstructorWithGenerator(ImageReconstructorGeneral):
                  size_volume_image: Union[Tuple[int, int, int], Tuple[int, int]] = (0, 0, 0),
                  is_nnet_validconvs: bool = False,
                  size_output_image: Union[Tuple[int, int, int], Tuple[int, int]] = None,
-                 is_filter_output_nnet: bool = False,
-                 filter_image_generator: Union[FilterNnetOutputValidConvs, None] = None,
+                 is_filter_output_image: bool = False,
+                 filter_image_generator: Union[FilteringBordersImages, None] = None,
                  type_combine_patches: str = 'average'
                  ) -> None:
         super(ImageReconstructorWithGenerator, self).__init__(size_image, size_volume_image,
@@ -195,8 +195,12 @@ class ImageReconstructorWithGenerator(ImageReconstructorGeneral):
         else:
             self._is_nnet_validconvs = False
 
-        self._is_filter_output_nnet = is_filter_output_nnet
-        if is_filter_output_nnet:
+            if not is_filter_output_image:
+                message = 'For networks with non-valid convols, better to filter the output to reduce border effects'
+                catch_warning_exception(message)
+
+        self._is_filter_output_nnet = is_filter_output_image
+        if is_filter_output_image:
             self._filter_image_generator = filter_image_generator
 
         self._initialize_data()
@@ -219,7 +223,7 @@ class ImageReconstructorWithGenerator(ImageReconstructorGeneral):
         if self._is_nnet_validconvs:
             size_output_image = self._get_shape_output_image(in_image.shape, self._size_image)
             out_image = self._func_extend_images(in_image, self._extend_boundbox_out_nnet_validconvs,
-                                                 size_output_image, value_backgrnd=0)
+                                                 size_output_image, value_backgrnd=0.0)
         else:
             out_image = in_image
 
@@ -239,8 +243,11 @@ class ImageReconstructorWithGenerator(ImageReconstructorGeneral):
         if self._is_nnet_validconvs:
             return self._func_extend_images(out_factor_overlap_patch, self._extend_boundbox_out_nnet_validconvs,
                                             self._size_image, value_backgrnd=0.0)
-        else:
-            return out_factor_overlap_patch
+
+        if self._is_filter_output_nnet:
+            out_factor_overlap_patch = self._filter_image_generator._get_image(out_factor_overlap_patch)
+
+        return out_factor_overlap_patch
 
     def compute_full(self, in_images_all: np.ndarray) -> np.ndarray:
         if not self._check_correct_shape_input_image(in_images_all.shape):

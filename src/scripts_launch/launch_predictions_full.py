@@ -5,13 +5,14 @@ import sys
 import argparse
 
 from common.constant import CODEDIR, NAME_TESTINGDATA_RELPATH, POST_THRESHOLD_VALUE, LIST_TYPE_METRICS_RESULT, \
-    IS_ATTACH_COARSE_AIRWAYS, IS_REMOVE_TRACHEA_CALC_METRICS, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, \
-    IS_RESCALE_IMAGES, NAME_CONFIG_PARAMS_FILE, NAME_RAW_LABELS_RELPATH, NAME_TEMPO_POSTERIORS_RELPATH, \
-    NAME_POSTERIORS_RELPATH, NAME_PRED_BINARYMASKS_RELPATH, NAME_PRED_CENTRELINES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
-    NAME_RAW_COARSEAIRWAYS_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_PRED_RESULT_METRICS_FILE, \
-    IS_TWO_BOUNDBOXES_LUNGS
+    IS_ATTACH_COARSE_AIRWAYS, IS_REMOVE_TRACHEA_CALC_METRICS, NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, \
+    NAME_PRED_BINARYMASKS_RELPATH, NAME_PRED_CENTRELINES_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, \
+    NAME_PRED_RESULT_METRICS_FILE, NAME_CONFIG_PARAMS_FILE, NAME_RAW_LABELS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
+    NAME_RAW_COARSEAIRWAYS_RELPATH, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, \
+    IS_TWO_BOUNDBOXES_LUNGS, PROP_FILTER_OUTPUT_NETWORK
 from common.functionutil import currentdir, makedir, set_filename_suffix, set_dirname_suffix, is_exist_file, \
-    join_path_names, basename, basenamedir, dirname, list_dirs_dir, str2bool, str2list_str
+    join_path_names, basename, basenamedir, dirname, list_dirs_dir, str2bool, str2int, str2float, str2list_str, \
+    read_dictionary_configparams
 from common.exceptionmanager import catch_error_exception
 from common.workdirmanager import TrainDirManager
 
@@ -66,11 +67,7 @@ def main(args):
     output_predict_centrelines_path = join_path_names(output_basedir, name_predict_centrelines_relpath)
     output_result_metrics_file = join_path_names(output_basedir, name_output_result_metrics_file)
 
-    in_config_params_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
-
-    if not is_exist_file(in_config_params_file):
-        message = "Config params file not found: \'%s\'..." % (in_config_params_file)
-        catch_error_exception(message)
+    in_config_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
 
     # *****************************************************
 
@@ -98,25 +95,27 @@ def main(args):
 
         for i, i_inputdir in enumerate(list_input_modeldirs):
             input_model_file = join_path_names(i_inputdir, input_model_relfile)
-            in_config_params_file = join_path_names(i_inputdir, NAME_CONFIG_PARAMS_FILE)
+            in_config_file = join_path_names(i_inputdir, NAME_CONFIG_PARAMS_FILE)
             print("For CV-fold %s: load model file: %s" % (i + 1, input_model_file))
 
             inout_predict_reference_keys_file_this = \
                 set_filename_suffix(inout_predict_reference_keys_file, 'CV%0.2i' % (i + 1))
             list_predict_reference_keys_files_cvfolds.append(inout_predict_reference_keys_file_this)
 
-            if not is_exist_file(in_config_params_file):
-                message = "Config params file not found: \'%s\'..." % (in_config_params_file)
+            if not is_exist_file(in_config_file):
+                message = "Config params file not found: \'%s\'..." % (in_config_file)
                 catch_error_exception(message)
 
             # 1st: Compute model predictions, and posteriors for testing work data
             new_call = ['python3', SCRIPT_PREDICT_MODEL,
                         input_model_file,
                         '--basedir', basedir,
-                        '--in_config_file', in_config_params_file,
+                        '--in_config_file', in_config_file,
                         '--testing_datadir', list_testing_datadirs[i],
                         '--name_output_predictions_relpath', inout_tempo_posteriors_path,
                         '--name_output_reference_keys_file', inout_predict_reference_keys_file_this,
+                        '--is_filter_output_network', str(args.is_filter_output_network),
+                        '--prop_filter_output_network', str(args.prop_filter_output_network),
                         '--is_backward_compat', str(args.is_backward_compat)]
             list_calls_all.append(new_call)
         # endfor
@@ -131,10 +130,12 @@ def main(args):
         new_call = ['python3', SCRIPT_PREDICT_MODEL,
                     args.input_model_file,
                     '--basedir', basedir,
-                    '--in_config_file', in_config_params_file,
+                    '--in_config_file', in_config_file,
                     '--testing_datadir', args.testing_datadir,
                     '--name_output_predictions_relpath', inout_tempo_posteriors_path,
                     '--name_output_reference_keys_file', inout_predict_reference_keys_file,
+                    '--is_filter_output_network', str(args.is_filter_output_network),
+                    '--prop_filter_output_network', str(args.prop_filter_output_network),
                     '--is_backward_compat', str(args.is_backward_compat)]
         list_calls_all.append(new_call)
 
@@ -145,7 +146,7 @@ def main(args):
     # 2nd: Compute post-processed posteriors from work predictions
     new_call = ['python3', SCRIPT_POSTPROCESS_PREDICTIONS,
                 '--basedir', basedir,
-                '--in_config_file', in_config_params_file,
+                '--in_config_file', in_config_file,
                 '--is_mask_region_interest', str(args.is_mask_region_interest),
                 '--is_crop_images', str(args.is_crop_images),
                 '--is_rescale_images', str(args.is_rescale_images),
@@ -284,20 +285,39 @@ if __name__ == "__main__":
     parser.add_argument('output_basedir', type=str)
     parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--is_preds_crossval', type=str2bool, default=False)
+    parser.add_argument('--post_threshold_value', type=str2float, default=POST_THRESHOLD_VALUE)
+    parser.add_argument('--list_type_metrics_result', type=str2list_str, default=LIST_TYPE_METRICS_RESULT)
+    parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
+    parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
+    parser.add_argument('--is_connected_masks', type=str2bool, default=False)
+    parser.add_argument('--in_connregions_dim', type=str2int, default=3)
+    parser.add_argument('--is_conservative_remove_trachea_calc_metrics', type=str2bool, default=True)
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
     parser.add_argument('--is_two_boundboxes_lungs', type=str2bool, default=IS_TWO_BOUNDBOXES_LUNGS)
-    parser.add_argument('--post_threshold_value', type=float, default=POST_THRESHOLD_VALUE)
-    parser.add_argument('--is_attach_coarse_airways', type=str2bool, default=IS_ATTACH_COARSE_AIRWAYS)
-    parser.add_argument('--is_connected_masks', type=str2bool, default=False)
-    parser.add_argument('--in_connregions_dim', type=int, default=3)
-    parser.add_argument('--list_type_metrics_result', type=str2list_str, default=LIST_TYPE_METRICS_RESULT)
-    parser.add_argument('--is_remove_trachea_calc_metrics', type=str2bool, default=IS_REMOVE_TRACHEA_CALC_METRICS)
-    parser.add_argument('--is_conservative_remove_trachea_calc_metrics', type=str2bool, default=True)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
     parser.add_argument('--is_keep_tempo_data', type=str2bool, default=False)
     args = parser.parse_args()
+
+    inputdir = dirname(args.input_model_file)
+    in_config_file = join_path_names(inputdir, NAME_CONFIG_PARAMS_FILE)
+
+    if not is_exist_file(in_config_file):
+        message = "Config params file not found: \'%s\'..." % (in_config_file)
+        catch_error_exception(message)
+    else:
+        input_args_file = read_dictionary_configparams(in_config_file)
+        print("Prepare Predictions: read some config parameters from file: \'%s\'" % (in_config_file))
+
+        is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
+        if not is_valid_convolutions:
+            print("Testing network with non-valid convols: need to filter output to reduce border effects...")
+            args.is_filter_output_network = True
+            args.prop_filter_output_network = PROP_FILTER_OUTPUT_NETWORK
+        else:
+            args.is_filter_output_network = False
+            args.prop_filter_output_network = 0.0
 
     print("Print input arguments...")
     for key, value in vars(args).items():
