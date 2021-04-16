@@ -4,7 +4,7 @@ import numpy as np
 
 from common.exceptionmanager import catch_error_exception
 from imageoperators.boundingboxes import BoundBox3DType, BoundBox2DType
-from imageoperators.imageoperator import CropImage, SetPatchInImage
+from imageoperators.imageoperator import CropImage
 from preprocessing.imagegenerator import ImageGenerator
 
 
@@ -27,14 +27,10 @@ class SlidingWindowImages(ImageGenerator):
         if self._ndims == 2:
             self._func_get_indexes_local = self.get_indexes_local_2dim
             self._func_crop_images = CropImage._compute2d
-            self._func_setpatch_images = SetPatchInImage._compute2d
-            self._func_setpatch_add_images = SetPatchInImage._compute_add2d
 
         elif self._ndims == 3:
             self._func_get_indexes_local = self.get_indexes_local_3dim
             self._func_crop_images = CropImage._compute3d
-            self._func_setpatch_images = SetPatchInImage._compute3d
-            self._func_setpatch_add_images = SetPatchInImage._compute_add3d
         else:
             message = 'SlidingWindowImages:__init__: wrong \'ndims\': %s...' % (self._ndims)
             catch_error_exception(message)
@@ -89,14 +85,12 @@ class SlidingWindowImages(ImageGenerator):
         self._num_images_dirs = self._get_num_images_dirs()
         self._num_images = np.prod(self._num_images_dirs)
 
-    def _compute_gendata(self, **kwargs) -> None:
+    def _initialize_gendata(self) -> None:
+        self._crop_boundbox = None
+
+    def _update_gendata(self, **kwargs) -> None:
         index = kwargs['index']
         self._crop_boundbox = self._get_crop_boundbox_image(index)
-        self._is_compute_gendata = False
-
-    def _initialize_gendata(self) -> None:
-        self._is_compute_gendata = True
-        self._crop_boundbox = None
 
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:
         return self._func_crop_images(in_image, self._crop_boundbox)
@@ -131,14 +125,6 @@ class SlidingWindowImages(ImageGenerator):
     def get_cropped_image(self, in_image: np.ndarray, index: int) -> np.ndarray:
         crop_boundbox = self._get_crop_boundbox_image(index)
         return self._func_crop_images(in_image, crop_boundbox)
-
-    def set_assign_image_patch(self, in_image: np.ndarray, out_volume_image: np.ndarray, index: int) -> None:
-        crop_boundbox = self._get_crop_boundbox_image(index)
-        self._func_setpatch_images(in_image, out_volume_image, crop_boundbox)
-
-    def set_add_image_patch(self, in_image: np.ndarray, out_volume_image: np.ndarray, index: int) -> None:
-        crop_boundbox = self._get_crop_boundbox_image(index)
-        self._func_setpatch_add_images(in_image, out_volume_image, crop_boundbox)
 
     def get_limits_sliding_window_image(self) -> List[List[Tuple[int, int]]]:
         limits_window_image = []

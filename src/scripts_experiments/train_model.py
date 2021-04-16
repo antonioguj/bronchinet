@@ -209,7 +209,7 @@ def main(args):
                                           is_load_many_images_per_label=args.is_load_augmented_images_per_label,
                                           num_images_per_label=args.num_augmented_images_per_label,
                                           is_load_images_from_batches=args.is_train_images_slices)
-    print("Loaded \'%s\' files. Total batches generated: %s..."
+    print("Loaded \'%s\' files. Total batches generated: \'%s\'..."
           % (len(list_train_images_files), len(training_data_loader)))
 
     if args.is_use_validation_data:
@@ -235,7 +235,7 @@ def main(args):
                                               is_shuffle=args.is_shuffle_traindata,
                                               manual_seed=args.manual_seed_train,
                                               is_load_images_from_batches=args.is_train_images_slices)
-        print("Loaded \'%s\' files. Total batches generated: %s..."
+        print("Loaded \'%s\' files. Total batches generated: \'%s\'..."
               % (len(list_valid_images_files), len(validation_data_loader)))
     else:
         validation_data_loader = None

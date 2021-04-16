@@ -1,12 +1,14 @@
 
 import argparse
 
-from common.constant import BASEDIR, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_BINARY_TRAIN_MASKS,\
-    NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, NAME_REFERENCE_FILES_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
-    NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_CROP_BOUNDBOXES_FILE, NAME_RESCALE_FACTORS_FILE
-from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, \
-    get_regex_pattern_filename, find_file_inlist_with_pattern, str2bool, read_dictionary
-from common.exceptionmanager import catch_warning_exception
+from common.constant import BASEDIR, SIZE_IN_IMAGES, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, \
+    IS_BINARY_TRAIN_MASKS, NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, NAME_REFERENCE_FILES_RELPATH, \
+    NAME_RAW_ROIMASKS_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, NAME_CROP_BOUNDBOXES_FILE, \
+    NAME_RESCALE_FACTORS_FILE
+from common.functionutil import join_path_names, is_exist_file, basename, basename_filenoext, list_files_dir, \
+    get_regex_pattern_filename, find_file_inlist_with_pattern, str2bool, str2tuple_int, read_dictionary, \
+    read_dictionary_configparams
+from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.imagefilereader import ImageFileReader
 from imageoperators.imageoperator import ExtendImage
@@ -85,7 +87,7 @@ def main(args):
         # ******************************
 
         if args.is_mask_region_interest:
-            print("Input data to Network were masked to ROI (lungs): Reverse mask in predictions...")
+            print("Input data to Network were masked to ROI (lungs) -> Reverse mask in predictions...")
             in_roimask_file = find_file_inlist_with_pattern(basename(in_reference_file), list_input_roimasks_files,
                                                             pattern_search=pattern_search_infiles)
             print("ROI mask (lungs) file: \'%s\'..." % (basename(in_roimask_file)))
@@ -114,6 +116,8 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--basedir', type=str, default=BASEDIR)
+    parser.add_argument('--in_config_file', type=str, default=None)
+    parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
     parser.add_argument('--is_crop_images', type=str2bool, default=IS_CROP_IMAGES)
     parser.add_argument('--is_rescale_images', type=str2bool, default=IS_RESCALE_IMAGES)
@@ -127,6 +131,17 @@ if __name__ == "__main__":
     parser.add_argument('--name_rescale_factors_file', type=str, default=NAME_RESCALE_FACTORS_FILE)
     # parser.add_argument('--is_process_data_stack_images', type=str2bool, default=False)
     args = parser.parse_args()
+
+    if args.in_config_file:
+        if not is_exist_file(args.in_config_file):
+            message = "Config params file not found: \'%s\'..." % (args.in_config_file)
+            catch_error_exception(message)
+        else:
+            input_args_file = read_dictionary_configparams(args.in_config_file)
+            print("Set up experiments with parameters from file: \'%s\'" % (args.in_config_file))
+
+            # args.basedir = str(input_args_file['basedir'])
+            args.size_in_images = str2tuple_int(input_args_file['size_in_images'])
 
     print("Print input arguments...")
     for key, value in vars(args).items():

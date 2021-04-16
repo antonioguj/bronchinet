@@ -1,4 +1,5 @@
 
+CODEDIR = '/home/antonio/Codes/Antonio_repository/mri_enhance/src/'
 DATADIR = '/home/antonio/Data/MRIenhance_GRASE2CUBE_Processed/'
 # DATADIR = '/data/scratch/agarcia/Data/MRIenhance/'         # cluster
 BASEDIR = '/home/antonio/Results/MRIenhanceTests/'
@@ -104,5 +105,5 @@ MANUAL_SEED_TRAIN = None
 # PREDICTIONS / POST-PROCESSING
 PROP_OVERLAP_SLIDING_WINDOW_TEST = (0.5, 0.5, 0.5)
 LIST_TYPE_METRICS_RESULT = ['SNR', 'PSNR', 'SSIM']
-IS_FILTER_OUT_PROBMAPS_NNET = False
-PROP_FILTER_OUT_PROBMAPS_NNET = 0.75
+IS_FILTER_OUTPUT_NETWORK = False
+PROP_FILTER_OUTPUT_NETWORK = 0.5

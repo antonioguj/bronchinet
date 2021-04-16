@@ -13,7 +13,6 @@ class ImageGenerator(object):
                  ) -> None:
         self._size_image = size_image
         self._num_images = num_images
-        self._is_compute_gendata = True
 
     def get_size_image(self) -> Union[Tuple[int, int, int], Tuple[int, int]]:
         return self._size_image
@@ -25,41 +24,32 @@ class ImageGenerator(object):
     def update_image_data(self, in_shape_image: Tuple[int, ...]) -> None:
         raise NotImplementedError
 
-    def _compute_gendata(self, **kwargs) -> None:
+    def _initialize_gendata(self) -> None:
         raise NotImplementedError
 
-    def _initialize_gendata(self) -> None:
+    def _update_gendata(self, **kwargs) -> None:
         raise NotImplementedError
 
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
     def get_image(self, in_image: np.ndarray, **kwargs) -> np.ndarray:
-        self._compute_gendata(**kwargs)
-
+        self._update_gendata(**kwargs)
         out_image = self._get_image(in_image)
-
-        self._initialize_gendata()
         return out_image
 
     def get_2images(self, in_image_1: np.ndarray, in_image_2: np.ndarray, **kwargs) -> Tuple[np.ndarray, np.ndarray]:
-        self._compute_gendata(**kwargs)
-
+        self._update_gendata(**kwargs)
         out_image_1 = self._get_image(in_image_1)
         out_image_2 = self._get_image(in_image_2)
-
-        self._initialize_gendata()
         return (out_image_1, out_image_2)
 
     def get_many_images(self, in_list_images: List[np.ndarray], **kwargs) -> List[np.ndarray]:
-        self._compute_gendata(**kwargs)
-
+        self._update_gendata(**kwargs)
         out_list_images = []
         for in_image in in_list_images:
             out_image = self._get_image(in_image)
             out_list_images.append(out_image)
-
-        self._initialize_gendata()
         return out_list_images
 
     def get_shape_output_image(self, in_shape_image: Tuple[int, ...]) -> Tuple[int, ...]:
@@ -81,12 +71,10 @@ class ImageGenerator(object):
         for index in range(self._num_images):
             seed = self.update_seed_with_index(seed_0, index)
             add_kwargs = {'index': index, 'seed': seed}
-            self._compute_gendata(**add_kwargs)
+            self._update_gendata(**add_kwargs)
 
             for i, in_image in in_list_images:
                 out_list_images[i][index] = self._get_image(in_image)
-
-            self._initialize_gendata()
 
         return out_list_images
 
@@ -109,10 +97,10 @@ class NullGenerator(ImageGenerator):
     def update_image_data(self, in_shape_image: Tuple[int, ...]) -> None:
         pass
 
-    def _compute_gendata(self, **kwargs) -> None:
+    def _initialize_gendata(self) -> None:
         pass
 
-    def _initialize_gendata(self) -> None:
+    def _update_gendata(self, **kwargs) -> None:
         pass
 
     def get_text_description(self) -> str:
@@ -138,13 +126,13 @@ class CombinedImagesGenerator(ImageGenerator):
 
         self._num_images = self._get_compute_num_images()
 
-    def _compute_gendata(self, **kwargs) -> None:
-        for images_generator in self._list_images_generators:
-            images_generator._compute_gendata(**kwargs)
-
     def _initialize_gendata(self) -> None:
         for images_generator in self._list_images_generators:
             images_generator._initialize_gendata()
+
+    def _update_gendata(self, **kwargs) -> None:
+        for images_generator in self._list_images_generators:
+            images_generator._update_gendata(**kwargs)
 
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:
         out_image = in_image

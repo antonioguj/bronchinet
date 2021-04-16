@@ -43,14 +43,17 @@ class ConvNetBase(NeuralNetwork):
         self._is_use_valid_convols = is_use_valid_convols
 
         if self._is_use_valid_convols:
-            self._list_operation_names_layers_all = []
-            self._build_list_operation_names_layers()
-            self._build_list_sizes_output_all_layers()
+            self._build_auxiliar_data_valid_convols()
 
         shape_input = self._size_image_in + (self._num_channels_in,)
         shape_output = self.get_size_output_last_layer() + (self._num_classes_out,)
 
         super(ConvNetBase, self).__init__(shape_input, shape_output)
+
+    def _build_auxiliar_data_valid_convols(self):
+        self._list_operation_names_layers_all = []
+        self._build_list_operation_names_layers()
+        self._build_list_sizes_output_layers_all()
 
     def _build_list_operation_names_layers(self) -> None:
         raise NotImplementedError
@@ -89,7 +92,7 @@ class ConvNetBase(NeuralNetwork):
         if level_end < level_begin or \
                 level_begin >= len(self._list_operation_names_layers_all) or \
                 level_end > len(self._list_operation_names_layers_all):
-            message = 'Problem with input \'level_begin\' (%s) or \'level_end\' (%s)' % (level_begin, level_end)
+            message = 'ConvNetBase: wrong input \'level_begin\' (%s) or \'level_end\' (%s)' % (level_begin, level_end)
             catch_error_exception(message)
 
         in_list_operation_names_layers = self._list_operation_names_layers_all[level_begin:level_end]
@@ -105,7 +108,7 @@ class ConvNetBase(NeuralNetwork):
 
         return size_next
 
-    def _build_list_sizes_output_all_layers(self) -> List[Union[Tuple[int, int, int], Tuple[int, int]]]:
+    def _build_list_sizes_output_layers_all(self) -> List[Union[Tuple[int, int, int], Tuple[int, int]]]:
         self._list_sizes_output_all_layers = []
         size_next = self._size_image_in
         for operation_name in self._list_operation_names_layers_all:
@@ -161,7 +164,7 @@ class ConvNetBase(NeuralNetwork):
 
 
 class UNetBase(ConvNetBase):
-    _num_levels_nonpadded_default = 3
+    _num_levels_valid_convols_default = 3
 
     def __init__(self,
                  size_image_in: Union[Tuple[int, int, int], Tuple[int, int]],
@@ -169,28 +172,39 @@ class UNetBase(ConvNetBase):
                  num_featmaps_in: int,
                  num_channels_in: int,
                  num_classes_out: int,
-                 is_use_valid_convols: bool = False
+                 is_use_valid_convols: bool = False,
+                 num_levels_valid_convols: int = _num_levels_valid_convols_default,
                  ) -> None:
         self._num_levels = num_levels
+
+        if is_use_valid_convols:
+            # option to enable zero-padding in the deeper conv. layers of the UNet, to relax the reduction
+            # of size of network output due to valid convolutions
+            self._num_levels_valid_convols = num_levels_valid_convols
+        else:
+            self._num_levels_valid_convols = None
+
         super(UNetBase, self).__init__(size_image_in, num_featmaps_in, num_channels_in, num_classes_out,
                                        is_use_valid_convols=is_use_valid_convols)
 
-        if self._is_use_valid_convols:
-            self._build_list_info_crop_where_merge()
+    def _build_auxiliar_data_valid_convols(self):
+        super(UNetBase, self)._build_auxiliar_data_valid_convols()
+        self._build_list_info_crop_where_merge()
 
     def _build_list_operation_names_layers(self) -> None:
         if self._num_levels == 1:
             self._list_operation_names_layers_all = ['convols'] * 4 + ['classify']
 
-        elif self._is_use_valid_convols and self._num_levels > self._num_levels_nonpadded_default:
-            # Assume that last convolutions have padding, to avoid large reduction of image dims
-            num_levels_with_padding = self._num_levels - self._num_levels_nonpadded_default - 1
+        elif self._is_use_valid_convols \
+                and self._num_levels > self._num_levels_valid_convols:
+            num_levels_nonpadded = self._num_levels_valid_convols
+            num_levels_padded_exclast = self._num_levels - num_levels_nonpadded - 1
             self._list_operation_names_layers_all = \
-                self._num_levels_nonpadded_default * (['convols'] * 2 + ['pooling']) \
-                + num_levels_with_padding * (['convols_padded'] * 2 + ['pooling']) \
+                num_levels_nonpadded * (['convols'] * 2 + ['pooling']) \
+                + num_levels_padded_exclast * (['convols_padded'] * 2 + ['pooling']) \
                 + ['convols_padded'] * 2 \
-                + num_levels_with_padding * (['upsample'] + ['convols_padded'] * 2) \
-                + self._num_levels_nonpadded_default * (['upsample'] + ['convols'] * 2) \
+                + num_levels_padded_exclast * (['upsample'] + ['convols_padded'] * 2) \
+                + num_levels_nonpadded * (['upsample'] + ['convols'] * 2) \
                 + ['classify']
         else:
             self._list_operation_names_layers_all = \

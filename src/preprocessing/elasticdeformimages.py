@@ -18,26 +18,25 @@ class ElasticDeformImages(ImageGenerator):
                  fill_mode: str = 'nearest',
                  cval: float = 0.0
                  ) -> None:
-        self._fill_mode = fill_mode
-        self._cval = cval
-
         super(ElasticDeformImages, self).__init__(size_image, num_images=1)
 
-        self._ndims = len(self._size_image)
+        self._fill_mode = fill_mode
+        self._cval = cval
+        self._ndims = len(size_image)
+
         self._initialize_gendata()
 
     def update_image_data(self, in_shape_image: Tuple[int, ...]) -> None:
         # self._num_images = in_shape_image[0]
         pass
 
-    def _compute_gendata(self, **kwargs) -> None:
+    def _initialize_gendata(self) -> None:
+        self._gendata_elastic_deform = None
+        self._count_trans_in_images = 0
+
+    def _update_gendata(self, **kwargs) -> None:
         seed = kwargs['seed']
         self._gendata_elastic_deform = self._get_calcgendata_elastic_deform(seed)
-        self._is_compute_gendata = False
-
-    def _initialize_gendata(self) -> None:
-        self._is_compute_gendata = True
-        self._gendata_elastic_deform = None
         self._count_trans_in_images = 0
 
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:
