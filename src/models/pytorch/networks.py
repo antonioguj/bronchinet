@@ -307,7 +307,7 @@ class UNet3DGeneral(UNet):
                 'is_use_valid_convols': self._is_use_valid_convols}
 
     def _build_model(self) -> None:
-        val_padding_convols = 0 if self._is_use_valid_convols else 1
+        value_padding_convols = 0 if self._is_use_valid_convols else 1
 
         self._convolutions_levels_down = [[] for i in range(self._num_levels)]
         self._convolutions_levels_up = [[] for i in range(self._num_levels - 1)]
@@ -327,7 +327,7 @@ class UNet3DGeneral(UNet):
 
                 new_convolution = Conv3d(num_featmaps_in_convol, num_featmaps_out_convol,
                                          kernel_size=self._sizes_kernel_convols_levels_down[i_lev],
-                                         padding=val_padding_convols)
+                                         padding=value_padding_convols)
                 self._convolutions_levels_down[i_lev].append(new_convolution)
 
                 if self._is_use_batchnormalize and self._is_use_batchnormalize_levels_down[i_lev]:
@@ -352,7 +352,7 @@ class UNet3DGeneral(UNet):
 
                 new_convolution = Conv3d(num_featmaps_in_convol, num_featmaps_out_convol,
                                          kernel_size=self._sizes_kernel_convols_levels_up[i_lev],
-                                         padding=val_padding_convols)
+                                         padding=value_padding_convols)
                 self._convolutions_levels_up[i_lev].append(new_convolution)
 
                 if self._is_use_batchnormalize and self._is_use_batchnormalize_levels_up[i_lev]:
@@ -467,7 +467,7 @@ class UNet3DPlugin(UNet):
 
     def _build_model(self) -> None:
         value_padding = 0 if self._is_use_valid_convols else 1
-        value_padding_deep_levels = 0 if self._is_use_valid_convols else 1
+        value_padding_deep_levels = 0 if self._is_valid_convols_deep_levels else 1
 
         num_featmaps_lev1 = self._num_featmaps_in
         self._convolution_down_lev1_1 = Conv3d(self._num_channels_in, num_featmaps_lev1, kernel_size=3,
