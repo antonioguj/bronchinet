@@ -21,10 +21,16 @@ class UNet(UNetBase):
                  num_featmaps_in: int,
                  num_channels_in: int,
                  num_classes_out: int,
-                 is_use_valid_convols: bool = False
+                 is_use_valid_convols: bool = False,
+                 num_levels_valid_convols: int = UNetBase._num_levels_valid_convols_default,
                  ) -> None:
-        super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in,
-                                   num_classes_out, is_use_valid_convols=is_use_valid_convols)
+        super(UNet, self).__init__(size_image_in,
+                                   num_levels,
+                                   num_featmaps_in,
+                                   num_channels_in,
+                                   num_classes_out,
+                                   is_use_valid_convols=is_use_valid_convols,
+                                   num_levels_valid_convols=num_levels_valid_convols)
         self._built_model = 0
 
     def get_built_model(self) -> Model:
@@ -52,9 +58,12 @@ class UNet3DOriginal(UNet):
                  num_channels_in: int = 1,
                  num_classes_out: int = 1
                  ) -> None:
-        super(UNet3DOriginal, self).__init__(size_image_in, self._num_levels_fixed, num_featmaps_in, num_channels_in,
-                                             num_classes_out, is_use_valid_convols=False)
-
+        super(UNet3DOriginal, self).__init__(size_image_in,
+                                             self._num_levels_fixed,
+                                             num_featmaps_in,
+                                             num_channels_in,
+                                             num_classes_out,
+                                             is_use_valid_convols=False)
         self._compiled_model = self._build_model()
 
     def _build_model(self) -> Model:
@@ -170,8 +179,12 @@ class UNet3DGeneral(UNet):
                  is_use_batchnormalize_levels_down: Union[bool, List[bool]] = True,
                  is_use_batchnormalize_levels_up: Union[bool, List[bool]] = True
                  ) -> None:
-        super(UNet, self).__init__(size_image_in, num_levels, num_featmaps_in, num_channels_in,
-                                   num_classes_out, is_use_valid_convols=is_use_valid_convols)
+        super(UNet, self).__init__(size_image_in,
+                                   num_levels,
+                                   num_featmaps_in,
+                                   num_channels_in,
+                                   num_classes_out,
+                                   is_use_valid_convols=is_use_valid_convols)
         self._type_activate_hidden = type_activate_hidden
         self._type_activate_output = type_activate_output
 
@@ -296,6 +309,7 @@ class UNet3DGeneral(UNet):
 
 class UNet3DPlugin(UNet):
     _num_levels_fixed = 5
+    _num_levels_valid_convols_fixed = 3
     _num_featmaps_in_default = 16
     _num_channels_in_default = 1
     _num_classes_out_default = 1
@@ -308,17 +322,25 @@ class UNet3DPlugin(UNet):
                  num_featmaps_in: int = _num_featmaps_in_default,
                  num_channels_in: int = _num_channels_in_default,
                  num_classes_out: int = _num_classes_out_default,
-                 is_use_valid_convols: bool = False
+                 is_use_valid_convols: bool = False,
+                 is_valid_convols_deep_levels: bool = False,
                  ) -> None:
-        super(UNet3DPlugin, self).__init__(size_image_in, self._num_levels_fixed, num_featmaps_in, num_channels_in,
-                                           num_classes_out, is_use_valid_convols=is_use_valid_convols)
+        super(UNet3DPlugin, self).__init__(size_image_in,
+                                           self._num_levels_fixed,
+                                           num_featmaps_in,
+                                           num_channels_in,
+                                           num_classes_out,
+                                           is_use_valid_convols=is_use_valid_convols,
+                                           num_levels_valid_convols=self._num_levels_valid_convols_fixed)
         self._type_activate_hidden = self._type_activate_hidden_default
         self._type_activate_output = self._type_activate_output_default
+        self._is_valid_convols_deep_levels = is_valid_convols_deep_levels
 
         self._built_model = self._build_model()
 
     def _build_model(self) -> Model:
         type_padding = 'valid' if self._is_use_valid_convols else 'same'
+        type_padding_deep_levels = 'valid' if self._is_valid_convols_deep_levels else 'same'
 
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
 
@@ -348,26 +370,26 @@ class UNet3DPlugin(UNet):
 
         num_featmaps_lev4 = 2 * num_featmaps_lev3
         hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
+                                    padding=type_padding_deep_levels)(hidden_next)
         hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
+                                    padding=type_padding_deep_levels)(hidden_next)
         skipconn_lev4 = hidden_next
         hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
 
         num_featmaps_lev5 = 2 * num_featmaps_lev4
         hidden_next = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
+                                    padding=type_padding_deep_levels)(hidden_next)
         hidden_next = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
+                                    padding=type_padding_deep_levels)(hidden_next)
         hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
 
         if self._is_use_valid_convols:
             skipconn_lev4 = Cropping3D(cropping=self._list_sizes_borders_crop_where_merge[3])(skipconn_lev4)
         hidden_next = concatenate([hidden_next, skipconn_lev4], axis=-1)
         hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
+                                    padding=type_padding_deep_levels)(hidden_next)
         hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
+                                    padding=type_padding_deep_levels)(hidden_next)
         hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
 
         if self._is_use_valid_convols:
