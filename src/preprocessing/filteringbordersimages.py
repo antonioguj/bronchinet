@@ -60,31 +60,49 @@ class FilteringBordersImages(ImageGenerator):
         else:
             return self._func_multiply_matrixes_channels(in_image, self._factor_filtering)
 
-    def _compute_progression_increasing(self, coord_0: int, coord_1: int) -> np.ndarray:
-        if self._type_filtering == 'linear':
-            return self._calc_linear_progression(coord_0, coord_1)
-        elif self._type_filtering == 'quadratic':
-            return self._calc_quadratic_progression(coord_0, coord_1)
-        elif self._type_filtering == 'cubic':
-            return self._calc_cubic_progression(coord_0, coord_1)
-        elif self._type_filtering == 'exponential':
-            return self._calc_exponential_progression(coord_0, coord_1)
-        elif self._type_filtering == 'fullzero':
-            return self._calc_fullzero_progression(coord_0, coord_1)
-
-    def _compute_progression_decreasing(self, coord_0: int, coord_1: int) -> np.ndarray:
-        return self._compute_progression_increasing(coord_0, coord_1)[::-1]
-
-    def _fill_flat_interior_boundbox(self, inner_boundbox: Union[BoundBox3DType, BoundBox2DType]) -> None:
+    def _fill_flat_interior_boundbox(self, inner_boundbox: Union[BoundBox3DType, BoundBox2DType],
+                                     value_fill: float) -> None:
         raise NotImplementedError
 
-    def _fill_flat_exterior_boundbox(self, outer_boundbox: Union[BoundBox3DType, BoundBox2DType]) -> None:
+    def _fill_flat_exterior_boundbox(self, outer_boundbox: Union[BoundBox3DType, BoundBox2DType],
+                                     value_fill: float) -> None:
         raise NotImplementedError
 
     def _fill_progression_between_two_boundboxes(self, inner_boundbox: Union[BoundBox3DType, BoundBox2DType],
                                                  outer_boundbox: Union[BoundBox3DType, BoundBox2DType],
-                                                 value_inner: float = 1.0, value_outer: float = 0.0) -> None:
+                                                 value_inner: float, value_outer: float) -> None:
         raise NotImplementedError
+
+    @classmethod
+    def _compute_progression_increasing(cls, coord_beg: int, coord_end: int,
+                                        value_beg: float, value_end: float,
+                                        type_progression: str) -> np.ndarray:
+        if type_progression == 'linear':
+            progression_ref0_1 = cls._calc_linear_progression(coord_beg, coord_end)
+        elif type_progression == 'quadratic':
+            progression_ref0_1 = cls._calc_quadratic_progression(coord_beg, coord_end)
+        elif type_progression == 'cubic':
+            progression_ref0_1 = cls._calc_cubic_progression(coord_beg, coord_end)
+        elif type_progression == 'exponential':
+            progression_ref0_1 = cls._calc_exponential_progression(coord_beg, coord_end)
+        else:   # type_progression == 'fullzeros':
+            progression_ref0_1 = np.zeros(coord_end - coord_beg, dtype=np.float32)
+
+        return progression_ref0_1 * (value_end - value_beg) + value_beg
+
+    @classmethod
+    def _compute_progression_decreasing(cls, coord_beg: int, coord_end: int,
+                                        value_beg: float, value_end: float,
+                                        type_progression: str) -> np.ndarray:
+        return cls._compute_progression_increasing(coord_beg, coord_end, value_end, value_beg, type_progression)[::-1]
+
+    @staticmethod
+    def _compute_fill_progression(coord_beg: int, coord_end: int, value_fill: float,
+                                  type_filling: str) -> np.ndarray:
+        if type_filling == 'full':
+            return np.full(coord_end - coord_beg, value_fill, dtype=np.float32)
+        elif type_filling == 'zeros':
+            return np.zeros(coord_end - coord_beg, dtype=np.float32)
 
     @staticmethod
     def _multiply_matrixes_with_channels_2d(matrix_1_channels: np.ndarray, matrix_2: np.ndarray) -> np.ndarray:
@@ -118,10 +136,6 @@ class FilteringBordersImages(ImageGenerator):
     def _calc_exponential_progression(coord_0: int, coord_1: int) -> np.ndarray:
         return (np.exp(np.linspace(0, 1, coord_1 - coord_0)) - 1.0) / (np.exp(1) - 1.0)
 
-    @staticmethod
-    def _calc_fullzero_progression(coord_0: int, coord_1: int) -> np.ndarray:
-        return np.zeros(coord_1 - coord_0)
-
     def _compute_factor_filtering(self) -> None:
         self._factor_filtering = np.zeros(self._size_image, dtype=np.float32)
 
@@ -139,7 +153,7 @@ class FilteringBordersImages(ImageGenerator):
 
             boundbox_output_image = BoundingBoxes.calc_boundbox_centered_image_fitimg(self._size_image,
                                                                                       sizes_windows[0])
-            self._fill_flat_interior_boundbox(boundbox_output_image)
+            self._fill_flat_interior_boundbox(boundbox_output_image, 1.0)
 
             for iwin in range(num_windows):
                 iwindow_value_inner = 1.0 - iwin / float(num_windows)
@@ -159,8 +173,9 @@ class FilteringBordersImages(ImageGenerator):
                                                                                       self._size_image)
             boundbox_input_image = BoundingBoxes.get_default_boundbox_image(self._size_image)
 
-            self._fill_flat_interior_boundbox(boundbox_output_image)
-            self._fill_progression_between_two_boundboxes(boundbox_output_image, boundbox_input_image)
+            self._fill_flat_interior_boundbox(boundbox_output_image, 1.0)
+
+            self._fill_progression_between_two_boundboxes(boundbox_output_image, boundbox_input_image, 1.0, 0.0)
 
 
 class FilteringBordersImages2D(FilteringBordersImages):
@@ -175,35 +190,37 @@ class FilteringBordersImages2D(FilteringBordersImages):
                                                        type_filtering=type_filtering,
                                                        is_filter_multiple_windows=is_filter_multiple_windows)
 
-    def _fill_flat_interior_boundbox(self, inner_boundbox: BoundBox2DType) -> None:
-        # set 'one' inside bounding-box
+    def _fill_flat_interior_boundbox(self, inner_boundbox: BoundBox2DType,
+                                     value_fill: float) -> None:
+        # set 'value_fill' inside bounding-box
         ((x_left, x_right), (y_down, y_up)) = inner_boundbox
-        self._factor_filtering[x_left:x_right, y_down:y_up] = 1.0
+        self._factor_filtering[x_left:x_right, y_down:y_up] = value_fill
 
-    def _fill_flat_exterior_boundbox(self, outer_boundbox: BoundBox2DType) -> None:
-        # set 'zero' outside bounding-box
+    def _fill_flat_exterior_boundbox(self, outer_boundbox: BoundBox2DType,
+                                     value_fill: float) -> None:
+        # set 'value_fill' outside bounding-box
         ((x_left, x_right), (y_down, y_up)) = outer_boundbox
-        self._factor_filtering[0:x_left, :] = 0.0
-        self._factor_filtering[x_right:, :] = 0.0
-        self._factor_filtering[:, 0:y_down] = 0.0
-        self._factor_filtering[:, y_up:] = 0.0
+        self._factor_filtering[0:x_left, :] = value_fill
+        self._factor_filtering[x_right:, :] = value_fill
+        self._factor_filtering[:, 0:y_down] = value_fill
+        self._factor_filtering[:, y_up:] = value_fill
 
     def _fill_progression_between_two_boundboxes(self, inner_boundbox: BoundBox2DType, outer_boundbox: BoundBox2DType,
-                                                 value_inner: float = 1.0, value_outer: float = 0.0) -> None:
+                                                 value_inner: float, value_outer: float) -> None:
         # set progression between 'value_inner' and 'value_outer', between 'inner' and 'outer' bounding-boxes
         ((x_left_in, x_right_in), (y_down_in, y_up_in)) = inner_boundbox
         ((x_left_out, x_right_out), (y_down_out, y_up_out)) = outer_boundbox
 
-        progression_x_left = \
-            self._compute_progression_increasing(x_left_out, x_left_in) * (value_inner - value_outer) + value_outer
-        progression_x_right = \
-            self._compute_progression_decreasing(x_right_in, x_right_out) * (value_inner - value_outer) + value_outer
-        progression_y_down = \
-            self._compute_progression_increasing(y_down_out, y_down_in) * (value_inner - value_outer) + value_outer
-        progression_y_up = \
-            self._compute_progression_decreasing(y_up_in, y_up_out) * (value_inner - value_outer) + value_outer
-        progression_x_middle = np.ones([x_right_in - x_left_in]) * value_inner
-        progression_y_middle = np.ones([y_up_in - y_down_in]) * value_inner
+        progression_x_left = self._compute_progression_increasing(x_left_out, x_left_in, value_outer, value_inner,
+                                                                  self._type_filtering)
+        progression_x_right = self._compute_progression_decreasing(x_right_in, x_right_out, value_inner, value_outer,
+                                                                   self._type_filtering)
+        progression_y_down = self._compute_progression_increasing(y_down_out, y_down_in, value_outer, value_inner,
+                                                                  self._type_filtering)
+        progression_y_up = self._compute_progression_decreasing(y_up_in, y_up_out, value_inner, value_outer,
+                                                                self._type_filtering)
+        progression_x_middle = self._compute_fill_progression(x_left_in, x_right_in, value_inner, 'full')
+        progression_y_middle = self._compute_fill_progression(y_down_in, y_up_in, value_inner, 'full')
 
         # laterals
         self._factor_filtering[x_left_out:x_left_in, y_down_in:y_up_in] = \
@@ -237,42 +254,44 @@ class FilteringBordersImages3D(FilteringBordersImages):
                                                        type_filtering=type_filtering,
                                                        is_filter_multiple_windows=is_filter_multiple_windows)
 
-    def _fill_flat_interior_boundbox(self, inner_boundbox: BoundBox3DType) -> None:
-        # set 'one' inside bounding-box
+    def _fill_flat_interior_boundbox(self, inner_boundbox: BoundBox3DType,
+                                     value_fill: float) -> None:
+        # set 'value_fill' inside bounding-box
         ((z_back, z_front), (x_left, x_right), (y_down, y_up)) = inner_boundbox
-        self._factor_filtering[z_back:z_front, x_left:x_right, y_down:y_up] = 1.0
+        self._factor_filtering[z_back:z_front, x_left:x_right, y_down:y_up] = value_fill
 
-    def _fill_flat_exterior_boundbox(self, outer_boundbox: BoundBox3DType) -> None:
-        # set 'zero' outside bounding-box
+    def _fill_flat_exterior_boundbox(self, outer_boundbox: BoundBox3DType,
+                                     value_fill: float) -> None:
+        # set 'value_fill' outside bounding-box
         ((z_back, z_front), (x_left, x_right), (y_down, y_up)) = outer_boundbox
-        self._factor_filtering[0:z_back, :, :] = 0.0
-        self._factor_filtering[z_front:, :, :] = 0.0
-        self._factor_filtering[:, 0:x_left, :] = 0.0
-        self._factor_filtering[:, x_right:, :] = 0.0
-        self._factor_filtering[:, :, 0:y_down] = 0.0
-        self._factor_filtering[:, :, y_up:] = 0.0
+        self._factor_filtering[0:z_back, :, :] = value_fill
+        self._factor_filtering[z_front:, :, :] = value_fill
+        self._factor_filtering[:, 0:x_left, :] = value_fill
+        self._factor_filtering[:, x_right:, :] = value_fill
+        self._factor_filtering[:, :, 0:y_down] = value_fill
+        self._factor_filtering[:, :, y_up:] = value_fill
 
     def _fill_progression_between_two_boundboxes(self, inner_boundbox: BoundBox3DType, outer_boundbox: BoundBox3DType,
-                                                 value_inner: float = 1.0, value_outer: float = 0.0) -> None:
+                                                 value_inner: float, value_outer: float) -> None:
         # set progression between 'value_inner' and 'value_outer', between 'inner' and 'outer' bounding-boxes
         ((z_back_in, z_front_in), (x_left_in, x_right_in), (y_down_in, y_up_in)) = inner_boundbox
         ((z_back_out, z_front_out), (x_left_out, x_right_out), (y_down_out, y_up_out)) = outer_boundbox
 
-        progression_z_back = \
-            self._compute_progression_increasing(z_back_out, z_back_in) * (value_inner - value_outer) + value_outer
-        progression_z_front = \
-            self._compute_progression_decreasing(z_front_in, z_front_out) * (value_inner - value_outer) + value_outer
-        progression_x_left = \
-            self._compute_progression_increasing(x_left_out, x_left_in) * (value_inner - value_outer) + value_outer
-        progression_x_right = \
-            self._compute_progression_decreasing(x_right_in, x_right_out) * (value_inner - value_outer) + value_outer
-        progression_y_down = \
-            self._compute_progression_increasing(y_down_out, y_down_in) * (value_inner - value_outer) + value_outer
-        progression_y_up = \
-            self._compute_progression_decreasing(y_up_in, y_up_out) * (value_inner - value_outer) + value_outer
-        progression_z_middle = np.ones([z_front_in - z_back_in]) * value_inner
-        progression_x_middle = np.ones([x_right_in - x_left_in]) * value_inner
-        progression_y_middle = np.ones([y_up_in - y_down_in]) * value_inner
+        progression_z_back = self._compute_progression_increasing(z_back_out, z_back_in, value_outer, value_inner,
+                                                                  self._type_filtering)
+        progression_z_front = self._compute_progression_decreasing(z_front_in, z_front_out, value_inner, value_outer,
+                                                                   self._type_filtering)
+        progression_x_left = self._compute_progression_increasing(x_left_out, x_left_in, value_outer, value_inner,
+                                                                  self._type_filtering)
+        progression_x_right = self._compute_progression_decreasing(x_right_in, x_right_out, value_inner, value_outer,
+                                                                   self._type_filtering)
+        progression_y_down = self._compute_progression_increasing(y_down_out, y_down_in, value_outer, value_inner,
+                                                                  self._type_filtering)
+        progression_y_up = self._compute_progression_decreasing(y_up_in, y_up_out, value_inner, value_outer,
+                                                                self._type_filtering)
+        progression_z_middle = self._compute_fill_progression(z_back_in, z_front_in, value_inner, 'full')
+        progression_x_middle = self._compute_fill_progression(x_left_in, x_right_in, value_inner, 'full')
+        progression_y_middle = self._compute_fill_progression(y_down_in, y_up_in, value_inner, 'full')
 
         # laterals
         self._factor_filtering[z_back_in:z_front_in, x_left_out:x_left_in, y_down_in:y_up_in] = \
