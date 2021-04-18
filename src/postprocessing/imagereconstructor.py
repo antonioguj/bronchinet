@@ -30,7 +30,7 @@ class ImageReconstructorGeneral(object):
             self._func_add_images_volume = SetImageInVolume._compute_adding3d
             self._func_crop_images = CropImage._compute3d
         else:
-            message = 'ImageReconstructorGeneral:__init__: wrong \'ndims\': %s...' % (self._ndims)
+            message = 'ImageReconstructorGeneral:__init__: wrong \'ndims\': %s' % (self._ndims)
             catch_error_exception(message)
 
         if self._type_combine_patches not in ['average', 'max']:
@@ -190,7 +190,7 @@ class ImageReconstructorWithGenerator(ImageReconstructorGeneral):
             elif self._ndims == 3:
                 self._func_extend_images = ExtendImage._compute3d
             else:
-                message = 'ImageReconstructorWithGenerator:__init__: wrong \'ndims\': %s...' % (self._ndims)
+                message = 'ImageReconstructorWithGenerator:__init__: wrong \'ndims\': %s' % (self._ndims)
                 catch_error_exception(message)
         else:
             self._is_nnet_validconvs = False

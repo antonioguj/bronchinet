@@ -25,7 +25,7 @@ class RandomWindowImages(ImageGenerator):
         elif self._ndims == 3:
             self._func_crop_images = CropImage._compute3d
         else:
-            message = 'RandomWindowImages:__init__: wrong \'ndims\': %s...' % (self._ndims)
+            message = 'RandomWindowImages:__init__: wrong \'ndims\': %s' % (self._ndims)
             catch_error_exception(message)
 
         self._initialize_gendata()

@@ -71,7 +71,7 @@ def get_images_generator(size_images: Union[Tuple[int, int, int], Tuple[int, int
             list_images_generators.append(new_images_generator)
 
         else:
-            message = 'Wrong value of \'ndims\': %s' % (ndims)
+            message = 'get_images_generator:__init__: wrong \'ndims\': %s' % (ndims)
             catch_error_exception(message)
 
     if is_transform_elastic:

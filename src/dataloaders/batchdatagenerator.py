@@ -188,7 +188,7 @@ class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
             elif ndims == 3:
                 self._func_crop_images = CropImage._compute3d
             else:
-                message = 'BatchImageDataGenerator2Images:__init__: wrong \'ndims\': %s...' % (ndims)
+                message = 'BatchImageDataGenerator2Images:__init__: wrong \'ndims\': %s' % (ndims)
                 catch_error_exception(message)
         else:
             self._is_nnet_validconvs = False

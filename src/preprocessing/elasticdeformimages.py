@@ -24,6 +24,10 @@ class ElasticDeformImages(ImageGenerator):
         self._cval = cval
         self._ndims = len(size_image)
 
+        if (self._ndims != 2) and (self._ndims != 3):
+            message = 'ElasticDeformImages:__init__: wrong \'ndims\': %s' % (self._ndims)
+            catch_error_exception(message)
+
         self._initialize_gendata()
 
     def update_image_data(self, in_shape_image: Tuple[int, ...]) -> None:
@@ -110,11 +114,6 @@ class ElasticDeformGridwiseImages(ElasticDeformImages):
                              np.linspace(0, self._points - 1, self._size_image[2]), indexing='ij')
             grid = [self._points, self._points, self._points]
 
-        else:
-            message = 'ElasticDeformGridwiseImages:_get_calcgendata_elastic_deform: ' \
-                      'wrong \'ndims\': %s...' % (self._ndims)
-            catch_error_exception(message)
-
         # creates the deformation along each dimension and then add it to the coordinates
         for i in range(self._ndims):
             # creating the displacement at the control points
@@ -161,10 +160,6 @@ class ElasticDeformPixelwiseImages(ElasticDeformImages):
             xi_dirs = np.meshgrid(np.arange(self._size_image[0]),
                                   np.arange(self._size_image[1]),
                                   np.arange(self._size_image[2]), indexing='ij')
-        else:
-            message = 'ElasticDeformPixelwiseImages:_get_calcgendata_elastic_deform: ' \
-                      'wrong \'ndims\': %s...' % (self._ndims)
-            catch_error_exception(message)
 
         indices = []
         for i in range(self._ndims):

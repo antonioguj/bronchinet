@@ -565,3 +565,58 @@ class ImagesUtil:
         ndim = len(in_image.shape)
         axis_val = 0 if is_input_sample else 1
         return np.rollaxis(in_image, axis_val, ndim)
+
+
+class NetworksUtil:
+    # size_input: dims (dz, dx, dy) of input image to network
+    # size_output: dims of output image of network, or feature maps
+    _num_levels_default = 5
+    _num_convols_level_default = 2
+    _num_levels_valid_convols_default = 3
+
+    @classmethod
+    def calc_size_output_layer_valid_convols(cls, size_input: Union[Tuple[int, int, int], Tuple[int, int]],
+                                             num_levels: int = _num_levels_default,
+                                             num_convols_level: int = _num_convols_level_default,
+                                             num_levels_valid_convols: int = _num_levels_valid_convols_default
+                                             ) -> Union[Tuple[int, int, int], Tuple[int, int]]:
+        size_output = size_input
+        # downsampling levels
+        for ilev in range(num_levels - 1):
+            for icon in range(num_convols_level):
+                if (ilev + 1) <= num_levels_valid_convols:
+                    size_output = tuple([cls.calc_size_output_1d_valid_convol(elem) for elem in size_output])
+                else:
+                    size_output = size_output
+            size_output = tuple([cls.calc_size_output_1d_pooling(elem) for elem in size_output])
+
+        # deepest level
+        for icon in range(num_convols_level):
+            if num_levels <= num_levels_valid_convols:
+                size_output = tuple([cls.calc_size_output_1d_valid_convol(elem) for elem in size_output])
+            else:
+                size_output = size_output
+
+        # upsampling levels
+        for ilev in range(num_levels - 2, -1, -1):
+            size_output = tuple([cls.calc_size_output_1d_upsample(elem) for elem in size_output])
+            for icon in range(num_convols_level):
+                if (ilev + 1) <= num_levels_valid_convols:
+                    size_output = tuple([cls.calc_size_output_1d_valid_convol(elem) for elem in size_output])
+                else:
+                    size_output = size_output
+
+        # last layer (1x) convol and does not change dims
+        return size_output
+
+    @staticmethod
+    def calc_size_output_1d_valid_convol(size_input: int, size_kernel: int = 3) -> int:
+        return size_input - size_kernel + 1
+
+    @staticmethod
+    def calc_size_output_1d_pooling(size_input: int, size_pool: int = 2) -> int:
+        return size_input // size_pool
+
+    @staticmethod
+    def calc_size_output_1d_upsample(size_input: int, size_upsample: int = 2) -> int:
+        return size_input * size_upsample

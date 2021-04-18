@@ -8,8 +8,7 @@ from common.constant import CODEDIR, NAME_TESTINGDATA_RELPATH, POST_THRESHOLD_VA
     IS_ATTACH_COARSE_AIRWAYS, IS_REMOVE_TRACHEA_CALC_METRICS, NAME_TEMPO_POSTERIORS_RELPATH, NAME_POSTERIORS_RELPATH, \
     NAME_PRED_BINARYMASKS_RELPATH, NAME_PRED_CENTRELINES_RELPATH, NAME_REFERENCE_KEYS_POSTERIORS_FILE, \
     NAME_PRED_RESULT_METRICS_FILE, NAME_CONFIG_PARAMS_FILE, NAME_RAW_LABELS_RELPATH, NAME_RAW_ROIMASKS_RELPATH, \
-    NAME_RAW_COARSEAIRWAYS_RELPATH, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, \
-    IS_TWO_BOUNDBOXES_LUNGS, PROP_FILTER_OUTPUT_NETWORK
+    NAME_RAW_COARSEAIRWAYS_RELPATH, IS_MASK_REGION_INTEREST, IS_CROP_IMAGES, IS_RESCALE_IMAGES, IS_TWO_BOUNDBOXES_LUNGS
 from common.functionutil import currentdir, makedir, set_filename_suffix, set_dirname_suffix, is_exist_file, \
     join_path_names, basename, basenamedir, dirname, list_dirs_dir, str2bool, str2int, str2float, str2list_str, \
     read_dictionary_configparams
@@ -115,7 +114,6 @@ def main(args):
                         '--name_output_predictions_relpath', inout_tempo_posteriors_path,
                         '--name_output_reference_keys_file', inout_predict_reference_keys_file_this,
                         '--is_filter_output_network', str(args.is_filter_output_network),
-                        '--prop_filter_output_network', str(args.prop_filter_output_network),
                         '--is_backward_compat', str(args.is_backward_compat)]
             list_calls_all.append(new_call)
         # endfor
@@ -135,7 +133,6 @@ def main(args):
                     '--name_output_predictions_relpath', inout_tempo_posteriors_path,
                     '--name_output_reference_keys_file', inout_predict_reference_keys_file,
                     '--is_filter_output_network', str(args.is_filter_output_network),
-                    '--prop_filter_output_network', str(args.prop_filter_output_network),
                     '--is_backward_compat', str(args.is_backward_compat)]
         list_calls_all.append(new_call)
 
@@ -312,12 +309,10 @@ if __name__ == "__main__":
 
         is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
         if not is_valid_convolutions:
-            print("Testing network with non-valid convols: need to filter output to reduce border effects...")
+            print("Testing network with non-valid convols: need filter the network output to reduce border effects...")
             args.is_filter_output_network = True
-            args.prop_filter_output_network = PROP_FILTER_OUTPUT_NETWORK
         else:
             args.is_filter_output_network = False
-            args.prop_filter_output_network = 0.0
 
     print("Print input arguments...")
     for key, value in vars(args).items():

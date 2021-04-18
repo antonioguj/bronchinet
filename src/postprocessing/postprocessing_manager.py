@@ -20,7 +20,7 @@ def get_images_reconstructor(size_images: Union[Tuple[int, int, int], Tuple[int,
                              is_nnet_validconvs: bool = False,
                              size_output_images: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                              is_filter_output_images: bool = False,
-                             prop_filter_output_images: float = None,
+                             size_filter_output_images: Union[Tuple[int, int, int], Tuple[int, int]] = None
                              ) -> ImageReconstructorWithGenerator:
 
     trans_rigid_params = fill_missing_trans_rigid_params(trans_rigid_params)
@@ -43,23 +43,13 @@ def get_images_reconstructor(size_images: Union[Tuple[int, int, int], Tuple[int,
     if is_filter_output_images:
         ndims = len(size_images)
         if ndims == 2:
-            size_filter_output_images = (int(prop_filter_output_images * size_images[0]),
-                                         int(prop_filter_output_images * size_images[1]))
-            print("Filter output images (typically predictions of network), with filtered output size: \'%s\'..."
-                  % (str(size_filter_output_images)))
-
-            filter_image_generator = FilteringBordersImages2D(size_images, size_filter_output_images)
-
+            filter_image_generator = FilteringBordersImages2D(size_images,
+                                                              size_filter_output_images)
         elif ndims == 3:
-            size_filter_output_images = (int(prop_filter_output_images * size_images[0]),
-                                         int(prop_filter_output_images * size_images[1]),
-                                         int(prop_filter_output_images * size_images[2]))
-            print("Filter output images (typically predictions of network), with filtered output size: \'%s\'..."
-                  % (str(size_filter_output_images)))
-
-            filter_image_generator = FilteringBordersImages3D(size_images, size_filter_output_images)
+            filter_image_generator = FilteringBordersImages3D(size_images,
+                                                              size_filter_output_images)
         else:
-            message = 'get_images_reconstructor:__init__: wrong \'ndims\': %s...' % (ndims)
+            message = 'get_images_reconstructor:__init__: wrong \'ndims\': %s' % (ndims)
             catch_error_exception(message)
             filter_image_generator = None
     else:
