@@ -3,10 +3,10 @@ import numpy as np
 import argparse
 
 from common.constant import DATADIR, SIZE_IN_IMAGES, NAME_PROC_IMAGES_RELPATH, NAME_PROC_LABELS_RELPATH, \
-    IS_VALID_CONVOLUTIONS, PROP_OVERLAP_SLIDING_WINDOW_TEST, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    IS_FILTER_OUTPUT_NETWORK, PROP_FILTER_OUTPUT_NETWORK
+    IS_VALID_CONVOLUTIONS, PROP_OVERLAP_SLIDING_WINDOW_TEST, NAME_REFERENCE_KEYS_PROCIMAGE_FILE
 from common.functionutil import join_path_names, basename, basename_filenoext, list_files_dir, str2bool, str2int, \
-    str2float, str2tuple_int, str2tuple_float
+    str2tuple_int, str2tuple_float, NetworksUtil
+from common.exceptionmanager import catch_warning_exception
 from common.workdirmanager import GeneralDirManager
 from dataloaders.dataloader_manager import get_imagedataloader_2images
 from dataloaders.imagefilereader import ImageFileReader
@@ -59,7 +59,7 @@ def main(args):
                                                     is_nnet_validconvs=args.is_valid_convolutions,
                                                     size_output_images=size_output_image_network,
                                                     is_filter_output_images=args.is_filter_output_network,
-                                                    prop_filter_output_images=args.prop_filter_output_network)
+                                                    size_filter_output_images=args.size_filter_output_images)
 
     # *****************************************************
 
@@ -144,9 +144,19 @@ if __name__ == "__main__":
     parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW_TEST)
     parser.add_argument('--is_random_window_images', type=str2bool, default=False)
     parser.add_argument('--num_random_patches_epoch', type=str2int, default=0)
-    parser.add_argument('--is_filter_output_network', type=str2bool, default=IS_FILTER_OUTPUT_NETWORK)
-    parser.add_argument('--prop_filter_output_network', type=str2float, default=PROP_FILTER_OUTPUT_NETWORK)
+    parser.add_argument('--is_filter_output_network', type=str2bool, default=False)
     args = parser.parse_args()
+
+    if args.is_valid_convolutions and not args.is_filter_output_network:
+        message = 'Loading network with non-valid convols: better to filter the network output to reduce border effects'
+        catch_warning_exception(message)
+
+    if args.is_filter_output_network:
+        print("Using the option to filter the network output to reduce border effects...")
+        args.size_filter_output_images = NetworksUtil.calc_size_output_layer_valid_convols(args.size_in_images)
+        print("Filtering the output images outside the window: %s..." % (str(args.size_filter_output_images)))
+    else:
+        args.size_filter_output_images = None
 
     print("Print input arguments...")
     for key, value in vars(args).items():

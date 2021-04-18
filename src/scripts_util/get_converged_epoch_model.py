@@ -62,7 +62,7 @@ def main(args):
 
         num_aver_epochs = len(epochs)
         for i in range(num_aver_epochs):
-            list_strdata = ['%d ' % (epochs[i])] + ['%0.6f' % (elem) for elem in list(data_fields[i, :])]
+            list_strdata = ['%d' % (epochs[i])] + ['%0.6f' % (elem) for elem in list(data_fields[i, :])]
             writeline = ' '.join(list_strdata) + '\n'
             fout.write(writeline)
         # endfor

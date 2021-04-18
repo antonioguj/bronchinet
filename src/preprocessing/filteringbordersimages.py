@@ -7,7 +7,7 @@ from common.functionutil import ImagesUtil
 from imageoperators.boundingboxes import BoundingBoxes, BoundBox3DType, BoundBox2DType
 from preprocessing.imagegenerator import ImageGenerator
 
-TYPES_FILTERING_AVAIL = ['linear', 'quadratic', 'cubic', 'exponential']
+TYPES_FILTERING_AVAIL = ['linear', 'quadratic', 'cubic', 'exponential', 'fullzero']
 
 
 class FilteringBordersImages(ImageGenerator):
@@ -18,20 +18,30 @@ class FilteringBordersImages(ImageGenerator):
                  size_output_image: Union[Tuple[int, int, int], Tuple[int, int],
                                           List[Tuple[int, int, int]], List[Tuple[int, int]]],
                  type_filtering: str = _type_filtering_default,
-                 is_filtering_multiple_windows: bool = False
+                 is_filter_multiple_windows: bool = False
                  ) -> None:
         self._size_image = size_image
         self._ndims = len(size_image)
         self._size_output_image = size_output_image
         self._type_filtering = type_filtering
-        self._is_filtering_multiple_windows = is_filtering_multiple_windows
+        self._is_filter_multiple_windows = is_filter_multiple_windows
 
         if self._ndims == 2:
             self._func_multiply_matrixes_channels = self._multiply_matrixes_with_channels_2d
         elif self._ndims == 3:
             self._func_multiply_matrixes_channels = self._multiply_matrixes_with_channels_3d
         else:
-            message = 'FilteringBorderEffectsImages:__init__: wrong \'ndims\': %s...' % (self._ndims)
+            message = 'FilteringBorderEffectsImages:__init__: wrong \'ndims\': %s' % (self._ndims)
+            catch_error_exception(message)
+
+        if self._type_filtering not in TYPES_FILTERING_AVAIL:
+            message = 'wrong input \'type_filtering\': \'%s\'. Options available: %s' \
+                      % (self._type_filtering, TYPES_FILTERING_AVAIL)
+            catch_error_exception(message)
+
+        if self._is_filter_multiple_windows and type(self._size_output_image) != list:
+            message = 'with \'is_filter_multiple_windows\', input \'size_output_image\' must be a list. Received: %s' \
+                      % (str(self._size_output_image))
             catch_error_exception(message)
 
         self._compute_factor_filtering()
@@ -58,7 +68,9 @@ class FilteringBordersImages(ImageGenerator):
         elif self._type_filtering == 'cubic':
             return self._calc_cubic_progression(coord_0, coord_1)
         elif self._type_filtering == 'exponential':
-            return self.calc_exponential_progression(coord_0, coord_1)
+            return self._calc_exponential_progression(coord_0, coord_1)
+        elif self._type_filtering == 'fullzero':
+            return self._calc_fullzero_progression(coord_0, coord_1)
 
     def _compute_progression_decreasing(self, coord_0: int, coord_1: int) -> np.ndarray:
         return self._compute_progression_increasing(coord_0, coord_1)[::-1]
@@ -71,8 +83,7 @@ class FilteringBordersImages(ImageGenerator):
 
     def _fill_progression_between_two_boundboxes(self, inner_boundbox: Union[BoundBox3DType, BoundBox2DType],
                                                  outer_boundbox: Union[BoundBox3DType, BoundBox2DType],
-                                                 propa_value_in: float = 1.0,
-                                                 propa_value_out: float = 0.0) -> None:
+                                                 value_inner: float = 1.0, value_outer: float = 0.0) -> None:
         raise NotImplementedError
 
     @staticmethod
@@ -104,13 +115,17 @@ class FilteringBordersImages(ImageGenerator):
         return np.power(np.linspace(0, 1, coord_1 - coord_0), 3)
 
     @staticmethod
-    def calc_exponential_progression(coord_0: int, coord_1: int) -> np.ndarray:
-        return (np.exp(np.linspace(0, 1, coord_1 - coord_0)) - 1) / (np.exp(1) - 1)
+    def _calc_exponential_progression(coord_0: int, coord_1: int) -> np.ndarray:
+        return (np.exp(np.linspace(0, 1, coord_1 - coord_0)) - 1.0) / (np.exp(1) - 1.0)
+
+    @staticmethod
+    def _calc_fullzero_progression(coord_0: int, coord_1: int) -> np.ndarray:
+        return np.zeros(coord_1 - coord_0)
 
     def _compute_factor_filtering(self) -> None:
         self._factor_filtering = np.zeros(self._size_image, dtype=np.float32)
 
-        if self._is_filtering_multiple_windows:
+        if self._is_filter_multiple_windows:
             # 'factor_filtering' defined:
             # - consider several concentrical windows, of increasing sizes, and until the input image border
             # - i_window == 0:
@@ -152,9 +167,13 @@ class FilteringBordersImages2D(FilteringBordersImages):
 
     def __init__(self,
                  size_image: Tuple[int, int],
-                 size_output_image: Tuple[int, int]
+                 size_output_image: Tuple[int, int],
+                 type_filtering: str = FilteringBordersImages._type_filtering_default,
+                 is_filter_multiple_windows: bool = False
                  ) -> None:
-        super(FilteringBordersImages2D, self).__init__(size_image, size_output_image)
+        super(FilteringBordersImages2D, self).__init__(size_image, size_output_image,
+                                                       type_filtering=type_filtering,
+                                                       is_filter_multiple_windows=is_filter_multiple_windows)
 
     def _fill_flat_interior_boundbox(self, inner_boundbox: BoundBox2DType) -> None:
         # set 'one' inside bounding-box
@@ -170,8 +189,7 @@ class FilteringBordersImages2D(FilteringBordersImages):
         self._factor_filtering[:, y_up:] = 0.0
 
     def _fill_progression_between_two_boundboxes(self, inner_boundbox: BoundBox2DType, outer_boundbox: BoundBox2DType,
-                                                 value_inner: float = 1.0, value_outer: float = 0.0
-                                                 ) -> None:
+                                                 value_inner: float = 1.0, value_outer: float = 0.0) -> None:
         # set progression between 'value_inner' and 'value_outer', between 'inner' and 'outer' bounding-boxes
         ((x_left_in, x_right_in), (y_down_in, y_up_in)) = inner_boundbox
         ((x_left_out, x_right_out), (y_down_out, y_up_out)) = outer_boundbox
@@ -211,9 +229,13 @@ class FilteringBordersImages3D(FilteringBordersImages):
 
     def __init__(self,
                  size_image: Tuple[int, int, int],
-                 size_output_image: Tuple[int, int, int]
+                 size_output_image: Tuple[int, int, int],
+                 type_filtering: str = FilteringBordersImages._type_filtering_default,
+                 is_filter_multiple_windows: bool = False
                  ) -> None:
-        super(FilteringBordersImages3D, self).__init__(size_image, size_output_image)
+        super(FilteringBordersImages3D, self).__init__(size_image, size_output_image,
+                                                       type_filtering=type_filtering,
+                                                       is_filter_multiple_windows=is_filter_multiple_windows)
 
     def _fill_flat_interior_boundbox(self, inner_boundbox: BoundBox3DType) -> None:
         # set 'one' inside bounding-box
@@ -231,8 +253,7 @@ class FilteringBordersImages3D(FilteringBordersImages):
         self._factor_filtering[:, :, y_up:] = 0.0
 
     def _fill_progression_between_two_boundboxes(self, inner_boundbox: BoundBox3DType, outer_boundbox: BoundBox3DType,
-                                                 value_inner: float = 1.0, value_outer: float = 0.0
-                                                 ) -> None:
+                                                 value_inner: float = 1.0, value_outer: float = 0.0) -> None:
         # set progression between 'value_inner' and 'value_outer', between 'inner' and 'outer' bounding-boxes
         ((z_back_in, z_front_in), (x_left_in, x_right_in), (y_down_in, y_up_in)) = inner_boundbox
         ((z_back_out, z_front_out), (x_left_out, x_right_out), (y_down_out, y_up_out)) = outer_boundbox
