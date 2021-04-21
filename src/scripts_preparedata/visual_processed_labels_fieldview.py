@@ -76,6 +76,7 @@ def main(args):
                                                         prop_overlap_slide_images=args.prop_overlap_slide_window,
                                                         num_random_images=0,
                                                         is_transform_images=False,
+                                                        type_transform_images='',
                                                         trans_rigid_params=None,
                                                         is_nnet_validconvs=args.is_valid_convolutions,
                                                         size_output_images=size_output_image_network,
@@ -136,8 +137,8 @@ if __name__ == "__main__":
     parser.add_argument('--name_input_images_relpath', type=str, default=NAME_PROC_IMAGES_RELPATH)
     parser.add_argument('--name_input_labels_relpath', type=str, default=NAME_PROC_LABELS_RELPATH)
     parser.add_argument('--name_input_reference_keys_file', type=str, default=NAME_REFERENCE_KEYS_PROCIMAGE_FILE)
-    parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
     parser.add_argument('--prop_overlap_slide_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDE_WINDOW_TEST)
+    parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
     parser.add_argument('--is_filter_output_network', type=str2bool, default=False)
     args = parser.parse_args()
 

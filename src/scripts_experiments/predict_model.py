@@ -3,10 +3,10 @@ from collections import OrderedDict
 import numpy as np
 import argparse
 
-from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, SIZE_IN_IMAGES, PROP_OVERLAP_SLIDE_WINDOW_TEST, \
-    IS_SLIDING_WINDOW_IMAGES, IS_RANDOM_WINDOW_IMAGES, TYPE_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, \
-    IS_MASK_REGION_INTEREST, NAME_TEMPO_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    NAME_REFERENCE_KEYS_POSTERIORS_FILE, TYPE_DNNLIB_USED
+from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, SIZE_IN_IMAGES, IS_GENERATE_PATCHES, \
+    PROP_OVERLAP_SLIDE_WINDOW_TEST, TYPE_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, IS_MASK_REGION_INTEREST, \
+    NAME_TEMPO_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_REFERENCE_KEYS_POSTERIORS_FILE, \
+    TYPE_DNNLIB_USED
 from common.functionutil import join_path_names, is_exist_file, basename, basename_filenoext, list_files_dir, \
     str2bool, str2list_str, str2tuple_int, str2tuple_float, read_dictionary, read_dictionary_configparams, \
     save_dictionary, save_dictionary_csv, NetworksUtil
@@ -187,8 +187,7 @@ if __name__ == "__main__":
     parser.add_argument('--in_config_file', type=str, default=None)
     parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
-    parser.add_argument('--is_reconstruct_patches', type=str2bool, default=(IS_SLIDING_WINDOW_IMAGES
-                                                                            or IS_RANDOM_WINDOW_IMAGES))
+    parser.add_argument('--is_reconstruct_patches', type=str2bool, default=IS_GENERATE_PATCHES)
     parser.add_argument('--prop_overlap_slide_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDE_WINDOW_TEST)
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
     parser.add_argument('--list_type_metrics', type=str2list_str, default=LIST_TYPE_METRICS)
@@ -213,11 +212,11 @@ if __name__ == "__main__":
 
             # args.basedir = str(input_args_file['workdir'])
             args.size_in_images = str2tuple_int(input_args_file['size_in_images'])
+            args.is_reconstruct_patches = str2bool(input_args_file['is_generate_patches'])
             args.type_loss = str(input_args_file['type_loss'])
             args.list_type_metrics = str2list_str(input_args_file['list_type_metrics'])
             args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
             args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
-            args.is_reconstruct_patches = str2bool(input_args_file['is_generate_patches'])
 
     if args.is_valid_convolutions and not args.is_filter_output_network:
         message = 'Testing network with non-valid convols: better to filter the network output to reduce border effects'
