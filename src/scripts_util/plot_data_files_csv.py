@@ -116,6 +116,12 @@ def main(args):
                 plt.scatter(xrange, idata, label=labels_files[i])
             # endfor
 
+        elif args.type == 'barplot':
+            for i, idata in enumerate(data_files):
+                xrange = range(1, len(idata) + 1)
+                plt.bar(xrange, idata, label=labels_files[i])
+            # endfor
+
         elif args.type == 'boxplot':
             # plt.boxplot(data_files, labels=labels_files)
             sns.boxplot(data=data_files, palette='Set2')
