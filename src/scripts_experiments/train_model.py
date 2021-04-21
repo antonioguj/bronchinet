@@ -7,12 +7,12 @@ import argparse
 from common.constant import BASEDIR, NAME_MODELSRUN_RELPATH, SIZE_IN_IMAGES, NAME_TRAININGDATA_RELPATH, \
     NAME_VALIDATIONDATA_RELPATH, MAX_TRAIN_IMAGES, MAX_VALID_IMAGES, TYPE_NETWORK, NET_NUM_FEATMAPS, TYPE_OPTIMIZER, \
     LEARN_RATE, TYPE_LOSS, WEIGHT_COMBINED_LOSS, LIST_TYPE_METRICS, BATCH_SIZE, NUM_EPOCHS, IS_VALID_CONVOLUTIONS, \
-    IS_MASK_REGION_INTEREST, IS_SLIDING_WINDOW_IMAGES, PROP_OVERLAP_SLIDING_WINDOW, IS_RANDOM_WINDOW_IMAGES, \
-    NUM_RANDOM_PATCHES_EPOCH, IS_TRANSFORM_RIGID_IMAGES, TRANS_RIGID_ROTATION_RANGE, TRANS_RIGID_SHIFT_RANGE, \
-    TRANS_RIGID_FLIP_DIRS, TRANS_RIGID_ZOOM_RANGE, TRANS_RIGID_FILL_MODE, IS_TRANSFORM_ELASTIC_IMAGES, \
-    TYPE_TRANS_ELASTIC_DEFORM, IS_TRANSFORM_VALIDATION_DATA, FREQ_SAVE_CHECK_MODELS, FREQ_VALIDATE_MODELS, \
-    IS_USE_VALIDATION_DATA, IS_SHUFFLE_TRAINDATA, MANUAL_SEED_TRAIN, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    NAME_LOSSHISTORY_FILE, NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, NAME_VALIDDATA_LOGFILE, TYPE_DNNLIB_USED
+    IS_MASK_REGION_INTEREST, IS_GENERATE_PATCHES, TYPE_GENERATE_PATCHES, PROP_OVERLAP_SLIDE_WINDOW, \
+    NUM_RANDOM_PATCHES_EPOCH, IS_TRANSFORM_IMAGES, TYPE_TRANSFORM_IMAGES, TRANS_RIGID_ROTATION_RANGE, \
+    TRANS_RIGID_SHIFT_RANGE, TRANS_RIGID_FLIP_DIRS, TRANS_RIGID_ZOOM_RANGE, TRANS_RIGID_FILL_MODE, \
+    FREQ_SAVE_CHECK_MODELS, FREQ_VALIDATE_MODELS, IS_USE_VALIDATION_DATA, IS_SHUFFLE_TRAINDATA, MANUAL_SEED_TRAIN, \
+    NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_LOSSHISTORY_FILE, NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, \
+    NAME_VALIDDATA_LOGFILE, TYPE_DNNLIB_USED
 from common.functionutil import join_path_names, is_exist_file, update_filename, basename, basename_filenoext, \
     list_files_dir, get_substring_filename, str2bool, str2int, str2float, str2list_str, str2tuple_bool, str2tuple_int,\
     str2tuple_float, read_dictionary, read_dictionary_configparams, save_dictionary_configparams
@@ -172,14 +172,13 @@ def main(args):
         get_train_imagedataloader_2images(list_train_images_files,
                                           list_train_labels_files,
                                           size_images=args.size_in_images,
-                                          is_sliding_window=args.is_sliding_window_images,
-                                          prop_overlap_slide_images=args.prop_overlap_sliding_window,
-                                          is_random_window=args.is_random_window_images,
+                                          is_generate_patches=args.is_generate_patches,
+                                          type_generate_patches=args.type_generate_patches,
+                                          prop_overlap_slide_images=args.prop_overlap_slide_window,
                                           num_random_images=args.num_random_patches_epoch,
-                                          is_transform_rigid=args.is_transform_rigid_images,
+                                          is_transform_images=args.is_transform_images,
+                                          type_transform_images=args.type_transform_images,
                                           trans_rigid_params=args.dict_trans_rigid_parameters,
-                                          is_transform_elastic=args.is_transform_elastic_images,
-                                          type_trans_elastic=args.type_trans_elastic_deform,
                                           is_nnet_validconvs=args.is_valid_convolutions,
                                           size_output_images=size_output_image_model,
                                           batch_size=args.batch_size,
@@ -190,21 +189,29 @@ def main(args):
 
     if args.is_use_validation_data:
         print("\nLoading Validation data...")
-        args.is_transform_rigid_images = args.is_transform_rigid_images and IS_TRANSFORM_VALIDATION_DATA
-        args.is_transform_elastic_images = args.is_transform_elastic_images and IS_TRANSFORM_VALIDATION_DATA
+        if args.is_generate_patches:
+            if args.type_generate_patches == 'slide_window':
+                type_generate_patches_validation = 'slicing'
+            elif args.type_generate_patches == 'random_window':
+                type_generate_patches_validation = 'fixed_window'
+            else:
+                message = 'Type of Generate Patches for training not found: \'s\'' % (args.type_generate_patches)
+                catch_error_exception(message)
+                type_generate_patches_validation = ''
+        else:
+            type_generate_patches_validation = ''
 
         validation_data_loader = \
             get_train_imagedataloader_2images(list_valid_images_files,
                                               list_valid_labels_files,
                                               size_images=args.size_in_images,
-                                              is_sliding_window=args.is_sliding_window_images,
-                                              prop_overlap_slide_images=args.prop_overlap_sliding_window,
-                                              is_random_window=args.is_random_window_images,
-                                              num_random_images=args.num_random_patches_epoch,
-                                              is_transform_rigid=args.is_transform_rigid_images,
-                                              trans_rigid_params=args.dict_trans_rigid_parameters,
-                                              is_transform_elastic=args.is_transform_elastic_images,
-                                              type_trans_elastic=args.type_trans_elastic_deform,
+                                              is_generate_patches=args.is_generate_patches,
+                                              type_generate_patches=type_generate_patches_validation,
+                                              prop_overlap_slide_images=args.prop_overlap_slide_window,
+                                              num_random_images=0,
+                                              is_transform_images=False,
+                                              type_transform_images='',
+                                              trans_rigid_params=None,
                                               is_nnet_validconvs=args.is_valid_convolutions,
                                               size_output_images=size_output_image_model,
                                               batch_size=args.batch_size,
@@ -264,18 +271,17 @@ if __name__ == "__main__":
     parser.add_argument('--max_steps_epoch', type=str2int, default=None)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
     parser.add_argument('--is_mask_region_interest', type=str2bool, default=IS_MASK_REGION_INTEREST)
-    parser.add_argument('--is_sliding_window_images', type=str2bool, default=IS_SLIDING_WINDOW_IMAGES)
-    parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW)
-    parser.add_argument('--is_random_window_images', type=str2bool, default=IS_RANDOM_WINDOW_IMAGES)
+    parser.add_argument('--is_generate_patches', type=str2bool, default=IS_GENERATE_PATCHES)
+    parser.add_argument('--type_generate_patches', type=str, default=TYPE_GENERATE_PATCHES)
+    parser.add_argument('--prop_overlap_slide_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDE_WINDOW)
     parser.add_argument('--num_random_patches_epoch', type=str2int, default=NUM_RANDOM_PATCHES_EPOCH)
-    parser.add_argument('--is_transform_rigid_images', type=str2bool, default=IS_TRANSFORM_RIGID_IMAGES)
+    parser.add_argument('--is_transform_images', type=str2bool, default=IS_TRANSFORM_IMAGES)
+    parser.add_argument('--type_transform_images', type=str, default=TYPE_TRANSFORM_IMAGES)
     parser.add_argument('--trans_rigid_rotation_range', type=str2tuple_float, default=TRANS_RIGID_ROTATION_RANGE)
     parser.add_argument('--trans_rigid_shift_range', type=str2tuple_float, default=TRANS_RIGID_SHIFT_RANGE)
     parser.add_argument('--trans_rigid_flip_dirs', type=str2tuple_bool, default=TRANS_RIGID_FLIP_DIRS)
     parser.add_argument('--trans_rigid_zoom_range', type=str2float, default=TRANS_RIGID_ZOOM_RANGE)
     parser.add_argument('--trans_rigid_fill_mode', type=str, default=TRANS_RIGID_FILL_MODE)
-    parser.add_argument('--is_transform_elastic_images', type=str2bool, default=IS_TRANSFORM_ELASTIC_IMAGES)
-    parser.add_argument('--type_trans_elastic_deform', type=str, default=TYPE_TRANS_ELASTIC_DEFORM)
     parser.add_argument('--freq_save_check_models', type=str2int, default=FREQ_SAVE_CHECK_MODELS)
     parser.add_argument('--freq_validate_models', type=str2int, default=FREQ_VALIDATE_MODELS)
     parser.add_argument('--is_use_validation_data', type=str2bool, default=IS_USE_VALIDATION_DATA)
@@ -318,18 +324,17 @@ if __name__ == "__main__":
             args.max_steps_epoch = None  # CHECK THIS OUT!
             args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
             args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
-            args.is_sliding_window_images = str2bool(input_args_file['is_sliding_window_images'])
-            args.prop_overlap_sliding_window = str2tuple_float(input_args_file['prop_overlap_sliding_window'])
-            args.is_random_window_images = str2bool(input_args_file['is_random_window_images'])
+            args.is_generate_patches = str2bool(input_args_file['is_generate_patches'])
+            args.type_generate_patches = str2bool(input_args_file['type_generate_patches'])
+            args.prop_overlap_slide_window = str2tuple_float(input_args_file['prop_overlap_slide_window'])
             args.num_random_patches_epoch = str2int(input_args_file['num_random_patches_epoch'])
-            args.is_transform_rigid_images = str2bool(input_args_file['is_transform_rigid_images'])
+            args.is_transform_images = str2bool(input_args_file['is_transform_images'])
+            args.type_transform_images = str2bool(input_args_file['type_transform_images'])
             # args.trans_rigid_rotation_range = str2tuple_float(input_args_file['trans_rigid_rotation_range'])
             # args.trans_rigid_shift_range = str2tuple_float(input_args_file['trans_rigid_shift_range'])
             # args.trans_rigid_flip_dirs = str2tuple_bool(input_args_file['trans_rigid_flip_dirs'])
             # args.trans_rigid_zoom_range = str2float(input_args_file['trans_rigid_zoom_range'])
             # args.trans_rigid_fill_mode = str(input_args_file['trans_rigid_fill_mode'])
-            args.is_transform_elastic_images = str2bool(input_args_file['is_transform_elastic_images'])
-            # args.type_trans_elastic_deform = str(input_args_file['type_trans_elastic_deform'])
             # args.freq_save_check_models = str2int(input_args_file['freq_save_check_models'])
             # args.freq_validate_models = str2int(input_args_file['freq_validate_models'])
             # args.is_use_validation_data = str2bool(input_args_file['is_use_validation_data'])

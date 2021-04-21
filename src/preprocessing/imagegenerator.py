@@ -113,7 +113,7 @@ class NullGenerator(ImageGenerator):
 class CombinedImagesGenerator(ImageGenerator):
 
     def __init__(self, list_image_generators: List[ImageGenerator]) -> None:
-        self._list_images_generators = list_image_generators
+        self._list_image_generators = list_image_generators
 
         size_image = list_image_generators[-1].get_size_image()
         num_images = self._get_compute_num_images()
@@ -121,36 +121,36 @@ class CombinedImagesGenerator(ImageGenerator):
         super(CombinedImagesGenerator, self).__init__(size_image, num_images)
 
     def update_image_data(self, in_shape_image: Tuple[int, ...]) -> None:
-        for images_generator in self._list_images_generators:
-            images_generator.update_image_data(in_shape_image)
+        for image_generator in self._list_image_generators:
+            image_generator.update_image_data(in_shape_image)
 
         self._num_images = self._get_compute_num_images()
 
     def _initialize_gendata(self) -> None:
-        for images_generator in self._list_images_generators:
-            images_generator._initialize_gendata()
+        for image_generator in self._list_image_generators:
+            image_generator._initialize_gendata()
 
     def _update_gendata(self, **kwargs) -> None:
-        for images_generator in self._list_images_generators:
-            images_generator._update_gendata(**kwargs)
+        for image_generator in self._list_image_generators:
+            image_generator._update_gendata(**kwargs)
 
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:
         out_image = in_image
-        for images_generator in self._list_images_generators:
-            out_image = images_generator._get_image(out_image)
+        for image_generator in self._list_image_generators:
+            out_image = image_generator._get_image(out_image)
 
         return out_image
 
     def _get_compute_num_images(self) -> int:
         num_images_prodrun = 1
-        for images_generator in self._list_images_generators:
-            num_images_prodrun *= images_generator.get_num_images()
+        for image_generator in self._list_image_generators:
+            num_images_prodrun *= image_generator.get_num_images()
 
         return num_images_prodrun
 
     def get_text_description(self) -> str:
         message = ''
-        for images_generator in self._list_images_generators:
-            message += images_generator.get_text_description()
+        for image_generator in self._list_image_generators:
+            message += image_generator.get_text_description()
 
         return message

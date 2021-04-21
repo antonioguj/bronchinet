@@ -64,7 +64,7 @@ class TransformRigidImages(ImageGenerator):
 
     def _update_gendata(self, **kwargs) -> None:
         seed = kwargs['seed']
-        (self._transform_matrix, self._transform_params) = self._get_compute_random_transform_matrix(seed)
+        (self._transform_matrix, self._transform_params) = self._calc_gendata_random_transform(seed)
         self._count_trans_in_images = 0
 
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:
@@ -79,7 +79,7 @@ class TransformRigidImages(ImageGenerator):
         else:
             is_reshape_input_image = False
 
-        in_image = self._get_calc_transformed_image(in_image, is_type_input_image=is_type_input_image)
+        in_image = self._calc_transformed_image(in_image, is_type_input_image=is_type_input_image)
 
         if is_type_input_image:
             in_image = self._standardize(in_image)
@@ -98,23 +98,22 @@ class TransformRigidImages(ImageGenerator):
         if is_type_input_image:
             in_image = self._standardize_inverse(in_image)
 
-        in_image = self._get_calc_inverse_transformed_image(in_image, is_type_input_image=is_type_input_image)
+        in_image = self._calc_inverse_transformed_image(in_image, is_type_input_image=is_type_input_image)
 
         if is_reshape_input_image:
             in_image = np.squeeze(in_image, axis=-1)
         return in_image
 
-    def _get_calc_transformed_image(self, in_array: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
+    def _calc_transformed_image(self, in_array: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         raise NotImplementedError
 
-    def _get_calc_inverse_transformed_image(self, in_array: np.ndarray,
-                                            is_type_input_image: bool = False) -> np.ndarray:
+    def _calc_inverse_transformed_image(self, in_array: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         raise NotImplementedError
 
-    def _get_compute_random_transform_matrix(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
+    def _calc_gendata_random_transform(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         raise NotImplementedError
 
-    def _get_compute_inverse_random_transform_matrix(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
+    def _calc_gendata_inverse_random_transform(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         raise NotImplementedError
 
     def _standardize(self, in_image: np.ndarray) -> np.ndarray:
@@ -276,7 +275,7 @@ class TransformRigidImages2D(TransformRigidImages):
                                                      rescale_factor=rescale_factor,
                                                      preprocessing_function=preprocessing_function)
 
-    def _get_calc_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
+    def _calc_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         # Apply: 1st: rigid transformations
         #        2nd: channel shift intensity / flipping
         if self._transform_matrix is not None:
@@ -299,8 +298,7 @@ class TransformRigidImages2D(TransformRigidImages):
 
         return in_image
 
-    def _get_calc_inverse_transformed_image(self, in_image: np.ndarray,
-                                            is_type_input_image: bool = False) -> np.ndarray:
+    def _calc_inverse_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         # Apply: 1st: channel shift intensity / flipping
         #        2nd: rigid transformations
         if is_type_input_image and (self._transform_params.get('brightness') is not None):
@@ -322,7 +320,7 @@ class TransformRigidImages2D(TransformRigidImages):
                                              fill_mode=self._fill_mode, cval=self._cval)
         return in_image
 
-    def _get_compute_random_transform_matrix(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
+    def _calc_gendata_random_transform(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         # compute composition of homographies
         if seed is not None:
             np.random.seed(seed)
@@ -408,7 +406,7 @@ class TransformRigidImages2D(TransformRigidImages):
 
         return (transform_matrix, transform_parameters)
 
-    def _get_compute_inverse_random_transform_matrix(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
+    def _calc_gendata_inverse_random_transform(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         # compute composition of inverse homographies
         if seed is not None:
             np.random.seed(seed)
@@ -595,7 +593,7 @@ class TransformRigidImages3D(TransformRigidImages):
                                                      rescale_factor=rescale_factor,
                                                      preprocessing_function=preprocessing_function)
 
-    def _get_calc_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
+    def _calc_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         # Apply: 1st: rigid transformations
         #        2nd: channel shift intensity / flipping
         if self._transform_matrix is not None:
@@ -621,8 +619,7 @@ class TransformRigidImages3D(TransformRigidImages):
 
         return in_image
 
-    def _get_calc_inverse_transformed_image(self, in_image: np.ndarray,
-                                            is_type_input_image: bool = False) -> np.ndarray:
+    def _calc_inverse_transformed_image(self, in_image: np.ndarray, is_type_input_image: bool = False) -> np.ndarray:
         # Apply: 1st: channel shift intensity / flipping
         #        2nd: rigid transformations
         if is_type_input_image and (self._transform_params.get('brightness') is not None):
@@ -647,7 +644,7 @@ class TransformRigidImages3D(TransformRigidImages):
                                              fill_mode=self._fill_mode, cval=self._cval)
         return in_image
 
-    def _get_compute_random_transform_matrix(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
+    def _calc_gendata_random_transform(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         # compute composition of homographies
         if seed is not None:
             np.random.seed(seed)
@@ -788,7 +785,7 @@ class TransformRigidImages3D(TransformRigidImages):
 
         return (transform_matrix, transform_parameters)
 
-    def _get_compute_inverse_random_transform_matrix(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
+    def _calc_gendata_inverse_random_transform(self, seed: int = None) -> Tuple[np.ndarray, Dict[str, Any]]:
         # compute composition of inverse homographies
         if seed is not None:
             np.random.seed(seed)
