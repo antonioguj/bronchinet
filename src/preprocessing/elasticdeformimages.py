@@ -176,10 +176,10 @@ class ElasticDeformPixelwiseImages(ElasticDeformImages):
         return cls._type_elastic_deform
 
 
-class ElasticDeformGridwiseImagesGijs(ElasticDeformImages):
+class ElasticDeformGridwiseImagesImproved(ElasticDeformImages):
     _sigma_default = 25
     _points_default = 3
-    _type_elastic_deform = 'Grid-wise_Gijs'
+    _type_elastic_deform = 'Grid-wise_improved'
 
     def __init__(self,
                  size_image: Union[Tuple[int, int, int], Tuple[int, int]],
@@ -191,7 +191,7 @@ class ElasticDeformGridwiseImagesGijs(ElasticDeformImages):
         self._sigma = sigma
         self._points = points
 
-        super(ElasticDeformGridwiseImagesGijs, self).__init__(size_image, fill_mode=fill_mode, cval=cval)
+        super(ElasticDeformGridwiseImagesImproved, self).__init__(size_image, fill_mode=fill_mode, cval=cval)
 
     def _calc_gendata_elastic_deform(self, seed: int = None) -> np.ndarray:
         pass

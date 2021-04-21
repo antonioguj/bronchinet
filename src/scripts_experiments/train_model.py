@@ -25,6 +25,8 @@ if TYPE_DNNLIB_USED == 'Pytorch':
 elif TYPE_DNNLIB_USED == 'Keras':
     from models.keras.modeltrainer import NAME_SAVEDMODEL_LAST
 
+LIST_AVAIL_GENERATE_PATCHES_TRAINING = ['slide_window', 'random_window']
+
 
 def write_train_valid_data_logfile(out_filename: str,
                                    list_data_files: List[str],
@@ -192,12 +194,8 @@ def main(args):
         if args.is_generate_patches:
             if args.type_generate_patches == 'slide_window':
                 type_generate_patches_validation = 'slicing'
-            elif args.type_generate_patches == 'random_window':
+            else:   # args.type_generate_patches == 'random_window':
                 type_generate_patches_validation = 'fixed_window'
-            else:
-                message = 'Type of Generate Patches for training not found: \'s\'' % (args.type_generate_patches)
-                catch_error_exception(message)
-                type_generate_patches_validation = ''
         else:
             type_generate_patches_validation = ''
 
@@ -340,6 +338,11 @@ if __name__ == "__main__":
             # args.is_use_validation_data = str2bool(input_args_file['is_use_validation_data'])
             # args.is_shuffle_traindata = str2bool(input_args_file['is_shuffle_traindata'])
             args.name_reference_keys_file = str(input_args_file['name_reference_keys_file'])
+
+    if args.type_generate_patches not in LIST_AVAIL_GENERATE_PATCHES_TRAINING:
+        message = 'Type of Generate Patches not possible for training: \'%s\'. Options available: \'%s\'' \
+                  % (args.type_generate_patches, LIST_AVAIL_GENERATE_PATCHES_TRAINING)
+        catch_error_exception(message)
 
     args.dict_trans_rigid_parameters = {'rotation_range': args.trans_rigid_rotation_range,
                                         'shift_range': args.trans_rigid_shift_range,

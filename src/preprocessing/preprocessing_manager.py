@@ -6,7 +6,7 @@ from preprocessing.imagegenerator import ImageGenerator, NullGenerator, Combined
 from preprocessing.randomwindowimages import RandomWindowImages, FixedCentralWindowImages
 from preprocessing.slidingwindowimages import SlidingWindowImages, SlicingImages
 from preprocessing.transformrigidimages import TransformRigidImages2D, TransformRigidImages3D
-from preprocessing.elasticdeformimages import ElasticDeformGridwiseImagesGijs as ElasticDeformImages
+from preprocessing.elasticdeformimages import ElasticDeformGridwiseImagesImproved as ElasticDeformImages
 
 LIST_AVAIL_GENERATE_PATCHES = ['slide_window', 'slicing', 'random_window', 'fixed_window']
 LIST_AVAIL_TRANSFORM_IMAGES = ['rigid_trans', 'elastic_deform']
