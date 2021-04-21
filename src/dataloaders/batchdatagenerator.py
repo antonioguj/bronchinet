@@ -55,7 +55,7 @@ class BatchImageDataGenerator1Image(BatchDataGenerator):
     def __init__(self,
                  size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
-                 images_generator: ImageGenerator,
+                 image_generator: ImageGenerator,
                  num_channels_in: int = 1,
                  type_image_format: str = 'channels_last',
                  batch_size: int = 1,
@@ -66,7 +66,7 @@ class BatchImageDataGenerator1Image(BatchDataGenerator):
         self._size_image = size_image
         self._list_xdata = list_xdata
         self._dtype_xdata = list_xdata[0].dtype
-        self._images_generator = images_generator
+        self._image_generator = image_generator
         self._num_channels_in = num_channels_in
 
         self._num_images = self._compute_list_indexes_images_files(is_print_datagen_info)
@@ -80,14 +80,14 @@ class BatchImageDataGenerator1Image(BatchDataGenerator):
         self._list_indexes_imagefile = []
 
         for ifile, i_xdata in enumerate(self._list_xdata):
-            self._images_generator.update_image_data(i_xdata.shape)
-            num_images_file = self._images_generator.get_num_images()
+            self._image_generator.update_image_data(i_xdata.shape)
+            num_images_file = self._image_generator.get_num_images()
 
             for index in range(num_images_file):
                 self._list_indexes_imagefile.append((ifile, index))
 
             if is_print_datagen_info:
-                message = self._images_generator.get_text_description()
+                message = self._image_generator.get_text_description()
                 print("Image file: \'%s\'..." % (ifile))
                 print(message[:-1])   # remove trailing '\n'
 
@@ -113,10 +113,10 @@ class BatchImageDataGenerator1Image(BatchDataGenerator):
     def _get_data_sample(self, index: int) -> np.ndarray:
         "Generate one sample of batch of data"
         (index_file, index_image_file) = self._list_indexes_imagefile[index]
-        self._images_generator.update_image_data(self._list_xdata[index_file].shape)
+        self._image_generator.update_image_data(self._list_xdata[index_file].shape)
 
-        out_xdata_elem = self._images_generator.get_image(self._list_xdata[index_file],
-                                                          index=index_image_file, seed=None)
+        out_xdata_elem = self._image_generator.get_image(self._list_xdata[index_file],
+                                                         index=index_image_file, seed=None)
         return self._process_sample_xdata(out_xdata_elem)
 
     def get_full_data(self) -> np.ndarray:
@@ -147,7 +147,7 @@ class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
                  size_image: Union[Tuple[int, int, int], Tuple[int, int]],
                  list_xdata: List[np.ndarray],
                  list_ydata: List[np.ndarray],
-                 images_generator: ImageGenerator,
+                 image_generator: ImageGenerator,
                  num_channels_in: int = 1,
                  num_classes_out: int = 1,
                  type_image_format: str = 'channels_last',
@@ -160,7 +160,7 @@ class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
                  ) -> None:
         super(BatchImageDataGenerator2Images, self).__init__(size_image,
                                                              list_xdata,
-                                                             images_generator,
+                                                             image_generator,
                                                              num_channels_in=num_channels_in,
                                                              type_image_format=type_image_format,
                                                              batch_size=batch_size,
@@ -216,11 +216,11 @@ class BatchImageDataGenerator2Images(BatchImageDataGenerator1Image):
     def _get_data_sample(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
         "Generate one sample of batch of data"
         (index_file, index_image_file) = self._list_indexes_imagefile[index]
-        self._images_generator.update_image_data(self._list_xdata[index_file].shape)
+        self._image_generator.update_image_data(self._list_xdata[index_file].shape)
 
-        (out_xdata_elem, out_ydata_elem) = self._images_generator.get_2images(self._list_xdata[index_file],
-                                                                              self._list_ydata[index_file],
-                                                                              index=index_image_file, seed=None)
+        (out_xdata_elem, out_ydata_elem) = self._image_generator.get_2images(self._list_xdata[index_file],
+                                                                             self._list_ydata[index_file],
+                                                                             index=index_image_file, seed=None)
         return (self._process_sample_xdata(out_xdata_elem),
                 self._process_sample_ydata(out_ydata_elem))
 

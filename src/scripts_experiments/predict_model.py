@@ -3,10 +3,10 @@ from collections import OrderedDict
 import numpy as np
 import argparse
 
-from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, SIZE_IN_IMAGES, PROP_OVERLAP_SLIDING_WINDOW_TEST, \
-    IS_SLIDING_WINDOW_IMAGES, IS_RANDOM_WINDOW_IMAGES, TYPE_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, \
-    IS_MASK_REGION_INTEREST, NAME_TEMPO_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, \
-    NAME_REFERENCE_KEYS_POSTERIORS_FILE, TYPE_DNNLIB_USED
+from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, SIZE_IN_IMAGES, IS_GENERATE_PATCHES, \
+    PROP_OVERLAP_SLIDE_WINDOW_TEST, TYPE_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, IS_MASK_REGION_INTEREST, \
+    NAME_TEMPO_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_REFERENCE_KEYS_POSTERIORS_FILE, \
+    TYPE_DNNLIB_USED
 from common.functionutil import join_path_names, is_exist_file, basename, basename_filenoext, list_files_dir, \
     str2bool, str2list_str, str2tuple_int, str2tuple_float, read_dictionary, read_dictionary_configparams, \
     save_dictionary, save_dictionary_csv, NetworksUtil
@@ -15,7 +15,7 @@ from common.workdirmanager import TrainDirManager
 from dataloaders.dataloader_manager import get_train_imagedataloader_1image
 from dataloaders.imagefilereader import ImageFileReader
 from models.model_manager import get_model_trainer, get_network_checker
-from postprocessing.postprocessing_manager import get_images_reconstructor
+from postprocessing.postprocessing_manager import get_image_reconstructor
 
 
 def func_extract_caseprocname(in_filename: str) -> str:
@@ -77,23 +77,22 @@ def main(args):
         print("Input size to model: \'%s\'. Output size with Valid Convolutions: \'%s\'..."
               % (str(args.size_in_images), str(size_output_image_model)))
 
-    if args.is_reconstruct_pred_patches:
+    if args.is_reconstruct_patches:
         # Create Image Reconstructor
-        images_reconstructor = get_images_reconstructor(args.size_in_images,
-                                                        is_sliding_window=True,
-                                                        prop_overlap_slide_images=args.prop_overlap_sliding_window,
-                                                        is_random_window=False,
-                                                        num_random_images=0,
-                                                        is_transform_rigid=False,
-                                                        trans_rigid_params=None,
-                                                        is_transform_elastic=False,
-                                                        type_trans_elastic='',
-                                                        is_nnet_validconvs=args.is_valid_convolutions,
-                                                        size_output_images=size_output_image_model,
-                                                        is_filter_output_images=args.is_filter_output_network,
-                                                        size_filter_output_images=args.size_filter_output_images)
+        image_reconstructor = get_image_reconstructor(args.size_in_images,
+                                                      is_reconstruct_patches=True,
+                                                      type_reconstruct_patches='slide_window',
+                                                      prop_overlap_slide_images=args.prop_overlap_slide_window,
+                                                      num_random_images=0,
+                                                      is_transform_images=False,
+                                                      type_transform_images='',
+                                                      trans_rigid_params=None,
+                                                      is_nnet_validconvs=args.is_valid_convolutions,
+                                                      size_output_images=size_output_image_model,
+                                                      is_filter_output_images=args.is_filter_output_network,
+                                                      size_filter_output_images=args.size_filter_output_images)
     else:
-        images_reconstructor = None
+        image_reconstructor = None
 
     # *****************************************************
 
@@ -109,14 +108,13 @@ def main(args):
         image_data_loader = \
             get_train_imagedataloader_1image([in_image_file],
                                              size_images=args.size_in_images,
-                                             is_sliding_window=args.is_reconstruct_pred_patches,
-                                             prop_overlap_slide_images=args.prop_overlap_sliding_window,
-                                             is_random_window=False,
+                                             is_generate_patches=args.is_reconstruct_patches,
+                                             type_generate_patches='slide_window',
+                                             prop_overlap_slide_images=args.prop_overlap_slide_window,
                                              num_random_images=0,
-                                             is_transform_rigid=False,
+                                             is_transform_images=False,
+                                             type_transform_images='',
                                              trans_rigid_params=None,
-                                             is_transform_elastic=False,
-                                             type_trans_elastic='',
                                              batch_size=1,
                                              is_shuffle=False,
                                              manual_seed=None)
@@ -133,14 +131,14 @@ def main(args):
 
         # ******************************
 
-        if args.is_reconstruct_pred_patches:
+        if args.is_reconstruct_patches:
             print("\nReconstruct full size Prediction from sliding-window image patches...")
             shape_reconstructed_image = ImageFileReader.get_image_size(in_image_file)
 
-            images_reconstructor.initialize_recons_data(shape_reconstructed_image)
-            images_reconstructor.initialize_recons_array(out_prediction_patches[0])
+            image_reconstructor.initialize_recons_data(shape_reconstructed_image)
+            image_reconstructor.initialize_recons_array(out_prediction_patches[0])
 
-            out_prediction_reconstructed = images_reconstructor.compute_full(out_prediction_patches)
+            out_prediction_reconstructed = image_reconstructor.compute_full(out_prediction_patches)
         else:
             out_prediction_reconstructed = np.squeeze(out_prediction_patches, axis=(0, -1))
 
@@ -189,9 +187,8 @@ if __name__ == "__main__":
     parser.add_argument('--in_config_file', type=str, default=None)
     parser.add_argument('--testing_datadir', type=str, default=NAME_TESTINGDATA_RELPATH)
     parser.add_argument('--size_in_images', type=str2tuple_int, default=SIZE_IN_IMAGES)
-    parser.add_argument('--is_reconstruct_pred_patches', type=str2bool, default=(IS_SLIDING_WINDOW_IMAGES
-                                                                                 or IS_RANDOM_WINDOW_IMAGES))
-    parser.add_argument('--prop_overlap_sliding_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDING_WINDOW_TEST)
+    parser.add_argument('--is_reconstruct_patches', type=str2bool, default=IS_GENERATE_PATCHES)
+    parser.add_argument('--prop_overlap_slide_window', type=str2tuple_float, default=PROP_OVERLAP_SLIDE_WINDOW_TEST)
     parser.add_argument('--type_loss', type=str, default=TYPE_LOSS)
     parser.add_argument('--list_type_metrics', type=str2list_str, default=LIST_TYPE_METRICS)
     parser.add_argument('--is_valid_convolutions', type=str2bool, default=IS_VALID_CONVOLUTIONS)
@@ -215,14 +212,13 @@ if __name__ == "__main__":
 
             # args.basedir = str(input_args_file['workdir'])
             args.size_in_images = str2tuple_int(input_args_file['size_in_images'])
+            args.is_reconstruct_patches = str2bool(input_args_file['is_generate_patches'])
             args.type_loss = str(input_args_file['type_loss'])
             args.list_type_metrics = str2list_str(input_args_file['list_type_metrics'])
             args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
             args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
-            args.is_reconstruct_pred_patches = str2bool(input_args_file['is_sliding_window_images']) or \
-                str2bool(input_args_file['is_random_window_images'])
 
-    if args.is_valid_convolutions and not args.is_filter_output_network:
+    if not args.is_valid_convolutions and not args.is_filter_output_network:
         message = 'Testing network with non-valid convols: better to filter the network output to reduce border effects'
         catch_warning_exception(message)
 

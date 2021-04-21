@@ -11,19 +11,18 @@ elif TYPE_DNNLIB_USED == 'Keras':
         TrainBatchImageDataGenerator2Images
 from dataloaders.batchdatagenerator import BatchImageDataGenerator1Image, BatchImageDataGenerator2Images
 from dataloaders.imagedataloader import ImageDataLoader
-from preprocessing.preprocessing_manager import get_images_generator, fill_missing_trans_rigid_params
+from preprocessing.preprocessing_manager import get_image_generator, fill_missing_trans_rigid_params
 
 
 def get_imagedataloader_1image(list_filenames_1: List[str],
                                size_images: Union[Tuple[int, int, int], Tuple[int, int]],
-                               is_sliding_window: bool,
+                               is_generate_patches: bool,
+                               type_generate_patches: str,
                                prop_overlap_slide_images: Union[Tuple[float, float, float], Tuple[float, float]],
-                               is_random_window: bool,
                                num_random_images: int,
-                               is_transform_rigid: bool,
+                               is_transform_images: bool,
+                               type_transform_images: str,
                                trans_rigid_params: Union[Dict[str, Any], None],
-                               is_transform_elastic: bool,
-                               type_trans_elastic: str,
                                batch_size: int = 1,
                                is_shuffle: bool = True,
                                manual_seed: int = None
@@ -32,7 +31,7 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
 
     list_xdata = ImageDataLoader.load_1list_files(list_filenames_1)
 
-    if not (is_sliding_window or is_random_window) and (len(list_xdata) == 1):
+    if not is_generate_patches and (len(list_xdata) == 1):
         size_images = list_xdata[0].shape
 
     size_volume_images = list_xdata[0].shape if len(list_xdata) == 1 else (0, 0, 0)
@@ -40,25 +39,24 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
 
     trans_rigid_params = fill_missing_trans_rigid_params(trans_rigid_params)
 
-    images_generator = get_images_generator(size_images,
-                                            is_sliding_window=is_sliding_window,
-                                            prop_overlap_slide_images=prop_overlap_slide_images,
-                                            is_random_window=is_random_window,
-                                            num_random_images=num_random_images,
-                                            is_transform_rigid=is_transform_rigid,
-                                            trans_rotation_range=trans_rigid_params['rotation_range'],
-                                            trans_shift_range=trans_rigid_params['shift_range'],
-                                            trans_flip_dirs=trans_rigid_params['flip_dirs'],
-                                            trans_zoom_range=trans_rigid_params['zoom_range'],
-                                            trans_fill_mode=trans_rigid_params['fill_mode'],
-                                            is_transform_elastic=is_transform_elastic,
-                                            type_trans_elastic=type_trans_elastic,
-                                            size_volume_images=size_volume_images)
-    print(images_generator.get_text_description())
+    image_generator = get_image_generator(size_images,
+                                          is_generate_patches=is_generate_patches,
+                                          type_generate_patches=type_generate_patches,
+                                          prop_overlap_slide_images=prop_overlap_slide_images,
+                                          num_random_images=num_random_images,
+                                          is_transform_images=is_transform_images,
+                                          type_transform_images=type_transform_images,
+                                          trans_rotation_range=trans_rigid_params['rotation_range'],
+                                          trans_shift_range=trans_rigid_params['shift_range'],
+                                          trans_flip_dirs=trans_rigid_params['flip_dirs'],
+                                          trans_zoom_range=trans_rigid_params['zoom_range'],
+                                          trans_fill_mode=trans_rigid_params['fill_mode'],
+                                          size_volume_images=size_volume_images)
+    print(image_generator.get_text_description())
 
     return BatchImageDataGenerator1Image(size_images,
                                          list_xdata,
-                                         images_generator,
+                                         image_generator,
                                          num_channels_in=num_channels_in,
                                          batch_size=batch_size,
                                          shuffle=is_shuffle,
@@ -68,14 +66,13 @@ def get_imagedataloader_1image(list_filenames_1: List[str],
 def get_imagedataloader_2images(list_filenames_1: List[str],
                                 list_filenames_2: List[str],
                                 size_images: Union[Tuple[int, int, int], Tuple[int, int]],
-                                is_sliding_window: bool,
+                                is_generate_patches: bool,
+                                type_generate_patches: str,
                                 prop_overlap_slide_images: Union[Tuple[float, float, float], Tuple[float, float]],
-                                is_random_window: bool,
                                 num_random_images: int,
-                                is_transform_rigid: bool,
+                                is_transform_images: bool,
+                                type_transform_images: str,
                                 trans_rigid_params: Union[Dict[str, Any], None],
-                                is_transform_elastic: bool,
-                                type_trans_elastic: str,
                                 is_nnet_validconvs: bool = False,
                                 size_output_images: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                                 batch_size: int = 1,
@@ -86,7 +83,7 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
 
     (list_xdata, list_ydata) = ImageDataLoader.load_2list_files(list_filenames_1, list_filenames_2)
 
-    if not (is_sliding_window or is_random_window) and (len(list_xdata) == 1):
+    if not is_generate_patches and (len(list_xdata) == 1):
         size_images = list_xdata[0].shape
 
     size_volume_images = list_xdata[0].shape if len(list_xdata) == 1 else (0, 0, 0)
@@ -95,26 +92,25 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
 
     trans_rigid_params = fill_missing_trans_rigid_params(trans_rigid_params)
 
-    images_generator = get_images_generator(size_images,
-                                            is_sliding_window=is_sliding_window,
-                                            prop_overlap_slide_images=prop_overlap_slide_images,
-                                            is_random_window=is_random_window,
-                                            num_random_images=num_random_images,
-                                            is_transform_rigid=is_transform_rigid,
-                                            trans_rotation_range=trans_rigid_params['rotation_range'],
-                                            trans_shift_range=trans_rigid_params['shift_range'],
-                                            trans_flip_dirs=trans_rigid_params['flip_dirs'],
-                                            trans_zoom_range=trans_rigid_params['zoom_range'],
-                                            trans_fill_mode=trans_rigid_params['fill_mode'],
-                                            is_transform_elastic=is_transform_elastic,
-                                            type_trans_elastic=type_trans_elastic,
-                                            size_volume_images=size_volume_images)
-    print(images_generator.get_text_description())
+    image_generator = get_image_generator(size_images,
+                                          is_generate_patches=is_generate_patches,
+                                          type_generate_patches=type_generate_patches,
+                                          prop_overlap_slide_images=prop_overlap_slide_images,
+                                          num_random_images=num_random_images,
+                                          is_transform_images=is_transform_images,
+                                          type_transform_images=type_transform_images,
+                                          trans_rotation_range=trans_rigid_params['rotation_range'],
+                                          trans_shift_range=trans_rigid_params['shift_range'],
+                                          trans_flip_dirs=trans_rigid_params['flip_dirs'],
+                                          trans_zoom_range=trans_rigid_params['zoom_range'],
+                                          trans_fill_mode=trans_rigid_params['fill_mode'],
+                                          size_volume_images=size_volume_images)
+    print(image_generator.get_text_description())
 
     return BatchImageDataGenerator2Images(size_images,
                                           list_xdata,
                                           list_ydata,
-                                          images_generator,
+                                          image_generator,
                                           num_channels_in=num_channels_in,
                                           num_classes_out=num_classes_out,
                                           is_nnet_validconvs=is_nnet_validconvs,
@@ -126,14 +122,13 @@ def get_imagedataloader_2images(list_filenames_1: List[str],
 
 def get_train_imagedataloader_1image(list_filenames_1: List[str],
                                      size_images: Union[Tuple[int, int, int], Tuple[int, int]],
-                                     is_sliding_window: bool,
+                                     is_generate_patches: bool,
+                                     type_generate_patches: str,
                                      prop_overlap_slide_images: Union[Tuple[float, float, float], Tuple[float, float]],
-                                     is_random_window: bool,
                                      num_random_images: int,
-                                     is_transform_rigid: bool,
+                                     is_transform_images: bool,
+                                     type_transform_images: str,
                                      trans_rigid_params: Union[Dict[str, Any], None],
-                                     is_transform_elastic: bool,
-                                     type_trans_elastic: str,
                                      batch_size: int = 1,
                                      is_shuffle: bool = True,
                                      manual_seed: int = None
@@ -147,25 +142,24 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
 
     trans_rigid_params = fill_missing_trans_rigid_params(trans_rigid_params)
 
-    images_generator = get_images_generator(size_images,
-                                            is_sliding_window=is_sliding_window,
-                                            prop_overlap_slide_images=prop_overlap_slide_images,
-                                            is_random_window=is_random_window,
-                                            num_random_images=num_random_images,
-                                            is_transform_rigid=is_transform_rigid,
-                                            trans_rotation_range=trans_rigid_params['rotation_range'],
-                                            trans_shift_range=trans_rigid_params['shift_range'],
-                                            trans_flip_dirs=trans_rigid_params['flip_dirs'],
-                                            trans_zoom_range=trans_rigid_params['zoom_range'],
-                                            trans_fill_mode=trans_rigid_params['fill_mode'],
-                                            is_transform_elastic=is_transform_elastic,
-                                            type_trans_elastic=type_trans_elastic,
-                                            size_volume_images=size_volume_images)
-    print(images_generator.get_text_description())
+    image_generator = get_image_generator(size_images,
+                                          is_generate_patches=is_generate_patches,
+                                          type_generate_patches=type_generate_patches,
+                                          prop_overlap_slide_images=prop_overlap_slide_images,
+                                          num_random_images=num_random_images,
+                                          is_transform_images=is_transform_images,
+                                          type_transform_images=type_transform_images,
+                                          trans_rotation_range=trans_rigid_params['rotation_range'],
+                                          trans_shift_range=trans_rigid_params['shift_range'],
+                                          trans_flip_dirs=trans_rigid_params['flip_dirs'],
+                                          trans_zoom_range=trans_rigid_params['zoom_range'],
+                                          trans_fill_mode=trans_rigid_params['fill_mode'],
+                                          size_volume_images=size_volume_images)
+    print(image_generator.get_text_description())
 
     return TrainBatchImageDataGenerator1Image(size_images,
                                               list_xdata,
-                                              images_generator,
+                                              image_generator,
                                               num_channels_in=num_channels_in,
                                               batch_size=batch_size,
                                               shuffle=is_shuffle,
@@ -175,14 +169,13 @@ def get_train_imagedataloader_1image(list_filenames_1: List[str],
 def get_train_imagedataloader_2images(list_filenames_1: List[str],
                                       list_filenames_2: List[str],
                                       size_images: Union[Tuple[int, int, int], Tuple[int, int]],
-                                      is_sliding_window: bool,
+                                      is_generate_patches: bool,
+                                      type_generate_patches: str,
                                       prop_overlap_slide_images: Union[Tuple[float, float, float], Tuple[float, float]],
-                                      is_random_window: bool,
                                       num_random_images: int,
-                                      is_transform_rigid: bool,
+                                      is_transform_images: bool,
+                                      type_transform_images: str,
                                       trans_rigid_params: Union[Dict[str, Any], None],
-                                      is_transform_elastic: bool,
-                                      type_trans_elastic: str,
                                       is_nnet_validconvs: bool = False,
                                       size_output_images: Union[Tuple[int, int, int], Tuple[int, int]] = None,
                                       batch_size: int = 1,
@@ -199,26 +192,25 @@ def get_train_imagedataloader_2images(list_filenames_1: List[str],
 
     trans_rigid_params = fill_missing_trans_rigid_params(trans_rigid_params)
 
-    images_generator = get_images_generator(size_images,
-                                            is_sliding_window=is_sliding_window,
-                                            prop_overlap_slide_images=prop_overlap_slide_images,
-                                            is_random_window=is_random_window,
-                                            num_random_images=num_random_images,
-                                            is_transform_rigid=is_transform_rigid,
-                                            trans_rotation_range=trans_rigid_params['rotation_range'],
-                                            trans_shift_range=trans_rigid_params['shift_range'],
-                                            trans_flip_dirs=trans_rigid_params['flip_dirs'],
-                                            trans_zoom_range=trans_rigid_params['zoom_range'],
-                                            trans_fill_mode=trans_rigid_params['fill_mode'],
-                                            is_transform_elastic=is_transform_elastic,
-                                            type_trans_elastic=type_trans_elastic,
-                                            size_volume_images=size_volume_images)
-    print(images_generator.get_text_description())
+    image_generator = get_image_generator(size_images,
+                                          is_generate_patches=is_generate_patches,
+                                          type_generate_patches=type_generate_patches,
+                                          prop_overlap_slide_images=prop_overlap_slide_images,
+                                          num_random_images=num_random_images,
+                                          is_transform_images=is_transform_images,
+                                          type_transform_images=type_transform_images,
+                                          trans_rotation_range=trans_rigid_params['rotation_range'],
+                                          trans_shift_range=trans_rigid_params['shift_range'],
+                                          trans_flip_dirs=trans_rigid_params['flip_dirs'],
+                                          trans_zoom_range=trans_rigid_params['zoom_range'],
+                                          trans_fill_mode=trans_rigid_params['fill_mode'],
+                                          size_volume_images=size_volume_images)
+    print(image_generator.get_text_description())
 
     return TrainBatchImageDataGenerator2Images(size_images,
                                                list_xdata,
                                                list_ydata,
-                                               images_generator,
+                                               image_generator,
                                                num_channels_in=num_channels_in,
                                                num_classes_out=num_classes_out,
                                                is_nnet_validconvs=is_nnet_validconvs,

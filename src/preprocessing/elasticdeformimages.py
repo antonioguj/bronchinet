@@ -40,7 +40,7 @@ class ElasticDeformImages(ImageGenerator):
 
     def _update_gendata(self, **kwargs) -> None:
         seed = kwargs['seed']
-        self._gendata_elastic_deform = self._get_calcgendata_elastic_deform(seed)
+        self._gendata_elastic_deform = self._calc_gendata_elastic_deform(seed)
         self._count_trans_in_images = 0
 
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:
@@ -60,7 +60,7 @@ class ElasticDeformImages(ImageGenerator):
         message = 'Inverse transformation not implemented for Elastic Deformations'
         catch_error_exception(message)
 
-    def _get_calcgendata_elastic_deform(self, seed: int = None) -> np.ndarray:
+    def _calc_gendata_elastic_deform(self, seed: int = None) -> np.ndarray:
         raise NotImplementedError
 
     @classmethod
@@ -90,7 +90,7 @@ class ElasticDeformGridwiseImages(ElasticDeformImages):
 
         super(ElasticDeformGridwiseImages, self).__init__(size_image, fill_mode=fill_mode, cval=cval)
 
-    def _get_calcgendata_elastic_deform(self, seed: int = None) -> np.ndarray:
+    def _calc_gendata_elastic_deform(self, seed: int = None) -> np.ndarray:
         if seed is not None:
             np.random.seed(seed)
 
@@ -149,7 +149,7 @@ class ElasticDeformPixelwiseImages(ElasticDeformImages):
 
         super(ElasticDeformPixelwiseImages, self).__init__(size_image, fill_mode=fill_mode, cval=cval)
 
-    def _get_calcgendata_elastic_deform(self, seed: int = None) -> np.ndarray:
+    def _calc_gendata_elastic_deform(self, seed: int = None) -> np.ndarray:
         if seed is not None:
             np.random.seed(seed)
 
@@ -176,10 +176,10 @@ class ElasticDeformPixelwiseImages(ElasticDeformImages):
         return cls._type_elastic_deform
 
 
-class ElasticDeformGridwiseImagesGijs(ElasticDeformImages):
+class ElasticDeformGridwiseImagesImproved(ElasticDeformImages):
     _sigma_default = 25
     _points_default = 3
-    _type_elastic_deform = 'Grid-wise_Gijs'
+    _type_elastic_deform = 'Grid-wise_improved'
 
     def __init__(self,
                  size_image: Union[Tuple[int, int, int], Tuple[int, int]],
@@ -191,9 +191,9 @@ class ElasticDeformGridwiseImagesGijs(ElasticDeformImages):
         self._sigma = sigma
         self._points = points
 
-        super(ElasticDeformGridwiseImagesGijs, self).__init__(size_image, fill_mode=fill_mode, cval=cval)
+        super(ElasticDeformGridwiseImagesImproved, self).__init__(size_image, fill_mode=fill_mode, cval=cval)
 
-    def _get_calcgendata_elastic_deform(self, seed: int = None) -> np.ndarray:
+    def _calc_gendata_elastic_deform(self, seed: int = None) -> np.ndarray:
         pass
 
     def _get_image(self, in_image: np.ndarray) -> np.ndarray:
