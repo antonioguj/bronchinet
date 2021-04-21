@@ -142,7 +142,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_filter_output_network', type=str2bool, default=False)
     args = parser.parse_args()
 
-    if args.is_valid_convolutions and not args.is_filter_output_network:
+    if not args.is_valid_convolutions and not args.is_filter_output_network:
         message = 'Loading network with non-valid convols: better to filter the network output to reduce border effects'
         catch_warning_exception(message)
 

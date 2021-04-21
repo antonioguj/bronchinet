@@ -218,7 +218,7 @@ if __name__ == "__main__":
             args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
             args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
 
-    if args.is_valid_convolutions and not args.is_filter_output_network:
+    if not args.is_valid_convolutions and not args.is_filter_output_network:
         message = 'Testing network with non-valid convols: better to filter the network output to reduce border effects'
         catch_warning_exception(message)
 
