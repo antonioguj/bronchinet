@@ -9,7 +9,7 @@ from preprocessing.transformrigidimages import TransformRigidImages2D, Transform
 from preprocessing.elasticdeformimages import ElasticDeformGridwiseImagesGijs as ElasticDeformImages
 
 LIST_AVAIL_GENERATE_PATCHES = ['slide_window', 'slicing', 'random_window', 'fixed_window']
-LIST_AVAIL_TRANSFORM_IMAGES = ['rigid_trans', 'elastic_def']
+LIST_AVAIL_TRANSFORM_IMAGES = ['rigid_trans', 'elastic_deform']
 
 
 def get_image_generator(size_images: Union[Tuple[int, int, int], Tuple[int, int]],
@@ -90,7 +90,7 @@ def get_image_generator(size_images: Union[Tuple[int, int, int], Tuple[int, int]
                 catch_error_exception(message)
                 image_transform_generator = None
 
-        elif type_transform_images == 'elastic_def':
+        elif type_transform_images == 'elastic_deform':
             # generate images by elastic deformations...
             image_transform_generator = ElasticDeformImages(size_images, fill_mode=trans_fill_mode)
 
