@@ -192,10 +192,7 @@ def main(args):
     if args.is_use_validation_data:
         print("\nLoading Validation data...")
         if args.is_generate_patches:
-            if args.type_generate_patches == 'slide_window':
-                type_generate_patches_validation = 'slicing'
-            else:   # args.type_generate_patches == 'random_window':
-                type_generate_patches_validation = 'fixed_window'
+            type_generate_patches_validation = 'slicing'
         else:
             type_generate_patches_validation = ''
 
