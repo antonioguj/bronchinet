@@ -37,14 +37,14 @@ def main(args):
     for i, in_posterior_file in enumerate(list_input_posteriors_files):
         print("\nInput: \'%s\'..." % (basename(in_posterior_file)))
 
-        inout_posterior = ImageFileReader.get_image(in_posterior_file)
-        print("Input dims : \'%s\'..." % (str(inout_posterior.shape)))
+        in_posterior = ImageFileReader.get_image(in_posterior_file)
+        print("Input dims : \'%s\'..." % (str(in_posterior.shape)))
 
         in_metadata_file = ImageFileReader.get_image_metadata_info(in_posterior_file)
 
         print("Compute Binary Masks thresholded to \'%s\'..." % (args.post_threshold_value))
 
-        out_binary_mask = ThresholdImage.compute(inout_posterior, args.post_threshold_value)
+        out_binary_mask = ThresholdImage.compute(in_posterior, args.post_threshold_value)
 
         if args.is_attach_coarse_airways:
             print("Attach Trachea and Main Bronchi mask to complete the computed Binary Masks...")

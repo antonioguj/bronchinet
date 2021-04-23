@@ -253,13 +253,14 @@ class AirwayMetricBase(MetricBase):
     def __init__(self, is_mask_exclude: bool = False) -> None:
         super(AirwayMetricBase, self).__init__(is_mask_exclude)
 
+    def compute(self, target: np.ndarray, input: np.ndarray, *args) -> np.ndarray:
+        target_cenline = args[0]
+        input_cenline = args[1]
+        return self._compute_airs(target, target_cenline, input, input_cenline)
+
     def _compute_airs(self, target: np.ndarray, target_cenline: np.ndarray,
                       input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
         raise NotImplementedError
-
-    def compute_airs(self, target: np.ndarray, target_cenline: np.ndarray,
-                     input: np.ndarray, input_cenline: np.ndarray) -> np.ndarray:
-        return self._compute_airs(target, target_cenline, input, input_cenline)
 
     def set_voxel_size(self, voxel_size: np.ndarray) -> None:
         self._voxel_size = np.array(voxel_size)

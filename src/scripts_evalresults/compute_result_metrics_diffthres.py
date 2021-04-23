@@ -156,8 +156,8 @@ def main(args):
 
                     try:
                         if imetric._is_airway_metric:
-                            outval_metric = imetric.compute_airs(in_reference_mask, in_reference_cenline,
-                                                                 in_predicted_mask, in_predicted_cenline)
+                            outval_metric = imetric.compute(in_reference_mask, in_predicted_mask,
+                                                            in_reference_cenline, in_predicted_cenline)
                         else:
                             outval_metric = imetric.compute(in_reference_mask, in_predicted_mask)
 
