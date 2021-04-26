@@ -142,8 +142,8 @@ def main(args):
 
                 try:
                     if calc_metric._is_airway_metric:
-                        outval_metric = calc_metric.compute_airs(in_reference_mask, in_reference_cenline,
-                                                                 in_predicted_mask, in_predicted_cenline)
+                        outval_metric = calc_metric.compute(in_reference_mask, in_predicted_mask,
+                                                            in_reference_cenline, in_predicted_cenline)
                     else:
                         outval_metric = calc_metric.compute(in_reference_mask, in_predicted_mask)
 

@@ -310,12 +310,11 @@ class ThresholdImage(ImageOperator):
 
     @classmethod
     def compute(cls, in_image: np.ndarray, *args, **kwargs) -> np.ndarray:
-        threshold_val = args[0]
-        return np.where(in_image > threshold_val, cls._value_mask, cls._value_backgrnd).astype(np.uint8)
+        value_threshold = args[0]
+        return np.where(in_image > value_threshold, cls._value_mask, cls._value_backgrnd).astype(np.uint8)
 
 
 class ThinningMask(ImageOperator):
-    # Thinning mask to obtain Centrelines
 
     @classmethod
     def compute(cls, in_image: np.ndarray, *args, **kwargs) -> np.ndarray:
@@ -377,16 +376,14 @@ class MorphoCloseMask(ImageOperator):
 class ConnectedRegionsMask(ImageOperator):
 
     @staticmethod
-    def _compute_calc(in_image: np.ndarray, connectivity_dim: int) -> np.ndarray:
+    def _compute3d(in_image: np.ndarray, connectivity_dim: int) -> np.ndarray:
         out_image = label(in_image,
                           connectivity=connectivity_dim,
                           background=0)
         return out_image.astype(in_image.dtype)
 
     @staticmethod
-    def compute_get_num_regs(in_image: np.ndarray, connectivity_dim: int = None) -> Tuple[np.ndarray, int]:
-        if connectivity_dim is None:
-            connectivity_dim = in_image.ndim
+    def _compute3d_with_num_regions(in_image: np.ndarray, connectivity_dim: int = None) -> Tuple[np.ndarray, int]:
         (out_image, out_num_regs) = label(in_image,
                                           connectivity=connectivity_dim,
                                           background=0,
@@ -396,7 +393,7 @@ class ConnectedRegionsMask(ImageOperator):
     @classmethod
     def compute(cls, in_image: np.ndarray, *args, **kwargs) -> np.ndarray:
         connectivity_dim = kwargs['connectivity_dim'] if 'connectivity_dim' in kwargs.keys() else in_image.ndim
-        return cls._compute_calc(in_image, connectivity_dim)
+        return cls._compute3d(in_image, connectivity_dim)
 
 
 class FirstConnectedRegionMask(ImageOperator):
@@ -404,7 +401,7 @@ class FirstConnectedRegionMask(ImageOperator):
     @classmethod
     def compute(cls, in_image: np.ndarray, *args, **kwargs) -> np.ndarray:
         connectivity_dim = kwargs['connectivity_dim'] if 'connectivity_dim' in kwargs.keys() else in_image.ndim
-        (all_regions, num_regs) = ConnectedRegionsMask.compute_get_num_regs(in_image, connectivity_dim)
+        (all_regions, num_regs) = ConnectedRegionsMask._compute3d_with_num_regions(in_image, connectivity_dim)
 
         # retrieve the conn. region with the largest volume
         max_vol_regs = 0.0
