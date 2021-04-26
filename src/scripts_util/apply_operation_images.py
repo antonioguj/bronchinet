@@ -198,7 +198,8 @@ def prepare_connregions_operation(args):
 
     def wrapfun_connregions_image(in_data, i):
         print("Compute connected regions, with connectivity dim \'%s\'..." % (args.in_conreg_dim))
-        out_data, num_regions = ConnectedRegionsMask.compute_get_num_regs(in_data, connectivity_dim=args.in_conreg_dim)
+        (out_data, num_regions) = \
+            ConnectedRegionsMask._compute3d_with_num_regions(in_data, connectivity_dim=args.in_conreg_dim)
         print("Number connected regions: \'%s\'..." % (num_regions))
         return out_data
 

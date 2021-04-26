@@ -51,7 +51,7 @@ elif TYPE_DNNLIB_USED == 'Keras':
 from models.metrics import MetricBase, MeanSquaredError, MeanSquaredErrorLogarithmic, \
     BinaryCrossEntropy, WeightedBinaryCrossEntropy, WeightedBinaryCrossEntropyFixedWeights, \
     DiceCoefficient, TruePositiveRate, TrueNegativeRate, FalsePositiveRate, FalseNegativeRate, \
-    AirwayCompleteness, AirwayVolumeLeakage, AirwayCentrelineLeakage, AirwayTreeLength, \
+    AirwayMetricBase, AirwayCompleteness, AirwayVolumeLeakage, AirwayCentrelineLeakage, AirwayTreeLength, \
     AirwayCentrelineDistanceFalseNegativeError, AirwayCentrelineDistanceFalsePositiveError, \
     LIST_AVAIL_METRICS, SNR, PSNR, SSIM
 from models.networks import ConvNetBase
@@ -59,7 +59,7 @@ from models.networks import ConvNetBase
 
 def get_metric(type_metric: str,
                is_mask_exclude: bool = False,
-               **kwargs) -> MetricBase:
+               **kwargs) -> Union[MetricBase, AirwayMetricBase]:
     if type_metric == 'MeanSquaredError':
         return MeanSquaredError(is_mask_exclude=is_mask_exclude)
     if type_metric == 'MeanSquaredErrorLogarithmic':
