@@ -58,6 +58,7 @@ class Metric(MetricBase, nn.Module):
 class MetricWithUncertainty(Metric):
     # Composed uncertainty loss
     _epsilon_default = 0.01
+    _num_classes_gt = 2
 
     def __init__(self, metrics_loss: Metric, epsilon: float = _epsilon_default) -> None:
         self._metrics_loss = metrics_loss
@@ -67,11 +68,11 @@ class MetricWithUncertainty(Metric):
 
     def _compute(self, target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
         return (1.0 - self._epsilon) * self._metrics_loss._compute(target, input) \
-            + self._epsilon * self._metrics_loss._compute(torch.ones_like(input) / 3, input)
+            + self._epsilon * self._metrics_loss._compute(torch.ones_like(input) / self._num_classes_gt, input)
 
     def _compute_masked(self, target: torch.Tensor, input: torch.Tensor) -> torch.Tensor:
         return (1.0 - self._epsilon) * self._metrics_loss._compute_masked(target, input) \
-            + self._epsilon * self._metrics_loss._compute_masked(torch.ones_like(input) / 3, input)
+            + self._epsilon * self._metrics_loss._compute_masked(torch.ones_like(input) / self._num_classes_gt, input)
 
 
 class CombineTwoMetrics(Metric):
