@@ -142,6 +142,6 @@ Example usage
 ------------
 
 We provide a trained U-Net model with this software, which was used in the above paper for evaluation on the public EXACT'09 dataset. You can use this model to compute airway segmentations on your own CT data. To do this:
-1) copy '<path_thiscode_stored>/models/' to your desired location
-2) fill the script 'script_evalEXACT.sh' with the right paths for your test data
+1) create a working directory, and copy there i) the folder with your CT data, and ii) the script 'script_evalEXACT.sh' from this repo
+2) modify the script 'script_evalEXACT.sh' with the desired paths for your own data (check the several user-defined settings available)
 3) run the script: 'bash script_evalEXACT.sh'
