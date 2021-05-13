@@ -67,10 +67,10 @@ Requirements
 - source <path_new_pyvenv>/bin/activate
 - pip install -r requirements.txt
 
-Instructions
+# Instructions
 ------------
 
-# Prepare Data Directory
+## Prepare Data Directory
 
 Before running the scripts, the user needs to prepare the data directory with the following structure:
 
