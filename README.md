@@ -1,7 +1,7 @@
 BronchiNet
 ==============================
 
-Airway segmentation from chest CTs using deep Convolutional Neural Networks.
+Airway segmentation from chest CTs using deep Convolutional Neural Networks
 
 Contact: Antonio Garcia-Uceda Juarez (antonio.garciauceda89@gmail.com)
 
@@ -10,7 +10,7 @@ Introduction
 
 This software provides functionality to segment airways from CT scans, using deep CNN models, and in particular the U-Net. The implementation of the segmentation method is described in:
 
-Garcia-Uceda, A., Selvan, R., Saghir, Z., Tiddens, H.A.W.M., de Bruijne M. Automatic airway segmentation from Computed Tomography using robust and efficient 3-D convolutional neural networks. ArXiv e-prints (2021). arXiv:2103.16328.
+[1] Garcia-Uceda, A., Selvan, R., Saghir, Z., Tiddens, H.A.W.M., de Bruijne M. Automatic airway segmentation from Computed Tomography using robust and efficient 3-D convolutional neural networks. ArXiv e-prints (2021). arXiv:2103.16328.
 
 If using this software influences positively your project, please cite the above paper.
 
@@ -21,7 +21,7 @@ Project Organization
 
     ├── LICENSE
     ├── Makefile           	<- Makefile with commands like `make data` or `make train`
-    ├── README.md          	<- The top-level README for developers using this project.
+    ├── README.md          	<- The top-level README for developers using this project
     │
     ├── docs               	<- A default Sphinx project; see sphinx-doc.org for details
     │
@@ -112,30 +112,24 @@ The scripts are called in the command line as follows:
 ### Steps to Prepare Data
 ------------
 
-From the data directory above, create the working data used for training / testing:
+1\. From the data directory above, create the working data used for training / testing:
 
 - python <path_this_repo>/src/scripts_preparedata/prepare_data.py --datadir=<path_data_dir>
 
 This script has options to apply preprocessing operations, such as i) crop images around the lungs, ii) mask ground-truth to ROI: lungs, iii) rescale images...
 
-IF using the option to crop images around the lungs, compute the bounding-boxes of the lung masks, prior to the script above:
+IF using the option to crop images: compute the bounding-boxes of the lung masks, prior to the script above:
 
 - python <path_this_repo>/src/scripts_preparedata/compute_boundingbox_images.py --datadir=<path_data_dir> 
-
-
-
-
-1) [IF NEEDED] Preprocess data: apply various operations to input images / masks: rescaling, binarise masks
-- python ./Code/scripts_util/apply_operation_images.py <path_input_files> <path_output_files> --type=[various option]
 
 ### Steps to Train Models
 ------------
 
-Distribute the working data in training / validation / testing:
+1\. Distribute the working data in training / validation / testing:
 
 - python <path_this_repo>/src/scripts_experiments/distribute_data.py --basedir=<path_work_dir>
 
-Launch a training experiment:
+2\. Launch a training experiment:
 
 - python <path_this_repo>/src/scripts_experiments/train_model.py --basedir=<path_work_dir> --modelsdir=<path_output_models> 
 
@@ -146,34 +140,43 @@ OR restart a previous training experiment:
 ### Steps to Test Models
 ------------
 
-Compute probability maps from a trained model:
+1\. Compute probability maps from a trained model:
 
 - python <path_this_repo>/src/scripts_experiments/predict_model.py <path_trained_model> <path_output_work_probmaps> --basedir=<path_work_dir> --in_config_file=<path_config_file>)
 
-- The output prob. maps have the format and dimensions as the working data used for testing, which is typicaly different from that of the original images / reference segmentations (if using options for preprocessing in the script "prepare_data.py" above)
+The output prob. maps have the format and dimensions as the working data used for testing, which is typically different from that of the original data (if using options above for preprocessing in the script "prepare_data.py").
 
-Compute probability maps in format and dimensions of original data:
+2\. Compute probability maps in format and dimensions of original data:
 
 - python <path_this_repo>/src/scripts_evalresults/postprocess_predictions.py <path_output_work_probmaps> <path_output_probmaps> --basedir=<path_work_dir>
 - rm -r <path_output_work_probmaps>
 
-Compute binary mask of airways from probability maps:
+3\. Compute binary mask of airways from probability maps:
 
 - python <path_this_repo>/src/scripts_evalresults/process_predicted_airway_tree.py <path_output_probmaps> <path_output_binmasks> --basedir=<path_work_dir>
 
-[IF NEEDED] Compute the largest connected component of the airway binary masks:
+4\. (IF NEEDED) Compute the largest connected component of the airway binary masks:
 
 - python <path_this_repo>/src/scripts_util/apply_operation_images.py <path_output_binmasks> <path_output_conn_binmasks> --type=firstconreg
 
 - rm -r <path_output_binmasks> && mv <path_output_conn_binmasks> <path_output_binmasks>
 
-Compute airway centrelines from airway binary masks:
+5\. Compute airway centrelines from airway binary masks:
 
 - python <path_this_repo>/src/scripts_util/apply_operation_images.py <path_output_binmasks> <path_output_cenlines> --type=thinning
 
-Compute the desired metrics from the results:
+6\. Compute the desired metrics from the results:
 
 - python <path_this_repo>/src/scripts_evalresults/compute_result_metrics.py <path_output_binmasks> <path_output_cenlines> --basedir=<path_work_dir>
+
+### Other Scripts
+------------
+
+The user can apply various operations to input images / masks, such as i) binarise masks, ii) mask images to a mask, iii) rescale images... as follows:
+
+- python <path_this_repo>/src/scripts_util/apply_operation_images.py <path_input_files> <path_output_files> --type=<various_options>
+
+Some operations require extra input arguments. To visualize the list of operations available and the required input arguments, include "--help" after the script.
 
 Example usage
 ------------
