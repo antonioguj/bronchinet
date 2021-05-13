@@ -70,11 +70,26 @@ Requirements
 Instructions
 ------------
 
-The user needs only to run the scripts provided: the python files with a 'main()' function. Each script performs a given operation, either to i) prepare data, ii) run experiments, or iii) evaluate results. Typically, the scripts take as arguments i) the path with the input files, ii) the path to store the output files, and iii) a series of optional settings that control the performed operation. All arguments are parsed to the script from the command line.
+# Prepare Data Directory
+
+Before running the scripts, the user needs to prepare the data directory with the following structure:
+
+    ├── Images			<- Store CT scans (in dicom or nifti format)
+    ├── Airways                 <- Store reference airway segmentations
+    ├── Lungs (optional)        <- Store lung segmentations (used in option to mask ground-truth to the ROI: lungs)
+    └── CoarseAirways (optional)<- Store segmentation of trachea and main bronchi (used in option to attach mask of trachea and main bronchi to the predicted segmentations)
+
+
+
+
+
+The user needs only to run the scripts in the directories: "scripts_evalresults", "scripts_experiments", "scripts_launch", "scripts_preparedata", "scripts_util". Each script performs a separate and well-defined operation, either to i) prepare data, ii) run experiments, or iii) evaluate results.
+
+: the python files with a 'main()' function. Each script performs a given operation, either to i) prepare data, ii) run experiments, or iii) evaluate results. Typically, the scripts take as arguments i) the path with the input files, ii) the path to store the output files, and iii) a series of optional settings that control the performed operation. All arguments are parsed to the script from the command line.
 
 The typical way to launch the scripts is:
 
-- python <path_script> <path_input_files> <path_output_files> --<option_arg_1>=<value> --<option_arg_2>=<value> ...
+- python <path_script> <path_input_files> <path_output_files> --<option_arg1>=<value> --<option_arg2>=<value> ...
 
 The names for the optional input arguments of the given script can be displayed by:
 
