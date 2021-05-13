@@ -52,7 +52,7 @@ Project Organization
 
 ------------
 
-<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+<p><small>Project structure based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
 
 Requirements
 ------------
@@ -79,32 +79,30 @@ Before running the scripts, the user needs to prepare the data directory with th
     ├── Lungs (optional)        <- Store lung segmentations (used in option to mask ground-truth to the ROI: lungs)
     └── CoarseAirways (optional)<- Store segmentation of trachea and main bronchi (used in option to attach mask of trachea and main bronchi to the predicted segmentations)
 
+## Prepare Working Directory
 
+The user needs to prepare the working directory in the desired location, as follows:
 
+1. mkdir <path_working_dir> && cd <path_working_dir>
+2. ln -s <path_data_dir> BaseData
+3. ln -s <path_thiscode> Code
 
+## Run the Scripts
 
 The user needs only to run the scripts in the directories: "scripts_evalresults", "scripts_experiments", "scripts_launch", "scripts_preparedata", "scripts_util". Each script performs a separate and well-defined operation, either to i) prepare data, ii) run experiments, or iii) evaluate results.
 
-: the python files with a 'main()' function. Each script performs a given operation, either to i) prepare data, ii) run experiments, or iii) evaluate results. Typically, the scripts take as arguments i) the path with the input files, ii) the path to store the output files, and iii) a series of optional settings that control the performed operation. All arguments are parsed to the script from the command line.
+The scripts are called in the command line as follows:
 
-The typical way to launch the scripts is:
+- python <path_script> <mandat_arg1> <mandat_arg2> ... --<option_arg1>=<value> --<option_arg2>=<value> ...
 
-- python <path_script> <path_input_files> <path_output_files> --<option_arg1>=<value> --<option_arg2>=<value> ...
+    - <mandat_argN>: obligatory arguments (if any), typically for the paths of directories of input / output files
+    - <option_argN>: optional arguments, typical for each script. The list of optional arguments for an script can be displayed by:
+	- python <path_script> --help
+	- For optional arguments not indicated in the command line, they take the default values in the source file: "<path_thiscode>/src/common/constant.py"
 
-The names for the optional input arguments of the given script can be displayed by:
+(IMPORTANT): set the variable PYTHONPATH with the path of this code as follows:
 
-- python <path_script> --help
-
-For the optional arguments that are not given in the command line, they take the default value given in the source file: "src/common/constant.py"
-
-Create working directory
-------------
-
-- mkdir <working_dir> && cd <working_dir>
-- ln -s <path_data_stored> BaseData
-- ln -s <path_thiscode_stored> Code
-
-[IF NEEDED] (include in "~/.bashrc" file: export PYTHONPATH=<path_thiscode_stored>/src/")
+- export PYTHONPATH=<path_thiscode>/src/
 
 Prepare data
 ------------
