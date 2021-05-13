@@ -74,7 +74,7 @@ Requirements
 
 Before running the scripts, the user needs to prepare the data directory with the following structure:
 
-    ├── Images			<- Store CT scans (in dicom or nifti format)
+    ├── Images                  <- Store CT scans (in dicom or nifti format)
     ├── Airways                 <- Store reference airway segmentations
     ├── Lungs (optional)        <- Store lung segmentations (used in option to mask ground-truth to the ROI: lungs)
     └── CoarseAirways (optional)<- Store segmentation of trachea and main bronchi (used in option to attach mask of trachea and main bronchi to the predicted segmentations)
@@ -85,7 +85,7 @@ The user needs to prepare the working directory in the desired location, as foll
 
 1. mkdir <path_working_dir> && cd <path_working_dir>
 2. ln -s <path_data_dir> BaseData
-3. ln -s <path_thiscode> Code
+3. ln -s <path_this_repo> Code
 
 ## Run the Scripts
 
@@ -95,14 +95,17 @@ The scripts are called in the command line as follows:
 
 - python <path_script> <mandat_arg1> <mandat_arg2> ... --<option_arg1>=<value> --<option_arg2>=<value> ...
 
-    - <mandat_argN>: obligatory arguments (if any), typically for the paths of directories of input / output files
-    - <option_argN>: optional arguments, typical for each script. The list of optional arguments for an script can be displayed by:
-	- python <path_script> --help
-	- For optional arguments not indicated in the command line, they take the default values in the source file: "<path_thiscode>/src/common/constant.py"
+  - <mandat_argN>: obligatory arguments (if any), typically for the paths of directories of input / output files
+    
+  - <option_argN>: optional arguments, typical for each script. The list of optional arguments for an script can be displayed by:
+
+    - python <path_script> --help
+
+  - For optional arguments not indicated in the command line, they take the default values in the source file: "<path_thiscode>/src/common/constant.py"
 
 (IMPORTANT): set the variable PYTHONPATH with the path of this code as follows:
 
-- export PYTHONPATH=<path_thiscode>/src/
+- export PYTHONPATH=<path_this_repo>/src/
 
 Prepare data
 ------------
