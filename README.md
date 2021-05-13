@@ -10,7 +10,7 @@ Introduction
 
 This software provides functionality to segment airways from CT scans, using deep CNN models, and in particular the U-Net. The implementation of the segmentation method is described in:
 
-[1] Garcia-Uceda, A., Selvan, R., Saghir, Z., Tiddens, H.A.W.M., de Bruijne M. Automatic airway segmentation from Computed Tomography using robust and efficient 3-D convolutional neural networks. ArXiv e-prints (2021). arXiv:2103.16328.
+- [1] Garcia-Uceda, A., Selvan, R., Saghir, Z., Tiddens, H.A.W.M., de Bruijne M. Automatic airway segmentation from Computed Tomography using robust and efficient 3-D convolutional neural networks. ArXiv e-prints (2021). arXiv:2103.16328.
 
 If using this software influences positively your project, please cite the above paper.
 
@@ -110,7 +110,6 @@ The scripts are called in the command line as follows:
 ## Important Scripts 
 
 ### Steps to Prepare Data
-------------
 
 1\. From the data directory above, create the working data used for training / testing:
 
@@ -123,7 +122,6 @@ IF using the option to crop images: compute the bounding-boxes of the lung masks
 - python <path_this_repo>/src/scripts_preparedata/compute_boundingbox_images.py --datadir=<path_data_dir> 
 
 ### Steps to Train Models
-------------
 
 1\. Distribute the working data in training / validation / testing:
 
@@ -138,7 +136,6 @@ OR restart a previous training experiment:
 - python <path_this_repo>/src/scripts_experiments/train_model.py --basedir=<path_work_dir> --modelsdir=<path_stored_models> --is_restart=True --in_config_file=<path_config_file>
 
 ### Steps to Test Models
-------------
 
 1\. Compute probability maps from a trained model:
 
@@ -170,7 +167,6 @@ The output prob. maps have the format and dimensions as the working data used fo
 - python <path_this_repo>/src/scripts_evalresults/compute_result_metrics.py <path_output_binmasks> <path_output_cenlines> --basedir=<path_work_dir>
 
 ### Other Scripts
-------------
 
 The user can apply various operations to input images / masks, such as i) binarise masks, ii) mask images to a mask, iii) rescale images... as follows:
 
