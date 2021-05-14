@@ -76,7 +76,7 @@ Before running the scripts, the user needs to prepare the data directory with th
 
     ├── Images                  <- Store CT scans (in dicom or nifti format)
     ├── Airways                 <- Store reference airway segmentations
-    ├── Lungs (optional)        <- Store lung segmentations (used in option to mask ground-truth to the ROI: lungs)
+    ├── Lungs (optional)        <- Store lung segmentations (used in options to i) mask ground-truth to the ROI lungs, and ii) crop images around the lungs)
     └── CoarseAirways (optional)<- Store segmentation of trachea and main bronchi (used in option to attach mask of trachea and main bronchi to the predicted segmentations)
 
 ## Prepare Working Directory
@@ -115,9 +115,13 @@ The scripts are called in the command line as follows:
 
 - python <path_this_repo>/src/scripts_preparedata/prepare_data.py --datadir=<path_data_dir>
 
-This script has options to apply preprocessing operations, such as i) crop images around the lungs, ii) mask ground-truth to ROI: lungs, iii) rescale images...
+Several preprocessing operations can be applied in this script:
 
-IF using the option to crop images: compute the bounding-boxes of the lung masks, prior to the script above:
+1. mask ground-truth to ROI: lungs
+2. crop images around the lungs
+3. rescale images
+
+IF use option to crop images: compute the bounding-boxes of the lung masks, prior to the script above:
 
 - python <path_this_repo>/src/scripts_preparedata/compute_boundingbox_images.py --datadir=<path_data_dir> 
 
