@@ -20,35 +20,35 @@ Project Organization
 ------------
 
     ├── LICENSE
-    ├── Makefile           	<- Makefile with commands like `make data` or `make train`
-    ├── README.md          	<- The top-level README for developers using this project
+    ├── Makefile                <- Makefile with commands like `make data` or `make train`
+    ├── README.md               <- The top-level README for developers using this project
     │
-    ├── docs               	<- A default Sphinx project; see sphinx-doc.org for details
+    ├── docs                    <- A default Sphinx project; see sphinx-doc.org for details
     │
-    ├── models             	<- Trained and serialized models, model predictions, or model summaries
+    ├── models                  <- Trained and serialized models, model predictions, or model summaries
     │
-    ├── requirements.txt   	<- The requirements file for reproducing the analysis environment, e.g.
+    ├── requirements.txt        <- The requirements file for reproducing the analysis environment, e.g.
     │                         	   generated with `pip freeze > requirements.txt`
     │
-    ├── setup.py           	<- makes project pip installable (pip install -e .) so src can be imported
-    ├── src         	   	<- Source code for use in this project.
+    ├── setup.py                <- makes project pip installable (pip install -e .) so src can be imported
+    ├── src                     <- Source code for use in this project.
     │   │
-    │   ├── common         	<- General files and utilities
-    │   ├── dataloaders    	<- Modules to load data and batch generators
-    │   ├── imageoperators 	<- Various image operations
-    │   ├── models 	   	<- All modules to define networks, metrics and optimizers
-    │   ├── plotting       	<- Various plotting modules
-    │   ├── postprocessing 	<- Modules to postprocess the output of networks
-    │   ├── preprocessing  	<- Modules to preprocess the images to feed to networks
+    │   ├── common              <- General files and utilities
+    │   ├── dataloaders         <- Modules to load data and batch generators
+    │   ├── imageoperators      <- Various image operations
+    │   ├── models              <- All modules to define networks, metrics and optimizers
+    │   ├── plotting            <- Various plotting modules
+    │   ├── postprocessing      <- Modules to postprocess the output of networks
+    │   ├── preprocessing       <- Modules to preprocess the images to feed to networks
     │   │
-    │   ├── scripts_evalresults	<- Scripts to evaluate results from models
-    │   ├── scripts_experiments	<- Scripts to train and test models
-    │   ├── scripts_launch 	<- Scripts with pipelines and PBS scripts to run in clusters
-    │   ├── scripts_preparedata	<- Scripts to prepare data to train models
-    │   └── scripts_util	<- Scripts for various utilities
+    │   ├── scripts_evalresults <- Scripts to evaluate results from models
+    │   ├── scripts_experiments <- Scripts to train and test models
+    │   ├── scripts_launch      <- Scripts with pipelines and PBS scripts to run in clusters
+    │   ├── scripts_preparedata <- Scripts to prepare data to train models
+    │   └── scripts_util        <- Scripts for various utilities
     │
-    ├── tests			<- Tests to validate the method implementation (to be run locally)
-    └── tox.ini            	<- tox file with settings for running tox; see tox.readthedocs.io
+    ├── tests                   <- Tests to validate the method implementation (to be run locally)
+    └── tox.ini                 <- tox file with settings for running tox; see tox.readthedocs.io
 
 ------------
 
@@ -76,8 +76,10 @@ Before running the scripts, the user needs to prepare the data directory with th
 
     ├── Images                  <- Store CT scans (in dicom or nifti format)
     ├── Airways                 <- Store reference airway segmentations
-    ├── Lungs (optional)        <- Store lung segmentations (used in options to i) mask ground-truth to the ROI lungs, and ii) crop images around the lungs)
-    └── CoarseAirways (optional)<- Store segmentation of trachea and main bronchi (used in option to attach mask of trachea and main bronchi to the predicted segmentations)
+    ├── Lungs (optional)        <- Store lung segmentations 
+    │                              (used in options to i) mask ground-truth to the ROI lungs, and ii) crop images around the lungs)
+    └── CoarseAirways (optional)<- Store segmentation of trachea and main bronchi
+                                   (used in option to attach mask of trachea and main bronchi to the predicted segmentations)
 
 ## Prepare Working Directory
 
