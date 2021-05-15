@@ -81,7 +81,7 @@ def create_cylinder_mask(inout_image: np.ndarray,
     # distance to center, parallel to axis -> dot product of distance vectors with 'vector_axis'
     dist_rel2center_parall_axis_candits = np.dot(points_rel2center_candits_inside, unit_vector_axis)
 
-    # distance to center, perpendicular to axis -> Pythagoras theorem
+    # distance to center, perpendicular to axis -> Pythagoras (distance_2center ^2 - distance_2center_parall_axis ^2)
     dist_rel2center_perpen_axis_candits = np.sqrt(np.square(np.linalg.norm(points_rel2center_candits_inside, axis=3))
                                                   - np.square(dist_rel2center_parall_axis_candits) + _EPS)
 
@@ -131,10 +131,15 @@ def create_cuboid_mask(inout_image: np.ndarray,
                 vector_seg1_base = vector_perpen_2axis
                 break
 
+    # second vector perpendicular to 'vector_axis'
+    vector_seg2_base = np.cross(vector_axis, vector_seg1_base)
+
     norm_vector_axis = np.sqrt(np.dot(vector_axis, vector_axis))
     unit_vector_axis = np.array(vector_axis) / norm_vector_axis
     norm_vector_seg1_base = np.sqrt(np.dot(vector_seg1_base, vector_seg1_base))
     unit_vector_seg1_base = np.array(vector_seg1_base) / norm_vector_seg1_base
+    norm_vector_seg2_base = np.sqrt(np.dot(vector_seg2_base, vector_seg2_base))
+    unit_vector_seg2_base = np.array(vector_seg2_base) / norm_vector_seg2_base
     half_length_axis = length_axis / 2.0
     half_len_seg_base = len_seg_base / 2.0
 
@@ -149,24 +154,21 @@ def create_cuboid_mask(inout_image: np.ndarray,
     dist_rel2center_parall_axis_candits = np.dot(points_rel2center_candits_inside, unit_vector_axis)
 
     # candidate distance vectors (component) perpendicular to 'vector_axis'
-    points_rel2center_perpen_axis_candits = \
-        points_rel2center_candits_inside - dist_rel2center_parall_axis_candits[..., np.newaxis] * unit_vector_axis
+    points_rel2center_perpen_axis_candits = points_rel2center_candits_inside\
+                                            - dist_rel2center_parall_axis_candits[..., np.newaxis] * unit_vector_axis
 
-    # distance to center, perpen. to axis, parall. to seg1 -> dot prod. perpen. distance vectors with 'vector_seg1_base'
-    dist_rel2center_perpen_axis_parall_seg1_candits = \
-        np.dot(points_rel2center_perpen_axis_candits, unit_vector_seg1_base)
+    # dist. to center, perpen. to axis, parall. to seg1 -> dot product of perpen. distance vecs. with 'vector_seg1_base'
+    dist_rel2cent_perpen_axis_parall_seg1_candits = np.dot(points_rel2center_perpen_axis_candits, unit_vector_seg1_base)
 
-    # distance to center, perpendicular to axis and seg1 -> Pythagoras theorem
-    dist_rel2center_perpen_axis_perpen_seg1_candits = \
-        np.sqrt(np.square(np.linalg.norm(points_rel2center_perpen_axis_candits, axis=3))
-                - np.square(dist_rel2center_perpen_axis_parall_seg1_candits) + _EPS)
+    # dist. to center, perpendicular to axis and seg1 -> dot product of perpen. distance vectors with 'vector_seg2_base'
+    dist_rel2cent_perpen_axis_perpen_seg1_candits = np.dot(points_rel2center_perpen_axis_candits, unit_vector_seg2_base)
 
     # conditions cuboid: 1) dist. to center, parallel to axis: is less than 'half_length_axis'
-    #                    2) dist. to center, perpen. to axis, parall. to seg1, is less than 'half_len_seg_base'
+    #                    2) dist. to center, perpen. to axis and parall. to seg1, is less than 'half_len_seg_base'
     #                    3) dist. to center, perpendicular to axis and seg1, is less than 'half_len_seg_base'
     is_indexes_inside_cond1 = np.abs(dist_rel2center_parall_axis_candits) <= half_length_axis
-    is_indexes_inside_cond2 = np.abs(dist_rel2center_perpen_axis_parall_seg1_candits) <= half_len_seg_base
-    is_indexes_inside_cond3 = np.abs(dist_rel2center_perpen_axis_perpen_seg1_candits) <= half_len_seg_base
+    is_indexes_inside_cond2 = np.abs(dist_rel2cent_perpen_axis_parall_seg1_candits) <= half_len_seg_base
+    is_indexes_inside_cond3 = np.abs(dist_rel2cent_perpen_axis_perpen_seg1_candits) <= half_len_seg_base
 
     is_indexes_inside = \
         np.logical_and(is_indexes_inside_cond1, np.logical_and(is_indexes_inside_cond2, is_indexes_inside_cond3))
