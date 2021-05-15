@@ -154,8 +154,8 @@ def create_cuboid_mask(inout_image: np.ndarray,
     dist_rel2center_parall_axis_candits = np.dot(points_rel2center_candits_inside, unit_vector_axis)
 
     # candidate distance vectors (component) perpendicular to 'vector_axis'
-    points_rel2center_perpen_axis_candits = points_rel2center_candits_inside\
-                                            - dist_rel2center_parall_axis_candits[..., np.newaxis] * unit_vector_axis
+    points_rel2center_perpen_axis_candits = \
+        points_rel2center_candits_inside - dist_rel2center_parall_axis_candits[..., np.newaxis] * unit_vector_axis
 
     # dist. to center, perpen. to axis, parall. to seg1 -> dot product of perpen. distance vecs. with 'vector_seg1_base'
     dist_rel2cent_perpen_axis_parall_seg1_candits = np.dot(points_rel2center_perpen_axis_candits, unit_vector_seg1_base)
