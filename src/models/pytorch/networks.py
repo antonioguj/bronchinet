@@ -463,7 +463,7 @@ class UNet3DPlugin(UNet):
                 'num_featmaps_in': self._num_featmaps_in,
                 'num_channels_in': self._num_channels_in,
                 'num_classes_out': self._num_classes_out,
-                'is_use_valid_convols': self._is_valid_convols_deep_levels}
+                'is_use_valid_convols': self._is_use_valid_convols}
 
     def _build_model(self) -> None:
         value_padding = 0 if self._is_use_valid_convols else 1
