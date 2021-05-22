@@ -193,6 +193,27 @@ def prepare_morclose_operation(args):
     return wrapfun_morclose_image
 
 
+def prepare_thinning_operation(args):
+    print("Operation: Thinning images to centrelines...")
+
+    def wrapfun_thinning_image(in_data, i):
+        print("Thinning masks to extract centrelines...")
+        return ThinningMask.compute(in_data)
+
+    return wrapfun_thinning_image
+
+
+def prepare_threshold_operation(args):
+    print("Operation: Threshold images...")
+    thres_value = 0.5
+
+    def wrapfun_threshold_image(in_data, i):
+        print("Threshold masks to value \'%s\'..." % (thres_value))
+        return ThresholdImage.compute(in_data, thres_val=thres_value)
+
+    return wrapfun_threshold_image
+
+
 def prepare_connregions_operation(args):
     print("Operation: Compute connected regions, with connectivity dim \'%s\'..." % (args.in_conreg_dim))
 
@@ -216,27 +237,6 @@ def prepare_firstconnregion_operation(args):
         return out_data
 
     return wrapfun_firstconnregion_image
-
-
-def prepare_thinning_operation(args):
-    print("Operation: Thinning images to centrelines...")
-
-    def wrapfun_thinning_image(in_data, i):
-        print("Thinning masks to extract centrelines...")
-        return ThinningMask.compute(in_data)
-
-    return wrapfun_thinning_image
-
-
-def prepare_threshold_operation(args):
-    print("Operation: Threshold images...")
-    thres_value = 0.5
-
-    def wrapfun_threshold_image(in_data, i):
-        print("Threshold masks to value \'%s\'..." % (thres_value))
-        return ThresholdImage.compute(in_data, thres_val=thres_value)
-
-    return wrapfun_threshold_image
 
 
 def prepare_maskwithlabels_operation(args):
@@ -395,26 +395,39 @@ def main(args):
 
 
 if __name__ == "__main__":
-    dict_opers_help = {'mask': 'apply mask to image',
+    dict_opers_help = {'mask': 'apply mask to image\n'
+                               '\t\'--in_roimask_dir\': path to the mask files',
                        'binarise': 'binarise a mask with multiple labels',
-                       'merge': 'merge (add) two masks',
-                       'substract': 'substract the 2nd mask to the 1st mask',
-                       'crop': 'crop image to bounding-box (input arg)',
-                       'rescale': 'rescale image to factor (input arg)',
-                       'rescalemask': 'rescale mask to factor (input arg), keep output format (0, 1)',
+                       'merge': 'merge (add) two masks\n'
+                                '\t\'--in_2ndmask_dir\': path to the 2nd masks to merge with',
+                       'substract': 'substract the 2nd mask to the 1st mask\n'
+                                    '\t\'--in_2ndmask_dir\': path to the 2nd masks to substract',
+                       'crop': 'crop image to bounding-box\n'
+                               '\t\'--crop_boundboxes_file\': file with bounding-boxes per image\n'
+                               '\t\'--reference_dir\': path to files used to compute the bounding-boxes',
+                       'rescale': 'rescale image to factor\n'
+                                  '\t\'--rescale_factors_file\': file with rescale factors per image\n'
+                                  '\t\'--reference_dir\': path to files used to compute the rescale factors',
+                       'rescalemask': 'rescale mask to factor (keep output format (0, 1))\n'
+                                      '\t\'--rescale_factors_file\': file with rescale factors per image\n'
+                                      '\t\'--reference_dir\': path to files used to compute the rescale factors',
                        'fillholes': 'apply a morphological fill of holes inside a mask',
-                       'erode': 'apply a morphological erosion to mask (1 layer voxels)',
-                       'dilate': 'apply a morphological dilation to mask (1 layer voxels)',
-                       'moropen': 'apply a morphological opening to mask (1 layer voxels)',
-                       'morclose': 'apply a morphological closing to mask (1 layer voxels)',
-                       'conregs': 'split mask in connected components. Get each component with different label',
-                       'firstconreg': 'split mask in connected components and get the one with largest volume',
+                       'erode': 'apply a morphological erosion to mask (1 layer)',
+                       'dilate': 'apply a morphological dilation to mask (1 layer)',
+                       'moropen': 'apply a morphological opening to mask (1 layer)',
+                       'morclose': 'apply a morphological closing to mask (1 layer)',
                        'thinning': 'apply morphological thinning to mask and obtain centrelines',
                        'threshold': 'apply threshold of probability image and obtain binary mask',
-                       'masklabels': 'retrieve the labels (input arg) and get mask containing these',
+                       'conregs': 'split mask in connected components (output each component with diff. label)\n'
+                                  '\t\'--in_conreg_dim\': connectivity dim. (=1: 6-neighbours; =3: 26-neighbours)',
+                       'firstconreg': 'split mask in connected components and keep the one with largest volume\n'
+                                      '\t\'--in_conreg_dim\': connectivity dim. (=1: 6-neighbours; =3: 26-neighbours)',
+                       'masklabels': 'retrieve from mask the regions with labels, and combine these into a mask\n'
+                                     '\t\'--in_mask_labels\': list of labels to retrieve from mask',
                        'normalise': 'normalise images to have voxels in the range (0, 1)',
                        'power': 'compute power of mask values',
-                       'exponential': 'compute exponential of mask values'}
+                       'exponential': 'compute exponential of mask values'
+                       }
     string_opers_help = '\n'.join([(key + ': ' + val) for key, val in dict_opers_help.items()])
 
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
@@ -427,8 +440,8 @@ if __name__ == "__main__":
     parser.add_argument('--reference_dir', type=str, default=None)
     parser.add_argument('--crop_boundboxes_file', type=str, default=None)
     parser.add_argument('--rescale_factors_file', type=str, default=None)
-    parser.add_argument('--in_mask_labels', nargs='+', type=int, default=None)
     parser.add_argument('--in_conreg_dim', type=int, default=None)
+    parser.add_argument('--in_mask_labels', nargs='+', type=int, default=None)
     parser.add_argument('--out_nifti', type=str2bool, default=False)
     parser.add_argument('--no_suffix_outname', type=str2bool, default=None)
     args = parser.parse_args()
