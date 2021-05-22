@@ -1,5 +1,6 @@
 
 from typing import Tuple, Dict
+
 from torch.autograd import Variable
 from torch.nn import init
 import torch.nn as nn
@@ -57,9 +58,9 @@ class NodeGNN(nn.Module):
         self._graph_convol_3 = GraphConvolutionFirstOrder(num_hidden, num_hidden)
         self._graph_convol_4 = GraphConvolutionFirstOrder(num_hidden, num_out_feats)
         self._layer_norm_1 = LayerNorm(num_hidden)
-        self._is_dropout = is_dropout
+        # self._is_dropout = is_dropout
 
-    def _preprocess(self, adjacency: torch.Tensor) -> None:
+    def preprocess(self, adjacency: torch.Tensor) -> None:
         self._adjacency = adjacency
 
     def _create_dict_internal_modules(self) -> Dict[str, nn.Module]:
@@ -125,7 +126,7 @@ class NodeGNNwithAttentionLayers(nn.Module):
         # self._layer_norm_1 = LayerNorm(num_hidden)
         # self._is_dropout = is_dropout
 
-    def _preprocess(self, adjacency: torch.Tensor, node2edge_in: torch.Tensor, node2edge_out: torch.Tensor) -> None:
+    def preprocess(self, adjacency: torch.Tensor, node2edge_in: torch.Tensor, node2edge_out: torch.Tensor) -> None:
         self._adjacency = adjacency
         self._node2edge_in = node2edge_in
         self._node2edge_out = node2edge_out

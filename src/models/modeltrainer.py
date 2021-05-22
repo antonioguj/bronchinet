@@ -1,5 +1,5 @@
 
-from typing import Tuple, List, Union
+from typing import Tuple, List, Union, Dict, Any
 import numpy as np
 
 from common.constant import TYPE_DNNLIB_USED
@@ -31,7 +31,8 @@ class ModelTrainerBase(object):
                        is_use_dropout: bool = False,
                        dropout_rate: float = 0.2,
                        is_use_batchnormalize: bool = False,
-                       manual_seed: int = None
+                       manual_seed: int = None,
+                       extra_args_model_with_gnn: Dict[str, Any] = None
                        ) -> None:
         if manual_seed is not None:
             self._set_manual_random_seed(manual_seed)
@@ -47,7 +48,8 @@ class ModelTrainerBase(object):
                                     type_activate_output=type_activate_output,
                                     is_use_dropout=is_use_dropout,
                                     dropout_rate=dropout_rate,
-                                    is_use_batchnormalize=is_use_batchnormalize)
+                                    is_use_batchnormalize=is_use_batchnormalize,
+                                    **extra_args_model_with_gnn)
 
     def create_loss(self, type_loss: str, is_mask_to_region_interest: bool = False,
                     weight_combined_loss: float = 1.0) -> None:
@@ -72,6 +74,14 @@ class ModelTrainerBase(object):
 
     def finalise_model(self) -> None:
         raise NotImplementedError
+
+    def finalise_model_with_gnn(self, is_restart_model: bool, pathfile_gnn_adjacency: str,
+                                is_gnn_onthefly_adjacency: bool, is_gnn_with_attention: bool) -> None:
+        if not is_gnn_onthefly_adjacency:
+            if is_restart_model:
+                self._network.set_load_adjacency_data(pathfile_gnn_adjacency)
+            else:
+                self._network.set_build_adjacency_data(pathfile_gnn_adjacency)
 
     def create_callbacks(self, models_path: str, losshist_filename: str, **kwargs) -> None:
         raise NotImplementedError

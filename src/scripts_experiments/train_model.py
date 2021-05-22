@@ -12,7 +12,8 @@ from common.constant import BASEDIR, NAME_MODELSRUN_RELPATH, SIZE_IN_IMAGES, NAM
     TRANS_RIGID_SHIFT_RANGE, TRANS_RIGID_FLIP_DIRS, TRANS_RIGID_ZOOM_RANGE, TRANS_RIGID_FILL_MODE, \
     FREQ_SAVE_CHECK_MODELS, FREQ_VALIDATE_MODELS, IS_USE_VALIDATION_DATA, IS_SHUFFLE_TRAINDATA, MANUAL_SEED_TRAIN, \
     NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_LOSSHISTORY_FILE, NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, \
-    NAME_VALIDDATA_LOGFILE, TYPE_DNNLIB_USED, IS_WRITEOUT_DESCMODEL_TEXT, NAME_DESCRIPT_MODEL_LOGFILE
+    NAME_VALIDDATA_LOGFILE, TYPE_DNNLIB_USED, \
+    IS_MODEL_WITH_GNN, NAME_GNN_ADJACENCY_FILE, IS_GNN_ONTHEFLY_ADJACENCY, IS_GNN_WITH_ATTENTION
 from common.functionutil import join_path_names, is_exist_file, update_filename, basename, basename_filenoext, \
     list_files_dir, get_substring_filename, str2bool, str2int, str2float, str2list_str, str2tuple_bool, str2tuple_int,\
     str2tuple_float, read_dictionary, read_dictionary_configparams, save_dictionary_configparams
@@ -110,13 +111,19 @@ def main(args):
     model_trainer = get_model_trainer()
 
     if not args.is_restart or (args.is_restart and args.is_restart_only_weights):
+        extra_args_model_with_gnn = {}
+        if args.is_model_with_gnn:
+            extra_args_model_with_gnn['is_gnn_onthefly_adjacency'] = args.is_gnn_onthefly_adjacency
+            extra_args_model_with_gnn['is_gnn_with_attention'] = args.is_gnn_with_attention
+
         model_trainer.create_network(type_network=args.type_network,
                                      size_image_in=args.size_in_images,
                                      num_featmaps_in=args.net_num_featmaps,
                                      num_channels_in=1,
                                      num_classes_out=1,
                                      is_use_valid_convols=args.is_valid_convolutions,
-                                     manual_seed=args.manual_seed_train)
+                                     manual_seed=args.manual_seed_train,
+                                     extra_args_model_with_gnn=extra_args_model_with_gnn)
         model_trainer.create_optimizer(type_optimizer=args.type_optimizer,
                                        learn_rate=args.learn_rate)
         model_trainer.create_loss(type_loss=args.type_loss,
@@ -157,13 +164,17 @@ def main(args):
                                    is_restart_model=args.is_restart)
     # model_trainer.summary_model()
 
-    if (IS_WRITEOUT_DESCMODEL_TEXT):
-        out_descript_model_logfile = join_path_names(models_path, NAME_DESCRIPT_MODEL_LOGFILE)
-        print("Write out descriptive model source model in text file: \'%s\'" % (out_descript_model_logfile))
-        descmodel_text = model_trainer._network.get_descmodel_sourcecode()
-        fout = open(out_descript_model_logfile, 'w')
-        fout.write(descmodel_text)
-        fout.close()
+    if args.is_model_with_gnn:
+        pathfile_gnn_adjacency = join_path_names(args.modelsdir, args.name_gnn_adjacency_file)
+
+        if args.is_restart and \
+                not args.is_gnn_onthefly_adjacency and \
+                not is_exist_file(pathfile_gnn_adjacency):
+            message = 'File where to load the Graph Adjacency \'%s\' does not exist...' % (pathfile_gnn_adjacency)
+            catch_error_exception(message)
+
+        model_trainer.finalise_model_with_gnn(args.is_restart, pathfile_gnn_adjacency,
+                                              args.is_gnn_onthefly_adjacency, args.is_gnn_with_attention)
 
     # *****************************************************
 
@@ -295,6 +306,10 @@ if __name__ == "__main__":
     parser.add_argument('--restart_file', type=str, default=NAME_SAVEDMODEL_LAST)
     parser.add_argument('--is_restart_only_weights', type=str2bool, default=False)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
+    parser.add_argument('--is_model_with_gnn', type=str2bool, default=IS_MODEL_WITH_GNN)
+    parser.add_argument('--name_gnn_adjacency_file', type=str, default=NAME_GNN_ADJACENCY_FILE)
+    parser.add_argument('--is_gnn_onthefly_adjacency', type=str2bool, default=IS_GNN_ONTHEFLY_ADJACENCY)
+    parser.add_argument('--is_gnn_with_attention', type=str2bool, default=IS_GNN_WITH_ATTENTION)
     args = parser.parse_args()
 
     if (args.is_restart and not args.is_restart_only_weights) and not args.in_config_file:
@@ -343,6 +358,10 @@ if __name__ == "__main__":
             # args.is_use_validation_data = str2bool(input_args_file['is_use_validation_data'])
             # args.is_shuffle_traindata = str2bool(input_args_file['is_shuffle_traindata'])
             args.name_reference_keys_file = str(input_args_file['name_reference_keys_file'])
+            args.is_model_with_gnn = str2bool(input_args_file['is_model_with_gnn'])
+            args.name_gnn_adjacency_file = str(input_args_file['name_gnn_adjacency_file'])
+            args.is_gnn_onthefly_adjacency = str2bool(input_args_file['is_gnn_onthefly_adjacency'])
+            args.is_gnn_with_attention = str2bool(input_args_file['is_gnn_with_attention'])
 
     if args.type_generate_patches not in LIST_AVAIL_GENERATE_PATCHES_TRAINING:
         message = 'Type of Generate Patches not possible for training: \'%s\'. Options available: \'%s\'' \
@@ -354,6 +373,10 @@ if __name__ == "__main__":
                                         'flip_dirs': args.trans_rigid_flip_dirs,
                                         'zoom_range': args.trans_rigid_zoom_range,
                                         'fill_mode': args.trans_rigid_fill_mode}
+
+    if args.is_model_with_gnn and TYPE_DNNLIB_USED == 'Keras':
+        message = 'Models with Graph Neural Networks (GNNs) only implemented with Pytorch'
+        catch_error_exception(message)
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).items()):

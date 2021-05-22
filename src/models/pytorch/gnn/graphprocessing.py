@@ -1,12 +1,14 @@
 
 from typing import Tuple
+
 import numpy as np
 import scipy.sparse as sp
 import torch
 from sklearn.metrics.pairwise import pairwise_distances
-torch.manual_seed(2017)
 
-# from models.pytorch.gnn.gnn_utilities import row_normalize, sparse_matrix_to_torch_sparse_tensor
+# from models.pytorch.gnn.gnnutil import row_normalize, sparse_matrix_to_torch_sparse_tensor
+
+torch.manual_seed(2017)
 
 
 def build_adjacency(shape_volume, num_neighs: int = 26, resolution: int = 4) -> np.array:
@@ -95,14 +97,14 @@ def neighbours_to_adjacency(neighbours: np.array) -> np.array:
     col = col[valid_neighbours.reshape(-1)]             # Remove non-neighbour col indices
     # data = np.ones(col.size)
     # Definition adjacency matrix
-    adjacency = sp.csr_matrix((np.ones(col.size, dtype=np.float16),(row, col)), shape=(num_nodes, num_nodes))
+    adjacency = sp.csr_matrix((np.ones(col.size, dtype=np.float16), (row, col)), shape=(num_nodes, num_nodes))
     adjacency = adjacency + sp.eye(num_nodes)           # Self connections
     adjacency = adjacency / (num_neighs + 1)
     return adjacency
 
 
-def compute_onthefly_adjacency(in_features: np.array, num_neighs: int = 26,
-                               is_normalise: bool = False) -> np.array:
+def compute_onthefly_adjacency(in_features: np.array, num_neighs: int = 26, is_normalise: bool = False
+                               ) -> torch.Tensor:
     """
     Given an NxD feature vector, and adjacency matrix in sparse form
     is returned with 'num_neighs' neighbours.
@@ -125,8 +127,8 @@ def compute_onthefly_adjacency(in_features: np.array, num_neighs: int = 26,
     return adjacency.cuda()
 
 
-def compute_onthefly_adjacency_torch(in_features: torch.Tensor, num_neighs: int = 26,
-                                     is_normalise: bool = False) -> torch.Tensor:
+def compute_onthefly_adjacency_torch(in_features: torch.Tensor, num_neighs: int = 26, is_normalise: bool = False
+                                     ) -> torch.Tensor:
     """
     Same as 'compute_onthefly_adjacency', but using torch functions
     """
@@ -145,15 +147,15 @@ def compute_onthefly_adjacency_torch(in_features: torch.Tensor, num_neighs: int 
     row = torch.LongTensor(np.arange(num_nodes))
     row = row.view(-1, 1).repeat(1, num_neighs).view(-1)
     col = neighbours.contiguous().view(-1)
-    indexes = torch.stack((row,col))
+    indexes = torch.stack((row, col))
     values = torch.FloatTensor(np.ones(len(row)))
     adjacency = torch.sparse.FloatTensor(indexes, values, (num_nodes, num_nodes))
     adjacency = adjacency / (num_neighs + 1)
     return adjacency.cuda()
 
 
-def compute_onthefly_adjacency_with_attention(in_features: np.array, num_neighs: int = 26,
-                                              is_normalise: bool = False) -> np.array:
+def compute_onthefly_adjacency_with_attention(in_features: np.array, num_neighs: int = 26, is_normalise: bool = False
+                                              ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """
     Given an NxD feature vector, and adjacency matrix in sparse form
     is returned with num_ngbrs neighbours, including attention.
@@ -181,38 +183,38 @@ def compute_onthefly_adjacency_with_attention(in_features: np.array, num_neighs:
     indexes = torch.stack((indexes_0, row))
     node2edge_out = torch.sparse.FloatTensor(indexes, values, (num_nonzero, num_nodes))
 
-    return adjacency.cuda(), node2edge_in.cuda(), node2edge_out.cuda()
+    return (adjacency.cuda(), node2edge_in.cuda(), node2edge_out.cuda())
 
 
-class OntheflyAdjacencyNeighbourCandidates(object):
-    _dist_neighs_max_default = 5
-    _dist_jump_nodes_default = None
+class OntheflyAdjacencyLimitCanditsGenerator(object):
+    _dist_max_candits_neighs_default = 5
+    _dist_jump_nodes_candits_default = None
 
     def __init__(self, shape_volume: Tuple[int, int, int],
-                 dist_neighs_max: int = _dist_neighs_max_default,
-                 dist_jump_nodes: int = _dist_jump_nodes_default
+                 dist_max_candits_neighs: int = _dist_max_candits_neighs_default,
+                 dist_jump_nodes_candits: int = _dist_jump_nodes_candits_default
                  ) -> None:
         # self._shape_volume = shape_volume
-        # self._dist_neighs_max = dist_neighs_max
-        # self._dist_jump_nodes = dist_jump_nodes
+        # self._dist_max_candits_neighs = dist_max_candits_neighs
+        # self._dist_jump_nodes_candits = dist_jump_nodes_candits
         self._indexes_neighbours_candits = \
-            self._get_indexes_neighbours_candits(shape_volume, dist_neighs_max, dist_jump_nodes)
+            self._get_indexes_neighbours_candits(shape_volume, dist_max_candits_neighs, dist_jump_nodes_candits)
 
     def _get_indexes_neighbours_candits(self, shape_volume: Tuple[int, int, int],
-                                        dist_neighs_max: int,
-                                        dist_jump_nodes: int
+                                        dist_max_candits_neighs: int,
+                                        dist_jump_nodes_candits: int
                                         ) -> np.array:
         """
         Get the candidate indexes around each node of the image volume,
-        within a cubic neighbourhood of max distance 'dist_neighs_max'
+        within a cubic neighbourhood of size 'dist_max_candits_neighs' in each dir
         """
         (zdim, xdim, ydim) = shape_volume
         num_nodes_total = zdim * xdim * ydim
 
-        if dist_jump_nodes:
-            dim_1d_neighs = 2 * dist_neighs_max // (dist_jump_nodes + 1) + 1
+        if dist_jump_nodes_candits:
+            dim_1d_neighs = 2 * dist_max_candits_neighs // (dist_jump_nodes_candits + 1) + 1
         else:
-            dim_1d_neighs = 2 * dist_neighs_max + 1
+            dim_1d_neighs = 2 * dist_max_candits_neighs + 1
 
         zdim_neighs = min(dim_1d_neighs, zdim)
         xdim_neighs = min(dim_1d_neighs, xdim)
@@ -223,18 +225,18 @@ class OntheflyAdjacencyNeighbourCandidates(object):
         indexes_neighbours_candits = np.full((num_nodes_total, max_nodes_neighs), 0, dtype=np.uint32)
 
         for iz in range(zdim):
-            z_neigh_min = max(0, iz - dist_neighs_max)
-            z_neigh_max = min(zdim, iz + dist_neighs_max + 1)
+            z_neigh_min = max(0, iz - dist_max_candits_neighs)
+            z_neigh_max = min(zdim, iz + dist_max_candits_neighs + 1)
             z_neigh_inds = np.arange(z_neigh_min, z_neigh_max)
 
             for ix in range(xdim):
-                x_neigh_min = max(0, ix - dist_neighs_max)
-                x_neigh_max = min(xdim, ix + dist_neighs_max + 1)
+                x_neigh_min = max(0, ix - dist_max_candits_neighs)
+                x_neigh_max = min(xdim, ix + dist_max_candits_neighs + 1)
                 x_neigh_inds = np.arange(x_neigh_min, x_neigh_max)
 
                 for iy in range(ydim):
-                    y_neigh_min = max(0, iy - dist_neighs_max)
-                    y_neigh_max = min(ydim, iy + dist_neighs_max + 1)
+                    y_neigh_min = max(0, iy - dist_max_candits_neighs)
+                    y_neigh_max = min(ydim, iy + dist_max_candits_neighs + 1)
                     y_neigh_inds = np.arange(y_neigh_min, y_neigh_max)
 
                     inode = (iz * xdim + ix) * ydim + iy
@@ -252,8 +254,8 @@ class OntheflyAdjacencyNeighbourCandidates(object):
         return indexes_neighbours_candits
         # return indexes_neighbours_candits.T
 
-    def compute(self, in_features: np.array, num_neighs: int = 26,
-                is_normalise: bool = False) -> np.array:
+    def compute(self, in_features: np.array, num_neighs: int = 26, is_normalise: bool = False
+                ) -> torch.Tensor:
         """
         Given an NxD feature vector, and adjacency matrix in sparse form
         is returned with 'num_neighs' neighbours.
@@ -286,8 +288,8 @@ class OntheflyAdjacencyNeighbourCandidates(object):
         adjacency = adjacency / (num_neighs + 1)
         return adjacency.cuda()
 
-    def compute_with_attention(self, in_features: np.array, num_neighs: int = 26,
-                               is_normalise: bool = False) -> np.array:
+    def compute_with_attention(self, in_features: np.array, num_neighs: int = 26, is_normalise: bool = False
+                               ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Given an NxD feature vector, and adjacency matrix in sparse form
         is returned with num_ngbrs neighbours, including attention.
@@ -326,7 +328,7 @@ class OntheflyAdjacencyNeighbourCandidates(object):
         indexes = torch.stack((indexes_0, row))
         node2edge_out = torch.sparse.FloatTensor(indexes, values, (num_nonzero, num_nodes))
 
-        return adjacency.cuda(), node2edge_in.cuda(), node2edge_out.cuda()
+        return (adjacency.cuda(), node2edge_in.cuda(), node2edge_out.cuda())
 
 
 def vol2nodes(volume: np.array) -> np.array:

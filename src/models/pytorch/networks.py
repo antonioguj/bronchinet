@@ -13,6 +13,7 @@ from models.networks import UNetBase
 LIST_AVAIL_NETWORKS = ['UNet3DOriginal',
                        'UNet3DGeneral',
                        'UNet3DPlugin',
+                       'Unet3DGNNPlugin',
                        ]
 
 
