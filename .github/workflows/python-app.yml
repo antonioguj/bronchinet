@@ -5,9 +5,9 @@ name: Python application
 
 on:
   push:
-    branches: [ master, dev, gnn-unet ]
+    branches: [ master, dev, unet-gnn ]
   pull_request:
-    branches: [ master, dev, gnn-unet ]
+    branches: [ master, dev, unet-gnn ]
 
 jobs:
   build:
