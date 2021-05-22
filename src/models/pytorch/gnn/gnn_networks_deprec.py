@@ -102,7 +102,7 @@ class Unet3DGNN_AllskipGNNs(NeuralNetwork):
         x_gnn2 = x
         x = self.mpoolD2(x)
 
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
         xSh = x_gnn1.shape
         x_gnn1 = x_gnn1.view(xSh[0], xSh[1], -1).view(-1, xSh[1])
         x_gnn1 = self.nGNN1(x_gnn1, self.adj1)
@@ -264,7 +264,7 @@ class gnnAlterOTF_AllskipGNNs(NeuralNetwork):
         x = self.mpoolD2(x)
 
         if self.is_adj_onthefly_inepoch:
-            # Node GNN here # see gnn_modules.py for further details
+            # Node GNN here # see gnn.py for further details
             xSh = x_gnn1.shape
             # pdb.set_trace()
             x_gnn1 = x_gnn1.view(xSh[0], xSh[1], -1).view(-1, xSh[1])
@@ -286,7 +286,7 @@ class gnnAlterOTF_AllskipGNNs(NeuralNetwork):
             x = self.nGNN2(x, adj_otf)
             x = x.view(xSh[0], -1, xSh[2], xSh[3], xSh[4])
         else:
-            # Node GNN here # see gnn_modules.py for further details
+            # Node GNN here # see gnn.py for further details
             xSh = x_gnn1.shape
             x_gnn1 = x_gnn1.view(xSh[0], xSh[1], -1).view(-1, xSh[1])
             x_gnn1 = self.nGNN1(x_gnn1, self.adj_sto1)
@@ -419,7 +419,7 @@ class GNN_Skip1_GNN23(NeuralNetwork):
         else:
             x_skip_2 = x
 
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
         x = self.mpool(x_prev_2)
 
         xSh = x.shape
@@ -513,7 +513,7 @@ class GNNSkip3(NeuralNetwork):
         x = self.relu(self.convD22(x))
         x = self.mpool(x)
         x2 = x
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
 
         xSh = x.shape
         x = x.view(xSh[0], xSh[1], -1).view(-1 ,xSh[1])
@@ -525,7 +525,7 @@ class GNNSkip3(NeuralNetwork):
         else:
             x_skip_1 = x
 
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
         x = self.mpool(x2)
         x3 = x
 
@@ -539,7 +539,7 @@ class GNNSkip3(NeuralNetwork):
         else:
             x_skip_2 = x
 
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
         x = self.mpool(x3)
         x4 = x
 
@@ -553,7 +553,7 @@ class GNNSkip3(NeuralNetwork):
         else:
             x_skip_3 = x
 
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
         x = self.mpool(x4)
 
         xSh = x.shape
@@ -652,7 +652,7 @@ class GNNSkip2(NeuralNetwork):
         x = self.relu(self.convD22(x))
         x = self.mpool(x)
         x2 = x
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
 
         xSh = x.shape
         x = x.view(xSh[0], xSh[1], -1).view(-1 ,xSh[1])
@@ -664,7 +664,7 @@ class GNNSkip2(NeuralNetwork):
         else:
             x_skip_1 = x
 
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
         x = self.mpool(x2)
         x3 = x
 
@@ -678,7 +678,7 @@ class GNNSkip2(NeuralNetwork):
         else:
             x_skip_2 = x
 
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
         x = self.mpool(x3)
 
         xSh = x.shape
@@ -775,7 +775,7 @@ class GNNSkip(NeuralNetwork):
         x = self.relu(self.convD22(x))
         x = self.mpool(x)
         x2 = x
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
 
         xSh = x.shape
         x = x.view(xSh[0], xSh[1], -1).view(-1 ,xSh[1])
@@ -787,7 +787,7 @@ class GNNSkip(NeuralNetwork):
         else:
             x_skip_1 = x
 
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
         x = self.mpool(x2)
         xSh = x.shape
         x = x.view(xSh[0], xSh[1], -1).view(-1 ,xSh[1])
@@ -886,7 +886,7 @@ class GNN3D(NeuralNetwork):
         x = self.relu(self.convD22(x))
         x = self.mpool(x)
 
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
         xSh = x.shape
         x = x.view(xSh[0], xSh[1], -1).view(-1 ,xSh[1])
         x = self.nGNN(x, self.adj)

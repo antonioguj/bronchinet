@@ -1,17 +1,16 @@
 
+from typing import Tuple, List, Dict, Union, Any
 import numpy as np
-
+import scipy.sparse as sp
 from torch.nn import Conv3d, MaxPool3d, Upsample, ReLU, Sigmoid
 import torch.nn as nn
-#from torch.nn.functional import interpolate
 import torch
-from models.pytorch.gnn_util import NodeGNN, NodeGNNwithAttentionLayers
-from scipy.sparse import load_npz
-import scipy.sparse as sp
-from models.pytorch.gnn_util import makeAdjacency, compute_ontheflyAdjacency,\
-    compute_ontheflyAdjacency_with_attention_layers, GenOntheflyAdjacency_NeighCandit
-from models.pytorch.gnn_util.gnn_utilities import sparse_mx_to_torch_sparse_tensor
 torch.manual_seed(2017)
+
+from models.pytorch.gnn.gnn_modules import NodeGNN, NodeGNNwithAttentionLayers
+from models.pytorch.gnn.gnn_utilities import sparse_matrix_to_torch_sparse_tensor
+from models.pytorch.gnn.graph_processing import makeAdjacency, compute_ontheflyAdjacency, \
+    compute_ontheflyAdjacency_with_attention_layers, GenOntheflyAdjacency_NeighCandit
 
 from common.functionutil import join_path_names
 from common.exceptionmanager import catch_error_exception
@@ -132,8 +131,8 @@ class NeuralNetwork(nn.Module):
     def load_adjacency_matrix(list_filename_adjs):
         adjs = []
         for filename_adj in list_filename_adjs:
-            adj_i = load_npz(filename_adj)
-            adjs.append(sparse_mx_to_torch_sparse_tensor(adj_i).cuda())
+            adj_i = sp.load_npz(filename_adj)
+            adjs.append(sparse_matrix_to_torch_sparse_tensor(adj_i).cuda())
         # endfor
         if len(list_filename_adjs)==1:
             return adjs[0]
@@ -146,15 +145,15 @@ class NeuralNetwork(nn.Module):
         n2e_ins = []
         n2e_outs = []
         for filename_adj in list_filename_adjs:
-            adj_i = load_npz(filename_adj)
+            adj_i = sp.load_npz(filename_adj)
             adj_i *= 27
             n2e_in_i = sp.csr_matrix((np.ones(adj_i.nnz), (np.arange(adj_i.nnz), sp.find(adj_i)[1])),
                                      shape=(adj_i.nnz, adj_i.shape[0]))
             n2e_out_i = sp.csr_matrix((np.ones(adj_i.nnz), (np.arange(adj_i.nnz), sp.find(adj_i)[0])),
                                       shape=(adj_i.nnz, adj_i.shape[0]))
-            adjs.append(sparse_mx_to_torch_sparse_tensor(adj_i).cuda())
-            n2e_ins.append(sparse_mx_to_torch_sparse_tensor(n2e_in_i).cuda())
-            n2e_outs.append(sparse_mx_to_torch_sparse_tensor(n2e_out_i).cuda())
+            adjs.append(sparse_matrix_to_torch_sparse_tensor(adj_i).cuda())
+            n2e_ins.append(sparse_matrix_to_torch_sparse_tensor(n2e_in_i).cuda())
+            n2e_outs.append(sparse_matrix_to_torch_sparse_tensor(n2e_out_i).cuda())
         # endfor
         if len(list_filename_adjs)==1:
             return adjs[0], n2e_ins[0], n2e_outs[0]
@@ -403,7 +402,7 @@ class Unet3DGNN(NeuralNetwork):
         del in_state_dict['convD32.weight']
         del in_state_dict['convD32.bias']
         # add params corresponding to GNN
-        state_dict_nodeGNN = self.nGNN.alloc_state_dict_vars(basename_module='nGNN', reset_parameters=True)
+        state_dict_nodeGNN = self.nGNN.allocate_state_variables_modules(basename_module='nGNN', reset_parameters=True)
         in_state_dict.update(state_dict_nodeGNN)
 
 
@@ -466,7 +465,7 @@ class Unet3DGNN(NeuralNetwork):
         x_skip_lev2 = self.crop_image(x, self.list_sizes_crop_merge[1])
         x = self.mpoolD2(x)
 
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
         xSh = x.shape
         x = x.view(xSh[0], xSh[1], -1).view(-1, xSh[1])
         x = self.nGNN(x)
@@ -596,7 +595,7 @@ class Unet3DGNN_OTF(NeuralNetwork):
         del in_state_dict['convD32.weight']
         del in_state_dict['convD32.bias']
         # add params corresponding to GNN
-        state_dict_nodeGNN = self.nGNN.alloc_state_dict_vars(basename_module='nGNN', reset_parameters=True)
+        state_dict_nodeGNN = self.nGNN.allocate_state_variables_modules(basename_module='nGNN', reset_parameters=True)
         in_state_dict.update(state_dict_nodeGNN)
 
 
@@ -672,7 +671,7 @@ class Unet3DGNN_OTF(NeuralNetwork):
         x_skip_lev2 = self.crop_image(x, self.list_sizes_crop_merge[1])
         x = self.mpoolD2(x)
 
-        # Node GNN here # see gnn_modules.py for further details
+        # Node GNN here # see gnn.py for further details
         xSh = x.shape
         # pdb.set_trace()
         x = x.view(xSh[0], xSh[1], -1).view(-1, xSh[1])
