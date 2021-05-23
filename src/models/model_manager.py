@@ -44,7 +44,7 @@ elif TYPE_DNNLIB_USED == 'Keras':
         LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
     from models.keras.networks import UNet, UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS, \
         UNet3DPlugin5levels, UNet3DPlugin3levels, UNet2DPlugin3levels, \
-        UNet3DPlugin5levelsNoSkipConn, UNet3DPlugin3levelsNoSkipConn
+        UNet3DPlugin5levelsNoSkips, UNet3DPlugin3levelsNoSkips
     from models.keras.optimizers import get_sgd, get_sgdmom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
     from models.keras.networkchecker import NetworkChecker
@@ -155,14 +155,15 @@ def get_metric_train(type_metric: str,
             return MultiScaleSSIM_train(is_mask_exclude=is_mask_exclude)
         elif type_metric == 'Perceptual':
             size_image = kwargs['size_image_in']
-            layers_vgg16_calcloss = kwargs['layers_vgg16_loss_perceptual'] \
-                if 'layers_vgg16_loss_perceptual' in kwargs.keys()\
+            layers_vgg16_calcloss = \
+                kwargs['layers_vgg16_loss_perceptual'] if 'layers_vgg16_loss_perceptual' in kwargs.keys() \
                 else Perceptual_train._layers_vgg16_calcloss_default
-            weights_vgg16_calcloss = kwargs['weights_vgg16_loss_perceptual'] \
-                if 'weights_vgg16_loss_perceptual' in kwargs.keys() \
+            weights_vgg16_calcloss = \
+                kwargs['weights_vgg16_loss_perceptual'] if 'weights_vgg16_loss_perceptual' in kwargs.keys() \
                 else Perceptual_train._weights_vgg16_calcloss_default
-            prop_reduce_insize_vgg16_calcloss = kwargs['prop_reduce_insize_vgg16_loss_perceptual'] \
-                if 'prop_reduce_insize_vgg16_loss_perceptual' in kwargs.keys() else 0.0
+            prop_reduce_insize_vgg16_calcloss = \
+                kwargs['prop_reduce_insize_vgg16_loss_perceptual'] if 'prop_reduce_insize_vgg16_loss_perceptual' \
+                in kwargs.keys() else 0.0
             return Perceptual_train(is_mask_exclude=is_mask_exclude, size_image=size_image,
                                     layers_vgg16_calcloss=layers_vgg16_calcloss,
                                     weights_vgg16_calcloss=weights_vgg16_calcloss,
@@ -187,18 +188,20 @@ def get_network(type_network: str,
                               num_classes_out=num_classes_out)
 
     elif type_network == 'UNet3DGeneral':
-        num_levels = kwargs['num_levels'] if 'num_levels' in kwargs.keys() \
-            else UNet3DGeneral._num_levels_default
-        type_activate_hidden = kwargs['type_activate_hidden'] if 'type_activate_hidden' in kwargs.keys() \
+        num_levels = \
+            kwargs['num_levels'] if 'num_levels' in kwargs.keys() else UNet3DGeneral._num_levels_default
+        type_activate_hidden = \
+            kwargs['type_activate_hidden'] if 'type_activate_hidden' in kwargs.keys() \
             else UNet3DGeneral._type_activate_hidden_default
-        type_activate_output = kwargs['type_activate_output'] if 'type_activate_output' in kwargs.keys() \
+        type_activate_output = \
+            kwargs['type_activate_output'] if 'type_activate_output' in kwargs.keys() \
             else UNet3DGeneral._type_activate_output_default
-        is_use_dropout = kwargs['is_use_dropout'] if 'is_use_dropout' in kwargs.keys() \
-            else False
-        dropout_rate = kwargs['dropout_rate'] if 'dropout_rate' in kwargs.keys() \
-            else UNet3DGeneral._dropout_rate_default
-        is_use_batchnormalize = kwargs['is_use_batchnormalize'] if 'is_use_batchnormalize' in kwargs.keys() \
-            else False
+        is_use_dropout = \
+            kwargs['is_use_dropout'] if 'is_use_dropout' in kwargs.keys() else False
+        dropout_rate = \
+            kwargs['dropout_rate'] if 'dropout_rate' in kwargs.keys() else UNet3DGeneral._dropout_rate_default
+        is_use_batchnormalize = \
+            kwargs['is_use_batchnormalize'] if 'is_use_batchnormalize' in kwargs.keys() else False
 
         return UNet3DGeneral(size_image_in,
                              num_levels=num_levels,
@@ -240,19 +243,19 @@ def get_network(type_network: str,
                                    num_classes_out=num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols)
 
-    elif type_network == 'UNet3DPlugin5levelsNoSkipConn':
-        return UNet3DPlugin5levelsNoSkipConn(size_image_in,
-                                             num_featmaps_in=num_featmaps_in,
-                                             num_channels_in=num_channels_in,
-                                             num_classes_out=num_classes_out,
-                                             is_use_valid_convols=is_use_valid_convols)
+    elif type_network == 'UNet3DPlugin5levelsNoSkips':
+        return UNet3DPlugin5levelsNoSkips(size_image_in,
+                                          num_featmaps_in=num_featmaps_in,
+                                          num_channels_in=num_channels_in,
+                                          num_classes_out=num_classes_out,
+                                          is_use_valid_convols=is_use_valid_convols)
 
-    elif type_network == 'UNet3DPlugin3levelsNoSkipConn':
-        return UNet3DPlugin3levelsNoSkipConn(size_image_in,
-                                             num_featmaps_in=num_featmaps_in,
-                                             num_channels_in=num_channels_in,
-                                             num_classes_out=num_classes_out,
-                                             is_use_valid_convols=is_use_valid_convols)
+    elif type_network == 'UNet3DPlugin3levelsNoSkips':
+        return UNet3DPlugin3levelsNoSkips(size_image_in,
+                                          num_featmaps_in=num_featmaps_in,
+                                          num_channels_in=num_channels_in,
+                                          num_classes_out=num_classes_out,
+                                          is_use_valid_convols=is_use_valid_convols)
     else:
         message = 'Choice Network not found: \'%s\'. Networks available: \'%s\'' \
                   % (type_network, ', '.join(LIST_AVAIL_NETWORKS))

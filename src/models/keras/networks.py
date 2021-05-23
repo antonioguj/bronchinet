@@ -14,8 +14,8 @@ LIST_AVAIL_NETWORKS = ['UNet3DOriginal',
                        'UNet3DPlugin3levels',
                        'UNet3DPlugin5levels',
                        'UNet2DPlugin3levels',
-                       'UNet3DPlugin5levelsNoSkipConn',
-                       'UNet3DPlugin3levelsNoSkipConn',
+                       'UNet3DPlugin5levelsNoSkips',
+                       'UNet3DPlugin3levelsNoSkips',
                        ]
 
 
@@ -42,17 +42,16 @@ class UNet(UNetBase):
     def get_built_model(self) -> Model:
         return self._built_model
 
-    def _build_list_info_crop_where_merge(self) -> None:
-        indexes_output_where_pooling = [(i - 1) for i, el in enumerate(self._list_operation_names_layers_all)
+    def _build_info_crop_where_merge(self) -> None:
+        indexes_output_where_pooling = [(i - 1) for i, el in enumerate(self._names_operations_layers_all)
                                         if el == 'pooling']
-        indexes_output_where_merge = [i for i, el in enumerate(self._list_operation_names_layers_all)
+        indexes_output_where_merge = [i for i, el in enumerate(self._names_operations_layers_all)
                                       if el == 'upsample']
-        self._list_sizes_borders_crop_where_merge = []
+        self._sizes_borders_crop_where_merge = []
         for i_pool, i_merge in zip(indexes_output_where_pooling, indexes_output_where_merge[::-1]):
-            size_borders_crop_where_merge = self._get_size_borders_output_crop(
-                self._list_sizes_output_all_layers[i_pool],
-                self._list_sizes_output_all_layers[i_merge])
-            self._list_sizes_borders_crop_where_merge.append(size_borders_crop_where_merge)
+            size_borders_crop_where_merge = self._get_size_borders_output_crop(self._sizes_output_all_layers[i_pool],
+                                                                               self._sizes_output_all_layers[i_merge])
+            self._sizes_borders_crop_where_merge.append(size_borders_crop_where_merge)
 
 
 class UNet3DOriginal(UNet):
@@ -263,51 +262,50 @@ class UNet3DGeneral(UNet):
         type_padding_convols = 'valid' if self._is_use_valid_convols else 'same'
 
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
-        hidden_next = input_layer
-        list_skipconn_levels = []
+        hidden_nxt = input_layer
+        hidden_skips_levels = []
 
         # ENCODING LAYERS
         for i_lev in range(self._num_levels):
             for i_con in range(self._num_convols_levels_down[i_lev]):
-                hidden_next = Convolution3D(self._num_featmaps_levels[i_lev],
-                                            kernel_size=self._sizes_kernel_convols_levels_down[i_lev],
-                                            activation=self._type_activate_hidden,
-                                            padding=type_padding_convols)(hidden_next)
+                hidden_nxt = Convolution3D(self._num_featmaps_levels[i_lev],
+                                           kernel_size=self._sizes_kernel_convols_levels_down[i_lev],
+                                           activation=self._type_activate_hidden,
+                                           padding=type_padding_convols)(hidden_nxt)
 
                 if self._is_use_batchnormalize and self._is_use_batchnormalize_levels_down[i_lev]:
-                    hidden_next = BatchNormalization()(hidden_next)
+                    hidden_nxt = BatchNormalization()(hidden_nxt)
 
             if self._is_use_dropout and self._is_use_dropout_levels_down[i_lev]:
-                hidden_next = Dropout(self._dropout_rate)(hidden_next)
+                hidden_nxt = Dropout(self._dropout_rate)(hidden_nxt)
 
             if (i_lev != self._num_levels - 1):
-                list_skipconn_levels.append(hidden_next)
-                hidden_next = MaxPooling3D(pool_size=self._sizes_pooling_levels[i_lev])(hidden_next)
+                hidden_skips_levels.append(hidden_nxt)
+                hidden_nxt = MaxPooling3D(pool_size=self._sizes_pooling_levels[i_lev])(hidden_nxt)
 
         # DECODING LAYERS
         for i_lev in range(self._num_levels - 2, -1, -1):
-            hidden_next = UpSampling3D(size=self._sizes_upsample_levels[i_lev])(hidden_next)
+            hidden_nxt = UpSampling3D(size=self._sizes_upsample_levels[i_lev])(hidden_nxt)
 
-            skipconn_thislev = list_skipconn_levels[i_lev]
+            hidden_skip_this = hidden_skips_levels[i_lev]
             if self._is_use_valid_convols:
-                skipconn_thislev = Cropping3D(cropping=self._list_sizes_borders_crop_where_merge[i_lev])(
-                    skipconn_thislev)
-            hidden_next = concatenate([hidden_next, skipconn_thislev], axis=-1)
+                hidden_skip_this = Cropping3D(cropping=self._sizes_borders_crop_where_merge[i_lev])(hidden_skip_this)
+            hidden_nxt = concatenate([hidden_nxt, hidden_skip_this], axis=-1)
 
             for i_con in range(self._num_convols_levels_up[i_lev]):
-                hidden_next = Convolution3D(self._num_featmaps_levels[i_lev],
-                                            kernel_size=self._sizes_kernel_convols_levels_up[i_lev],
-                                            activation=self._type_activate_hidden,
-                                            padding=type_padding_convols)(hidden_next)
+                hidden_nxt = Convolution3D(self._num_featmaps_levels[i_lev],
+                                           kernel_size=self._sizes_kernel_convols_levels_up[i_lev],
+                                           activation=self._type_activate_hidden,
+                                           padding=type_padding_convols)(hidden_nxt)
 
                 if self._is_use_batchnormalize and self._is_use_batchnormalize_levels_up[i_lev]:
-                    hidden_next = BatchNormalization()(hidden_next)
+                    hidden_nxt = BatchNormalization()(hidden_nxt)
 
             if self._is_use_dropout and self._is_use_dropout_levels_up[i_lev]:
-                hidden_next = Dropout(self._dropout_rate)(hidden_next)
+                hidden_nxt = Dropout(self._dropout_rate)(hidden_nxt)
 
         output_layer = Convolution3D(self._num_classes_out, kernel_size=(1, 1, 1),
-                                     activation=self._type_activate_output)(hidden_next)
+                                     activation=self._type_activate_output)(hidden_nxt)
 
         output_model = Model(inputs=input_layer, outputs=output_layer)
         return output_model
@@ -351,81 +349,81 @@ class UNet3DPlugin(UNet):
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
 
         num_featmaps_lev1 = self._num_featmaps_in
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(input_layer)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        skipconn_lev1 = hidden_next
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(input_layer)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_skip_lev1 = hidden_nxt
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 2))(hidden_nxt)
 
         num_featmaps_lev2 = 2 * num_featmaps_lev1
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        skipconn_lev2 = hidden_next
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_skip_lev2 = hidden_nxt
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 2))(hidden_nxt)
 
         num_featmaps_lev3 = 2 * num_featmaps_lev2
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        skipconn_lev3 = hidden_next
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_skip_lev3 = hidden_nxt
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 2))(hidden_nxt)
 
         num_featmaps_lev4 = 2 * num_featmaps_lev3
-        hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding_deep_levels)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding_deep_levels)(hidden_next)
-        skipconn_lev4 = hidden_next
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding_deep_levels)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding_deep_levels)(hidden_nxt)
+        hidden_skip_lev4 = hidden_nxt
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 2))(hidden_nxt)
 
         num_featmaps_lev5 = 2 * num_featmaps_lev4
-        hidden_next = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding_deep_levels)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding_deep_levels)(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding_deep_levels)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding_deep_levels)(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 2))(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev4 = Cropping3D(cropping=self._list_sizes_borders_crop_where_merge[3])(skipconn_lev4)
-        hidden_next = concatenate([hidden_next, skipconn_lev4], axis=-1)
-        hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding_deep_levels)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding_deep_levels)(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
+            hidden_skip_lev4 = Cropping3D(cropping=self._sizes_borders_crop_where_merge[3])(hidden_skip_lev4)
+        hidden_nxt = concatenate([hidden_nxt, hidden_skip_lev4], axis=-1)
+        hidden_nxt = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding_deep_levels)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding_deep_levels)(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 2))(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev3 = Cropping3D(cropping=self._list_sizes_borders_crop_where_merge[2])(skipconn_lev3)
-        hidden_next = concatenate([hidden_next, skipconn_lev3], axis=-1)
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
+            hidden_skip_lev3 = Cropping3D(cropping=self._sizes_borders_crop_where_merge[2])(hidden_skip_lev3)
+        hidden_nxt = concatenate([hidden_nxt, hidden_skip_lev3], axis=-1)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 2))(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev2 = Cropping3D(cropping=self._list_sizes_borders_crop_where_merge[1])(skipconn_lev2)
-        hidden_next = concatenate([hidden_next, skipconn_lev2], axis=-1)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
+            hidden_skip_lev2 = Cropping3D(cropping=self._sizes_borders_crop_where_merge[1])(hidden_skip_lev2)
+        hidden_nxt = concatenate([hidden_nxt, hidden_skip_lev2], axis=-1)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 2))(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev1 = Cropping3D(cropping=self._list_sizes_borders_crop_where_merge[0])(skipconn_lev1)
-        hidden_next = concatenate([hidden_next, skipconn_lev1], axis=-1)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
+            hidden_skip_lev1 = Cropping3D(cropping=self._sizes_borders_crop_where_merge[0])(hidden_skip_lev1)
+        hidden_nxt = concatenate([hidden_nxt, hidden_skip_lev1], axis=-1)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
 
         output_layer = Convolution3D(self._num_classes_out, kernel_size=(1, 1, 1),
-                                     activation=self._type_activate_output)(hidden_next)
+                                     activation=self._type_activate_output)(hidden_nxt)
 
         output_model = Model(inputs=input_layer, outputs=output_layer)
         return output_model
@@ -456,81 +454,81 @@ class UNet3DPlugin5levels(UNet):
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
 
         num_featmaps_lev1 = self._num_featmaps_in
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(input_layer)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        skipconn_lev1 = hidden_next
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(input_layer)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_skip_lev1 = hidden_nxt
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 2))(hidden_nxt)
 
         num_featmaps_lev2 = 2 * num_featmaps_lev1
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        skipconn_lev2 = hidden_next
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_skip_lev2 = hidden_nxt
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 2))(hidden_nxt)
 
         num_featmaps_lev3 = 2 * num_featmaps_lev2
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        skipconn_lev3 = hidden_next
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 1))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_skip_lev3 = hidden_nxt
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 1))(hidden_nxt)
 
         num_featmaps_lev4 = 2 * num_featmaps_lev3
-        hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
-        skipconn_lev4 = hidden_next
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 1))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
+                                   padding='same')(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
+                                   padding='same')(hidden_nxt)
+        hidden_skip_lev4 = hidden_nxt
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 1))(hidden_nxt)
 
         num_featmaps_lev5 = 2 * num_featmaps_lev4
-        hidden_next = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 1))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
+                                   padding='same')(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
+                                   padding='same')(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 1))(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev4 = Cropping3D(cropping=self._list_sizes_borders_crop_where_merge[3])(skipconn_lev4)
-        hidden_next = concatenate([hidden_next, skipconn_lev4], axis=-1)
-        hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 1))(hidden_next)
+            hidden_skip_lev4 = Cropping3D(cropping=self._sizes_borders_crop_where_merge[3])(hidden_skip_lev4)
+        hidden_nxt = concatenate([hidden_nxt, hidden_skip_lev4], axis=-1)
+        hidden_nxt = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
+                                   padding='same')(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
+                                   padding='same')(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 1))(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev3 = Cropping3D(cropping=self._list_sizes_borders_crop_where_merge[2])(skipconn_lev3)
-        hidden_next = concatenate([hidden_next, skipconn_lev3], axis=-1)
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
+            hidden_skip_lev3 = Cropping3D(cropping=self._sizes_borders_crop_where_merge[2])(hidden_skip_lev3)
+        hidden_nxt = concatenate([hidden_nxt, hidden_skip_lev3], axis=-1)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 2))(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev2 = Cropping3D(cropping=self._list_sizes_borders_crop_where_merge[1])(skipconn_lev2)
-        hidden_next = concatenate([hidden_next, skipconn_lev2], axis=-1)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
+            hidden_skip_lev2 = Cropping3D(cropping=self._sizes_borders_crop_where_merge[1])(hidden_skip_lev2)
+        hidden_nxt = concatenate([hidden_nxt, hidden_skip_lev2], axis=-1)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 2))(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev1 = Cropping3D(cropping=self._list_sizes_borders_crop_where_merge[0])(skipconn_lev1)
-        hidden_next = concatenate([hidden_next, skipconn_lev1], axis=-1)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
+            hidden_skip_lev1 = Cropping3D(cropping=self._sizes_borders_crop_where_merge[0])(hidden_skip_lev1)
+        hidden_nxt = concatenate([hidden_nxt, hidden_skip_lev1], axis=-1)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
 
         output_layer = Convolution3D(self._num_classes_out, kernel_size=(1, 1, 1),
-                                     activation=self._type_activate_output)(hidden_next)
+                                     activation=self._type_activate_output)(hidden_nxt)
 
         output_model = Model(inputs=input_layer, outputs=output_layer)
         return output_model
@@ -559,47 +557,47 @@ class UNet3DPlugin3levels(UNet):
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
 
         num_featmaps_lev1 = self._num_featmaps_in
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(input_layer)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        skipconn_lev1 = hidden_next
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(input_layer)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_skip_lev1 = hidden_nxt
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 2))(hidden_nxt)
 
         num_featmaps_lev2 = 2 * num_featmaps_lev1
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        skipconn_lev2 = hidden_next
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_skip_lev2 = hidden_nxt
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 2))(hidden_nxt)
 
         num_featmaps_lev3 = 2 * num_featmaps_lev2
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 2))(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev2 = Cropping3D(cropping=self._list_sizes_borders_crop_where_merge[1])(skipconn_lev2)
-        hidden_next = concatenate([hidden_next, skipconn_lev2], axis=-1)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
+            hidden_skip_lev2 = Cropping3D(cropping=self._sizes_borders_crop_where_merge[1])(hidden_skip_lev2)
+        hidden_nxt = concatenate([hidden_nxt, hidden_skip_lev2], axis=-1)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 2))(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev1 = Cropping3D(cropping=self._list_sizes_borders_crop_where_merge[0])(skipconn_lev1)
-        hidden_next = concatenate([hidden_next, skipconn_lev1], axis=-1)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
+            hidden_skip_lev1 = Cropping3D(cropping=self._sizes_borders_crop_where_merge[0])(hidden_skip_lev1)
+        hidden_nxt = concatenate([hidden_nxt, hidden_skip_lev1], axis=-1)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
 
         output_layer = Convolution3D(self._num_classes_out, kernel_size=(1, 1, 1),
-                                     activation=self._type_activate_output)(hidden_next)
+                                     activation=self._type_activate_output)(hidden_nxt)
 
         output_model = Model(inputs=input_layer, outputs=output_layer)
         return output_model
@@ -628,53 +626,53 @@ class UNet2DPlugin3levels(UNet):
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
 
         num_featmaps_lev1 = self._num_featmaps_in
-        hidden_next = Convolution2D(num_featmaps_lev1, kernel_size=(3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(input_layer)
-        hidden_next = Convolution2D(num_featmaps_lev1, kernel_size=(3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        skipconn_lev1 = hidden_next
-        hidden_next = MaxPooling2D(pool_size=(2, 2))(hidden_next)
+        hidden_nxt = Convolution2D(num_featmaps_lev1, kernel_size=(3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(input_layer)
+        hidden_nxt = Convolution2D(num_featmaps_lev1, kernel_size=(3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_skip_lev1 = hidden_nxt
+        hidden_nxt = MaxPooling2D(pool_size=(2, 2))(hidden_nxt)
 
         num_featmaps_lev2 = 2 * num_featmaps_lev1
-        hidden_next = Convolution2D(num_featmaps_lev2, kernel_size=(3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution2D(num_featmaps_lev2, kernel_size=(3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        skipconn_lev2 = hidden_next
-        hidden_next = MaxPooling2D(pool_size=(2, 2))(hidden_next)
+        hidden_nxt = Convolution2D(num_featmaps_lev2, kernel_size=(3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution2D(num_featmaps_lev2, kernel_size=(3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_skip_lev2 = hidden_nxt
+        hidden_nxt = MaxPooling2D(pool_size=(2, 2))(hidden_nxt)
 
         num_featmaps_lev3 = 2 * num_featmaps_lev2
-        hidden_next = Convolution2D(num_featmaps_lev3, kernel_size=(3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution2D(num_featmaps_lev3, kernel_size=(3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = UpSampling2D(size=(2, 2))(hidden_next)
+        hidden_nxt = Convolution2D(num_featmaps_lev3, kernel_size=(3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution2D(num_featmaps_lev3, kernel_size=(3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = UpSampling2D(size=(2, 2))(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev2 = Cropping2D(cropping=self._list_sizes_borders_crop_where_merge[1])(skipconn_lev2)
-        hidden_next = concatenate([hidden_next, skipconn_lev2], axis=-1)
-        hidden_next = Convolution2D(num_featmaps_lev2, kernel_size=(3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution2D(num_featmaps_lev2, kernel_size=(3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = UpSampling2D(size=(2, 2))(hidden_next)
+            hidden_skip_lev2 = Cropping2D(cropping=self._sizes_borders_crop_where_merge[1])(hidden_skip_lev2)
+        hidden_nxt = concatenate([hidden_nxt, hidden_skip_lev2], axis=-1)
+        hidden_nxt = Convolution2D(num_featmaps_lev2, kernel_size=(3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution2D(num_featmaps_lev2, kernel_size=(3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = UpSampling2D(size=(2, 2))(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev1 = Cropping2D(cropping=self._list_sizes_borders_crop_where_merge[0])(skipconn_lev1)
-        hidden_next = concatenate([hidden_next, skipconn_lev1], axis=-1)
-        hidden_next = Convolution2D(num_featmaps_lev1, kernel_size=(3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution2D(num_featmaps_lev1, kernel_size=(3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
+            hidden_skip_lev1 = Cropping2D(cropping=self._sizes_borders_crop_where_merge[0])(hidden_skip_lev1)
+        hidden_nxt = concatenate([hidden_nxt, hidden_skip_lev1], axis=-1)
+        hidden_nxt = Convolution2D(num_featmaps_lev1, kernel_size=(3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution2D(num_featmaps_lev1, kernel_size=(3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
 
         output_layer = Convolution2D(self._num_classes_out, kernel_size=(1, 1),
-                                     activation=self._type_activate_output)(hidden_next)
+                                     activation=self._type_activate_output)(hidden_nxt)
 
         output_model = Model(inputs=input_layer, outputs=output_layer)
         return output_model
 
 
-class UNet3DPlugin5levelsNoSkipConn(UNet):
+class UNet3DPlugin5levelsNoSkips(UNet):
 
     def __init__(self,
                  size_image_in: Tuple[int, int, int],
@@ -684,9 +682,9 @@ class UNet3DPlugin5levelsNoSkipConn(UNet):
                  num_classes_out: int = 1,
                  is_use_valid_convols: bool = False
                  ) -> None:
-        super(UNet3DPlugin5levelsNoSkipConn, self).__init__(size_image_in, num_levels, num_featmaps_in,
-                                                            num_channels_in, num_classes_out,
-                                                            is_use_valid_convols=is_use_valid_convols)
+        super(UNet3DPlugin5levelsNoSkips, self).__init__(size_image_in, num_levels, num_featmaps_in,
+                                                         num_channels_in, num_classes_out,
+                                                         is_use_valid_convols=is_use_valid_convols)
         self._type_activate_hidden = 'relu'
         self._type_activate_output = 'linear'
 
@@ -698,71 +696,71 @@ class UNet3DPlugin5levelsNoSkipConn(UNet):
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
 
         num_featmaps_lev1 = self._num_featmaps_in
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(input_layer)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(input_layer)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 2))(hidden_nxt)
 
         num_featmaps_lev2 = 2 * num_featmaps_lev1
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 2))(hidden_nxt)
 
         num_featmaps_lev3 = 2 * num_featmaps_lev2
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 1))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 1))(hidden_nxt)
 
         num_featmaps_lev4 = 2 * num_featmaps_lev3
-        hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 1))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
+                                   padding='same')(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
+                                   padding='same')(hidden_nxt)
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 1))(hidden_nxt)
 
         num_featmaps_lev5 = 2 * num_featmaps_lev4
-        hidden_next = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 1))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
+                                   padding='same')(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev5, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
+                                   padding='same')(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 1))(hidden_nxt)
 
-        hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
-                                    padding='same')(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 1))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
+                                   padding='same')(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev4, kernel_size=(3, 3, 1), activation=self._type_activate_hidden,
+                                   padding='same')(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 1))(hidden_nxt)
 
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 2))(hidden_nxt)
 
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 2))(hidden_nxt)
 
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
 
         output_layer = Convolution3D(self._num_classes_out, kernel_size=(1, 1, 1),
-                                     activation=self._type_activate_output)(hidden_next)
+                                     activation=self._type_activate_output)(hidden_nxt)
 
         output_model = Model(inputs=input_layer, outputs=output_layer)
         return output_model
 
 
-class UNet3DPlugin3levelsNoSkipConn(UNet):
+class UNet3DPlugin3levelsNoSkips(UNet):
 
     def __init__(self,
                  size_image_in: Tuple[int, int, int],
@@ -772,9 +770,9 @@ class UNet3DPlugin3levelsNoSkipConn(UNet):
                  num_classes_out: int = 1,
                  is_use_valid_convols: bool = False
                  ) -> None:
-        super(UNet3DPlugin3levelsNoSkipConn, self).__init__(size_image_in, num_levels, num_featmaps_in,
-                                                            num_channels_in, num_classes_out,
-                                                            is_use_valid_convols=is_use_valid_convols)
+        super(UNet3DPlugin3levelsNoSkips, self).__init__(size_image_in, num_levels, num_featmaps_in,
+                                                         num_channels_in, num_classes_out,
+                                                         is_use_valid_convols=is_use_valid_convols)
         self._type_activate_hidden = 'relu'
         self._type_activate_output = 'linear'
 
@@ -786,39 +784,39 @@ class UNet3DPlugin3levelsNoSkipConn(UNet):
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
 
         num_featmaps_lev1 = self._num_featmaps_in
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(input_layer)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(input_layer)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 2))(hidden_nxt)
 
         num_featmaps_lev2 = 2 * num_featmaps_lev1
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = MaxPooling3D(pool_size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = MaxPooling3D(pool_size=(2, 2, 2))(hidden_nxt)
 
         num_featmaps_lev3 = 2 * num_featmaps_lev2
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev3, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 2))(hidden_nxt)
 
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = UpSampling3D(size=(2, 2, 2))(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev2, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = UpSampling3D(size=(2, 2, 2))(hidden_nxt)
 
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
-        hidden_next = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
-                                    padding=type_padding)(hidden_next)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
+        hidden_nxt = Convolution3D(num_featmaps_lev1, kernel_size=(3, 3, 3), activation=self._type_activate_hidden,
+                                   padding=type_padding)(hidden_nxt)
 
         output_layer = Convolution3D(self._num_classes_out, kernel_size=(1, 1, 1),
-                                     activation=self._type_activate_output)(hidden_next)
+                                     activation=self._type_activate_output)(hidden_nxt)
 
         output_model = Model(inputs=input_layer, outputs=output_layer)
         return output_model

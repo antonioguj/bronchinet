@@ -1,7 +1,7 @@
 MRI_enhance (Derived from BronchiNet)
 ================================
 
-Enhancement method of knee MRI images using deep Convolutional Neural Networks.
+Enhancement method of knee MRI images using deep Convolutional Neural Networks
 
 Contact: Antonio Garcia-Uceda Juarez (antonio.garciauceda89@gmail.com)
 
@@ -20,39 +20,39 @@ Project Organization
 ------------
 
     ├── LICENSE
-    ├── Makefile           	<- Makefile with commands like `make data` or `make train`
-    ├── README.md          	<- The top-level README for developers using this project.
+    ├── Makefile                <- Makefile with commands like `make data` or `make train`
+    ├── README.md               <- The top-level README for developers using this project
     │
-    ├── docs               	<- A default Sphinx project; see sphinx-doc.org for details
+    ├── docs                    <- A default Sphinx project; see sphinx-doc.org for details
     │
-    ├── models             	<- Trained and serialized models, model predictions, or model summaries
+    ├── models                  <- Trained and serialized models, model predictions, or model summaries
     │
-    ├── requirements.txt   	<- The requirements file for reproducing the analysis environment, e.g.
+    ├── requirements.txt        <- The requirements file for reproducing the analysis environment, e.g.
     │                         	   generated with `pip freeze > requirements.txt`
     │
-    ├── setup.py           	<- makes project pip installable (pip install -e .) so src can be imported
-    ├── src         	   	<- Source code for use in this project.
+    ├── setup.py                <- makes project pip installable (pip install -e .) so src can be imported
+    ├── src                     <- Source code for use in this project.
     │   │
-    │   ├── common         	<- General files and utilities
-    │   ├── dataloaders    	<- Modules to load data and batch generators
-    │   ├── imageoperators 	<- Various image operations
-    │   ├── models 	   	<- All modules to define networks, metrics and optimizers
-    │   ├── plotting       	<- Various plotting modules
-    │   ├── postprocessing 	<- Modules to postprocess the output of networks
-    │   ├── preprocessing  	<- Modules to preprocess the images to feed to networks
+    │   ├── common              <- General files and utilities
+    │   ├── dataloaders         <- Modules to load data and batch generators
+    │   ├── imageoperators      <- Various image operations
+    │   ├── models              <- All modules to define networks, metrics and optimizers
+    │   ├── plotting            <- Various plotting modules
+    │   ├── postprocessing      <- Modules to postprocess the output of networks
+    │   ├── preprocessing       <- Modules to preprocess the images to feed to networks
     │   │
-    │   ├── scripts_evalresults	<- Scripts to evaluate results from models
-    │   ├── scripts_experiments	<- Scripts to train and test models
-    │   ├── scripts_launch 	<- Scripts with pipelines and PBS scripts to run in clusters
-    │   ├── scripts_preparedata	<- Scripts to prepare data to train models
-    │   └── scripts_util	<- Scripts for various utilities
+    │   ├── scripts_evalresults <- Scripts to evaluate results from models
+    │   ├── scripts_experiments <- Scripts to train and test models
+    │   ├── scripts_launch      <- Scripts with pipelines and PBS scripts to run in clusters
+    │   ├── scripts_preparedata <- Scripts to prepare data to train models
+    │   └── scripts_util        <- Scripts for various utilities
     │
-    ├── tests			<- Tests to validate the method implementation (to be run locally)
-    └── tox.ini            	<- tox file with settings for running tox; see tox.readthedocs.io
+    ├── tests                   <- Tests to validate the method implementation (to be run locally)
+    └── tox.ini                 <- tox file with settings for running tox; see tox.readthedocs.io
 
 ------------
 
-<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
+<p><small>Project structure based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
 
 Requirements
 ------------
@@ -67,57 +67,95 @@ Requirements
 - source <path_new_pyvenv>/bin/activate
 - pip install -r requirements.txt
 
-Instructions
+# Instructions
 ------------
 
-The user needs only to run the scripts provided: the python files with a 'main()' function. Each script performs a given operation, either to i) prepare data, ii) run experiments, or iii) evaluate results. Typically, the scripts take as arguments i) the path with the input files, ii) the path to store the output files, and iii) a series of optional settings that control the performed operation. All arguments are parsed to the script from the command line.
+## Prepare Data Directory
 
-The typical way to launch the scripts is:
+Before running the scripts, the user needs to prepare the data directory with the following structure:
 
-- python <path_script> <path_input_files> <path_output_files> --<option_arg_1>=<value> --<option_arg_2>=<value> ...
+    ├── Images                  <- Store CT scans (in dicom or nifti format)
+    ├── Airways                 <- Store reference airway segmentations
+    ├── Lungs (optional)        <- Store lung segmentations 
+    │                              (used in options i) mask ground-truth to ROI, and ii) crop images)
+    └── CoarseAirways (optional)<- Store segmentation of trachea and main bronchi
+                                   (used in option to attach trachea and main bronchi to predictions)
 
-The names for the optional input arguments of the given script can be displayed by:
+## Prepare Working Directory
 
-- python <path_script> --help
+The user needs to prepare the working directory in the desired location, as follows:
 
-For the optional arguments that are not given in the command line, they take the default value given in the source file: "src/common/constant.py"
+1. mkdir <path_working_dir> && cd <path_working_dir>
+2. ln -s <path_data_dir> BaseData
+3. ln -s <path_this_repo> Code
 
-Create working directory
-------------
+## Run the Scripts
 
-- mkdir <working_dir> && cd <working_dir>
-- ln -s <path_data_stored> BaseData
-- ln -s <path_thiscode_stored> Code
+The user needs only to run the scripts in the directories: "scripts_evalresults", "scripts_experiments", "scripts_launch", "scripts_preparedata", "scripts_util". Each script performs a separate and well-defined operation, either to i) prepare data, ii) run experiments, or iii) evaluate results.
 
-[IF NEEDED] (include in "~/.bashrc" file: export PYTHONPATH=<path_thiscode_stored>/src/")
+The scripts are called in the command line as follows:
 
-Prepare data
-------------
+- python <path_script> <mandat_arg1> <mandat_arg2> ... --<option_arg1>=<value> --<option_arg2>=<value> ...
 
-1) [IF NEEDED] Preprocess data: apply various operations to input images / masks: rescaling, binarise masks
-- python ./Code/scripts_util/apply_operation_images.py <path_input_files> <path_output_files> --type=[various option]
+  - <mandat_argN>: obligatory arguments (if any), typically for the paths of directories of input / output files
+    
+  - <option_argN>: optional arguments, typical for each script. The list of optional arguments for an script can be displayed by:
 
-2) Prepare data:
-- python ./Code/scripts_preparedata/prepare_data.py --datadir=[path_dataset]
+    - python <path_script> --help
 
-Train models
-------------
+  - For optional arguments not indicated in the command line, they take the default values in the source file: "<path_thiscode>/src/common/constant.py"
 
-1) Distribute data in training / validation / testing:
-- python ./Code/scripts_experiments/distribute_data.py --basedir=[path_workdir]
+(IMPORTANT): set the variable PYTHONPATH with the path of this code as follows:
 
-2) Train models:
-- python ./Code/scripts_experiments/train_model.py --basedir=[path_workdir] --modelsdir=<path_output_models> [IF RESTART: --is_restart=True --in_config_file=<path_file_config>]
+- export PYTHONPATH=<path_this_repo>/src/
 
-Test models
-------------
+## Important Scripts 
 
-1) Compute predictions form trained model:
-- python ./Code/scripts_experiments/predict_model.py <path_trained_model> <path_output_temp_predictions> --basedir=[path_workdir] --in_config_file=<path_file_config>
+### Steps to Prepare Data
 
-2) Compute full-size probability maps from predictions:
-- python ./Code/scripts_evalresults/postprocess_predictions.py <path_output_temp_predictions> <path_output_predictions> --basedir=[path_workdir]
+1\. From the data directory above, create the working data used for training / testing:
+
+- python <path_this_repo>/src/scripts_preparedata/prepare_data.py --datadir=<path_data_dir>
+
+Several preprocessing operations can be applied in this script:
+
+1. mask ground-truth to ROI: knees
+
+### Steps to Train Models
+
+1\. Distribute the working data in training / validation / testing:
+
+- python <path_this_repo>/src/scripts_experiments/distribute_data.py --basedir=<path_work_dir>
+
+2\. Launch a training experiment:
+
+- python <path_this_repo>/src/scripts_experiments/train_model.py --basedir=<path_work_dir> --modelsdir=<path_output_models> 
+
+OR restart a previous training experiment:
+
+- python <path_this_repo>/src/scripts_experiments/train_model.py --basedir=<path_work_dir> --modelsdir=<path_stored_models> --is_restart=True --in_config_file=<path_config_file>
+
+### Steps to Test Models
+
+1\. Compute predictions from a trained model:
+
+- python <path_this_repo>/src/scripts_experiments/predict_model.py <path_trained_model> <path_output_temp_predictions> --basedir=<path_work_dir> --in_config_file=<path_config_file>)
+
+The output predictions have the format and dimensions as the working data used for testing, which is typically different from that of the original data (if using options above for preprocessing in the script "prepare_data.py").
+
+2\. Compute predictions in format and dimensions of original data:
+
+- python <path_this_repo>/src/scripts_evalresults/postprocess_predictions.py <path_output_temp_predictions> <path_output_predictions> --basedir=<path_work_dir>
 - rm -r <path_output_temp_predictions>
 
-3) Compute results metrics / accuracy:
-- python ./Code/scripts_evalresults/compute_result_metrics.py <path_output_predictions> --basedir=[path_workdir]
+3\. Compute the desired metrics from the results:
+
+- python <path_this_repo>/src/scripts_evalresults/compute_result_metrics.py <path_output_predictions> --basedir=<path_work_dir>
+
+### Other Scripts
+
+The user can apply various operations to input images / masks, such as i) binarise masks, ii) mask images to a mask, iii) rescale images... as follows:
+
+- python <path_this_repo>/src/scripts_util/apply_operation_images.py <path_input_files> <path_output_files> --type=<various_options>
+
+Some operations require extra input arguments. To visualize the list of operations available and the required input arguments, include "--help" after the script.

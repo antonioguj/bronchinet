@@ -145,7 +145,7 @@ def main(args):
         if args.is_restart_only_weights:
             if args.is_restart_weights_diffmodel:
                 print("Load saved weights from a different model to restart model...")
-                model_trainer.load_model_weights_diff_model(model_restart_file, type_load_model='UNet_noSkipConns')
+                model_trainer.load_model_weights_diff_model(model_restart_file, type_load_model='UNet_noSkips')
             else:
                 print("Load only saved weights to restart model...")
                 model_trainer.load_model_only_weights(model_restart_file)
@@ -334,7 +334,6 @@ if __name__ == "__main__":
             catch_error_exception(message)
         else:
             input_args_file = read_dictionary_configparams(args.in_config_file)
-
             print("Set up experiments with parameters from file: \'%s\'" % (args.in_config_file))
 
             # args.basedir = str(input_args_file['basedir'])

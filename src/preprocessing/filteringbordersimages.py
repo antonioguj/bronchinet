@@ -27,9 +27,9 @@ class FilteringBordersImages(ImageGenerator):
         self._is_filter_multiple_windows = is_filter_multiple_windows
 
         if self._ndims == 2:
-            self._func_multiply_matrixes_channels = self._multiply_matrixes_with_channels_2d
+            self._func_multiply_matrices_channels = self._multiply_matrices_with_channels_2d
         elif self._ndims == 3:
-            self._func_multiply_matrixes_channels = self._multiply_matrixes_with_channels_3d
+            self._func_multiply_matrices_channels = self._multiply_matrices_with_channels_3d
         else:
             message = 'FilteringBorderEffectsImages:__init__: wrong \'ndims\': %s' % (self._ndims)
             catch_error_exception(message)
@@ -58,7 +58,7 @@ class FilteringBordersImages(ImageGenerator):
         if ImagesUtil.is_without_channels(self._size_image, in_image.shape):
             return np.multiply(in_image, self._factor_filtering)
         else:
-            return self._func_multiply_matrixes_channels(in_image, self._factor_filtering)
+            return self._func_multiply_matrices_channels(in_image, self._factor_filtering)
 
     def _fill_flat_interior_boundbox(self, inner_boundbox: Union[BoundBox3DType, BoundBox2DType],
                                      value_fill: float) -> None:
@@ -105,11 +105,11 @@ class FilteringBordersImages(ImageGenerator):
             return np.zeros(coord_end - coord_beg, dtype=np.float32)
 
     @staticmethod
-    def _multiply_matrixes_with_channels_2d(matrix_1_channels: np.ndarray, matrix_2: np.ndarray) -> np.ndarray:
+    def _multiply_matrices_with_channels_2d(matrix_1_channels: np.ndarray, matrix_2: np.ndarray) -> np.ndarray:
         return np.einsum('ijk,ij->ijk', matrix_1_channels, matrix_2)
 
     @staticmethod
-    def _multiply_matrixes_with_channels_3d(matrix_1_channels: np.ndarray, matrix_2: np.ndarray) -> np.ndarray:
+    def _multiply_matrices_with_channels_3d(matrix_1_channels: np.ndarray, matrix_2: np.ndarray) -> np.ndarray:
         return np.einsum('ijkl,ijk->ijkl', matrix_1_channels, matrix_2)
 
     @staticmethod

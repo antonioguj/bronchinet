@@ -39,17 +39,13 @@ class UNet(UNetBase, nn.Module):
         self._shape_input = ImagesUtil.get_shape_channels_first(self._shape_input)
         self._shape_output = ImagesUtil.get_shape_channels_first(self._shape_output)
 
-    def preprocess(self, *args, **kwargs) -> None:
-        pass
-
     def get_network_input_args(self) -> Dict[str, Any]:
         raise NotImplementedError
 
-    def _build_list_info_crop_where_merge(self) -> None:
-        indexes_output_where_merge = \
-            [i for i, elem in enumerate(self._list_operation_names_layers_all) if elem == 'upsample']
-        self._list_sizes_crop_where_merge = \
-            [self._list_sizes_output_all_layers[ind] for ind in indexes_output_where_merge][::-1]
+    def _build_info_crop_where_merge(self) -> None:
+        indexes_output_where_merge = [i for i, elem in enumerate(self._names_operations_layers_all)
+                                      if elem == 'upsample']
+        self._sizes_crop_where_merge = [self._sizes_output_all_layers[ind] for ind in indexes_output_where_merge][::-1]
 
     def _crop_image_2d(self, input: torch.Tensor, size_crop: Tuple[int, int]) -> torch.Tensor:
         size_input_image = input.shape[-2:]
@@ -136,50 +132,50 @@ class UNet3DOriginal(UNet):
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
 
-        hidden_next = self._convolution_down_lev1_1(input)
-        hidden_next = self._convolution_down_lev1_2(hidden_next)
-        skipconn_lev1 = hidden_next
-        hidden_next = self._pooling_down_lev1(hidden_next)
+        hidden_nxt = self._convolution_down_lev1_1(input)
+        hidden_nxt = self._convolution_down_lev1_2(hidden_nxt)
+        hidden_skip_lev1 = hidden_nxt
+        hidden_nxt = self._pooling_down_lev1(hidden_nxt)
 
-        hidden_next = self._convolution_down_lev2_1(hidden_next)
-        hidden_next = self._convolution_down_lev2_2(hidden_next)
-        skipconn_lev2 = hidden_next
-        hidden_next = self._pooling_down_lev2(hidden_next)
+        hidden_nxt = self._convolution_down_lev2_1(hidden_nxt)
+        hidden_nxt = self._convolution_down_lev2_2(hidden_nxt)
+        hidden_skip_lev2 = hidden_nxt
+        hidden_nxt = self._pooling_down_lev2(hidden_nxt)
 
-        hidden_next = self._convolution_down_lev3_1(hidden_next)
-        hidden_next = self._convolution_down_lev3_2(hidden_next)
-        skipconn_lev3 = hidden_next
-        hidden_next = self._pooling_down_lev3(hidden_next)
+        hidden_nxt = self._convolution_down_lev3_1(hidden_nxt)
+        hidden_nxt = self._convolution_down_lev3_2(hidden_nxt)
+        hidden_skip_lev3 = hidden_nxt
+        hidden_nxt = self._pooling_down_lev3(hidden_nxt)
 
-        hidden_next = self._convolution_down_lev4_1(hidden_next)
-        hidden_next = self._convolution_down_lev4_2(hidden_next)
-        skipconn_lev4 = hidden_next
-        hidden_next = self._pooling_down_lev4(hidden_next)
+        hidden_nxt = self._convolution_down_lev4_1(hidden_nxt)
+        hidden_nxt = self._convolution_down_lev4_2(hidden_nxt)
+        hidden_skip_lev4 = hidden_nxt
+        hidden_nxt = self._pooling_down_lev4(hidden_nxt)
 
-        hidden_next = self._convolution_down_lev5_1(hidden_next)
-        hidden_next = self._convolution_down_lev5_2(hidden_next)
-        hidden_next = self._upsample_up_lev5(hidden_next)
+        hidden_nxt = self._convolution_down_lev5_1(hidden_nxt)
+        hidden_nxt = self._convolution_down_lev5_2(hidden_nxt)
+        hidden_nxt = self._upsample_up_lev5(hidden_nxt)
 
-        hidden_next = torch.cat([hidden_next, skipconn_lev4], dim=1)
-        hidden_next = self._convolution_up_lev4_1(hidden_next)
-        hidden_next = self._convolution_up_lev4_2(hidden_next)
-        hidden_next = self._upsample_up_lev4(hidden_next)
+        hidden_nxt = torch.cat([hidden_nxt, hidden_skip_lev4], dim=1)
+        hidden_nxt = self._convolution_up_lev4_1(hidden_nxt)
+        hidden_nxt = self._convolution_up_lev4_2(hidden_nxt)
+        hidden_nxt = self._upsample_up_lev4(hidden_nxt)
 
-        hidden_next = torch.cat([hidden_next, skipconn_lev3], dim=1)
-        hidden_next = self._convolution_up_lev3_1(hidden_next)
-        hidden_next = self._convolution_up_lev3_2(hidden_next)
-        hidden_next = self._upsample_up_lev3(hidden_next)
+        hidden_nxt = torch.cat([hidden_nxt, hidden_skip_lev3], dim=1)
+        hidden_nxt = self._convolution_up_lev3_1(hidden_nxt)
+        hidden_nxt = self._convolution_up_lev3_2(hidden_nxt)
+        hidden_nxt = self._upsample_up_lev3(hidden_nxt)
 
-        hidden_next = torch.cat([hidden_next, skipconn_lev2], dim=1)
-        hidden_next = self._convolution_up_lev2_1(hidden_next)
-        hidden_next = self._convolution_up_lev2_2(hidden_next)
-        hidden_next = self._upsample_up_lev2(hidden_next)
+        hidden_nxt = torch.cat([hidden_nxt, hidden_skip_lev2], dim=1)
+        hidden_nxt = self._convolution_up_lev2_1(hidden_nxt)
+        hidden_nxt = self._convolution_up_lev2_2(hidden_nxt)
+        hidden_nxt = self._upsample_up_lev2(hidden_nxt)
 
-        hidden_next = torch.cat([hidden_next, skipconn_lev1], dim=1)
-        hidden_next = self._convolution_up_lev1_1(hidden_next)
-        hidden_next = self._convolution_up_lev1_2(hidden_next)
+        hidden_nxt = torch.cat([hidden_nxt, hidden_skip_lev1], dim=1)
+        hidden_nxt = self._convolution_up_lev1_1(hidden_nxt)
+        hidden_nxt = self._convolution_up_lev1_2(hidden_nxt)
 
-        output = self._activation_last(self._classification_last(hidden_next))
+        output = self._activation_last(self._classification_last(hidden_nxt))
         return output
 
 
@@ -387,43 +383,43 @@ class UNet3DGeneral(UNet):
             catch_error_exception(message)
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        hidden_next = input
-        list_skipconn_levels = []
+        hidden_nxt = input
+        hidden_skips_levels = []
 
         # ENCODING LAYERS
         for i_lev in range(self._num_levels):
             for i_con in range(self._num_convols_levels_down[i_lev]):
-                hidden_next = self._activation_hidden(self._convolutions_levels_down[i_lev][i_con](hidden_next))
+                hidden_nxt = self._activation_hidden(self._convolutions_levels_down[i_lev][i_con](hidden_nxt))
 
                 if self._is_use_batchnormalize and self._is_use_batchnormalize_levels_down[i_lev]:
-                    hidden_next = self._batchnormalize_levels_down[i_lev][i_con](hidden_next)
+                    hidden_nxt = self._batchnormalize_levels_down[i_lev][i_con](hidden_nxt)
 
             if self._is_use_dropout and self._is_use_dropout_levels_down[i_lev]:
-                hidden_next = self._dropout_all_levels(hidden_next)
+                hidden_nxt = self._dropout_all_levels(hidden_nxt)
 
             if (i_lev != self._num_levels - 1):
-                list_skipconn_levels.append(hidden_next)
-                hidden_next = self._poolings_levels_down[i_lev](hidden_next)
+                hidden_skips_levels.append(hidden_nxt)
+                hidden_nxt = self._poolings_levels_down[i_lev](hidden_nxt)
 
         # DECODING LAYERS
         for i_lev in range(self._num_levels - 2, -1, -1):
-            hidden_next = self._upsamples_levels_up[i_lev](hidden_next)
+            hidden_nxt = self._upsamples_levels_up[i_lev](hidden_nxt)
 
-            skipconn_thislev = list_skipconn_levels[i_lev]
+            hidden_skip_this = hidden_skips_levels[i_lev]
             if self._is_use_valid_convols:
-                skipconn_thislev = self._crop_image_3d(skipconn_thislev, self._list_sizes_crop_where_merge[3])
-            hidden_next = torch.cat([hidden_next, skipconn_thislev], dim=1)
+                hidden_skip_this = self._crop_image_3d(hidden_skip_this, self._sizes_crop_where_merge[3])
+            hidden_nxt = torch.cat([hidden_nxt, hidden_skip_this], dim=1)
 
             for i_con in range(self._num_convols_levels_up[i_lev]):
-                hidden_next = self._activation_hidden(self._convolutions_levels_up[i_lev][i_con](hidden_next))
+                hidden_nxt = self._activation_hidden(self._convolutions_levels_up[i_lev][i_con](hidden_nxt))
 
                 if self._is_use_batchnormalize and self._is_use_batchnormalize_levels_up[i_lev]:
-                    hidden_next = self._batchnormalize_levels_up[i_lev][i_con](hidden_next)
+                    hidden_nxt = self._batchnormalize_levels_up[i_lev][i_con](hidden_nxt)
 
             if self._is_use_dropout and self._is_use_dropout_levels_up[i_lev]:
-                hidden_next = self._dropout_all_levels(hidden_next)
+                hidden_nxt = self._dropout_all_levels(hidden_nxt)
 
-        output = self._activation_last(self._classification_last(hidden_next))
+        output = self._activation_last(self._classification_last(hidden_nxt))
         return output
 
 
@@ -463,7 +459,7 @@ class UNet3DPlugin(UNet):
                 'num_featmaps_in': self._num_featmaps_in,
                 'num_channels_in': self._num_channels_in,
                 'num_classes_out': self._num_classes_out,
-                'is_use_valid_convols': self._is_valid_convols_deep_levels}
+                'is_use_valid_convols': self._is_use_valid_convols}
 
     def _build_model(self) -> None:
         value_padding = 0 if self._is_use_valid_convols else 1
@@ -557,56 +553,56 @@ class UNet3DPlugin(UNet):
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
 
-        hidden_next = self._activation_hidden(self._convolution_down_lev1_1(input))
-        hidden_next = self._activation_hidden(self._convolution_down_lev1_2(hidden_next))
-        skipconn_lev1 = hidden_next
-        hidden_next = self._pooling_down_lev1(hidden_next)
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev1_1(input))
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev1_2(hidden_nxt))
+        hidden_skip_lev1 = hidden_nxt
+        hidden_nxt = self._pooling_down_lev1(hidden_nxt)
 
-        hidden_next = self._activation_hidden(self._convolution_down_lev2_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_down_lev2_2(hidden_next))
-        skipconn_lev2 = hidden_next
-        hidden_next = self._pooling_down_lev2(hidden_next)
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev2_1(hidden_nxt))
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev2_2(hidden_nxt))
+        hidden_skip_lev2 = hidden_nxt
+        hidden_nxt = self._pooling_down_lev2(hidden_nxt)
 
-        hidden_next = self._activation_hidden(self._convolution_down_lev3_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_down_lev3_2(hidden_next))
-        skipconn_lev3 = hidden_next
-        hidden_next = self._pooling_down_lev3(hidden_next)
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev3_1(hidden_nxt))
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev3_2(hidden_nxt))
+        hidden_skip_lev3 = hidden_nxt
+        hidden_nxt = self._pooling_down_lev3(hidden_nxt)
 
-        hidden_next = self._activation_hidden(self._convolution_down_lev4_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_down_lev4_2(hidden_next))
-        skipconn_lev4 = hidden_next
-        hidden_next = self._pooling_down_lev4(hidden_next)
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev4_1(hidden_nxt))
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev4_2(hidden_nxt))
+        hidden_skip_lev4 = hidden_nxt
+        hidden_nxt = self._pooling_down_lev4(hidden_nxt)
 
-        hidden_next = self._activation_hidden(self._convolution_down_lev5_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_down_lev5_2(hidden_next))
-        hidden_next = self._upsample_up_lev5(hidden_next)
-
-        if self._is_use_valid_convols:
-            skipconn_lev4 = self._crop_image_3d(skipconn_lev4, self._list_sizes_crop_where_merge[3])
-        hidden_next = torch.cat([hidden_next, skipconn_lev4], dim=1)
-        hidden_next = self._activation_hidden(self._convolution_up_lev4_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_up_lev4_2(hidden_next))
-        hidden_next = self._upsample_up_lev4(hidden_next)
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev5_1(hidden_nxt))
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev5_2(hidden_nxt))
+        hidden_nxt = self._upsample_up_lev5(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev3 = self._crop_image_3d(skipconn_lev3, self._list_sizes_crop_where_merge[2])
-        hidden_next = torch.cat([hidden_next, skipconn_lev3], dim=1)
-        hidden_next = self._activation_hidden(self._convolution_up_lev3_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_up_lev3_2(hidden_next))
-        hidden_next = self._upsample_up_lev3(hidden_next)
+            hidden_skip_lev4 = self._crop_image_3d(hidden_skip_lev4, self._sizes_crop_where_merge[3])
+        hidden_nxt = torch.cat([hidden_nxt, hidden_skip_lev4], dim=1)
+        hidden_nxt = self._activation_hidden(self._convolution_up_lev4_1(hidden_nxt))
+        hidden_nxt = self._activation_hidden(self._convolution_up_lev4_2(hidden_nxt))
+        hidden_nxt = self._upsample_up_lev4(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev2 = self._crop_image_3d(skipconn_lev2, self._list_sizes_crop_where_merge[1])
-        hidden_next = torch.cat([hidden_next, skipconn_lev2], dim=1)
-        hidden_next = self._activation_hidden(self._convolution_up_lev2_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_up_lev2_2(hidden_next))
-        hidden_next = self._upsample_up_lev2(hidden_next)
+            hidden_skip_lev3 = self._crop_image_3d(hidden_skip_lev3, self._sizes_crop_where_merge[2])
+        hidden_nxt = torch.cat([hidden_nxt, hidden_skip_lev3], dim=1)
+        hidden_nxt = self._activation_hidden(self._convolution_up_lev3_1(hidden_nxt))
+        hidden_nxt = self._activation_hidden(self._convolution_up_lev3_2(hidden_nxt))
+        hidden_nxt = self._upsample_up_lev3(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev1 = self._crop_image_3d(skipconn_lev1, self._list_sizes_crop_where_merge[0])
-        hidden_next = torch.cat([hidden_next, skipconn_lev1], dim=1)
-        hidden_next = self._activation_hidden(self._convolution_up_lev1_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_up_lev1_2(hidden_next))
+            hidden_skip_lev2 = self._crop_image_3d(hidden_skip_lev2, self._sizes_crop_where_merge[1])
+        hidden_nxt = torch.cat([hidden_nxt, hidden_skip_lev2], dim=1)
+        hidden_nxt = self._activation_hidden(self._convolution_up_lev2_1(hidden_nxt))
+        hidden_nxt = self._activation_hidden(self._convolution_up_lev2_2(hidden_nxt))
+        hidden_nxt = self._upsample_up_lev2(hidden_nxt)
 
-        output = self._activation_last(self._classification_last(hidden_next))
+        if self._is_use_valid_convols:
+            hidden_skip_lev1 = self._crop_image_3d(hidden_skip_lev1, self._sizes_crop_where_merge[0])
+        hidden_nxt = torch.cat([hidden_nxt, hidden_skip_lev1], dim=1)
+        hidden_nxt = self._activation_hidden(self._convolution_up_lev1_1(hidden_nxt))
+        hidden_nxt = self._activation_hidden(self._convolution_up_lev1_2(hidden_nxt))
+
+        output = self._activation_last(self._classification_last(hidden_nxt))
         return output

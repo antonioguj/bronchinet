@@ -41,14 +41,14 @@ class ModelTrainer(ModelTrainerBase):
     def create_callbacks(self, models_path: str, losshist_filename: str, **kwargs) -> None:
         self._list_callbacks = []
 
-        is_validation_data = kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() \
-            else True
-        freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() \
-            else 1
-        # freq_validate_model = kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() \
-        #     else 1
-        is_restart_model = kwargs['is_restart_model'] if 'is_restart_model' in kwargs.keys() \
-            else False
+        is_validation_data = \
+            kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() else True
+        freq_save_check_model = \
+            kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
+        # freq_validate_model = \
+        #     kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() else 1
+        is_restart_model = \
+            kwargs['is_restart_model'] if 'is_restart_model' in kwargs.keys() else False
 
         losshist_filename = join_path_names(models_path, losshist_filename)
         new_callback = RecordLossHistory(losshist_filename, self._list_metrics,
@@ -76,8 +76,8 @@ class ModelTrainer(ModelTrainerBase):
 
     def load_model_weights_diff_model(self, model_filename: str, **kwargs) -> None:
         type_load_model = kwargs['type_load_model']
-        if type_load_model == 'UNet_noSkipConns':
-            self.load_model_weights_unet_noskipconns(model_filename)
+        if type_load_model == 'UNet_noSkips':
+            self.load_model_weights_unet_noskips(model_filename)
         else:
             message = "Type of loading weights from a different model not implemented: %s..." % (type_load_model)
             catch_error_exception(message)
@@ -128,7 +128,7 @@ class ModelTrainer(ModelTrainerBase):
                                                       batch_size=1)
         return output_prediction
 
-    def load_model_weights_unet_noskipconns(self, model_filename: str) -> None:
+    def load_model_weights_unet_noskips(self, model_filename: str) -> None:
         def lossfun_dummy_max(y_true, y_pred):
             from keras import backend as K
             return K.max(K.abs(y_pred - y_true), axis=-1)
@@ -146,7 +146,7 @@ class ModelTrainer(ModelTrainerBase):
 
             elif next_layer_convol_after_upsample:
                 # for the convolutional layers after 'upsample + merge', we need to tweak the loaded weights
-                # for this layer, the kernel weights in UNet have larger dimension than those in UNet_noSkipConn
+                # for this layer, the kernel weights in UNet have larger dimension than those in 'UNet_noSkips'
                 # extend kernel weights with added ones, initialized randomly, for the features from skip conns
 
                 loaded_model_layer = loaded_copyfrom_model.get_layer(layer_name)

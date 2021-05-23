@@ -32,8 +32,8 @@ class ModelTrainer(ModelTrainerBase):
     def create_network(self, *args, **kwargs) -> None:
         super(ModelTrainer, self).create_network(*args, **kwargs)
 
-        is_model_half_precision = kwargs['is_model_half_precision'] \
-            if 'is_model_half_precision' in kwargs.keys() else None
+        is_model_half_precision = \
+            kwargs['is_model_half_precision'] if 'is_model_half_precision' in kwargs.keys() else None
         if is_model_half_precision:
             self._network.half()
 
@@ -45,12 +45,12 @@ class ModelTrainer(ModelTrainerBase):
     def create_callbacks(self, models_path: str, losshist_filename: str, **kwargs) -> None:
         self._list_callbacks = []
 
-        is_validation_data = kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() \
-            else True
-        freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() \
-            else 1
-        freq_validate_model = kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() \
-            else 1
+        is_validation_data = \
+            kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() else True
+        freq_save_check_model = \
+            kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
+        freq_validate_model = \
+            kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() else 1
 
         losshist_filename = join_path_names(models_path, losshist_filename)
         new_callback = RecordLossHistory(losshist_filename, self._list_metrics,
@@ -85,8 +85,8 @@ class ModelTrainer(ModelTrainerBase):
         type_network = model_full['network_desc'][0]
         network_input_args = model_full['network_desc'][1]
 
-        update_net_input_args = kwargs['update_net_input_args'] if 'update_net_input_args' in kwargs.keys() \
-            else None
+        update_net_input_args = \
+            kwargs['update_net_input_args'] if 'update_net_input_args' in kwargs.keys() else None
         if update_net_input_args:
             network_input_args.update(update_net_input_args)
 
@@ -105,8 +105,9 @@ class ModelTrainer(ModelTrainerBase):
         # create loss
         type_loss = model_full['loss_desc'][0]
         loss_input_args = model_full['loss_desc'][1]
-        weight_combined_loss = kwargs['weight_combined_loss'] if 'weight_combined_loss' in kwargs.keys() \
-            else 1.0
+        weight_combined_loss = \
+            kwargs['weight_combined_loss'] if 'weight_combined_loss' in kwargs.keys() else 1.0
+
         self.create_loss(type_loss, is_mask_to_region_interest=loss_input_args['is_masks_exclude'],
                          weight_combined_loss=weight_combined_loss)
 
@@ -142,8 +143,8 @@ class ModelTrainer(ModelTrainerBase):
                 new_key = key
             network_input_args_new[new_key] = value
 
-        update_net_input_args = kwargs['update_net_input_args'] if 'update_net_input_args' in kwargs.keys() \
-            else None
+        update_net_input_args = \
+            kwargs['update_net_input_args'] if 'update_net_input_args' in kwargs.keys() else None
         if update_net_input_args:
             network_input_args_new.update(update_net_input_args)
 
@@ -246,8 +247,7 @@ class ModelTrainer(ModelTrainerBase):
     def predict(self, test_data_loader: BatchDataGenerator) -> np.ndarray:
         self._test_data_loader = test_data_loader
 
-        self._network.eval()  # switch to evaluate mode
-        self._network.preprocess(-1)
+        self._network.eval()    # switch to evaluate mode
 
         output_prediction = self._run_prediction()
         return output_prediction
@@ -255,8 +255,7 @@ class ModelTrainer(ModelTrainerBase):
     def _run_epoch(self) -> None:
         # Run a train and validation pass on the current epoch
 
-        self._network.train()     # switch to train mode
-        self._network.preprocess(self._epoch_count)
+        self._network.train()   # switch to train mode
 
         if self._epoch_count == 0:
             self._run_callbacks_on_train_begin()
@@ -266,7 +265,7 @@ class ModelTrainer(ModelTrainerBase):
         if self._valid_data_loader is not None:
             if (self._epoch_count % self.freq_validate_model == 0) or (self._epoch_start_count == 0):
 
-                self._network.eval()  # switch to evaluate mode
+                self._network.eval()    # switch to evaluate mode
 
                 (valid_loss, valid_metrics) = self._validation_epoch()
 
