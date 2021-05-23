@@ -32,8 +32,8 @@ class ModelTrainer(ModelTrainerBase):
     def create_network(self, *args, **kwargs) -> None:
         super(ModelTrainer, self).create_network(*args, **kwargs)
 
-        is_model_half_precision = kwargs['is_model_half_precision'] \
-            if 'is_model_half_precision' in kwargs.keys() else None
+        is_model_half_precision = \
+            kwargs['is_model_half_precision'] if 'is_model_half_precision' in kwargs.keys() else None
         if is_model_half_precision:
             self._network.half()
 
@@ -45,12 +45,12 @@ class ModelTrainer(ModelTrainerBase):
     def create_callbacks(self, models_path: str, losshist_filename: str, **kwargs) -> None:
         self._list_callbacks = []
 
-        is_validation_data = kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() \
-            else True
-        freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() \
-            else 1
-        freq_validate_model = kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() \
-            else 1
+        is_validation_data = \
+            kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() else True
+        freq_save_check_model = \
+            kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
+        freq_validate_model = \
+            kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() else 1
 
         losshist_filename = join_path_names(models_path, losshist_filename)
         new_callback = RecordLossHistory(losshist_filename, self._list_metrics,
@@ -85,8 +85,8 @@ class ModelTrainer(ModelTrainerBase):
         type_network = model_full['network_desc'][0]
         network_input_args = model_full['network_desc'][1]
 
-        update_net_input_args = kwargs['update_net_input_args'] if 'update_net_input_args' in kwargs.keys() \
-            else None
+        update_net_input_args = \
+            kwargs['update_net_input_args'] if 'update_net_input_args' in kwargs.keys() else None
         if update_net_input_args:
             network_input_args.update(update_net_input_args)
 
@@ -105,8 +105,9 @@ class ModelTrainer(ModelTrainerBase):
         # create loss
         type_loss = model_full['loss_desc'][0]
         loss_input_args = model_full['loss_desc'][1]
-        weight_combined_loss = kwargs['weight_combined_loss'] if 'weight_combined_loss' in kwargs.keys() \
-            else 1.0
+        weight_combined_loss = \
+            kwargs['weight_combined_loss'] if 'weight_combined_loss' in kwargs.keys() else 1.0
+
         self.create_loss(type_loss, is_mask_to_region_interest=loss_input_args['is_masks_exclude'],
                          weight_combined_loss=weight_combined_loss)
 
@@ -142,8 +143,8 @@ class ModelTrainer(ModelTrainerBase):
                 new_key = key
             network_input_args_new[new_key] = value
 
-        update_net_input_args = kwargs['update_net_input_args'] if 'update_net_input_args' in kwargs.keys() \
-            else None
+        update_net_input_args = \
+            kwargs['update_net_input_args'] if 'update_net_input_args' in kwargs.keys() else None
         if update_net_input_args:
             network_input_args_new.update(update_net_input_args)
 

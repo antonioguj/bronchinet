@@ -39,14 +39,14 @@ class ModelTrainer(ModelTrainerBase):
     def create_callbacks(self, models_path: str, losshist_filename: str, **kwargs) -> None:
         self._list_callbacks = []
 
-        is_validation_data = kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() \
-            else True
-        freq_save_check_model = kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() \
-            else 1
-        # freq_validate_model = kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() \
-        #     else 1
-        is_restart_model = kwargs['is_restart_model'] if 'is_restart_model' in kwargs.keys() \
-            else False
+        is_validation_data = \
+            kwargs['is_validation_data'] if 'is_validation_data' in kwargs.keys() else True
+        freq_save_check_model = \
+            kwargs['freq_save_check_model'] if 'freq_save_check_model' in kwargs.keys() else 1
+        # freq_validate_model = \
+        #     kwargs['freq_validate_model'] if 'freq_validate_model' in kwargs.keys() else 1
+        is_restart_model = \
+            kwargs['is_restart_model'] if 'is_restart_model' in kwargs.keys() else False
 
         losshist_filename = join_path_names(models_path, losshist_filename)
         new_callback = RecordLossHistory(losshist_filename, self._list_metrics,

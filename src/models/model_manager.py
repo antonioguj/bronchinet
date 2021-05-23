@@ -152,18 +152,20 @@ def get_network(type_network: str,
                               num_classes_out=num_classes_out)
 
     elif type_network == 'UNet3DGeneral':
-        num_levels = kwargs['num_levels'] if 'num_levels' in kwargs.keys() \
-            else UNet3DGeneral._num_levels_default
-        type_activate_hidden = kwargs['type_activate_hidden'] if 'type_activate_hidden' in kwargs.keys() \
+        num_levels = \
+            kwargs['num_levels'] if 'num_levels' in kwargs.keys() else UNet3DGeneral._num_levels_default
+        type_activate_hidden = \
+            kwargs['type_activate_hidden'] if 'type_activate_hidden' in kwargs.keys() \
             else UNet3DGeneral._type_activate_hidden_default
-        type_activate_output = kwargs['type_activate_output'] if 'type_activate_output' in kwargs.keys() \
+        type_activate_output = \
+            kwargs['type_activate_output'] if 'type_activate_output' in kwargs.keys() \
             else UNet3DGeneral._type_activate_output_default
-        is_use_dropout = kwargs['is_use_dropout'] if 'is_use_dropout' in kwargs.keys() \
-            else False
-        dropout_rate = kwargs['dropout_rate'] if 'dropout_rate' in kwargs.keys() \
-            else UNet3DGeneral._dropout_rate_default
-        is_use_batchnormalize = kwargs['is_use_batchnormalize'] if 'is_use_batchnormalize' in kwargs.keys() \
-            else False
+        is_use_dropout = \
+            kwargs['is_use_dropout'] if 'is_use_dropout' in kwargs.keys() else False
+        dropout_rate = \
+            kwargs['dropout_rate'] if 'dropout_rate' in kwargs.keys() else UNet3DGeneral._dropout_rate_default
+        is_use_batchnormalize = \
+            kwargs['is_use_batchnormalize'] if 'is_use_batchnormalize' in kwargs.keys() else False
 
         return UNet3DGeneral(size_image_in,
                              num_levels=num_levels,
