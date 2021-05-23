@@ -8,15 +8,18 @@ import torch
 
 from common.exceptionmanager import catch_error_exception
 from models.pytorch.networks import UNet
-from models.pytorch.gnns.gnnmodules import NodeGNN, NodeGNNwithAttentionLayers
+from models.pytorch.gnns.gnnmodules import NodeGNN, NodeGNNwithAttention
 from models.pytorch.gnns.gnnutil import sparse_matrix_to_torch_sparse_tensor
 from models.pytorch.gnns.graphprocessing import build_adjacency, compute_onthefly_adjacency, \
-    compute_onthefly_adjacency_with_attention, OntheflyAdjacencyLimitCanditsGenerator
+    compute_onthefly_adjacency_with_attention, OntheflyAdjacencyLimitCanditNeighbours
 
 torch.manual_seed(2017)
 
 
 class UNetGNN(UNet):
+    _num_neighs_fixed_adjacency_default = 26
+    _num_neighs_onthefly_adjacency_default = 10
+    _dist_max_candit_neighs_otfadj_default = 5
 
     def __init__(self,
                  size_image_in: Union[Tuple[int, int, int], Tuple[int, int]],
@@ -25,29 +28,48 @@ class UNetGNN(UNet):
                  num_channels_in: int,
                  num_classes_out: int,
                  is_use_valid_convols: bool = False,
-                 num_levels_valid_convols: int = UNet._num_levels_valid_convols_default,
-                 is_onthefly_adjacency: bool = False,
-                 is_gnn_with_attention: bool = False,
-                 is_limit_candits_onthefly_adjacency: bool = True
+                 is_gnn_onthefly_adjacency: bool = False,
+                 is_gnn_limit_candit_neighs_otfadj: bool = False,
+                 is_gnn_with_attention: bool = False
                  ) -> None:
         super(UNetGNN, self).__init__(size_image_in,
                                       num_levels,
                                       num_featmaps_in,
                                       num_channels_in,
                                       num_classes_out,
-                                      is_use_valid_convols=is_use_valid_convols,
-                                      num_levels_valid_convols=num_levels_valid_convols)
-        self._is_onthefly_adjacency = is_onthefly_adjacency
+                                      is_use_valid_convols=is_use_valid_convols)
+        self._is_gnn_onthefly_adjacency = is_gnn_onthefly_adjacency
+        self._is_gnn_limit_candit_neighs_otfadj = is_gnn_limit_candit_neighs_otfadj
         self._is_gnn_with_attention = is_gnn_with_attention
-        self._is_limit_candits_onthefly_adjacency = is_limit_candits_onthefly_adjacency
-
+        self._num_neighs_fixed_adjacency = self._num_neighs_fixed_adjacency_default
+        self._num_neighs_onthefly_adjacency = self._num_neighs_onthefly_adjacency_default
+        self._dist_max_candit_neighs_adj = self._dist_max_candit_neighs_otfadj_default
         self._gnn_module = None
-        self._func_calc_onthefly_adjacency = None
 
-        if self._is_limit_candits_onthefly_adjacency:
-            self.set_calcdata_onthefly_adjacency()
+        if self._is_use_valid_convols:
+            index_input_gnn_module = self._list_operation_names_layers_all.index('gnn_module') - 1
+            self._size_input_gnn_module = self._list_sizes_output_all_layers[index_input_gnn_module]
+        else:
+            self._size_input_gnn_module = tuple([elem // (self._num_levels - 1)**2 for elem in self._size_image_in])
 
-        self._build_model()
+        print("Total input volume to GNN module: \'%s\'..." % (str(self._size_input_gnn_module)))
+
+        if self._is_gnn_onthefly_adjacency:
+            print("Computing the adjacency \'on-the-fly\' in every epoch, with \'%s\' neighbours for each node..."
+                  % (self._num_neighs_onthefly_adjacency))
+            if self._is_gnn_limit_candit_neighs_otfadj:
+                print("Limit the neighbourhood of candidates when computing the \'on-the-fly\' adjacency, to nodes "
+                      "within max. distance \'%s\' around each node..." % (self._dist_max_candit_neighs_adj))
+        else:
+            print("Computing the fixed adjacency at the start of training, with \'%s\' neighbours for each node..."
+                  % (self._num_neighs_fixed_adjacency))
+
+        if self._is_gnn_with_attention:
+            print("Using graph convolutions with Attention layers...")
+
+        self._func_compute_onthefly_adjacency = None
+        if self._is_gnn_onthefly_adjacency:
+            self.set_func_compute_onthefly_adjacency()
 
     def _build_model(self) -> None:
         raise NotImplementedError
@@ -55,72 +77,93 @@ class UNetGNN(UNet):
     def count_model_params(self) -> int:
         return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
+    def _gnn_module_forward(self, input: torch.Tensor) -> torch.Tensor:
+        shape_in = input.shape
+        input = input.view(shape_in[0], shape_in[1], -1).view(-1, shape_in[1])
+
+        if self._is_gnn_onthefly_adjacency:
+            if self._is_gnn_with_attention:
+                (adjacency, node2edge_in, node2edge_out) = \
+                    self._func_compute_onthefly_adjacency(input.data.cpu().numpy(),
+                                                          num_neighs=self._num_neighs_onthefly_adjacency)
+                self._gnn_module.set_adjacency(adjacency, node2edge_in, node2edge_out)
+
+            else:
+                adjacency = self._func_compute_onthefly_adjacency(input.data.cpu().numpy(),
+                                                                  num_neighs=self._num_neighs_onthefly_adjacency)
+                self._gnn_module.set_adjacency(adjacency)
+
+        output = self._gnn_module.forward(input)
+
+        output = output.view(shape_in[0], -1, shape_in[2], shape_in[3], shape_in[4])
+        torch.cuda.empty_cache()
+
+        return output
+
     def set_build_adjacency_data(self, filename_adjacency: str) -> None:
         print("Build adjacency matrix...")
-        adjacency = build_adjacency(self._size_image_in, num_neighs=26).cuda()
+        adjacency = build_adjacency(self._size_input_gnn_module, num_neighs=self._num_neighs_fixed_adjacency)
 
         # store the built adjacency matrix
-        print("Store the built adjacency matrix in \'%s\'..." % (filename_adjacency))
+        print("Save the adjacency matrix in \'%s\'..." % (filename_adjacency))
         self._save_adjacency_matrix(filename_adjacency, adjacency)
 
-        if self._is_gnn_with_attention:
-            print("And build matrices for attention layers...")
-            (adjacency, node2edge_in, node2edge_out) = self._load_adjacency_matrix_with_attention(filename_adjacency)
-            self._gnn_module.set_adjacency(adjacency, node2edge_in, node2edge_out)
-        else:
-            self._gnn_module.set_adjacency(adjacency)
+        # load the built adjacency matrix in torch format
+        self.set_load_adjacency_data(filename_adjacency)
 
     def set_load_adjacency_data(self, filename_adjacency: str) -> None:
         if self._is_gnn_with_attention:
-            print("Loading adjacency and matrices for attention layers, from file: \'%s\'..." % (filename_adjacency))
+            print("Load the adjacency and matrices for attention layers, from file: \'%s\'..." % (filename_adjacency))
             (adjacency, node2edge_in, node2edge_out) = self._load_adjacency_matrix_with_attention(filename_adjacency)
             self._gnn_module.set_adjacency(adjacency, node2edge_in, node2edge_out)
+
         else:
-            print("Loading adjacency matrix, from file: \'%s\'..." % (filename_adjacency))
+            print("Load the adjacency matrix, from file: \'%s\'..." % (filename_adjacency))
             adjacency = self._load_adjacency_matrix(filename_adjacency)
             self._gnn_module.set_adjacency(adjacency)
 
-    def set_calcdata_onthefly_adjacency(self) -> None:
-        index_input_gnn_module = self._list_operation_names_layers_all.index('gnn_module') - 1
-        shape_input_gnn_module = self._list_sizes_output_all_layers[index_input_gnn_module]
-
-        if self._is_limit_candits_onthefly_adjacency:
-            print("Limit the neighbourhood of candidates when computing the adjacency to max. distance \'5\'...")
-            self._onthefly_adjacency_generator = \
-                OntheflyAdjacencyLimitCanditsGenerator(shape_input_gnn_module, dist_max_candits_neighs=5)
+    def set_func_compute_onthefly_adjacency(self) -> None:
+        if self._is_gnn_limit_candit_neighs_otfadj:
+            self._onthefly_adjacency_cls = \
+                OntheflyAdjacencyLimitCanditNeighbours(self._size_input_gnn_module,
+                                                       dist_max_candit_neighs=self._dist_max_candit_neighs_adj)
 
             if self._is_gnn_with_attention:
-                print("Set on-the-fly calculator of adjacency and matrices for attention layers...")
-                self._func_calc_onthefly_adjacency = self._onthefly_adjacency_generator.compute_with_attention
+                print("Set function to compute \'on-the-fly\' the adjacency and matrices for attention layers...")
+                self._func_compute_onthefly_adjacency = self._onthefly_adjacency_cls.compute_with_attention
             else:
-                print("Set on-the-fly calculator of adjacency matrix...")
-                self._func_calc_onthefly_adjacency = self._onthefly_adjacency_generator.compute
+                print("Set function to compute \'on-the-fly\' the adjacency matrix...")
+                self._func_compute_onthefly_adjacency = self._onthefly_adjacency_cls.compute
         else:
             if self._is_gnn_with_attention:
-                print("Set on-the-fly calculator of adjacency and matrices for attention layers...")
-                self._func_calc_onthefly_adjacency = compute_onthefly_adjacency_with_attention
+                print("Set function to compute \'on-the-fly\' the adjacency and matrices for attention layers...")
+                self._func_compute_onthefly_adjacency = compute_onthefly_adjacency_with_attention
             else:
-                print("Set on-the-fly calculator of adjacency matrix...")
-                self._func_calc_onthefly_adjacency = compute_onthefly_adjacency
-
-    def _load_adjacency_matrix(self, filename_adjacency: str) -> torch.Tensor:
-        adjacency = sparse_matrix_to_torch_sparse_tensor(sp.load_npz(filename_adjacency))
-        return adjacency.cuda()
+                print("Set function to compute \'on-the-fly\' the adjacency matrix...")
+                self._func_compute_onthefly_adjacency = compute_onthefly_adjacency
 
     def _save_adjacency_matrix(self, filename_adjacency: str, adjacency: torch.Tensor) -> None:
-        sp.save_npz(filename_adjacency, adjacency)
+        sp.save_npz(filename_adjacency, adjacency, compressed=True)
+
+    def _load_adjacency_matrix(self, filename_adjacency: str) -> torch.Tensor:
+        adjacency = sp.load_npz(filename_adjacency)
+        adjacency = sparse_matrix_to_torch_sparse_tensor(adjacency)
+        return adjacency.cuda()
 
     def _load_adjacency_matrix_with_attention(self, filename_adjacency: str
                                               ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        num_neighs = 26
         adjacency = sp.load_npz(filename_adjacency)
-        adjacency = adjacency * (num_neighs + 1)
+        adjacency = adjacency * (self._num_neighs_fixed_adjacency + 1)
         num_nonzero = adjacency.nnz
         num_nodes = adjacency.shape[0]
         node2edge_in = sp.csr_matrix((np.ones(num_nonzero), (np.arange(num_nonzero), sp.find(adjacency)[1])),
                                      shape=(num_nonzero, num_nodes))
         node2edge_out = sp.csr_matrix((np.ones(num_nonzero), (np.arange(num_nonzero), sp.find(adjacency)[0])),
                                       shape=(num_nonzero, num_nodes))
+
+        adjacency = sparse_matrix_to_torch_sparse_tensor(adjacency)
+        node2edge_in = sparse_matrix_to_torch_sparse_tensor(node2edge_in)
+        node2edge_out = sparse_matrix_to_torch_sparse_tensor(node2edge_out)
         return (adjacency.cuda(), node2edge_in.cuda(), node2edge_out.cuda())
 
     def _build_list_operation_names_layers(self) -> None:
@@ -146,9 +189,8 @@ class UNetGNN(UNet):
                 + ['classify']
 
 
-class Unet3DGNNPlugin(UNetGNN):
+class UNet3DGNNPlugin(UNetGNN):
     _num_levels_fixed = 3
-    _num_levels_valid_convols_fixed = 3
     _num_featmaps_in_default = 16
     _num_channels_in_default = 1
     _num_classes_out_default = 1
@@ -162,22 +204,23 @@ class Unet3DGNNPlugin(UNetGNN):
                  num_channels_in: int = _num_channels_in_default,
                  num_classes_out: int = _num_classes_out_default,
                  is_use_valid_convols: bool = False,
-                 is_onthefly_adjacency: bool = False,
-                 is_gnn_with_attention: bool = False,
-                 is_limit_candits_onthefly_adjacency: bool = True
+                 is_gnn_onthefly_adjacency: bool = False,
+                 is_gnn_limit_candit_neighs_otfadj: bool = False,
+                 is_gnn_with_attention: bool = False
                  ) -> None:
-        super(Unet3DGNNPlugin, self).__init__(size_image_in,
+        super(UNet3DGNNPlugin, self).__init__(size_image_in,
                                               self._num_levels_fixed,
                                               num_featmaps_in,
                                               num_channels_in,
                                               num_classes_out,
                                               is_use_valid_convols=is_use_valid_convols,
-                                              num_levels_valid_convols=self._num_levels_valid_convols_fixed,
-                                              is_onthefly_adjacency=is_onthefly_adjacency,
-                                              is_gnn_with_attention=is_gnn_with_attention,
-                                              is_limit_candits_onthefly_adjacency=is_limit_candits_onthefly_adjacency)
+                                              is_gnn_onthefly_adjacency=is_gnn_onthefly_adjacency,
+                                              is_gnn_limit_candit_neighs_otfadj=is_gnn_limit_candit_neighs_otfadj,
+                                              is_gnn_with_attention=is_gnn_with_attention)
         self._type_activate_hidden = self._type_activate_hidden_default
         self._type_activate_output = self._type_activate_output_default
+
+        self._build_model()
 
     def get_network_input_args(self) -> Dict[str, Any]:
         return {'size_image_in': self._size_image_in,
@@ -185,9 +228,9 @@ class Unet3DGNNPlugin(UNetGNN):
                 'num_channels_in': self._num_channels_in,
                 'num_classes_out': self._num_classes_out,
                 'is_use_valid_convols': self._is_use_valid_convols,
-                'is_onthefly_adjacency': self._is_onthefly_adjacency,
-                'is_gnn_with_attention': self._is_gnn_with_attention,
-                'is_limit_candits_onthefly_adjacency': self._is_limit_candits_onthefly_adjacency}
+                'is_gnn_onthefly_adjacency': self._is_gnn_onthefly_adjacency,
+                'is_gnn_limit_candit_neighs_otfadj': self._is_gnn_limit_candit_neighs_otfadj,
+                'is_gnn_with_attention': self._is_gnn_with_attention}
 
     def _build_model(self):
         value_padding = 0 if self._is_use_valid_convols else 1
@@ -208,10 +251,10 @@ class Unet3DGNNPlugin(UNetGNN):
 
         num_featmaps_lev3 = 2 * num_featmaps_lev2
         if self._is_gnn_with_attention:
-            self._gnn_module = NodeGNNwithAttentionLayers(num_featmaps_lev2, num_featmaps_lev3, num_featmaps_lev2,
-                                                          is_dropout=False)
+            self._gnn_module = NodeGNNwithAttention(num_featmaps_lev2, num_featmaps_lev3, num_featmaps_lev3,
+                                                    is_dropout=False)
         else:
-            self._gnn_module = NodeGNN(num_featmaps_lev2, num_featmaps_lev3, num_featmaps_lev2,
+            self._gnn_module = NodeGNN(num_featmaps_lev2, num_featmaps_lev3, num_featmaps_lev3,
                                        is_dropout=False)
         self._upsample_up_lev3 = Upsample(scale_factor=2, mode='nearest')
 
@@ -264,14 +307,8 @@ class Unet3DGNNPlugin(UNetGNN):
         skipconn_lev2 = hidden_next
         hidden_next = self._pooling_down_lev2(hidden_next)
 
-        hid_shape = hidden_next.shape
-        hidden_next = hidden_next.view(hid_shape[0], hid_shape[1], -1).view(-1, hid_shape[1])
-        if self._is_onthefly_adjacency:
-            adjacency_data = self._func_calc_onthefly_adjacency(hidden_next.data.cpu().numpy(), num_neighs=10)
-            self._gnn_module.set_adjacency(adjacency_data)
-        hidden_next = self._gnn_module(hidden_next)
-        hidden_next = hidden_next.view(hid_shape[0], -1, hid_shape[2], hid_shape[3], hid_shape[4])
-        torch.cuda.empty_cache()
+        hidden_next = self._gnn_module_forward(hidden_next)
+        hidden_next = self._upsample_up_lev3(hidden_next)
 
         if self._is_use_valid_convols:
             skipconn_lev2 = self._crop_image_3d(skipconn_lev2, self._list_sizes_crop_where_merge[1])

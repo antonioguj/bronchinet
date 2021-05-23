@@ -186,73 +186,74 @@ def compute_onthefly_adjacency_with_attention(in_features: np.array, num_neighs:
     return (adjacency.cuda(), node2edge_in.cuda(), node2edge_out.cuda())
 
 
-class OntheflyAdjacencyLimitCanditsGenerator(object):
-    _dist_max_candits_neighs_default = 5
-    _dist_jump_nodes_candits_default = None
+class OntheflyAdjacencyLimitCanditNeighbours(object):
+    _dist_max_candit_neighs_default = 5
+    _dist_jump_candit_nodes_default = None
 
     def __init__(self, shape_volume: Tuple[int, int, int],
-                 dist_max_candits_neighs: int = _dist_max_candits_neighs_default,
-                 dist_jump_nodes_candits: int = _dist_jump_nodes_candits_default
+                 dist_max_candit_neighs: int = _dist_max_candit_neighs_default,
+                 dist_jump_candit_nodes: int = _dist_jump_candit_nodes_default
                  ) -> None:
         # self._shape_volume = shape_volume
-        # self._dist_max_candits_neighs = dist_max_candits_neighs
-        # self._dist_jump_nodes_candits = dist_jump_nodes_candits
-        self._indexes_neighbours_candits = \
-            self._get_indexes_neighbours_candits(shape_volume, dist_max_candits_neighs, dist_jump_nodes_candits)
+        # self._dist_max_candit_neighs = dist_max_candit_neighs
+        # self._dist_jump_candit_nodes = dist_jump_candit_nodes
+        self._indexes_candit_neighs_pernode = \
+            self._get_indexes_search_candit_neighbours(shape_volume, dist_max_candit_neighs, dist_jump_candit_nodes)
 
-    def _get_indexes_neighbours_candits(self, shape_volume: Tuple[int, int, int],
-                                        dist_max_candits_neighs: int,
-                                        dist_jump_nodes_candits: int
-                                        ) -> np.array:
+    def _get_indexes_search_candit_neighbours(self, shape_volume: Tuple[int, int, int],
+                                               dist_max_candit_neighs: int,
+                                               dist_jump_nodes_candit: int
+                                               ) -> np.array:
         """
         Get the candidate indexes around each node of the image volume,
-        within a cubic neighbourhood of size 'dist_max_candits_neighs' in each dir
+        within a cubic neighbourhood of size 'dist_max_candit_neighs' in each dir
         """
         (zdim, xdim, ydim) = shape_volume
         num_nodes_total = zdim * xdim * ydim
 
-        if dist_jump_nodes_candits:
-            dim_1d_neighs = 2 * dist_max_candits_neighs // (dist_jump_nodes_candits + 1) + 1
+        if dist_jump_nodes_candit:
+            dim_1d_candit_neighs = 2 * dist_max_candit_neighs // (dist_jump_nodes_candit + 1) + 1
         else:
-            dim_1d_neighs = 2 * dist_max_candits_neighs + 1
+            dim_1d_candit_neighs = 2 * dist_max_candit_neighs + 1
 
-        zdim_neighs = min(dim_1d_neighs, zdim)
-        xdim_neighs = min(dim_1d_neighs, xdim)
-        ydim_neighs = min(dim_1d_neighs, ydim)
-        max_nodes_neighs = zdim_neighs * xdim_neighs * ydim_neighs
+        zdim_candit_neighs = min(dim_1d_candit_neighs, zdim)
+        xdim_candit_neighs = min(dim_1d_candit_neighs, xdim)
+        ydim_candit_neighs = min(dim_1d_candit_neighs, ydim)
+        max_candit_neighs = zdim_candit_neighs * xdim_candit_neighs * ydim_candit_neighs
 
         # 32-integer enough to store indexes of volume (512, 512, 512). Vol = 512^3 = 2^27 < 2^31 (max val. 32-int)
-        indexes_neighbours_candits = np.full((num_nodes_total, max_nodes_neighs), 0, dtype=np.uint32)
+        out_indexes_candit_neighs_pernode = np.full((num_nodes_total, max_candit_neighs), 0, dtype=np.uint32)
 
         for iz in range(zdim):
-            z_neigh_min = max(0, iz - dist_max_candits_neighs)
-            z_neigh_max = min(zdim, iz + dist_max_candits_neighs + 1)
-            z_neigh_inds = np.arange(z_neigh_min, z_neigh_max)
+            z_candit_min = max(0, iz - dist_max_candit_neighs)
+            z_candit_max = min(zdim, iz + dist_max_candit_neighs + 1)
+            z_candit_indexes = np.arange(z_candit_min, z_candit_max)
 
             for ix in range(xdim):
-                x_neigh_min = max(0, ix - dist_max_candits_neighs)
-                x_neigh_max = min(xdim, ix + dist_max_candits_neighs + 1)
-                x_neigh_inds = np.arange(x_neigh_min, x_neigh_max)
+                x_candit_min = max(0, ix - dist_max_candit_neighs)
+                x_candit_max = min(xdim, ix + dist_max_candit_neighs + 1)
+                x_candit_indexes = np.arange(x_candit_min, x_candit_max)
 
                 for iy in range(ydim):
-                    y_neigh_min = max(0, iy - dist_max_candits_neighs)
-                    y_neigh_max = min(ydim, iy + dist_max_candits_neighs + 1)
-                    y_neigh_inds = np.arange(y_neigh_min, y_neigh_max)
+                    y_candit_min = max(0, iy - dist_max_candit_neighs)
+                    y_candit_max = min(ydim, iy + dist_max_candit_neighs + 1)
+                    y_candit_indexes = np.arange(y_candit_min, y_candit_max)
 
                     inode = (iz * xdim + ix) * ydim + iy
-                    num_nodes_neighs = len(z_neigh_inds) * len(x_neigh_inds) * len(y_neigh_inds)
+                    num_candit_neighs = len(z_candit_indexes) * len(x_candit_indexes) * len(y_candit_indexes)
 
-                    indexes_neighbours_candits[inode, :num_nodes_neighs] = \
-                        ((z_neigh_inds[:, None] * xdim + x_neigh_inds)[:, :, None] * ydim + y_neigh_inds).reshape(-1)
+                    out_indexes_candit_neighs_pernode[inode, :num_candit_neighs] = \
+                        ((z_candit_indexes[:, None] * xdim + x_candit_indexes)[:, :, None] * ydim
+                         + y_candit_indexes).reshape(-1)
 
                     # unused and point to a dummy value stored in the last row of x
-                    indexes_neighbours_candits[inode, num_nodes_neighs:] = num_nodes_total
+                    out_indexes_candit_neighs_pernode[inode, num_candit_neighs:] = num_nodes_total
                 # endfor
             # endfor
         # endfor
 
-        return indexes_neighbours_candits
-        # return indexes_neighbours_candits.T
+        return out_indexes_candit_neighs_pernode
+        # return out_indexes_candit_neighs_pernode.T
 
     def compute(self, in_features: np.array, num_neighs: int = 26, is_normalise: bool = False
                 ) -> torch.Tensor:
@@ -265,18 +266,18 @@ class OntheflyAdjacencyLimitCanditsGenerator(object):
             in_features = (in_features - in_features.min(0)) * 2.0 / (in_features.max(0) - in_features.min(0)) - 1.0
 
         max_dummy_val = 1.0e+06
-        max_nodes_neighs = self._indexes_neighbours_candits.shape[1]
+        max_candit_neighs = self._indexes_candit_neighs_pernode.shape[1]
 
         in_features = np.vstack((in_features, np.full((num_feats), max_dummy_val)))
 
-        pair_dists = np.zeros((num_nodes, max_nodes_neighs), dtype=np.float)
+        pair_dists = np.zeros((num_nodes, max_candit_neighs), dtype=np.float)
         for i in range(num_nodes):
-            feats_candits = in_features[self._indexes_neighbours_candits[i], :]
-            pair_dists[i, :] = np.sum((in_features[i] - feats_candits) ** 2, axis=1)
+            feats_candit = in_features[self._indexes_candit_neighs_pernode[i], :]
+            pair_dists[i, :] = np.sum((in_features[i] - feats_candit) ** 2, axis=1)
 
         neighbours = np.argsort(pair_dists, axis=1)[:, :num_neighs]
         for i in range(num_nodes):
-            neighbours[i, :] = self._indexes_neighbours_candits[i, neighbours[i, :]]
+            neighbours[i, :] = self._indexes_candit_neighs_pernode[i, neighbours[i, :]]
 
         # Create sparse torch adjacency from neighbours, similar to 'neighbours_to_adjacency'
         row = torch.LongTensor(np.arange(num_nodes))
@@ -299,18 +300,18 @@ class OntheflyAdjacencyLimitCanditsGenerator(object):
             in_features = (in_features - in_features.min(0)) * 2.0 / (in_features.max(0) - in_features.min(0)) - 1.0
 
         max_dummy_val = 1.0e+06
-        max_nodes_neighs = self._indexes_neighbours_candits.shape[1]
+        max_candit_neighs = self._indexes_candit_neighs_pernode.shape[1]
 
         in_features = np.vstack((in_features, np.full((num_feats), max_dummy_val)))
 
-        pair_dists = np.zeros((num_nodes, max_nodes_neighs), dtype=np.float)
+        pair_dists = np.zeros((num_nodes, max_candit_neighs), dtype=np.float)
         for i in range(num_nodes):
-            feats_candits = in_features[self._indexes_neighbours_candits[i], :]
-            pair_dists[i, :] = np.sum((in_features[i] - feats_candits) ** 2, axis=1)
+            feats_candit = in_features[self._indexes_candit_neighs_pernode[i], :]
+            pair_dists[i, :] = np.sum((in_features[i] - feats_candit) ** 2, axis=1)
 
         neighbours = np.argsort(pair_dists, axis=1)[:, :num_neighs]
         for i in range(num_nodes):
-            neighbours[i, :] = self._indexes_neighbours_candits[i, neighbours[i, :]]
+            neighbours[i, :] = self._indexes_candit_neighs_pernode[i, neighbours[i, :]]
 
         # Create sparse torch adjacency from neighbours, similar to 'neighbours_to_adjacency'
         row = torch.LongTensor(np.arange(num_nodes))

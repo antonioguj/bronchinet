@@ -6,10 +6,12 @@ import argparse
 from common.constant import BASEDIR, NAME_TESTINGDATA_RELPATH, SIZE_IN_IMAGES, IS_GENERATE_PATCHES, \
     PROP_OVERLAP_SLIDE_WINDOW_TEST, TYPE_LOSS, LIST_TYPE_METRICS, IS_VALID_CONVOLUTIONS, IS_MASK_REGION_INTEREST, \
     NAME_TEMPO_POSTERIORS_RELPATH, NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_REFERENCE_KEYS_POSTERIORS_FILE, \
-    TYPE_DNNLIB_USED
+    TYPE_DNNLIB_USED, \
+    IS_MODEL_WITH_GNN, NAME_GNN_ADJACENCY_FILE, IS_GNN_ONTHEFLY_ADJACENCY
 from common.functionutil import join_path_names, is_exist_file, basename, basename_filenoext, list_files_dir, \
     str2bool, str2list_str, str2tuple_int, str2tuple_float, read_dictionary, read_dictionary_configparams, \
-    save_dictionary, save_dictionary_csv, NetworksUtil
+    save_dictionary, save_dictionary_csv, NetworksUtil, \
+    dirname
 from common.exceptionmanager import catch_error_exception, catch_warning_exception
 from common.workdirmanager import TrainDirManager
 from dataloaders.dataloader_manager import get_train_imagedataloader_1image
@@ -62,6 +64,18 @@ def main(args):
         model_trainer.load_model_full_backward_compat(args.input_model_file)
     else:
         model_trainer.load_model_full(args.input_model_file)
+
+    if args.is_model_with_gnn:
+        modelsdir = dirname(args.input_model_file)
+        path_gnn_adjacency_file = join_path_names(modelsdir, args.name_gnn_adjacency_file)
+
+        if not args.is_gnn_onthefly_adjacency and not is_exist_file(path_gnn_adjacency_file):
+            message = 'File to load the graph adjacency \'%s\' does not exist...' % (path_gnn_adjacency_file)
+            catch_error_exception(message)
+
+        model_trainer.finalise_model_with_gnn(is_restart_model=True,
+                                              path_gnn_adjacency_file=path_gnn_adjacency_file,
+                                              is_gnn_onthefly_adjacency=args.is_gnn_onthefly_adjacency)
 
     # model_trainer.summary_model()
 
@@ -200,6 +214,9 @@ if __name__ == "__main__":
     parser.add_argument('--is_save_featmaps_layer', type=str2bool, default=False)
     parser.add_argument('--name_layer_save_featmaps', type=str, default=None)
     parser.add_argument('--is_backward_compat', type=str2bool, default=False)
+    parser.add_argument('--is_model_with_gnn', type=str2bool, default=IS_MODEL_WITH_GNN)
+    parser.add_argument('--name_gnn_adjacency_file', type=str, default=NAME_GNN_ADJACENCY_FILE)
+    parser.add_argument('--is_gnn_onthefly_adjacency', type=str2bool, default=IS_GNN_ONTHEFLY_ADJACENCY)
     args = parser.parse_args()
 
     if args.in_config_file:
@@ -217,6 +234,9 @@ if __name__ == "__main__":
             args.list_type_metrics = str2list_str(input_args_file['list_type_metrics'])
             args.is_valid_convolutions = str2bool(input_args_file['is_valid_convolutions'])
             args.is_mask_region_interest = str2bool(input_args_file['is_mask_region_interest'])
+            args.is_model_with_gnn = str2bool(input_args_file['is_model_with_gnn'])
+            args.name_gnn_adjacency_file = str(input_args_file['name_gnn_adjacency_file'])
+            args.is_gnn_onthefly_adjacency = str2bool(input_args_file['is_gnn_onthefly_adjacency'])
 
     if not args.is_valid_convolutions and not args.is_filter_output_network:
         message = 'Testing network with non-valid convols: better to filter the network output to reduce border effects'
@@ -228,6 +248,10 @@ if __name__ == "__main__":
         print("Filtering the output images outside the window: %s..." % (str(args.size_filter_output_images)))
     else:
         args.size_filter_output_images = None
+
+    if args.is_model_with_gnn and TYPE_DNNLIB_USED == 'Keras':
+        message = 'Models with Graph Neural Networks (GNNs) only implemented with Pytorch'
+        catch_error_exception(message)
 
     print("Print input arguments...")
     for key, value in sorted(vars(args).items()):

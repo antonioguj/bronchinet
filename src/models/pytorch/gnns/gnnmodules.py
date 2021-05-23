@@ -105,24 +105,24 @@ class NodeGNN(nn.Module):
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
 
-        hidden_next = F.relu(self._full_connect_1(input))
-        hidden_next = F.relu(self._full_connect_2(hidden_next))
-        hidden_next = self._layer_norm_1(hidden_next)
-        hidden_next = F.relu(self._graph_convol_1(hidden_next, self._adjacency))
-        hidden_next = F.relu(self._graph_convol_2(hidden_next, self._adjacency))
-        hidden_next = F.relu(self._graph_convol_3(hidden_next, self._adjacency))
-        hidden_next = F.relu(self._graph_convol_4(hidden_next, self._adjacency))
-        return hidden_next
+        hidden_nxt = F.relu(self._full_connect_1(input))
+        hidden_nxt = F.relu(self._full_connect_2(hidden_nxt))
+        hidden_nxt = self._layer_norm_1(hidden_nxt)
+        hidden_nxt = F.relu(self._graph_convol_1(hidden_nxt, self._adjacency))
+        hidden_nxt = F.relu(self._graph_convol_2(hidden_nxt, self._adjacency))
+        hidden_nxt = F.relu(self._graph_convol_3(hidden_nxt, self._adjacency))
+        hidden_nxt = F.relu(self._graph_convol_4(hidden_nxt, self._adjacency))
+        return hidden_nxt
 
 
-class NodeGNNwithAttentionLayers(nn.Module):
+class NodeGNNwithAttention(nn.Module):
 
     def __init__(self, num_feats: int, num_hidden: int, num_out_feats: int, is_dropout: bool = False) -> None:
-        super(NodeGNNwithAttentionLayers, self).__init__()
+        super(NodeGNNwithAttention, self).__init__()
         # self._full_connect_1 = nn.Linear(num_feats, num_hidden)
         # self._full_connect_2 = nn.Linear(num_hidden, num_hidden)
-        self._graph_convol_1 = GraphAttentionLayer(num_feats, num_hidden)
-        self._graph_convol_2 = GraphAttentionLayer(num_hidden, num_out_feats)
+        self._graph_convol_1 = GraphConvolutionFirstOrderWithAttention(num_feats, num_hidden)
+        self._graph_convol_2 = GraphConvolutionFirstOrderWithAttention(num_hidden, num_out_feats)
         # self._layer_norm_1 = LayerNorm(num_hidden)
         # self._is_dropout = is_dropout
 
@@ -133,12 +133,12 @@ class NodeGNNwithAttentionLayers(nn.Module):
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
 
-        # hidden_next = F.relu(self._full_connect_1(input))
-        # hidden_next = F.relu(self._full_connect_2(hidden_next))
-        # hidden_next = self._layer_norm_1(hidden_next)
-        hidden_next = F.relu(self._graph_convol_1(input, self._adjacency, self._node2edge_in, self._node2edge_out))
-        hidden_next = F.relu(self._graph_convol_2(input, self._adjacency, self._node2edge_in, self._node2edge_out))
-        return hidden_next
+        # hidden_nxt = F.relu(self._full_connect_1(input))
+        # hidden_nxt = F.relu(self._full_connect_2(hidden_nxt))
+        # hidden_nxt = self._layer_norm_1(hidden_nxt)
+        hidden_nxt = F.relu(self._graph_convol_1(input, self._adjacency, self._node2edge_in, self._node2edge_out))
+        hidden_nxt = F.relu(self._graph_convol_2(hidden_nxt, self._adjacency, self._node2edge_in, self._node2edge_out))
+        return hidden_nxt
 
 
 class GraphConvolution(nn.Module):
@@ -157,6 +157,8 @@ class GraphConvolution(nn.Module):
             self.register_parameter('bias', None)
         self._reset_parameters()
 
+        self._matrix_multiply = SparseMatrixMultiply()
+
     def _reset_parameters(self) -> None:
         stdv = 1.0 / math.sqrt(self._weight.size(1))
         self._weight.data.uniform_(-stdv, stdv)
@@ -165,7 +167,7 @@ class GraphConvolution(nn.Module):
 
     def forward(self, input: torch.Tensor, adjacency: torch.Tensor) -> torch.Tensor:
         support = torch.mm(input, self._weight)
-        output = SparseMatrixMultiply()(adjacency, support)
+        output = self._matrix_multiply.forward(adjacency, support)
         if self._bias is not None:
             return output + self._bias
         else:
@@ -189,6 +191,8 @@ class GraphConvolutionFirstOrder(nn.Module):
             self.register_parameter('bias', None)
         self._reset_parameters()
 
+        self._matrix_multiply = SparseMatrixMultiply()
+
     def _reset_parameters(self) -> None:
         stdv = 1.0 / math.sqrt(self._weight_neighbour.size(1))
         self._weight_neighbour.data.uniform_(-stdv, stdv)
@@ -199,8 +203,55 @@ class GraphConvolutionFirstOrder(nn.Module):
     def forward(self, input: torch.Tensor, adjacency: torch.Tensor) -> torch.Tensor:
         activ_self = torch.mm(input, self._weight_self)
         support_neighbour = torch.mm(input, self._weight_neighbour)
-        activ_neighbour = SparseMatrixMultiply()(adjacency, support_neighbour)
+        activ_neighbour = self._matrix_multiply.forward(adjacency, support_neighbour)
         output = activ_self + activ_neighbour
+        if self._bias is not None:
+            return output + self._bias
+        else:
+            return output
+
+
+class GraphConvolutionFirstOrderWithAttention(GraphConvolutionFirstOrder):
+    """
+    Simple Graph Attention Layer, with separate processing of self-connection.
+    Equation format from https://docs.dgl.ai/en/latest/tutorials/models/1_gnn/9_gat.html
+    """
+
+    def __init__(self, num_in_feats: int, num_out_feats: int, is_bias: bool = True) -> None:
+        super(GraphConvolutionFirstOrderWithAttention, self).__init__(num_in_feats, num_out_feats, is_bias)
+        self._attention = nn.Parameter(torch.Tensor(2 * num_out_feats, 1))
+        nn.init.xavier_uniform_(self._attention.data, gain=1.414)
+        self._alpha = 0.2
+        self._leaky_relu = nn.LeakyReLU(self._alpha, inplace=True)
+        self._softmax = nn.Softmax(dim=1)
+
+    def forward(self, input: torch.Tensor, adjacency: torch.Tensor,
+                node2edge_in: torch.Tensor, node2edge_out: torch.Tensor) -> torch.Tensor:
+        num_nodes = adjacency.shape[0]
+
+        # Transform node activations Eq. (1)
+        hidden = torch.mm(input, self._weight_neighbour)
+
+        # Compute pairwise edge features (Terms inside Eq. (2))
+        hidden_in = Variable(torch.mm(node2edge_in, hidden), requires_grad=False)
+        hidden_out = Variable(torch.mm(node2edge_out, hidden), requires_grad=False)
+        hidden_edge = Variable(torch.cat([hidden_in, hidden_out], 1), requires_grad=False)
+
+        # Apply leakyReLU and weights for attention coefficients Eq.(2)
+        hidden_edge = self._leaky_relu(torch.matmul(hidden_edge, self._attention))
+
+        # Apply Softmax per node Eq.(3) (Sparse implementation)
+        num_neighs = (adjacency.coalesce().indices()[0] == 0).sum()
+        attention = Variable(self._softmax(hidden_edge.view(-1, num_neighs)).view(-1), requires_grad=False)
+
+        indexes = adjacency.coalesce().indices()
+        values = adjacency.coalesce().values()
+
+        # Weigh nodes with attention; done by weighting the adj entries
+        adjacency = torch.sparse.FloatTensor(indexes, values * attention, (num_nodes, num_nodes))
+
+        # Compute node updates with attention Eq. (4)
+        output = self._matrix_multiply.forward(adjacency, hidden)
         if self._bias is not None:
             return output + self._bias
         else:
@@ -229,7 +280,6 @@ class SparseMatrixMultiply(torch.autograd.Function):
             grad_matrix1 = torch.mm(grad_output, matrix2.t())
         if self.needs_input_grad[1]:
             grad_matrix2 = torch.mm(matrix1.t(), grad_output)
-
         return (grad_matrix1, grad_matrix2)
 
 
@@ -244,67 +294,3 @@ class LayerNorm(nn.Module):
         mean = input.mean(-1, keepdim=True)
         std = input.std(-1, keepdim=True)
         return self._gamma * (input - mean) / (std + _EPSILON) + self._beta
-
-
-class GraphAttentionLayer(nn.Module):
-    """
-    Simple Graph Attention Layer, with separate processing of self-connection.
-    Equation format from https://docs.dgl.ai/en/latest/tutorials/models/1_gnn/9_gat.html
-    """
-
-    def __init__(self, num_in_feats: int, num_out_feats: int, is_bias: bool = True) -> None:
-        super(GraphAttentionLayer, self).__init__()
-        self._num_in_feats = num_in_feats
-        self._num_out_feats = num_out_feats
-        self._weight_neighbour = nn.Parameter(torch.Tensor(num_in_feats, num_out_feats))
-        self._weight_self = nn.Parameter(torch.Tensor(num_in_feats, num_out_feats))
-        if is_bias:
-            self._bias = nn.Parameter(torch.Tensor(num_out_feats))
-        else:
-            self.register_parameter('bias', None)
-        self._reset_parameters()
-
-        self._attention = nn.Parameter(torch.Tensor(2 * num_out_feats, 1))
-        nn.init.xavier_uniform_(self._attention.data, gain=1.414)
-        self._alpha = 0.2
-        self._leaky_relu = nn.LeakyReLU(self._alpha, inplace=True)
-        self._softmax = nn.Softmax(dim=1)
-
-    def _reset_parameters(self) -> None:
-        stdv = 1.0 / math.sqrt(self._weight_neighbour.size(1))
-        self._weight_neighbour.data.uniform_(-stdv, stdv)
-        self._weight_self.data.uniform_(-stdv, stdv)
-        if self._bias is not None:
-            self._bias.data.uniform_(-stdv, stdv)
-
-    def forward(self, input: torch.Tensor, adjacency: torch.Tensor,
-                node2edge_in: torch.Tensor, node2edge_out: torch.Tensor) -> torch.Tensor:
-        num_nodes = adjacency.shape[0]
-
-        # Transform node activations Eq. (1)
-        hidden = torch.mm(input, self._weight_neighbour)
-
-        # Compute pairwise edge features (Terms inside Eq. (2))
-        hidden_in = Variable(torch.mm(node2edge_in, hidden), requires_grad=False)
-        hidden_out = Variable(torch.mm(node2edge_out, hidden), requires_grad=False)
-        hidden_edge = Variable(torch.cat([hidden_in, hidden_out], 1), requires_grad=False)
-
-        # Apply leakyReLU and weights for attention coefficients Eq.(2)
-        hidden_edge = self._leaky_relu(torch.matmul(hidden_edge, self._attention))
-
-        # Apply Softmax per node Eq.(3) (Sparse implementation)
-        num_neighs = (adjacency.coalesce().indices()[0] == 0).sum()
-        attention = Variable(self._softmax(hidden_edge.view(-1, num_neighs)).view(-1), requires_grad=False)
-
-        indexes = adjacency.coalesce().indices()
-        values = adjacency.coalesce().values()
-
-        # Weigh nodes with attention; done by weighting the adj entries
-        adjacency = torch.sparse.FloatTensor(indexes, values * attention, (num_nodes, num_nodes))
-
-        # Compute node updates with attention Eq. (4)
-        output = SparseMatrixMultiply()(adjacency, hidden)
-        if self._bias is not None:
-            return output + self._bias
-        else:
-            return output

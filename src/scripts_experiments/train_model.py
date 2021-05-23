@@ -13,7 +13,8 @@ from common.constant import BASEDIR, NAME_MODELSRUN_RELPATH, SIZE_IN_IMAGES, NAM
     FREQ_SAVE_CHECK_MODELS, FREQ_VALIDATE_MODELS, IS_USE_VALIDATION_DATA, IS_SHUFFLE_TRAINDATA, MANUAL_SEED_TRAIN, \
     NAME_REFERENCE_KEYS_PROCIMAGE_FILE, NAME_LOSSHISTORY_FILE, NAME_CONFIG_PARAMS_FILE, NAME_TRAINDATA_LOGFILE, \
     NAME_VALIDDATA_LOGFILE, TYPE_DNNLIB_USED, \
-    IS_MODEL_WITH_GNN, NAME_GNN_ADJACENCY_FILE, IS_GNN_ONTHEFLY_ADJACENCY, IS_GNN_WITH_ATTENTION
+    IS_MODEL_WITH_GNN, NAME_GNN_ADJACENCY_FILE, IS_GNN_ONTHEFLY_ADJACENCY, IS_GNN_LIMIT_CANDIT_NEIGHS_OTFADJ, \
+    IS_GNN_WITH_ATTENTION
 from common.functionutil import join_path_names, is_exist_file, update_filename, basename, basename_filenoext, \
     list_files_dir, get_substring_filename, str2bool, str2int, str2float, str2list_str, str2tuple_bool, str2tuple_int,\
     str2tuple_float, read_dictionary, read_dictionary_configparams, save_dictionary_configparams
@@ -111,11 +112,6 @@ def main(args):
     model_trainer = get_model_trainer()
 
     if not args.is_restart or (args.is_restart and args.is_restart_only_weights):
-        extra_args_model_with_gnn = {}
-        if args.is_model_with_gnn:
-            extra_args_model_with_gnn['is_gnn_onthefly_adjacency'] = args.is_gnn_onthefly_adjacency
-            extra_args_model_with_gnn['is_gnn_with_attention'] = args.is_gnn_with_attention
-
         model_trainer.create_network(type_network=args.type_network,
                                      size_image_in=args.size_in_images,
                                      num_featmaps_in=args.net_num_featmaps,
@@ -123,7 +119,9 @@ def main(args):
                                      num_classes_out=1,
                                      is_use_valid_convols=args.is_valid_convolutions,
                                      manual_seed=args.manual_seed_train,
-                                     extra_args_model_with_gnn=extra_args_model_with_gnn)
+                                     is_gnn_onthefly_adjacency=args.is_gnn_onthefly_adjacency,
+                                     is_gnn_limit_candit_neighs_otfadj=args.is_gnn_limit_candit_neighs_otfadj,
+                                     is_gnn_with_attention=args.is_gnn_with_attention)
         model_trainer.create_optimizer(type_optimizer=args.type_optimizer,
                                        learn_rate=args.learn_rate)
         model_trainer.create_loss(type_loss=args.type_loss,
@@ -132,6 +130,17 @@ def main(args):
         model_trainer.create_list_metrics(list_type_metrics=args.list_type_metrics,
                                           is_mask_to_region_interest=args.is_mask_region_interest)
         model_trainer.finalise_model()
+
+        if args.is_model_with_gnn:
+            path_gnn_adjacency_file = join_path_names(args.modelsdir, args.name_gnn_adjacency_file)
+
+            if args.is_restart and not args.is_gnn_onthefly_adjacency and not is_exist_file(path_gnn_adjacency_file):
+                message = 'File to load the graph adjacency \'%s\' does not exist...' % (path_gnn_adjacency_file)
+                catch_error_exception(message)
+
+            model_trainer.finalise_model_with_gnn(is_restart_model=args.is_restart,
+                                                  path_gnn_adjacency_file=path_gnn_adjacency_file,
+                                                  is_gnn_onthefly_adjacency=args.is_gnn_onthefly_adjacency)
 
     if args.is_restart:
         model_restart_file = join_path_names(models_path, args.restart_file)
@@ -163,18 +172,6 @@ def main(args):
                                    freq_validate_model=args.freq_validate_models,
                                    is_restart_model=args.is_restart)
     # model_trainer.summary_model()
-
-    if args.is_model_with_gnn:
-        pathfile_gnn_adjacency = join_path_names(args.modelsdir, args.name_gnn_adjacency_file)
-
-        if args.is_restart and \
-                not args.is_gnn_onthefly_adjacency and \
-                not is_exist_file(pathfile_gnn_adjacency):
-            message = 'File where to load the Graph Adjacency \'%s\' does not exist...' % (pathfile_gnn_adjacency)
-            catch_error_exception(message)
-
-        model_trainer.finalise_model_with_gnn(args.is_restart, pathfile_gnn_adjacency,
-                                              args.is_gnn_onthefly_adjacency, args.is_gnn_with_attention)
 
     # *****************************************************
 
@@ -309,6 +306,7 @@ if __name__ == "__main__":
     parser.add_argument('--is_model_with_gnn', type=str2bool, default=IS_MODEL_WITH_GNN)
     parser.add_argument('--name_gnn_adjacency_file', type=str, default=NAME_GNN_ADJACENCY_FILE)
     parser.add_argument('--is_gnn_onthefly_adjacency', type=str2bool, default=IS_GNN_ONTHEFLY_ADJACENCY)
+    parser.add_argument('--is_gnn_limit_candit_neighs_otfadj', type=str2bool, default=IS_GNN_LIMIT_CANDIT_NEIGHS_OTFADJ)
     parser.add_argument('--is_gnn_with_attention', type=str2bool, default=IS_GNN_WITH_ATTENTION)
     args = parser.parse_args()
 
@@ -361,6 +359,7 @@ if __name__ == "__main__":
             args.is_model_with_gnn = str2bool(input_args_file['is_model_with_gnn'])
             args.name_gnn_adjacency_file = str(input_args_file['name_gnn_adjacency_file'])
             args.is_gnn_onthefly_adjacency = str2bool(input_args_file['is_gnn_onthefly_adjacency'])
+            args.is_gnn_limit_candit_neighs_otfadj = str2bool(input_args_file['is_gnn_limit_candit_neighs_otfadj'])
             args.is_gnn_with_attention = str2bool(input_args_file['is_gnn_with_attention'])
 
     if args.type_generate_patches not in LIST_AVAIL_GENERATE_PATCHES_TRAINING:
@@ -376,6 +375,10 @@ if __name__ == "__main__":
 
     if args.is_model_with_gnn and TYPE_DNNLIB_USED == 'Keras':
         message = 'Models with Graph Neural Networks (GNNs) only implemented with Pytorch'
+        catch_error_exception(message)
+
+    if args.is_model_with_gnn and 'GNN' not in args.type_network:
+        message = 'Using Graph Neural Networks (GNNs). Please set a valid UNet-GNN model in input \'type_network\''
         catch_error_exception(message)
 
     print("Print input arguments...")

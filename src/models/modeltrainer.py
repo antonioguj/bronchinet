@@ -32,7 +32,9 @@ class ModelTrainerBase(object):
                        dropout_rate: float = 0.2,
                        is_use_batchnormalize: bool = False,
                        manual_seed: int = None,
-                       extra_args_model_with_gnn: Dict[str, Any] = None
+                       is_gnn_onthefly_adjacency: bool = False,
+                       is_gnn_limit_candit_neighs_otfadj: bool = False,
+                       is_gnn_with_attention: bool = False
                        ) -> None:
         if manual_seed is not None:
             self._set_manual_random_seed(manual_seed)
@@ -49,7 +51,9 @@ class ModelTrainerBase(object):
                                     is_use_dropout=is_use_dropout,
                                     dropout_rate=dropout_rate,
                                     is_use_batchnormalize=is_use_batchnormalize,
-                                    **extra_args_model_with_gnn)
+                                    is_gnn_onthefly_adjacency=is_gnn_onthefly_adjacency,
+                                    is_gnn_limit_candit_neighs_otfadj=is_gnn_limit_candit_neighs_otfadj,
+                                    is_gnn_with_attention=is_gnn_with_attention)
 
     def create_loss(self, type_loss: str, is_mask_to_region_interest: bool = False,
                     weight_combined_loss: float = 1.0) -> None:
@@ -75,13 +79,14 @@ class ModelTrainerBase(object):
     def finalise_model(self) -> None:
         raise NotImplementedError
 
-    def finalise_model_with_gnn(self, is_restart_model: bool, pathfile_gnn_adjacency: str,
-                                is_gnn_onthefly_adjacency: bool, is_gnn_with_attention: bool) -> None:
+    def finalise_model_with_gnn(self, is_restart_model: bool,
+                                path_gnn_adjacency_file: str,
+                                is_gnn_onthefly_adjacency: bool) -> None:
         if not is_gnn_onthefly_adjacency:
             if is_restart_model:
-                self._network.set_load_adjacency_data(pathfile_gnn_adjacency)
+                self._network.set_load_adjacency_data(path_gnn_adjacency_file)
             else:
-                self._network.set_build_adjacency_data(pathfile_gnn_adjacency)
+                self._network.set_build_adjacency_data(path_gnn_adjacency_file)
 
     def create_callbacks(self, models_path: str, losshist_filename: str, **kwargs) -> None:
         raise NotImplementedError

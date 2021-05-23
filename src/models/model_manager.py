@@ -19,7 +19,7 @@ if TYPE_DNNLIB_USED == 'Pytorch':
         FalseNegativeRate as FalseNegativeRate_train, \
         LIST_AVAIL_METRICS as LIST_AVAIL_METRICS_TRAIN
     from models.pytorch.networks import UNet, UNet3DOriginal, UNet3DGeneral, UNet3DPlugin, LIST_AVAIL_NETWORKS
-    from models.pytorch.gnns.networks import Unet3DGNNPlugin
+    from models.pytorch.gnns.networks import UNet3DGNNPlugin
     from models.pytorch.optimizers import get_sgd, get_sgdmom, get_rmsprop, get_adagrad, get_adadelta, get_adam, \
         LIST_AVAIL_OPTIMIZERS
     from models.pytorch.networkchecker import NetworkChecker
@@ -186,17 +186,23 @@ def get_network(type_network: str,
                             is_use_valid_convols=is_use_valid_convols)
 
     elif type_network == 'UNet3DGNNPlugin':
-        is_onthefly_adjacency = kwargs['is_gnn_onthefly_adjacency'] if 'is_gnn_onthefly_adjacency' in kwargs.keys() \
-            else False
-        is_gnn_with_attention = kwargs['is_gnn_with_attention'] if 'is_gnn_with_attention' in kwargs.keys() \
-            else False
+        print('Using joint model UNet3D + Graph Neural Networks (GNNs)...')
 
-        return Unet3DGNNPlugin(size_image_in,
+        is_gnn_onthefly_adjacency = \
+            kwargs['is_gnn_onthefly_adjacency'] if 'is_gnn_onthefly_adjacency' in kwargs.keys() else False
+        is_gnn_limit_candit_neighs_otfadj = \
+            kwargs['is_gnn_limit_candit_neighs_otfadj'] if 'is_gnn_limit_candit_neighs_otfadj' in kwargs.keys() \
+                else False
+        is_gnn_with_attention = \
+            kwargs['is_gnn_with_attention'] if 'is_gnn_with_attention' in kwargs.keys() else False
+
+        return UNet3DGNNPlugin(size_image_in,
                                num_featmaps_in=num_featmaps_in,
                                num_channels_in=num_channels_in,
                                num_classes_out=num_classes_out,
                                is_use_valid_convols=is_use_valid_convols,
-                               is_onthefly_adjacency=is_onthefly_adjacency,
+                               is_gnn_onthefly_adjacency=is_gnn_onthefly_adjacency,
+                               is_gnn_limit_candit_neighs_otfadj=is_gnn_limit_candit_neighs_otfadj,
                                is_gnn_with_attention=is_gnn_with_attention)
     else:
         message = 'Choice Network not found: \'%s\'. Networks available: \'%s\'' \
