@@ -47,8 +47,8 @@ class UNetGNN(UNet):
         self._gnn_module = None
 
         if self._is_use_valid_convols:
-            index_input_gnn_module = self._list_operation_names_layers_all.index('gnn_module') - 1
-            self._size_input_gnn_module = self._list_sizes_output_all_layers[index_input_gnn_module]
+            index_input_gnn_module = self._names_operations_layers_all.index('gnn_module') - 1
+            self._size_input_gnn_module = self._sizes_output_all_layers[index_input_gnn_module]
         else:
             self._size_input_gnn_module = tuple([elem // (self._num_levels - 1)**2 for elem in self._size_image_in])
 
@@ -166,15 +166,15 @@ class UNetGNN(UNet):
         node2edge_out = sparse_matrix_to_torch_sparse_tensor(node2edge_out)
         return (adjacency.cuda(), node2edge_in.cuda(), node2edge_out.cuda())
 
-    def _build_list_operation_names_layers(self) -> None:
+    def _build_names_operation_layers(self) -> None:
         if self._num_levels == 1:
-            self._list_operation_names_layers_all = ['convols'] * 2 + ['gnn_module'] + ['convols'] * 2 + ['classify']
+            self._names_operations_layers_all = ['convols'] * 2 + ['gnn_module'] + ['convols'] * 2 + ['classify']
 
         elif self._is_use_valid_convols \
                 and self._num_levels > self._num_levels_valid_convols:
             num_levels_nonpadded = self._num_levels_valid_convols
             num_levels_padded_exclast = self._num_levels - num_levels_nonpadded - 1
-            self._list_operation_names_layers_all = \
+            self._names_operations_layers_all = \
                 num_levels_nonpadded * (['convols'] * 2 + ['pooling']) \
                 + num_levels_padded_exclast * (['convols_padded'] * 2 + ['pooling']) \
                 + ['gnn_module'] \
@@ -182,7 +182,7 @@ class UNetGNN(UNet):
                 + num_levels_nonpadded * (['upsample'] + ['convols'] * 2) \
                 + ['classify']
         else:
-            self._list_operation_names_layers_all = \
+            self._names_operations_layers_all = \
                 (self._num_levels - 1) * (['convols'] * 2 + ['pooling']) \
                 + ['gnn_module'] \
                 + (self._num_levels - 1) * (['upsample'] + ['convols'] * 2) \
@@ -297,31 +297,31 @@ class UNet3DGNNPlugin(UNetGNN):
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
 
-        hidden_next = self._activation_hidden(self._convolution_down_lev1_1(input))
-        hidden_next = self._activation_hidden(self._convolution_down_lev1_2(hidden_next))
-        skipconn_lev1 = hidden_next
-        hidden_next = self._pooling_down_lev1(hidden_next)
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev1_1(input))
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev1_2(hidden_nxt))
+        hidden_skip_lev1 = hidden_nxt
+        hidden_nxt = self._pooling_down_lev1(hidden_nxt)
 
-        hidden_next = self._activation_hidden(self._convolution_down_lev2_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_down_lev2_2(hidden_next))
-        skipconn_lev2 = hidden_next
-        hidden_next = self._pooling_down_lev2(hidden_next)
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev2_1(hidden_nxt))
+        hidden_nxt = self._activation_hidden(self._convolution_down_lev2_2(hidden_nxt))
+        hidden_skip_lev2 = hidden_nxt
+        hidden_nxt = self._pooling_down_lev2(hidden_nxt)
 
-        hidden_next = self._gnn_module_forward(hidden_next)
-        hidden_next = self._upsample_up_lev3(hidden_next)
-
-        if self._is_use_valid_convols:
-            skipconn_lev2 = self._crop_image_3d(skipconn_lev2, self._list_sizes_crop_where_merge[1])
-        hidden_next = torch.cat([hidden_next, skipconn_lev2], dim=1)
-        hidden_next = self._activation_hidden(self._convolution_up_lev2_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_up_lev2_2(hidden_next))
-        hidden_next = self._upsample_up_lev2(hidden_next)
+        hidden_nxt = self._gnn_module_forward(hidden_nxt)
+        hidden_nxt = self._upsample_up_lev3(hidden_nxt)
 
         if self._is_use_valid_convols:
-            skipconn_lev1 = self._crop_image_3d(skipconn_lev1, self._list_sizes_crop_where_merge[0])
-        hidden_next = torch.cat([hidden_next, skipconn_lev1], dim=1)
-        hidden_next = self._activation_hidden(self._convolution_up_lev1_1(hidden_next))
-        hidden_next = self._activation_hidden(self._convolution_up_lev1_2(hidden_next))
+            hidden_skip_lev2 = self._crop_image_3d(hidden_skip_lev2, self._sizes_crop_where_merge[1])
+        hidden_nxt = torch.cat([hidden_nxt, hidden_skip_lev2], dim=1)
+        hidden_nxt = self._activation_hidden(self._convolution_up_lev2_1(hidden_nxt))
+        hidden_nxt = self._activation_hidden(self._convolution_up_lev2_2(hidden_nxt))
+        hidden_nxt = self._upsample_up_lev2(hidden_nxt)
 
-        output = self._activation_last(self._classification_last(hidden_next))
+        if self._is_use_valid_convols:
+            hidden_skip_lev1 = self._crop_image_3d(hidden_skip_lev1, self._sizes_crop_where_merge[0])
+        hidden_nxt = torch.cat([hidden_nxt, hidden_skip_lev1], dim=1)
+        hidden_nxt = self._activation_hidden(self._convolution_up_lev1_1(hidden_nxt))
+        hidden_nxt = self._activation_hidden(self._convolution_up_lev1_2(hidden_nxt))
+
+        output = self._activation_last(self._classification_last(hidden_nxt))
         return output

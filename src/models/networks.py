@@ -79,7 +79,7 @@ class ConvNetBase(NeuralNetwork):
             return self._get_size_output_upsample(size_input)
         elif name_operation == 'classify':
             return size_input
-        elif operation_name == 'gnn_module':
+        elif name_operation == 'gnn_module':
             return size_input
         else:
             raise NotImplementedError
