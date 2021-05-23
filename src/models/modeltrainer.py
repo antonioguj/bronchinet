@@ -1,5 +1,5 @@
 
-from typing import Tuple, List, Union, Dict, Any
+from typing import Tuple, List, Union
 import numpy as np
 
 from common.constant import TYPE_DNNLIB_USED

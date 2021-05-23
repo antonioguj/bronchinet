@@ -1,5 +1,5 @@
 
-CODEDIR = '/home/antonio/Codes/Antonio_repository/bronchinet/src/'
+CODEDIR = '/home/antonio/Codes/Antonio_repository/bronchinet_unet-gnn/src/'
 DATADIR = '/home/antonio/Data/EXACT_Testing/'
 BASEDIR = '/home/antonio/Results/AirwaySegmentation_EXACT/'
 
@@ -61,7 +61,7 @@ IS_MODEL_HALFPREC = False
 SIZE_IN_IMAGES = (252, 252, 252)
 MAX_TRAIN_IMAGES = 100
 MAX_VALID_IMAGES = 20
-TYPE_NETWORK = 'UNet3DPlugin'
+TYPE_NETWORK = 'UNet3DGNNPlugin'
 NET_NUM_FEATMAPS = 16
 TYPE_OPTIMIZER = 'Adam'
 LEARN_RATE = 1.0e-04
@@ -76,7 +76,7 @@ FREQ_VALIDATE_MODELS = 2
 IS_USE_VALIDATION_DATA = True
 IS_SHUFFLE_TRAINDATA = True
 MANUAL_SEED_TRAIN = None
-# MODELS WITH GNNS
+# FOR MODELS WITH GNNS
 IS_MODEL_WITH_GNN = True
 NAME_GNN_ADJACENCY_FILE = 'gnn_adjacency_matrix.npz'
 IS_GNN_ONTHEFLY_ADJACENCY = False

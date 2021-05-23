@@ -201,9 +201,9 @@ class OntheflyAdjacencyLimitCanditNeighbours(object):
             self._get_indexes_search_candit_neighbours(shape_volume, dist_max_candit_neighs, dist_jump_candit_nodes)
 
     def _get_indexes_search_candit_neighbours(self, shape_volume: Tuple[int, int, int],
-                                               dist_max_candit_neighs: int,
-                                               dist_jump_nodes_candit: int
-                                               ) -> np.array:
+                                              dist_max_candit_neighs: int,
+                                              dist_jump_nodes_candit: int
+                                              ) -> np.array:
         """
         Get the candidate indexes around each node of the image volume,
         within a cubic neighbourhood of size 'dist_max_candit_neighs' in each dir

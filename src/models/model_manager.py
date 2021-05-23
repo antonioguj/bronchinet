@@ -192,7 +192,7 @@ def get_network(type_network: str,
             kwargs['is_gnn_onthefly_adjacency'] if 'is_gnn_onthefly_adjacency' in kwargs.keys() else False
         is_gnn_limit_candit_neighs_otfadj = \
             kwargs['is_gnn_limit_candit_neighs_otfadj'] if 'is_gnn_limit_candit_neighs_otfadj' in kwargs.keys() \
-                else False
+            else False
         is_gnn_with_attention = \
             kwargs['is_gnn_with_attention'] if 'is_gnn_with_attention' in kwargs.keys() else False
 
