@@ -42,7 +42,7 @@ IS_MASK_REGION_INTEREST="True"
 IS_GENERATE_PATCHES="True"
 TYPE_GENERATE_PATCHES="random_window"
 PROP_OVERLAP_SLIDE_WINDOW="(0.25,0.0,0.0)"
-NUM_RANDOM_PATCHES_EPOCH="8"
+NUM_RANDOM_PATCHES_EPOCH="4"
 IS_TRANSFORM_IMAGES="True"
 TYPE_TRANSFORM_IMAGES="rigid_trans"
 TRANS_RIGID_ROTATION_RANGE="(10.0,7.0,7.0)"   # (plane_XY, plane_XZ, plane_YZ)
@@ -54,6 +54,10 @@ FREQ_SAVE_CHECK_MODELS="2"
 FREQ_VALIDATE_MODELS="2"
 IS_USE_VALIDATION_DATA="True"
 IS_SHUFFLE_TRAINDATA="True"
+IS_MODEL_WITH_GNN="True"
+IS_GNN_ONTHEFLY_ADJACENCY="False"
+IS_GNN_LIMIT_CANDIT_NEIGHS_OTFADJ="True"
+IS_GNN_WITH_ATTENTION="False"
 # --------
 
 python3 "${WORKDIR}/Code/scripts_experiments/train_model.py" \
@@ -86,6 +90,10 @@ python3 "${WORKDIR}/Code/scripts_experiments/train_model.py" \
 	--freq_save_check_models=${FREQ_SAVE_CHECK_MODELS} \
 	--freq_validate_models=${FREQ_VALIDATE_MODELS} \
 	--is_use_validation_data=${IS_USE_VALIDATION_DATA} \
-	--is_shuffle_traindata=${IS_SHUFFLE_TRAINDATA} #\
+	--is_shuffle_traindata=${IS_SHUFFLE_TRAINDATA} \
+	--is_model_with_gnn=${IS_MODEL_WITH_GNN} \
+	--is_gnn_onthefly_adjacency=${IS_GNN_ONTHEFLY_ADJACENCY} \
+	--is_gnn_limit_candit_neighs_otfadj=${IS_GNN_LIMIT_CANDIT_NEIGHS_OTFADJ} \
+	--is_gnn_with_attention=${IS_GNN_WITH_ATTENTION} #\
 	# --is_restart="True" \
 	# --in_config_file="${MODELS_DIR}/configparams.txt"
