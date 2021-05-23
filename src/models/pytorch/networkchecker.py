@@ -55,8 +55,7 @@ class NetworkChecker(NetworkCheckerBase):
         out_shape_featmaps = [num_patches, num_featmaps] + list(self._size_image)
         out_featmaps = np.zeros(out_shape_featmaps, dtype=np.float32)
 
-        self._network = self._network.eval()
-        self._network.preprocess(-1)
+        self._network = self._network.eval()    # switch to evaluate mode
 
         for i_img, x_image in enumerate(image_data_loader):
             x_image.cuda()

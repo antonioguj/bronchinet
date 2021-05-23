@@ -246,8 +246,7 @@ class ModelTrainer(ModelTrainerBase):
     def predict(self, test_data_loader: BatchDataGenerator) -> np.ndarray:
         self._test_data_loader = test_data_loader
 
-        self._network.eval()  # switch to evaluate mode
-        self._network.preprocess(-1)
+        self._network.eval()    # switch to evaluate mode
 
         output_prediction = self._run_prediction()
         return output_prediction
@@ -255,8 +254,7 @@ class ModelTrainer(ModelTrainerBase):
     def _run_epoch(self) -> None:
         # Run a train and validation pass on the current epoch
 
-        self._network.train()     # switch to train mode
-        self._network.preprocess(self._epoch_count)
+        self._network.train()   # switch to train mode
 
         if self._epoch_count == 0:
             self._run_callbacks_on_train_begin()
@@ -266,7 +264,7 @@ class ModelTrainer(ModelTrainerBase):
         if self._valid_data_loader is not None:
             if (self._epoch_count % self.freq_validate_model == 0) or (self._epoch_start_count == 0):
 
-                self._network.eval()  # switch to evaluate mode
+                self._network.eval()    # switch to evaluate mode
 
                 (valid_loss, valid_metrics) = self._validation_epoch()
 

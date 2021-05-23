@@ -40,9 +40,6 @@ class UNet(UNetBase, nn.Module):
         self._shape_input = ImagesUtil.get_shape_channels_first(self._shape_input)
         self._shape_output = ImagesUtil.get_shape_channels_first(self._shape_output)
 
-    def preprocess(self, *args, **kwargs) -> None:
-        pass
-
     def get_network_input_args(self) -> Dict[str, Any]:
         raise NotImplementedError
 
