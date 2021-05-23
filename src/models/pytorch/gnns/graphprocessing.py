@@ -6,7 +6,7 @@ import scipy.sparse as sp
 import torch
 from sklearn.metrics.pairwise import pairwise_distances
 
-# from models.pytorch.gnn.gnnutil import row_normalize, sparse_matrix_to_torch_sparse_tensor
+# from models.pytorch.gnns.gnnutil import row_normalize, sparse_matrix_to_torch_sparse_tensor
 
 torch.manual_seed(2017)
 

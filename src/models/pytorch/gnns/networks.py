@@ -8,9 +8,9 @@ import torch
 
 from common.exceptionmanager import catch_error_exception
 from models.pytorch.networks import UNet
-from models.pytorch.gnn.gnnmodules import NodeGNN, NodeGNNwithAttentionLayers
-from models.pytorch.gnn.gnnutil import sparse_matrix_to_torch_sparse_tensor
-from models.pytorch.gnn.graphprocessing import build_adjacency, compute_onthefly_adjacency, \
+from models.pytorch.gnns.gnnmodules import NodeGNN, NodeGNNwithAttentionLayers
+from models.pytorch.gnns.gnnutil import sparse_matrix_to_torch_sparse_tensor
+from models.pytorch.gnns.graphprocessing import build_adjacency, compute_onthefly_adjacency, \
     compute_onthefly_adjacency_with_attention, OntheflyAdjacencyLimitCanditsGenerator
 
 torch.manual_seed(2017)
@@ -66,19 +66,19 @@ class UNetGNN(UNet):
         if self._is_gnn_with_attention:
             print("And build matrices for attention layers...")
             (adjacency, node2edge_in, node2edge_out) = self._load_adjacency_matrix_with_attention(filename_adjacency)
-            self._gnn_module.preprocess(adjacency, node2edge_in, node2edge_out)
+            self._gnn_module.set_adjacency(adjacency, node2edge_in, node2edge_out)
         else:
-            self._gnn_module.preprocess(adjacency)
+            self._gnn_module.set_adjacency(adjacency)
 
     def set_load_adjacency_data(self, filename_adjacency: str) -> None:
         if self._is_gnn_with_attention:
             print("Loading adjacency and matrices for attention layers, from file: \'%s\'..." % (filename_adjacency))
             (adjacency, node2edge_in, node2edge_out) = self._load_adjacency_matrix_with_attention(filename_adjacency)
-            self._gnn_module.preprocess(adjacency, node2edge_in, node2edge_out)
+            self._gnn_module.set_adjacency(adjacency, node2edge_in, node2edge_out)
         else:
             print("Loading adjacency matrix, from file: \'%s\'..." % (filename_adjacency))
             adjacency = self._load_adjacency_matrix(filename_adjacency)
-            self._gnn_module.preprocess(adjacency)
+            self._gnn_module.set_adjacency(adjacency)
 
     def set_calcdata_onthefly_adjacency(self) -> None:
         index_input_gnn_module = self._list_operation_names_layers_all.index('gnn_module') - 1
@@ -88,6 +88,7 @@ class UNetGNN(UNet):
             print("Limit the neighbourhood of candidates when computing the adjacency to max. distance \'5\'...")
             self._onthefly_adjacency_generator = \
                 OntheflyAdjacencyLimitCanditsGenerator(shape_input_gnn_module, dist_max_candits_neighs=5)
+
             if self._is_gnn_with_attention:
                 print("Set on-the-fly calculator of adjacency and matrices for attention layers...")
                 self._func_calc_onthefly_adjacency = self._onthefly_adjacency_generator.compute_with_attention
@@ -267,7 +268,7 @@ class Unet3DGNNPlugin(UNetGNN):
         hidden_next = hidden_next.view(hid_shape[0], hid_shape[1], -1).view(-1, hid_shape[1])
         if self._is_onthefly_adjacency:
             adjacency_data = self._func_calc_onthefly_adjacency(hidden_next.data.cpu().numpy(), num_neighs=10)
-            self._gnn_module.preprocess(adjacency_data)
+            self._gnn_module.set_adjacency(adjacency_data)
         hidden_next = self._gnn_module(hidden_next)
         hidden_next = hidden_next.view(hid_shape[0], -1, hid_shape[2], hid_shape[3], hid_shape[4])
         torch.cuda.empty_cache()
