@@ -56,7 +56,7 @@ class NetworkChecker(NetworkCheckerBase):
         out_featmaps = np.zeros(out_shape_featmaps, dtype=np.float32)
 
         self._network = self._network.eval()
-        self._network.set_adjacency(-1)
+        self._network.preprocess(-1)
 
         for i_img, x_image in enumerate(image_data_loader):
             x_image.cuda()
