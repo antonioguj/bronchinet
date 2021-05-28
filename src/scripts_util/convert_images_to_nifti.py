@@ -8,9 +8,9 @@ from common.functionutil import makedir, removefile, removedir, join_path_names,
 from common.exceptionmanager import catch_error_exception
 from dataloaders.imagefilereader import ImageFileReader, NiftiReader, DicomReader
 
-bin_dicom2nifti = '/home/antonio/Libraries/mricron_dcm2niix/dcm2niix'
-bin_dicom2nifti_auxdecomp = 'dcmdjpeg'
-bin_hr22nifti = '/home/antonio/Codes/Silas_repository/image-feature-extraction/build/tools/ConvertHR2'
+BIN_DICOM2NIFTI = '/home/antonio/Libraries/mricron_dcm2niix/dcm2niix'
+BIN_DECOMPDICOM = 'dcmdjpeg'
+BIN_HR22NIFTI = '/home/antonio/Codes/Silas_repository/image-feature-extraction/build/tools/ConvertHR2'
 
 
 def main(args):
@@ -31,12 +31,12 @@ def main(args):
         tmpsubdir = join_path_names(args.input_dir, 'tmp')
         makedir(tmpsubdir)
 
-        if not is_exist_exec(bin_dicom2nifti):
-            message = 'Executable to convert dicom to nifti not found in: %s' % (bin_dicom2nifti)
+        if not is_exist_exec(BIN_DICOM2NIFTI):
+            message = 'Executable to convert dicom to nifti not found in: %s' % (BIN_DICOM2NIFTI)
             catch_error_exception(message)
 
-        if not is_exists_hexec(bin_dicom2nifti_auxdecomp):
-            message = 'Executable to decompress dicom not found in: %s' % (bin_dicom2nifti_auxdecomp)
+        if not is_exists_hexec(BIN_DECOMPDICOM):
+            message = 'Executable to decompress dicom not found in: %s' % (BIN_DECOMPDICOM)
             catch_error_exception(message)
 
     elif files_extension == '.hr2':
@@ -52,8 +52,8 @@ def main(args):
         list_reference_files = list_files_dir(args.input_refdir)
         pattern_search_infiles = get_regex_pattern_filename(list_reference_files[0])
 
-        if not is_exist_exec(bin_hr22nifti):
-            message = 'Executable to convert hr2 to nifti not found in: %s' % (bin_hr22nifti)
+        if not is_exist_exec(BIN_HR22NIFTI):
+            message = 'Executable to convert hr2 to nifti not found in: %s' % (BIN_HR22NIFTI)
             catch_error_exception(message)
     else:
         message = 'Extension file \'%s\' not known...' % (files_extension)
@@ -72,12 +72,12 @@ def main(args):
             in_tmp_file = join_path_names(tmpsubdir, tmpfile_template(in_file))
 
             # 1st step: decompress input dicom file
-            command_string = bin_dicom2nifti_auxdecomp + ' ' + in_file + ' ' + in_tmp_file
+            command_string = BIN_DECOMPDICOM + ' ' + in_file + ' ' + in_tmp_file
             print("%s" % (command_string))
             os.system(command_string)
 
             # 2nd step: convert decompressed dicom
-            command_string = bin_dicom2nifti + ' -o ' + args.output_dir + ' -f ' + case_file + ' -z y ' + in_tmp_file
+            command_string = BIN_DICOM2NIFTI + ' -o ' + args.output_dir + ' -f ' + case_file + ' -z y ' + in_tmp_file
             print("%s" % (command_string))
             os.system(command_string)
 
@@ -101,7 +101,7 @@ def main(args):
             ImageFileReader.write_image(out_file, out_image, metadata=metadata_affine)
 
         elif files_type == 'hr2':
-            command_string = bin_hr22nifti + ' ' + in_file + ' ' + out_file
+            command_string = BIN_HR22NIFTI + ' ' + in_file + ' ' + out_file
             print("%s" % (command_string))
             os.system(command_string)
 
