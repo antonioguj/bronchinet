@@ -89,7 +89,7 @@ class NiftiReader(ImageFileReader):
         return cls._update_affine_matrix(in_metadata, rescale_factor, translate_factor)
 
     @classmethod
-    def get_image(cls, filename: str, is_fix_from_dicom2niix: bool = False) -> np.ndarray:
+    def get_image(cls, filename: str) -> np.ndarray:
         out_image = nib.load(filename).get_data()
         return cls._fix_dims_image_read(out_image)
 
