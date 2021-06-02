@@ -117,16 +117,15 @@ def main(args):
     # *****************************************************
 
     # write out computed metrics in file
-    fout = open(args.output_file, 'w')
-    strheader = ', '.join(['/case/'] + ['/%s/' % (key) for key in list_metrics.keys()]) + '\n'
-    fout.write(strheader)
+    with open(args.output_file, 'w') as fout:
+        strheader = ', '.join(['/case/'] + ['/%s/' % (key) for key in list_metrics.keys()]) + '\n'
+        fout.write(strheader)
 
-    for (in_casename, outlist_calc_metrics) in outdict_calc_metrics.items():
-        list_write_data = [in_casename] + ['%0.6f' % (elem) for elem in outlist_calc_metrics]
-        strdata = ', '.join(list_write_data) + '\n'
-        fout.write(strdata)
-    # endfor
-    fout.close()
+        for (in_casename, outlist_calc_metrics) in outdict_calc_metrics.items():
+            list_write_data = [in_casename] + ['%0.6f' % (elem) for elem in outlist_calc_metrics]
+            strdata = ', '.join(list_write_data) + '\n'
+            fout.write(strdata)
+        # endfor
 
 
 if __name__ == "__main__":

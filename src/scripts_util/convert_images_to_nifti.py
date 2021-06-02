@@ -10,7 +10,7 @@ from dataloaders.imagefilereader import ImageFileReader, NiftiReader, DicomReade
 
 BIN_DICOM2NIFTI = '/home/antonio/Libraries/mricron_dcm2niix/dcm2niix'
 BIN_DECOMPDICOM = 'dcmdjpeg'
-BIN_HR22NIFTI = '/home/antonio/Codes/Silas_repository/image-feature-extraction/build/tools/ConvertHR2'
+BIN_HR22NIFTI = '/home/antonio/Libraries/image-feature-extraction/build/tools/ConvertHR2'
 
 
 def main(args):

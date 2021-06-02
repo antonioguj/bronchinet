@@ -12,8 +12,9 @@ def main(args):
         if not is_exist_file(args.list_input_files):
             message = "File \'%s\' not found..." % (args.list_input_files)
             catch_error_exception(message)
-        fout = open(args.list_input_files, 'r')
-        list_input_files = [infile.replace('\n', '') for infile in fout.readlines()]
+
+        with open(args.list_input_files, 'r') as fout:
+            list_input_files = [infile.replace('\n', '') for infile in fout.readlines()]
         print("\'input_files\' = %s" % (list_input_files))
     else:
         list_input_files = [infile.replace('\n', '') for infile in args.input_files]
@@ -90,20 +91,17 @@ def main(args):
         mean_data_fileslist = np.mean(list_data_files, axis=0)
 
         print("Save mean results in file: \'%s\'..." % (args.output_file))
-        fout = open(args.output_file, 'w')
+        with open(args.output_file, 'w') as fout:
 
-        strheader = ', '.join(header_1stfile) + '\n'
-        fout.write(strheader)
+            strheader = ', '.join(header_1stfile) + '\n'
+            fout.write(strheader)
 
-        num_rows = len(rows1elem_1stfile)
-
-        for i in range(num_rows - 1):
-            data_thisrow = mean_data_fileslist[i]
-            strdata = ', '.join([rows1elem_1stfile[i + 1]] + ['%0.6f' % (elem) for elem in data_thisrow]) + '\n'
-            fout.write(strdata)
-        # endfor
-
-        fout.close()
+            num_rows = len(rows1elem_1stfile)
+            for i in range(num_rows - 1):
+                data_thisrow = mean_data_fileslist[i]
+                strdata = ', '.join([rows1elem_1stfile[i + 1]] + ['%0.6f' % (elem) for elem in data_thisrow]) + '\n'
+                fout.write(strdata)
+            # endfor
 
 
 if __name__ == "__main__":

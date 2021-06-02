@@ -177,38 +177,34 @@ def main(args):
         # write out computed metrics in file
         out_results_filename = outfilename_metrics_eachcase % (casename)
         out_results_filename = join_path_names(output_files_path, out_results_filename)
-        if is_exist_file(out_results_filename):
-            fout = open(out_results_filename, 'a')
-        else:
-            fout = open(out_results_filename, 'w')
-            strheader = ', '.join(['/thres/'] + ['/%s/' % (key) for key in list_metrics.keys()]) + '\n'
-            fout.write(strheader)
+        if not is_exist_file(out_results_filename):
+            with open(out_results_filename, 'w') as fout:
+                strheader = ', '.join(['/thres/'] + ['/%s/' % (key) for key in list_metrics.keys()]) + '\n'
+                fout.write(strheader)
 
-        for (in_thres, outlist_calc_metrics) in outdict_calc_metrics.items():
-            list_write_data = ['%0.6f' % (in_thres)] + ['%0.6f' % (elem) for elem in outlist_calc_metrics]
-            strdata = ', '.join(list_write_data) + '\n'
-            fout.write(strdata)
-        # endfor
-        fout.close()
+        with open(out_results_filename, 'a') as fout:
+            for (in_thres, outlist_calc_metrics) in outdict_calc_metrics.items():
+                list_write_data = ['%0.6f' % (in_thres)] + ['%0.6f' % (elem) for elem in outlist_calc_metrics]
+                strdata = ', '.join(list_write_data) + '\n'
+                fout.write(strdata)
+            # endfor
     # endfor
 
     # Compute global metrics as mean over all files
     out_mean_allcases_calc_metrics = np.mean(out_calc_metrics_allcases, axis=0)
 
     out_filename = join_path_names(output_files_path, outfilename_metrics_meanall)
-    if is_exist_file(out_filename):
-        fout = open(out_filename, 'a')
-    else:
-        fout = open(out_filename, 'w')
-        strheader = ', '.join(['/thres/'] + ['/%s/' % (key) for key in list_metrics.keys()]) + '\n'
-        fout.write(strheader)
+    if not is_exist_file(out_filename):
+        with open(out_filename, 'w') as fout:
+            strheader = ', '.join(['/thres/'] + ['/%s/' % (key) for key in list_metrics.keys()]) + '\n'
+            fout.write(strheader)
 
-    for i, in_thres in enumerate(inlist_thresholds):
-        list_write_data = ['%0.6f' % (in_thres)] + ['%0.6f' % (elem) for elem in out_mean_allcases_calc_metrics[i]]
-        strdata = ', '.join(list_write_data) + '\n'
-        fout.write(strdata)
-    # endfor
-    fout.close()
+    with open(out_filename, 'a') as fout:
+        for i, in_thres in enumerate(inlist_thresholds):
+            list_write_data = ['%0.6f' % (in_thres)] + ['%0.6f' % (elem) for elem in out_mean_allcases_calc_metrics[i]]
+            strdata = ', '.join(list_write_data) + '\n'
+            fout.write(strdata)
+        # endfor
 
 
 if __name__ == "__main__":

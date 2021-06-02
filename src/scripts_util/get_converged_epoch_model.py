@@ -54,19 +54,18 @@ def main(args):
 
     if args.is_output_aver_loss and args.is_move_aver:
         print("Write out the computed moving average of the losses in file: %s...\n" % (out_aver_losshist_filename))
-        fout = open(out_aver_losshist_filename, 'w')
+        with open(out_aver_losshist_filename, 'w') as fout:
 
-        with open(args.input_loss_file, 'r') as infile:
-            header_line = infile.readline()
-            fout.write(header_line)
+            with open(args.input_loss_file, 'r') as infile:
+                header_line = infile.readline()
+                fout.write(header_line)
 
-        num_aver_epochs = len(epochs)
-        for i in range(num_aver_epochs):
-            list_strdata = ['%d' % (epochs[i])] + ['%0.6f' % (elem) for elem in list(data_fields[i, :])]
-            writeline = ' '.join(list_strdata) + '\n'
-            fout.write(writeline)
-        # endfor
-        fout.close()
+            num_aver_epochs = len(epochs)
+            for i in range(num_aver_epochs):
+                list_strdata = ['%d' % (epochs[i])] + ['%0.6f' % (elem) for elem in list(data_fields[i, :])]
+                writeline = ' '.join(list_strdata) + '\n'
+                fout.write(writeline)
+            # endfor
 
     # ******************************
 

@@ -24,7 +24,7 @@ def main(args):
         str_out_image_size = ' '.join([str(elem) for elem in out_image_size])
         name_raw_file = basename_filenoext(in_file) + '.raw'
 
-        # contruct mhd header file
+        # construct mhd header file
         str_info = 'ObjectType = Image\n'
         str_info += 'NDims = %s\n' % (ndims)
         str_info += 'BinaryData = True\n'
@@ -35,9 +35,8 @@ def main(args):
         out_file = join_path_names(args.output_dir, names_output_files(in_file))
         print("Output: \'%s\'..." % (basename(out_file)))
 
-        fout = open(out_file, 'w')
-        fout.write(str_info)
-        fout.close()
+        with open(out_file, 'w') as fout:
+            fout.write(str_info)
     # endfor
 
 
