@@ -39,17 +39,15 @@ class RecordLossHistoryBase(CallbackBase):
         list_names_header = ['/epoch/'] + ['/%s/' % (elem) for elem in self._names_hist_fields]
         str_header = ' '.join(list_names_header) + '\n'
 
-        fout = open(self._loss_filename, 'w')
-        fout.write(str_header)
-        fout.close()
+        with open(self._loss_filename, 'w') as fout:
+            fout.write(str_header)
 
     def on_epoch_end(self, epoch: int, data_output: List[float]) -> None:
         list_data_line = ['%d' % (epoch + 1)] + ['%0.6f' % (elem) for elem in data_output]
         str_data_line = ' '.join(list_data_line) + '\n'
 
-        fout = open(self._loss_filename, 'a')
-        fout.write(str_data_line)
-        fout.close()
+        with open(self._loss_filename, 'a') as fout:
+            fout.write(str_data_line)
 
 
 class EarlyStoppingBase(CallbackBase):
