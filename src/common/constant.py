@@ -1,5 +1,5 @@
 
-CODEDIR = '/home/antonio/Codes/Antonio_repository/mri_enhance/src/'
+CODEDIR = '/home/antonio/Codes/mri_enhance/src/'
 DATADIR = '/home/antonio/Data/MRIenhance_GRASE2CUBE_Processed/'
 # DATADIR = '/data/scratch/agarcia/Data/MRIenhance/'         # cluster
 BASEDIR = '/home/antonio/Results/MRIenhanceTests/'
