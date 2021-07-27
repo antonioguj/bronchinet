@@ -259,7 +259,7 @@ class RescaleImage(ImageOperator):
                                 preserve_range=True, multichannel=False, anti_aliasing=True)
             if is_binary_output:
                 # remove noise due to interpolation
-                thres_remove_noise = 0.1
+                thres_remove_noise = 0.5
                 return ThresholdImage.compute(out_image, thres_val=thres_remove_noise)
             else:
                 return out_image
@@ -311,7 +311,7 @@ class ThresholdImage(ImageOperator):
     @classmethod
     def compute(cls, in_image: np.ndarray, *args, **kwargs) -> np.ndarray:
         thres_val = args[0]
-        return np.where(in_image > thres_val, cls._mask_val, cls._backgrnd_val).astype(np.uint8)
+        return np.where(in_image > thres_val, cls._mask_val, cls._backgrnd_val).astype(np.int16)
 
 
 class ThinningMask(ImageOperator):
