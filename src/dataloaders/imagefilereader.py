@@ -94,7 +94,11 @@ class NiftiReader(ImageFileReader):
 
     @classmethod
     def write_image(cls, filename: str, in_image: np.ndarray, **kwargs) -> None:
-        affine = kwargs['metadata'] if 'metadata' in kwargs.keys() else None
+        if 'metadata' in kwargs.keys():
+            affine = kwargs['metadata']
+            affine = cls._fix_dims_affine_matrix(affine)
+        else:
+            affine = None
         in_image = cls._fix_dims_image_write(in_image)
         nib_image = nib.Nifti1Image(in_image, affine)
         nib.save(nib_image, filename)
