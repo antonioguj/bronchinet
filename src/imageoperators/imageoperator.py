@@ -249,7 +249,7 @@ class RescaleImage(ImageOperator):
 
     @staticmethod
     def _compute(in_image: np.ndarray,
-                 scale_factor: Union[Tuple[int, int, int], Tuple[int, int]],
+                 scale_factor: Union[Tuple[float, float, float], Tuple[float, float]],
                  order: int = _order_default,
                  is_inlabels: bool = False,
                  is_binary_output: bool = False
