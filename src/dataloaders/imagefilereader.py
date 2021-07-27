@@ -79,14 +79,13 @@ class NiftiReader(ImageFileReader):
         return tuple(np.abs(np.diag(affine)[:3]))
 
     @classmethod
-    def get_image_metadata_info(cls, filename: str) -> Any:
-        return cls._get_image_affine_matrix(filename)
+    def _get_image_affine_matrix(cls, filename: str) -> np.ndarray:
+        affine = nib.load(filename).affine
+        return cls._fix_dims_affine_matrix(affine)
 
     @classmethod
-    def update_image_metadata_info(cls, in_metadata: Any, **kwargs) -> Any:
-        rescale_factor = kwargs['rescale_factor'] if 'rescale_factor' in kwargs.keys() else None
-        translate_factor = kwargs['translate_factor'] if 'translate_factor' in kwargs.keys() else None
-        return cls._update_affine_matrix(in_metadata, rescale_factor, translate_factor)
+    def get_image_metadata_info(cls, filename: str) -> Any:
+        return cls._get_image_affine_matrix(filename)
 
     @classmethod
     def get_image(cls, filename: str) -> np.ndarray:
@@ -95,21 +94,27 @@ class NiftiReader(ImageFileReader):
 
     @classmethod
     def write_image(cls, filename: str, in_image: np.ndarray, **kwargs) -> None:
-        affine = kwargs['metadata'] if 'metadata' in kwargs.keys() else None
+        if 'metadata' in kwargs.keys():
+            affine = kwargs['metadata']
+            affine = cls._fix_dims_affine_matrix(affine)
+        else:
+            affine = None
         in_image = cls._fix_dims_image_write(in_image)
         nib_image = nib.Nifti1Image(in_image, affine)
         nib.save(nib_image, filename)
 
-    @staticmethod
-    def _get_image_affine_matrix(filename: str) -> np.ndarray:
-        return nib.load(filename).affine
+    @classmethod
+    def update_image_metadata_info(cls, in_metadata: Any, **kwargs) -> Any:
+        rescale_factor = kwargs['rescale_factor'] if 'rescale_factor' in kwargs.keys() else None
+        translate_factor = kwargs['translate_factor'] if 'translate_factor' in kwargs.keys() else None
+        return cls._update_affine_matrix(in_metadata, rescale_factor, translate_factor)
 
     @staticmethod
     def _compute_affine_matrix(image_voxelsize: Tuple[float, float, float],
                                image_position: Tuple[float, float, float],
                                # image_rotation: : Tuple[float, float, float]
                                ) -> np.ndarray:
-        # Consider affine transformations composed of rescaling and translation, for the moment
+        # Consider only affine transformations of rescaling and translation
         affine = np.eye(4)
         if image_voxelsize is not None:
             np.fill_diagonal(affine[:3, :3], image_voxelsize)
@@ -123,7 +128,7 @@ class NiftiReader(ImageFileReader):
                               translate_factor: Tuple[float, float, float],
                               # rotate_factor: Tuple[float, float, float]
                               ) -> np.ndarray:
-        # Consider affine transformations composed of rescaling and translation, for the moment
+        # Consider only affine transformations of rescaling and translation
         if rescale_factor is not None:
             rescale_matrix = np.eye(rescale_factor + (1,))
             inout_affine = np.dot(inout_affine, rescale_matrix)
@@ -133,26 +138,26 @@ class NiftiReader(ImageFileReader):
 
     @staticmethod
     def _fix_dims_affine_matrix(inout_affine: np.ndarray) -> np.ndarray:
-        # Change dimensions from (dz, dx, dy) to (dx, dy, dz) (nifty format)
+        # Change dims from (dx, dy, dz) to (dz, dx, dy)
         # inout_affine[[0, 1, 2], :] = inout_affine[[1, 2, 0], :]
         # inout_affine[:, [0, 1, 2]] = inout_affine[:, [1, 2, 0]]
-        # Change dimensions from (dz, dy, dz) to (dx, dy, dz) (nifty format)
+        # Change dims from (dx, dy, dz) to (dz, dy, dx)
         inout_affine[[0, 2], :] = inout_affine[[2, 0], :]
         inout_affine[:, [0, 2]] = inout_affine[:, [2, 0]]
         return inout_affine
 
     @staticmethod
     def _fix_dims_image_read(in_image: np.ndarray) -> np.ndarray:
-        # Roll image dimensions from (dz, dx, dy) to (dx, dy, dz) (nifty format)
+        # Roll dims from (dx, dy, dz) to (dz, dx, dy)
         # return np.rollaxis(in_image, 2, 0)
-        # Roll image dimensions from (dz, dy, dx) to (dx, dy, dz) (nifty format)
+        # Roll dims from (dx, dy, dz) to (dz, dy, dx)
         return np.swapaxes(in_image, 0, 2)
 
     @staticmethod
     def _fix_dims_image_write(in_image: np.ndarray) -> np.ndarray:
-        # Roll image dimensions from (dz, dx, dy) to (dx, dy, dz) (nifty format)
+        # Roll dims from (dz, dx, dy) to (dx, dy, dz)
         # return np.rollaxis(in_image, 0, 3)
-        # Roll image dimensions from (dz, dy, dx) to (dx, dy, dz) (nifty format)
+        # Roll dims from (dz, dy, dx) to (dx, dy, dz)
         return np.swapaxes(in_image, 0, 2)
 
     @staticmethod
@@ -183,27 +188,11 @@ class DicomReader(ImageFileReader):
                 float(ds.PixelSpacing[0]),
                 float(ds.PixelSpacing[1]))
 
-    @staticmethod
-    def get_dicom_header(filename: str, is_return_tags_description: bool = False) -> Any:
-        header_read = pydicom.read_file(filename)
-        if is_return_tags_description:
-            return {key: (header_read[key].repval, header_read[key].name) for key in header_read.keys()}
-        else:
-            return {key: header_read[key].repval for key in header_read.keys()}
-
     @classmethod
     def get_image_metadata_info(cls, filename: str) -> Any:
         image_read = sitk.ReadImage(filename)
         metadata_keys = image_read.GetMetaDataKeys()
         return {key: image_read.GetMetaData(key) for key in metadata_keys}
-
-    @classmethod
-    def update_image_metadata_info(cls, in_metadata: Any, **kwargs) -> Any:
-        if 'target_metadata' in kwargs.keys():
-            target_metadata = kwargs['target_metadata']
-            return cls._update_headertags_physical_info(in_metadata, target_metadata)
-        else:
-            return None
 
     @classmethod
     def get_image(cls, filename: str) -> np.ndarray:
@@ -220,6 +209,22 @@ class DicomReader(ImageFileReader):
             for (key, val) in dict_metadata.items():
                 image_write.SetMetaData(key, val)
         sitk.WriteImage(image_write, filename)
+
+    @classmethod
+    def update_image_metadata_info(cls, in_metadata: Any, **kwargs) -> Any:
+        if 'target_metadata' in kwargs.keys():
+            target_metadata = kwargs['target_metadata']
+            return cls._update_headertags_physical_info(in_metadata, target_metadata)
+        else:
+            return None
+
+    @staticmethod
+    def get_dicom_header(filename: str, is_return_tags_description: bool = False) -> Any:
+        header_read = pydicom.read_file(filename)
+        if is_return_tags_description:
+            return {key: (header_read[key].repval, header_read[key].name) for key in header_read.keys()}
+        else:
+            return {key: header_read[key].repval for key in header_read.keys()}
 
     @classmethod
     def write_image_old(cls, filename: str, in_image: np.ndarray, dsref_image) -> None:

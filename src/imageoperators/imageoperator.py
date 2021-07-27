@@ -249,7 +249,7 @@ class RescaleImage(ImageOperator):
 
     @staticmethod
     def _compute(in_image: np.ndarray,
-                 scale_factor: Union[Tuple[int, int, int], Tuple[int, int]],
+                 scale_factor: Union[Tuple[float, float, float], Tuple[float, float]],
                  order: int = _order_default,
                  is_inlabels: bool = False,
                  is_binary_output: bool = False
@@ -259,7 +259,7 @@ class RescaleImage(ImageOperator):
                                 preserve_range=True, multichannel=False, anti_aliasing=True)
             if is_binary_output:
                 # remove noise due to interpolation
-                thres_remove_noise = 0.1
+                thres_remove_noise = 0.5
                 return ThresholdImage.compute(out_image, thres_val=thres_remove_noise)
             else:
                 return out_image
@@ -305,13 +305,13 @@ class FlipImage(ImageOperator):
 
 
 class ThresholdImage(ImageOperator):
-    _value_mask = 1
-    _value_backgrnd = 0
+    _mask_val = 1
+    _backgrnd_val = 0
 
     @classmethod
     def compute(cls, in_image: np.ndarray, *args, **kwargs) -> np.ndarray:
-        value_threshold = args[0]
-        return np.where(in_image > value_threshold, cls._value_mask, cls._value_backgrnd).astype(np.uint8)
+        thres_val = args[0]
+        return np.where(in_image > thres_val, cls._mask_val, cls._backgrnd_val).astype(np.int16)
 
 
 class ThinningMask(ImageOperator):
