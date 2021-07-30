@@ -36,14 +36,14 @@ COPY ["./src/", "./src/"]
 
 ARG MODELDIR=./models/
 # used-defined variable in docker build (--build-arg MODELDIR=<desired_value>)
-#  default value "./models/"
+#   default value "./models/"
 
 WORKDIR /workdir
 
 COPY ["${MODELDIR}", "./models/"]
 # destination path now relative to new WORKDIR="/workdir/"
 
-RUN mkdir "./output_results/"
+RUN ln -s "/opt/bronchinet/src" "./Code"
 
 
 # 5. FINALISE
@@ -52,7 +52,7 @@ RUN mkdir "./output_results/"
 #RUN apt-get install -y vim
 #ENTRYPOINT ["/bin/bash"]
 
-ENTRYPOINT ["python3", "/opt/bronchinet/src/scripts_launch/launch_predictions_full.py"]
+ENTRYPOINT ["/bin/bash", "./models/run_trained_model.sh"]
 
-CMD ["./models/model_evalEXACT.pt", "./output_results/", "--testing_datadir=./inputdata/"]
+#CMD ["./output_results/", "--testing_datadir=./inputdata/"]
 # used-defined variables in docker run

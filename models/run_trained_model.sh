@@ -1,116 +1,114 @@
 #!/bin/bash
 
-# SETTINGS (TO CHANGE BY THE USER)
-# --------
+# USER-DEFINED SETTINGS
+val_thres_probs="0.1"           # value to threshold probability maps
+is_conn_binmasks="True"         # compute first connected component from airway segmentation ?
+is_mask_lungs="True"            # mask output probability maps to lung mask, to remove noise ?
+is_coarse_airways="True"        # include mask of coarse airways (trachea & main bronchi) ?
+
+
+input_data_dir=$1
+output_dir=$2
+workdir="/workdir/"	# working dir set in docker, otherwise indicate your own path
+
+# paths to input data needed / output results
+in_images_dir="${input_data_dir}/Images/"
+in_lungmasks_dir="${input_data_dir}/Lungs/"
+in_coarseairways_dir="${input_data_dir}/CoarseAirways/"
+in_model_file="${workdir}/models/model_evalEXACT.pt"
+in_config_file="${workdir}/models/configparams.txt"
+
+if [ ! -d "$output_dir" ] 
+then
+    mkdir -p $output_dir
+fi
+
+
+# needed to test directly from input CT scans (without running script "<>/prepareData.py")
 #
-# PATHS TO THE REPO AND YOUR WORK DIRECTORY
-CODEDIR="/home/antonio/Codes/bronchinet/"
-WORKDIR="/home/antonio/Results/Bronchinet_Test/"
+basedatadir="${workdir}/BaseData/"	# dummy, not used, but code complains otherwise
+in_testdata_dir="${workdir}/TestingData/"
+in_referkeys_file="${workdir}/referenceKeys.csv"
 
-VAL_THRES_PROBS="0.1"		# VALUE TO THRESHOLD PROB MAPS
-IS_CONN_BINMASKS="True"		# COMPUTE CONNECTED COMPONENT OF BINARY MASK ?
-IS_MASK_LUNGS="True"		# MASK OUTPUT PROB MAPS TO LUNG MASK TO REMOVE NOISE ?
-IS_COARSE_AIRWAYS="True"	# INCLUDE MASK OF COARSE AIRWAYS (TRACHEA & MAIN BRONCHI) ?
-
-# PATH TO THE INPUT TEST IMAGES / OUTPUT PREDICTIONS
-INPUT_IMAGES_DIR="${WORKDIR}/InputImages/"
-OUTPUT_DIR="${WORKDIR}/Output_Predictions/"
-
-# PATH TO THE LUNG MASKS AND COARSE AIRWAYS (IN CASE IT'S USED) FOR ALL TEST DATA
-INPUT_LUNGMASKS_DIR="${WORKDIR}/Lungs/"
-INPUT_COARSEAIRWAYS_DIR="${WORKDIR}/CoarseAirways/"
-# --------
-
-
-export PYTHONPATH="${CODEDIR}/src/:${PYTHONPATH}"
-
-MODEL_TEST="${CODEDIR}/models/model_evalEXACT.pt"
-CONFIG_FILE="${CODEDIR}/models/configparams.txt"
-
-mkdir -p $OUTPUT_DIR
-
-
-# NEEDED WHEN TESTING DIRECTLY FROM INPUT CT SCANS (WITHOUT RUNNING SCRIPT "<>/prepareData.py")
-#
-BASEDATADIR="${WORKDIR}/BaseData/"		# DUMMY, NOT USED, BUT CODE COMPLAINS OTHERWISE
-INPUT_TESTDATA_DIR="${WORKDIR}/TestingData/"
-INPUT_REFERKEYS_FILE="${WORKDIR}/referenceKeys.csv"
-
-mkdir -p $BASEDATADIR
-mkdir -p $INPUT_TESTDATA_DIR
-touch $INPUT_REFERKEYS_FILE
+mkdir -p $basedatadir
+mkdir -p $in_testdata_dir
+touch $in_referkeys_file
 
 echo "Create links to input images in directory: ./TestingData/..."
 
-LIST_INPUT_FILES=$(find $INPUT_IMAGES_DIR -type f | sort -n)
+list_in_images=$(find $in_images_dir -type f | sort -n)
 
-COUNT="1"
-for IN_FILE in $LIST_INPUT_FILES
+count="1"
+for in_file in $list_in_images
 do
-    OUT_LINK_FILE=$(printf "${INPUT_TESTDATA_DIR}/images_proc-%02i.nii.gz" "$COUNT")
+    in_link_file=$(printf "${in_testdata_dir}/images_proc-%02i.nii.gz" "$count")
 
-    # CREATE LINK TO INPUT FILE
-    echo "$IN_FILE --> ${OUT_LINK_FILE}"
-    ln -s $IN_FILE $OUT_LINK_FILE
+    # create link to input image
+    echo "$in_file --> ${in_link_file}"
+    ln -s $in_file $in_link_file
 
-    # APPEND NEW REFER_KEY IN FILE
-    echo "$(basename ${OUT_LINK_FILE%.nii.gz}),$(basename $IN_FILE)" >> $INPUT_REFERKEYS_FILE
+    # append new reference key
+    echo "$(basename ${in_link_file%.nii.gz}),$(basename $in_file)" >> $in_referkeys_file
 
-    COUNT=$((COUNT+1))
+    count=$((count+1))
 done
 
 echo ""
 # ----------
 
 
-python3 "${CODEDIR}/src/scripts_experiments/predict_model.py" ${MODEL_TEST} \
-        --basedir=${WORKDIR} \
-        --in_config_file=${CONFIG_FILE} \
-        --testing_datadir=${INPUT_TESTDATA_DIR} \
-	--name_output_predictions_relpath="${OUTPUT_DIR}/PosteriorsWorkData/" \
-	--name_input_reference_keys_file=${INPUT_REFERKEYS_FILE} \
-        --name_output_reference_keys_file="${OUTPUT_DIR}/referenceKeys_posteriors.npy" \
+# 1. Compute predictions of probability maps from the trained model
+python3 "${workdir}/Code/src/scripts_experiments/predict_model.py" ${in_model_file} \
+        --basedir=${workdir} \
+        --in_config_file=${in_config_file} \
+        --testing_datadir=${in_testdata_dir} \
+	--name_output_predictions_relpath="${output_dir}/PosteriorsWorkData/" \
+	--name_input_reference_keys_file=${in_referkeys_file} \
+        --name_output_reference_keys_file="${output_dir}/referenceKeys_posteriors.npy" \
         --is_backward_compat="True"
 echo ""
 
 
-python3 "${CODEDIR}/src/scripts_evalresults/postprocess_predictions.py" \
-        --basedir=${WORKDIR} \
-	--is_mask_region_interest=${IS_MASK_LUNGS} \
+# 2. Compute full-size probability maps from the cropped prob maps
+python3 "${workdir}/Code/src/scripts_evalresults/postprocess_predictions.py" \
+        --basedir=${workdir} \
+	--is_mask_region_interest=${is_mask_lungs} \
         --is_crop_images="False" \
-	--name_input_predictions_relpath="${OUTPUT_DIR}/PosteriorsWorkData/" \
-        --name_output_posteriors_relpath="${OUTPUT_DIR}/Posteriors/" \
-	--name_input_reference_files_relpath=${INPUT_IMAGES_DIR} \
-	--name_input_reference_keys_file="${OUTPUT_DIR}/referenceKeys_posteriors.npy" \
-	--name_input_roimasks_relpath=${INPUT_LUNGMASKS_DIR}
+	--name_input_predictions_relpath="${output_dir}/PosteriorsWorkData/" \
+        --name_output_posteriors_relpath="${output_dir}/Posteriors/" \
+	--name_input_reference_files_relpath=${in_images_dir} \
+	--name_input_reference_keys_file="${output_dir}/referenceKeys_posteriors.npy" \
+	--name_input_roimasks_relpath=${in_lungmasks_dir}
 echo ""
 
 
-python3 "${CODEDIR}/src/scripts_evalresults/process_predicted_airway_tree.py" \
-	--basedir=${WORKDIR} \
-	--post_threshold_value=${VAL_THRES_PROBS} \
-	--is_attach_coarse_airways=${IS_COARSE_AIRWAYS} \
-	--name_input_posteriors_relpath="${OUTPUT_DIR}/Posteriors/" \
-	--name_output_binary_masks_relpath="${OUTPUT_DIR}/BinaryMasks/" \
-	--name_input_reference_keys_file=${INPUT_REFERKEYS_FILE} \
-	--name_input_coarse_airways_relpath=${INPUT_COARSEAIRWAYS_DIR}
+# 3. Compute binary segmentation from the full-size probability maps
+python3 "${workdir}/Code/src/scripts_evalresults/process_predicted_airway_tree.py" \
+	--basedir=${workdir} \
+	--post_threshold_value=${val_thres_probs} \
+	--is_attach_coarse_airways=${is_coarse_airways} \
+	--name_input_posteriors_relpath="${output_dir}/Posteriors/" \
+	--name_output_binary_masks_relpath="${output_dir}/BinaryMasks/" \
+	--name_input_reference_keys_file=${in_referkeys_file} \
+	--name_input_coarse_airways_relpath=${in_coarseairways_dir}
 echo ""
 
 
-if [ "$IS_CONN_BINMASKS" == "True" ]
+# 4. Compute first connected component from the binary segmentation
+if [ "$is_conn_binmasks" == "True" ]
 then
-    python3 "${CODEDIR}/src/scripts_util/apply_operation_images.py" "${OUTPUT_DIR}/BinaryMasks/" "${OUTPUT_DIR}/BinaryMasks_Connected/" \
+    python3 "${workdir}/Code/scripts_util/apply_operation_images.py" "${output_dir}/BinaryMasks/" "${output_dir}/BinaryMasks_Connected/" \
 	    --type="firstconreg" \
 	    --in_conreg_dim="1"
     echo ""
 
-    rm -r "${OUTPUT_DIR}/BinaryMasks/" && mv "${OUTPUT_DIR}/BinaryMasks_Connected/" "${OUTPUT_DIR}/BinaryMasks/"
+    rm -r "${output_dir}/BinaryMasks/" && mv "${output_dir}/BinaryMasks_Connected/" "${output_dir}/BinaryMasks/"
 fi
 
 
-# CLEAN-UP TEMPO DATA
-rm -r $BASEDATADIR
-rm -r $INPUT_TESTDATA_DIR
-rm $INPUT_REFERKEYS_FILE
-rm -r "${OUTPUT_DIR}/PosteriorsWorkData/"
-rm "${OUTPUT_DIR}/referenceKeys_posteriors.npy" "${OUTPUT_DIR}/referenceKeys_posteriors.csv"
+# clean-up tempo data
+rm -r $basedatadir
+rm -r $in_testdata_dir
+rm $in_referkeys_file
+rm -r "${output_dir}/PosteriorsWorkData/"
+rm "${output_dir}/referenceKeys_posteriors.npy" "${output_dir}/referenceKeys_posteriors.csv"
