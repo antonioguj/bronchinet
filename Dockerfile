@@ -1,37 +1,58 @@
 
-# 1. Setup base image
+# 1. SETUP BASE IMAGE
+# --------
 FROM nvidia/cuda:10.2-base-ubuntu18.04
+# search in nvidia dockerhub
 
-# 2. Setup base linux requirements
+
+# 2. SETUP BASE LINUX REQUIREMENTS
+# --------
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends python3.8 python3-pip python3-setuptools && \
     apt-get clean
+# "--no-install-recommends" to avoid not-needed dependencies and create a light image
+# "apt-get clean" to clean up cache and reduce image size
 
-# 3. Setup python requirements
+
+# 3. SETUP PYTHON REQUIREMENTS
+# --------
 WORKDIR /opt/bronchinet
-# the docker daemon is in the root of this repository. The builder is in "/opt/bronchinet"
+
 COPY ["./requirements.txt", "./setup.py", "./"]
+# copy files from local dir (this repository) to inside the container
+#   destination path relative to WORKDIR
 
 RUN /usr/bin/python3 -m pip install --upgrade pip && \
     pip3 install -r "./requirements.txt"
+# "/usr/bin/python3 -m pip install --upgrade pip" to solve issues with tensorflow package
 
-# 4. Prepare workspace
+
+# 4. PREPARE WORKSPACE
+# --------
 ENV PYTHONPATH "/opt/bronchinet/src"
 
 COPY ["./src/", "./src/"]
 
-# input argument in docker build (--build-arg MODELDIR=<desired_input>)
 ARG MODELDIR=./models/
+# used-defined variable in docker build (--build-arg MODELDIR=<desired_value>)
+#  default value "./models/"
 
 WORKDIR /workdir
 
 COPY ["${MODELDIR}", "./models/"]
+# destination path now relative to new WORKDIR="/workdir/"
 
 RUN mkdir "./output_results/"
 
-ENTRYPOINT ["/bin/bash"]
 
-#ENTRYPOINT ["python3", "/opt/bronchinet/src/scripts_launch/launch_predictions_full.py"]
+# 5. FINALISE
+# --------
+# comment-out only for debugging
+#RUN apt-get install -y vim
+#ENTRYPOINT ["/bin/bash"]
 
-#CMD ["./models/model_evalEXACT.pt", "./output_results/", "--testing_datadir=./inputdata/"]
+ENTRYPOINT ["python3", "/opt/bronchinet/src/scripts_launch/launch_predictions_full.py"]
+
+CMD ["./models/model_evalEXACT.pt", "./output_results/", "--testing_datadir=./inputdata/"]
+# used-defined variables in docker run
