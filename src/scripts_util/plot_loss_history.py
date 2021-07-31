@@ -91,6 +91,7 @@ def main(args):
                 # add extra field to the dict for output losses, if it doesn't exist already
                 if i_field_train not in dict_data_loss_fields_files.keys():
                     dict_data_loss_fields_files[i_field_train] = []
+                    dict_data_loss_fields_files[i_field_valid] = []
 
                 index_field_train = list_fields.index(i_field_train)
                 index_field_valid = list_fields.index(i_field_valid)
