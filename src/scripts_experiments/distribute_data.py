@@ -224,8 +224,8 @@ def main(args):
                 if args.is_prepare_labels:
                     input_label_file = list_input_labels_files[index]
                     output_label_file = join_path_names(out_path_dirname, basename(input_label_file))
-                    makelink(input_label_file, output_label_file)
                     print("%s --> %s" % (basename(output_label_file), input_label_file))
+                    makelink(input_label_file, output_label_file)
 
                 if args.is_input_extra_labels:
                     input_extra_label_file = list_input_extra_labels_files[index]
