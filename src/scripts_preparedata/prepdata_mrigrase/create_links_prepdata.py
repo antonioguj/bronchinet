@@ -22,9 +22,7 @@ def main(args):
     list_input_labels_files = list_files_dir(input_labels_path)
 
     if len(list_input_images_files) != len(list_input_labels_files):
-        message = 'num files in two lists not equal: \'%s\' != \'%s\'...' \
-                  % (len(list_input_images_files), len(list_input_labels_files))
-        catch_error_exception(message)
+        exit(0)
 
     makedir(output_images_path)
     makedir(output_labels_path)
