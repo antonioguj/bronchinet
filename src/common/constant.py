@@ -1,9 +1,7 @@
 
 CODEDIR = '/home/antonio/Codes/mri_enhance/src/'
-DATADIR = '/home/antonio/Data/MRIenhance_GRASE2CUBE_Processed/'
-# DATADIR = '/data/scratch/agarcia/Data/MRIenhance/'         # cluster
+DATADIR = '/home/antonio/Data/GRASE2CUBE_Processed/'
 BASEDIR = '/home/antonio/Results/MRIenhanceTests/'
-# BASEDIR = '/data/scratch/agarcia/Results/MRIenhanceTests/' # cluster
 
 
 # NAMES INPUT / OUTPUT DIR
