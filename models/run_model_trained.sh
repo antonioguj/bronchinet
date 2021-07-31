@@ -1,21 +1,37 @@
 #!/bin/bash
 
-# USER-DEFINED SETTINGS
-val_thres_probs="0.1"           # value to threshold probability maps
-is_conn_binmasks="True"         # compute first connected component from airway segmentation ?
-is_mask_lungs="True"            # mask output probability maps to lung mask, to remove noise ?
-is_coarse_airways="True"        # include mask of coarse airways (trachea & main bronchi) ?
-
+if [ "$1" == "" ] || [ "$2" == "" ]
+then
+    echo "ERROR: Usage: \"$0\" \"INPUT_DATA_DIR\" \"OUTPUT_DIR\""
+    exit 1
+fi
 
 input_data_dir=$1
 output_dir=$2
-workdir="/workdir/"	# working dir set in docker, otherwise indicate your own path
+workdir="$PWD"	# work dir set in docker. OTHEWISE INDICATE HERE YOUR OWN PATH (OR $PWD)
+
+if [ ! -d "${workdir}/Code" ] || [ ! -L "${workdir}/Code" ]
+then
+    echo "ERROR: simlink "./Code" to our code sources does not exist"
+    exit 1
+fi
+
+
+# USER-DEFINED SETTINGS
+val_thres_probs="0.1"  		# value to threshold probability maps
+is_conn_binmasks="True"         # compute first connected component from airway segmentation ?
+is_mask_lungs="True"            # mask output probability maps to lung mask, to remove noise ?
+is_coarse_airways="True"        # include mask of coarse airways (trachea & main bronchi) ?
+# ----------
 
 # paths to input data needed / output results
-in_images_dir="${input_data_dir}/Images/"
-in_lungmasks_dir="${input_data_dir}/Lungs/"
-in_coarseairways_dir="${input_data_dir}/CoarseAirways/"
-in_model_file="${workdir}/models/model_evalEXACT.pt"
+basedata_dir="${workdir}/BaseData/"
+ln -s $input_data_dir ${basedata_dir%/}
+
+in_images_dir="${basedata_dir}/Images/"
+in_lungmasks_dir="${basedata_dir}/Lungs/"
+in_coarseairways_dir="${basedata_dir}/CoarseAirways/"
+in_model_file="${workdir}/models/model_trained.pt"
 in_config_file="${workdir}/models/configparams.txt"
 
 if [ ! -d "$output_dir" ] 
@@ -24,28 +40,25 @@ then
 fi
 
 
-# needed to test directly from input CT scans (without running script "<>/prepareData.py")
-#
-basedatadir="${workdir}/BaseData/"	# dummy, not used, but code complains otherwise
+# 0. Arrange input images in data format expected by our code (avoid running script "prepareData.py")
 in_testdata_dir="${workdir}/TestingData/"
 in_referkeys_file="${workdir}/referenceKeys.csv"
 
-mkdir -p $basedatadir
 mkdir -p $in_testdata_dir
 touch $in_referkeys_file
 
-echo "Create links to input images in directory: ./TestingData/..."
+echo "Create links to input images in directory: ./TestingData..."
 
-list_in_images=$(find $in_images_dir -type f | sort -n)
+list_image_files=$(find $in_images_dir -type f | sort -n)
 
 count="1"
-for in_file in $list_in_images
+for in_file in $list_image_files
 do
     in_link_file=$(printf "${in_testdata_dir}/images_proc-%02i.nii.gz" "$count")
 
     # create link to input image
     echo "$in_file --> ${in_link_file}"
-    ln -s $in_file $in_link_file
+    ln -s "$in_file" $in_link_file
 
     # append new reference key
     echo "$(basename ${in_link_file%.nii.gz}),$(basename $in_file)" >> $in_referkeys_file
@@ -58,7 +71,7 @@ echo ""
 
 
 # 1. Compute predictions of probability maps from the trained model
-python3 "${workdir}/Code/src/scripts_experiments/predict_model.py" ${in_model_file} \
+python3 "${workdir}/Code/scripts_experiments/predict_model.py" ${in_model_file} \
         --basedir=${workdir} \
         --in_config_file=${in_config_file} \
         --testing_datadir=${in_testdata_dir} \
@@ -70,7 +83,7 @@ echo ""
 
 
 # 2. Compute full-size probability maps from the cropped prob maps
-python3 "${workdir}/Code/src/scripts_evalresults/postprocess_predictions.py" \
+python3 "${workdir}/Code/scripts_evalresults/postprocess_predictions.py" \
         --basedir=${workdir} \
 	--is_mask_region_interest=${is_mask_lungs} \
         --is_crop_images="False" \
@@ -83,7 +96,7 @@ echo ""
 
 
 # 3. Compute binary segmentation from the full-size probability maps
-python3 "${workdir}/Code/src/scripts_evalresults/process_predicted_airway_tree.py" \
+python3 "${workdir}/Code/scripts_evalresults/process_predicted_airway_tree.py" \
 	--basedir=${workdir} \
 	--post_threshold_value=${val_thres_probs} \
 	--is_attach_coarse_airways=${is_coarse_airways} \
@@ -106,8 +119,8 @@ then
 fi
 
 
-# clean-up tempo data
-rm -r $basedatadir
+# 5. Clean-up tempo data
+rm $basedata_dir
 rm -r $in_testdata_dir
 rm $in_referkeys_file
 rm -r "${output_dir}/PosteriorsWorkData/"
