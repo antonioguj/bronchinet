@@ -446,7 +446,7 @@ class UNet3DPlugin5levels(UNet):
         self._type_activate_hidden = 'relu'
         self._type_activate_output = 'linear'
 
-        self._compiled_model = self._build_model()
+        self._built_model = self._build_model()
 
     def _build_model(self) -> Model:
         type_padding = 'valid' if self._is_use_valid_convols else 'same'
@@ -549,7 +549,7 @@ class UNet3DPlugin3levels(UNet):
         self._type_activate_hidden = 'relu'
         self._type_activate_output = 'linear'
 
-        self._compiled_model = self._build_model()
+        self._built_model = self._build_model()
 
     def _build_model(self) -> Model:
         type_padding = 'valid' if self._is_use_valid_convols else 'same'
@@ -618,7 +618,7 @@ class UNet2DPlugin3levels(UNet):
         self._type_activate_hidden = 'relu'
         self._type_activate_output = 'linear'
 
-        self._compiled_model = self._build_model()
+        self._built_model = self._build_model()
 
     def _build_model(self) -> Model:
         type_padding = 'valid' if self._is_use_valid_convols else 'same'
@@ -688,7 +688,7 @@ class UNet3DPlugin5levelsNoSkips(UNet):
         self._type_activate_hidden = 'relu'
         self._type_activate_output = 'linear'
 
-        self._compiled_model = self._build_model()
+        self._built_model = self._build_model()
 
     def _build_model(self) -> Model:
         type_padding = 'valid' if self._is_use_valid_convols else 'same'
@@ -776,7 +776,7 @@ class UNet3DPlugin3levelsNoSkips(UNet):
         self._type_activate_hidden = 'relu'
         self._type_activate_output = 'linear'
 
-        self._compiled_model = self._build_model()
+        self._built_model = self._build_model()
 
     def _build_model(self) -> Model:
         type_padding = 'valid' if self._is_use_valid_convols else 'same'
