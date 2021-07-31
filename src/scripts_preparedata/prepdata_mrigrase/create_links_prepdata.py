@@ -2,7 +2,6 @@
 from collections import OrderedDict
 import argparse
 
-from common.constant import DATADIR
 from common.functionutil import makedir, makelink, join_path_names, basename, basename_filenoext, list_files_dir, \
     save_dictionary, save_dictionary_csv
 
@@ -21,10 +20,6 @@ def main(args):
 
     list_input_images_files = list_files_dir(input_images_path)
     list_input_labels_files = list_files_dir(input_labels_path)
-
-    print('HELLO')
-    print(list_input_images_files)
-    print(list_input_labels_files)
 
     if len(list_input_images_files) != len(list_input_labels_files):
         message = 'num files in two lists not equal: \'%s\' != \'%s\'...' \
@@ -45,11 +40,15 @@ def main(args):
 
         out_image_file = name_template_output_images_files % (ifile + 1)
         out_image_file = join_path_names(output_images_path, out_image_file)
+
         out_label_file = name_template_output_labels_files % (ifile + 1)
         out_label_file = join_path_names(output_labels_path, out_label_file)
 
+        in_image_file = join_path_names('../', in_image_file)
         print("%s --> %s" % (basename(out_image_file), in_image_file))
         makelink(in_image_file, out_image_file)
+
+        in_label_file = join_path_names('../', in_label_file)
         print("%s --> %s" % (basename(out_label_file), in_label_file))
         makelink(in_label_file, out_label_file)
 
@@ -62,7 +61,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('indatadir', type=str, default=DATADIR)
+    parser.add_argument('--indatadir', type=str, default='.')
     args = parser.parse_args()
 
     print("Print input arguments...")
