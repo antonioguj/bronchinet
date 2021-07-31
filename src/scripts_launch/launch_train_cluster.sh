@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --ntasks=1
-#SBATCH --mem=14G
-#SBATCH -p hm
+#SBATCH --mem=12G
+#SBATCH -p long
 #SBATCH --gres=gpu:1
-#SBATCH -t 3-00:00:00
+#SBATCH -t 1-00:00:00
 #SBATCH -o ./Logs/out_%j.log
 #SBATCH -e ./Logs/error_%j.log
 
@@ -12,6 +12,7 @@ module purge
 module load Python/3.7.4-GCCcore-8.3.0
 module load libs/cuda/10.1.243
 module load libs/cudnn/7.6.5.32-CUDA-10.1.243
+#module load libs/tensorrt/6.0.1.5-CUDA-10.1.243
 #module load TensorFlow/2.1.0-fosscuda-2019b-Python-3.7.4
 
 source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
@@ -42,7 +43,7 @@ IS_MASK_REGION_INTEREST="True"
 IS_GENERATE_PATCHES="True"
 TYPE_GENERATE_PATCHES="random_window"
 PROP_OVERLAP_SLIDE_WINDOW="(0.25,0.0,0.0)"
-NUM_RANDOM_PATCHES_EPOCH="4"
+NUM_RANDOM_PATCHES_EPOCH="1"
 IS_TRANSFORM_IMAGES="True"
 TYPE_TRANSFORM_IMAGES="rigid_trans"
 TRANS_RIGID_ROTATION_RANGE="(10.0,7.0,7.0)"   # (plane_XY, plane_XZ, plane_YZ)
