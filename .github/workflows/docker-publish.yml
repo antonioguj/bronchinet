@@ -1,0 +1,42 @@
+name: Docker Build and Push
+
+on:
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'enter version "v*.*"'
+        required: true
+        default: ''
+      tag:
+        description: 'enter tag e.g. "latest, debug"'
+        required: false
+        default: ''
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Login to Dockerhub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USER }}
+          password: ${{ secrets.DOCKERHUB_PW }}
+
+      # Build and push Docker image with Buildx (don't push on PR)
+      # https://github.com/docker/build-push-action
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ secrets.DOCKERHUB_USER }}/bronchinet:${{ github.event.inputs.version }}
+          labels: ${{ secrets.DOCKERHUB_USER }}/bronchinet:${{ github.event.inputs.tag }}

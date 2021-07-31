@@ -85,9 +85,9 @@ Before running the scripts, the user needs to prepare the data directory with th
 
 The user needs to prepare the working directory in the desired location, as follows:
 
-1. mkdir <path_working_dir> && cd <path_working_dir>
-2. ln -s <path_data_dir> BaseData
-3. ln -s <path_this_repo> Code
+1. mkdir <path_your_work_dir> && cd <path_your_work_dir>
+2. ln -s <path_your_data_dir> BaseData
+3. ln -s <path_this_repo>/src/ Code
 
 ## Run the Scripts
 
@@ -103,7 +103,7 @@ The scripts are called in the command line as follows:
 
     - python <path_script> --help
 
-  - For optional arguments not indicated in the command line, they take the default values in the source file: "<path_thiscode>/src/common/constant.py"
+  - For optional arguments not indicated in the command line, they take the default values in the source file: "<path_this_repo>/src/common/constant.py"
 
 (IMPORTANT): set the variable PYTHONPATH with the path of this code as follows:
 
