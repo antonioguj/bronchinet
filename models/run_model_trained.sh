@@ -1,14 +1,26 @@
 #!/bin/bash
 
-if [ "$1" == "" ] || [ "$2" == "" ]
+if [ "$1" == "" ] || [ "$2" == "" ] || [ "$3" == "" ]
 then
-    echo "ERROR: Usage: \"$0\" \"INPUT_DATA_DIR\" \"OUTPUT_DIR\""
+    echo "ERROR: Usage: \"$0\" \"INPUT_DATA_DIR\" \"OUTPUT_DIR\" \"MODE_RUN_SCRIPT\" (= [--docker, --local])"
     exit 1
 fi
 
+
 input_data_dir=$1
 output_dir=$2
-workdir="$PWD"	# work dir set in docker. OTHEWISE INDICATE HERE YOUR OWN PATH (OR $PWD)
+mode_run_script=$3
+
+if [ "$mode_run_script" == "--docker" ]
+then
+    workdir="/workdir"		# working directory set in Dockerfile
+elif [ "$mode_run_script" == "--local" ]
+then
+    workdir=$PWD		# current directory where the script is run
+else
+    echo "ERROR: input \"MODE_RUN_SCRIPT\" not either \"--docker\" or \"--local\""
+    exit 1
+fi
 
 if [ ! -d "${workdir}/Code" ] || [ ! -L "${workdir}/Code" ]
 then
@@ -16,21 +28,25 @@ then
     exit 1
 fi
 
+if [ ! -d "${workdir}/BaseData" ] || [ ! -L "${workdir}/BaseData" ]
+then
+    echo "WARNING: simlink "./BaseData" to your input data does not exist. Create simlink to input \"INPUT_DATA_DIR\""
+    ln -s $input_data_dir "${workdir}/BaseData"
+fi
 
-# USER-DEFINED SETTINGS
+
+# User-defined settings
 val_thres_probs="0.1"  		# value to threshold probability maps
 is_conn_binmasks="True"         # compute first connected component from airway segmentation ?
 is_mask_lungs="True"            # mask output probability maps to lung mask, to remove noise ?
 is_coarse_airways="True"        # include mask of coarse airways (trachea & main bronchi) ?
 # ----------
 
-# paths to input data needed / output results
-basedata_dir="${workdir}/BaseData/"
-ln -s $input_data_dir ${basedata_dir%/}
 
-in_images_dir="${basedata_dir}/Images/"
-in_lungmasks_dir="${basedata_dir}/Lungs/"
-in_coarseairways_dir="${basedata_dir}/CoarseAirways/"
+# Paths to input data needed / output results
+in_images_dir="${workdir}/BaseData/Images/"
+in_lungmasks_dir="${workdir}/BaseData/Lungs/"
+in_coarseairways_dir="${workdir}/BaseData/CoarseAirways/"
 in_model_file="${workdir}/models/model_trained.pt"
 in_config_file="${workdir}/models/configparams.txt"
 
@@ -120,7 +136,6 @@ fi
 
 
 # 5. Clean-up tempo data
-rm $basedata_dir
 rm -r $in_testdata_dir
 rm $in_referkeys_file
 rm -r "${output_dir}/PosteriorsWorkData/"

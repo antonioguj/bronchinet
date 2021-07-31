@@ -43,17 +43,22 @@ WORKDIR /workdir
 COPY ["${MODELDIR}", "./models/"]
 # destination path now relative to WORKDIR="/workdir/"
 
-RUN ln -s "/opt/bronchinet/src" "./Code"
+RUN mkdir "./input_data/"
+RUN mkdir "./results/"
+# folders for input data / output results, to be mounted from local dirs in docker run
+
+RUN ln -s "/opt/bronchinet/src/" "./Code"
+RUN ln -s "./input_data/" "./BaseData"
 
 
 # 5. FINALISE
 # --------
-# comment-out only for debugging
-#RUN apt-get install -y vim
-#ENTRYPOINT ["/bin/bash"]
-
 ENTRYPOINT ["/bin/bash", "./models/run_model_trained.sh"]
 # command to execute when running docker
 
-CMD ["/workdir/input_data/", "/workdir/results/"]
-# input arguments to script in entrypoint (mounted from local dirs in docker run)
+CMD ["./input_data/", "./results/", "--docker"]
+# input arguments to script in entrypoint
+
+# FOR DEBUGGING: comment-out the commands above, and uncomment the ones below
+#RUN apt-get install -y vim
+#ENTRYPOINT ["/bin/bash"]

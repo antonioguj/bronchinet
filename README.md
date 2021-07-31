@@ -85,9 +85,9 @@ Before running the scripts, the user needs to prepare the data directory with th
 
 The user needs to prepare the working directory in the desired location, as follows:
 
-1. mkdir <path_working_dir> && cd <path_working_dir>
-2. ln -s <path_data_dir> BaseData
-3. ln -s <path_this_repo> Code
+1. mkdir <path_your_work_dir> && cd <path_your_work_dir>
+2. ln -s <path_your_data_dir> BaseData
+3. ln -s <path_this_repo>/src/ Code
 
 ## Run the Scripts
 
@@ -103,7 +103,7 @@ The scripts are called in the command line as follows:
 
     - python <path_script> --help
 
-  - For optional arguments not indicated in the command line, they take the default values in the source file: "<path_thiscode>/src/common/constant.py"
+  - For optional arguments not indicated in the command line, they take the default values in the source file: "<path_this_repo>/src/common/constant.py"
 
 (IMPORTANT): set the variable PYTHONPATH with the path of this code as follows:
 
@@ -183,7 +183,18 @@ Some operations require extra input arguments. To visualize the list of operatio
 Example usage
 ------------
 
-We provide a trained U-Net model with this software, which was used in the above paper for evaluation on the public EXACT'09 dataset. You can use this model to compute airway segmentations on your own CT data. To do this:
-1) create a working directory, and copy there i) the folder with your CT data, and ii) the script 'script_evalEXACT.sh' from this repo
-2) modify the script 'script_evalEXACT.sh' with the desired paths for your own data (check the several user-defined settings available)
-3) run the script: 'bash script_evalEXACT.sh'
+We provide a trained U-Net model with this software, that we used in [1] for evaluation on the public EXACT'09 dataset. You can use this model to compute airway segmentations on your own CT data. We also provide a Dockerfile to build a docker container where to run easily this evaluation. To do this:
+
+1) Prepare a folder with your own data, following the steps above in "Prepare Data Directory" ("Airway" are not needed)
+
+If done in docker:
+
+2) Build docker container: "sudo docker build -t <name_your_docker_image>:<your_tag> ."
+
+3) Run script: "bash run_docker_models.sh <path_your_input_data> <path_output_results> <name_your_docker_image>:<your_tag>"
+
+If done locally:
+
+2) Prepare a working directory, following the steps above in "Prepare Working Directory". Copy there the folder "./models" from this repo
+
+3) Run script: "bash models/run_model_trained.sh <path_your_input_data> <path_output_results> --local"
