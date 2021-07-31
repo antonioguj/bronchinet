@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --ntasks=1
 #SBATCH --mem=12G
-#SBATCH -p hm
+#SBATCH -p long
 #SBATCH --gres=gpu:1
 #SBATCH -t 01:00:00
 #SBATCH -o ./Logs/out_%j.log
@@ -12,7 +12,8 @@ module purge
 module load Python/3.7.4-GCCcore-8.3.0
 module load libs/cuda/10.1.243
 module load libs/cudnn/7.6.5.32-CUDA-10.1.243
-#module load TensorFlow/2.1.0-fosscuda-2019b-Python-3.7.4
+module load libs/tensorrt/6.0.1.5-CUDA-10.1.243
+module load TensorFlow/2.1.0-fosscuda-2019b-Python-3.7.4
 
 source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
 
@@ -27,7 +28,7 @@ source "${HOME}/Pyvenv-v.3.7.4/bin/activate"
 # SETTINGS
 MODELS_DIR="${WORKDIR}/SavedModels/Models_DSSIM/"
 MODEL_TEST="${MODELS_DIR}/model_last.hdf5"	# or in general model_e<jobnum>.hdf5
-TESTDATA_DIR="${WORKDIR}/TestingData_Fixed/"
+TESTDATA_DIR="${WORKDIR}/TestingData/"
 OUTPUT_DIR="${WORKDIR}/Predictions_DSSIM/"
 OUT_METRICS_FILE="${OUTPUT_DIR}/res_metrics.csv"
 IS_MASK_REGION_INTEREST="False"

@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --ntasks=1
 #SBATCH --mem=12G
-#SBATCH -p hm
+#SBATCH -p long
 #SBATCH --gres=gpu:1
-#SBATCH -t 3-00:00:00
+#SBATCH -t 1-00:00:00
 #SBATCH -o ./Logs/out_%j.log
 #SBATCH -e ./Logs/error_%j.log
 
@@ -12,7 +12,8 @@ module purge
 module load Python/3.7.4-GCCcore-8.3.0
 module load libs/cuda/10.1.243
 module load libs/cudnn/7.6.5.32-CUDA-10.1.243
-#module load TensorFlow/2.1.0-fosscuda-2019b-Python-3.7.4
+module load libs/tensorrt/6.0.1.5-CUDA-10.1.243
+module load TensorFlow/2.1.0-fosscuda-2019b-Python-3.7.4
 
 source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
 
@@ -25,13 +26,13 @@ export PYTHONPATH="${WORKDIR}/Code/:${PYTHONPATH}"
 source "${HOME}/Pyvenv-v.3.7.4/bin/activate"
 
 # SETTINGS
-MODELS_DIR="${WORKDIR}/Models_UNet5levs_RestartNoSkipConn_Perceptual_RigidTransform/"
-TRAINDATA_DIR="${WORKDIR}/TrainingData_NotMasked/"
-VALIDDATA_DIR="${WORKDIR}/ValidationData_NotMasked/"
+MODELS_DIR="${WORKDIR}/Models_UNet5levs_DSSIM/"
+TRAINDATA_DIR="${WORKDIR}/TrainingData/"
+VALIDDATA_DIR="${WORKDIR}/ValidationData/"
 SIZE_IMAGES="(288,288,96)"
 TYPE_NETWORK="UNet3DPlugin5levels"
 NET_NUM_FEATMAPS="16"
-TYPE_LOSS="Perceptual"
+TYPE_LOSS="DSSIM"
 #WEIGHT_COMBINED_LOSS="0.003"    # for DSSIM + L1
 WEIGHT_COMBINED_LOSS="0.00006"  # for DSSIM + L2
 #WEIGHT_COMBINED_LOSS="10.0"     # for Perceptual + L1
@@ -46,7 +47,7 @@ IS_MASK_REGION_INTEREST="False"
 IS_GENERATE_PATCHES="False"
 TYPE_GENERATE_PATCHES="slide_window"
 PROP_OVERLAP_SLIDE_WINDOW="(0.5,0.5,0.5)"
-NUM_RANDOM_PATCHES_EPOCH="4"
+NUM_RANDOM_PATCHES_EPOCH="1"
 IS_TRANSFORM_IMAGES="True"
 TYPE_TRANSFORM_IMAGES="rigid_trans"
 TRANS_RIGID_ROTATION_RANGE="(0.0,0.0,0.0)"    # (plane_XY, plane_XZ, plane_YZ)
@@ -54,7 +55,7 @@ TRANS_RIGID_SHIFT_RANGE="(0.0,0.0,0.0)"       # (width, height, depth)
 TRANS_RIGID_FLIP_DIRS="(True,True,True)"      # (horizontal, vertical, axialdir)
 TRANS_RIGID_ZOOM_RANGE="0.0"                  # scale between (1 - val, 1 + val)
 TRANS_RIGID_FILL_MODE="nearest"
-FREQ_SAVE_CHECK_MODELS="2"
+FREQ_SAVE_CHECK_MODELS="5"
 FREQ_VALIDATE_MODELS="2"
 IS_USE_VALIDATION_DATA="True"
 IS_SHUFFLE_TRAINDATA="True"
