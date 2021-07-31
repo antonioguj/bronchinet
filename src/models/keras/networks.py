@@ -31,7 +31,7 @@ class UNet(UNetBase):
                                    num_classes_out,
                                    is_use_valid_convols=is_use_valid_convols,
                                    num_levels_valid_convols=num_levels_valid_convols)
-        self._built_model = 0
+        self._built_model = None
 
     def get_built_model(self) -> Model:
         return self._built_model
@@ -63,7 +63,7 @@ class UNet3DOriginal(UNet):
                                              num_channels_in,
                                              num_classes_out,
                                              is_use_valid_convols=False)
-        self._compiled_model = self._build_model()
+        self._built_model = self._build_model()
 
     def _build_model(self) -> Model:
         input_layer = Input((self._size_image_in) + (self._num_channels_in,))
