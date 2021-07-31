@@ -2,7 +2,7 @@
 # -e .
 
 # external requirements
-elasticdeform @ git+https://github.com/gvtulder/elasticdeform@07e192add0ba2d92ef8529a6b600e20ecb109888
+elasticdeform==0.4.9
 h5py==2.10.0
 Keras==2.3.1
 Keras-Applications==1.0.8
