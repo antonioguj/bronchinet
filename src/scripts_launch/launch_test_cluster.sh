@@ -30,9 +30,10 @@ MODELS_DIR="${WORKDIR}/SavedModels/Models_DSSIM/"
 MODEL_TEST="${MODELS_DIR}/model_last.hdf5"	# or in general model_e<jobnum>.hdf5
 TESTDATA_DIR="${WORKDIR}/TestingData/"
 OUTPUT_DIR="${WORKDIR}/Predictions_DSSIM/"
+IS_CALC_METRICS="False"
 OUT_METRICS_FILE="${OUTPUT_DIR}/res_metrics.csv"
 IS_MASK_REGION_INTEREST="False"
-IS_BACKWARD_COMPAT="False"	# only set "True" if it fails with "False"
+IS_BACKWARD_COMPAT="False"			# only set "True" if it fails with "False"
 IS_TEST_NETWORK_2D="False"
 # --------
 
@@ -54,9 +55,12 @@ python3 "${WORKDIR}/Code/scripts_evalresults/postprocess_predictions.py" \
 	--name_output_posteriors_relpath="${OUTPUT_DIR}/Posteriors/" \
 	--is_mask_region_interest=${IS_MASK_REGION_INTEREST}
 
-python3 "${WORKDIR}/Code/scripts_evalresults/compute_result_metrics.py" "${OUTPUT_DIR}/Posteriors/" \
-	--basedir=${WORKDIR} \
-	--output_file=${OUT_METRICS_FILE}
+if [ "$IS_CALC_METRICS" == "True" ]
+then
+    python3 "${WORKDIR}/Code/scripts_evalresults/compute_result_metrics.py" "${OUTPUT_DIR}/Posteriors/" \
+	    --basedir=${WORKDIR} \
+	    --output_file=${OUT_METRICS_FILE}
+fi
 
 rm -r "${OUTPUT_DIR}/PosteriorsWorkData/"
 rm "${OUTPUT_DIR}/referenceKeys_posteriors.npy" "${OUTPUT_DIR}/referenceKeys_posteriors.csv"
