@@ -26,7 +26,7 @@ export PYTHONPATH="${WORKDIR}/Code/:${PYTHONPATH}"
 source "${HOME}/Pyvenv-v.3.7.4/bin/activate"
 
 # SETTINGS
-MODELS_DIR="${WORKDIR}/Models_UNet5levs_DSSIM/"
+MODELS_DIR="${WORKDIR}/Models_DSSIM/"
 TRAINDATA_DIR="${WORKDIR}/TrainingData/"
 VALIDDATA_DIR="${WORKDIR}/ValidationData/"
 SIZE_IMAGES="(288,288,96)"
