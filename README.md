@@ -185,15 +185,15 @@ Example usage
 
 We provide a trained U-Net model with this software, that we used in [1] for evaluation on the public EXACT'09 dataset. You can use this model to compute airway segmentations on your own CT data. We also provide a Dockerfile to build a docker container where to run easily this evaluation. To do this:
 
-1) Prepare a folder with your own data, following the steps above in "Prepare Data Directory" ("Airway" are not needed)
+1) Prepare a folder with your own data, following the steps above in "Prepare Data Directory" ("Airways" are not needed)
 
-If done in docker:
+If using docker container:
 
-2) Build docker container: "sudo docker build -t <name_your_docker_image>:<your_tag> ."
+2) Pull the pre-built docker container: "docker pull antonioguj/bronchinet:latest"
 
-3) Run script: "bash run_docker_models.sh <path_your_input_data> <path_output_results> <name_your_docker_image>:<your_tag>"
+3) Run script: "bash run_docker_models.sh <path_your_input_data> <path_output_results> antonioguj/bronchinet:latest"
 
-If done locally:
+If testing without docker:
 
 2) Prepare a working directory, following the steps above in "Prepare Working Directory". Copy there the folder "./models" from this repo
 
