@@ -30,7 +30,11 @@ def main(args):
         if args.is_out_integer:
             out_image = out_image.astype(np.uint16)
 
-        out_filename = join_path_names(args.outputdir, basename(in_file))
+        print('New Min value: %s...' % (np.min(out_image)))
+        print('New Max value: %s...' % (np.max(out_image)))
+
+        out_filename = basename(in_file).replace('.nii.gz', '_normal.nii.gz')
+        out_filename = join_path_names(args.outputdir, out_filename)
         print("Output: \'%s\'..." % (basename(out_filename)))
 
         ImageFileReader.write_image(out_filename, out_image, metadata=inout_metadata)
