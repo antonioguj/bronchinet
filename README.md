@@ -189,7 +189,7 @@ We provide a trained U-Net model with this software, that we used in [1] for eva
 
 If using docker container:
 
-2) Pull our pre-built docker container: "docker pull antonioguj/bronchinet:latest"
+2) Pull our pre-built docker container: "sudo docker pull antonioguj/bronchinet:latest"
 
 3) Run script: "bash run_docker_models.sh <path_your_input_data> <path_output_results> antonioguj/bronchinet:stable"
 
