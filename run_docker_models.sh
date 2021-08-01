@@ -1,14 +1,14 @@
 #!/bin/bash
 
-if [ "$1" == "" ] || [ "$2" == "" ] || [ "$3" == "" ]
+if [ "$1" == "" ] || [ "$2" == "" ]
 then
-    echo "ERROR: Usage: \"$0\" \"INPUT_DATA_DIR\" \"OUTPUT_DIR\" \"NAME_IMAGE_VERSION\" (= e.g. bronchinet:latest)"
+    echo "ERROR: Usage: \"$0\" \"INPUT_DATA_DIR\" \"OUTPUT_DIR\""
     exit 1
 fi
 
 INPUT_DATA_DIR=$1
 OUTPUT_DIR=$2
-NAME_IMAGE_VERSION=$3
+NAME_IMAGE_VERSION="antonioguj/bronchinet:stable" 	# CHANGE WHEN TESTING OTHER OWN-BUILT DOCKER IMAGES
 
 if [ ! -d "$OUTPUT_DIR" ]
 then

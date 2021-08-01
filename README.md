@@ -183,18 +183,18 @@ Some operations require extra input arguments. To visualize the list of operatio
 Example usage
 ------------
 
-We provide a trained U-Net model with this software, that we used in [1] for evaluation on the public EXACT'09 dataset. You can use this model to compute airway segmentations on your own CT data. We also provide a Dockerfile to build a docker container where to run easily this evaluation. To do this:
+We provide a trained U-Net model with this software, that we used for evaluation on the public EXACT'09 dataset. You can use this model to compute airway segmentations on your own CT data. We also provide a docker image with which you can test the trained model within a docker container. To do this:
 
-1) Prepare a folder with your own data, following the steps above in "Prepare Data Directory" ("Airways" are not needed)
+1. Prepare a folder with your own data, following the steps above in "Prepare Data Directory" ("Airways" are not needed)
 
-If using docker container:
+2. Prepare a working directory, following the steps above in "Prepare Working Directory". Copy there the folder "./models" from this repo
 
-2) Pull our pre-built docker container: "sudo docker pull antonioguj/bronchinet:latest"
+3. Run script: "bash models/run_model_trained.sh <path_your_input_data> <path_output_results> --local"
 
-3) Run script: "bash run_docker_models.sh <path_your_input_data> <path_output_results> antonioguj/bronchinet:stable"
+We also provide a docker image with which you can evaluate the trained model on your own CT data within a docker container. To do this:
 
-If testing without docker:
+1. Prepare a folder with your own data
 
-2) Prepare a working directory, following the steps above in "Prepare Working Directory". Copy there the folder "./models" from this repo
+2. Pull our pre-built docker image: "sudo docker pull antonioguj/bronchinet:stable"
 
-3) Run script: "bash models/run_model_trained.sh <path_your_input_data> <path_output_results> --local"
+3. Run script: "bash run_docker_models.sh <path_your_input_data> <path_output_results>"
