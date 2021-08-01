@@ -2,7 +2,10 @@
 # 1. SETUP BASE IMAGE
 # --------
 FROM nvidia/cuda:10.2-base-ubuntu18.04
-# base image where to start this docker (search in nvidia dockerhub)
+# base image as starting point (from NVIDIA dockerhub)
+
+LABEL version="1.0"
+LABEL maintainer="antonio.garciauceda89@gmail.com" location="Rotterdam" type="Hospital" role="Airway Segmentation Method"
 
 
 # 2. SETUP BASE LINUX REQUIREMENTS
@@ -11,7 +14,7 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends python3.8 python3-pip python3-setuptools && \
     apt-get clean
-# "--no-install-recommends" to avoid not-needed dependencies and create lighter image
+# "--no-install-recommends" to avoid not-needed dependencies and create a lighter image
 # "apt-get clean" to clean up cache memory and reduce image size
 
 
