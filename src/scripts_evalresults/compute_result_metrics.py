@@ -24,17 +24,17 @@ def main(args):
     pattern_search_infiles = get_regex_pattern_filename(list(indict_reference_keys.values())[0])
     pattern_search_infiles = pattern_search_infiles.replace('left', '[a-z]+').replace('right', '[a-z]+')
 
-    list_metrics = OrderedDict()
+    dict_metrics_calc = OrderedDict()
     for itype_metric in args.list_type_metrics:
         new_metric = get_metric(itype_metric)
-        list_metrics[new_metric._name_fun_out] = new_metric
+        dict_metrics_calc[new_metric._name_fun_out] = new_metric
     # endfor
 
     # *****************************************************
 
     # *****************************************************
 
-    outdict_calc_metrics = OrderedDict()
+    outdict_metrics_data = OrderedDict()
 
     for i, in_predicted_mask_file in enumerate(list_input_predicted_masks_files):
         print("\nInput: \'%s\'..." % (basename(in_predicted_mask_file)))
@@ -51,13 +51,13 @@ def main(args):
         # Compute and store Metrics
         print("\nCompute the Metrics:")
         casename = get_substring_filename(basename(in_predicted_mask_file), pattern_search=pattern_search_infiles)
-        outdict_calc_metrics[casename] = []
+        outdict_metrics_data[casename] = []
 
-        for (imetric_name, imetric) in list_metrics.items():
-            outval_metric = imetric.compute(in_reference_mask, in_predicted_mask)
+        for (imetric_name, imetric_cls) in dict_metrics_calc.items():
+            out_metric_value = imetric_cls.compute(in_reference_mask, in_predicted_mask)
 
-            print("\'%s\': %s..." % (imetric_name, outval_metric))
-            outdict_calc_metrics[casename].append(outval_metric)
+            print("\'%s\': %s..." % (imetric_name, out_metric_value))
+            outdict_metrics_data[casename].append(out_metric_value)
         # endfor
     # endfor
 
@@ -65,11 +65,11 @@ def main(args):
 
     # write out computed metrics in file
     with open(args.output_file, 'w') as fout:
-        strheader = ', '.join(['/case/'] + ['/%s/' % (key) for key in list_metrics.keys()]) + '\n'
+        strheader = ', '.join(['/case/'] + ['/%s/' % (key) for key in dict_metrics_calc.keys()]) + '\n'
         fout.write(strheader)
 
-        for (in_casename, outlist_calc_metrics) in outdict_calc_metrics.items():
-            list_write_data = [in_casename] + ['%0.6f' % (elem) for elem in outlist_calc_metrics]
+        for (in_casename, outlist_metrics_data) in outdict_metrics_data.items():
+            list_write_data = [in_casename] + ['%0.6f' % (elem) for elem in outlist_metrics_data]
             strdata = ', '.join(list_write_data) + '\n'
             fout.write(strdata)
         # endfor
