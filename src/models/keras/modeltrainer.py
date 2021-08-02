@@ -133,7 +133,8 @@ class ModelTrainer(ModelTrainerBase):
             from keras import backend as K
             return K.max(K.abs(y_pred - y_true), axis=-1)
 
-        loaded_copyfrom_model = load_model(model_filename, custom_objects={'lossfun': lossfun_dummy_max})
+        loaded_copyfrom_model = load_model(model_filename, custom_objects={'lossfun': lossfun_dummy_max,
+                                                                           'dssim': lossfun_dummy_max})
 
         next_layer_convol_after_upsample = False
         for i, model_layer in enumerate(self._built_model.layers):
