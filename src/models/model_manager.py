@@ -102,7 +102,7 @@ def get_metric_train(type_metric: str,
             catch_error_exception(message)
         type_metric_1 = splitels_type_metric[1]
         type_metric_2 = splitels_type_metric[2]
-        weight_combined_loss = kwargs['weight_combined_loss']
+        weight_combined_loss = kwargs['weight_combined_loss'] if 'weight_combined_loss' in kwargs.keys() else 0.0
         print("Chosen combined Loss with metrics \'%s\' and \'%s\', and weighting between 2nd and 1st metric: \'%s\'..."
               % (type_metric_1, type_metric_2, weight_combined_loss))
 
