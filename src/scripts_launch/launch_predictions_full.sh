@@ -1,6 +1,6 @@
 #!/bin/bash
 
-workdir="${HOME}/Results/MRIenhanceTests/"
+workdir=$PWD
 
 export PYTHONPATH="${workdir}/Code/:${PYTHONPATH}"
 

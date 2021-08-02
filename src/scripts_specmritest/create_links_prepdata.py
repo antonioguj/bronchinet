@@ -1,6 +1,7 @@
 
 from collections import OrderedDict
 import argparse
+import sys
 
 from common.functionutil import makedir, makelink, join_path_names, basename, basename_filenoext, list_files_dir, \
     save_dictionary, save_dictionary_csv
@@ -22,7 +23,9 @@ def main(args):
     list_input_labels_files = list_files_dir(input_labels_path)
 
     if len(list_input_images_files) != len(list_input_labels_files):
-        exit(0)
+        print('num files in two lists not equal: \'%s\' != \'%s\'...'
+              % (len(list_input_images_files), len(list_input_labels_files)))
+        sys.exit(0)
 
     makedir(output_images_path)
     makedir(output_labels_path)
