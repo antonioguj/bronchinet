@@ -19,20 +19,20 @@ def main(args):
 
     # SETTINGS
     metric_eval_threshold = args.metric_eval_threshold
-    metrics_value_sought = args.metric_value_sought
+    metric_value_sought = args.metric_value_sought
     num_iter_evaluate_max = args.num_iter_evaluate_max
     rel_error_eval_max = args.rel_error_eval_max
     init_threshold_value = args.init_threshold_value
 
     ref0_threshold_value = 0.0
     if metric_eval_threshold in ['DiceCoefficient', 'AirwayCompleteness']:
-        ref0_metrics_value = 0.0
+        ref0_metric_value = 0.0
     elif metric_eval_threshold in ['AirwayVolumeLeakage', 'AirwayCentrelineLeakage']:
-        ref0_metrics_value = 1.0
+        ref0_metric_value = 1.0
     else:
         message = 'MetricsEvalThreshold \'%s\' not found...' % (metric_eval_threshold)
         catch_error_exception(message)
-        ref0_metrics_value = None
+        ref0_metric_value = None
     _epsilon = 1.0e-06
     # --------
 
@@ -54,11 +54,11 @@ def main(args):
     else:
         list_input_coarse_airways_files = None
 
-    calc_metric = get_metric(metric_eval_threshold)
+    metric_calc_cls = get_metric(metric_eval_threshold)
     num_valid_predict_files = len(list_input_posteriors_files)
     curr_thres_value = init_threshold_value
     old_thres_value = ref0_threshold_value
-    old_metrics_value = ref0_metrics_value
+    old_metric_value = ref0_metric_value
     is_comp_converged = False
 
     # *****************************************************
@@ -111,7 +111,7 @@ def main(args):
 
         # Loop over all prediction files and compute the mean metrics over the dataset
         with tqdm(total=num_valid_predict_files) as progressbar:
-            sumrun_res_metrics = 0.0
+            sumrun_result_metric = 0.0
             for ipos, (in_posteriors, in_reference_mask) in enumerate(zip(list_in_posteriors, list_in_reference_masks)):
 
                 # Compute the binary masks by thresholding the posteriors
@@ -121,7 +121,7 @@ def main(args):
                     # Compute the first connected component from the binary masks
                     in_predicted_mask = FirstConnectedRegionMask.compute(in_predicted_mask, connectivity_dim=1)
 
-                if calc_metric._is_airway_metric:
+                if metric_calc_cls._is_airway_metric:
                     in_reference_cenline = list_in_reference_cenlines[ipos]
 
                     try:
@@ -137,46 +137,46 @@ def main(args):
                     # Remove the trachea and main bronchi from the binary masks
                     in_predicted_mask = MaskOperator.substract_two_masks(in_predicted_mask, in_coarse_airways)
 
-                    if calc_metric._is_airway_metric:
+                    if metric_calc_cls._is_airway_metric:
                         in_predicted_cenline = MaskOperator.substract_two_masks(in_predicted_cenline, in_coarse_airways)
 
                 try:
-                    if calc_metric._is_airway_metric:
-                        outval_metric = calc_metric.compute(in_reference_mask, in_predicted_mask,
-                                                            in_reference_cenline, in_predicted_cenline)
+                    if metric_calc_cls._is_airway_metric:
+                        out_metric_value = metric_calc_cls.compute(in_reference_mask, in_predicted_mask,
+                                                                   in_reference_cenline, in_predicted_cenline)
                     else:
-                        outval_metric = calc_metric.compute(in_reference_mask, in_predicted_mask)
+                        out_metric_value = metric_calc_cls.compute(in_reference_mask, in_predicted_mask)
 
                 except Exception:
                     # 'catch' issues when predictions are 'null' (for extreme threshold values)
-                    outval_metric = 0.0
+                    out_metric_value = 0.0
 
-                sumrun_res_metrics += outval_metric
+                sumrun_result_metric += out_metric_value
                 progressbar.update(1)
             # endfor
 
-            curr_res_metrics = sumrun_res_metrics / num_valid_predict_files
+            curr_result_metric = sumrun_result_metric / num_valid_predict_files
 
         # Compare the mean metrics with the value we sought, compute the relative error,
         # and evaluate whether it's close enough
-        curr_rel_error = (curr_res_metrics - metrics_value_sought) / metrics_value_sought
+        curr_rel_error = (curr_result_metric - metric_value_sought) / metric_value_sought
 
         if abs(curr_rel_error) < rel_error_eval_max:
             print("CONVERGED. Found threshold \'%s\', with result metrics \'%s\', rel. error: \'%s\'..."
-                  % (curr_thres_value, curr_res_metrics, abs(curr_rel_error)))
+                  % (curr_thres_value, curr_result_metric, abs(curr_rel_error)))
             is_comp_converged = True
             break
         else:
             # Update the threshold following a Newton-Raphson formula
             new_threshold = curr_thres_value \
-                + (curr_thres_value - old_thres_value) / (curr_res_metrics - old_metrics_value + _epsilon) \
-                * (metrics_value_sought - curr_res_metrics)
+                + (curr_thres_value - old_thres_value) / (curr_result_metric - old_metric_value + _epsilon) \
+                * (metric_value_sought - curr_result_metric)
             new_threshold = np.clip(new_threshold, 0.0, 1.0)   # clip new value to bounded limits
 
             print("Not Converged. Result metrics \'%s\', rel. error: \'%s\'. New threshold \'%s\'..."
-                  % (curr_res_metrics, curr_rel_error, new_threshold))
+                  % (curr_result_metric, curr_rel_error, new_threshold))
             old_thres_value = curr_thres_value
-            old_metrics_value = curr_res_metrics
+            old_metric_value = curr_result_metric
             curr_thres_value = new_threshold
     # endfor
 

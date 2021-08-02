@@ -54,10 +54,10 @@ def main(args):
     else:
         list_input_coarse_airways_files = None
 
-    list_metrics = OrderedDict()
+    dict_metrics_calc = OrderedDict()
     for itype_metric in args.list_type_metrics:
         new_metric = get_metric(itype_metric)
-        list_metrics[new_metric._name_fun_out] = new_metric
+        dict_metrics_calc[new_metric._name_fun_out] = new_metric
     # endfor
 
     # *****************************************************
@@ -65,9 +65,9 @@ def main(args):
     # *****************************************************
 
     num_input_files = len(list_input_posteriors_files)
-    num_calc_metrics = len(list_metrics)
+    num_calc_metrics = len(dict_metrics_calc)
     num_thresholds = len(inlist_thresholds)
-    out_calc_metrics_allcases = np.zeros((num_input_files, num_thresholds, num_calc_metrics))
+    out_metrics_data_allcases = np.zeros((num_input_files, num_thresholds, num_calc_metrics))
 
     for i, in_posteriors_file in enumerate(list_input_posteriors_files):
         print("\nInput: \'%s\'..." % (basename(in_posteriors_file)))
@@ -117,7 +117,7 @@ def main(args):
         print("- Compute the Metrics:")
 
         casename = get_substring_filename(basename(in_posteriors_file), pattern_search=pattern_search_infiles)
-        outdict_calc_metrics = OrderedDict()
+        outdict_metrics_data = OrderedDict()
 
         with tqdm(total=num_thresholds) as progressbar:
             for j, in_thres_value in enumerate(inlist_thresholds):
@@ -147,28 +147,28 @@ def main(args):
                     in_predicted_mask = MaskOperator.substract_two_masks(in_predicted_mask, in_coarse_airways)
                     in_predicted_cenline = MaskOperator.substract_two_masks(in_predicted_cenline, in_coarse_airways)
 
-                outdict_calc_metrics[in_thres_value] = []
+                outdict_metrics_data[in_thres_value] = []
 
-                for (imetric_name, imetric) in list_metrics.items():
-                    if imetric._is_use_voxelsize:
+                for (imetric_name, imetric_cls) in dict_metrics_calc.items():
+                    if imetric_cls._is_use_voxelsize:
                         in_mask_voxel_size = ImageFileReader.get_image_voxelsize(in_posteriors_file)
-                        imetric.set_voxel_size(in_mask_voxel_size)
+                        imetric_cls.set_voxel_size(in_mask_voxel_size)
 
                     try:
-                        if imetric._is_airway_metric:
-                            outval_metric = imetric.compute(in_reference_mask, in_predicted_mask,
-                                                            in_reference_cenline, in_predicted_cenline)
+                        if imetric_cls._is_airway_metric:
+                            out_metric_value = imetric_cls.compute(in_reference_mask, in_predicted_mask,
+                                                                   in_reference_cenline, in_predicted_cenline)
                         else:
-                            outval_metric = imetric.compute(in_reference_mask, in_predicted_mask)
+                            out_metric_value = imetric_cls.compute(in_reference_mask, in_predicted_mask)
 
                     except Exception:
                         # 'catch' issues when predictions are 'null' (for extreme threshold values)
-                        outval_metric = -1.0
+                        out_metric_value = -1.0
 
-                    outdict_calc_metrics[in_thres_value].append(outval_metric)
+                    outdict_metrics_data[in_thres_value].append(out_metric_value)
                 # endfor
 
-                out_calc_metrics_allcases[i, j, :] = outdict_calc_metrics[in_thres_value]
+                out_metrics_data_allcases[i, j, :] = outdict_metrics_data[in_thres_value]
                 progressbar.update(1)
             # endfor
 
@@ -179,29 +179,29 @@ def main(args):
         out_results_filename = join_path_names(output_files_path, out_results_filename)
         if not is_exist_file(out_results_filename):
             with open(out_results_filename, 'w') as fout:
-                strheader = ', '.join(['/thres/'] + ['/%s/' % (key) for key in list_metrics.keys()]) + '\n'
+                strheader = ', '.join(['/thres/'] + ['/%s/' % (key) for key in dict_metrics_calc.keys()]) + '\n'
                 fout.write(strheader)
 
         with open(out_results_filename, 'a') as fout:
-            for (in_thres, outlist_calc_metrics) in outdict_calc_metrics.items():
-                list_write_data = ['%0.6f' % (in_thres)] + ['%0.6f' % (elem) for elem in outlist_calc_metrics]
+            for (in_thres, outlist_metrics_data) in outdict_metrics_data.items():
+                list_write_data = ['%0.6f' % (in_thres)] + ['%0.6f' % (elem) for elem in outlist_metrics_data]
                 strdata = ', '.join(list_write_data) + '\n'
                 fout.write(strdata)
             # endfor
     # endfor
 
     # Compute global metrics as mean over all files
-    out_mean_allcases_calc_metrics = np.mean(out_calc_metrics_allcases, axis=0)
+    out_mean_metrics_data_allcases = np.mean(out_metrics_data_allcases, axis=0)
 
     out_filename = join_path_names(output_files_path, outfilename_metrics_meanall)
     if not is_exist_file(out_filename):
         with open(out_filename, 'w') as fout:
-            strheader = ', '.join(['/thres/'] + ['/%s/' % (key) for key in list_metrics.keys()]) + '\n'
+            strheader = ', '.join(['/thres/'] + ['/%s/' % (key) for key in dict_metrics_calc.keys()]) + '\n'
             fout.write(strheader)
 
     with open(out_filename, 'a') as fout:
         for i, in_thres in enumerate(inlist_thresholds):
-            list_write_data = ['%0.6f' % (in_thres)] + ['%0.6f' % (elem) for elem in out_mean_allcases_calc_metrics[i]]
+            list_write_data = ['%0.6f' % (in_thres)] + ['%0.6f' % (elem) for elem in out_mean_metrics_data_allcases[i]]
             strdata = ', '.join(list_write_data) + '\n'
             fout.write(strdata)
         # endfor
