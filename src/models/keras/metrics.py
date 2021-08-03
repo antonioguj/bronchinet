@@ -397,7 +397,7 @@ class DSSIM(MetricModified):
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
         # return tf.reduce_mean(tf.image.ssim(target, input, 255.0))
-        return tf.reduce_mean(tf.image.ssim(target, input, 255.0, filter_size=10))
+        return tf.reduce_mean(tf.image.ssim(target, input, max_val=255.0, filter_size=10))
         # return tf.reduce_mean(tf.image.ssim(target, input, max_val=255.0, filter_size=11, filter_sigma=1.5,
         #                                     k1=0.01, k2=0.03))
         # return measure.compare_ssim(target, input, multichannel=True, data_range=255.0)
@@ -418,7 +418,7 @@ class MultiScaleSSIM(MetricModified):
         self._name_fun_out = 'multiscalessim'
 
     def _compute(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:
-        return tf.reduce_mean(tf.image.ssim_multiscale(target, input, max_val=255))
+        return tf.reduce_mean(tf.image.ssim_multiscale(target, input, max_val=255.0))
         # return multiscalessim(target, input)
 
     def _compute_masked(self, target: tf.Tensor, input: tf.Tensor) -> tf.Tensor:

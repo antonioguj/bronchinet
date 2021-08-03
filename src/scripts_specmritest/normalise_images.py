@@ -46,7 +46,7 @@ if __name__ == "__main__":
     parser.add_argument('inputdir', type=str)
     parser.add_argument('outputdir', type=str)
     parser.add_argument('--min_value', type=float, default=0.0)
-    parser.add_argument('--max_value', type=float, default=256.0)
+    parser.add_argument('--max_value', type=float, default=255.0)
     parser.add_argument('--is_out_integer', type=bool, default=False)
     args = parser.parse_args()
 
