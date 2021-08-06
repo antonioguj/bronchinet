@@ -482,7 +482,7 @@ def save_dictionary_numpy(filename: str, in_dictionary: Dict[str, Any]) -> None:
 
 
 def save_dictionary_pickle(filename: str, in_dictionary: Dict[str, Any]) -> None:
-    with open(filename, 'r') as fout:
+    with open(filename, 'wb') as fout:
         pickle.dump(in_dictionary, fout, pickle.HIGHEST_PROTOCOL)
 
 
