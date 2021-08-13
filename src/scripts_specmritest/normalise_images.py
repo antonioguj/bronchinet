@@ -13,7 +13,7 @@ def main(args):
 
     makedir(args.outputdir)
 
-    type_normalise = 'minmax-robust'   #'minmax', 'zscore'
+    type_normalise = 'minmax-robust'
     out_min_val = 0.0
     out_max_val = 255.0
 
