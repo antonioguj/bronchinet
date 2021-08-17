@@ -2,15 +2,32 @@
 
 if [ "$1" == "" ] || [ "$2" == "" ] || [ "$3" == "" ] || [ "$4" == "" ]
 then
-    echo "ERROR: Usage: \"$0\" \"INPUT_DATA_DIR\" \"OUTPUT_DIR\" \"MODE_RUN_SCRIPT\" (= [--docker, --local]) \"TYPE_BACKEND\" (= [--torch, --keras])"
+    echo "ERROR: Usage: \"$0\" \"INPUT_DATA_DIR\" \"OUTPUT_DIR\" \"TYPE_BACKEND\" (= [--torch, --keras]) \"MODE_RUN_SCRIPT\" (= [--docker, --local])"
     exit 1
 fi
 
 
 input_data_dir=$1
 output_dir=$2
-mode_run_script=$3
-type_backend=$4
+type_backend=$3
+mode_run_script=$4
+
+if [ "$type_backend" == "--torch" ]
+then
+    in_rel_model_file="model_trained_torch.pt"
+    # set "type_backend == torch" in code
+    #sed -i "s/TYPE_DNNLIB_USED = 'Keras'/TYPE_DNNLIB_USED = 'Pytorch'/" ~/Codes/bronchinet/src/common/constant.py
+    is_old_trained_model="True"
+elif [ "$type_backend" == "--keras" ]
+then
+    in_rel_model_file="model_trained_keras.hdf5"
+    # set "type_backend == keras" in code
+    #sed -i "s/TYPE_DNNLIB_USED = 'Pytorch'/TYPE_DNNLIB_USED = 'Keras'/" ~/Codes/bronchinet/src/common/constant.py
+    is_old_trained_model="False"
+else
+    echo "ERROR: input \"TYPE_BACKEND\" not either \"--torch\" or \"--keras\""
+    exit 1
+fi
 
 if [ "$mode_run_script" == "--docker" ]
 then
@@ -20,23 +37,6 @@ then
     workdir=$PWD		# current directory where the script is run
 else
     echo "ERROR: input \"MODE_RUN_SCRIPT\" not either \"--docker\" or \"--local\""
-    exit 1
-fi
-
-if [ "$type_backend" == "--torch" ]
-then
-    in_rel_model_file="model_trained_torch.pt"
-    # set "type_backend == torch" in code
-    #sed -i "s/TYPE_DNNLIB_USED = 'Keras'/TYPE_DNNLIB_USED = 'Pytorch'/" ~/Codes/bronchinet/src/common/constant.py
-    is_backward_compat="True"
-elif [ "$type_backend" == "--keras" ]
-then
-    in_rel_model_file="model_trained_keras.hdf5"
-    # set "type_backend == keras" in code
-    #sed -i "s/TYPE_DNNLIB_USED = 'Pytorch'/TYPE_DNNLIB_USED = 'Keras'/" ~/Codes/bronchinet/src/common/constant.py
-    is_backward_compat="False"
-else
-    echo "ERROR: input \"TYPE_BACKEND\" not either \"--torch\" or \"--keras\""
     exit 1
 fi
 
@@ -112,7 +112,7 @@ python3 "${workdir}/Code/src/scripts_experiments/predict_model.py" ${in_model_fi
 	--name_output_predictions_relpath="${output_dir}/PosteriorsWorkData/" \
 	--name_input_reference_keys_file=${in_referkeys_file} \
         --name_output_reference_keys_file="${output_dir}/referenceKeys_posteriors.npy" \
-        --is_backward_compat="${is_backward_compat}"
+        --is_backward_compat="${is_old_trained_model}"
 echo ""
 
 

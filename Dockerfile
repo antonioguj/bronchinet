@@ -62,7 +62,7 @@ RUN ln -s "./input_data/" "./BaseData"
 ENTRYPOINT ["/bin/bash", "./models/run_model_trained.sh"]
 # command to execute when running docker
 
-CMD ["./input_data/", "./results/", "--docker", "--${TYPE_BACKEND}"]
+CMD ["./input_data/", "./results/", "--${TYPE_BACKEND}", "--docker"]
 # input arguments to script in entrypoint
 
 # FOR DEBUGGING: comment-out the commands above, and uncomment the ones below
