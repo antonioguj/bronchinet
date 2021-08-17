@@ -9,7 +9,7 @@ source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
 HOME="/trinity/home/agarcia/"
 WORKDIR="${HOME}/Results/MRIenhanceTests/"
 
-export PYTHONPATH="${WORKDIR}/Code/:${PYTHONPATH}"
+export PYTHONPATH="${WORKDIR}/Code/src/:${PYTHONPATH}"
 
 # Load python virtual environment
 source "${HOME}/Pyvenv-v.3.7.4/bin/activate"
@@ -27,7 +27,7 @@ INFILE_ORDER_TRAIN="${WORKDIR}/train.txt"
 IS_PREPARE_MANY_IMAGES_PER_LABEL="False"
 # --------
 
-python3 "${WORKDIR}/Code/scripts_experiments/distribute_data.py" \
+python3 "${WORKDIR}/Code/src/scripts_experiments/distribute_data.py" \
 	--basedir=${WORKDIR} \
 	--type_data=${TYPE_DATA} \
 	--type_distribute=${TYPE_DISTRIBUTE} \

@@ -20,7 +20,7 @@ source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
 HOME="/trinity/home/agarcia/"
 WORKDIR="${HOME}/Results/MRIenhanceTests/"
 
-export PYTHONPATH="${WORKDIR}/Code/:${PYTHONPATH}"
+export PYTHONPATH="${WORKDIR}/Code/src/:${PYTHONPATH}"
 
 # Load virtual environment
 source "${HOME}/Pyvenv-v.3.7.4/bin/activate"
@@ -67,7 +67,7 @@ NUM_AUGMENTED_IMAGES_PER_LABEL="28"
 IS_TRAIN_NETWORK_2D="False"
 # --------
 
-python3 "${WORKDIR}/Code/scripts_experiments/train_model.py" \
+python3 "${WORKDIR}/Code/src/scripts_experiments/train_model.py" \
 	--basedir=${WORKDIR} \
 	--modelsdir=${MODELS_DIR} \
 	--training_datadir=${TRAINDATA_DIR} \

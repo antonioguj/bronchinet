@@ -2,7 +2,7 @@
 
 workdir=$PWD
 
-export PYTHONPATH="${workdir}/Code/:${PYTHONPATH}"
+export PYTHONPATH="${workdir}/Code/src/:${PYTHONPATH}"
 
 if [ "$1" == "" ] || [ "$2" == "" ]
 then
@@ -23,7 +23,7 @@ is_test_network_2D="False"
 
 mkdir -p $output_dir
 
-python3 "${workdir}/Code/scripts_experiments/predict_model.py" ${in_model_test} \
+python3 "${workdir}/Code/src/scripts_experiments/predict_model.py" ${in_model_test} \
 	--basedir=${workdir} \
 	--in_config_file="${in_models_dir}/configparams.txt" \
 	--testing_datadir=${in_testdata_dir} \
@@ -32,7 +32,7 @@ python3 "${workdir}/Code/scripts_experiments/predict_model.py" ${in_model_test} 
 	--is_backward_compat=${is_backward_compat} \
 	--is_test_network_2D=${is_test_network_2D}
 
-python3 "${workdir}/Code/scripts_evalresults/postprocess_predictions.py" \
+python3 "${workdir}/Code/src/scripts_evalresults/postprocess_predictions.py" \
 	--basedir=${workdir} \
 	--name_input_predictions_relpath="${output_dir}/PosteriorsWorkData/" \
 	--name_input_reference_keys_file="${output_dir}/referenceKeys_posteriors.npy" \
@@ -41,7 +41,7 @@ python3 "${workdir}/Code/scripts_evalresults/postprocess_predictions.py" \
 
 if [ "$is_calc_metrics" == "True" ]
 then
-    python3 "${workdir}/Code/scripts_evalresults/compute_result_metrics.py" "${output_dir}/Posteriors/" \
+    python3 "${workdir}/Code/src/scripts_evalresults/compute_result_metrics.py" "${output_dir}/Posteriors/" \
 	    --basedir=${workdir} \
 	    --output_file=${out_metrics_file}
 fi

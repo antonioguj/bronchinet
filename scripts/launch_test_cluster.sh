@@ -20,7 +20,7 @@ source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
 HOME="/trinity/home/agarcia/"
 WORKDIR="${HOME}/Results/MRIenhanceTests/"
 
-export PYTHONPATH="${WORKDIR}/Code/:${PYTHONPATH}"
+export PYTHONPATH="${WORKDIR}/Code/src/:${PYTHONPATH}"
 
 # Load virtual environment
 source "${HOME}/Pyvenv-v.3.7.4/bin/activate"
@@ -39,7 +39,7 @@ IS_TEST_NETWORK_2D="False"
 
 mkdir -p $OUTPUT_DIR
 
-python3 "${WORKDIR}/Code/scripts_experiments/predict_model.py" ${MODEL_TEST} \
+python3 "${WORKDIR}/Code/src/scripts_experiments/predict_model.py" ${MODEL_TEST} \
 	--basedir=${WORKDIR} \
 	--in_config_file="${MODELS_DIR}/configparams.txt" \
 	--testing_datadir=${TESTDATA_DIR} \
@@ -48,7 +48,7 @@ python3 "${WORKDIR}/Code/scripts_experiments/predict_model.py" ${MODEL_TEST} \
 	--is_backward_compat=${IS_BACKWARD_COMPAT} \
 	--is_test_network_2D=${IS_TEST_NETWORK_2D}
 
-python3 "${WORKDIR}/Code/scripts_evalresults/postprocess_predictions.py" \
+python3 "${WORKDIR}/Code/src/scripts_evalresults/postprocess_predictions.py" \
 	--basedir=${WORKDIR} \
 	--name_input_predictions_relpath="${OUTPUT_DIR}/PosteriorsWorkData/" \
 	--name_input_reference_keys_file="${OUTPUT_DIR}/referenceKeys_posteriors.npy" \
@@ -57,7 +57,7 @@ python3 "${WORKDIR}/Code/scripts_evalresults/postprocess_predictions.py" \
 
 if [ "$IS_CALC_METRICS" == "True" ]
 then
-    python3 "${WORKDIR}/Code/scripts_evalresults/compute_result_metrics.py" "${OUTPUT_DIR}/Posteriors/" \
+    python3 "${WORKDIR}/Code/src/scripts_evalresults/compute_result_metrics.py" "${OUTPUT_DIR}/Posteriors/" \
 	    --basedir=${WORKDIR} \
 	    --output_file=${OUT_METRICS_FILE}
 fi
