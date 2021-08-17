@@ -190,7 +190,9 @@ We provide a trained U-Net model with this software, that we used for evaluation
 
 2. Prepare a working directory, following the steps above in "Prepare Working Directory". Copy there the folder "models" from this repo
 
-3. Run script: "bash models/run_model_trained.sh <path_your_input_data> <path_output_results> --local"
+3. Run script: "bash models/run_model_trained.sh <path_your_input_data> <path_output_results> --torch --local"
+
+- (To run the provided model in Tf-Keras instead of Torch: 1) set "TYPE_DNNLIB_USED == Keras" in <path_this_repo>/src/common/constant.py, and 2) replace '--torch' by '--keras' in the script above)
 
 We also provide a docker image with which you can evaluate the trained model on your own CT data within a docker container. To do this:
 
