@@ -192,7 +192,7 @@ We provide a trained U-Net model with this software, that we used for evaluation
 
 3. Run script: "bash models/run_model_trained.sh <path_your_input_data> <path_output_results> --torch --local"
 
-* (To run the trained model in Tf-Keras, 1) set "TYPE_DNNLIB_USED == Keras" in file <path_this_repo>/src/common/constant.py, and 2) run the script above with '--torch' instead of '--keras')
+* (To run the trained model in Tf-Keras instead: 1) set "TYPE_DNNLIB_USED == Keras" in file "<path_this_repo>/src/common/constant.py", and 2) run the script above with '--torch' instead of '--keras')
 
 We also provide a docker image with which you can evaluate the trained model on your own CT data within a docker container. To do this:
 
@@ -202,4 +202,4 @@ We also provide a docker image with which you can evaluate the trained model on 
 
 3. Run script: "bash run_docker_models.sh <path_your_input_data> <path_output_results>"
 
-* (To run the trained model in Tf-Keras, 1) pull docker image "antonioguj/bronchinet:stable_keras", and 2) change the image name inside the script above)
+* (To run the trained model in Tf-Keras instead: 1) pull the docker image "antonioguj/bronchinet:stable_keras", and 2) change the image name inside the script above)
