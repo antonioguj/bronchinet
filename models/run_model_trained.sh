@@ -105,7 +105,7 @@ echo ""
 
 
 # 1. Compute predictions of probability maps from the trained model
-python3 "${workdir}/Code/scripts_experiments/predict_model.py" ${in_model_file} \
+python3 "${workdir}/Code/src/scripts_experiments/predict_model.py" ${in_model_file} \
         --basedir=${workdir} \
         --in_config_file=${in_config_file} \
         --testing_datadir=${in_testdata_dir} \
@@ -117,7 +117,7 @@ echo ""
 
 
 # 2. Compute full-size probability maps from the cropped prob maps
-python3 "${workdir}/Code/scripts_evalresults/postprocess_predictions.py" \
+python3 "${workdir}/Code/src/scripts_evalresults/postprocess_predictions.py" \
         --basedir=${workdir} \
 	--is_mask_region_interest=${is_mask_lungs} \
         --is_crop_images="False" \
@@ -130,7 +130,7 @@ echo ""
 
 
 # 3. Compute binary segmentation from the full-size probability maps
-python3 "${workdir}/Code/scripts_evalresults/process_predicted_airway_tree.py" \
+python3 "${workdir}/Code/src/scripts_evalresults/process_predicted_airway_tree.py" \
 	--basedir=${workdir} \
 	--post_threshold_value=${val_thres_probs} \
 	--is_attach_coarse_airways=${is_coarse_airways} \
@@ -144,7 +144,7 @@ echo ""
 # 4. Compute first connected component from the binary segmentation
 if [ "$is_conn_binmasks" == "True" ]
 then
-    python3 "${workdir}/Code/scripts_util/apply_operation_images.py" "${output_dir}/BinaryMasks/" "${output_dir}/BinaryMasks_Connected/" \
+    python3 "${workdir}/Code/src/scripts_util/apply_operation_images.py" "${output_dir}/BinaryMasks/" "${output_dir}/BinaryMasks_Connected/" \
 	    --type="firstconreg" \
 	    --in_conreg_dim="1"
     echo ""

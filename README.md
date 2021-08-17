@@ -30,6 +30,8 @@ Project Organization
     ├── requirements.txt        <- The requirements file for reproducing the analysis environment, e.g.
     │                         	   generated with `pip freeze > requirements.txt`
     │
+    ├── scripts_launch          <- Scripts with pipelines and PBS scripts to run in clusters
+    │
     ├── setup.py                <- makes project pip installable (pip install -e .) so src can be imported
     ├── src                     <- Source code for use in this project.
     │   │
@@ -43,7 +45,6 @@ Project Organization
     │   │
     │   ├── scripts_evalresults <- Scripts to evaluate results from models
     │   ├── scripts_experiments <- Scripts to train and test models
-    │   ├── scripts_launch      <- Scripts with pipelines and PBS scripts to run in clusters
     │   ├── scripts_preparedata <- Scripts to prepare data to train models
     │   └── scripts_util        <- Scripts for various utilities
     │
@@ -87,7 +88,7 @@ The user needs to prepare the working directory in the desired location, as foll
 
 1. mkdir <path_your_work_dir> && cd <path_your_work_dir>
 2. ln -s <path_your_data_dir> BaseData
-3. ln -s <path_this_repo>/src/ Code
+3. ln -s <path_this_repo> Code
 
 ## Run the Scripts
 

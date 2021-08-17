@@ -20,7 +20,7 @@ source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
 HOME="/trinity/home/agarcia/"
 WORKDIR="${HOME}/Results/AirwaySegmentation_DLCST-LUVAR/"
 
-export PYTHONPATH="${WORKDIR}/Code/:${PYTHONPATH}"
+export PYTHONPATH="${WORKDIR}/Code/src/:${PYTHONPATH}"
 
 # Load virtual environment
 source "${HOME}/Pyvenv-v.3.7.4/bin/activate"
@@ -57,7 +57,7 @@ IS_USE_VALIDATION_DATA="True"
 IS_SHUFFLE_TRAINDATA="True"
 # --------
 
-python3 "${WORKDIR}/Code/scripts_experiments/train_model.py" \
+python3 "${WORKDIR}/Code/src/scripts_experiments/train_model.py" \
 	--basedir=${WORKDIR} \
 	--modelsdir=${MODELS_DIR} \
 	--training_datadir=${TRAINDATA_DIR} \
