@@ -25,10 +25,16 @@ fi
 
 if [ "$type_backend" == "--torch" ]
 then
-    ln -s "${workdir}/models/model_trained_torch.pt" "model_trained.pt"
+    in_rel_model_file="model_trained_torch.pt"
+    # set "type_backend == torch" in code
+    #sed -i "s/TYPE_DNNLIB_USED = 'Keras'/TYPE_DNNLIB_USED = 'Pytorch'/" ~/Codes/bronchinet/src/common/constant.py
+    is_backward_compat="True"
 elif [ "$type_backend" == "--keras" ]
 then
-    ln -s "${workdir}/models/model_trained_keras.hdf5" "model_trained.hdf5"
+    in_rel_model_file="model_trained_keras.hdf5"
+    # set "type_backend == keras" in code
+    #sed -i "s/TYPE_DNNLIB_USED = 'Pytorch'/TYPE_DNNLIB_USED = 'Keras'/" ~/Codes/bronchinet/src/common/constant.py
+    is_backward_compat="False"
 else
     echo "ERROR: input \"TYPE_BACKEND\" not either \"--torch\" or \"--keras\""
     exit 1
@@ -59,7 +65,7 @@ is_coarse_airways="True"        # include mask of coarse airways (trachea & main
 in_images_dir="${workdir}/BaseData/Images/"
 in_lungmasks_dir="${workdir}/BaseData/Lungs/"
 in_coarseairways_dir="${workdir}/BaseData/CoarseAirways/"
-in_model_file="${workdir}/models/model_trained.pt"
+in_model_file="${workdir}/models/${in_rel_model_file}"
 in_config_file="${workdir}/models/configparams.txt"
 
 if [ ! -d "$output_dir" ] 
@@ -106,7 +112,7 @@ python3 "${workdir}/Code/scripts_experiments/predict_model.py" ${in_model_file} 
 	--name_output_predictions_relpath="${output_dir}/PosteriorsWorkData/" \
 	--name_input_reference_keys_file=${in_referkeys_file} \
         --name_output_reference_keys_file="${output_dir}/referenceKeys_posteriors.npy" \
-        --is_backward_compat="True"
+        --is_backward_compat="${is_backward_compat}"
 echo ""
 
 

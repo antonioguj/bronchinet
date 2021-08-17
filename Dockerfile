@@ -41,6 +41,9 @@ ARG MODELDIR=./models/
 # used-defined variable to specify other paths for models
 #   in docker build: --build-arg MODELDIR=<desired_value> (default "./models/")
 
+ARG TYPE_BACKEND=torch
+# input argument: --build-arg MODELDIR=<desired_value> (= ["torch", "keras"])
+
 WORKDIR /workdir
 
 COPY ["${MODELDIR}", "./models/"]
@@ -59,7 +62,7 @@ RUN ln -s "./input_data/" "./BaseData"
 ENTRYPOINT ["/bin/bash", "./models/run_model_trained.sh"]
 # command to execute when running docker
 
-CMD ["./input_data/", "./results/", "--docker"]
+CMD ["./input_data/", "./results/", "--docker", "--${TYPE_BACKEND}"]
 # input arguments to script in entrypoint
 
 # FOR DEBUGGING: comment-out the commands above, and uncomment the ones below
