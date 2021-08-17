@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ "$1" == "" ] || [ "$2" == "" ] || [ "$3" == "" ]
+if [ "$1" == "" ] || [ "$2" == "" ] || [ "$3" == "" ] || [ "$4" == "" ]
 then
-    echo "ERROR: Usage: \"$0\" \"INPUT_DATA_DIR\" \"OUTPUT_DIR\" \"MODE_RUN_SCRIPT\" (= [--docker, --local])"
+    echo "ERROR: Usage: \"$0\" \"INPUT_DATA_DIR\" \"OUTPUT_DIR\" \"MODE_RUN_SCRIPT\" (= [--docker, --local]) \"TYPE_BACKEND\" (= [--torch, --keras])"
     exit 1
 fi
 
@@ -10,6 +10,7 @@ fi
 input_data_dir=$1
 output_dir=$2
 mode_run_script=$3
+type_backend=$4
 
 if [ "$mode_run_script" == "--docker" ]
 then
@@ -19,6 +20,17 @@ then
     workdir=$PWD		# current directory where the script is run
 else
     echo "ERROR: input \"MODE_RUN_SCRIPT\" not either \"--docker\" or \"--local\""
+    exit 1
+fi
+
+if [ "$type_backend" == "--torch" ]
+then
+    ln -s "${workdir}/models/model_trained_torch.pt" "model_trained.pt"
+elif [ "$type_backend" == "--keras" ]
+then
+    ln -s "${workdir}/models/model_trained_keras.hdf5" "model_trained.hdf5"
+else
+    echo "ERROR: input \"TYPE_BACKEND\" not either \"--torch\" or \"--keras\""
     exit 1
 fi
 
