@@ -56,7 +56,7 @@ RUN mkdir "./input_data/"
 RUN mkdir "./results/"
 # folders for input data / output results, to be mounted from local dirs in docker run
 
-RUN ln -s "/opt/bronchinet/src/" "./Code"
+RUN ln -s "/opt/bronchinet/" "./Code"
 RUN ln -s "./input_data/" "./BaseData"
 
 
@@ -64,6 +64,9 @@ RUN ln -s "./input_data/" "./BaseData"
 # --------
 ENTRYPOINT ["/bin/bash", "./models/run_model_trained.sh"]
 # command to execute when running docker
+
+ENV TYPE_BACKEND ${TYPE_BACKEND}
+# needed to use user-defined variable at run time, as "build-args" are only at build time
 
 CMD ["./input_data/", "./results/", "--${TYPE_BACKEND}", "--docker"]
 # input arguments to script in entrypoint
