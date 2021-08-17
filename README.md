@@ -10,7 +10,7 @@ Introduction
 
 This software provides functionality to segment airways from CT scans, using deep CNN models, and in particular the U-Net. The implementation of the segmentation method is described in:
 
-- [1] Garcia-Uceda, A., Selvan, R., Saghir, Z., Tiddens, H.A.W.M., de Bruijne, M. Automatic airway segmentation from Computed Tomography using robust and efficient 3-D convolutional neural networks. ArXiv e-prints (2021). arXiv:2103.16328.
+- [1] Garcia-Uceda, A., Selvan, R., Saghir, Z., Tiddens, H.A.W.M., de Bruijne, M. Automatic airway segmentation from computed tomography using robust and efficient 3-D convolutional neural networks. Scientific Reports Nature 11, 16001 (2021). https://doi.org/10.1038/s41598-021-95364-1
 
 If using this software influences positively your project, please cite the above paper.
 
