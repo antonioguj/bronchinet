@@ -13,7 +13,7 @@ for infile_order_train in $list_files_order_train
 do
     ifold=$(echo $(basename $infile_order_train) | egrep -o "[[:digit:]]{1}")
     
-    python3 "./Code/scripts_experiments/distribute_data.py" \
+    python3 "./Code/src/scripts_experiments/distribute_data.py" \
 	    --basedir=. \
 	    --type_data="testing" \
 	    --type_distribute="orderfile" \
@@ -37,14 +37,14 @@ do
     modeltest="${modeldir}/${modelname}"
     outputdir="${outputbasedir}/Predictions_CV${ifold}"
 
-    python3 "./Code/scripts_experiments/predict_model.py" $modeltest \
+    python3 "./Code/src/scripts_experiments/predict_model.py" $modeltest \
 	    --basedir="." \
 	    --in_config_file="${modeldir}/configparams.txt" \
 	    --testing_datadir="./TestingData_CV${ifold}/" \
 	    --name_output_predictions_relpath="${outputdir}/PosteriorsWorkData/" \
 	    --name_output_reference_keys_file="${outputdir}/referenceKeys_posteriors.npy"
 
-    python3 "./Code/scripts_evalresults/postprocess_predictions.py" \
+    python3 "./Code/src/scripts_evalresults/postprocess_predictions.py" \
 	    --basedir="." \
 	    --name_input_predictions_relpath="${outputdir}/PosteriorsWorkData/" \
 	    --name_input_reference_keys_file="${outputdir}/referenceKeys_posteriors.npy" \
