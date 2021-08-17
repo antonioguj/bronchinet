@@ -12,15 +12,15 @@ module purge
 module load Python/3.7.4-GCCcore-8.3.0
 module load libs/cuda/10.1.243
 module load libs/cudnn/7.6.5.32-CUDA-10.1.243
-#module load libs/tensorrt/6.0.1.5-CUDA-10.1.243
-#module load TensorFlow/2.1.0-fosscuda-2019b-Python-3.7.4
+module load libs/tensorrt/6.0.1.5-CUDA-10.1.243
+module load TensorFlow/2.1.0-fosscuda-2019b-Python-3.7.4
 
 source /tmp/${SLURM_JOB_USER}.${SLURM_JOB_ID}/prolog.env
 
 HOME="/trinity/home/agarcia/"
 WORKDIR="${HOME}/Results/AirwaySegmentation_DLCST-LUVAR/"
 
-export PYTHONPATH="${WORKDIR}/Code/:${PYTHONPATH}"
+export PYTHONPATH="${WORKDIR}/Code/src/:${PYTHONPATH}"
 
 # Load virtual environment
 source "${HOME}/Pyvenv-v.3.7.4/bin/activate"
@@ -61,7 +61,7 @@ IS_GNN_LIMIT_CANDIT_NEIGHS_OTFADJ="True"
 IS_GNN_WITH_ATTENTION="False"
 # --------
 
-python3 "${WORKDIR}/Code/scripts_experiments/train_model.py" \
+python3 "${WORKDIR}/Code/src/scripts_experiments/train_model.py" \
 	--basedir=${WORKDIR} \
 	--modelsdir=${MODELS_DIR} \
 	--training_datadir=${TRAINDATA_DIR} \
