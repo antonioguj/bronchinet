@@ -65,10 +65,11 @@ RUN ln -s "./input_data/" "./BaseData"
 ENTRYPOINT ["/bin/bash", "./models/run_model_trained.sh"]
 # command to execute when running docker
 
-ENV TYPE_BACKEND ${TYPE_BACKEND}
-# needed to use user-defined variable at run time, as "build-args" are only at build time
+#ENV TYPE_BACKEND "${TYPE_BACKEND}"
+# needed to use "build-arg" variable at run time (TO DO. DOES NOT WORK)
 
-CMD ["./input_data/", "./results/", "--${TYPE_BACKEND}", "--docker"]
+#CMD ["./input_data/", "./results/", "--${TYPE_BACKEND}", "--docker"]
+CMD ["./input_data/", "./results/", "--torch", "--docker"]
 # input arguments to script in entrypoint
 
 # FOR DEBUGGING: comment-out the commands above, and uncomment the ones below
