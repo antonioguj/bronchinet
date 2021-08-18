@@ -23,14 +23,9 @@ RUN apt-get update && \
 WORKDIR /opt/bronchinet
 
 COPY ["./setup.py", "./"]
+COPY ["./requirements_keras.txt", "./requirements.txt"]
 # copy files from local dir (this repository) to that inside the container
 #   destination path relative to WORKDIR
-
-ARG TYPE_BACKEND=torch
-# used-defined variable: to indicate whether use backend i) torch and ii) tf-keras
-#   in docker build: --build-arg TYPE_BACKEND=["torch", "keras"] (default "torch")
-
-COPY ["./requirements_only${TYPE_BACKEND}.txt", "./requirements.txt"]
 
 RUN /usr/bin/python3 -m pip install --upgrade pip && \
     pip3 install -r "./requirements.txt"
@@ -65,11 +60,7 @@ RUN ln -s "./input_data/" "./BaseData"
 ENTRYPOINT ["/bin/bash", "./models/run_model_trained.sh"]
 # command to execute when running docker
 
-#ENV TYPE_BACKEND "${TYPE_BACKEND}"
-# needed to use "build-arg" variable at run time (TO DO. DOES NOT WORK)
-
-#CMD ["./input_data/", "./results/", "--${TYPE_BACKEND}", "--docker"]
-CMD ["./input_data/", "./results/", "--torch", "--docker"]
+CMD ["./input_data/", "./results/", "--keras"]
 # input arguments to script in entrypoint
 
 # FOR DEBUGGING: comment-out the commands above, and uncomment the ones below

@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ "$1" == "" ] || [ "$2" == "" ] || [ "$3" == "" ] || [ "$4" == "" ]
+if [ "$1" == "" ] || [ "$2" == "" ] || [ "$3" == "" ]
 then
-    echo "ERROR: Usage: \"$0\" \"INPUT_DATA_DIR\" \"OUTPUT_DIR\" \"TYPE_BACKEND\" (= [--torch, --keras]) \"MODE_RUN_SCRIPT\" (= [--docker, --local])"
+    echo "ERROR: Usage: \"$0\" \"INPUT_DATA_DIR\" \"OUTPUT_DIR\" \"TYPE_BACKEND\" (= [--torch, --keras])"
     exit 1
 fi
 
@@ -10,7 +10,7 @@ fi
 input_data_dir=$1
 output_dir=$2
 type_backend=$3
-mode_run_script=$4
+workdir=$PWD
 
 if [ "$type_backend" == "--torch" ]
 then
@@ -26,17 +26,6 @@ then
     is_old_trained_model="False"
 else
     echo "ERROR: input \"TYPE_BACKEND\" not either \"--torch\" or \"--keras\""
-    exit 1
-fi
-
-if [ "$mode_run_script" == "--docker" ]
-then
-    workdir="/workdir"		# working directory set in Dockerfile
-elif [ "$mode_run_script" == "--local" ]
-then
-    workdir=$PWD		# current directory where the script is run
-else
-    echo "ERROR: input \"MODE_RUN_SCRIPT\" not either \"--docker\" or \"--local\""
     exit 1
 fi
 

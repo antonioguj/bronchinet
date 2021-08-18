@@ -1,13 +1,13 @@
-name: Docker Build and Push
+name: Docker Build with Keras and Push
 
 on:
 
   workflow_dispatch:
     inputs:
       version:
-        description: 'enter version "v*.*"'
+        description: 'enter image version'
         required: true
-        default: ''
+        default: 'stable_keras'
       tag:
         description: 'enter tag e.g. "latest, debug"'
         required: false
@@ -37,6 +37,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
+          file: ./Dockerfile_keras
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ secrets.DOCKERHUB_USER }}/bronchinet:${{ github.event.inputs.version }}
           labels: ${{ secrets.DOCKERHUB_USER }}/bronchinet:${{ github.event.inputs.tag }}
