@@ -16,31 +16,31 @@ RUN apt-get update && \
     apt-get clean
 # "--no-install-recommends" to avoid not-needed dependencies and create a lighter image
 # "apt-get clean" to clean up cache memory and reduce image size
+# "git-lfs" because the models are stored in Git-LFS system
 
 
-# 3. SETUP PYTHON REQUIREMENTS
+# 3. SETUP CODE AND PYTHON REQUIREMENTS
 # --------
 WORKDIR /opt/bronchinet
 
+COPY ["./src/", "./src/"]
 COPY ["./setup.py", "./"]
 COPY ["./requirements_torch.txt", "./requirements.txt"]
 # copy files from local dir (this repository) to that inside the container
 #   destination path relative to WORKDIR
+
+ENV PYTHONPATH "/opt/bronchinet/src/"
 
 RUN pip3 install -r "./requirements.txt"
 
 
 # 4. PREPARE WORKSPACE
 # --------
-ENV PYTHONPATH "/opt/bronchinet/src/"
-
-COPY ["./src/", "./src/"]
+WORKDIR /workdir
 
 ARG MODELDIR=./models/
 # used-defined variable: to specify other paths for models
 #   in docker build: --build-arg MODELDIR=<desired_path> (default "./models/")
-
-WORKDIR /workdir
 
 COPY ["${MODELDIR}", "./models/"]
 # destination path now relative to WORKDIR="/workdir/"
