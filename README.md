@@ -194,7 +194,7 @@ We provide a trained U-Net model with this software, that we used for evaluation
 
 We also provide a trained model using Tf-Keras instead of Pytorch. To use this one: 
 
-1. Set "TYPE_DNNLIB_USED == Keras" in the source file "<path_this_repo>/src/common/constant.py"
+1. Set "TYPE_DNNLIB_USED == 'Keras'" in the source file "<path_this_repo>/src/common/constant.py"
 
 2. Repeat the steps above, but with flag '--keras' instead of '--torch' in step 3)
 
