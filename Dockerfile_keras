@@ -42,6 +42,9 @@ ARG MODELDIR=./models/
 # used-defined variable: to specify other paths for models
 #   in docker build: --build-arg MODELDIR=<desired_path> (default "./models/")
 
+RUN sed -i "s/TYPE_DNNLIB_USED = 'Pytorch'/TYPE_DNNLIB_USED = 'Keras'/" "./src/common/constant.py"
+# change the variable of backend to Keras in the source file
+
 WORKDIR /workdir
 
 COPY ["${MODELDIR}", "./models/"]
