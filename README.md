@@ -196,7 +196,7 @@ We also provide a trained model using Tf-Keras instead of Pytorch. To use this o
 
 1. Set "TYPE_DNNLIB_USED == Keras" in the source file "<path_this_repo>/src/common/constant.py"
 
-2. Repeat the steps above, but with flag '--keras' instead of '--torch in step 3)
+2. Repeat the steps above, but with flag '--keras' instead of '--torch' in step 3)
 
 We also provide a docker image with which you can evaluate the trained model on your own CT data within a docker container. To do this:
 
