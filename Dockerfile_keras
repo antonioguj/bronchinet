@@ -13,9 +13,11 @@ LABEL maintainer="antonio.garciauceda89@gmail.com" location="Rotterdam" type="Ho
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends python3.8 python3-pip python3-setuptools && \
+    apt-get install -y git-lfs && \
     apt-get clean
 # "--no-install-recommends" to avoid not-needed dependencies and create a lighter image
 # "apt-get clean" to clean up cache memory and reduce image size
+# "git-lfs" because the models are stored in Git-LFS system
 
 
 # 3. SETUP PYTHON REQUIREMENTS
