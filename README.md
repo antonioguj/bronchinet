@@ -75,12 +75,8 @@ Requirements
 
 Before running the scripts, the user needs to prepare the data directory with the following structure:
 
-    ├── Images                  <- Store CT scans (in dicom or nifti format)
-    ├── Airways                 <- Store reference airway segmentations
-    ├── Lungs (optional)        <- Store lung segmentations 
-    │                              (used in options i) mask ground-truth to ROI, and ii) crop images)
-    └── CoarseAirways (optional)<- Store segmentation of trachea and main bronchi
-                                   (used in option to attach trachea and main bronchi to predictions)
+    ├── Images     <- Store input MRI scans (in dicom or nifti format)
+    └── Labels     <- Store ground-truth MRI scans (in dicom or nifti format)
 
 ## Prepare Working Directory
 
