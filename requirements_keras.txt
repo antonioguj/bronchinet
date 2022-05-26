@@ -21,7 +21,7 @@ tb-nightly==1.14.0a20190301
 tensorboard==2.1.1
 tensorflow==2.1.0
 tensorflow-estimator==2.1.0
-tensorflow-gpu==2.1.0
+tensorflow-gpu==2.7.2
 tensorflow-tensorboard==1.5.1
 #torch==1.8.1
 #torchsummary==1.5.1
