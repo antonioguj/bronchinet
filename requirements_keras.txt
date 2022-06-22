@@ -9,7 +9,7 @@ Keras-Applications==1.0.8
 Keras-Preprocessing==1.1.2
 matplotlib==3.2.1
 nibabel==3.1.0
-numpy==1.18.4
+numpy==1.22.0
 pandas==1.0.3
 pydicom==1.4.2
 scikit-image==0.17.2
